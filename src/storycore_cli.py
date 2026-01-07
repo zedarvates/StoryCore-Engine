@@ -23,6 +23,8 @@ Examples:
   storycore grid --project path     # Generate grid in specific project
   storycore promote                  # Upscale panels in current directory
   storycore promote --project path  # Upscale panels in specific project
+  storycore refine                   # Refine panels in current directory
+  storycore refine --project path   # Refine panels in specific project
   storycore qa                       # Run QA scoring on current directory
   storycore qa --project path       # Run QA scoring on specific project
   storycore export                   # Export current directory with QA
@@ -63,6 +65,14 @@ Examples:
     promote_parser.add_argument("--scale", type=int, default=2, help="Scale factor for upscaling (default: 2)")
     promote_parser.add_argument("--method", default="lanczos", choices=["lanczos", "bicubic"], help="Resampling method (default: lanczos)")
     
+    # Refine command
+    refine_parser = subparsers.add_parser("refine", help="Apply enhancement filters to panels")
+    refine_parser.add_argument("--project", default=".", help="Project directory (default: current directory)")
+    refine_parser.add_argument("--input", default="promoted", choices=["promoted", "panels"], help="Input source (default: promoted)")
+    refine_parser.add_argument("--mode", default="unsharp", choices=["unsharp", "sharpen"], help="Enhancement mode (default: unsharp)")
+    refine_parser.add_argument("--strength", type=float, default=1.0, help="Filter strength (default: 1.0)")
+    refine_parser.add_argument("--metrics", action="store_true", help="Compute and display sharpness metrics")
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -82,6 +92,8 @@ Examples:
             handle_grid(args)
         elif args.command == "promote":
             handle_promote(args)
+        elif args.command == "refine":
+            handle_refine(args)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -285,6 +297,58 @@ def handle_promote(args):
         
     except Exception as e:
         print(f"✗ Promotion error: {e}")
+        sys.exit(1)
+
+
+def handle_refine(args):
+    """Handle refine command."""
+    from refinement_engine import refine_images, update_project_manifest_refined
+    
+    project_path = Path(args.project)
+    
+    if not project_path.exists():
+        print(f"✗ Project directory not found: {project_path}")
+        sys.exit(1)
+    
+    print(f"Refining images in project: {project_path.absolute()}")
+    print(f"Input source: {args.input}")
+    print(f"Mode: {args.mode}")
+    print(f"Strength: {args.strength}")
+    if args.metrics:
+        print("Computing sharpness metrics...")
+    
+    try:
+        result = refine_images(project_path, args.input, args.mode, args.strength, args.metrics)
+        
+        print(f"✓ Refined {result['metadata']['total_panels']} panels successfully")
+        print(f"  Input source: {result['input_source']}")
+        
+        # Show resolution info
+        for i, resolution in enumerate(result['resolutions'], 1):
+            print(f"  Panel {i:02d}: {resolution[0]}x{resolution[1]} (enhanced)")
+        
+        print(f"  Output directory: {result['output_dir']}")
+        
+        # Update project manifest
+        update_project_manifest_refined(project_path, result['metadata'])
+        print(f"  Updated project.json asset manifest")
+        print(f"  Project status: refined")
+        
+        # Display metrics summary if computed
+        if args.metrics and result['panel_metrics']:
+            print(f"\n📊 Sharpness Metrics Summary:")
+            improvements = [m["improvement_percent"] for m in result['panel_metrics']]
+            print(f"  Min improvement: {min(improvements):+.1f}%")
+            print(f"  Mean improvement: {sum(improvements)/len(improvements):+.1f}%")
+            print(f"  Max improvement: {max(improvements):+.1f}%")
+            
+            # Show per-panel details
+            print(f"\n  Per-panel details:")
+            for metric in result['panel_metrics']:
+                print(f"    {metric['panel']}: {metric['sharpness_before']:.1f} → {metric['sharpness_after']:.1f} ({metric['improvement_percent']:+.1f}%)")
+        
+    except Exception as e:
+        print(f"✗ Refinement error: {e}")
         sys.exit(1)
 
 

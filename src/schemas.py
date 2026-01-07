@@ -108,6 +108,54 @@ PROJECT_SCHEMA = {
                         "total_panels": {"type": "integer"}
                     }
                 },
+                "refined_panels": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "asset_id": {"type": "string"},
+                            "path": {"type": "string"},
+                            "original_source": {"type": "string"},
+                            "resolution": {"type": "string"}
+                        }
+                    }
+                },
+                "refinement_metadata": {
+                    "type": "object",
+                    "properties": {
+                        "input": {"type": "string"},
+                        "mode": {"type": "string"},
+                        "strength": {"type": "number"},
+                        "created_at": {"type": "string"},
+                        "total_panels": {"type": "integer"}
+                    }
+                },
+                "refinement_metrics": {
+                    "type": "object",
+                    "properties": {
+                        "panel_metrics": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "panel": {"type": "string"},
+                                    "sharpness_before": {"type": "number"},
+                                    "sharpness_after": {"type": "number"},
+                                    "improvement_percent": {"type": "number"}
+                                }
+                            }
+                        },
+                        "summary": {
+                            "type": "object",
+                            "properties": {
+                                "min_improvement_percent": {"type": "number"},
+                                "mean_improvement_percent": {"type": "number"},
+                                "max_improvement_percent": {"type": "number"},
+                                "computed_at": {"type": "string"}
+                            }
+                        }
+                    }
+                },
                 "panel_to_shot_map": {"type": "object"}
             }
         },

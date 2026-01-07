@@ -233,6 +233,12 @@ class QAEngine:
                 promoted_score = self._score_promoted_panels(project_path, asset_manifest["promoted_panels"])
                 if promoted_score < 5.0:
                     score -= (5.0 - promoted_score) * 0.2  # Reduced penalty for optional feature
+            
+            # Check refined panels if they exist in manifest
+            if "refined_panels" in asset_manifest:
+                refined_score = self._score_refined_panels(project_path, asset_manifest["refined_panels"])
+                if refined_score < 5.0:
+                    score -= (5.0 - refined_score) * 0.2  # Reduced penalty for optional feature
         
         except (json.JSONDecodeError, FileNotFoundError, KeyError):
             pass  # No penalty if we can't read the manifest
@@ -252,6 +258,59 @@ class QAEngine:
         
         return max(0.0, min(5.0, score))
     
+    def _score_refined_panels(self, project_path: Path, refined_panels: List[Dict[str, Any]]) -> float:
+        """Score refined panels file existence."""
+        if not refined_panels:
+            return 5.0
+        
+        score = 5.0
+        for panel in refined_panels:
+            panel_path = project_path / panel.get("path", "")
+            if not panel_path.exists():
+                score -= 1.0
+        
+        return max(0.0, min(5.0, score))
+    
+    def _check_refinement_metrics(self, refinement_metrics: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Check refinement metrics for potential issues."""
+        issues = []
+        
+        panel_metrics = refinement_metrics.get("panel_metrics", [])
+        summary = refinement_metrics.get("summary", {})
+        
+        if not panel_metrics:
+            return issues
+        
+        # Check for panels with decreased sharpness (>5% decrease)
+        for panel in panel_metrics:
+            improvement = panel.get("improvement_percent", 0)
+            if improvement < -5.0:
+                issues.append({
+                    "category": "refinement_quality",
+                    "severity": "medium",
+                    "description": f"Panel {panel.get('panel', 'unknown')} sharpness decreased by {abs(improvement):.1f}%",
+                    "suggested_fix": "Consider reducing refinement strength or changing mode"
+                })
+        
+        # Check mean improvement
+        mean_improvement = summary.get("mean_improvement_percent", 0)
+        if mean_improvement < 2.0:
+            issues.append({
+                "category": "refinement_quality",
+                "severity": "low",
+                "description": f"Mean sharpness improvement is only {mean_improvement:.1f}% (might be too weak)",
+                "suggested_fix": "Consider increasing refinement strength"
+            })
+        elif mean_improvement > 80.0:
+            issues.append({
+                "category": "refinement_quality",
+                "severity": "medium",
+                "description": f"Mean sharpness improvement is {mean_improvement:.1f}% (possible oversharpen artifacts)",
+                "suggested_fix": "Consider reducing refinement strength to avoid artifacts"
+            })
+        
+        return issues
+    
     def _calculate_expected_panels(self, dimensions: str) -> int:
         """Calculate expected number of panels from grid dimensions."""
         try:
@@ -263,6 +322,12 @@ class QAEngine:
     def _detect_issues(self, project_data: Dict[str, Any], scores: Dict[str, float]) -> List[Dict[str, Any]]:
         """Detect specific issues based on scores."""
         issues = []
+        
+        # Check refinement metrics if available
+        asset_manifest = project_data.get("asset_manifest", {})
+        if "refinement_metrics" in asset_manifest:
+            refinement_issues = self._check_refinement_metrics(asset_manifest["refinement_metrics"])
+            issues.extend(refinement_issues)
         
         for category, score in scores.items():
             if score < self.thresholds["min_category_score"]:
