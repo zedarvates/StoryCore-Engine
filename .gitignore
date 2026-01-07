@@ -8,3 +8,4 @@ echo "demo-*/" >> .gitignoretest-qa-demo/
 test-*/
 demo-*/
 grid-*/
+grid-*/
