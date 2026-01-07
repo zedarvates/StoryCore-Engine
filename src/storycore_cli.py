@@ -19,8 +19,10 @@ Examples:
   storycore init my-project          # Initialize new project
   storycore validate                 # Validate current directory
   storycore validate --project path # Validate specific project
-  storycore export                   # Export current directory
-  storycore export --project path   # Export specific project
+  storycore qa                       # Run QA scoring on current directory
+  storycore qa --project path       # Run QA scoring on specific project
+  storycore export                   # Export current directory with QA
+  storycore export --project path   # Export specific project with QA
         """
     )
     
@@ -40,6 +42,10 @@ Examples:
     export_parser.add_argument("--project", default=".", help="Project directory to export (default: current directory)")
     export_parser.add_argument("--output", default="exports", help="Export base directory (default: exports)")
     
+    # QA command
+    qa_parser = subparsers.add_parser("qa", help="Run QA scoring on project")
+    qa_parser.add_argument("--project", default=".", help="Project directory to score (default: current directory)")
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -53,6 +59,8 @@ Examples:
             handle_validate(args)
         elif args.command == "export":
             handle_export(args)
+        elif args.command == "qa":
+            handle_qa(args)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -133,6 +141,47 @@ def handle_export(args):
                 
     except Exception as e:
         print(f"✗ Export error: {e}")
+        sys.exit(1)
+
+
+def handle_qa(args):
+    """Handle QA command."""
+    from qa_engine import QAEngine
+    
+    qa_engine = QAEngine()
+    project_path = Path(args.project)
+    
+    if not project_path.exists():
+        print(f"✗ Project directory not found: {project_path}")
+        sys.exit(1)
+    
+    print(f"Running QA scoring on: {project_path.absolute()}")
+    
+    try:
+        qa_report = qa_engine.run_qa_scoring(str(project_path))
+        
+        # Print results
+        print(f"\nQA Scoring Results:")
+        print(f"Overall Score: {qa_report['overall_score']:.1f}/5.0")
+        print(f"Status: {'PASSED' if qa_report['passed'] else 'FAILED'}")
+        
+        if qa_report.get("categories"):
+            print("\nCategory Scores:")
+            for category, score in qa_report["categories"].items():
+                status = "✓" if score >= 3.0 else "✗"
+                print(f"  {status} {category.replace('_', ' ').title()}: {score:.1f}/5.0")
+        
+        if qa_report.get("issues"):
+            print(f"\nIssues Found: {len(qa_report['issues'])}")
+            for issue in qa_report["issues"]:
+                print(f"  - {issue['description']}")
+                print(f"    Fix: {issue['suggested_fix']}")
+        
+        if not qa_report["passed"]:
+            sys.exit(1)
+            
+    except Exception as e:
+        print(f"✗ QA scoring error: {e}")
         sys.exit(1)
 
 

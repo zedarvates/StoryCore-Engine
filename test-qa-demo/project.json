@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "project_id": "storycore_test-qa-demo",
+  "created_at": "2026-01-07T15:28:45.677864Z",
+  "updated_at": "2026-01-07T15:28:45.735197Z",
+  "config": {
+    "hackathon_mode": true,
+    "global_seed": 1032569667,
+    "target_aspect_ratio": "16:9",
+    "target_resolution": "1920x1080",
+    "target_duration_seconds": 18,
+    "time_budget_seconds": 300
+  },
+  "coherence_anchors": {
+    "style_anchor_id": "STYLE_CINE_REALISM_V1",
+    "palette_id": "PALETTE_SUNSET_01",
+    "character_sheet_ids": [
+      "CHAR_DEFAULT_V1"
+    ],
+    "lighting_direction": "right",
+    "lighting_temperature": "warm",
+    "perspective_type": "2-point",
+    "horizon_line": "mid"
+  },
+  "shots_index": {
+    "shot_01": {
+      "active_version": "v1",
+      "status": "placeholder"
+    },
+    "shot_02": {
+      "active_version": "v1",
+      "status": "placeholder"
+    },
+    "shot_03": {
+      "active_version": "v1",
+      "status": "placeholder"
+    }
+  },
+  "asset_manifest": {},
+  "status": {
+    "current_phase": "qa_completed",
+    "qa_passed": true,
+    "last_qa_report_id": "qa_20260107_152845"
+  }
+}
