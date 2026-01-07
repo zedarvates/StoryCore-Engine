@@ -62,7 +62,33 @@ PROJECT_SCHEMA = {
             }
         },
         "shots_index": {"type": "object"},
-        "asset_manifest": {"type": "object"},
+        "asset_manifest": {
+            "type": "object",
+            "properties": {
+                "grid": {
+                    "type": "object",
+                    "properties": {
+                        "asset_id": {"type": "string"},
+                        "path": {"type": "string"},
+                        "type": {"type": "string"},
+                        "dimensions": {"type": "string"},
+                        "created_at": {"type": "string"}
+                    }
+                },
+                "panels": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "asset_id": {"type": "string"},
+                            "path": {"type": "string"},
+                            "panel_index": {"type": "integer"}
+                        }
+                    }
+                },
+                "panel_to_shot_map": {"type": "object"}
+            }
+        },
         "status": {
             "type": "object",
             "required": ["current_phase", "qa_passed"],

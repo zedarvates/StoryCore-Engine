@@ -4,6 +4,7 @@ Performs basic validation checks without external dependencies.
 """
 
 import json
+import json
 from pathlib import Path
 from typing import Dict, List, Any, Tuple
 from datetime import datetime
@@ -201,7 +202,44 @@ class QAEngine:
             if not (project_path / dirname).exists():
                 score -= 0.5
         
+        # Check grid assets if they exist in manifest
+        try:
+            with open(project_path / "project.json", 'r') as f:
+                project_data = json.load(f)
+            
+            asset_manifest = project_data.get("asset_manifest", {})
+            
+            # If grid is in manifest, check if file exists
+            if "grid" in asset_manifest:
+                grid_info = asset_manifest["grid"]
+                grid_path = project_path / grid_info.get("path", "")
+                if not grid_path.exists():
+                    score -= 1.0
+                
+                # Check if all panels exist
+                panels = asset_manifest.get("panels", [])
+                expected_panels = self._calculate_expected_panels(grid_info.get("dimensions", "3x3"))
+                
+                if len(panels) != expected_panels:
+                    score -= 0.5
+                else:
+                    for panel in panels:
+                        panel_path = project_path / panel.get("path", "")
+                        if not panel_path.exists():
+                            score -= 0.2
+        
+        except (json.JSONDecodeError, FileNotFoundError, KeyError):
+            pass  # No penalty if we can't read the manifest
+        
         return max(0.0, min(5.0, score))
+    
+    def _calculate_expected_panels(self, dimensions: str) -> int:
+        """Calculate expected number of panels from grid dimensions."""
+        try:
+            cols, rows = map(int, dimensions.split('x'))
+            return cols * rows
+        except (ValueError, AttributeError):
+            return 9  # Default to 3x3
     
     def _detect_issues(self, project_data: Dict[str, Any], scores: Dict[str, float]) -> List[Dict[str, Any]]:
         """Detect specific issues based on scores."""

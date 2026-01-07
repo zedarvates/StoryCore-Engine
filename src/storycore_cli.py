@@ -19,6 +19,8 @@ Examples:
   storycore init my-project          # Initialize new project
   storycore validate                 # Validate current directory
   storycore validate --project path # Validate specific project
+  storycore grid                     # Generate 3x3 grid in current directory
+  storycore grid --project path     # Generate grid in specific project
   storycore qa                       # Run QA scoring on current directory
   storycore qa --project path       # Run QA scoring on specific project
   storycore export                   # Export current directory with QA
@@ -46,6 +48,13 @@ Examples:
     qa_parser = subparsers.add_parser("qa", help="Run QA scoring on project")
     qa_parser.add_argument("--project", default=".", help="Project directory to score (default: current directory)")
     
+    # Grid command
+    grid_parser = subparsers.add_parser("grid", help="Generate grid and slice into panels")
+    grid_parser.add_argument("--project", default=".", help="Project directory (default: current directory)")
+    grid_parser.add_argument("--grid", default="3x3", help="Grid dimensions: 3x3, 1x2, or 1x4 (default: 3x3)")
+    grid_parser.add_argument("--out", default=None, help="Output grid filename (default: grid_<spec>.ppm)")
+    grid_parser.add_argument("--cell-size", type=int, default=256, help="Size of each grid cell in pixels (default: 256)")
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -61,6 +70,8 @@ Examples:
             handle_export(args)
         elif args.command == "qa":
             handle_qa(args)
+        elif args.command == "grid":
+            handle_grid(args)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -182,6 +193,53 @@ def handle_qa(args):
             
     except Exception as e:
         print(f"✗ QA scoring error: {e}")
+        sys.exit(1)
+
+
+def handle_grid(args):
+    """Handle grid command."""
+    from grid_generator import GridGenerator
+    
+    generator = GridGenerator()
+    project_path = Path(args.project)
+    
+    if not project_path.exists():
+        print(f"✗ Project directory not found: {project_path}")
+        sys.exit(1)
+    
+    # Validate grid specification
+    if args.grid not in ["3x3", "1x2", "1x4"]:
+        print(f"✗ Unsupported grid specification: {args.grid}")
+        print("  Supported: 3x3, 1x2, 1x4")
+        sys.exit(1)
+    
+    print(f"Generating {args.grid} grid for project: {project_path.absolute()}")
+    print(f"Cell size: {args.cell_size}px")
+    
+    # Show cell dimensions for non-square grids
+    if args.grid in ["1x2", "1x4"]:
+        cell_width = round(args.cell_size * 16 / 9)
+        print(f"Cell dimensions: {cell_width}x{args.cell_size}px (16:9 aspect)")
+    
+    try:
+        grid_path = generator.generate_grid(
+            str(project_path), 
+            args.grid,
+            args.out, 
+            args.cell_size
+        )
+        
+        # Calculate number of panels
+        cols, rows = map(int, args.grid.split('x'))
+        total_panels = cols * rows
+        
+        print(f"✓ Grid generated successfully")
+        print(f"  Grid: {grid_path}")
+        print(f"  Panels: assets/images/panels/panel_01.ppm ... panel_{total_panels:02d}.ppm")
+        print(f"  Updated project.json asset manifest")
+        
+    except Exception as e:
+        print(f"✗ Grid generation error: {e}")
         sys.exit(1)
 
 
