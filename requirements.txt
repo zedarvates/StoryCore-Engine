@@ -1,0 +1,18 @@
+# StoryCore-Engine Requirements
+# 
+# This file is intentionally empty for hackathon mode.
+# The CLI uses only Python built-in libraries to ensure
+# zero external dependencies for easy deployment and testing.
+#
+# Built-in libraries used:
+# - argparse (CLI parsing)
+# - json (JSON handling)
+# - pathlib (cross-platform file operations)
+# - datetime (timestamps)
+# - hashlib (deterministic seed generation)
+# - shutil (file copying)
+#
+# Future versions may add:
+# - jsonschema (for proper JSON Schema validation)
+# - click or typer (for richer CLI features)
+# - pydantic (for type-safe data validation)
