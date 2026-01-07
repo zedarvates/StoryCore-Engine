@@ -12,3 +12,6 @@ grid-*/
 promo-*/
 stack-*/
 refine-*/
+src/*-demo/
+src/*-test/
+metrics-*/
