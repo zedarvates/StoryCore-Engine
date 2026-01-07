@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 exports/
 .kiro/
+echo "test-qa-demo/" >> .gitignore
+echo "test-*/" >> .gitignore
+echo "demo-*/" >> .gitignore
