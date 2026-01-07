@@ -21,6 +21,8 @@ Examples:
   storycore validate --project path # Validate specific project
   storycore grid                     # Generate 3x3 grid in current directory
   storycore grid --project path     # Generate grid in specific project
+  storycore promote                  # Upscale panels in current directory
+  storycore promote --project path  # Upscale panels in specific project
   storycore qa                       # Run QA scoring on current directory
   storycore qa --project path       # Run QA scoring on specific project
   storycore export                   # Export current directory with QA
@@ -55,6 +57,12 @@ Examples:
     grid_parser.add_argument("--out", default=None, help="Output grid filename (default: grid_<spec>.ppm)")
     grid_parser.add_argument("--cell-size", type=int, default=256, help="Size of each grid cell in pixels (default: 256)")
     
+    # Promote command
+    promote_parser = subparsers.add_parser("promote", help="Upscale panels to promoted directory")
+    promote_parser.add_argument("--project", default=".", help="Project directory (default: current directory)")
+    promote_parser.add_argument("--scale", type=int, default=2, help="Scale factor for upscaling (default: 2)")
+    promote_parser.add_argument("--method", default="lanczos", choices=["lanczos", "bicubic"], help="Resampling method (default: lanczos)")
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -72,6 +80,8 @@ Examples:
             handle_qa(args)
         elif args.command == "grid":
             handle_grid(args)
+        elif args.command == "promote":
+            handle_promote(args)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -240,6 +250,41 @@ def handle_grid(args):
         
     except Exception as e:
         print(f"✗ Grid generation error: {e}")
+        sys.exit(1)
+
+
+def handle_promote(args):
+    """Handle promote command."""
+    from promotion_engine import promote_panels, update_project_manifest
+    
+    project_path = Path(args.project)
+    
+    if not project_path.exists():
+        print(f"✗ Project directory not found: {project_path}")
+        sys.exit(1)
+    
+    print(f"Promoting panels in project: {project_path.absolute()}")
+    print(f"Scale factor: {args.scale}x")
+    print(f"Method: {args.method}")
+    
+    try:
+        result = promote_panels(project_path, args.scale, args.method)
+        
+        print(f"✓ Promoted {result['metadata']['total_panels']} panels successfully")
+        
+        # Show resolution changes
+        for i, (original, promoted) in enumerate(result['resolutions'], 1):
+            print(f"  Panel {i:02d}: {original[0]}x{original[1]} → {promoted[0]}x{promoted[1]}")
+        
+        print(f"  Output directory: {result['output_dir']}")
+        
+        # Update project manifest
+        update_project_manifest(project_path, result['metadata'])
+        print(f"  Updated project.json asset manifest")
+        print(f"  Project status: promoted")
+        
+    except Exception as e:
+        print(f"✗ Promotion error: {e}")
         sys.exit(1)
 
 

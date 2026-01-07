@@ -1,9 +1,8 @@
 # StoryCore-Engine Requirements
 # 
-# This file is intentionally empty for hackathon mode.
-# The CLI uses only Python built-in libraries to ensure
-# zero external dependencies for easy deployment and testing.
-#
+# Core dependencies for image processing
+Pillow>=10.0.0
+
 # Built-in libraries used:
 # - argparse (CLI parsing)
 # - json (JSON handling)

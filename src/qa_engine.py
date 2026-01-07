@@ -228,8 +228,27 @@ class QAEngine:
                         if not panel_path.exists():
                             score -= 0.2
         
+            # Check promoted panels if they exist in manifest
+            if "promoted_panels" in asset_manifest:
+                promoted_score = self._score_promoted_panels(project_path, asset_manifest["promoted_panels"])
+                if promoted_score < 5.0:
+                    score -= (5.0 - promoted_score) * 0.2  # Reduced penalty for optional feature
+        
         except (json.JSONDecodeError, FileNotFoundError, KeyError):
             pass  # No penalty if we can't read the manifest
+        
+        return max(0.0, min(5.0, score))
+    
+    def _score_promoted_panels(self, project_path: Path, promoted_panels: List[Dict[str, Any]]) -> float:
+        """Score promoted panels file existence."""
+        if not promoted_panels:
+            return 5.0
+        
+        score = 5.0
+        for panel in promoted_panels:
+            panel_path = project_path / panel.get("path", "")
+            if not panel_path.exists():
+                score -= 1.0
         
         return max(0.0, min(5.0, score))
     

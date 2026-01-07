@@ -86,6 +86,28 @@ PROJECT_SCHEMA = {
                         }
                     }
                 },
+                "promoted_panels": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "asset_id": {"type": "string"},
+                            "path": {"type": "string"},
+                            "original_panel": {"type": "string"},
+                            "original_resolution": {"type": "string"},
+                            "promoted_resolution": {"type": "string"}
+                        }
+                    }
+                },
+                "promotion_metadata": {
+                    "type": "object",
+                    "properties": {
+                        "scale_factor": {"type": "integer"},
+                        "method": {"type": "string"},
+                        "created_at": {"type": "string"},
+                        "total_panels": {"type": "integer"}
+                    }
+                },
                 "panel_to_shot_map": {"type": "object"}
             }
         },
