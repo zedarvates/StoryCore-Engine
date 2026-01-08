@@ -156,6 +156,30 @@ PROJECT_SCHEMA = {
                         }
                     }
                 },
+                "comparison_assets": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "asset_id": {"type": "string"},
+                            "path": {"type": "string"},
+                            "type": {"type": "string"},
+                            "mode": {"type": "string"},
+                            "panel": {"type": "string"},
+                            "panels": {
+                                "type": "array",
+                                "items": {"type": "string"}
+                            }
+                        }
+                    }
+                },
+                "comparison_metadata": {
+                    "type": "object",
+                    "properties": {
+                        "created_at": {"type": "string"},
+                        "total_comparisons": {"type": "integer"}
+                    }
+                },
                 "panel_to_shot_map": {"type": "object"}
             }
         },

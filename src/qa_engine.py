@@ -64,6 +64,11 @@ class QAEngine:
             if project_file.exists():
                 with open(project_file, 'r') as f:
                     project_data.update(json.load(f))
+                
+                # Ensure schema compliance for backward compatibility
+                from project_manager import ProjectManager
+                pm = ProjectManager()
+                project_data = pm.ensure_schema_compliance(project_data)
             
             # Load storyboard.json
             storyboard_file = project_path / "storyboard.json"
@@ -109,6 +114,23 @@ class QAEngine:
         for field in required_fields:
             if field not in project_data:
                 score -= 0.5
+        
+        # Check schema v1 compliance
+        if "capabilities" not in project_data:
+            score -= 0.3
+        else:
+            required_capabilities = ["grid", "promote", "refine", "compare", "qa", "export", "dashboard", "narrative", "video_plan", "auto_fix"]
+            for cap in required_capabilities:
+                if cap not in project_data["capabilities"]:
+                    score -= 0.1
+        
+        if "generation_status" not in project_data:
+            score -= 0.3
+        else:
+            required_statuses = ["grid", "promote", "refine", "compare", "qa", "export", "dashboard", "narrative", "video_plan"]
+            for status in required_statuses:
+                if status not in project_data["generation_status"]:
+                    score -= 0.1
         
         # Check config completeness
         config = project_data.get("config", {})

@@ -25,10 +25,18 @@ Examples:
   storycore promote --project path  # Upscale panels in specific project
   storycore refine                   # Refine panels in current directory
   storycore refine --project path   # Refine panels in specific project
+  storycore compare                  # Compare promoted/refined in current directory
+  storycore compare --project path  # Compare promoted/refined in specific project
   storycore qa                       # Run QA scoring on current directory
   storycore qa --project path       # Run QA scoring on specific project
   storycore export                   # Export current directory with QA
   storycore export --project path   # Export specific project with QA
+  storycore dashboard                # Generate dashboard in current directory
+  storycore dashboard --project path # Generate dashboard in specific project
+  storycore narrative                # Process narrative and augment prompts
+  storycore narrative --project path # Process narrative in specific project
+  storycore video-plan               # Generate video production plan
+  storycore video-plan --project path # Generate video plan in specific project
         """
     )
     
@@ -73,6 +81,25 @@ Examples:
     refine_parser.add_argument("--strength", type=float, default=1.0, help="Filter strength (default: 1.0)")
     refine_parser.add_argument("--metrics", action="store_true", help="Compute and display sharpness metrics")
     
+    # Compare command
+    compare_parser = subparsers.add_parser("compare", help="Create visual comparisons between promoted and refined panels")
+    compare_parser.add_argument("--project", default=".", help="Project directory (default: current directory)")
+    compare_parser.add_argument("--panel", default="1", help="Panel number or 'all' (default: 1)")
+    compare_parser.add_argument("--mode", default="side-by-side", choices=["side-by-side", "grid"], help="Comparison layout (default: side-by-side)")
+    compare_parser.add_argument("--out", default="assets/images/compare", help="Output directory (default: assets/images/compare)")
+    
+    # Dashboard command
+    dashboard_parser = subparsers.add_parser("dashboard", help="Generate interactive HTML dashboard")
+    dashboard_parser.add_argument("--project", default=".", help="Project directory (default: current directory)")
+    
+    # Narrative command
+    narrative_parser = subparsers.add_parser("narrative", help="Process narrative and augment prompts")
+    narrative_parser.add_argument("--project", default=".", help="Project directory (default: current directory)")
+    
+    # Video Plan command
+    video_plan_parser = subparsers.add_parser("video-plan", help="Generate video production plan")
+    video_plan_parser.add_argument("--project", default=".", help="Project directory (default: current directory)")
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -94,6 +121,14 @@ Examples:
             handle_promote(args)
         elif args.command == "refine":
             handle_refine(args)
+        elif args.command == "compare":
+            handle_compare(args)
+        elif args.command == "dashboard":
+            handle_dashboard(args)
+        elif args.command == "narrative":
+            handle_narrative(args)
+        elif args.command == "video-plan":
+            handle_video_plan(args)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -349,6 +384,141 @@ def handle_refine(args):
         
     except Exception as e:
         print(f"✗ Refinement error: {e}")
+        sys.exit(1)
+
+
+def handle_compare(args):
+    """Handle compare command."""
+    from comparison_engine import create_comparison_images, update_project_manifest_comparison
+    
+    project_path = Path(args.project)
+    
+    if not project_path.exists():
+        print(f"✗ Project directory not found: {project_path}")
+        sys.exit(1)
+    
+    print(f"Creating comparisons for project: {project_path.absolute()}")
+    print(f"Panel(s): {args.panel}")
+    print(f"Mode: {args.mode}")
+    print(f"Output directory: {args.out}")
+    
+    try:
+        result = create_comparison_images(project_path, args.panel, args.mode, args.out)
+        
+        print(f"✓ Created {len(result['comparison_assets'])} comparison(s) successfully")
+        
+        # Show created files
+        for asset in result['comparison_assets']:
+            print(f"  {asset['path']}")
+        
+        print(f"  Output directory: {result['output_dir']}")
+        
+        # Update project manifest
+        update_project_manifest_comparison(project_path, result)
+        print(f"  Updated project.json asset manifest")
+        
+    except Exception as e:
+        print(f"✗ Comparison error: {e}")
+        sys.exit(1)
+
+
+def handle_video_plan(args):
+    """Handle video-plan command."""
+    from video_plan_engine import VideoPlanEngine
+    
+    project_path = Path(args.project)
+    
+    if not project_path.exists():
+        print(f"✗ Project directory not found: {project_path}")
+        sys.exit(1)
+    
+    print(f"Generating video plan for project: {project_path.absolute()}")
+    
+    try:
+        engine = VideoPlanEngine()
+        result = engine.generate_video_plan(project_path)
+        
+        print(f"✓ Video plan generated successfully")
+        print(f"  Total shots: {result['total_shots']}")
+        print(f"  Total duration: {result['total_duration']:.1f} seconds")
+        
+        # Show camera movement summary
+        if result['camera_movements']:
+            print(f"  Camera movements:")
+            for movement, count in result['camera_movements'].items():
+                print(f"    {movement}: {count} shot(s)")
+        
+        print(f"  Video plan saved: video_plan.json")
+        print(f"  Updated project.json manifest")
+        
+    except Exception as e:
+        print(f"✗ Video plan generation error: {e}")
+        sys.exit(1)
+
+
+def handle_narrative(args):
+    """Handle narrative command."""
+    from narrative_engine import NarrativeEngine
+    
+    project_path = Path(args.project)
+    
+    if not project_path.exists():
+        print(f"✗ Project directory not found: {project_path}")
+        sys.exit(1)
+    
+    print(f"Processing narrative for project: {project_path.absolute()}")
+    
+    try:
+        engine = NarrativeEngine()
+        result = engine.process_storyboard(project_path)
+        
+        print(f"✓ Narrative processing completed")
+        print(f"  Shots processed: {result['shots_processed']}")
+        
+        # Show global style
+        if result['global_style']:
+            print(f"  Global style extracted:")
+            for category, value in result['global_style'].items():
+                print(f"    {category.title()}: {value}")
+        
+        # Show consistency issues
+        if result['consistency_issues']:
+            print(f"  Consistency issues found: {len(result['consistency_issues'])}")
+            for issue in result['consistency_issues'][:3]:  # Show first 3
+                print(f"    - {issue['description']}")
+            if len(result['consistency_issues']) > 3:
+                print(f"    ... and {len(result['consistency_issues']) - 3} more issues")
+        else:
+            print(f"  No consistency issues found")
+        
+        print(f"  Updated storyboard.json with augmented prompts")
+        print(f"  Updated project.json with global style metadata")
+        
+    except Exception as e:
+        print(f"✗ Narrative processing error: {e}")
+        sys.exit(1)
+
+
+def handle_dashboard(args):
+    """Handle dashboard command."""
+    from exporter import generate_dashboard
+    
+    project_path = Path(args.project)
+    
+    if not project_path.exists():
+        print(f"✗ Project directory not found: {project_path}")
+        sys.exit(1)
+    
+    print(f"Generating dashboard for project: {project_path.absolute()}")
+    
+    try:
+        dashboard_path = generate_dashboard(project_path)
+        print(f"✓ Dashboard generated successfully")
+        print(f"  Location: {dashboard_path}")
+        print(f"  Open in browser: file://{dashboard_path.absolute()}")
+        
+    except Exception as e:
+        print(f"✗ Dashboard generation error: {e}")
         sys.exit(1)
 
 

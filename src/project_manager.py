@@ -13,6 +13,29 @@ class ProjectManager:
     
     def __init__(self):
         self.schema_version = "1.0"
+        self.default_capabilities = {
+            "grid": True,
+            "promote": True,
+            "refine": True,
+            "compare": True,
+            "qa": True,
+            "export": True,
+            "dashboard": True,
+            "narrative": True,
+            "video_plan": True,
+            "auto_fix": False
+        }
+        self.default_generation_status = {
+            "grid": "pending",
+            "promote": "pending",
+            "refine": "pending",
+            "compare": "pending",
+            "qa": "pending",
+            "export": "pending",
+            "dashboard": "pending",
+            "narrative": "pending",
+            "video_plan": "pending"
+        }
     
     def init_project(self, project_name: str, base_path: str = ".") -> None:
         """Initialize a new StoryCore-Engine project with proper structure."""
@@ -39,6 +62,32 @@ class ProjectManager:
         hash_obj = hashlib.md5(project_name.encode())
         return int(hash_obj.hexdigest()[:8], 16) % (2**31)
     
+    def ensure_schema_compliance(self, project_data: dict) -> dict:
+        """Ensure project data complies with schema v1, adding missing fields."""
+        # Ensure schema_version
+        if "schema_version" not in project_data:
+            project_data["schema_version"] = self.schema_version
+        
+        # Ensure capabilities
+        if "capabilities" not in project_data:
+            project_data["capabilities"] = self.default_capabilities.copy()
+        else:
+            # Fill missing capabilities
+            for cap, default_val in self.default_capabilities.items():
+                if cap not in project_data["capabilities"]:
+                    project_data["capabilities"][cap] = default_val
+        
+        # Ensure generation_status
+        if "generation_status" not in project_data:
+            project_data["generation_status"] = self.default_generation_status.copy()
+        else:
+            # Fill missing status entries
+            for status, default_val in self.default_generation_status.items():
+                if status not in project_data["generation_status"]:
+                    project_data["generation_status"][status] = default_val
+        
+        return project_data
+    
     def _create_project_json(self, project_path: Path, project_name: str, seed: int) -> None:
         """Create project.json with all required fields."""
         now = datetime.utcnow().isoformat() + "Z"
@@ -48,6 +97,8 @@ class ProjectManager:
             "project_id": f"storycore_{project_name}",
             "created_at": now,
             "updated_at": now,
+            "capabilities": self.default_capabilities.copy(),
+            "generation_status": self.default_generation_status.copy(),
             "config": {
                 "hackathon_mode": True,
                 "global_seed": seed,
