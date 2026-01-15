@@ -1,10 +1,10 @@
 # StoryCore-Engine Technical Architecture
 
-## System Overview
+## [SOURCE OF TRUTH] System Overview
 
 StoryCore-Engine is a deterministic, self-correcting multimodal pipeline that guarantees visual coherence through a Master Coherence Sheet (3x3 grid anchor) and autonomous quality control via Laplacian variance analysis.
 
-### **Core Principles**
+### **[CRITICAL] Core Principles**
 - **Determinism First**: Same inputs → identical outputs via hierarchical seeds
 - **Quality Autonomy**: Self-correcting loops eliminate manual intervention
 - **Visual Coherence**: Master grid locks visual DNA across all shots
@@ -51,7 +51,7 @@ StoryCore-Engine is a deterministic, self-correcting multimodal pipeline that gu
             └─────────────┘ └─────────────┘ └─────────────┘
 ```
 
-## Data Contract v1
+## [SOURCE OF TRUTH] Data Contract v1
 
 ### **Schema Structure**
 ```json
@@ -95,7 +95,7 @@ StoryCore-Engine is a deterministic, self-correcting multimodal pipeline that gu
 - **Version Migration**: Semantic versioning with migration paths
 - **Validation**: JSON schema validation on all read/write operations
 
-## Engine Responsibilities
+## [CRITICAL] Engine Responsibilities
 
 ### **1. Project Manager (`project_manager.py`)**
 **Purpose**: Project lifecycle and schema compliance
@@ -210,7 +210,47 @@ if sharpness > 180.0:
 - Default transitions: fade for first/last, cut for middle
 - Duration: 3 seconds default, configurable per shot
 
-## ComfyUI Integration Surface
+## [CRITICAL] ComfyUI Integration Surface
+
+### **FLUX.2 Model Requirements [SOURCE OF TRUTH]**
+StoryCore-Engine uses FLUX.2 as the core generation model with specific quantized weights:
+
+**Required Models:**
+- **Diffusion Model**: `flux2_dev_fp8mixed.safetensors` (3.5GB)
+- **Text Encoder**: `mistral_3_small_flux2_bf16.safetensors` (7.2GB)
+- **VAE**: `flux2-vae.safetensors` (335MB)
+- **LoRA**: `flux2_berthe_morisot.safetensors` (artistic style, optional)
+
+**Model Storage Structure:**
+```
+📂 ComfyUI/models/
+├── 📂 diffusion_models/
+│   └── flux2_dev_fp8mixed.safetensors
+├── 📂 text_encoders/
+│   └── mistral_3_small_flux2_bf16.safetensors
+├── 📂 vae/
+│   └── flux2-vae.safetensors
+└── 📂 loras/
+    └── flux2_berthe_morisot.safetensors
+```
+
+### **Workflow Integration Points**
+The `image_flux2 storycore1.json` workflow provides:
+
+**Input Nodes:**
+- **LoadImage** (nodes 42, 46): Panel slice injection from Master Coherence Sheet
+- **CLIPTextEncode** (node 6): Dynamic prompt with style anchors
+- **RandomNoise** (node 25): Deterministic seed control
+- **Primitive Nodes** (50, 51): Resolution control (1248x832 default)
+
+**Output Nodes:**
+- **SaveImage** (node 9): Promoted keyframe output with quality tracking
+
+**Processing Pipeline:**
+```
+LoadImage → ImageScaleToTotalPixels → VAEEncode → ReferenceLatent → 
+FluxGuidance → BasicGuider → SamplerCustomAdvanced → VAEDecode → SaveImage
+```
 
 ### **Layer-to-Conditioning Mapping**
 StoryCore-Engine prepares layer-aware conditioning for ComfyUI workflows:
@@ -302,7 +342,7 @@ operation_seed = (panel_seed + operation_offset) % 2147483647
 - Same QA inputs → identical quality scores and autofix decisions
 - Complete audit trail in project.json and Autofix Logs
 
-## Performance Characteristics
+## [SOURCE OF TRUTH] Performance Characteristics
 
 ### **Pipeline Timing**
 - **Project Init**: < 1 second

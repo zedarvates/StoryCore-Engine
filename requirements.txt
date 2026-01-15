@@ -1,7 +1,21 @@
 # StoryCore-Engine Requirements
 # 
 # Core dependencies for image processing
-Pillow>=10.0.0
+Pillow>=10.4.0
+
+# ComfyUI integration dependencies
+aiohttp>=3.10.0
+
+# Real-time preview system dependencies
+websockets>=13.0.0
+
+# Security dependencies
+cryptography>=43.0.0
+certifi>=2024.8.30
+
+# Testing dependencies
+pytest>=8.0.0
+hypothesis>=6.100.0
 
 # Built-in libraries used:
 # - argparse (CLI parsing)

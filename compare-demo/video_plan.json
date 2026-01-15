@@ -1,0 +1,54 @@
+{
+  "video_plan_id": "vp_storycore_compare-demo",
+  "project_id": "storycore_compare-demo",
+  "storyboard_id": "sb_compare-demo",
+  "created_at": "2026-01-08T12:19:59.579632Z",
+  "total_shots": 3,
+  "total_duration": 18,
+  "video_entries": [
+    {
+      "shot_id": "shot_01",
+      "shot_number": 1,
+      "source_image": "assets/images/refined/panel_01_refined.png",
+      "camera_movement": "static",
+      "duration": 6,
+      "style_anchor": {},
+      "transition": "fade",
+      "description": "Establishing shot to set the scene",
+      "title": "Opening shot"
+    },
+    {
+      "shot_id": "shot_02",
+      "shot_number": 2,
+      "source_image": "assets/images/refined/panel_02_refined.png",
+      "camera_movement": "zoom",
+      "duration": 6,
+      "style_anchor": {},
+      "transition": "cut",
+      "description": "Focus on main subject or action",
+      "title": "Medium shot"
+    },
+    {
+      "shot_id": "shot_03",
+      "shot_number": 3,
+      "source_image": "assets/images/panels/panel_03.ppm",
+      "camera_movement": "static",
+      "duration": 6,
+      "style_anchor": {},
+      "transition": "fade",
+      "description": "Concluding shot to wrap the scene",
+      "title": "Closing shot"
+    }
+  ],
+  "metadata": {
+    "global_style_applied": false,
+    "camera_movements": {
+      "static": 2,
+      "zoom": 1
+    },
+    "transitions": {
+      "fade": 2,
+      "cut": 1
+    }
+  }
+}

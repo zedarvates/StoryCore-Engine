@@ -101,6 +101,9 @@ class QAEngine:
         # File structure
         scores["file_structure"] = self._score_file_structure(project_path)
         
+        # Image quality (Laplacian variance analysis)
+        scores["image_quality"] = self._score_image_quality(project_path)
+        
         return scores
     
     def _score_data_contract(self, project_data: Dict[str, Any]) -> float:
@@ -407,3 +410,66 @@ class QAEngine:
             }],
             "status": "error"
         }
+    def _score_image_quality(self, project_path: Path) -> float:
+        """Score image quality using Laplacian variance analysis."""
+        try:
+            from PIL import Image
+            from refinement_engine import compute_sharpness_laplacian_variance
+        except ImportError:
+            # If PIL or refinement engine not available, return neutral score
+            return 3.0
+        
+        score = 5.0
+        promoted_dir = project_path / "assets" / "images" / "promoted"
+        
+        if not promoted_dir.exists():
+            return 2.0  # No promoted images to analyze
+        
+        # Find promoted panel images
+        promoted_files = list(promoted_dir.glob("panel_*_promoted.png"))
+        if not promoted_files:
+            return 2.0
+        
+        # Quality thresholds based on Laplacian variance
+        quality_thresholds = {
+            "too_soft": 50.0,
+            "acceptable": 100.0,
+            "good": 200.0,
+            "oversharpen_risk": 500.0
+        }
+        
+        sharpness_scores = []
+        
+        for image_file in promoted_files:
+            try:
+                with Image.open(image_file) as img:
+                    sharpness = compute_sharpness_laplacian_variance(img)
+                    sharpness_scores.append(sharpness)
+            except Exception:
+                continue  # Skip problematic images
+        
+        if not sharpness_scores:
+            return 2.0
+        
+        # Calculate average sharpness
+        avg_sharpness = sum(sharpness_scores) / len(sharpness_scores)
+        
+        # Score based on average sharpness
+        if avg_sharpness < quality_thresholds["too_soft"]:
+            score = 1.0  # Too soft
+        elif avg_sharpness < quality_thresholds["acceptable"]:
+            score = 3.0  # Acceptable
+        elif avg_sharpness < quality_thresholds["good"]:
+            score = 4.0  # Good
+        elif avg_sharpness < quality_thresholds["oversharpen_risk"]:
+            score = 5.0  # Excellent
+        else:
+            score = 3.5  # Possible oversharpen artifacts
+        
+        # Penalize high variance (inconsistent quality)
+        if len(sharpness_scores) > 1:
+            variance = sum((x - avg_sharpness) ** 2 for x in sharpness_scores) / len(sharpness_scores)
+            if variance > 1000:  # High variance penalty
+                score -= 0.5
+        
+        return max(0.0, min(5.0, score))

@@ -23,7 +23,10 @@ class ProjectManager:
             "dashboard": True,
             "narrative": True,
             "video_plan": True,
-            "auto_fix": False
+            "auto_fix": False,
+            "continuity_validation": True,
+            "audio_mixing": True,
+            "quality_validation": True
         }
         self.default_generation_status = {
             "grid": "pending",
@@ -34,7 +37,10 @@ class ProjectManager:
             "export": "pending",
             "dashboard": "pending",
             "narrative": "pending",
-            "video_plan": "pending"
+            "video_plan": "pending",
+            "continuity_validation": "pending",
+            "audio_mixing": "pending",
+            "quality_validation": "pending"
         }
     
     def init_project(self, project_name: str, base_path: str = ".") -> None:
@@ -125,6 +131,15 @@ class ProjectManager:
             "status": {
                 "current_phase": "initialization",
                 "qa_passed": False
+            },
+            "quality_validation": {
+                "enabled": True,
+                "continuity_results": [],
+                "quality_scores": [],
+                "audio_mixing_status": "pending",
+                "last_validation_timestamp": None,
+                "overall_quality_score": None,
+                "validation_pass": None
             }
         }
         
@@ -173,3 +188,8 @@ class ProjectManager:
                 }
             }
         }
+
+    def generate_panel_seed(self, global_seed: int, panel_id: str) -> int:
+        """Generate deterministic panel seed from global seed and panel ID."""
+        panel_hash = hash(panel_id.encode('utf-8')) % 1000000
+        return (global_seed + panel_hash) % 2147483647

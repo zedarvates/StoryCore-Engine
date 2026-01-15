@@ -1,6 +1,6 @@
 # StoryCore-Engine Product Specification
 
-## User Story & Value Proposition
+## [CRITICAL] User Story & Value Proposition
 
 ### **The Core Problem**
 Creative teams using AI video generation face a critical bottleneck: **visual inconsistency**. Characters change appearance between shots, lighting shifts randomly, and style drifts throughout sequences. This forces creators to spend 80% of their time on manual corrections instead of storytelling.
@@ -13,7 +13,7 @@ StoryCore-Engine introduces the **Master Coherence Sheet** - a 3x3 grid that loc
 - **For Studios**: Reduce production time from weeks to hours
 - **For Judges**: Witness the first self-correcting multimodal pipeline
 
-## Personas & Use Cases
+## [SOURCE OF TRUTH] Personas & Use Cases
 
 ### **Primary Persona: Technical Jury (Hackathon Judges)**
 **Profile**: Technical evaluators assessing innovation and implementation quality
@@ -61,7 +61,7 @@ StoryCore-Engine introduces the **Master Coherence Sheet** - a 3x3 grid that loc
 - Hierarchical seed system
 - Export packages with metadata
 
-## Scope Definition
+## [HACKATHON CONSTRAINT] Scope Definition
 
 ### **MVP (Hackathon Scope) ✅**
 **Timeline**: 72 hours
@@ -151,7 +151,7 @@ StoryCore-Engine introduces the **Master Coherence Sheet** - a 3x3 grid that loc
 3. **Professional Services**: Custom implementations for studios
 4. **Enterprise Platform**: Scalable cloud solution
 
-## Success Metrics
+## [SOURCE OF TRUTH] Success Metrics
 
 ### **Hackathon Success (Immediate)**
 - ✅ Complete pipeline demonstration

@@ -1,0 +1,43 @@
+{
+  "manifest_version": "1.0",
+  "installer_name": "ComfyUI Easy Install for StoryCore-Engine",
+  "target_directory": "./comfyui_portable",
+  "comfyui_version": "latest",
+  "models": [
+    {
+      "name": "flux2-vae.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors",
+      "path": "models/vae/flux2-vae.safetensors",
+      "size_mb": 335,
+      "required": true,
+      "description": "FLUX.2 VAE for image encoding/decoding"
+    },
+    {
+      "name": "flux2_berthe_morisot.safetensors",
+      "url": "https://huggingface.co/ostris/flux2_berthe_morisot/resolve/main/flux2_berthe_morisot.safetensors",
+      "path": "models/loras/flux2_berthe_morisot.safetensors",
+      "size_mb": 100,
+      "required": false,
+      "description": "Artistic style LoRA (optional)"
+    },
+    {
+      "name": "flux2_dev_fp8mixed.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/diffusion_models/flux2_dev_fp8mixed.safetensors",
+      "path": "models/diffusion_models/flux2_dev_fp8mixed.safetensors",
+      "size_mb": 3584,
+      "required": true,
+      "description": "FLUX.2 main diffusion model"
+    },
+    {
+      "name": "mistral_3_small_flux2_bf16.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_bf16.safetensors",
+      "path": "models/text_encoders/mistral_3_small_flux2_bf16.safetensors",
+      "size_mb": 7372,
+      "required": true,
+      "description": "Mistral text encoder for FLUX.2"
+    }
+  ],
+  "total_download_size_mb": 11391,
+  "launch_command": "python main.py --listen 0.0.0.0 --port 8188 --enable-cors-header",
+  "workflow_file": "image_flux2 storycore1.json"
+}

@@ -79,6 +79,10 @@ class Validator:
         
         return results
     
+    def validate_against_schema(self, data: Dict[str, Any], schema: Dict[str, Any], filename: str = "data") -> None:
+        """Public schema validation method."""
+        return self._validate_against_schema(data, schema, filename)
+    
     def _validate_against_schema(self, data: Dict[str, Any], schema: Dict[str, Any], filename: str) -> None:
         """Simple schema validation without external dependencies."""
         # Check required fields
@@ -92,6 +96,13 @@ class Validator:
         for field_name, field_schema in properties.items():
             if field_name in data:
                 self._validate_field(data[field_name], field_schema, f"{filename}.{field_name}")
+
+
+# Standalone function for external imports
+def validate_against_schema(data: Dict[str, Any], schema: Dict[str, Any], filename: str = "data") -> None:
+    """Standalone schema validation function for external imports."""
+    validator = Validator()
+    return validator._validate_against_schema(data, schema, filename)
     
     def _validate_field(self, value: Any, field_schema: Dict[str, Any], field_path: str) -> None:
         """Validate a single field against its schema."""

@@ -1,13 +1,25 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache/
+.hypothesis/
+
+# Project specific
 exports/
 .kiro/
-echo "test-qa-demo/" >> .gitignore
-echo "test-*/" >> .gitignore
-echo "demo-*/" >> .gitignoretest-qa-demo/
+comfyui_portable/
+.storycore/
+.venv/
+.env*
+
+# Test and demo directories
+test-qa-demo/
 test-*/
 demo-*/
-grid-*/
 grid-*/
 promo-*/
 stack-*/
@@ -15,3 +27,87 @@ refine-*/
 src/*-demo/
 src/*-test/
 metrics-*/
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# IDE and editor files
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and databases
+*.log
+*.db
+*.sqlite
+logs/
+
+# Temporary files
+temp_*/
+*.tmp
+*.temp
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Cache directories
+cache/
+.cache/
+asset_cache/
+
+# Media files (large)
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.m4v
+*.3gp
+*.wav
+*.mp3
+*.flac
+*.aac
+*.ogg
+*.wma
+
+# Large image files
+*.psd
+*.ai
+*.eps
+*.tiff
+*.tif
+
+# Documentation artifacts
+*.pdf
+docs v3/
+
+# Reports and analytics
+*_report_*.json
+analytics_*.db
+batch_*.db
+preview_*.db
+
+# Installation and setup files
+*.bat
+*.sh
+ffmpeg/
+models/
+
+# Workflow files
+workflows/
+*.json.bak

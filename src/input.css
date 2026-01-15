@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom slider styles */
+.slider::-webkit-slider-thumb {
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: none;
+}
+
+/* Tooltip styles */
+.tooltip {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Processing overlay styles */
+.processing-overlay {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(2px);
+}
+
+/* Waiting preview filter */
+.waiting-preview {
+    filter: grayscale(1) brightness(0.55) contrast(1.05);
+}
+
+/* Spinner animation */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 50;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Print-friendly styles */
+@media print {
+    .no-print { display: none !important; }
+    body { background: white !important; color: black !important; }
+    .bg-gray-900 { background: white !important; }
+    .bg-gray-800 { background: #f3f4f6 !important; border: 1px solid #d1d5db !important; }
+    .text-white { color: black !important; }
+    .text-gray-300, .text-gray-400 { color: #374151 !important; }
+}

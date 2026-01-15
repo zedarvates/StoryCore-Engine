@@ -59,10 +59,14 @@ def promote_panels(project_path: Path, scale: int = 2, method: str = "lanczos") 
         # Load PPM image
         with Image.open(panel_file) as img:
             original_size = img.size
-            new_size = (original_size[0] * scale, original_size[1] * scale)
+            
+            # Apply center-fill crop to 16:9 aspect ratio
+            cinematic_img = center_fill_crop(img, target_ratio=16/9)
+            cinematic_size = cinematic_img.size
             
             # Upscale image
-            upscaled = img.resize(new_size, resampling)
+            new_size = (cinematic_size[0] * scale, cinematic_size[1] * scale)
+            upscaled = cinematic_img.resize(new_size, resampling)
             
             # Generate output filename
             panel_name = panel_file.stem  # e.g., "panel_01"
@@ -76,6 +80,7 @@ def promote_panels(project_path: Path, scale: int = 2, method: str = "lanczos") 
                 "path": f"assets/images/promoted/{output_file.name}",
                 "original_panel": f"assets/images/panels/{panel_file.name}",
                 "original_resolution": f"{original_size[0]}x{original_size[1]}",
+                "cinematic_resolution": f"{cinematic_size[0]}x{cinematic_size[1]}",
                 "promoted_resolution": f"{new_size[0]}x{new_size[1]}"
             })
             
@@ -86,6 +91,8 @@ def promote_panels(project_path: Path, scale: int = 2, method: str = "lanczos") 
         "promoted_panels": promoted_panels,
         "scale_factor": scale,
         "method": method,
+        "center_fill_crop": True,
+        "target_aspect_ratio": "16:9",
         "created_at": datetime.utcnow().isoformat() + "Z",
         "total_panels": len(promoted_panels)
     }
@@ -95,6 +102,35 @@ def promote_panels(project_path: Path, scale: int = 2, method: str = "lanczos") 
         "resolutions": resolutions,
         "output_dir": promoted_dir
     }
+
+
+def center_fill_crop(image: Image.Image, target_ratio: float = 16/9) -> Image.Image:
+    """
+    Center fill crop to achieve target aspect ratio while preserving composition.
+    
+    Args:
+        image: Input PIL Image
+        target_ratio: Target aspect ratio (default: 16/9 for cinematic)
+    
+    Returns:
+        Cropped PIL Image with target aspect ratio
+    """
+    width, height = image.size
+    current_ratio = width / height
+    
+    if abs(current_ratio - target_ratio) < 0.01:
+        return image  # Already correct ratio
+    
+    if current_ratio > target_ratio:
+        # Image too wide, crop width (preserve composition center)
+        new_width = int(height * target_ratio)
+        left = (width - new_width) // 2
+        return image.crop((left, 0, left + new_width, height))
+    else:
+        # Image too tall, crop height (preserve composition center)
+        new_height = int(width / target_ratio)
+        top = (height - new_height) // 2
+        return image.crop((0, top, width, top + new_height))
 
 
 def update_project_manifest(project_path: Path, promotion_metadata: Dict[str, Any]) -> None:
