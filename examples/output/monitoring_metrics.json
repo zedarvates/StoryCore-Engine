@@ -1,0 +1,122 @@
+{
+  "timestamp": "2026-01-14T19:42:48.999208",
+  "system_status": {
+    "execution_stats": {
+      "total_requests": 14,
+      "successful_requests": 14,
+      "failed_requests": 0,
+      "security_blocked": 0,
+      "resilience_recovered": 0
+    },
+    "security_health": {
+      "audit_log_count": 1286,
+      "access_control_users": 3
+    },
+    "resilience_health": {
+      "degradation_level": "full",
+      "error_rate": 0.016666666666666666,
+      "recovery_rate": 1.0,
+      "circuit_breakers": {
+        "workflow_video_generation": {
+          "name": "workflow_video_generation",
+          "state": "closed",
+          "failure_count": 0,
+          "success_count": 0,
+          "last_failure_time": null
+        },
+        "workflow_image_generation": {
+          "name": "workflow_image_generation",
+          "state": "closed",
+          "failure_count": 0,
+          "success_count": 0,
+          "last_failure_time": null
+        },
+        "workflow_flaky_workflow": {
+          "name": "workflow_flaky_workflow",
+          "state": "closed",
+          "failure_count": 0,
+          "success_count": 0,
+          "last_failure_time": "2026-01-14T19:42:45.308507"
+        }
+      },
+      "retry_stats": {
+        "circuit_wrapped": {
+          "attempts": 19,
+          "successes": 14,
+          "failures": 5
+        }
+      },
+      "fallback_stats": {}
+    },
+    "timestamp": "2026-01-14T19:42:48.999208"
+  },
+  "metrics": {
+    "success_rate": {
+      "count": 9,
+      "min": 0.0,
+      "max": 1.0,
+      "avg": 0.798941798941799,
+      "latest": 1.0
+    },
+    "error_rate": {
+      "count": 9,
+      "min": 0.0,
+      "max": 0.0,
+      "avg": 0.0,
+      "latest": 0.0
+    },
+    "security_block_rate": {
+      "count": 9,
+      "min": 0.0,
+      "max": 0.0,
+      "avg": 0.0,
+      "latest": 0.0
+    },
+    "degradation_level": {
+      "count": 9,
+      "min": 1.0,
+      "max": 1.0,
+      "avg": 1.0,
+      "latest": 1.0
+    },
+    "error_rate_rpm": {
+      "count": 9,
+      "min": 0.0,
+      "max": 0.016666666666666666,
+      "avg": 0.007407407407407408,
+      "latest": 0.016666666666666666
+    },
+    "recovery_rate": {
+      "count": 9,
+      "min": 0.0,
+      "max": 1.0,
+      "avg": 0.3333333333333333,
+      "latest": 1.0
+    },
+    "circuit_breakers_open": {
+      "count": 9,
+      "min": 0,
+      "max": 0,
+      "avg": 0.0,
+      "latest": 0
+    },
+    "audit_log_count": {
+      "count": 9,
+      "min": 1259,
+      "max": 1286,
+      "avg": 1274.3333333333333,
+      "latest": 1286
+    }
+  },
+  "alerts": {
+    "summary": {
+      "total": 0,
+      "critical": 0,
+      "error": 0,
+      "warning": 0,
+      "info": 0
+    },
+    "active": []
+  },
+  "health_score": 100
+}

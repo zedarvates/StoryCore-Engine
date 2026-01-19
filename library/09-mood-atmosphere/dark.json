@@ -1,0 +1,45 @@
+{
+  "id": "mood-dark",
+  "name": "Dark Mood",
+  "category": "mood-atmosphere",
+  "description": "Somber and shadowy atmosphere with low-key lighting and ominous undertones",
+  "tags": ["dark", "somber", "shadowy", "ominous", "moody"],
+  "prompt": {
+    "base": "Dark moody atmosphere, low-key lighting, deep shadows, somber tone, ominous undertones, shadowy environment, brooding mood, mysterious darkness, heavy atmosphere",
+    "positive": "dark atmosphere, deep shadows, low-key lighting, somber mood, ominous tone, shadowy environment, moody lighting, mysterious darkness, brooding atmosphere, heavy shadows, dark palette, noir lighting",
+    "negative": "bright lighting, cheerful atmosphere, vibrant colors, sunny mood, light and airy, optimistic tone, high-key lighting, pastel colors",
+    "technical": {
+      "lighting": "Low-key with minimal fill light",
+      "color_palette": "Desaturated with dark tones, deep blacks",
+      "contrast": "High contrast with deep shadows",
+      "mood_intensity": "Strong, pervasive darkness"
+    }
+  },
+  "variations": [
+    {
+      "name": "Gothic Dark",
+      "modifier": "gothic architecture, candlelight, medieval darkness, haunting atmosphere, ancient shadows"
+    },
+    {
+      "name": "Urban Dark",
+      "modifier": "city night, neon reflections, rain-slicked streets, urban shadows, modern noir"
+    },
+    {
+      "name": "Natural Dark",
+      "modifier": "forest at night, moonless sky, natural shadows, wilderness darkness, primal atmosphere"
+    }
+  ],
+  "examples": [
+    "A dimly lit corridor with deep shadows, low-key lighting creating ominous atmosphere, dark moody tone",
+    "A character silhouetted against minimal light, heavy shadows, brooding dark atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "dark_mood_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 32,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

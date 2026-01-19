@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-stylized",
+  "name": "Stylized Visual Style",
+  "category": "visual-styles",
+  "description": "Artistic interpretation with enhanced aesthetics, creative liberties, and distinctive visual flair",
+  "tags": ["stylized", "artistic", "creative", "enhanced", "interpretive"],
+  "prompt": {
+    "base": "Stylized artistic interpretation, enhanced aesthetics, creative color palette, distinctive visual style, artistic liberties, expressive rendering, unique character design, creative composition",
+    "positive": "stylized art, artistic interpretation, enhanced colors, creative design, expressive features, unique aesthetic, artistic flair, bold choices, creative lighting, distinctive style, visual appeal, artistic composition",
+    "negative": "photorealistic, documentary style, mundane realism, unprocessed photography, plain appearance, generic look, standard photography",
+    "technical": {
+      "rendering": "Artistic rendering with creative enhancements",
+      "textures": "Stylized textures with artistic interpretation",
+      "lighting": "Creative lighting with artistic choices",
+      "detail_level": "Selective detail emphasizing artistic vision"
+    }
+  },
+  "variations": [
+    {
+      "name": "Modern Stylized",
+      "modifier": "clean lines, bold colors, contemporary aesthetic, graphic design influence"
+    },
+    {
+      "name": "Painterly Stylized",
+      "modifier": "brush stroke effects, artistic texture, painter's interpretation, fine art quality"
+    },
+    {
+      "name": "Cel-Shaded",
+      "modifier": "flat color blocks, defined outlines, comic-inspired, bold shadows"
+    }
+  ],
+  "examples": [
+    "A character with enhanced features, bold color choices, artistic interpretation, distinctive visual style",
+    "A landscape with creative color palette, stylized forms, artistic composition, unique aesthetic"
+  ],
+  "comfyui": {
+    "workflow_id": "stylized_style_workflow",
+    "recommended_models": ["dreamshaper", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 8.5,
+      "steps": 28,
+      "sampler": "Euler a"
+    }
+  }
+}

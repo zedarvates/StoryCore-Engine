@@ -1,0 +1,17 @@
+{
+  "category": "genres",
+  "subcategory": "science-fiction",
+  "id": "genre-scifi",
+  "name": "Science Fiction Scene",
+  "description": "Futuristic sci-fi scene with advanced technology",
+  "tags": ["scifi", "futuristic", "technology", "cyberpunk"],
+  "prompt": "Sci-fi scene, {SPECIFIC_ELEMENT}. Futuristic technology, neon lighting, {AESTHETIC} aesthetic. Color palette: electric blues, neon purples, chrome metallics. Advanced technology visible, holographic interfaces, sleek architecture. Cinematic lighting with volumetric fog, 4K quality, sharp focus.",
+  "variables": {
+    "SPECIFIC_ELEMENT": { "type": "string", "required": true },
+    "AESTHETIC": { 
+      "type": "enum", 
+      "required": true,
+      "options": ["cyberpunk", "clean minimalist future", "dystopian industrial"]
+    }
+  }
+}

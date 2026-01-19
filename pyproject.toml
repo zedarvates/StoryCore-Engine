@@ -1,0 +1,164 @@
+# pyproject.toml - Modern Python packaging configuration
+# Defines build system and project metadata for modular CLI
+# Requirements: 10.1, 10.4
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "storycore-engine"
+version = "0.1.0"
+description = "StoryCore-Engine CLI - Modular AI-powered multimodal content generation pipeline"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "StoryCore Team"}
+]
+keywords = ["ai", "video", "generation", "cli", "modular", "storycore"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Video",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "Pillow>=10.4.0",
+    "aiohttp>=3.10.0",
+    "websockets>=13.0.0",
+    "cryptography>=43.0.0",
+    "certifi>=2024.8.30",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-multipart>=0.0.6",
+    "redis>=5.0.0",
+    "slowapi>=0.1.9",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "aiofiles>=23.2.1",
+    "structlog>=23.2.0",
+    "httpx>=0.25.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "hypothesis>=6.100.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+test = [
+    "pytest>=8.0.0",
+    "hypothesis>=6.100.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+storycore = "src.storycore_cli:main"
+
+[project.urls]
+Homepage = "https://github.com/storycore/storycore-engine"
+Documentation = "https://github.com/storycore/storycore-engine/docs"
+Repository = "https://github.com/storycore/storycore-engine"
+Issues = "https://github.com/storycore/storycore-engine/issues"
+
+[tool.setuptools]
+packages = ["src", "src.cli", "src.cli.handlers", "src.cli.utils", "src.engines"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--cov=src/cli",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "property: Property-based tests",
+    "e2e: End-to-end tests",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | venv
+  | __pycache__
+  | \.pytest_cache
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+exclude = [
+    "venv",
+    ".venv",
+    "build",
+    "dist",
+]
+
+[tool.flake8]
+max-line-length = 100
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+]
+ignore = ["E203", "W503"]
+
+[tool.coverage.run]
+source = ["src/cli"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]

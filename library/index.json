@@ -1,0 +1,184 @@
+{
+  "version": "4.0.0",
+  "lastUpdated": "2026-01-18",
+  "totalPrompts": 93,
+  "categories": {
+    "master-coherence": {
+      "name": "Master Coherence Sheets",
+      "description": "3x3 grids establishing visual DNA",
+      "prompts": [
+        "01-master-coherence/coherence-grid.json",
+        "01-master-coherence/character-grid.json",
+        "01-master-coherence/environment-grid.json"
+      ]
+    },
+    "genres": {
+      "name": "Genre Templates",
+      "description": "Pre-configured prompts for different genres",
+      "prompts": [
+        "02-genres/scifi.json",
+        "02-genres/fantasy.json",
+        "02-genres/horror.json",
+        "02-genres/romance.json",
+        "02-genres/action.json",
+        "02-genres/animation.json",
+        "02-genres/drama.json",
+        "02-genres/comedy.json",
+        "02-genres/thriller.json",
+        "02-genres/documentary.json",
+        "02-genres/mystery.json",
+        "02-genres/adventure.json",
+        "02-genres/historical.json",
+        "02-genres/musical.json",
+        "02-genres/western.json"
+      ]
+    },
+    "shot-types": {
+      "name": "Cinematic Shot Types",
+      "description": "Standard cinematography framing options",
+      "prompts": [
+        "03-shot-types/establishing-shot.json",
+        "03-shot-types/wide-shot.json",
+        "03-shot-types/medium-shot.json",
+        "03-shot-types/close-up.json",
+        "03-shot-types/extreme-close-up.json",
+        "03-shot-types/over-shoulder.json",
+        "03-shot-types/pov.json"
+      ]
+    },
+    "lighting": {
+      "name": "Lighting Conditions",
+      "description": "Different lighting setups and times of day",
+      "prompts": [
+        "04-lighting/golden-hour.json",
+        "04-lighting/blue-hour.json",
+        "04-lighting/night-moonlight.json",
+        "04-lighting/night-artificial.json"
+      ]
+    },
+    "scene-elements": {
+      "name": "Scene Elements",
+      "description": "Characters, environments, and props",
+      "prompts": [
+        "05-scene-elements/hero-character.json",
+        "05-scene-elements/villain-character.json",
+        "05-scene-elements/interior-residential.json",
+        "05-scene-elements/exterior-nature.json"
+      ]
+    },
+    "visual-styles": {
+      "name": "Visual Styles",
+      "description": "Artistic and aesthetic approaches",
+      "prompts": [
+        "06-visual-styles/realistic.json",
+        "06-visual-styles/stylized.json",
+        "06-visual-styles/anime.json",
+        "06-visual-styles/comic-book.json",
+        "06-visual-styles/noir.json",
+        "06-visual-styles/vintage.json",
+        "06-visual-styles/futuristic.json",
+        "06-visual-styles/watercolor.json",
+        "06-visual-styles/oil-painting.json",
+        "06-visual-styles/minimalist.json",
+        "06-visual-styles/surreal.json"
+      ]
+    },
+    "camera-angles": {
+      "name": "Camera Angles",
+      "description": "Perspective and viewpoint options",
+      "prompts": [
+        "07-camera-angles/eye-level.json",
+        "07-camera-angles/high-angle.json",
+        "07-camera-angles/low-angle.json",
+        "07-camera-angles/dutch-angle.json",
+        "07-camera-angles/birds-eye.json",
+        "07-camera-angles/worms-eye.json"
+      ]
+    },
+    "camera-movements": {
+      "name": "Camera Movements",
+      "description": "Dynamic camera motion techniques",
+      "prompts": [
+        "08-camera-movements/static.json",
+        "08-camera-movements/pan.json",
+        "08-camera-movements/tilt.json",
+        "08-camera-movements/dolly.json",
+        "08-camera-movements/track.json",
+        "08-camera-movements/zoom.json",
+        "08-camera-movements/handheld.json",
+        "08-camera-movements/crane.json"
+      ]
+    },
+    "mood-atmosphere": {
+      "name": "Mood & Atmosphere",
+      "description": "Emotional tone and atmospheric modifiers",
+      "prompts": [
+        "09-mood-atmosphere/dark.json",
+        "09-mood-atmosphere/light.json",
+        "09-mood-atmosphere/serious.json",
+        "09-mood-atmosphere/playful.json",
+        "09-mood-atmosphere/tense.json",
+        "09-mood-atmosphere/calm.json",
+        "09-mood-atmosphere/energetic.json",
+        "09-mood-atmosphere/melancholic.json",
+        "09-mood-atmosphere/hopeful.json",
+        "09-mood-atmosphere/mysterious.json"
+      ]
+    },
+    "time-of-day": {
+      "name": "Time of Day",
+      "description": "Lighting conditions based on time",
+      "prompts": [
+        "10-time-of-day/dawn.json",
+        "10-time-of-day/morning.json",
+        "10-time-of-day/afternoon.json",
+        "10-time-of-day/evening.json",
+        "10-time-of-day/night.json",
+        "10-time-of-day/unspecified.json"
+      ]
+    },
+    "transitions": {
+      "name": "Scene Transitions",
+      "description": "Editing transitions between shots",
+      "prompts": [
+        "11-transitions/cut.json",
+        "11-transitions/fade.json",
+        "11-transitions/dissolve.json",
+        "11-transitions/wipe.json",
+        "11-transitions/match-cut.json"
+      ]
+    },
+    "color-palettes": {
+      "name": "Color Palettes",
+      "description": "Visual reference prompts for color schemes",
+      "prompts": [
+        "12-color-palettes/warm-sunset.json",
+        "12-color-palettes/cool-ocean.json",
+        "12-color-palettes/monochrome.json",
+        "12-color-palettes/forest-green.json",
+        "12-color-palettes/royal-purple.json",
+        "12-color-palettes/fire-red.json"
+      ]
+    },
+    "universe-types": {
+      "name": "Universe Types",
+      "description": "World-building context and setting modifiers",
+      "prompts": [
+        "13-universe-types/realistic.json",
+        "13-universe-types/fantasy.json",
+        "13-universe-types/sci-fi.json",
+        "13-universe-types/historical.json",
+        "13-universe-types/alternate.json"
+      ]
+    },
+    "character-archetypes": {
+      "name": "Character Archetypes",
+      "description": "Character role and importance modifiers",
+      "prompts": [
+        "14-character-archetypes/supporting.json",
+        "14-character-archetypes/background.json",
+        "14-character-archetypes/ensemble.json"
+      ]
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "camera-angle-high-angle",
+  "name": "High-Angle Camera Shot",
+  "category": "camera-angles",
+  "description": "Camera positioned above subject looking down, creating vulnerability or diminishment",
+  "tags": ["high-angle", "looking-down", "vulnerability", "diminished", "overhead"],
+  "prompt": {
+    "base": "High-angle shot, camera looking down at subject, elevated camera position, downward perspective, subject appears smaller, vulnerable framing, overhead angle, diminished perspective",
+    "positive": "high angle shot, camera above subject, looking down, elevated perspective, downward view, subject vulnerability, diminished appearance, overhead framing, bird's perspective, top-down angle",
+    "negative": "low angle, eye-level, worms-eye view, upward perspective, empowering angle, ground-level camera",
+    "technical": {
+      "camera_height": "Above subject, 30-60 degrees down",
+      "perspective": "Creates vulnerability, weakness, or isolation",
+      "use_cases": "Showing vulnerability, establishing geography, dramatic effect"
+    }
+  },
+  "examples": [
+    "A character sitting alone, camera high above looking down, vulnerable framing, isolated feeling",
+    "An overhead view of a crowded street, high angle showing the full scene, establishing geography"
+  ],
+  "comfyui": {
+    "workflow_id": "high_angle_workflow",
+    "parameters": {
+      "camera_angle": -45,
+      "elevation": "high"
+    }
+  }
+}

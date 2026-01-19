@@ -1,0 +1,45 @@
+{
+  "id": "transition-wipe",
+  "name": "Wipe Transition",
+  "category": "transitions",
+  "description": "One shot replaces another with visible boundary moving across frame, creating dynamic transition",
+  "tags": ["wipe", "dynamic", "boundary", "directional", "stylized"],
+  "prompt": {
+    "base": "Wipe transition, one shot replacing another, visible boundary moving across frame, directional transition, dynamic change, geometric wipe, stylized transition, sweeping change",
+    "positive": "wipe transition, moving boundary, directional change, geometric transition, dynamic wipe, sweeping effect, stylized change, visible edge, directional sweep, graphic transition",
+    "negative": "fade transition, dissolve effect, instant cut, no visible boundary, subtle transition, invisible edit",
+    "technical": {
+      "transition_duration": "0.5-1.5 seconds typical",
+      "visual_effect": "Visible boundary line moving across frame",
+      "use_cases": "Action sequences, stylized editing, retro style, dynamic pacing",
+      "editing_style": "Star Wars style, retro, graphic, energetic"
+    }
+  },
+  "variations": [
+    {
+      "name": "Horizontal Wipe",
+      "modifier": "left to right or right to left, classic wipe, directional sweep, linear transition"
+    },
+    {
+      "name": "Vertical Wipe",
+      "modifier": "top to bottom or bottom to top, vertical sweep, upward or downward transition"
+    },
+    {
+      "name": "Circular Wipe",
+      "modifier": "iris effect, circular boundary, clock wipe, radial transition, spotlight effect"
+    }
+  ],
+  "examples": [
+    "A horizontal wipe transition between action scenes, dynamic boundary moving left to right",
+    "A circular iris wipe closing on a character, stylized retro transition effect"
+  ],
+  "comfyui": {
+    "workflow_id": "wipe_transition_workflow",
+    "parameters": {
+      "transition_type": "wipe",
+      "duration_frames": 12,
+      "direction": "horizontal",
+      "edge_softness": 0.1
+    }
+  }
+}

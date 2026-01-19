@@ -1,0 +1,31 @@
+{
+  "category": "scene-elements",
+  "subcategory": "environments",
+  "id": "env-exterior-nature",
+  "name": "Natural Outdoor Environment",
+  "description": "Natural landscape with atmospheric depth",
+  "tags": ["environment", "exterior", "nature", "landscape"],
+  "prompt": "Natural outdoor environment, {LANDSCAPE_TYPE}. {TIME_OF_DAY}, {WEATHER}. {LANDSCAPE_TYPE} landscape with {SPECIFIC_FEATURES}. Natural lighting, atmospheric perspective, rich environmental details. Cinematic landscape photography quality, sharp foreground, depth in background.",
+  "variables": {
+    "LANDSCAPE_TYPE": { 
+      "type": "enum",
+      "required": true,
+      "options": ["forest", "mountain", "beach", "desert", "plains", "jungle", "tundra"]
+    },
+    "TIME_OF_DAY": { 
+      "type": "string", 
+      "required": true,
+      "description": "Time of day"
+    },
+    "WEATHER": { 
+      "type": "string", 
+      "required": true,
+      "description": "Weather conditions"
+    },
+    "SPECIFIC_FEATURES": { 
+      "type": "string", 
+      "required": true,
+      "description": "Distinctive features of this landscape"
+    }
+  }
+}

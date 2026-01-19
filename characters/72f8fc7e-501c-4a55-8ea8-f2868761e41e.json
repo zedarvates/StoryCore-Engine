@@ -1,0 +1,125 @@
+{
+  "character_id": "72f8fc7e-501c-4a55-8ea8-f2868761e41e",
+  "name": "Thorin",
+  "creation_method": "auto_generated",
+  "creation_timestamp": "2026-01-15T20:03:14.834359",
+  "version": "1.0",
+  "visual_identity": {
+    "hair_color": "",
+    "hair_style": "",
+    "hair_length": "",
+    "eye_color": "",
+    "eye_shape": "",
+    "skin_tone": "",
+    "facial_structure": "",
+    "distinctive_features": [],
+    "age_range": "adult",
+    "height": "",
+    "build": "",
+    "posture": "",
+    "clothing_style": "",
+    "color_palette": {
+      "primary_colors": [],
+      "secondary_colors": [],
+      "accent_colors": [],
+      "color_harmony": "complementary"
+    },
+    "accessories": [],
+    "aesthetic": "",
+    "art_style": "realistic",
+    "rendering_style": "",
+    "quality_level": "high"
+  },
+  "personality_profile": {
+    "openness": 0.5,
+    "conscientiousness": 0.5,
+    "extraversion": 0.5,
+    "agreeableness": 0.5,
+    "neuroticism": 0.5,
+    "primary_traits": [
+      "brave",
+      "determined",
+      "curious"
+    ],
+    "strengths": [
+      "leadership",
+      "empathy"
+    ],
+    "flaws": [
+      "impulsive",
+      "stubborn"
+    ],
+    "external_goal": "",
+    "internal_need": "",
+    "fears": [],
+    "values": [],
+    "stress_response": "",
+    "conflict_style": "",
+    "emotional_expression": "",
+    "decision_making_style": "",
+    "attachment_style": "",
+    "social_preferences": "",
+    "trust_patterns": ""
+  },
+  "voice_identity": {
+    "speech_patterns": "",
+    "vocabulary_level": "",
+    "sentence_complexity": "",
+    "speaking_pace": "",
+    "accent": null,
+    "dialect": null,
+    "formality_level": "neutral",
+    "humor_style": "none",
+    "emotional_range": "",
+    "vulnerability_expression": "",
+    "catchphrases": [],
+    "verbal_tics": [],
+    "signature_expressions": [],
+    "voice_type": "",
+    "emotional_variance": 0.5
+  },
+  "backstory_profile": {
+    "origin_story": "",
+    "key_life_events": [],
+    "formative_experiences": [],
+    "family_background": "",
+    "significant_relationships": [],
+    "relationship_patterns": "",
+    "occupation": "",
+    "education_level": "",
+    "social_status": "",
+    "cultural_background": "",
+    "hidden_aspects": [],
+    "secrets": [],
+    "unresolved_conflicts": [],
+    "growth_opportunities": [],
+    "potential_conflicts": [],
+    "transformation_triggers": []
+  },
+  "coherence_anchors": {
+    "character_descriptor": "",
+    "facial_anchors": [],
+    "clothing_anchors": [],
+    "style_anchors": [],
+    "primary_colors": [],
+    "secondary_colors": [],
+    "color_harmony": "",
+    "positive_prompts": [],
+    "negative_prompts": [],
+    "style_strength": 1.0,
+    "seed_base": 0,
+    "cfg_scale": 7.5,
+    "denoising_strength": 0.7
+  },
+  "puppet_category": "M1",
+  "genre_tags": [
+    "fantasy"
+  ],
+  "style_tags": [
+    "realistic"
+  ],
+  "reference_images": [],
+  "quality_score": 4.0,
+  "consistency_score": 4.5,
+  "metadata": {}
+}

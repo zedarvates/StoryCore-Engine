@@ -1,0 +1,17 @@
+{
+  "category": "lighting",
+  "subcategory": "natural-light",
+  "id": "lighting-golden-hour",
+  "name": "Golden Hour Lighting",
+  "description": "Warm magical lighting at sunrise or sunset",
+  "tags": ["golden-hour", "warm", "magical", "natural"],
+  "prompt": "Golden hour lighting, {SCENE}. Warm sunlight at {TIME}, long soft shadows, golden color temperature. Magical atmosphere, rim lighting on subjects. Professional golden hour cinematography, rich warm tones, glowing highlights.",
+  "variables": {
+    "SCENE": { "type": "string", "required": true },
+    "TIME": { 
+      "type": "enum",
+      "required": true,
+      "options": ["sunrise", "sunset"]
+    }
+  }
+}

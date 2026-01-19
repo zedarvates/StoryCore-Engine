@@ -1,0 +1,14 @@
+{
+  "category": "shot-types",
+  "subcategory": "wide-shots",
+  "id": "shot-wide",
+  "name": "Wide Shot",
+  "description": "Full figure with environmental context",
+  "tags": ["wide", "full-body", "context"],
+  "prompt": "Wide shot, {SUBJECT} in {ENVIRONMENT}. Full figure visible with environmental context, balanced composition. {LIGHTING_TYPE}, clear subject placement. Cinematic framing, professional blocking, appropriate depth of field.",
+  "variables": {
+    "SUBJECT": { "type": "string", "required": true },
+    "ENVIRONMENT": { "type": "string", "required": true },
+    "LIGHTING_TYPE": { "type": "string", "required": true }
+  }
+}

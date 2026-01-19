@@ -1,0 +1,28 @@
+{
+  "id": "camera-movement-static",
+  "name": "Static Camera (No Movement)",
+  "category": "camera-movements",
+  "description": "Fixed camera position with no movement, creating stability and focus",
+  "tags": ["static", "fixed", "stationary", "locked-off", "stable"],
+  "prompt": {
+    "base": "Static camera shot, fixed position, no camera movement, locked-off camera, stable framing, stationary perspective, tripod-mounted, steady composition, immobile camera",
+    "positive": "static shot, fixed camera, no movement, locked-off framing, stable composition, stationary camera, tripod shot, steady frame, immobile perspective, solid framing",
+    "negative": "camera movement, panning, tilting, tracking, handheld shake, dolly movement, crane shot, dynamic camera",
+    "technical": {
+      "movement_type": "None - completely stationary",
+      "stability": "Maximum stability, tripod or locked position",
+      "use_cases": "Dialogue scenes, contemplative moments, formal composition, observational shots"
+    }
+  },
+  "examples": [
+    "Two characters in conversation, static camera, fixed framing, stable composition focusing on dialogue",
+    "A landscape view with static camera, no movement, allowing viewer to absorb the scene"
+  ],
+  "comfyui": {
+    "workflow_id": "static_camera_workflow",
+    "parameters": {
+      "movement": "none",
+      "stability": "locked"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "metrics": {
+    "category": "QACategory.LIGHTING_CONSISTENCY",
+    "score": 4.880000000000001,
+    "max_score": 5.0,
+    "issues_count": 2,
+    "critical_issues": 0,
+    "high_issues": 0,
+    "medium_issues": 2,
+    "low_issues": 0,
+    "autofix_applied": 2,
+    "manual_review_required": 0,
+    "validation_time": 0.0,
+    "metadata": {}
+  },
+  "issues": [
+    {
+      "issue_id": "lc_001",
+      "category": "QACategory.LIGHTING_CONSISTENCY",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Lighting Inconsistency in scene_1",
+      "description": "Lighting variance of 18.0% in scene_1",
+      "affected_items": [
+        "scene_1"
+      ],
+      "score_impact": 0.3,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.75,
+      "metadata": {}
+    },
+    {
+      "issue_id": "lc_002",
+      "category": "QACategory.LIGHTING_CONSISTENCY",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Lighting Inconsistency in scene_2",
+      "description": "Lighting variance of 18.0% in scene_2",
+      "affected_items": [
+        "scene_2"
+      ],
+      "score_impact": 0.3,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.75,
+      "metadata": {}
+    }
+  ],
+  "autofix_results": [
+    {
+      "issue_id": "lc_001",
+      "action": "AutofixAction.ADJUST_PARAMETERS",
+      "success": true,
+      "improvement_score": 0.24,
+      "original_score": 0.3,
+      "new_score": 0.54,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Lighting Inconsistency in scene_1",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.75
+      }
+    },
+    {
+      "issue_id": "lc_002",
+      "action": "AutofixAction.ADJUST_PARAMETERS",
+      "success": true,
+      "improvement_score": 0.24,
+      "original_score": 0.3,
+      "new_score": 0.54,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Lighting Inconsistency in scene_2",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.75
+      }
+    }
+  ]
+}

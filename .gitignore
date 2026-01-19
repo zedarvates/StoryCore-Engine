@@ -16,6 +16,12 @@ comfyui_portable/
 .venv/
 .env*
 
+# Credential configuration files
+credentials.json
+config/credentials.json
+**/credentials.json
+*.credentials.json
+
 # Test and demo directories
 test-qa-demo/
 test-*/
@@ -62,6 +68,8 @@ temp_*/
 dist/
 build/
 *.egg-info/
+release/
+dist-electron/
 
 # Cache directories
 cache/
@@ -111,3 +119,11 @@ models/
 # Workflow files
 workflows/
 *.json.bak
+
+# Large test files
+creative-studio-ui/test-baseline-results.txt
+creative-studio-ui/test-baseline.txt
+tailwindcss
+
+# ComfyUI downloads
+comfyui_download_zone/

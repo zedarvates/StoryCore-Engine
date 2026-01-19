@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-futuristic",
+  "name": "Futuristic Visual Style",
+  "category": "visual-styles",
+  "description": "Modern and sleek with advanced technology, neon accents, and sci-fi aesthetics",
+  "tags": ["futuristic", "sci-fi", "modern", "sleek", "technology"],
+  "prompt": {
+    "base": "Futuristic style, sleek modern design, advanced technology, neon lighting, sci-fi aesthetic, holographic elements, clean lines, cyberpunk influences, high-tech environment, futuristic architecture",
+    "positive": "futuristic design, sleek surfaces, neon lights, advanced technology, holographic displays, sci-fi aesthetic, modern architecture, clean lines, glowing elements, high-tech, cyberpunk style, metallic surfaces, LED lighting, futuristic fashion",
+    "negative": "vintage, old-fashioned, rustic, natural materials, historical, traditional, low-tech, primitive, aged appearance",
+    "technical": {
+      "rendering": "Clean modern rendering with technological elements",
+      "textures": "Sleek metallic and glass surfaces, holographic effects",
+      "lighting": "Neon and LED lighting, glowing elements, cool tones",
+      "detail_level": "High-tech precision with clean details"
+    }
+  },
+  "variations": [
+    {
+      "name": "Cyberpunk Futuristic",
+      "modifier": "neon colors, rain-slicked streets, urban dystopia, high contrast, Asian influences"
+    },
+    {
+      "name": "Clean Futuristic",
+      "modifier": "minimalist design, white surfaces, soft lighting, utopian aesthetic, Apple-like design"
+    },
+    {
+      "name": "Industrial Futuristic",
+      "modifier": "exposed machinery, metallic textures, functional design, utilitarian aesthetic, mechanical elements"
+    }
+  ],
+  "examples": [
+    "A sleek futuristic cityscape with neon lights, holographic displays, advanced architecture, sci-fi atmosphere",
+    "A character in futuristic fashion with glowing elements, high-tech accessories, modern design, cyberpunk aesthetic"
+  ],
+  "comfyui": {
+    "workflow_id": "futuristic_style_workflow",
+    "recommended_models": ["dreamshaper", "realistic_vision"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

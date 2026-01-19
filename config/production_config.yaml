@@ -1,0 +1,324 @@
+# Configuration de Production pour StoryCore Engine
+# Ce fichier centralise les paramètres de configuration pour un environnement de production.
+
+# Version de la configuration
+version: "1.0.0"
+
+# Paramètres du serveur
+server:
+  host: "0.0.0.0"
+  port: 8080
+  environment: "production"
+  debug: false
+
+# Configuration de la base de données
+database:
+  type: "postgresql"
+  host: "localhost"
+  port: 5432
+  name: "storycore_prod"
+  user: "storycore_admin"
+  password: "${DATABASE_PASSWORD}"  # Load from environment variable
+  ssl: true
+
+# Configuration des modèles d'IA
+models:
+  # Chemins vers les modèles
+  paths:
+    text_generation: "/models/text_generation"
+    image_generation: "/models/image_generation"
+    video_generation: "/models/video_generation"
+    style_transfer: "/models/style_transfer"
+    super_resolution: "/models/super_resolution"
+  
+  # Paramètres de mise à jour des modèles
+  update:
+    enabled: true
+    interval: "24h"
+    rollback_on_failure: true
+    backup_path: "/backups/models"
+
+# Configuration des pipelines de traitement
+pipelines:
+  batch_size: 32
+  max_concurrent_tasks: 8
+  timeout: 3600
+  retry_on_failure: 3
+
+# Configuration de la surveillance
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    port: 9090
+  grafana:
+    enabled: true
+    port: 3000
+  alerts:
+    enabled: true
+    threshold_cpu: 90
+    threshold_memory: 85
+    threshold_gpu: 95
+
+# Configuration des logs
+logging:
+  level: "INFO"
+  file: "/var/log/storycore/production.log"
+  max_size: "100MB"
+  max_backups: 10
+
+# Configuration de la sécurité
+security:
+  tls:
+    enabled: true
+    cert_path: "/etc/ssl/certs/storycore.crt"
+    key_path: "/etc/ssl/private/storycore.key"
+  auth:
+    enabled: true
+    jwt_secret: "${JWT_SECRET}"  # Load from environment variable
+
+# Configuration des performances
+performance:
+  gpu_scheduling: true
+  dynamic_quality_adjustment: true
+  auto_optimization: true
+
+# Configuration des alertes
+alerts:
+  email:
+    enabled: true
+    smtp_server: "smtp.example.com"
+    smtp_port: 587
+    sender: "alerts@storycore.com"
+    recipients:
+      - "admin@storycore.com"
+      - "devops@storycore.com"
+  slack:
+    enabled: true
+    webhook_url: "https://hooks.slack.com/services/XXX/YYY/ZZZ"
+  thresholds:
+    cpu: 90
+    memory: 85
+    gpu: 95
+    model_performance: 0.8
+
+# Configuration des sauvegardes
+backups:
+  enabled: true
+  interval: "24h"
+  retention_days: 30
+  path: "/backups/storycore"
+
+# Configuration des mises à jour
+updates:
+  auto_update: false
+  check_interval: "6h"
+  allowed_hours: "2-4"
+
+# Configuration des tests
+testing:
+  enabled: true
+  coverage_threshold: 90
+  integration_tests: true
+  load_tests: true
+
+# Configuration des fonctionnalités expérimentales
+features:
+  experimental:
+    enabled: false
+    list:
+      - "new_video_engine"
+      - "enhanced_style_transfer"
+
+# Configuration des ressources
+resources:
+  max_cpu: 8
+  max_memory: "32GB"
+  max_gpu: 4
+
+# Configuration des dépendances
+dependencies:
+  python: "3.10.0"
+  node: "18.0.0"
+  cuda: "11.8"
+  cudnn: "8.6"
+
+# Configuration des variables d'environnement
+environment_variables:
+  API_KEY: "${STORYCORE_API_KEY}"  # Load from environment variable
+  DATABASE_URL: "${DATABASE_URL}"  # Load from environment variable
+  MODEL_PATH: "/models"
+
+# Configuration des tests de validation
+validation:
+  enabled: true
+  checks:
+    - "model_integrity"
+    - "pipeline_performance"
+    - "security_compliance"
+
+# Configuration des tests de charge
+load_testing:
+  enabled: true
+  max_users: 1000
+  ramp_up: "5m"
+  duration: "30m"
+
+# Configuration des tests de sécurité
+security_testing:
+  enabled: true
+  scans:
+    - "dependency_vulnerabilities"
+    - "code_quality"
+    - "penetration_testing"
+
+# Configuration des tests de performance
+performance_testing:
+  enabled: true
+  metrics:
+    - "response_time"
+    - "throughput"
+    - "resource_utilization"
+
+# Configuration des tests de compatibilité
+compatibility_testing:
+  enabled: true
+  platforms:
+    - "windows"
+    - "linux"
+    - "macos"
+
+# Configuration des tests de récupération
+recovery_testing:
+  enabled: true
+  scenarios:
+    - "database_failure"
+    - "model_failure"
+    - "network_failure"
+
+# Configuration des tests de déploiement
+deployment_testing:
+  enabled: true
+  environments:
+    - "staging"
+    - "production"
+
+# Configuration des tests de rollback
+rollback_testing:
+  enabled: true
+  scenarios:
+    - "failed_deployment"
+    - "performance_degradation"
+    - "security_issue"
+
+# Configuration des tests de surveillance
+monitoring_testing:
+  enabled: true
+  checks:
+    - "alert_notifications"
+    - "log_rotation"
+    - "backup_integrity"
+
+# Configuration des tests de conformité
+compliance_testing:
+  enabled: true
+  standards:
+    - "GDPR"
+    - "ISO_27001"
+    - "SOC_2"
+
+# Configuration des tests de validation des modèles
+model_validation:
+  enabled: true
+  checks:
+    - "accuracy"
+    - "performance"
+    - "bias"
+
+# Configuration des tests de validation des pipelines
+pipeline_validation:
+  enabled: true
+  checks:
+    - "efficiency"
+    - "reliability"
+    - "scalability"
+
+# Configuration des tests de validation des interfaces
+ui_validation:
+  enabled: true
+  checks:
+    - "usability"
+    - "accessibility"
+    - "responsiveness"
+
+# Configuration des tests de validation des alertes
+alert_validation:
+  enabled: true
+  checks:
+    - "timeliness"
+    - "accuracy"
+    - "coverage"
+
+# Configuration des tests de validation des sauvegardes
+backup_validation:
+  enabled: true
+  checks:
+    - "integrity"
+    - "recoverability"
+    - "retention"
+
+# Configuration des tests de validation des mises à jour
+update_validation:
+  enabled: true
+  checks:
+    - "compatibility"
+    - "performance_impact"
+    - "security_impact"
+
+# Configuration des tests de validation des tests
+test_validation:
+  enabled: true
+  checks:
+    - "coverage"
+    - "effectiveness"
+    - "efficiency"
+
+# Configuration des tests de validation des fonctionnalités
+feature_validation:
+  enabled: true
+  checks:
+    - "functionality"
+    - "performance"
+    - "usability"
+
+# Configuration des tests de validation des ressources
+resource_validation:
+  enabled: true
+  checks:
+    - "availability"
+    - "utilization"
+    - "scalability"
+
+# Configuration des tests de validation des dépendances
+dependency_validation:
+  enabled: true
+  checks:
+    - "compatibility"
+    - "security"
+    - "performance"
+
+# Configuration des tests de validation des variables d'environnement
+environment_validation:
+  enabled: true
+  checks:
+    - "correctness"
+    - "security"
+    - "consistency"
+
+# Configuration des tests de validation des tests de validation
+validation_testing:
+  enabled: true
+  checks:
+    - "coverage"
+    - "effectiveness"
+    - "efficiency"

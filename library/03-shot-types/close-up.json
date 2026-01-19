@@ -1,0 +1,12 @@
+{
+  "category": "shot-types",
+  "subcategory": "close-shots",
+  "id": "shot-closeup",
+  "name": "Close-Up",
+  "description": "Face or object close-up with emotional detail",
+  "tags": ["close-up", "intimate", "detail", "emotion"],
+  "prompt": "Close-up shot, {SUBJECT}'s face/object. Emotional detail visible, shallow depth of field, dramatic lighting emphasizing features. Intimate framing, professional portrait cinematography, sharp focus on eyes/key details.",
+  "variables": {
+    "SUBJECT": { "type": "string", "required": true }
+  }
+}

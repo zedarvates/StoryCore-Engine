@@ -1,0 +1,311 @@
+/* ComfyUIConfigurationWindow Component Styles */
+
+.comfy-config-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.comfy-config-modal-content {
+  background-color: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+}
+
+.comfy-config-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.comfy-config-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 20px 0 16px 0;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
+.comfy-config-form-group {
+  margin-bottom: 16px;
+}
+
+.comfy-config-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.comfy-config-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background-color: white;
+}
+
+.comfy-config-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.comfy-config-input.error {
+  border-color: #dc3545;
+}
+
+.comfy-config-input:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.comfy-config-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background-color: white;
+  transition: border-color 0.2s ease;
+}
+
+.comfy-config-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.comfy-config-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+}
+
+.comfy-config-checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.comfy-config-error {
+  color: #dc3545;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.comfy-config-connection-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.comfy-config-connection-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.comfy-config-connection-status.idle {
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+.comfy-config-connection-status.testing {
+  background-color: #cce7ff;
+  color: #004085;
+}
+
+.comfy-config-connection-status.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.comfy-config-connection-status.failed {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.comfy-config-workflow-description {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.comfy-config-workflow-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background-color: #fafbfc;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.comfy-config-workflow-item input,
+.comfy-config-workflow-item select {
+  flex: 1;
+}
+
+.comfy-config-workflow-item input:first-child {
+  flex: 1;
+}
+
+.comfy-config-workflow-item select {
+  flex: 2;
+}
+
+.comfy-config-button-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.comfy-config-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comfy-config-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.comfy-config-button-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.comfy-config-button-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+.comfy-config-button-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.comfy-config-button-secondary:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+.comfy-config-button-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.comfy-config-button-success:hover:not(:disabled) {
+  background-color: #1e7e34;
+}
+
+.comfy-config-button-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.comfy-config-button-info:hover:not(:disabled) {
+  background-color: #138496;
+}
+
+.comfy-config-button-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.comfy-config-button-danger:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.comfy-config-actions {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .comfy-config-modal-content {
+    padding: 20px;
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .comfy-config-title {
+    font-size: 1.25rem;
+  }
+
+  .comfy-config-section-title {
+    font-size: 1.1rem;
+  }
+
+  .comfy-config-connection-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .comfy-config-workflow-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .comfy-config-workflow-item input,
+  .comfy-config-workflow-item select {
+    flex: none;
+  }
+
+  .comfy-config-button-group {
+    flex-direction: column;
+  }
+
+  .comfy-config-button {
+    justify-content: center;
+  }
+
+  .comfy-config-actions {
+    flex-direction: column-reverse;
+  }
+}

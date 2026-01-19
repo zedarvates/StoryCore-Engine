@@ -1,0 +1,45 @@
+{
+  "id": "mood-calm",
+  "name": "Calm Mood",
+  "category": "mood-atmosphere",
+  "description": "Peaceful and tranquil atmosphere with serene composition and relaxed undertones",
+  "tags": ["calm", "peaceful", "tranquil", "serene", "relaxed"],
+  "prompt": {
+    "base": "Calm peaceful atmosphere, tranquil mood, serene composition, relaxed environment, gentle tone, soothing undertones, meditative quality, quiet atmosphere, restful mood",
+    "positive": "calm atmosphere, peaceful mood, tranquil setting, serene composition, relaxed environment, gentle tone, soothing atmosphere, meditative quality, quiet moment, restful mood, harmonious setting, zen-like peace",
+    "negative": "chaotic atmosphere, tense mood, anxious energy, stressful environment, frantic pace, agitated tone, turbulent mood",
+    "technical": {
+      "lighting": "Soft, even lighting with gentle transitions",
+      "color_palette": "Muted, harmonious colors with natural tones",
+      "contrast": "Low contrast, smooth gradients",
+      "mood_intensity": "Gentle, sustained tranquility"
+    }
+  },
+  "variations": [
+    {
+      "name": "Natural Calm",
+      "modifier": "nature setting, outdoor peace, natural serenity, wilderness tranquility, organic calm"
+    },
+    {
+      "name": "Meditative Calm",
+      "modifier": "zen atmosphere, spiritual peace, contemplative mood, mindful presence, inner tranquility"
+    },
+    {
+      "name": "Domestic Calm",
+      "modifier": "home comfort, cozy peace, familiar serenity, safe haven, domestic tranquility"
+    }
+  ],
+  "examples": [
+    "A serene lake at sunset, calm atmosphere, peaceful mood, tranquil and relaxed setting",
+    "A character in meditation, calm expression, peaceful environment, serene and soothing atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "calm_mood_workflow",
+    "recommended_models": ["realistic_vision", "dreamshaper"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

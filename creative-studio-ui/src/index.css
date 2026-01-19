@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  /* Dark theme with neon/cyberpunk accents */
+  .dark {
+    --background: 240 10% 3.9%; /* Very dark blue-black #0a0a0f */
+    --foreground: 210 40% 98%;
+    --card: 240 10% 6%; /* Slightly lighter than background */
+    --card-foreground: 210 40% 98%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 280 100% 70%; /* Neon purple #b366ff */
+    --primary-foreground: 240 10% 3.9%;
+    --secondary: 240 10% 12%; /* Dark gray with blue tint */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 10% 12%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 280 100% 70%; /* Neon purple accent */
+    --accent-foreground: 240 10% 3.9%;
+    --destructive: 0 62.8% 50%; /* Brighter red for dark theme */
+    --destructive-foreground: 210 40% 98%;
+    --border: 240 10% 15%; /* Subtle border */
+    --input: 240 10% 12%;
+    --ring: 280 100% 70%; /* Neon purple ring */
+    
+    /* Neon colors */
+    --neon-purple: 280 100% 70%;
+    --neon-blue: 200 100% 60%;
+    --neon-pink: 320 100% 70%;
+    --neon-cyan: 180 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  /* Neon glow effects for dark theme */
+  .dark {
+    /* Subtle glow on interactive elements */
+    button:hover,
+    a:hover {
+      text-shadow: 0 0 8px rgba(179, 102, 255, 0.5);
+    }
+    
+    /* Neon border glow */
+    .neon-border {
+      border-color: hsl(var(--primary));
+      box-shadow: 0 0 10px rgba(179, 102, 255, 0.3);
+    }
+    
+    /* Neon text glow */
+    .neon-text {
+      color: hsl(var(--primary));
+      text-shadow: 0 0 10px rgba(179, 102, 255, 0.6);
+    }
+  }
+}
+
+/* Scrollbar styling for dark theme */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 5px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+  box-shadow: 0 0 10px rgba(179, 102, 255, 0.5);
+}
+
+/* Selection color */
+.dark ::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Wizard accessibility and UX animations */
+@keyframes indeterminate-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.animate-indeterminate-progress {
+  animation: indeterminate-progress 1.5s ease-in-out infinite;
+  width: 25%;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible styles for keyboard navigation */
+@layer utilities {
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  }
+}

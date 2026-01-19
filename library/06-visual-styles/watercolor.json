@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-watercolor",
+  "name": "Watercolor Visual Style",
+  "category": "visual-styles",
+  "description": "Soft and flowing with watercolor painting aesthetics, delicate washes, and artistic fluidity",
+  "tags": ["watercolor", "painting", "soft", "flowing", "artistic"],
+  "prompt": {
+    "base": "Watercolor painting style, soft flowing colors, delicate washes, artistic fluidity, paper texture, color bleeding, transparent layers, painterly quality, gentle gradients, watercolor aesthetics",
+    "positive": "watercolor painting, soft colors, flowing washes, delicate brushwork, paper texture, color bleeding, transparent layers, artistic style, gentle gradients, painterly quality, watercolor paper, soft edges, artistic interpretation",
+    "negative": "photorealistic, digital art, sharp edges, solid colors, hard lines, 3D render, photograph, vector art, flat design",
+    "technical": {
+      "rendering": "Watercolor simulation with soft edges and color bleeding",
+      "textures": "Watercolor paper texture, paint granulation",
+      "lighting": "Soft diffused lighting with gentle transitions",
+      "detail_level": "Soft detail with artistic interpretation"
+    }
+  },
+  "variations": [
+    {
+      "name": "Traditional Watercolor",
+      "modifier": "classic technique, visible brushstrokes, paper texture, authentic watercolor effects"
+    },
+    {
+      "name": "Loose Watercolor",
+      "modifier": "expressive washes, minimal detail, flowing colors, spontaneous style, artistic freedom"
+    },
+    {
+      "name": "Detailed Watercolor",
+      "modifier": "precise brushwork, layered washes, controlled technique, botanical illustration style"
+    }
+  ],
+  "examples": [
+    "A landscape in watercolor style with soft flowing colors, delicate washes, paper texture, painterly quality",
+    "A portrait with watercolor aesthetics, gentle color transitions, soft edges, artistic interpretation"
+  ],
+  "comfyui": {
+    "workflow_id": "watercolor_style_workflow",
+    "recommended_models": ["dreamshaper", "anything_v5"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 25,
+      "sampler": "Euler a"
+    }
+  }
+}

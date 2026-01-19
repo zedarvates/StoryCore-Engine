@@ -1,0 +1,81 @@
+{
+  "overall_score": 4.7909999999999995,
+  "passed": false,
+  "total_issues": 10,
+  "severity_breakdown": {
+    "critical": 1,
+    "high": 1,
+    "medium": 4,
+    "low": 4,
+    "info": 0
+  },
+  "category_performance": {
+    "visual_coherence": {
+      "score": 4.7,
+      "issues": 2,
+      "autofix_applied": 2,
+      "validation_time": 0.0
+    },
+    "pose_consistency": {
+      "score": 4.6,
+      "issues": 2,
+      "autofix_applied": 0,
+      "validation_time": 0.0004985332489013672
+    },
+    "lighting_consistency": {
+      "score": 4.880000000000001,
+      "issues": 2,
+      "autofix_applied": 2,
+      "validation_time": 0.0
+    },
+    "perspective_accuracy": {
+      "score": 4.8,
+      "issues": 1,
+      "autofix_applied": 0,
+      "validation_time": 0.0
+    },
+    "character_stability": {
+      "score": 5.0,
+      "issues": 0,
+      "autofix_applied": 0,
+      "validation_time": 0.0
+    },
+    "color_palette": {
+      "score": 4.92,
+      "issues": 1,
+      "autofix_applied": 1,
+      "validation_time": 0.0
+    },
+    "audio_sync": {
+      "score": 5.0,
+      "issues": 0,
+      "autofix_applied": 0,
+      "validation_time": 0.0
+    },
+    "motion_coherence": {
+      "score": 5.0,
+      "issues": 0,
+      "autofix_applied": 0,
+      "validation_time": 0.0
+    },
+    "temporal_consistency": {
+      "score": 4.9,
+      "issues": 1,
+      "autofix_applied": 0,
+      "validation_time": 0.0
+    },
+    "data_integrity": {
+      "score": 3.0,
+      "issues": 1,
+      "autofix_applied": 0,
+      "validation_time": 0.0
+    }
+  },
+  "autofix_summary": {
+    "total_attempts": 5,
+    "successful": 5,
+    "failed": 0,
+    "total_improvement": 2.0
+  },
+  "validation_time": 0.0
+}

@@ -8,23 +8,37 @@ REM Check for UNC path (WSL network path)
 echo %CD% | findstr /C:"\\wsl" >nul
 if !errorlevel! equ 0 (
     echo ⚠️  Detected WSL network path. Switching to WSL execution...
-    echo Executing via WSL Ubuntu...
-    wsl bash -c "cd '%CD%' && ./install_wsl.sh"
+    echo Mapping temporary drive for UNC path access...
+    
+    REM Extract WSL path and convert to WSL format
+    set "WSL_PATH=%CD:\=/%"
+    set "WSL_PATH=!WSL_PATH:\\wsl.localhost\Ubuntu=/!"
+    
+    echo Executing via WSL Ubuntu at: !WSL_PATH!
+    wsl bash -c "cd '!WSL_PATH!' && chmod +x ./install_wsl.sh && ./install_wsl.sh"
     exit /b !errorlevel!
 )
 
-REM Check for Administrator privileges
+REM Check for Administrator privileges for Windows Defender exclusions
 net session >nul 2>&1
 if !errorlevel! neq 0 (
     echo 🔒 Administrator privileges required for Windows Defender exclusions
+    echo This ensures .safetensors model files are not blocked during download
     echo Requesting elevation...
     powershell -Command "Start-Process cmd -ArgumentList '/c cd /d \"%CD%\" && \"%~f0\" %*' -Verb RunAs"
     exit /b 0
 )
 
+REM Apply Windows Defender exclusions for model files
+echo 🛡️  Configuring Windows Defender exclusions...
 set "SCRIPT_DIR=%~dp0"
 set "PROJECT_ROOT=%SCRIPT_DIR%..\.."
 set "INSTALL_DIR=%PROJECT_ROOT%\comfyui_portable"
+
+powershell -Command "Add-MpPreference -ExclusionPath '%INSTALL_DIR%' -Force" 2>nul
+powershell -Command "Add-MpPreference -ExclusionExtension '.safetensors' -Force" 2>nul
+echo ✅ Windows Defender exclusions applied
+
 set "COMFYUI_DIR=%INSTALL_DIR%\ComfyUI"
 set "PORT=%1"
 if "%PORT%"=="" set "PORT=8188"
@@ -129,11 +143,29 @@ for /f "usebackq tokens=*" %%i in ("%SCRIPT_DIR%models_links.txt") do (
         ) else if "!filename!" neq "!filename:mistral=!" (
             set "output_path=models\text_encoders\!filename!"
         ) else (
-            goto :continue
+            set "output_path=models\checkpoints\!filename!"
         )
         
-        if not exist "!output_path!" (
-            echo Downloading !filename!...
+        REM Skip if file already exists
+        if exist "!output_path!" (
+            echo ✅ !filename! already exists, skipping
+        ) else (
+            echo 📥 Downloading !filename!...
+            where curl >nul 2>nul
+            if !errorlevel! equ 0 (
+                curl -L "!url!" -o "!output_path!"
+            ) else (
+                powershell -Command "Invoke-WebRequest -Uri '!url!' -OutFile '!output_path!'"
+            )
+            
+            if exist "!output_path!" (
+                echo ✅ Downloaded !filename!
+            ) else (
+                echo ❌ Failed to download !filename!
+            )
+        )
+    )
+)
             where curl >nul 2>nul
             if !errorlevel! equ 0 (
                 curl -C - -L "!url!" -o "!output_path!"
@@ -159,6 +191,49 @@ echo 📋 Installing StoryCore-Engine workflow...
 if exist "%PROJECT_ROOT%\image_flux2 storycore1.json" (
     copy "%PROJECT_ROOT%\image_flux2 storycore1.json" .
     echo ✅ Workflow installed
+)
+
+REM Install ComfyUI Manager as fallback
+echo 🔧 Installing ComfyUI Manager (fallback system)...
+if not exist "custom_nodes\ComfyUI-Manager" (
+    cd custom_nodes
+    where git >nul 2>nul
+    if !errorlevel! equ 0 (
+        git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+        echo ✅ ComfyUI Manager installed
+    ) else (
+        echo ⚠️  Git not found, ComfyUI Manager not installed
+    )
+    cd ..
+) else (
+    echo ✅ ComfyUI Manager already installed
+)
+
+REM Install Workflow Models Downloader
+echo 📥 Installing Workflow Models Downloader...
+if not exist "custom_nodes\ComfyUI-Workflow-Models-Downloader" (
+    cd custom_nodes
+    where git >nul 2>nul
+    if !errorlevel! equ 0 (
+        git clone https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader.git
+        echo ✅ Workflow Models Downloader installed
+    ) else (
+        echo ⚠️  Git not found, Workflow Models Downloader not installed
+    )
+    cd ..
+) else (
+    echo ✅ Workflow Models Downloader already installed
+)
+
+REM Create custom_nodes directory if it doesn't exist
+if not exist "custom_nodes" mkdir "custom_nodes"
+
+echo.
+echo 🔍 Validating model installation...
+if exist "tools\comfyui_installer\validate_models.sh" (
+    bash tools\comfyui_installer\validate_models.sh
+) else (
+    echo ⚠️  Model validation script not found. Please verify models manually.
 )
 
 echo.

@@ -1,0 +1,45 @@
+{
+  "id": "mood-hopeful",
+  "name": "Hopeful Mood",
+  "category": "mood-atmosphere",
+  "description": "Optimistic and inspiring atmosphere with uplifting composition and positive undertones",
+  "tags": ["hopeful", "optimistic", "inspiring", "uplifting", "positive"],
+  "prompt": {
+    "base": "Hopeful optimistic atmosphere, inspiring mood, uplifting composition, positive tone, encouraging environment, bright undertones, aspirational quality, forward-looking atmosphere, promising mood",
+    "positive": "hopeful atmosphere, optimistic mood, inspiring setting, uplifting composition, positive tone, encouraging environment, bright outlook, aspirational quality, forward-looking mood, promising atmosphere, motivational energy, renewed spirit",
+    "negative": "hopeless mood, pessimistic atmosphere, discouraging setting, negative tone, despairing environment, bleak outlook, defeatist mood",
+    "technical": {
+      "lighting": "Warm, glowing lighting with uplifting quality",
+      "color_palette": "Warm tones with golden accents, sunrise colors",
+      "contrast": "Medium contrast with emphasis on light",
+      "mood_intensity": "Gentle but persistent optimism"
+    }
+  },
+  "variations": [
+    {
+      "name": "Dawn Hopeful",
+      "modifier": "new beginning, sunrise symbolism, fresh start, morning light, awakening hope"
+    },
+    {
+      "name": "Triumph Hopeful",
+      "modifier": "overcoming adversity, victory mood, achievement atmosphere, success energy, earned optimism"
+    },
+    {
+      "name": "Innocent Hopeful",
+      "modifier": "childlike wonder, pure optimism, naive hope, youthful dreams, untainted positivity"
+    }
+  ],
+  "examples": [
+    "A sunrise over mountains, hopeful atmosphere, inspiring and uplifting mood with golden light",
+    "A character looking toward the horizon, optimistic expression, hopeful and encouraging atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "hopeful_mood_workflow",
+    "recommended_models": ["dreamshaper", "realistic_vision"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

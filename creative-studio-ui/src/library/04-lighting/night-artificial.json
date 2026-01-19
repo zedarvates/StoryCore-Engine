@@ -1,0 +1,17 @@
+{
+  "category": "lighting",
+  "subcategory": "night-light",
+  "id": "lighting-night-artificial",
+  "name": "Night Artificial Lighting",
+  "description": "Urban night scene with artificial light sources",
+  "tags": ["night", "artificial", "urban", "neon"],
+  "prompt": "Night scene with artificial lighting, {SCENE}. {LIGHT_SOURCES} providing illumination. Warm artificial light against cool night shadows. Urban night atmosphere. Professional night cinematography, rich colors in darkness.",
+  "variables": {
+    "SCENE": { "type": "string", "required": true },
+    "LIGHT_SOURCES": { 
+      "type": "string",
+      "required": true,
+      "examples": ["streetlights", "neon signs", "windows", "car headlights"]
+    }
+  }
+}

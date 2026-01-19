@@ -1,0 +1,44 @@
+{
+  "id": "transition-dissolve",
+  "name": "Dissolve Transition",
+  "category": "transitions",
+  "description": "Gradual blend between two shots with overlapping imagery, creating smooth transition",
+  "tags": ["dissolve", "blend", "crossfade", "overlap", "smooth"],
+  "prompt": {
+    "base": "Dissolve transition, gradual blend between shots, crossfade effect, overlapping imagery, smooth transition, one shot fading while next appears, blended change, soft transition",
+    "positive": "dissolve transition, crossfade, gradual blend, overlapping shots, smooth transition, soft change, blended imagery, gentle shift, fading overlap, seamless blend, soft transition",
+    "negative": "instant cut, abrupt change, hard transition, no blend, direct switch, sharp cut",
+    "technical": {
+      "transition_duration": "0.5-2 seconds typical",
+      "visual_effect": "Simultaneous fade out/in with overlap",
+      "use_cases": "Montages, time passage, dream sequences, memory transitions",
+      "editing_style": "Romantic, nostalgic, dreamy, smooth storytelling"
+    }
+  },
+  "variations": [
+    {
+      "name": "Quick Dissolve",
+      "modifier": "fast blend, energetic transition, modern pacing, brief overlap, dynamic change"
+    },
+    {
+      "name": "Slow Dissolve",
+      "modifier": "extended blend, dreamy quality, contemplative pace, long overlap, meditative transition"
+    },
+    {
+      "name": "Ripple Dissolve",
+      "modifier": "water-like effect, dream transition, memory sequence, distorted blend, surreal quality"
+    }
+  },
+  "examples": [
+    "A montage sequence with dissolve transitions, smooth blending between shots, flowing narrative",
+    "A memory flashback with slow dissolve, dreamy overlapping imagery, nostalgic transition"
+  ],
+  "comfyui": {
+    "workflow_id": "dissolve_transition_workflow",
+    "parameters": {
+      "transition_type": "dissolve",
+      "duration_frames": 18,
+      "blend_mode": "crossfade"
+    }
+  }
+}

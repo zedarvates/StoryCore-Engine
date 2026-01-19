@@ -1,0 +1,12 @@
+{
+  "category": "lighting",
+  "subcategory": "night-light",
+  "id": "lighting-moonlight",
+  "name": "Moonlight Night Scene",
+  "description": "Cool blue moonlight with mysterious atmosphere",
+  "tags": ["moonlight", "night", "mysterious", "cool"],
+  "prompt": "Moonlit night scene, {SCENE}. Cool blue moonlight, deep shadows, mysterious atmosphere. Stars visible if appropriate. Selective lighting on key elements. Cinematic night photography, professional low-light quality.",
+  "variables": {
+    "SCENE": { "type": "string", "required": true }
+  }
+}

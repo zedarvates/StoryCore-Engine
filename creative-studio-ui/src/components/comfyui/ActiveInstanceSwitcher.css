@@ -1,0 +1,308 @@
+/* Active Instance Switcher Component Styles */
+
+.active-instance-switcher {
+  position: relative;
+  display: inline-block;
+}
+
+.switcher-container {
+  display: flex;
+  align-items: center;
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  padding: 4px;
+  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.switcher-container:hover {
+  border-color: var(--accent-color, #007bff);
+  box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.25);
+}
+
+/* Active Instance Display */
+.active-instance-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0; /* Allow shrinking */
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #666666);
+  white-space: nowrap;
+}
+
+.active-instance-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.instance-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #333333);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.instance-endpoint {
+  font-size: 12px;
+  color: var(--text-secondary, #666666);
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.no-active-instance {
+  font-size: 14px;
+  color: var(--text-muted, #999999);
+  font-style: italic;
+}
+
+/* Status Indicator */
+.status-indicator {
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: white;
+}
+
+.status-healthy { background-color: #28a745; }
+.status-degraded { background-color: #ffc107; color: #212529; }
+.status-unhealthy { background-color: #dc3545; }
+.status-stopped { background-color: #6c757d; }
+.status-unknown { background-color: #6c757d; }
+
+/* Metrics */
+.metrics {
+  font-size: 11px;
+  color: var(--text-secondary, #666666);
+  background: var(--bg-secondary, #f8f9fa);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* Dropdown Toggle */
+.dropdown-toggle {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-toggle:hover {
+  background-color: var(--bg-secondary, #f8f9fa);
+}
+
+.toggle-icon {
+  font-size: 12px;
+  color: var(--text-secondary, #666666);
+  transition: transform 0.2s ease;
+}
+
+.dropdown-toggle:hover .toggle-icon {
+  color: var(--text-primary, #333333);
+}
+
+/* Dropdown Menu */
+.instance-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropdown-item:hover {
+  background-color: var(--bg-secondary, #f8f9fa);
+}
+
+.dropdown-item.active {
+  background-color: var(--accent-bg, #e3f2fd);
+  color: var(--accent-color, #007bff);
+}
+
+.dropdown-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.dropdown-item.disabled:hover {
+  background-color: transparent;
+}
+
+.item-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.clear-active {
+  color: #dc3545;
+}
+
+.clear-active:hover {
+  background-color: #f8d7da;
+}
+
+.no-instances {
+  justify-content: center;
+  color: var(--text-muted, #999999);
+  font-style: italic;
+  cursor: default;
+}
+
+.no-instances:hover {
+  background-color: transparent;
+}
+
+/* Instance Options */
+.instance-option {
+  justify-content: space-between;
+  padding: 8px 12px;
+}
+
+.instance-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.instance-info .instance-name {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.instance-info .instance-endpoint {
+  font-size: 11px;
+  color: var(--text-muted, #999999);
+}
+
+.instance-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.instance-status .status-indicator {
+  font-size: 9px;
+  padding: 1px 4px;
+}
+
+.instance-status .metrics {
+  font-size: 10px;
+}
+
+/* Dropdown Sections */
+.dropdown-section {
+  border-top: 1px solid var(--border-light, #f0f0f0);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.section-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #666666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  padding: 0 12px;
+}
+
+/* Dropdown Divider */
+.dropdown-divider {
+  height: 1px;
+  background-color: var(--border-light, #f0f0f0);
+  margin: 4px 0;
+}
+
+/* Dropdown Overlay */
+.dropdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1; /* Behind dropdown but catches clicks */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .switcher-container {
+    min-width: 180px;
+  }
+
+  .active-instance-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .instance-name {
+    font-size: 13px;
+  }
+
+  .instance-endpoint {
+    font-size: 11px;
+  }
+
+  .instance-dropdown {
+    max-height: 250px;
+  }
+
+  .dropdown-item {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .switcher-container {
+    min-width: 160px;
+  }
+
+  .active-instance-display {
+    gap: 4px;
+  }
+
+  .label {
+    display: none; /* Hide label on very small screens */
+  }
+
+  .instance-dropdown {
+    left: -20px;
+    right: -20px;
+  }
+}

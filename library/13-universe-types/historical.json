@@ -1,0 +1,47 @@
+{
+  "id": "universe-historical",
+  "name": "Historical Universe",
+  "category": "universe-types",
+  "description": "Period-accurate settings from specific historical eras with authentic details",
+  "tags": ["historical", "period", "authentic", "era", "documented"],
+  "prompt": {
+    "base": "Historical universe, period setting, authentic era, documented time period, historical accuracy, vintage atmosphere, period-accurate details",
+    "positive": "historical universe, period setting, authentic era, documented time period, historical accuracy, vintage atmosphere, period-accurate details, era-appropriate clothing, historical architecture, authentic props, period lighting",
+    "negative": "modern elements, contemporary technology, anachronistic details, futuristic elements, fantasy magic, sci-fi technology",
+    "technical": {
+      "physics_rules": "Real-world physics of the era",
+      "technology_level": "Era-specific (varies by period)",
+      "magic_system": "None (unless period-appropriate beliefs)",
+      "world_constraints": "Bound by historical accuracy and documentation",
+      "visual_approach": "Period-accurate, vintage aesthetic, era-appropriate lighting"
+    }
+  },
+  "variations": [
+    {
+      "name": "Ancient Historical",
+      "modifier": "ancient civilizations, classical era, antiquity, archaeological accuracy, ancient architecture"
+    },
+    {
+      "name": "Medieval Historical",
+      "modifier": "middle ages, feudal system, castles and knights, medieval accuracy, period warfare"
+    },
+    {
+      "name": "Modern Historical",
+      "modifier": "20th century, recent history, documented events, period photography style, historical footage aesthetic"
+    }
+  ],
+  "examples": [
+    "A Victorian-era street in historical universe, period-accurate details, authentic atmosphere, vintage lighting",
+    "An ancient Roman forum in historical setting, classical architecture, archaeological accuracy, period authenticity"
+  ],
+  "comfyui": {
+    "workflow_id": "historical_universe_workflow",
+    "recommended_models": ["realistic_vision", "historical_diffusion"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 25,
+      "sampler": "DPM++ 2M Karras",
+      "universe_conditioning": "historical"
+    }
+  }
+}

@@ -1,0 +1,97 @@
+INTERACTIVE NARRATIVE EXAMPLE
+============================
+
+Choose-Your-Own-Adventure Style Story
+
+THE MYSTERIOUS CAVE
+
+You are Thorin, a brave dwarf explorer, standing at the entrance of a dark cave. Ancient runes warn of danger inside, but tales speak of great treasure. Your curiosity pulls you forward, but caution whispers to turn back.
+
+What do you do?
+
+CHOICE 1: Enter the cave bravely.
+CHOICE 2: Look for another way in.
+CHOICE 3: Turn back to the village.
+
+[If you choose CHOICE 1: Enter bravely]
+
+You step into the cave, your torch flickering against the walls. The air grows colder. Suddenly, you hear a low growl from the shadows.
+
+What do you do?
+
+CHOICE 1A: Stand your ground and call out.
+CHOICE 1B: Hide behind a rock.
+CHOICE 1C: Run back out.
+
+[If you choose CHOICE 1A: Call out]
+
+A massive bear emerges! But your brave stance impresses it. The bear sniffs you and leads you to a hidden chamber filled with gold.
+
+ENDING: You become rich and legendary. The bear becomes your companion.
+
+[If you choose CHOICE 1B: Hide]
+
+The bear passes by, unaware. You continue deeper and find the treasure unguarded.
+
+ENDING: You claim the treasure, but the guilt of cowardice haunts you.
+
+[If you choose CHOICE 1C: Run]
+
+You escape safely, but the cave collapses behind you, sealing the treasure forever.
+
+ENDING: You live a safe but ordinary life, always wondering "what if?"
+
+[Back to main choices]
+
+[If you choose CHOICE 2: Look for another way]
+
+You circle the mountain and find a small opening higher up. It's narrow but safer.
+
+What do you do?
+
+CHOICE 2A: Crawl through the opening.
+CHOICE 2B: Use rope to climb down from above.
+
+[If you choose CHOICE 2A: Crawl]
+
+You squeeze through and drop into a chamber. A goblin guard spots you!
+
+ENDING: Epic battle! You defeat the goblin and claim the treasure.
+
+[If you choose CHOICE 2B: Climb]
+
+The rope breaks midway. You fall but land in soft moss.
+
+ENDING: Injured but alive, you find healing herbs worth more than gold.
+
+[If you choose CHOICE 3: Turn back]
+
+You return to the village wiser. Later, you lead a proper expedition.
+
+ENDING: You become a respected guide, helping others find their fortunes.
+
+INTERACTIVE NARRATIVE TIPS:
+- Keep choices clear and impactful
+- Provide immediate feedback for decisions
+- Include multiple endings based on choices
+- Balance risk/reward in options
+- Consider character traits in outcomes
+- Use branching paths for replayability
+
+TEMPLATE FOR NEW INTERACTIVES:
+
+PAGE 1: [Opening scenario]
+Choice A: [Option 1]
+Choice B: [Option 2]
+
+[If Choice A]
+PAGE A: [Next scenario]
+Choice A1: [Sub-option]
+Choice A2: [Sub-option]
+
+[Ending A1]...
+[Ending A2]...
+
+[If Choice B]
+PAGE B: [Alternative scenario]
+...

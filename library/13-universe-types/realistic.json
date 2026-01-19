@@ -1,0 +1,47 @@
+{
+  "id": "universe-realistic",
+  "name": "Realistic Universe",
+  "category": "universe-types",
+  "description": "Grounded in real-world physics, history, and contemporary settings",
+  "tags": ["realistic", "contemporary", "modern", "grounded", "authentic"],
+  "prompt": {
+    "base": "Realistic universe, contemporary setting, modern world, grounded reality, authentic environment, real-world physics, believable setting",
+    "positive": "realistic universe, contemporary setting, modern world, authentic details, real-world physics, believable environment, grounded reality, natural lighting, practical effects, documentary style, photorealistic quality",
+    "negative": "fantasy elements, magic, supernatural, sci-fi technology, futuristic, mythical creatures, impossible physics, surreal elements",
+    "technical": {
+      "physics_rules": "Real-world physics apply",
+      "technology_level": "Contemporary (2020s)",
+      "magic_system": "None",
+      "world_constraints": "Bound by real-world laws and limitations",
+      "visual_approach": "Photorealistic, natural lighting, practical effects"
+    }
+  },
+  "variations": [
+    {
+      "name": "Urban Realistic",
+      "modifier": "city environment, urban setting, metropolitan atmosphere, modern architecture, street-level realism"
+    },
+    {
+      "name": "Rural Realistic",
+      "modifier": "countryside setting, natural environment, rural atmosphere, agricultural landscape, pastoral realism"
+    },
+    {
+      "name": "Historical Realistic",
+      "modifier": "period-accurate setting, historical environment, authentic era details, documented time period"
+    }
+  ],
+  "examples": [
+    "A contemporary urban scene with realistic universe, modern city environment, authentic details",
+    "A rural landscape in realistic universe, natural countryside setting, grounded atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "realistic_universe_workflow",
+    "recommended_models": ["realistic_vision", "absolute_reality"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 25,
+      "sampler": "DPM++ 2M Karras",
+      "universe_conditioning": "realistic"
+    }
+  }
+}

@@ -1,0 +1,208 @@
+/* Wizard Launcher Styles */
+
+.wizard-launcher {
+  padding: 20px;
+}
+
+.wizard-launcher-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.wizard-launcher-title {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.wizard-launcher-description {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary, #999);
+}
+
+/* Connection Status Indicators */
+.connection-status {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--card-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-secondary, #666);
+}
+
+.status-indicator.connected .status-dot {
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.status-indicator.disconnected .status-dot {
+  background: #ef4444;
+}
+
+.status-indicator.checking .status-dot {
+  background: #fbbf24;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-label {
+  color: var(--text-secondary, #999);
+  font-weight: 500;
+}
+
+.wizard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.wizard-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 20px;
+  background: var(--card-bg, #2a2a2a);
+  border: 2px solid var(--border-color, #444);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  position: relative;
+}
+
+.wizard-card:hover:not(.disabled) {
+  border-color: var(--accent-color, #4a9eff);
+  background: var(--card-hover-bg, #333);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+}
+
+.wizard-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--border-color, #444);
+}
+
+.wizard-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.wizard-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wizard-name {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.wizard-description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary, #999);
+}
+
+.wizard-requirements {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.requirements-label {
+  font-weight: 600;
+  color: var(--text-secondary, #999);
+  margin-right: 5px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.requirements-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.requirement-badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.requirement-badge.connected {
+  background: rgba(74, 222, 128, 0.1);
+  border-color: #4ade80;
+  color: #4ade80;
+}
+
+.requirement-badge.disconnected {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.wizard-launch-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 20px;
+  color: var(--accent-color, #4a9eff);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.wizard-card:hover:not(.disabled) .wizard-launch-icon {
+  opacity: 1;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary, #999);
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .wizard-launcher-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .wizard-grid {
+    grid-template-columns: 1fr;
+  }
+}

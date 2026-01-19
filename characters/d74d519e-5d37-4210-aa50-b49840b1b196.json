@@ -1,0 +1,217 @@
+{
+  "character_id": "d74d519e-5d37-4210-aa50-b49840b1b196",
+  "name": "Sarah",
+  "creation_method": "auto_generated",
+  "creation_timestamp": "2026-01-15T20:32:40.266670",
+  "version": "1.0",
+  "visual_identity": {
+    "hair_color": "chestnut brown",
+    "hair_style": "braided",
+    "hair_length": "",
+    "eye_color": "violet",
+    "eye_shape": "",
+    "skin_tone": "dark",
+    "facial_structure": "",
+    "distinctive_features": [
+      "determined expression",
+      "confident posture",
+      "kind eyes",
+      "scar"
+    ],
+    "age_range": "adult",
+    "height": "",
+    "build": "muscular",
+    "posture": "",
+    "clothing_style": "medieval robes",
+    "color_palette": {
+      "primary_colors": [
+        "#4A90E2",
+        "#7ED321",
+        "#F5A623"
+      ],
+      "secondary_colors": [
+        "#FFFFFF",
+        "#50E3C2",
+        "#B8E986"
+      ],
+      "accent_colors": [],
+      "color_harmony": "triadic"
+    },
+    "accessories": [],
+    "aesthetic": "fantasy medieval",
+    "art_style": "realistic",
+    "rendering_style": "",
+    "quality_level": "high"
+  },
+  "personality_profile": {
+    "openness": 0.7085453791923325,
+    "conscientiousness": 0.9009745051325434,
+    "extraversion": 0.4623087740886958,
+    "agreeableness": 0.8490228147073022,
+    "neuroticism": 0.4031405714933357,
+    "primary_traits": [
+      "determined",
+      "loyal",
+      "brave",
+      "curious",
+      "compassionate"
+    ],
+    "strengths": [
+      "leadership",
+      "courage",
+      "empathy"
+    ],
+    "flaws": [
+      "reckless",
+      "impulsive",
+      "stubborn"
+    ],
+    "external_goal": "save others",
+    "internal_need": "belonging",
+    "fears": [
+      "failure",
+      "not being good enough",
+      "betrayal"
+    ],
+    "values": [
+      "loyalty",
+      "compassion",
+      "justice"
+    ],
+    "stress_response": "seek solitude",
+    "conflict_style": "collaborative",
+    "emotional_expression": "controlled and measured",
+    "decision_making_style": "methodical and planned",
+    "attachment_style": "mixed",
+    "social_preferences": "comfortable in various social settings",
+    "trust_patterns": "trusts easily but can be hurt by betrayal"
+  },
+  "voice_identity": {
+    "speech_patterns": "clear and direct",
+    "vocabulary_level": "varied",
+    "sentence_complexity": "structured and complete",
+    "speaking_pace": "measured and deliberate",
+    "accent": null,
+    "dialect": null,
+    "formality_level": "neutral",
+    "humor_style": "witty",
+    "emotional_range": "controlled and subtle",
+    "vulnerability_expression": "open about feelings and struggles",
+    "catchphrases": [
+      "For justice",
+      "Together we're stronger"
+    ],
+    "verbal_tics": [
+      "indeed",
+      "precisely"
+    ],
+    "signature_expressions": [
+      "determined nod",
+      "encouraging smile"
+    ],
+    "voice_type": "clear and natural",
+    "emotional_variance": 0.5225124571946687
+  },
+  "backstory_profile": {
+    "origin_story": "Character with tragic loss that sparked their journey in a fantasy setting",
+    "key_life_events": [
+      "faced their greatest fear",
+      "lost a mentor figure",
+      "discovered their abilities",
+      "made a difficult sacrifice"
+    ],
+    "formative_experiences": [
+      "significant loss or trauma",
+      "moment of moral choice",
+      "discovery of personal values"
+    ],
+    "family_background": "supportive family that encouraged growth",
+    "significant_relationships": [
+      "trusted mentor",
+      "love interest",
+      "loyal best friend"
+    ],
+    "relationship_patterns": "forms deep, lasting bonds with others",
+    "occupation": "noble",
+    "education_level": "self-educated",
+    "social_status": "established",
+    "cultural_background": "western",
+    "hidden_aspects": [
+      "fears not living up to expectations"
+    ],
+    "secrets": [
+      "family secret",
+      "past mistake they regret"
+    ],
+    "unresolved_conflicts": [
+      "moral dilemma from the past",
+      "professional rivalry"
+    ],
+    "growth_opportunities": [],
+    "potential_conflicts": [
+      "moral dilemma",
+      "choosing between duty and desire"
+    ],
+    "transformation_triggers": [
+      "discovery of new truth"
+    ]
+  },
+  "coherence_anchors": {
+    "character_descriptor": "adult muscular person with chestnut brown hair and violet eyes, fantasy medieval style",
+    "facial_anchors": [
+      "chestnut brown braided hair",
+      "violet eyes",
+      "dark skin",
+      " face"
+    ],
+    "clothing_anchors": [
+      "medieval robes clothing",
+      "fantasy medieval aesthetic"
+    ],
+    "style_anchors": [
+      "realistic art style",
+      "high quality",
+      " rendering"
+    ],
+    "primary_colors": [
+      "#4A90E2",
+      "#7ED321",
+      "#F5A623"
+    ],
+    "secondary_colors": [
+      "#FFFFFF",
+      "#50E3C2",
+      "#B8E986"
+    ],
+    "color_harmony": "triadic",
+    "positive_prompts": [
+      "realistic art style",
+      "high quality",
+      "detailed character design",
+      "consistent appearance",
+      "fantasy medieval aesthetic"
+    ],
+    "negative_prompts": [
+      "inconsistent appearance",
+      "low quality",
+      "blurry",
+      "distorted features",
+      "multiple characters"
+    ],
+    "style_strength": 0.8,
+    "seed_base": 1456,
+    "cfg_scale": 7.5,
+    "denoising_strength": 0.7
+  },
+  "puppet_category": "P1",
+  "genre_tags": [
+    "fantasy"
+  ],
+  "style_tags": [
+    "realistic"
+  ],
+  "reference_images": [],
+  "quality_score": 5.0,
+  "consistency_score": 5.0,
+  "metadata": {}
+}

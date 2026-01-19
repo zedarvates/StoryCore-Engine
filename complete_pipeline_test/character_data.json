@@ -1,0 +1,16 @@
+{
+  "characters": [
+    {
+      "character_id": "hero",
+      "name": "Alex",
+      "age": "adult",
+      "gender": "male"
+    },
+    {
+      "character_id": "companion",
+      "name": "Sam",
+      "age": "adult",
+      "gender": "female"
+    }
+  ]
+}

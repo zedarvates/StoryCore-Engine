@@ -1,0 +1,94 @@
+{
+  "track_id": "dialogue",
+  "track_type": "AudioType.DIALOGUE",
+  "clips": [
+    {
+      "clip_id": "dialogue_0_0",
+      "audio_type": "AudioType.DIALOGUE",
+      "start_time": 0.0,
+      "duration": 2.4000000000000004,
+      "content": "temp_audio_mock\\mock_ace_step_t2a_9c1db0ee.wav",
+      "character_id": "hero",
+      "voice_type": "VoiceType.MALE_ADULT",
+      "volume": 0.8,
+      "pan": 0.0,
+      "reverb_zone": null,
+      "spatial_position": null,
+      "metadata": {
+        "scene_index": 0,
+        "line_index": 0,
+        "emotion": "excited",
+        "intensity": 0.5,
+        "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_9c1db0ee.wav",
+        "comfyui_prompt": "speech, dialogue, adult male voice, confident, clear diction, energetic, fast-paced, enthusiastic, high quality, clear audio"
+      }
+    },
+    {
+      "clip_id": "dialogue_0_1",
+      "audio_type": "AudioType.DIALOGUE",
+      "start_time": 3.0,
+      "duration": 2.3000000000000003,
+      "content": "temp_audio_mock\\mock_ace_step_t2a_c53e3eaf.wav",
+      "character_id": "companion",
+      "voice_type": "VoiceType.FEMALE_ADULT",
+      "volume": 0.8,
+      "pan": 0.0,
+      "reverb_zone": null,
+      "spatial_position": null,
+      "metadata": {
+        "scene_index": 0,
+        "line_index": 1,
+        "emotion": "concerned",
+        "intensity": 0.5,
+        "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_c53e3eaf.wav",
+        "comfyui_prompt": "speech, dialogue, adult female voice, professional, clear, natural tone, high quality, clear audio"
+      }
+    },
+    {
+      "clip_id": "dialogue_1_0",
+      "audio_type": "AudioType.DIALOGUE",
+      "start_time": 10.0,
+      "duration": 2.4000000000000004,
+      "content": "temp_audio_mock\\mock_ace_step_t2a_1b37b1d6.wav",
+      "character_id": "hero",
+      "voice_type": "VoiceType.MALE_ADULT",
+      "volume": 0.8,
+      "pan": 0.0,
+      "reverb_zone": null,
+      "spatial_position": null,
+      "metadata": {
+        "scene_index": 1,
+        "line_index": 0,
+        "emotion": "alert",
+        "intensity": 0.5,
+        "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_1b37b1d6.wav",
+        "comfyui_prompt": "speech, dialogue, adult male voice, confident, clear diction, natural tone, high quality, clear audio"
+      }
+    },
+    {
+      "clip_id": "dialogue_1_1",
+      "audio_type": "AudioType.DIALOGUE",
+      "start_time": 13.0,
+      "duration": 2.7,
+      "content": "temp_audio_mock\\mock_ace_step_t2a_ab5315e6.wav",
+      "character_id": "companion",
+      "voice_type": "VoiceType.FEMALE_ADULT",
+      "volume": 0.8,
+      "pan": 0.0,
+      "reverb_zone": null,
+      "spatial_position": null,
+      "metadata": {
+        "scene_index": 1,
+        "line_index": 1,
+        "emotion": "determined",
+        "intensity": 0.5,
+        "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_ab5315e6.wav",
+        "comfyui_prompt": "speech, dialogue, adult female voice, professional, clear, natural tone, high quality, clear audio"
+      }
+    }
+  ],
+  "volume": 0.9,
+  "muted": false,
+  "solo": false,
+  "effects": []
+}

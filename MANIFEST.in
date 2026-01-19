@@ -1,0 +1,51 @@
+# MANIFEST.in - Package distribution manifest
+# Ensures all necessary files are included in the distribution package
+# Requirements: 10.1, 10.4
+
+# Include documentation
+include README.md
+include LICENSE
+include CHANGELOG.md
+
+# Include configuration files
+include requirements.txt
+include setup.py
+
+# Include all Python packages
+recursive-include src *.py
+
+# Include CLI modules
+recursive-include src/cli *.py
+recursive-include src/cli/handlers *.py
+recursive-include src/cli/utils *.py
+
+# Include engine modules
+recursive-include src/engines *.py
+
+# Include migration and validation scripts
+include scripts/migrate_to_modular_cli.py
+include scripts/validate_modularization.py
+
+# Include documentation
+recursive-include docs *.md
+recursive-include docs *.rst
+
+# Exclude unnecessary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude *.dylib
+
+# Exclude test files from distribution
+recursive-exclude tests *
+recursive-exclude .pytest_cache *
+
+# Exclude development files
+exclude .gitignore
+exclude .env*
+recursive-exclude .git *
+recursive-exclude .venv *
+recursive-exclude venv *
+recursive-exclude node_modules *

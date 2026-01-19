@@ -1,0 +1,1812 @@
+{
+  "total_duration": 10.0,
+  "total_frames": 240,
+  "frame_rate": 24.0,
+  "shot_timings": [
+    {
+      "shot_id": "shot_001",
+      "start_time": 0.0,
+      "end_time": 2.0,
+      "duration": 2.0,
+      "frame_count": 48,
+      "frame_rate": 24.0,
+      "transition_in": null,
+      "transition_out": "fade",
+      "transition_duration": 0.5
+    },
+    {
+      "shot_id": "shot_002",
+      "start_time": 2.0,
+      "end_time": 5.0,
+      "duration": 3.0,
+      "frame_count": 72,
+      "frame_rate": 24.0,
+      "transition_in": "fade",
+      "transition_out": "dissolve",
+      "transition_duration": 0.5
+    },
+    {
+      "shot_id": "shot_003",
+      "start_time": 5.0,
+      "end_time": 10.0,
+      "duration": 5.0,
+      "frame_count": 120,
+      "frame_rate": 24.0,
+      "transition_in": "dissolve",
+      "transition_out": null,
+      "transition_duration": 0.5
+    }
+  ],
+  "frame_timings": [
+    {
+      "frame_number": 0,
+      "timestamp": 0.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 0
+    },
+    {
+      "frame_number": 1,
+      "timestamp": 0.041666666666666664,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 1
+    },
+    {
+      "frame_number": 2,
+      "timestamp": 0.08333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 2
+    },
+    {
+      "frame_number": 3,
+      "timestamp": 0.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 3
+    },
+    {
+      "frame_number": 4,
+      "timestamp": 0.16666666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 4
+    },
+    {
+      "frame_number": 5,
+      "timestamp": 0.20833333333333331,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 5
+    },
+    {
+      "frame_number": 6,
+      "timestamp": 0.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 6
+    },
+    {
+      "frame_number": 7,
+      "timestamp": 0.29166666666666663,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 7
+    },
+    {
+      "frame_number": 8,
+      "timestamp": 0.3333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 8
+    },
+    {
+      "frame_number": 9,
+      "timestamp": 0.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 9
+    },
+    {
+      "frame_number": 10,
+      "timestamp": 0.41666666666666663,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 10
+    },
+    {
+      "frame_number": 11,
+      "timestamp": 0.4583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 11
+    },
+    {
+      "frame_number": 12,
+      "timestamp": 0.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 12
+    },
+    {
+      "frame_number": 13,
+      "timestamp": 0.5416666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 13
+    },
+    {
+      "frame_number": 14,
+      "timestamp": 0.5833333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 14
+    },
+    {
+      "frame_number": 15,
+      "timestamp": 0.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 15
+    },
+    {
+      "frame_number": 16,
+      "timestamp": 0.6666666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 16
+    },
+    {
+      "frame_number": 17,
+      "timestamp": 0.7083333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 17
+    },
+    {
+      "frame_number": 18,
+      "timestamp": 0.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 18
+    },
+    {
+      "frame_number": 19,
+      "timestamp": 0.7916666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 19
+    },
+    {
+      "frame_number": 20,
+      "timestamp": 0.8333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 20
+    },
+    {
+      "frame_number": 21,
+      "timestamp": 0.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 21
+    },
+    {
+      "frame_number": 22,
+      "timestamp": 0.9166666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 22
+    },
+    {
+      "frame_number": 23,
+      "timestamp": 0.9583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 23
+    },
+    {
+      "frame_number": 24,
+      "timestamp": 1.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 24
+    },
+    {
+      "frame_number": 25,
+      "timestamp": 1.0416666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 25
+    },
+    {
+      "frame_number": 26,
+      "timestamp": 1.0833333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 26
+    },
+    {
+      "frame_number": 27,
+      "timestamp": 1.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 27
+    },
+    {
+      "frame_number": 28,
+      "timestamp": 1.1666666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 28
+    },
+    {
+      "frame_number": 29,
+      "timestamp": 1.2083333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 29
+    },
+    {
+      "frame_number": 30,
+      "timestamp": 1.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 30
+    },
+    {
+      "frame_number": 31,
+      "timestamp": 1.2916666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 31
+    },
+    {
+      "frame_number": 32,
+      "timestamp": 1.3333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 32
+    },
+    {
+      "frame_number": 33,
+      "timestamp": 1.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 33
+    },
+    {
+      "frame_number": 34,
+      "timestamp": 1.4166666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 34
+    },
+    {
+      "frame_number": 35,
+      "timestamp": 1.4583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 35
+    },
+    {
+      "frame_number": 36,
+      "timestamp": 1.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 36
+    },
+    {
+      "frame_number": 37,
+      "timestamp": 1.5416666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 37
+    },
+    {
+      "frame_number": 38,
+      "timestamp": 1.5833333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 38
+    },
+    {
+      "frame_number": 39,
+      "timestamp": 1.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 39
+    },
+    {
+      "frame_number": 40,
+      "timestamp": 1.6666666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 40
+    },
+    {
+      "frame_number": 41,
+      "timestamp": 1.7083333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 41
+    },
+    {
+      "frame_number": 42,
+      "timestamp": 1.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 42
+    },
+    {
+      "frame_number": 43,
+      "timestamp": 1.7916666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 43
+    },
+    {
+      "frame_number": 44,
+      "timestamp": 1.8333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 44
+    },
+    {
+      "frame_number": 45,
+      "timestamp": 1.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 45
+    },
+    {
+      "frame_number": 46,
+      "timestamp": 1.9166666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 46
+    },
+    {
+      "frame_number": 47,
+      "timestamp": 1.9583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_001",
+      "sequence_position": 47
+    },
+    {
+      "frame_number": 48,
+      "timestamp": 2.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 0
+    },
+    {
+      "frame_number": 49,
+      "timestamp": 2.0416666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 1
+    },
+    {
+      "frame_number": 50,
+      "timestamp": 2.0833333333333335,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 2
+    },
+    {
+      "frame_number": 51,
+      "timestamp": 2.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 3
+    },
+    {
+      "frame_number": 52,
+      "timestamp": 2.1666666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 4
+    },
+    {
+      "frame_number": 53,
+      "timestamp": 2.2083333333333335,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 5
+    },
+    {
+      "frame_number": 54,
+      "timestamp": 2.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 6
+    },
+    {
+      "frame_number": 55,
+      "timestamp": 2.2916666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 7
+    },
+    {
+      "frame_number": 56,
+      "timestamp": 2.3333333333333335,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 8
+    },
+    {
+      "frame_number": 57,
+      "timestamp": 2.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 9
+    },
+    {
+      "frame_number": 58,
+      "timestamp": 2.4166666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 10
+    },
+    {
+      "frame_number": 59,
+      "timestamp": 2.4583333333333335,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 11
+    },
+    {
+      "frame_number": 60,
+      "timestamp": 2.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 12
+    },
+    {
+      "frame_number": 61,
+      "timestamp": 2.5416666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 13
+    },
+    {
+      "frame_number": 62,
+      "timestamp": 2.583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 14
+    },
+    {
+      "frame_number": 63,
+      "timestamp": 2.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 15
+    },
+    {
+      "frame_number": 64,
+      "timestamp": 2.6666666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 16
+    },
+    {
+      "frame_number": 65,
+      "timestamp": 2.708333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 17
+    },
+    {
+      "frame_number": 66,
+      "timestamp": 2.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 18
+    },
+    {
+      "frame_number": 67,
+      "timestamp": 2.7916666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 19
+    },
+    {
+      "frame_number": 68,
+      "timestamp": 2.833333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 20
+    },
+    {
+      "frame_number": 69,
+      "timestamp": 2.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 21
+    },
+    {
+      "frame_number": 70,
+      "timestamp": 2.9166666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 22
+    },
+    {
+      "frame_number": 71,
+      "timestamp": 2.958333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 23
+    },
+    {
+      "frame_number": 72,
+      "timestamp": 3.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 24
+    },
+    {
+      "frame_number": 73,
+      "timestamp": 3.0416666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 25
+    },
+    {
+      "frame_number": 74,
+      "timestamp": 3.083333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 26
+    },
+    {
+      "frame_number": 75,
+      "timestamp": 3.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 27
+    },
+    {
+      "frame_number": 76,
+      "timestamp": 3.1666666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 28
+    },
+    {
+      "frame_number": 77,
+      "timestamp": 3.208333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 29
+    },
+    {
+      "frame_number": 78,
+      "timestamp": 3.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 30
+    },
+    {
+      "frame_number": 79,
+      "timestamp": 3.2916666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 31
+    },
+    {
+      "frame_number": 80,
+      "timestamp": 3.333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 32
+    },
+    {
+      "frame_number": 81,
+      "timestamp": 3.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 33
+    },
+    {
+      "frame_number": 82,
+      "timestamp": 3.4166666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 34
+    },
+    {
+      "frame_number": 83,
+      "timestamp": 3.458333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 35
+    },
+    {
+      "frame_number": 84,
+      "timestamp": 3.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 36
+    },
+    {
+      "frame_number": 85,
+      "timestamp": 3.5416666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 37
+    },
+    {
+      "frame_number": 86,
+      "timestamp": 3.583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 38
+    },
+    {
+      "frame_number": 87,
+      "timestamp": 3.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 39
+    },
+    {
+      "frame_number": 88,
+      "timestamp": 3.6666666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 40
+    },
+    {
+      "frame_number": 89,
+      "timestamp": 3.708333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 41
+    },
+    {
+      "frame_number": 90,
+      "timestamp": 3.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 42
+    },
+    {
+      "frame_number": 91,
+      "timestamp": 3.7916666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 43
+    },
+    {
+      "frame_number": 92,
+      "timestamp": 3.833333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 44
+    },
+    {
+      "frame_number": 93,
+      "timestamp": 3.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 45
+    },
+    {
+      "frame_number": 94,
+      "timestamp": 3.9166666666666665,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 46
+    },
+    {
+      "frame_number": 95,
+      "timestamp": 3.958333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 47
+    },
+    {
+      "frame_number": 96,
+      "timestamp": 4.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 48
+    },
+    {
+      "frame_number": 97,
+      "timestamp": 4.041666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 49
+    },
+    {
+      "frame_number": 98,
+      "timestamp": 4.083333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 50
+    },
+    {
+      "frame_number": 99,
+      "timestamp": 4.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 51
+    },
+    {
+      "frame_number": 100,
+      "timestamp": 4.166666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 52
+    },
+    {
+      "frame_number": 101,
+      "timestamp": 4.208333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 53
+    },
+    {
+      "frame_number": 102,
+      "timestamp": 4.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 54
+    },
+    {
+      "frame_number": 103,
+      "timestamp": 4.291666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 55
+    },
+    {
+      "frame_number": 104,
+      "timestamp": 4.333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 56
+    },
+    {
+      "frame_number": 105,
+      "timestamp": 4.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 57
+    },
+    {
+      "frame_number": 106,
+      "timestamp": 4.416666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 58
+    },
+    {
+      "frame_number": 107,
+      "timestamp": 4.458333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 59
+    },
+    {
+      "frame_number": 108,
+      "timestamp": 4.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 60
+    },
+    {
+      "frame_number": 109,
+      "timestamp": 4.541666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 61
+    },
+    {
+      "frame_number": 110,
+      "timestamp": 4.583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 62
+    },
+    {
+      "frame_number": 111,
+      "timestamp": 4.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 63
+    },
+    {
+      "frame_number": 112,
+      "timestamp": 4.666666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 64
+    },
+    {
+      "frame_number": 113,
+      "timestamp": 4.708333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 65
+    },
+    {
+      "frame_number": 114,
+      "timestamp": 4.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 66
+    },
+    {
+      "frame_number": 115,
+      "timestamp": 4.791666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 67
+    },
+    {
+      "frame_number": 116,
+      "timestamp": 4.833333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 68
+    },
+    {
+      "frame_number": 117,
+      "timestamp": 4.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 69
+    },
+    {
+      "frame_number": 118,
+      "timestamp": 4.916666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 70
+    },
+    {
+      "frame_number": 119,
+      "timestamp": 4.958333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_002",
+      "sequence_position": 71
+    },
+    {
+      "frame_number": 120,
+      "timestamp": 5.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 0
+    },
+    {
+      "frame_number": 121,
+      "timestamp": 5.041666666666667,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 1
+    },
+    {
+      "frame_number": 122,
+      "timestamp": 5.083333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 2
+    },
+    {
+      "frame_number": 123,
+      "timestamp": 5.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 3
+    },
+    {
+      "frame_number": 124,
+      "timestamp": 5.166666666666667,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 4
+    },
+    {
+      "frame_number": 125,
+      "timestamp": 5.208333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 5
+    },
+    {
+      "frame_number": 126,
+      "timestamp": 5.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 6
+    },
+    {
+      "frame_number": 127,
+      "timestamp": 5.291666666666667,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 7
+    },
+    {
+      "frame_number": 128,
+      "timestamp": 5.333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 8
+    },
+    {
+      "frame_number": 129,
+      "timestamp": 5.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 9
+    },
+    {
+      "frame_number": 130,
+      "timestamp": 5.416666666666667,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 10
+    },
+    {
+      "frame_number": 131,
+      "timestamp": 5.458333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 11
+    },
+    {
+      "frame_number": 132,
+      "timestamp": 5.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 12
+    },
+    {
+      "frame_number": 133,
+      "timestamp": 5.541666666666667,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 13
+    },
+    {
+      "frame_number": 134,
+      "timestamp": 5.583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 14
+    },
+    {
+      "frame_number": 135,
+      "timestamp": 5.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 15
+    },
+    {
+      "frame_number": 136,
+      "timestamp": 5.666666666666667,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 16
+    },
+    {
+      "frame_number": 137,
+      "timestamp": 5.708333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 17
+    },
+    {
+      "frame_number": 138,
+      "timestamp": 5.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 18
+    },
+    {
+      "frame_number": 139,
+      "timestamp": 5.791666666666667,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 19
+    },
+    {
+      "frame_number": 140,
+      "timestamp": 5.833333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 20
+    },
+    {
+      "frame_number": 141,
+      "timestamp": 5.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 21
+    },
+    {
+      "frame_number": 142,
+      "timestamp": 5.916666666666667,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 22
+    },
+    {
+      "frame_number": 143,
+      "timestamp": 5.958333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 23
+    },
+    {
+      "frame_number": 144,
+      "timestamp": 6.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 24
+    },
+    {
+      "frame_number": 145,
+      "timestamp": 6.041666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 25
+    },
+    {
+      "frame_number": 146,
+      "timestamp": 6.083333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 26
+    },
+    {
+      "frame_number": 147,
+      "timestamp": 6.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 27
+    },
+    {
+      "frame_number": 148,
+      "timestamp": 6.166666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 28
+    },
+    {
+      "frame_number": 149,
+      "timestamp": 6.208333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 29
+    },
+    {
+      "frame_number": 150,
+      "timestamp": 6.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 30
+    },
+    {
+      "frame_number": 151,
+      "timestamp": 6.291666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 31
+    },
+    {
+      "frame_number": 152,
+      "timestamp": 6.333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 32
+    },
+    {
+      "frame_number": 153,
+      "timestamp": 6.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 33
+    },
+    {
+      "frame_number": 154,
+      "timestamp": 6.416666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 34
+    },
+    {
+      "frame_number": 155,
+      "timestamp": 6.458333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 35
+    },
+    {
+      "frame_number": 156,
+      "timestamp": 6.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 36
+    },
+    {
+      "frame_number": 157,
+      "timestamp": 6.541666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 37
+    },
+    {
+      "frame_number": 158,
+      "timestamp": 6.583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 38
+    },
+    {
+      "frame_number": 159,
+      "timestamp": 6.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 39
+    },
+    {
+      "frame_number": 160,
+      "timestamp": 6.666666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 40
+    },
+    {
+      "frame_number": 161,
+      "timestamp": 6.708333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 41
+    },
+    {
+      "frame_number": 162,
+      "timestamp": 6.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 42
+    },
+    {
+      "frame_number": 163,
+      "timestamp": 6.791666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 43
+    },
+    {
+      "frame_number": 164,
+      "timestamp": 6.833333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 44
+    },
+    {
+      "frame_number": 165,
+      "timestamp": 6.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 45
+    },
+    {
+      "frame_number": 166,
+      "timestamp": 6.916666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 46
+    },
+    {
+      "frame_number": 167,
+      "timestamp": 6.958333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 47
+    },
+    {
+      "frame_number": 168,
+      "timestamp": 7.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 48
+    },
+    {
+      "frame_number": 169,
+      "timestamp": 7.041666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 49
+    },
+    {
+      "frame_number": 170,
+      "timestamp": 7.083333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 50
+    },
+    {
+      "frame_number": 171,
+      "timestamp": 7.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 51
+    },
+    {
+      "frame_number": 172,
+      "timestamp": 7.166666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 52
+    },
+    {
+      "frame_number": 173,
+      "timestamp": 7.208333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 53
+    },
+    {
+      "frame_number": 174,
+      "timestamp": 7.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 54
+    },
+    {
+      "frame_number": 175,
+      "timestamp": 7.291666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 55
+    },
+    {
+      "frame_number": 176,
+      "timestamp": 7.333333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 56
+    },
+    {
+      "frame_number": 177,
+      "timestamp": 7.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 57
+    },
+    {
+      "frame_number": 178,
+      "timestamp": 7.416666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 58
+    },
+    {
+      "frame_number": 179,
+      "timestamp": 7.458333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 59
+    },
+    {
+      "frame_number": 180,
+      "timestamp": 7.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 60
+    },
+    {
+      "frame_number": 181,
+      "timestamp": 7.541666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 61
+    },
+    {
+      "frame_number": 182,
+      "timestamp": 7.583333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 62
+    },
+    {
+      "frame_number": 183,
+      "timestamp": 7.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 63
+    },
+    {
+      "frame_number": 184,
+      "timestamp": 7.666666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 64
+    },
+    {
+      "frame_number": 185,
+      "timestamp": 7.708333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 65
+    },
+    {
+      "frame_number": 186,
+      "timestamp": 7.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 66
+    },
+    {
+      "frame_number": 187,
+      "timestamp": 7.791666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 67
+    },
+    {
+      "frame_number": 188,
+      "timestamp": 7.833333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 68
+    },
+    {
+      "frame_number": 189,
+      "timestamp": 7.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 69
+    },
+    {
+      "frame_number": 190,
+      "timestamp": 7.916666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 70
+    },
+    {
+      "frame_number": 191,
+      "timestamp": 7.958333333333333,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 71
+    },
+    {
+      "frame_number": 192,
+      "timestamp": 8.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 72
+    },
+    {
+      "frame_number": 193,
+      "timestamp": 8.041666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 73
+    },
+    {
+      "frame_number": 194,
+      "timestamp": 8.083333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 74
+    },
+    {
+      "frame_number": 195,
+      "timestamp": 8.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 75
+    },
+    {
+      "frame_number": 196,
+      "timestamp": 8.166666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 76
+    },
+    {
+      "frame_number": 197,
+      "timestamp": 8.208333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 77
+    },
+    {
+      "frame_number": 198,
+      "timestamp": 8.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 78
+    },
+    {
+      "frame_number": 199,
+      "timestamp": 8.291666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 79
+    },
+    {
+      "frame_number": 200,
+      "timestamp": 8.333333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 80
+    },
+    {
+      "frame_number": 201,
+      "timestamp": 8.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 81
+    },
+    {
+      "frame_number": 202,
+      "timestamp": 8.416666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 82
+    },
+    {
+      "frame_number": 203,
+      "timestamp": 8.458333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 83
+    },
+    {
+      "frame_number": 204,
+      "timestamp": 8.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 84
+    },
+    {
+      "frame_number": 205,
+      "timestamp": 8.541666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 85
+    },
+    {
+      "frame_number": 206,
+      "timestamp": 8.583333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 86
+    },
+    {
+      "frame_number": 207,
+      "timestamp": 8.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 87
+    },
+    {
+      "frame_number": 208,
+      "timestamp": 8.666666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 88
+    },
+    {
+      "frame_number": 209,
+      "timestamp": 8.708333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 89
+    },
+    {
+      "frame_number": 210,
+      "timestamp": 8.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 90
+    },
+    {
+      "frame_number": 211,
+      "timestamp": 8.791666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 91
+    },
+    {
+      "frame_number": 212,
+      "timestamp": 8.833333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 92
+    },
+    {
+      "frame_number": 213,
+      "timestamp": 8.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 93
+    },
+    {
+      "frame_number": 214,
+      "timestamp": 8.916666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 94
+    },
+    {
+      "frame_number": 215,
+      "timestamp": 8.958333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 95
+    },
+    {
+      "frame_number": 216,
+      "timestamp": 9.0,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 96
+    },
+    {
+      "frame_number": 217,
+      "timestamp": 9.041666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 97
+    },
+    {
+      "frame_number": 218,
+      "timestamp": 9.083333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 98
+    },
+    {
+      "frame_number": 219,
+      "timestamp": 9.125,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 99
+    },
+    {
+      "frame_number": 220,
+      "timestamp": 9.166666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 100
+    },
+    {
+      "frame_number": 221,
+      "timestamp": 9.208333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 101
+    },
+    {
+      "frame_number": 222,
+      "timestamp": 9.25,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 102
+    },
+    {
+      "frame_number": 223,
+      "timestamp": 9.291666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 103
+    },
+    {
+      "frame_number": 224,
+      "timestamp": 9.333333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 104
+    },
+    {
+      "frame_number": 225,
+      "timestamp": 9.375,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 105
+    },
+    {
+      "frame_number": 226,
+      "timestamp": 9.416666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 106
+    },
+    {
+      "frame_number": 227,
+      "timestamp": 9.458333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 107
+    },
+    {
+      "frame_number": 228,
+      "timestamp": 9.5,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 108
+    },
+    {
+      "frame_number": 229,
+      "timestamp": 9.541666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 109
+    },
+    {
+      "frame_number": 230,
+      "timestamp": 9.583333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 110
+    },
+    {
+      "frame_number": 231,
+      "timestamp": 9.625,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 111
+    },
+    {
+      "frame_number": 232,
+      "timestamp": 9.666666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 112
+    },
+    {
+      "frame_number": 233,
+      "timestamp": 9.708333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 113
+    },
+    {
+      "frame_number": 234,
+      "timestamp": 9.75,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 114
+    },
+    {
+      "frame_number": 235,
+      "timestamp": 9.791666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 115
+    },
+    {
+      "frame_number": 236,
+      "timestamp": 9.833333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 116
+    },
+    {
+      "frame_number": 237,
+      "timestamp": 9.875,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 117
+    },
+    {
+      "frame_number": 238,
+      "timestamp": 9.916666666666666,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 118
+    },
+    {
+      "frame_number": 239,
+      "timestamp": 9.958333333333332,
+      "duration": 0.041666666666666664,
+      "shot_id": "shot_003",
+      "sequence_position": 119
+    }
+  ],
+  "audio_sync_points": [
+    {
+      "timestamp": 0.0,
+      "type": "shot_start",
+      "shot_id": "shot_001",
+      "frame_number": 0
+    },
+    {
+      "timestamp": 2.0,
+      "type": "shot_end",
+      "shot_id": "shot_001",
+      "frame_number": 48
+    },
+    {
+      "timestamp": 2.0,
+      "type": "shot_start",
+      "shot_id": "shot_002",
+      "frame_number": 48
+    },
+    {
+      "timestamp": 5.0,
+      "type": "shot_end",
+      "shot_id": "shot_002",
+      "frame_number": 120
+    },
+    {
+      "timestamp": 5.0,
+      "type": "shot_start",
+      "shot_id": "shot_003",
+      "frame_number": 120
+    },
+    {
+      "timestamp": 5.0,
+      "type": "regular_sync",
+      "shot_id": "shot_003",
+      "frame_number": 120
+    },
+    {
+      "timestamp": 10.0,
+      "type": "shot_end",
+      "shot_id": "shot_003",
+      "frame_number": 240
+    }
+  ],
+  "transition_metadata": {
+    "shot_001_to_shot_002": {
+      "transition_type": "fade",
+      "duration": 0.5,
+      "total_frames": 12,
+      "overlap_frames": 6,
+      "shot1_overlap_start": 42,
+      "shot2_overlap_end": 6,
+      "blend_curve": [
+        0.0,
+        0.020253513192751316,
+        0.07937323358440945,
+        0.17256963302735745,
+        0.29229249349905684,
+        0.4288425808633574,
+        0.5711574191366425,
+        0.7077075065009432,
+        0.8274303669726426,
+        0.9206267664155907,
+        0.9797464868072487,
+        1.0
+      ]
+    },
+    "shot_002_to_shot_003": {
+      "transition_type": "dissolve",
+      "duration": 0.5,
+      "total_frames": 12,
+      "overlap_frames": 6,
+      "shot1_overlap_start": 66,
+      "shot2_overlap_end": 6,
+      "blend_curve": [
+        0.0,
+        0.09090909090909091,
+        0.18181818181818182,
+        0.2727272727272727,
+        0.36363636363636365,
+        0.45454545454545453,
+        0.5454545454545454,
+        0.6363636363636364,
+        0.7272727272727273,
+        0.8181818181818182,
+        0.9090909090909091,
+        1.0
+      ]
+    }
+  }
+}

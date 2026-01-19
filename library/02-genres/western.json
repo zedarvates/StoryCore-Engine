@@ -1,0 +1,45 @@
+{
+  "id": "genre-western",
+  "name": "Western Genre",
+  "category": "genres",
+  "description": "Frontier and cowboy themes with rugged landscapes, Old West atmosphere, and frontier justice",
+  "tags": ["western", "cowboy", "frontier", "old-west", "desert"],
+  "prompt": {
+    "base": "Western frontier style, rugged landscapes, Old West atmosphere, dusty towns, cowboy aesthetic, desert vistas, frontier justice, weathered textures, golden hour lighting, wide open spaces",
+    "positive": "desert landscapes, cowboy hats, weathered leather, dusty atmosphere, saloon interiors, frontier towns, rugged terrain, golden sunset, wide horizons, western architecture, horse riding, gunslinger poses, rustic textures",
+    "negative": "modern elements, urban settings, contemporary fashion, technology, lush vegetation, tropical environments, futuristic elements, clean pristine surfaces",
+    "technical": {
+      "aspect_ratio": "2.39:1 for epic western vistas",
+      "color_palette": "Warm earth tones, dusty oranges, desert colors",
+      "lighting": "Harsh sunlight, dramatic golden hour, high contrast",
+      "composition": "Wide landscape shots, silhouettes, frontier framing"
+    }
+  },
+  "variations": [
+    {
+      "name": "Classic Western",
+      "modifier": "traditional cowboys, frontier towns, saloons, dusty streets, classic western iconography"
+    },
+    {
+      "name": "Spaghetti Western",
+      "modifier": "stylized violence, extreme close-ups, operatic drama, stark landscapes, iconic silhouettes"
+    },
+    {
+      "name": "Revisionist Western",
+      "modifier": "gritty realism, moral ambiguity, harsh conditions, authentic period details, darker tone"
+    }
+  ],
+  "examples": [
+    "A lone cowboy silhouetted against a dramatic sunset, vast desert landscape, dusty atmosphere, classic western composition",
+    "An Old West saloon interior, warm oil lamp lighting, weathered wood textures, frontier atmosphere, rustic details"
+  ],
+  "comfyui": {
+    "workflow_id": "western_genre_workflow",
+    "recommended_models": ["realistic_vision", "epicrealism"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

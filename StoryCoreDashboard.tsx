@@ -33,6 +33,14 @@ interface ProjectData {
   panels: PanelMetrics[];
 }
 
+interface LLMConfig {
+  provider: 'Ollama' | 'OpenAI' | 'OpenRouter' | 'Gemini' | 'Grok';
+  apiKey: string;
+  model: string;
+  baseUrl?: string;
+  timeout: number;
+}
+
 const StoryCoreDashboard: React.FC = () => {
   const [selectedPanel, setSelectedPanel] = useState<string>('panel_01');
   const [denoisingStrength, setDenoisingStrength] = useState(0.35);
@@ -47,6 +55,15 @@ const StoryCoreDashboard: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isRepromoting, setIsRepromoting] = useState(false);
 
+  // LLM Configuration state
+  const [llmConfig, setLlmConfig] = useState<LLMConfig>({
+    provider: 'Ollama',
+    apiKey: '',
+    model: 'gemma3:1b',
+    baseUrl: '',
+    timeout: 30
+  });
+
   const { checkModelAvailability } = useModelDownload();
 
   useEffect(() => {
@@ -55,7 +72,39 @@ const StoryCoreDashboard: React.FC = () => {
 
     // Fetch project data from API
     fetchProjectData();
+
+    // Load LLM configuration from localStorage
+    loadLLMConfig();
   }, []);
+
+  // Load LLM configuration from localStorage
+  const loadLLMConfig = () => {
+    try {
+      const saved = localStorage.getItem('storycore-llm-config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setLlmConfig(parsed);
+      }
+    } catch (error) {
+      // Use default config if loading fails
+    }
+  };
+
+  // Save LLM configuration to localStorage
+  const saveLLMConfig = (config: LLMConfig) => {
+    try {
+      localStorage.setItem('storycore-llm-config', JSON.stringify(config));
+    } catch (error) {
+      // Handle storage errors gracefully
+    }
+  };
+
+  // Update LLM config with auto-save
+  const updateLLMConfig = (updates: Partial<LLMConfig>) => {
+    const newConfig = { ...llmConfig, ...updates };
+    setLlmConfig(newConfig);
+    saveLLMConfig(newConfig);
+  };
 
   const fetchProjectData = async () => {
     try {
@@ -436,6 +485,73 @@ const StoryCoreDashboard: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-400">Success Rate:</span>
                   <span className="text-green-400">100%</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">LLM Configuration</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Provider</label>
+                  <select
+                    value={llmConfig.provider}
+                    onChange={(e) => updateLLMConfig({ provider: e.target.value as LLMConfig['provider'] })}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="Ollama">Ollama</option>
+                    <option value="OpenAI">OpenAI</option>
+                    <option value="OpenRouter">OpenRouter</option>
+                    <option value="Gemini">Gemini</option>
+                    <option value="Grok">Grok</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">API Key</label>
+                  <input
+                    type="password"
+                    value={llmConfig.apiKey}
+                    onChange={(e) => updateLLMConfig({ apiKey: e.target.value })}
+                    placeholder="Enter API key"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Model</label>
+                  <input
+                    type="text"
+                    value={llmConfig.model}
+                    onChange={(e) => updateLLMConfig({ model: e.target.value })}
+                    placeholder="Model name"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                {llmConfig.provider === 'Ollama' && (
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Base URL</label>
+                    <input
+                      type="text"
+                      value={llmConfig.baseUrl || 'http://localhost:11434'}
+                      onChange={(e) => updateLLMConfig({ baseUrl: e.target.value })}
+                      placeholder="http://localhost:11434"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Timeout (seconds)</label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="300"
+                    value={llmConfig.timeout}
+                    onChange={(e) => updateLLMConfig({ timeout: parseInt(e.target.value) || 30 })}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  />
                 </div>
               </div>
             </div>

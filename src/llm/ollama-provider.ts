@@ -79,7 +79,7 @@ export class OllamaProvider implements LLMProvider {
         throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
       }
 
-      const data: OllamaApiResponse = await response.json();
+      const data = await response.json() as OllamaApiResponse;
       return data;
     } finally {
       clearTimeout(timeoutId);
@@ -88,7 +88,7 @@ export class OllamaProvider implements LLMProvider {
 
   private getDefaultConfig(): Partial<LLMConfig> {
     return {
-      model: 'llama2',
+      model: 'gemma3:1b',
       temperature: 0.7,
       timeout: this.timeout,
     };

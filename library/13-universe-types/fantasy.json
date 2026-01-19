@@ -1,0 +1,47 @@
+{
+  "id": "universe-fantasy",
+  "name": "Fantasy Universe",
+  "category": "universe-types",
+  "description": "Magical worlds with mythical creatures, enchanted environments, and supernatural elements",
+  "tags": ["fantasy", "magic", "mythical", "enchanted", "supernatural"],
+  "prompt": {
+    "base": "Fantasy universe, magical world, mythical setting, enchanted environment, supernatural elements, fantasy realm, mystical atmosphere",
+    "positive": "fantasy universe, magical world, mythical creatures, enchanted environment, supernatural elements, fantasy realm, mystical atmosphere, magical lighting, ethereal effects, legendary setting, epic scale",
+    "negative": "modern technology, contemporary setting, realistic physics, mundane environment, ordinary world, scientific approach",
+    "technical": {
+      "physics_rules": "Magic-based physics, flexible natural laws",
+      "technology_level": "Medieval to Renaissance (with magic)",
+      "magic_system": "Active and prevalent",
+      "world_constraints": "Bound by magical rules and lore",
+      "visual_approach": "Stylized, magical lighting, fantastical elements"
+    }
+  },
+  "variations": [
+    {
+      "name": "High Fantasy",
+      "modifier": "epic scale, grand kingdoms, legendary heroes, world-changing magic, mythical beasts"
+    },
+    {
+      "name": "Dark Fantasy",
+      "modifier": "gothic atmosphere, dark magic, grim setting, horror elements, ominous tone"
+    },
+    {
+      "name": "Urban Fantasy",
+      "modifier": "modern city with magic, hidden magical world, contemporary fantasy, secret societies"
+    }
+  ],
+  "examples": [
+    "An enchanted forest in fantasy universe, magical creatures, mystical atmosphere, ethereal lighting",
+    "A grand castle in fantasy realm, legendary setting, epic scale, magical environment"
+  ],
+  "comfyui": {
+    "workflow_id": "fantasy_universe_workflow",
+    "recommended_models": ["dreamshaper", "fantasy_world"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras",
+      "universe_conditioning": "fantasy"
+    }
+  }
+}

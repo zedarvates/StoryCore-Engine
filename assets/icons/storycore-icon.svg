@@ -1,0 +1,40 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="filmGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.6" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Circular background -->
+  <circle cx="256" cy="256" r="240" fill="url(#bgGradient)" filter="url(#glow)"/>
+
+  <!-- Film reel motif -->
+  <circle cx="256" cy="256" r="80" fill="none" stroke="url(#filmGradient)" stroke-width="8"/>
+
+  <!-- Film perforations -->
+  <rect x="176" y="176" width="16" height="16" rx="2" fill="url(#filmGradient)"/>
+  <rect x="320" y="176" width="16" height="16" rx="2" fill="url(#filmGradient)"/>
+  <rect x="176" y="320" width="16" height="16" rx="2" fill="url(#filmGradient)"/>
+  <rect x="320" y="320" width="16" height="16" rx="2" fill="url(#filmGradient)"/>
+
+  <!-- Central camera aperture -->
+  <circle cx="256" cy="256" r="40" fill="none" stroke="url(#filmGradient)" stroke-width="6"/>
+  <circle cx="256" cy="256" r="25" fill="none" stroke="url(#filmGradient)" stroke-width="4"/>
+
+  <!-- Aperture blades -->
+  <path d="M256 216 L256 226 M256 286 L256 296 M226 256 L216 256 M296 256 L286 256" stroke="url(#filmGradient)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M240 232 L235 237 M272 232 L277 237 M240 280 L235 275 M272 280 L277 275" stroke="url(#filmGradient)" stroke-width="3" stroke-linecap="round"/>
+</svg>

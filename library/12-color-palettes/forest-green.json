@@ -1,0 +1,48 @@
+{
+  "id": "palette-forest-green",
+  "name": "Forest Green Palette",
+  "category": "color-palettes",
+  "description": "Natural greens creating organic, peaceful, and grounded atmosphere",
+  "tags": ["green", "forest", "natural", "organic", "peaceful"],
+  "prompt": {
+    "base": "Forest green color palette, natural greens, organic tones, earthy color scheme, woodland hues, peaceful colors, grounded palette, nature-inspired",
+    "positive": "forest green colors, dark green (#2D5016), moss green (#4A7C2C), bright green (#8BC34A), natural palette, woodland hues, organic colors, peaceful atmosphere, earthy tones, nature colors, green harmony",
+    "negative": "artificial colors, neon tones, urban palette, synthetic colors, unnatural hues, bright artificial",
+    "technical": {
+      "primary_color": "#2D5016 (Dark Forest Green)",
+      "secondary_color": "#4A7C2C (Moss Green)",
+      "accent_color": "#8BC34A (Bright Green)",
+      "color_temperature": "Neutral to slightly cool",
+      "saturation": "Medium saturation, natural",
+      "use_cases": "Nature scenes, peaceful moods, organic environments, grounded atmospheres"
+    }
+  },
+  "variations": [
+    {
+      "name": "Deep Forest",
+      "modifier": "dark greens, dense foliage, mysterious woods, shadowy forest, primeval atmosphere"
+    },
+    {
+      "name": "Spring Forest",
+      "modifier": "bright greens, new growth, fresh foliage, renewal atmosphere, vibrant nature"
+    },
+    {
+      "name": "Tropical Forest",
+      "modifier": "lush greens, dense vegetation, jungle atmosphere, exotic nature, humid palette"
+    }
+  },
+  "examples": [
+    "A forest landscape with natural green palette, organic tones, peaceful woodland atmosphere",
+    "An interior with forest green accents, earthy natural colors, grounded and calm mood"
+  ],
+  "comfyui": {
+    "workflow_id": "forest_green_palette_workflow",
+    "recommended_models": ["realistic_vision", "epicrealism"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras",
+      "color_guidance": "forest_green"
+    }
+  }
+}

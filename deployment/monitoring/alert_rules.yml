@@ -1,0 +1,171 @@
+# Prometheus Alert Rules for Advanced ComfyUI Workflows
+
+groups:
+  - name: advanced_workflows_alerts
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: cpu_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% for more than 5 minutes"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: memory_usage_percent > 90
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% for more than 5 minutes"
+
+      # High GPU Usage
+      - alert: HighGPUUsage
+        expr: gpu_usage_percent > 95
+        for: 10m
+        labels:
+          severity: warning
+          component: gpu
+        annotations:
+          summary: "High GPU usage detected"
+          description: "GPU usage is {{ $value }}% for more than 10 minutes"
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: error_rate_percent > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: workflow
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }}% for more than 2 minutes"
+
+      # Slow Response Time
+      - alert: SlowResponseTime
+        expr: avg_response_time_seconds > 120
+        for: 5m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Slow response time detected"
+          description: "Average response time is {{ $value }}s for more than 5 minutes"
+
+      # Low Disk Space
+      - alert: LowDiskSpace
+        expr: disk_free_gb < 50
+        for: 1m
+        labels:
+          severity: warning
+          component: storage
+        annotations:
+          summary: "Low disk space"
+          description: "Only {{ $value }}GB of disk space remaining"
+
+      # Critical Disk Space
+      - alert: CriticalDiskSpace
+        expr: disk_free_gb < 10
+        for: 1m
+        labels:
+          severity: critical
+          component: storage
+        annotations:
+          summary: "Critical disk space"
+          description: "Only {{ $value }}GB of disk space remaining"
+
+      # Service Down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: service
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.job }} service has been down for more than 1 minute"
+
+      # High Queue Length
+      - alert: HighQueueLength
+        expr: queued_requests > 20
+        for: 5m
+        labels:
+          severity: warning
+          component: workflow
+        annotations:
+          summary: "High queue length"
+          description: "{{ $value }} requests queued for more than 5 minutes"
+
+      # Low Quality Score
+      - alert: LowQualityScore
+        expr: avg_quality_score < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          component: quality
+        annotations:
+          summary: "Low quality score detected"
+          description: "Average quality score is {{ $value }} for more than 10 minutes"
+
+      # Model Loading Failure
+      - alert: ModelLoadingFailure
+        expr: model_loading_failures > 3
+        for: 1m
+        labels:
+          severity: critical
+          component: model
+        annotations:
+          summary: "Model loading failures"
+          description: "{{ $value }} model loading failures in the last minute"
+
+      # GPU Memory Exhaustion
+      - alert: GPUMemoryExhaustion
+        expr: gpu_memory_usage_percent > 98
+        for: 2m
+        labels:
+          severity: critical
+          component: gpu
+        annotations:
+          summary: "GPU memory exhaustion"
+          description: "GPU memory usage is {{ $value }}% for more than 2 minutes"
+
+  - name: advanced_workflows_health
+    rules:
+      # Health Check Failures
+      - alert: HealthCheckFailure
+        expr: health_check_status != 1
+        for: 3m
+        labels:
+          severity: critical
+          component: health
+        annotations:
+          summary: "Health check failure"
+          description: "{{ $labels.component }} health check has been failing for more than 3 minutes"
+
+      # Backup Failures
+      - alert: BackupFailure
+        expr: backup_success != 1
+        for: 1h
+        labels:
+          severity: warning
+          component: backup
+        annotations:
+          summary: "Backup failure"
+          description: "Backup has been failing for more than 1 hour"
+
+      # Monitoring System Down
+      - alert: MonitoringSystemDown
+        expr: monitoring_system_status != 1
+        for: 5m
+        labels:
+          severity: critical
+          component: monitoring
+        annotations:
+          summary: "Monitoring system down"
+          description: "Monitoring system has been down for more than 5 minutes"

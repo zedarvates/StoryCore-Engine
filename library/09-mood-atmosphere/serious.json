@@ -1,0 +1,45 @@
+{
+  "id": "mood-serious",
+  "name": "Serious Mood",
+  "category": "mood-atmosphere",
+  "description": "Grave and solemn atmosphere with formal composition and weighty undertones",
+  "tags": ["serious", "solemn", "grave", "formal", "weighty"],
+  "prompt": {
+    "base": "Serious solemn atmosphere, grave tone, formal composition, weighty mood, dignified environment, somber undertones, professional demeanor, important atmosphere, respectful tone",
+    "positive": "serious atmosphere, solemn mood, grave tone, formal composition, weighty presence, dignified environment, professional demeanor, important moment, respectful atmosphere, measured tone, composed setting",
+    "negative": "playful mood, comedic tone, lighthearted atmosphere, casual setting, frivolous energy, humorous elements, whimsical mood",
+    "technical": {
+      "lighting": "Controlled, even lighting emphasizing gravity",
+      "color_palette": "Muted, professional tones",
+      "contrast": "Medium contrast, balanced",
+      "mood_intensity": "Steady, unwavering seriousness"
+    }
+  },
+  "variations": [
+    {
+      "name": "Corporate Serious",
+      "modifier": "business setting, professional environment, formal attire, boardroom atmosphere, executive presence"
+    },
+    {
+      "name": "Dramatic Serious",
+      "modifier": "intense emotions, high stakes, dramatic lighting, powerful moments, emotional weight"
+    },
+    {
+      "name": "Ceremonial Serious",
+      "modifier": "ritual atmosphere, formal ceremony, traditional setting, respectful gathering, solemn occasion"
+    }
+  ],
+  "examples": [
+    "A formal meeting room with serious atmosphere, professional lighting, grave and dignified tone",
+    "A character in contemplation, serious expression, solemn mood, weighty atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "serious_mood_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

@@ -543,18 +543,23 @@ class AssemblyExportEngine:
                     shutil.copy2(source_path, dest_path)
                     manifest.metadata_files.append(str(dest_path.relative_to(output_path)))
         
-        # Copy QA reports if requested
+        # Generate and include QA reports if requested
         if settings.include_qa_report and settings.package_type in [PackageType.PROFESSIONAL, PackageType.ARCHIVE]:
+            qa_dest_dir = output_path / "qa"
+            qa_dest_dir.mkdir(exist_ok=True)
+
+            # Generate quality reports using the report generator
+            quality_reports = self._generate_quality_reports(project_path, project_data, qa_dest_dir)
+
+            # Copy existing QA reports if any
             qa_output_dir = project_path / "qa_output"
-            if qa_output_dir.exists():
-                qa_dest_dir = output_path / "qa"
-                if qa_output_dir.is_dir():
-                    shutil.copytree(qa_output_dir, qa_dest_dir, dirs_exist_ok=True)
-                    
-                    # Add QA files to manifest
-                    for qa_file in qa_dest_dir.rglob("*"):
-                        if qa_file.is_file():
-                            manifest.qa_files.append(str(qa_file.relative_to(output_path)))
+            if qa_output_dir.exists() and qa_output_dir.is_dir():
+                shutil.copytree(qa_output_dir, qa_dest_dir, dirs_exist_ok=True)
+
+            # Add QA files to manifest
+            for qa_file in qa_dest_dir.rglob("*"):
+                if qa_file.is_file():
+                    manifest.qa_files.append(str(qa_file.relative_to(output_path)))
         
         # Copy source files for archive package
         if settings.package_type == PackageType.ARCHIVE:
@@ -846,6 +851,103 @@ class AssemblyExportEngine:
                    f"{export_summary['total_size_bytes'] / (1024*1024):.1f} MB total")
         
         return export_summary
+
+    def _generate_quality_reports(self, project_path: Path, project_data: Dict[str, Any], qa_dest_dir: Path) -> List[str]:
+        """Generate comprehensive quality reports for export package."""
+        generated_reports = []
+
+        try:
+            # Import report generators
+            from report_generator import JSONReportGenerator, HTMLReportGenerator
+
+            # Run QA engine to get quality scores
+            try:
+                from qa_engine import QAEngine
+                qa_engine = QAEngine()
+                qa_report = qa_engine.run_qa_scoring(
+                    str(project_path),
+                    enable_advanced_validation=True,
+                    enable_audio_mixing=False  # Skip mixing during export
+                )
+
+                # Extract quality scores from QA report
+                quality_scores = []
+                if "quality_scores" in qa_report:
+                    for score_dict in qa_report["quality_scores"]:
+                        # Convert dict back to QualityScore object (simplified)
+                        from quality_validator import QualityScore, QualityMetric, QualityStandard
+                        try:
+                            score = QualityScore(
+                                score=score_dict.get("score", 0.0),
+                                confidence=score_dict.get("confidence", 0.8),
+                                metric=QualityMetric(score_dict.get("metric", "visual_quality")),
+                                standard=QualityStandard(score_dict.get("standard", "web_hd")),
+                                details=score_dict.get("details", {})
+                            )
+                            quality_scores.append(score)
+                        except Exception:
+                            continue
+
+                if quality_scores:
+                    # Generate timestamped quality report files
+                    timestamp = int(time.time())
+                    project_id = project_data.get("project", {}).get("project_id", "unknown")
+
+                    # Generate JSON report
+                    json_generator = JSONReportGenerator()
+                    json_report_content = json_generator.generate_comprehensive_report(
+                        quality_scores=quality_scores,
+                        project_name=project_id,
+                        generation_timestamp=timestamp
+                    )
+
+                    json_report_path = qa_dest_dir / f"quality_report_{timestamp}.json"
+                    with open(json_report_path, 'w') as f:
+                        f.write(json_report_content)
+                    generated_reports.append(str(json_report_path.name))
+
+                    # Generate HTML report
+                    html_generator = HTMLReportGenerator()
+                    html_report_content = html_generator.generate_comprehensive_report(
+                        quality_scores=quality_scores,
+                        project_name=project_id,
+                        generation_timestamp=timestamp,
+                        include_visualizations=False  # Skip charts for export package size
+                    )
+
+                    html_report_path = qa_dest_dir / f"quality_report_{timestamp}.html"
+                    with open(html_report_path, 'w') as f:
+                        f.write(html_report_content)
+                    generated_reports.append(str(html_report_path.name))
+
+                    # Generate summary report
+                    summary_report = {
+                        "report_type": "quality_validation_summary",
+                        "project_id": project_id,
+                        "timestamp": timestamp,
+                        "datetime": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp)),
+                        "overall_score": qa_report.get("overall_score", 0.0),
+                        "passed": qa_report.get("passed", False),
+                        "total_issues": len(qa_report.get("issues", [])),
+                        "categories": qa_report.get("categories", {}),
+                        "export_package_generated": True,
+                        "quality_standard": "web_hd",
+                        "validation_mode": "batch"
+                    }
+
+                    summary_path = qa_dest_dir / f"quality_summary_{timestamp}.json"
+                    with open(summary_path, 'w') as f:
+                        json.dump(summary_report, f, indent=2)
+                    generated_reports.append(str(summary_path.name))
+
+            except ImportError:
+                # If QA engine not available, create basic quality report
+                logger.warning("QA engine not available for quality report generation")
+
+        except Exception as e:
+            logger.error(f"Failed to generate quality reports: {e}")
+
+        return generated_reports
 
 
 def main():

@@ -1,0 +1,12 @@
+{
+  "category": "lighting",
+  "subcategory": "natural-light",
+  "id": "lighting-blue-hour",
+  "name": "Blue Hour Lighting",
+  "description": "Cool twilight atmosphere with deep blue tones",
+  "tags": ["blue-hour", "twilight", "cool", "atmospheric"],
+  "prompt": "Blue hour lighting, {SCENE}. Cool twilight atmosphere, deep blue sky, artificial lights beginning to glow. Balanced ambient and practical lights. Cinematic twilight photography, rich blue tones, atmospheric depth.",
+  "variables": {
+    "SCENE": { "type": "string", "required": true }
+  }
+}

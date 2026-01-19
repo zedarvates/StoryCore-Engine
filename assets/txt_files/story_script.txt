@@ -1,0 +1,44 @@
+STORY SCRIPT EXAMPLE
+===================
+
+Title: The Lost Mountain
+
+FADE IN:
+
+EXT. MOUNTAIN PASS - DAY
+
+A rugged mountain pass winds through jagged peaks. THORIN, a brave and determined dwarf warrior, trudges along the path, his axe slung over his shoulder.
+
+THORIN
+(whispering to himself)
+The ancient tales speak of treasures beyond imagination. But what price must we pay?
+
+Suddenly, a shadow falls over him. He looks up to see a massive DRAGON perched on a cliff above.
+
+DRAGON
+(roaring)
+Who dares enter my domain?
+
+THORIN
+(defiant)
+I am Thorin, son of the mountains! I seek what was stolen from my people!
+
+The dragon swoops down, breathing fire. Thorin rolls aside, his bravery shining through.
+
+THORIN
+(shouting)
+For honor and glory!
+
+CUT TO:
+
+INT. THRONE ROOM - NIGHT
+
+Thorin sits upon a reclaimed throne, the dragon's hoard at his feet. But his eyes show the internal conflict - the cost of victory.
+
+THORIN
+(to himself)
+We won the mountain... but at what cost to our souls?
+
+FADE OUT.
+
+THE END

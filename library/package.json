@@ -1,0 +1,53 @@
+{
+  "name": "@storycore/prompt-library",
+  "version": "1.0.0",
+  "description": "Comprehensive prompt library for AI-assisted visual asset generation in StoryCore-Engine",
+  "main": "PromptLibraryService.ts",
+  "types": "PromptLibraryService.ts",
+  "files": [
+    "*.json",
+    "*.ts",
+    "*.tsx",
+    "*.css",
+    "*.md",
+    "01-master-coherence/",
+    "02-genres/",
+    "03-shot-types/",
+    "04-lighting/",
+    "05-scene-elements/"
+  ],
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "lint": "eslint *.ts *.tsx"
+  },
+  "keywords": [
+    "storycore",
+    "prompt",
+    "library",
+    "ai",
+    "image-generation",
+    "comfyui",
+    "cinematography",
+    "visual-assets"
+  ],
+  "author": "StoryCore Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/storycore/prompt-library"
+  },
+  "bugs": {
+    "url": "https://github.com/storycore/prompt-library/issues"
+  },
+  "homepage": "https://github.com/storycore/prompt-library#readme"
+}

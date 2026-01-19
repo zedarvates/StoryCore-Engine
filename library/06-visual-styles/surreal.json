@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-surreal",
+  "name": "Surreal Visual Style",
+  "category": "visual-styles",
+  "description": "Dreamlike and abstract with impossible scenarios, symbolic imagery, and subconscious exploration",
+  "tags": ["surreal", "dreamlike", "abstract", "symbolic", "subconscious"],
+  "prompt": {
+    "base": "Surrealist style, dreamlike atmosphere, impossible scenarios, symbolic imagery, subconscious exploration, abstract elements, Salvador Dali influence, metaphorical composition, reality distortion, dream logic",
+    "positive": "surrealist art, dreamlike quality, impossible physics, symbolic imagery, abstract elements, metaphorical composition, subconscious themes, distorted reality, floating objects, melting forms, dream logic, artistic symbolism, surreal atmosphere",
+    "negative": "realistic, logical composition, normal physics, mundane reality, documentary style, straightforward narrative, conventional perspective",
+    "technical": {
+      "rendering": "Surreal rendering with impossible elements",
+      "textures": "Mixed realistic and abstract textures",
+      "lighting": "Dreamlike lighting with impossible sources",
+      "detail_level": "High detail in surreal elements"
+    }
+  },
+  "variations": [
+    {
+      "name": "Classic Surrealism",
+      "modifier": "Dali-esque melting forms, impossible architecture, desert landscapes, symbolic objects, dream imagery"
+    },
+    {
+      "name": "Digital Surrealism",
+      "modifier": "modern technology themes, glitch effects, digital distortion, contemporary symbolism, cyber surrealism"
+    },
+    {
+      "name": "Organic Surrealism",
+      "modifier": "biomorphic forms, natural elements distorted, flowing organic shapes, nature-based symbolism"
+    }
+  ],
+  "examples": [
+    "A melting clock draped over a tree branch in a desert landscape, surrealist style, dreamlike atmosphere, impossible scenario",
+    "A staircase leading to nowhere in the sky, floating objects, surreal composition, dream logic, symbolic imagery"
+  ],
+  "comfyui": {
+    "workflow_id": "surreal_style_workflow",
+    "recommended_models": ["dreamshaper", "anything_v5"],
+    "parameters": {
+      "cfg_scale": 9.0,
+      "steps": 35,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

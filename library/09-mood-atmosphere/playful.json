@@ -1,0 +1,45 @@
+{
+  "id": "mood-playful",
+  "name": "Playful Mood",
+  "category": "mood-atmosphere",
+  "description": "Fun and whimsical atmosphere with energetic composition and lighthearted undertones",
+  "tags": ["playful", "fun", "whimsical", "energetic", "lighthearted"],
+  "prompt": {
+    "base": "Playful fun atmosphere, whimsical tone, energetic composition, lighthearted mood, joyful environment, cheerful undertones, spirited energy, carefree atmosphere, vibrant playfulness",
+    "positive": "playful atmosphere, fun mood, whimsical tone, energetic composition, lighthearted environment, joyful energy, cheerful setting, spirited atmosphere, carefree mood, vibrant colors, dynamic playfulness",
+    "negative": "serious tone, somber mood, formal atmosphere, grave setting, heavy emotions, dark mood, oppressive environment",
+    "technical": {
+      "lighting": "Bright, colorful lighting with dynamic energy",
+      "color_palette": "Vibrant, saturated colors with playful contrasts",
+      "contrast": "High saturation, energetic composition",
+      "mood_intensity": "Lively, infectious playfulness"
+    }
+  },
+  "variations": [
+    {
+      "name": "Childlike Playful",
+      "modifier": "innocent joy,童心, colorful toys, youthful energy, pure fun, imaginative play"
+    },
+    {
+      "name": "Quirky Playful",
+      "modifier": "eccentric humor, unusual elements, creative whimsy, offbeat charm, unique personality"
+    },
+    {
+      "name": "Romantic Playful",
+      "modifier": "flirtatious energy, charming interactions, light romance, teasing mood, sweet playfulness"
+    }
+  ],
+  "examples": [
+    "A colorful playground scene with playful atmosphere, vibrant energy, whimsical and fun mood",
+    "Characters in playful interaction, lighthearted tone, joyful and energetic atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "playful_mood_workflow",
+    "recommended_models": ["dreamshaper", "anything_v5"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 25,
+      "sampler": "Euler a"
+    }
+  }
+}

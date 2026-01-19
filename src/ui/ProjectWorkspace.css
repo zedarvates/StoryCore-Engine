@@ -1,0 +1,329 @@
+/* ProjectWorkspace Component Styles */
+
+.project-workspace {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.workspace-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #666;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Project Header */
+.project-header {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.project-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.project-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+}
+
+.project-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-indicator {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-indicator.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-indicator.idle {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-indicator.processing {
+  background: #cce7ff;
+  color: #004085;
+}
+
+.project-id {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.project-metadata {
+  display: flex;
+  gap: 24px;
+}
+
+.metadata-item {
+  display: flex;
+  gap: 8px;
+}
+
+.metadata-item .label {
+  font-weight: 500;
+  color: #666;
+}
+
+.metadata-item .value {
+  color: #333;
+}
+
+/* Workspace Content */
+.workspace-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* Workspace Sections */
+.workspace-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Pipeline Status */
+.status-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.status-item:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.status-value {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Quick Access Assets */
+.assets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.asset-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  border: 2px solid #f0f0f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.asset-item:hover {
+  border-color: #007bff;
+  background: #f8f9ff;
+}
+
+.asset-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.asset-name {
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.asset-count {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Activity Logs */
+.activity-feed {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-timestamp {
+  font-size: 0.85rem;
+  color: #666;
+  min-width: 80px;
+}
+
+.activity-message {
+  color: #333;
+  font-size: 0.9rem;
+}
+
+/* Configuration Menu */
+.config-menu {
+  grid-column: 1 / -1;
+}
+
+.config-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.config-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.config-button:hover {
+  border-color: #007bff;
+  background: #f8f9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.config-icon {
+  font-size: 1.5rem;
+}
+
+.config-label {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .project-workspace {
+    padding: 16px;
+  }
+
+  .project-header {
+    padding: 20px;
+  }
+
+  .project-info {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .project-title {
+    font-size: 1.5rem;
+  }
+
+  .project-metadata {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .config-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .assets-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .assets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-button {
+    padding: 12px;
+  }
+
+  .config-icon {
+    font-size: 1.25rem;
+  }
+}

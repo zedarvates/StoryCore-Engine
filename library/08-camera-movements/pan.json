@@ -1,0 +1,29 @@
+{
+  "id": "camera-movement-pan",
+  "name": "Pan (Horizontal Rotation)",
+  "category": "camera-movements",
+  "description": "Horizontal camera rotation on fixed axis, revealing space or following action",
+  "tags": ["pan", "horizontal", "rotation", "sweep", "reveal"],
+  "prompt": {
+    "base": "Panning camera movement, horizontal rotation, camera sweeping left to right or right to left, fixed axis rotation, revealing horizontal space, following action horizontally, smooth pan",
+    "positive": "panning shot, horizontal camera movement, smooth rotation, sweeping motion, left to right pan, right to left pan, horizontal reveal, following action, smooth sweep, panoramic movement",
+    "negative": "static camera, vertical movement, tilting, tracking, dolly movement, no camera movement, fixed frame",
+    "technical": {
+      "movement_type": "Horizontal rotation on y-axis",
+      "speed": "Slow to medium for smooth reveal",
+      "use_cases": "Revealing landscapes, following moving subjects, establishing wide spaces"
+    }
+  },
+  "examples": [
+    "Camera panning across a cityscape, smooth horizontal movement revealing the urban landscape",
+    "Following a character walking, camera panning to keep them in frame, smooth horizontal tracking"
+  ],
+  "comfyui": {
+    "workflow_id": "pan_camera_workflow",
+    "parameters": {
+      "movement": "pan",
+      "axis": "horizontal",
+      "speed": "medium"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "camera-movement-tilt",
+  "name": "Tilt (Vertical Rotation)",
+  "category": "camera-movements",
+  "description": "Vertical camera rotation on fixed axis, revealing height or following vertical action",
+  "tags": ["tilt", "vertical", "rotation", "up-down", "reveal"],
+  "prompt": {
+    "base": "Tilting camera movement, vertical rotation, camera moving up or down, fixed axis rotation, revealing vertical space, tilt up or tilt down, following vertical action, smooth tilt",
+    "positive": "tilting shot, vertical camera movement, smooth rotation, upward tilt, downward tilt, vertical reveal, following vertical action, tilt up, tilt down, smooth vertical sweep",
+    "negative": "static camera, horizontal movement, panning, tracking, dolly movement, no camera movement, fixed frame",
+    "technical": {
+      "movement_type": "Vertical rotation on x-axis",
+      "speed": "Slow to medium for smooth reveal",
+      "use_cases": "Revealing tall structures, character reveals, showing scale vertically"
+    }
+  },
+  "examples": [
+    "Camera tilting up a skyscraper, revealing its full height, smooth vertical movement",
+    "Tilting down from sky to ground level, vertical reveal of the scene, smooth downward motion"
+  ],
+  "comfyui": {
+    "workflow_id": "tilt_camera_workflow",
+    "parameters": {
+      "movement": "tilt",
+      "axis": "vertical",
+      "speed": "medium"
+    }
+  }
+}

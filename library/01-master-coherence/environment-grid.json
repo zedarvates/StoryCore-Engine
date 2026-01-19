@@ -1,0 +1,16 @@
+{
+  "category": "master-coherence",
+  "subcategory": "environment-design",
+  "id": "environment-grid-main",
+  "name": "Environment Design Grid",
+  "description": "3x3 environment sheet showing location from multiple perspectives",
+  "tags": ["environment", "location", "3x3", "establishing"],
+  "prompt": "Environment design sheet, 3x3 grid. {LOCATION_TYPE}: {DESCRIPTION}. Time of day: {TIME}. Weather: {CONDITIONS}. Atmosphere: {MOOD}. Multiple views: wide establishing shot, medium shot, close detail, different angles showing depth and spatial relationships. Consistent lighting and color grading throughout all panels. Cinematic composition, photorealistic quality.",
+  "variables": {
+    "LOCATION_TYPE": { "type": "string", "required": true },
+    "DESCRIPTION": { "type": "string", "required": true },
+    "TIME": { "type": "string", "required": true },
+    "CONDITIONS": { "type": "string", "required": true },
+    "MOOD": { "type": "string", "required": true }
+  }
+}

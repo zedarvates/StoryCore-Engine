@@ -1,0 +1,78 @@
+DEFAULT PROJECT CONFIGURATION
+============================
+
+# StoryCore Engine Configuration Template
+# Copy this file and customize for your project
+
+[PROJECT]
+project_name = My Story Project
+version = 1.0.0
+author = Your Name
+description = A new story project
+created_date = YYYY-MM-DD
+
+[STORY_SETTINGS]
+genre = fantasy
+tone = heroic
+target_audience = general
+language = en
+word_count_target = 50000
+
+[CHARACTER_SETTINGS]
+max_characters = 10
+default_voice = neutral
+enable_backstories = true
+character_depth = detailed
+
+[NARRATIVE_STRUCTURE]
+act_structure = three_act
+chapter_length = 2000_words
+pacing = balanced
+conflict_level = high
+
+[DIALOGUE_SETTINGS]
+dialogue_style = natural
+formality_level = mixed
+emotional_range = full
+cultural_influence = fantasy
+
+[WORLD_BUILDING]
+world_type = fantasy_realm
+magic_system = low_magic
+technology_level = medieval
+geography = mountainous
+
+[VISUAL_STYLE]
+art_style = realistic
+color_palette = earthy_tones
+quality_level = high
+rendering_engine = default
+
+[AUDIO_SETTINGS]
+enable_voice_acting = true
+music_style = epic_fantasy
+sound_effects = immersive
+language_tracks = en
+
+[EXPORT_SETTINGS]
+output_format = video
+resolution = 1080p
+frame_rate = 30fps
+compression = h264
+
+[ADVANCED_OPTIONS]
+enable_ai_enhancement = true
+auto_save_interval = 5_minutes
+backup_frequency = daily
+debug_mode = false
+
+# Custom Variables
+# Add your own project-specific settings below
+custom_var_1 = value
+custom_var_2 = value
+
+# Notes:
+# - Boolean values: true/false
+# - Numeric values: use underscores for readability (e.g., 50000)
+# - List values: comma-separated (e.g., fantasy,sci-fi)
+# - Comment lines start with #

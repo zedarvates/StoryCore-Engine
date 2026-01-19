@@ -1,0 +1,45 @@
+{
+  "id": "genre-adventure",
+  "name": "Adventure Genre",
+  "category": "genres",
+  "description": "Exploration and discovery with epic journeys, exotic locations, and thrilling quests",
+  "tags": ["adventure", "exploration", "journey", "quest", "discovery"],
+  "prompt": {
+    "base": "Adventure atmosphere, epic scale, exotic locations, dynamic action, exploration mood, vast landscapes, heroic journey, discovery elements, thrilling composition, cinematic grandeur",
+    "positive": "epic landscapes, exotic locations, dynamic movement, adventurous spirit, vast horizons, dramatic skies, heroic poses, exploration energy, cinematic scale, natural wonders, journey atmosphere, discovery moments",
+    "negative": "confined spaces, static composition, mundane settings, domestic interiors, office environments, urban monotony, sedentary scenes, claustrophobic framing",
+    "technical": {
+      "aspect_ratio": "2.39:1 for epic scope",
+      "color_palette": "Rich, saturated colors with natural beauty",
+      "lighting": "Natural dramatic lighting, golden hour, epic skies",
+      "composition": "Wide establishing shots, dynamic angles, sense of scale"
+    }
+  },
+  "variations": [
+    {
+      "name": "Jungle Adventure",
+      "modifier": "dense vegetation, tropical atmosphere, hidden temples, wildlife, humid environment, lush greens"
+    },
+    {
+      "name": "Desert Adventure",
+      "modifier": "vast sand dunes, harsh sunlight, ancient ruins, survival elements, warm color palette"
+    },
+    {
+      "name": "Mountain Adventure",
+      "modifier": "towering peaks, treacherous terrain, alpine beauty, climbing action, dramatic elevation"
+    }
+  ],
+  "examples": [
+    "An explorer standing at the edge of a vast canyon, dramatic sunset lighting, epic scale, sense of discovery and wonder",
+    "A character navigating through dense jungle foliage, dappled sunlight, exotic plants, adventure atmosphere, dynamic composition"
+  ],
+  "comfyui": {
+    "workflow_id": "adventure_genre_workflow",
+    "recommended_models": ["epicrealism", "dreamshaper"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

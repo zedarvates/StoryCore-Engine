@@ -1,0 +1,44 @@
+<svg width="800" height="200" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="logoFilmGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Icon section -->
+  <g transform="translate(20, 20)">
+    <!-- Circular background -->
+    <circle cx="80" cy="80" r="70" fill="url(#logoBgGradient)"/>
+
+    <!-- Film reel motif -->
+    <circle cx="80" cy="80" r="25" fill="none" stroke="url(#logoFilmGradient)" stroke-width="3"/>
+
+    <!-- Film perforations -->
+    <rect x="55" y="55" width="5" height="5" rx="1" fill="url(#logoFilmGradient)"/>
+    <rect x="95" y="55" width="5" height="5" rx="1" fill="url(#logoFilmGradient)"/>
+    <rect x="55" y="95" width="5" height="5" rx="1" fill="url(#logoFilmGradient)"/>
+    <rect x="95" y="95" width="5" height="5" rx="1" fill="url(#logoFilmGradient)"/>
+
+    <!-- Central camera aperture -->
+    <circle cx="80" cy="80" r="12" fill="none" stroke="url(#logoFilmGradient)" stroke-width="2"/>
+    <circle cx="80" cy="80" r="8" fill="none" stroke="url(#logoFilmGradient)" stroke-width="1.5"/>
+  </g>
+
+  <!-- Text section -->
+  <g transform="translate(180, 50)">
+    <!-- Main title -->
+    <text x="0" y="0" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="700" fill="#1e3a8a">
+      StoryCore
+    </text>
+
+    <!-- Subtitle -->
+    <text x="0" y="32" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="#7c3aed">
+      From Script to Screen in 5 Minutes
+    </text>
+  </g>
+</svg>

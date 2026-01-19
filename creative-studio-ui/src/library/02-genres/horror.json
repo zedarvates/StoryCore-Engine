@@ -1,0 +1,17 @@
+{
+  "category": "genres",
+  "subcategory": "horror-thriller",
+  "id": "genre-horror",
+  "name": "Horror/Thriller Scene",
+  "description": "Dark atmospheric horror scene with tension",
+  "tags": ["horror", "thriller", "dark", "suspense"],
+  "prompt": "Horror atmosphere, {SPECIFIC_ELEMENT}. Dark moody lighting, deep shadows with strategic highlights. Unsettling composition. Color palette: desaturated with accent colors {ACCENT_COLOR}. Atmospheric fog, dramatic contrast, tension in framing. Cinematic horror aesthetic, high contrast, sharp where needed, mysterious shadows. Professional thriller cinematography.",
+  "variables": {
+    "SPECIFIC_ELEMENT": { "type": "string", "required": true },
+    "ACCENT_COLOR": { 
+      "type": "enum",
+      "required": true,
+      "options": ["red", "green", "blue", "yellow"]
+    }
+  }
+}

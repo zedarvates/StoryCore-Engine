@@ -1,0 +1,16 @@
+{
+  "category": "master-coherence",
+  "subcategory": "character-design",
+  "id": "character-grid-main",
+  "name": "Main Character Design Grid",
+  "description": "3x3 character design sheet with multiple angles and expressions",
+  "tags": ["character", "design-sheet", "3x3", "turnaround"],
+  "prompt": "Character design sheet, 3x3 grid layout. {CHARACTER_DESCRIPTION}: {AGE}, {GENDER}, {DISTINCTIVE_FEATURES}. Style: {ART_STYLE}. Multiple angles: front view, 3/4 view, side profile, back view, close-up face, full body, action pose, emotional expression, detail shot. Consistent lighting, same costume, identical color palette. Professional character concept art quality.",
+  "variables": {
+    "CHARACTER_DESCRIPTION": { "type": "string", "required": true },
+    "AGE": { "type": "string", "required": true },
+    "GENDER": { "type": "string", "required": true },
+    "DISTINCTIVE_FEATURES": { "type": "string", "required": true },
+    "ART_STYLE": { "type": "string", "required": true }
+  }
+}

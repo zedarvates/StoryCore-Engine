@@ -1,0 +1,22 @@
+{
+  "name": "test_addon",
+  "version": "1.0.0",
+  "type": "workflow_addon",
+  "author": "Unknown",
+  "description": "Add-on de test pour démonstration",
+  "compatibility": {
+    "engine_version": ">=2.0.0",
+    "python_version": ">=3.9"
+  },
+  "permissions": [
+    "model_access"
+  ],
+  "entry_points": {
+    "main": "src/main.py"
+  },
+  "dependencies": {},
+  "metadata": {
+    "created_with": "addon_cli",
+    "category": "community"
+  }
+}

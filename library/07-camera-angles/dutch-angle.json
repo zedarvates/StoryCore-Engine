@@ -1,0 +1,28 @@
+{
+  "id": "camera-angle-dutch-angle",
+  "name": "Dutch Angle (Tilted)",
+  "category": "camera-angles",
+  "description": "Camera tilted on its axis creating diagonal horizon, suggesting unease or disorientation",
+  "tags": ["dutch-angle", "tilted", "diagonal", "unease", "disorientation"],
+  "prompt": {
+    "base": "Dutch angle shot, tilted camera, diagonal horizon line, canted angle, off-kilter framing, disorienting perspective, slanted composition, psychological unease, unstable framing",
+    "positive": "dutch angle, tilted camera, diagonal horizon, canted frame, off-kilter composition, slanted perspective, disorienting angle, psychological tension, unstable framing, dramatic tilt, angled shot",
+    "negative": "level horizon, straight camera, balanced composition, stable framing, horizontal lines, vertical alignment, neutral perspective",
+    "technical": {
+      "camera_tilt": "15-45 degrees rotation on z-axis",
+      "perspective": "Creates unease, tension, or psychological disturbance",
+      "use_cases": "Thriller scenes, psychological distress, action sequences, villain POV"
+    }
+  },
+  "examples": [
+    "A tense confrontation with tilted camera, diagonal horizon, dutch angle creating unease",
+    "A character in psychological distress, canted angle emphasizing mental state, off-kilter framing"
+  ],
+  "comfyui": {
+    "workflow_id": "dutch_angle_workflow",
+    "parameters": {
+      "camera_rotation": 30,
+      "axis": "z"
+    }
+  }
+}

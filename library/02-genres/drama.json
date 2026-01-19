@@ -1,0 +1,45 @@
+{
+  "id": "genre-drama",
+  "name": "Drama Genre",
+  "category": "genres",
+  "description": "Character-driven emotional storytelling with realistic conflicts and human relationships",
+  "tags": ["drama", "emotional", "character-driven", "realistic", "relationships"],
+  "prompt": {
+    "base": "Cinematic drama style, emotional depth, character-focused composition, realistic lighting, natural color grading, intimate framing, authentic human expressions, subtle emotional nuances, grounded in reality",
+    "positive": "dramatic lighting, emotional atmosphere, character depth, realistic textures, natural skin tones, authentic expressions, intimate moments, subtle gestures, meaningful glances, emotional weight, dramatic tension, human connection",
+    "negative": "over-dramatic, melodramatic, artificial emotions, exaggerated expressions, unrealistic scenarios, fantasy elements, action sequences, comedy elements, superficial characters",
+    "technical": {
+      "aspect_ratio": "2.39:1 or 16:9",
+      "color_palette": "Muted, naturalistic tones with emotional color grading",
+      "lighting": "Soft, natural lighting with dramatic shadows for emotional emphasis",
+      "composition": "Close-ups and medium shots to capture emotional nuances"
+    }
+  },
+  "variations": [
+    {
+      "name": "Family Drama",
+      "modifier": "family dynamics, generational conflict, domestic settings, warm lighting, nostalgic atmosphere"
+    },
+    {
+      "name": "Psychological Drama",
+      "modifier": "internal conflict, mental state visualization, subjective camera work, moody lighting, introspective atmosphere"
+    },
+    {
+      "name": "Social Drama",
+      "modifier": "societal issues, cultural context, diverse settings, documentary-style realism, authentic environments"
+    }
+  ],
+  "examples": [
+    "A middle-aged woman sitting alone at a kitchen table, soft window light illuminating her contemplative expression, muted color palette, emotional depth",
+    "Two characters in intense conversation, shallow depth of field, natural lighting, authentic emotions, dramatic tension in their body language"
+  ],
+  "comfyui": {
+    "workflow_id": "drama_genre_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

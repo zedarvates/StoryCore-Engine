@@ -1,0 +1,48 @@
+{
+  "id": "palette-fire-red",
+  "name": "Fire Red Palette",
+  "category": "color-palettes",
+  "description": "Bold reds and oranges creating intense, passionate, and dramatic atmosphere",
+  "tags": ["fire", "red", "bold", "intense", "passionate"],
+  "prompt": {
+    "base": "Fire red color palette, bold reds and oranges, intense colors, passionate tones, dramatic color scheme, fiery palette, powerful colors",
+    "positive": "fire red colors, bold red (#B71C1C), crimson (#D32F2F), bright red accent (#FF5252), intense palette, passionate atmosphere, dramatic colors, fiery warmth, powerful presence, red color harmony",
+    "negative": "cool colors, blues, greens, cold palette, muted tones, desaturated colors, pastel colors, soft palette",
+    "technical": {
+      "primary_color": "#B71C1C (Deep Red)",
+      "secondary_color": "#D32F2F (Crimson)",
+      "accent_color": "#FF5252 (Bright Red)",
+      "color_temperature": "Very Warm (2000-2800K)",
+      "saturation": "Very high saturation, bold",
+      "use_cases": "Intense scenes, passionate moods, dramatic atmospheres, action sequences"
+    }
+  },
+  "variations": [
+    {
+      "name": "Volcanic Fire",
+      "modifier": "deep reds, volcanic intensity, molten atmosphere, extreme heat, lava tones"
+    },
+    {
+      "name": "Romantic Fire",
+      "modifier": "passionate reds, romantic warmth, intimate atmosphere, love tones, sensual palette"
+    },
+    {
+      "name": "Danger Fire",
+      "modifier": "warning reds, danger signals, alert atmosphere, emergency tones, urgent palette"
+    }
+  ],
+  "examples": [
+    "A dramatic scene bathed in fire red colors, bold reds and oranges, intense atmosphere",
+    "An action sequence with fire red palette, passionate crimson accents, powerful red tones"
+  ],
+  "comfyui": {
+    "workflow_id": "fire_red_palette_workflow",
+    "recommended_models": ["dreamshaper", "realistic_vision"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras",
+      "color_guidance": "fire_red"
+    }
+  }
+}

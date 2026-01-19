@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "annotations": [
+    {
+      "id": "example-annotation-001",
+      "filename": "example_2026-01-16_16-30-00_project-idea.wav",
+      "timestamp": "2026-01-16T16:30:00Z",
+      "duration": 15.5,
+      "description": "Idée de projet : Chat explorateur dans une ville futuriste",
+      "transcription": "Je veux créer une vidéo de 30 secondes avec un chat qui explore une ville futuriste. Le style devrait être cyberpunk avec des néons et des hologrammes.",
+      "tags": ["projet", "idée", "chat", "futuriste", "cyberpunk"],
+      "projectId": null,
+      "format": {
+        "codec": "WAV",
+        "sampleRate": 44100,
+        "bitDepth": 16,
+        "channels": 1
+      },
+      "metadata": {
+        "createdBy": "user",
+        "device": "Built-in Microphone",
+        "application": "StoryCore Creative Studio",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "statistics": {
+    "totalAnnotations": 1,
+    "totalDuration": 15.5,
+    "totalSize": 1323000,
+    "lastUpdated": "2026-01-16T16:30:00Z"
+  }
+}

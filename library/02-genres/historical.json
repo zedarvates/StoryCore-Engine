@@ -1,0 +1,45 @@
+{
+  "id": "genre-historical",
+  "name": "Historical Genre",
+  "category": "genres",
+  "description": "Period pieces and historical events with authentic costumes, settings, and cultural accuracy",
+  "tags": ["historical", "period", "authentic", "costume", "heritage"],
+  "prompt": {
+    "base": "Historical period setting, authentic costumes, period-accurate architecture, vintage atmosphere, cultural authenticity, historical details, era-specific lighting, heritage preservation, timeless quality",
+    "positive": "period costumes, historical architecture, authentic details, vintage textures, era-specific props, cultural accuracy, heritage atmosphere, classical composition, timeless beauty, historical authenticity, period lighting, traditional craftsmanship",
+    "negative": "modern elements, contemporary fashion, current technology, anachronistic details, modern architecture, digital devices, contemporary styling, present-day references",
+    "technical": {
+      "aspect_ratio": "2.39:1 or 1.85:1 for classical feel",
+      "color_palette": "Period-appropriate colors, vintage film aesthetic",
+      "lighting": "Natural light sources of the era, candlelight, gas lamps",
+      "composition": "Classical framing, painterly quality, period photography style"
+    }
+  },
+  "variations": [
+    {
+      "name": "Medieval Historical",
+      "modifier": "castles, knights, medieval costumes, stone architecture, torchlight, feudal society"
+    },
+    {
+      "name": "Victorian Era",
+      "modifier": "19th century fashion, industrial revolution, gas lighting, ornate interiors, social hierarchy"
+    },
+    {
+      "name": "Ancient Civilizations",
+      "modifier": "classical architecture, togas and robes, marble columns, ancient customs, historical grandeur"
+    }
+  ],
+  "examples": [
+    "A Victorian-era ballroom with period costumes, gas lamp lighting, ornate decorations, authentic historical atmosphere",
+    "Medieval knights in authentic armor, castle courtyard, natural daylight, period-accurate details, historical realism"
+  ],
+  "comfyui": {
+    "workflow_id": "historical_genre_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 35,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

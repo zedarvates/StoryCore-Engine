@@ -1,0 +1,23 @@
+{
+  "category": "master-coherence",
+  "subcategory": "visual-dna",
+  "id": "coherence-grid-full",
+  "name": "Complete Visual Coherence Grid",
+  "description": "3x3 grid establishing the visual DNA for entire project",
+  "tags": ["master-sheet", "3x3", "consistency", "foundation"],
+  "prompt": "A 3x3 grid layout showing consistent visual DNA for {PROJECT_NAME}. Style: {GENRE_STYLE}. Color palette: {PRIMARY_COLORS}. Lighting: {LIGHTING_TYPE}. Composition: professional cinematic framing. Each panel shows the same scene from slightly different angles maintaining perfect style consistency, color harmony, and atmospheric coherence. High quality, sharp details, 4K resolution.",
+  "variables": {
+    "PROJECT_NAME": { "type": "string", "required": true, "description": "Name of the project" },
+    "GENRE_STYLE": { "type": "string", "required": true, "description": "Genre and artistic style" },
+    "PRIMARY_COLORS": { "type": "string", "required": true, "description": "Main color palette" },
+    "LIGHTING_TYPE": { "type": "string", "required": true, "description": "Type of lighting setup" }
+  },
+  "examples": [
+    {
+      "PROJECT_NAME": "Neon Dreams",
+      "GENRE_STYLE": "cyberpunk sci-fi",
+      "PRIMARY_COLORS": "electric blue, neon purple, chrome silver",
+      "LIGHTING_TYPE": "neon volumetric lighting"
+    }
+  ]
+}

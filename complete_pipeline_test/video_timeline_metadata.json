@@ -1,0 +1,21 @@
+{
+  "total_duration": 24.0,
+  "total_frames": 576,
+  "audio_sync_points": [
+    {
+      "timestamp": 0.0,
+      "type": "start",
+      "description": "Journey begins"
+    },
+    {
+      "timestamp": 12.0,
+      "type": "scene_change",
+      "description": "Enter forest"
+    },
+    {
+      "timestamp": 24.0,
+      "type": "end",
+      "description": "Scene ends"
+    }
+  ]
+}

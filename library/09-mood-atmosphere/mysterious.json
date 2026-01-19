@@ -1,0 +1,45 @@
+{
+  "id": "mood-mysterious",
+  "name": "Mysterious Mood",
+  "category": "mood-atmosphere",
+  "description": "Enigmatic and intriguing atmosphere with obscured composition and secretive undertones",
+  "tags": ["mysterious", "enigmatic", "intriguing", "secretive", "cryptic"],
+  "prompt": {
+    "base": "Mysterious enigmatic atmosphere, intriguing mood, obscured composition, secretive tone, cryptic environment, hidden undertones, veiled quality, shadowy mystery, puzzling atmosphere",
+    "positive": "mysterious atmosphere, enigmatic mood, intriguing setting, obscured composition, secretive tone, cryptic environment, hidden elements, veiled quality, shadowy mystery, puzzling atmosphere, unknown depths, concealed secrets",
+    "negative": "obvious atmosphere, transparent mood, clear setting, straightforward tone, revealed environment, explicit mood, no mystery",
+    "technical": {
+      "lighting": "Selective lighting with areas of darkness",
+      "color_palette": "Deep colors with mysterious shadows",
+      "contrast": "High contrast with hidden details",
+      "mood_intensity": "Pervasive sense of mystery"
+    }
+  },
+  "variations": [
+    {
+      "name": "Supernatural Mysterious",
+      "modifier": "otherworldly elements, paranormal atmosphere, ghostly presence, ethereal mystery, unexplained phenomena"
+    },
+    {
+      "name": "Detective Mysterious",
+      "modifier": "clues and evidence, investigative atmosphere, puzzle elements, noir mystery, crime scene intrigue"
+    },
+    {
+      "name": "Romantic Mysterious",
+      "modifier": "alluring stranger, seductive mystery, hidden identity, enigmatic charm, intriguing attraction"
+    }
+  ],
+  "examples": [
+    "A foggy alleyway with mysterious atmosphere, obscured details, enigmatic and intriguing mood",
+    "A masked figure in shadows, mysterious lighting, secretive and cryptic atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "mysterious_mood_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 32,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

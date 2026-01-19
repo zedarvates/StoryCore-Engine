@@ -1,0 +1,185 @@
+/**
+ * Connection Status Styles
+ */
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.connection-status-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.connection-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.connection-icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+.connection-icon-success {
+  color: #10b981;
+}
+
+.connection-icon-error {
+  color: #ef4444;
+}
+
+.connection-icon-warning {
+  color: #f59e0b;
+}
+
+.connection-status-message {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* State-specific styles */
+.connection-status-idle {
+  display: none;
+}
+
+.connection-status-connecting {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #1e40af;
+}
+
+.connection-status-connected {
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #065f46;
+}
+
+.connection-status-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #991b1b;
+}
+
+.connection-status-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #92400e;
+}
+
+/* Retry button */
+.connection-retry-button {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.25rem;
+  color: #991b1b;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.connection-retry-button:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.connection-retry-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Inline connection status */
+.inline-connection-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.inline-connection-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.inline-connection-icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+.inline-connection-icon-success {
+  color: #10b981;
+}
+
+.inline-connection-icon-error {
+  color: #ef4444;
+}
+
+.inline-connection-icon-warning {
+  color: #f59e0b;
+}
+
+.inline-connection-label {
+  color: inherit;
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .connection-status-connecting {
+    background-color: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+  }
+
+  .connection-status-connected {
+    background-color: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+  }
+
+  .connection-status-error {
+    background-color: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+
+  .connection-status-warning {
+    background-color: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #fcd34d;
+  }
+
+  .connection-retry-button {
+    background-color: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+
+  .connection-retry-button:hover {
+    background-color: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+}

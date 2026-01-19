@@ -1,0 +1,12 @@
+{
+  "category": "shot-types",
+  "subcategory": "close-shots",
+  "id": "shot-extreme-closeup",
+  "name": "Extreme Close-Up",
+  "description": "Macro detail shot with texture visible",
+  "tags": ["extreme-close-up", "macro", "detail", "texture"],
+  "prompt": "Extreme close-up, {SPECIFIC_DETAIL}. Macro-level detail, texture visible, dramatic lighting revealing micro-details. Abstract composition possible, professional macro photography quality, razor-sharp focus.",
+  "variables": {
+    "SPECIFIC_DETAIL": { "type": "string", "required": true }
+  }
+}

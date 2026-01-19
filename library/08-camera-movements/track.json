@@ -1,0 +1,29 @@
+{
+  "id": "camera-movement-track",
+  "name": "Tracking (Lateral Movement)",
+  "category": "camera-movements",
+  "description": "Camera moving parallel to subject, following action smoothly",
+  "tags": ["tracking", "lateral", "parallel", "following", "smooth"],
+  "prompt": {
+    "base": "Tracking shot, camera moving laterally, parallel to subject, following action smoothly, side-to-side movement, tracking alongside, smooth lateral motion, following shot",
+    "positive": "tracking shot, lateral camera movement, parallel motion, following subject, smooth tracking, side-to-side movement, tracking alongside, following action, parallel movement, smooth follow",
+    "negative": "static camera, forward movement, backward movement, zoom, no camera movement, fixed position",
+    "technical": {
+      "movement_type": "Lateral movement parallel to subject",
+      "speed": "Matches subject speed for smooth following",
+      "use_cases": "Following walking characters, action sequences, revealing environments while moving"
+    }
+  },
+  "examples": [
+    "Camera tracking alongside a character walking, smooth lateral movement keeping them in frame",
+    "Tracking shot following a car driving, camera moving parallel to the vehicle"
+  ],
+  "comfyui": {
+    "workflow_id": "track_camera_workflow",
+    "parameters": {
+      "movement": "track",
+      "direction": "lateral",
+      "speed": "matched"
+    }
+  }
+}

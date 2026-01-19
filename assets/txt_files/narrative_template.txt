@@ -1,0 +1,98 @@
+NARRATIVE TEMPLATE
+==================
+
+Use this template to structure your complete story narrative.
+
+STORY HEADER
+------------
+Title: [Story Title]
+Author: [Your Name]
+Genre: [Primary genre, subgenre]
+Word Count Target: [Approximate]
+Tone: [e.g., Serious, Humorous, Dark, Hopeful]
+
+LOG LINE (One-sentence summary)
+-------------------------------
+[A compelling one-sentence description of the entire story]
+
+CHARACTERS
+----------
+Protagonist: [Name, brief description, goals]
+Antagonist: [Name, brief description, motivations]
+Supporting Characters:
+- [Character 1]: [Role and description]
+- [Character 2]: [Role and description]
+
+SETTING
+-------
+Primary Location: [Main setting description]
+Time Period: [When does the story take place?]
+Key Locations:
+- [Location 1]: [Description and significance]
+- [Location 2]: [Description and significance]
+
+PLOT SUMMARY
+------------
+Opening: [How the story begins - setup]
+Inciting Incident: [What kicks off the main conflict]
+Rising Action: [Key events building tension]
+Climax: [The turning point/confrontation]
+Falling Action: [Events after the climax]
+Resolution: [How the story ends]
+
+THEMES & MOTIFS
+---------------
+Central Theme: [Main message or insight]
+Supporting Themes:
+- [Theme 1]
+- [Theme 2]
+Subtle Motifs: [Recurring symbols or patterns]
+
+CHARACTER ARCS
+--------------
+Protagonist Arc: [How the main character changes]
+- Starting State: [Initial personality/traits]
+- Turning Points: [Key moments of change]
+- Ending State: [Final personality/traits]
+
+CONFLICT TYPES
+--------------
+Internal Conflict: [Protagonist's inner struggles]
+External Conflict: [Obstacles from outside forces]
+Interpersonal Conflict: [Conflicts with other characters]
+
+KEY SCENES
+----------
+Scene 1: [Opening hook]
+Scene 2: [Inciting incident]
+Scene 3: [Major turning point]
+Scene 4: [Climax build-up]
+Scene 5: [Climax]
+Scene 6: [Resolution]
+
+DIALOGUE STYLE
+--------------
+Character Voice: [How characters speak - formal, casual, dialect, etc.]
+Key Phrases: [Recurring dialogue elements]
+Tonal Shifts: [How dialogue changes with mood/emotion]
+
+WORLD RULES
+-----------
+Magic System: [If applicable - how it works]
+Technology Level: [What's possible in this world?]
+Social Structure: [How society is organized]
+Laws/Taboos: [Important rules or prohibitions]
+
+OUTLINE YOUR STORY HERE
+-----------------------
+Chapter 1:
+[Write or outline your first chapter]
+
+Chapter 2:
+[Continue with subsequent chapters]
+
+ENDING NOTES
+------------
+What Works: [Strengths of the story]
+What Needs Work: [Areas for improvement]
+Future Ideas: [Sequels or expansions]

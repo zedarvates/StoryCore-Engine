@@ -1,0 +1,45 @@
+{
+  "id": "mood-energetic",
+  "name": "Energetic Mood",
+  "category": "mood-atmosphere",
+  "description": "Dynamic and vibrant atmosphere with active composition and high-energy undertones",
+  "tags": ["energetic", "dynamic", "vibrant", "active", "lively"],
+  "prompt": {
+    "base": "Energetic dynamic atmosphere, vibrant mood, active composition, high-energy environment, lively tone, kinetic undertones, electric atmosphere, pulsing energy, vigorous mood",
+    "positive": "energetic atmosphere, dynamic mood, vibrant setting, active composition, high-energy environment, lively tone, kinetic energy, electric atmosphere, pulsing vitality, vigorous mood, animated setting, powerful energy",
+    "negative": "lethargic mood, static atmosphere, low-energy setting, sluggish tone, passive environment, dull mood, lifeless atmosphere",
+    "technical": {
+      "lighting": "Dynamic lighting with movement and energy",
+      "color_palette": "Vibrant, saturated colors with high contrast",
+      "contrast": "High contrast with bold colors",
+      "mood_intensity": "High, sustained energy"
+    }
+  },
+  "variations": [
+    {
+      "name": "Athletic Energetic",
+      "modifier": "sports action, physical dynamism, competitive energy, athletic vigor, performance intensity"
+    },
+    {
+      "name": "Party Energetic",
+      "modifier": "celebration mood, festive atmosphere, social energy, dancing vitality, joyful excitement"
+    },
+    {
+      "name": "Urban Energetic",
+      "modifier": "city pulse, metropolitan energy, fast-paced life, urban dynamism, modern vitality"
+    }
+  ],
+  "examples": [
+    "A dance floor with energetic atmosphere, dynamic lighting, vibrant and lively mood with pulsing energy",
+    "An action scene with high-energy composition, kinetic atmosphere, vigorous and electric mood"
+  ],
+  "comfyui": {
+    "workflow_id": "energetic_mood_workflow",
+    "recommended_models": ["dreamshaper", "anything_v5"],
+    "parameters": {
+      "cfg_scale": 8.5,
+      "steps": 25,
+      "sampler": "Euler a"
+    }
+  }
+}

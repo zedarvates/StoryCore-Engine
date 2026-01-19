@@ -1,0 +1,219 @@
+/* ComfyUI Instance Panel Component Styles */
+
+.comfyui-instance-panel {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Panel Header */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary, #333333);
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Filters and Search */
+.panel-filters {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--bg-secondary, #f8f9fa);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #333333);
+}
+
+.filter-group select,
+.filter-group input[type="text"] {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #ced4da);
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 120px;
+}
+
+.filter-group input[type="text"] {
+  min-width: 200px;
+}
+
+.search-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Instance Grid */
+.instance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Loading and Empty States */
+.loading, .empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary, #666666);
+}
+
+.empty-state {
+  border: 2px dashed var(--border-color, #dee2e6);
+  border-radius: 8px;
+  background: var(--bg-secondary, #f8f9fa);
+}
+
+.empty-state p {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: var(--text-muted, #999999);
+}
+
+/* Panel Summary */
+.panel-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+  font-size: 14px;
+  color: var(--text-secondary, #666666);
+}
+
+.active-indicator {
+  font-weight: 600;
+  color: var(--accent-color, #007bff);
+}
+
+/* Button Styles */
+.btn-primary {
+  background-color: var(--primary-color, #007bff);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover, #0056b3);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color, #6c757d);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-hover, #545b62);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .instance-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .comfyui-instance-panel {
+    padding: 16px;
+  }
+
+  .panel-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .panel-header h2 {
+    text-align: center;
+  }
+
+  .header-actions {
+    justify-content: center;
+  }
+
+  .panel-filters {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-group select,
+  .filter-group input[type="text"] {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .instance-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .panel-summary {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .comfyui-instance-panel {
+    padding: 12px;
+  }
+
+  .panel-header h2 {
+    font-size: 20px;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}

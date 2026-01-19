@@ -1,0 +1,29 @@
+{
+  "id": "camera-movement-crane",
+  "name": "Crane (Vertical and Sweeping)",
+  "category": "camera-movements",
+  "description": "Camera on crane arm moving vertically and sweeping, creating dramatic reveals",
+  "tags": ["crane", "sweeping", "vertical", "dramatic", "aerial"],
+  "prompt": {
+    "base": "Crane camera movement, sweeping motion, vertical and horizontal combined, dramatic camera movement, crane arm shot, rising or descending camera, epic sweeping movement, cinematic crane shot",
+    "positive": "crane shot, sweeping camera movement, vertical crane motion, dramatic sweep, rising camera, descending camera, epic movement, cinematic crane, combined vertical and horizontal, dramatic reveal",
+    "negative": "static camera, simple pan, simple tilt, ground-level only, no vertical movement, fixed position",
+    "technical": {
+      "movement_type": "Combined vertical and horizontal on crane arm",
+      "speed": "Slow to medium for dramatic effect",
+      "use_cases": "Epic reveals, establishing shots, dramatic conclusions, cinematic moments"
+    }
+  },
+  "examples": [
+    "Camera craning up and over a crowd, dramatic sweeping movement revealing the full scene",
+    "Crane shot descending from sky to ground level, epic vertical movement with horizontal sweep"
+  ],
+  "comfyui": {
+    "workflow_id": "crane_camera_workflow",
+    "parameters": {
+      "movement": "crane",
+      "type": "combined",
+      "speed": "slow"
+    }
+  }
+}

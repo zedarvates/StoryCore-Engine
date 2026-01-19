@@ -1,0 +1,47 @@
+{
+  "id": "universe-alternate",
+  "name": "Alternate Universe",
+  "category": "universe-types",
+  "description": "Alternative reality with divergent history, different rules, or parallel dimensions",
+  "tags": ["alternate", "parallel", "divergent", "alternative", "what-if"],
+  "prompt": {
+    "base": "Alternate universe, alternative reality, divergent history, parallel dimension, what-if scenario, altered timeline, different rules",
+    "positive": "alternate universe, alternative reality, divergent history, parallel dimension, what-if scenario, altered timeline, different rules, unique physics, reimagined world, creative divergence, speculative setting",
+    "negative": "standard reality, conventional history, normal timeline, typical universe, ordinary world",
+    "technical": {
+      "physics_rules": "Modified or alternative physics",
+      "technology_level": "Varies (divergent from our timeline)",
+      "magic_system": "Optional (depends on divergence point)",
+      "world_constraints": "Bound by internal consistency of the alternate reality",
+      "visual_approach": "Familiar yet different, recognizable with unique twists"
+    }
+  },
+  "variations": [
+    {
+      "name": "Steampunk Alternate",
+      "modifier": "Victorian era with advanced steam technology, brass and copper aesthetic, clockwork mechanisms, industrial fantasy"
+    },
+    {
+      "name": "Dieselpunk Alternate",
+      "modifier": "1920s-1950s with diesel technology, art deco aesthetic, retro-futuristic, pulp adventure"
+    },
+    {
+      "name": "Historical Divergence",
+      "modifier": "alternate history, different outcome of historical events, what-if scenario, divergent timeline"
+    }
+  ],
+  "examples": [
+    "A steampunk city in alternate universe, Victorian architecture with advanced steam technology, brass aesthetic",
+    "An alternate 1950s with different technology, retro-futuristic setting, divergent history, unique atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "alternate_universe_workflow",
+    "recommended_models": ["dreamshaper", "versatile_diffusion"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras",
+      "universe_conditioning": "alternate"
+    }
+  }
+}

@@ -1,0 +1,298 @@
+/* Instance Card Component Styles */
+
+.instance-card {
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.instance-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.instance-card.active {
+  border-color: var(--accent-color, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.instance-info {
+  flex: 1;
+}
+
+.instance-name {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #333333);
+}
+
+.instance-details {
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-secondary, #666666);
+}
+
+.instance-id {
+  font-family: monospace;
+  background: var(--bg-secondary, #f8f9fa);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.status-indicators {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Status and Health Badges */
+.status-badge, .health-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-badge {
+  color: white;
+}
+
+.health-badge {
+  color: white;
+}
+
+.status-running { background-color: #28a745; }
+.status-stopped { background-color: #6c757d; }
+.status-starting { background-color: #ffc107; color: #212529; }
+.status-stopping { background-color: #fd7e14; }
+.status-paused { background-color: #17a2b8; }
+.status-error { background-color: #dc3545; }
+
+.health-healthy { background-color: #28a745; }
+.health-degraded { background-color: #ffc107; color: #212529; }
+.health-unhealthy { background-color: #dc3545; }
+
+/* Description */
+.card-description {
+  margin-bottom: 12px;
+}
+
+.card-description p {
+  margin: 0;
+  color: var(--text-secondary, #666666);
+  font-size: 14px;
+}
+
+/* Metrics */
+.card-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.metric {
+  text-align: center;
+  padding: 8px;
+  background: var(--bg-secondary, #f8f9fa);
+  border-radius: 6px;
+}
+
+.metric-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary, #666666);
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #333333);
+}
+
+/* System Stats */
+.card-system-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--bg-tertiary, #f1f3f4);
+  border-radius: 6px;
+}
+
+.system-metric {
+  text-align: center;
+}
+
+.system-metric .metric-label {
+  font-size: 11px;
+}
+
+.system-metric .metric-value {
+  font-size: 14px;
+}
+
+/* GPU Info */
+.card-gpu-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  background: var(--bg-accent, #e3f2fd);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.gpu-label {
+  font-weight: 500;
+  color: var(--text-primary, #333333);
+}
+
+.gpu-value {
+  font-family: monospace;
+  color: var(--accent-color, #007bff);
+}
+
+/* Last Used */
+.card-last-used {
+  font-size: 12px;
+  color: var(--text-muted, #999999);
+  margin-bottom: 12px;
+}
+
+/* Actions */
+.card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-start {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-stop {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-set-active {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-edit {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-delete {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Active Indicator */
+.active-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--accent-color, #007bff);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Error Display */
+.card-error {
+  margin-top: 12px;
+  padding: 8px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.error-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.error-message {
+  font-size: 13px;
+  color: #721c24;
+  line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .instance-card {
+    padding: 12px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .status-indicators {
+    align-self: flex-end;
+  }
+
+  .card-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card-actions {
+    justify-content: center;
+  }
+
+  .btn-action {
+    flex: 1;
+    min-width: 80px;
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "character-background",
+  "name": "Background Character",
+  "category": "character-archetypes",
+  "description": "Minor characters who populate the world and provide atmosphere without major story roles",
+  "tags": ["background", "extra", "minor", "atmosphere", "world-building"],
+  "prompt": {
+    "base": "Background character, minor role, extra character, atmospheric presence, world population, environmental character, scene filler",
+    "positive": "background character, minor role, atmospheric presence, world-building element, believable extra, natural placement, environmental character, crowd member, realistic population, scene authenticity, subtle presence",
+    "negative": "main character focus, protagonist emphasis, detailed character arc, speaking role, story importance",
+    "technical": {
+      "screen_time": "Minimal (background presence)",
+      "character_arc": "None or minimal",
+      "visual_prominence": "Blends with environment",
+      "dialogue_weight": "Non-speaking or minimal lines",
+      "relationship_focus": "No significant relationships"
+    }
+  },
+  "variations": [
+    {
+      "name": "Crowd Background",
+      "modifier": "group member, crowd scene, multiple extras, mass presence, population density"
+    },
+    {
+      "name": "Environmental Background",
+      "modifier": "location-specific, contextual presence, setting appropriate, environmental detail, world authenticity"
+    },
+    {
+      "name": "Functional Background",
+      "modifier": "service role, shopkeeper, waiter, functional presence, practical character"
+    }
+  ],
+  "examples": [
+    "Background characters populating a busy street, atmospheric presence, natural crowd, world-building",
+    "Minor characters in background of scene, environmental extras, subtle presence, scene authenticity"
+  ],
+  "comfyui": {
+    "workflow_id": "background_character_workflow",
+    "recommended_models": ["dreamshaper", "realistic_vision"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 25,
+      "sampler": "DPM++ 2M Karras",
+      "character_conditioning": "background"
+    }
+  }
+}

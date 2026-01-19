@@ -1,0 +1,28 @@
+{
+  "id": "camera-angle-low-angle",
+  "name": "Low-Angle Camera Shot",
+  "category": "camera-angles",
+  "description": "Camera positioned below subject looking up, creating power and dominance",
+  "tags": ["low-angle", "looking-up", "power", "dominance", "heroic"],
+  "prompt": {
+    "base": "Low-angle shot, camera looking up at subject, ground-level camera position, upward perspective, subject appears powerful, heroic framing, worms-eye angle, empowering perspective",
+    "positive": "low angle shot, camera below subject, looking up, ground-level perspective, upward view, subject dominance, powerful appearance, heroic framing, worms-eye view, empowering angle, towering presence",
+    "negative": "high angle, eye-level, birds-eye view, downward perspective, diminishing angle, overhead camera",
+    "technical": {
+      "camera_height": "Below subject, 30-60 degrees up",
+      "perspective": "Creates power, dominance, or intimidation",
+      "use_cases": "Heroic moments, villain introduction, power dynamics"
+    }
+  },
+  "examples": [
+    "A superhero standing tall, camera low looking up, powerful framing, heroic perspective",
+    "A villain towering over camera, low angle emphasizing dominance, intimidating presence"
+  ],
+  "comfyui": {
+    "workflow_id": "low_angle_workflow",
+    "parameters": {
+      "camera_angle": 45,
+      "elevation": "low"
+    }
+  }
+}

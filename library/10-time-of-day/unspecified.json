@@ -1,0 +1,45 @@
+{
+  "id": "time-unspecified",
+  "name": "Timeless / Unspecified",
+  "category": "time-of-day",
+  "description": "Neutral lighting without specific time indicators, timeless atmosphere",
+  "tags": ["timeless", "unspecified", "neutral", "studio", "controlled"],
+  "prompt": {
+    "base": "Timeless lighting, unspecified time of day, neutral illumination, studio-quality light, controlled atmosphere, time-neutral setting, even lighting, professional illumination",
+    "positive": "timeless lighting, neutral illumination, studio quality, even lighting, controlled atmosphere, professional setup, time-neutral, balanced light, consistent illumination, no time indicators, universal lighting",
+    "negative": "specific time of day, sunrise colors, sunset glow, night darkness, golden hour, dawn light, obvious time markers",
+    "technical": {
+      "sun_position": "Not applicable - controlled lighting",
+      "color_temperature": "Neutral, 5000-5500K",
+      "shadow_quality": "Controlled, even shadows",
+      "atmospheric_effects": "Neutral, no time-specific atmosphere"
+    }
+  },
+  "variations": [
+    {
+      "name": "Studio Timeless",
+      "modifier": "professional studio, controlled lighting, photography setup, commercial quality, perfect illumination"
+    },
+    {
+      "name": "Overcast Timeless",
+      "modifier": "cloudy sky, diffused natural light, soft shadows, neutral atmosphere, even daylight"
+    },
+    {
+      "name": "Interior Timeless",
+      "modifier": "indoor setting, artificial lighting, no windows, controlled environment, time-independent"
+    }
+  ],
+  "examples": [
+    "A portrait with studio lighting, timeless atmosphere, neutral illumination, no time indicators",
+    "An interior scene with even lighting, time-neutral setting, controlled professional atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "timeless_lighting_workflow",
+    "recommended_models": ["realistic_vision", "dreamshaper"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

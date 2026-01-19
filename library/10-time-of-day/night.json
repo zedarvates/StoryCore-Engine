@@ -1,0 +1,45 @@
+{
+  "id": "time-night",
+  "name": "Night Time",
+  "category": "time-of-day",
+  "description": "Darkness with artificial or moonlight, deep shadows and nocturnal atmosphere",
+  "tags": ["night", "darkness", "nocturnal", "artificial-light", "moonlight"],
+  "prompt": {
+    "base": "Night time, darkness, nocturnal atmosphere, artificial lighting, moonlight, deep shadows, night sky, evening darkness, after-dark mood",
+    "positive": "night time, darkness, nocturnal atmosphere, artificial lights, moonlight, deep shadows, night sky, stars, evening darkness, after-dark, city lights, street lamps, night mood",
+    "negative": "daylight, sunshine, morning light, bright atmosphere, daytime, golden hour, afternoon sun",
+    "technical": {
+      "sun_position": "Below horizon, no natural light",
+      "color_temperature": "Cool moonlight (4000K) or warm artificial (2700-3000K)",
+      "shadow_quality": "Deep, dramatic shadows with selective lighting",
+      "atmospheric_effects": "Darkness, stars, moon, artificial light sources"
+    }
+  },
+  "variations": [
+    {
+      "name": "Moonlit Night",
+      "modifier": "full moon, natural moonlight, silvery glow, romantic night, lunar illumination"
+    },
+    {
+      "name": "Urban Night",
+      "modifier": "city lights, neon signs, street lamps, metropolitan night, artificial illumination"
+    },
+    {
+      "name": "Dark Night",
+      "modifier": "minimal light, deep darkness, starlight only, mysterious night, shadowy atmosphere"
+    }
+  ],
+  "examples": [
+    "A city street at night with street lamps and neon signs, nocturnal atmosphere, artificial lighting",
+    "A moonlit landscape with silvery glow, night sky with stars, romantic nocturnal mood"
+  ],
+  "comfyui": {
+    "workflow_id": "night_lighting_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 32,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

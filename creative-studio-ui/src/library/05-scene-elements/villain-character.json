@@ -1,0 +1,26 @@
+{
+  "category": "scene-elements",
+  "subcategory": "characters",
+  "id": "character-villain",
+  "name": "Antagonist Character",
+  "description": "Villain or antagonist with imposing presence",
+  "tags": ["character", "villain", "antagonist", "enemy"],
+  "prompt": "Antagonist character, {DESCRIPTION}. Imposing presence, distinctive design, {DEMEANOR} demeanor. {COSTUME_DETAILS}. Dramatic lighting emphasizing character traits, strong composition. Professional villain design, cinematic quality.",
+  "variables": {
+    "DESCRIPTION": { 
+      "type": "string", 
+      "required": true,
+      "description": "Physical description of the villain"
+    },
+    "DEMEANOR": { 
+      "type": "enum",
+      "required": true,
+      "options": ["threatening", "mysterious", "elegant", "brutal"]
+    },
+    "COSTUME_DETAILS": { 
+      "type": "string", 
+      "required": true,
+      "description": "Clothing and costume details"
+    }
+  }
+}

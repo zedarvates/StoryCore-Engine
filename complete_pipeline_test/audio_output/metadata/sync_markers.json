@@ -1,0 +1,50 @@
+[
+  {
+    "timestamp": 0.0,
+    "type": "start",
+    "description": "Journey begins",
+    "frame_number": 0
+  },
+  {
+    "timestamp": 0.0,
+    "type": "regular",
+    "description": "Regular sync marker at 0s",
+    "frame_number": 0
+  },
+  {
+    "timestamp": 5.0,
+    "type": "regular",
+    "description": "Regular sync marker at 5s",
+    "frame_number": 120
+  },
+  {
+    "timestamp": 10.0,
+    "type": "regular",
+    "description": "Regular sync marker at 10s",
+    "frame_number": 240
+  },
+  {
+    "timestamp": 12.0,
+    "type": "scene_change",
+    "description": "Enter forest",
+    "frame_number": 0
+  },
+  {
+    "timestamp": 15.0,
+    "type": "regular",
+    "description": "Regular sync marker at 15s",
+    "frame_number": 360
+  },
+  {
+    "timestamp": 20.0,
+    "type": "regular",
+    "description": "Regular sync marker at 20s",
+    "frame_number": 480
+  },
+  {
+    "timestamp": 24.0,
+    "type": "end",
+    "description": "Scene ends",
+    "frame_number": 0
+  }
+]

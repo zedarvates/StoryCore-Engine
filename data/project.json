@@ -1,0 +1,131 @@
+{
+  "project": {
+    "id": "template_base",
+    "name": "Comprehensive Base Project Template",
+    "version": "1.0.0",
+    "created_at": "2026-01-18T06:56:48.939Z",
+    "updated_at": "2026-01-18T06:56:48.939Z",
+    "description": "A flexible template supporting all major video formats and genres for story projects",
+    "format": {
+      "type": "standard_feature",
+      "duration_range": {
+        "min_minutes": 60,
+        "max_minutes": 120
+      },
+      "specifications": {
+        "aspect_ratio": "16:9",
+        "frame_rate": 24,
+        "resolution": "1920x1080",
+        "audio_channels": "5.1"
+      },
+      "available_formats": {
+        "short_film": {
+          "min_minutes": 1,
+          "max_minutes": 20,
+          "description": "Short narrative films under 20 minutes"
+        },
+        "medium_film": {
+          "min_minutes": 21,
+          "max_minutes": 59,
+          "description": "Medium-length films between 21-59 minutes"
+        },
+        "standard_feature": {
+          "min_minutes": 60,
+          "max_minutes": 120,
+          "description": "Standard feature films 60-120 minutes"
+        },
+        "premium_feature": {
+          "min_minutes": 121,
+          "max_minutes": 180,
+          "description": "Long feature films 121-180 minutes"
+        },
+        "very_long_feature": {
+          "min_minutes": 181,
+          "max_minutes": null,
+          "description": "Very long feature films over 180 minutes"
+        },
+        "tv_special_streaming": {
+          "min_minutes": 30,
+          "max_minutes": 90,
+          "description": "TV specials or streaming content"
+        },
+        "series_episode": {
+          "min_minutes": 20,
+          "max_minutes": 60,
+          "description": "Individual episodes of TV series"
+        }
+      }
+    },
+    "genres": [],
+    "available_genres": [
+      "Action",
+      "Adventure",
+      "Drama",
+      "Comedy",
+      "Romance",
+      "Science-fiction",
+      "Fantasy",
+      "Horror",
+      "Thriller",
+      "Crime",
+      "Western",
+      "Historical",
+      "Animation",
+      "Documentary",
+      "Musical",
+      "Family/Children",
+      "Experimental"
+    ],
+    "metadata": {
+      "director": "",
+      "producer": "",
+      "writer": "",
+      "budget": 0,
+      "target_audience": "",
+      "language": "English",
+      "country": "",
+      "release_year": null,
+      "production_company": "",
+      "distribution_company": ""
+    },
+    "narrative": {
+      "plot_outline": "",
+      "logline": "",
+      "themes": [],
+      "tone": "",
+      "setting": {
+        "time_period": "",
+        "locations": []
+      },
+      "characters": [],
+      "acts": [
+        {
+          "act_number": 1,
+          "description": "",
+          "duration_estimate": 0
+        },
+        {
+          "act_number": 2,
+          "description": "",
+          "duration_estimate": 0
+        },
+        {
+          "act_number": 3,
+          "description": "",
+          "duration_estimate": 0
+        }
+      ]
+    },
+    "custom_fields": {},
+    "documentation": {
+      "usage": "Use this template as a starting point for any story project. Select appropriate format and genres, fill in metadata, and structure your narrative elements.",
+      "extensibility": "Add custom fields in the custom_fields object or extend existing arrays/objects as needed.",
+      "version_history": [
+        {
+          "version": "1.0.0",
+          "changes": "Initial comprehensive template with all formats and genres"
+        }
+      ]
+    }
+  }
+}

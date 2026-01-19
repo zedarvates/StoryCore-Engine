@@ -1,0 +1,45 @@
+{
+  "id": "genre-musical",
+  "name": "Musical Genre",
+  "category": "genres",
+  "description": "Music-driven storytelling with choreographed performances, vibrant energy, and theatrical presentation",
+  "tags": ["musical", "dance", "performance", "theatrical", "choreography"],
+  "prompt": {
+    "base": "Musical theater style, vibrant colors, dynamic choreography, theatrical lighting, performance energy, stage presence, expressive movement, rhythmic composition, show-stopping moments, artistic flair",
+    "positive": "theatrical lighting, vibrant costumes, dynamic poses, choreographed movement, expressive gestures, stage presence, colorful sets, performance energy, dramatic spotlights, artistic composition, musical atmosphere, dance sequences",
+    "negative": "static poses, muted colors, realistic mundane settings, documentary style, minimal movement, drab costumes, flat lighting, non-theatrical presentation",
+    "technical": {
+      "aspect_ratio": "2.39:1 for theatrical scope",
+      "color_palette": "Bold, saturated colors with theatrical vibrancy",
+      "lighting": "Theatrical stage lighting, dramatic spotlights, colored gels",
+      "composition": "Dynamic framing capturing movement and performance"
+    }
+  },
+  "variations": [
+    {
+      "name": "Broadway Musical",
+      "modifier": "grand stage sets, elaborate costumes, spotlight effects, ensemble choreography, theatrical grandeur"
+    },
+    {
+      "name": "Dance Musical",
+      "modifier": "fluid movement, choreography focus, dynamic camera work, rhythmic composition, dance energy"
+    },
+    {
+      "name": "Period Musical",
+      "modifier": "historical costumes, vintage aesthetics, classic Hollywood style, nostalgic atmosphere, golden age glamour"
+    }
+  ],
+  "examples": [
+    "Dancers in mid-leap with vibrant costumes, theatrical lighting with colored spotlights, dynamic composition capturing movement energy",
+    "A singer in dramatic spotlight on stage, expressive gesture, theatrical atmosphere, bold colors, performance moment"
+  ],
+  "comfyui": {
+    "workflow_id": "musical_genre_workflow",
+    "recommended_models": ["dreamshaper", "anything_v5"],
+    "parameters": {
+      "cfg_scale": 8.5,
+      "steps": 28,
+      "sampler": "Euler a"
+    }
+  }
+}

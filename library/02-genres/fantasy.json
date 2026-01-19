@@ -1,0 +1,18 @@
+{
+  "category": "genres",
+  "subcategory": "fantasy",
+  "id": "genre-fantasy",
+  "name": "Medieval Fantasy Scene",
+  "description": "Magical medieval fantasy atmosphere",
+  "tags": ["fantasy", "medieval", "magic", "epic"],
+  "prompt": "Medieval fantasy scene, {SPECIFIC_ELEMENT}. Magic atmosphere, mystical lighting, {LOCATION}. Color palette: rich earth tones, magical glows, deep shadows. Fantasy elements: {FANTASY_ELEMENTS}, medieval architecture, torchlight and natural lighting. Epic cinematic composition, painterly quality with sharp details.",
+  "variables": {
+    "SPECIFIC_ELEMENT": { "type": "string", "required": true },
+    "LOCATION": { 
+      "type": "enum",
+      "required": true,
+      "options": ["castle", "forest", "village", "dungeon", "mountain"]
+    },
+    "FANTASY_ELEMENTS": { "type": "string", "required": true }
+  }
+}

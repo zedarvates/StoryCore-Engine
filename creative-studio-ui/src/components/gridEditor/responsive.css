@@ -1,0 +1,234 @@
+/**
+ * Responsive Grid Editor Styles
+ * 
+ * Provides responsive layout adjustments and touch interaction support
+ * for different screen sizes and devices.
+ */
+
+/* Base responsive utilities */
+.grid-editor-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Mobile-specific styles (< 768px) */
+@media (max-width: 767px) {
+  .grid-editor-canvas {
+    font-size: 14px;
+  }
+
+  /* Larger touch targets for mobile */
+  .grid-editor-canvas button,
+  .grid-editor-canvas .interactive-element {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+  }
+
+  /* Hide complex UI elements on mobile */
+  .grid-editor-canvas .minimap,
+  .grid-editor-canvas .advanced-controls {
+    display: none;
+  }
+
+  /* Simplified toolbar */
+  .grid-editor-canvas .toolbar {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .grid-editor-canvas .toolbar-button {
+    flex: 1;
+    min-width: 60px;
+  }
+
+  /* Full-width panels */
+  .grid-editor-canvas .properties-panel,
+  .grid-editor-canvas .asset-library {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Simplified grid display */
+  .grid-editor-canvas .grid-renderer {
+    padding: 8px;
+  }
+
+  /* Touch-friendly transform handles */
+  .grid-editor-canvas .transform-handle {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Tablet-specific styles (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid-editor-canvas {
+    font-size: 15px;
+  }
+
+  /* Adjusted touch targets for tablet */
+  .grid-editor-canvas button,
+  .grid-editor-canvas .interactive-element {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Collapsible panels */
+  .grid-editor-canvas .properties-panel {
+    width: 320px;
+    transition: transform 0.3s ease;
+  }
+
+  .grid-editor-canvas .properties-panel.collapsed {
+    transform: translateX(100%);
+  }
+
+  /* Adjusted toolbar layout */
+  .grid-editor-canvas .toolbar {
+    padding: 8px;
+  }
+
+  /* Show minimap but smaller */
+  .grid-editor-canvas .minimap {
+    width: 120px;
+    height: 120px;
+  }
+
+  /* Transform handles */
+  .grid-editor-canvas .transform-handle {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Desktop-specific styles (>= 1024px) */
+@media (min-width: 1024px) {
+  .grid-editor-canvas {
+    font-size: 16px;
+  }
+
+  /* Full-featured layout */
+  .grid-editor-canvas .properties-panel {
+    width: 360px;
+  }
+
+  .grid-editor-canvas .asset-library {
+    width: 280px;
+  }
+
+  /* Standard transform handles */
+  .grid-editor-canvas .transform-handle {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Full-size minimap */
+  .grid-editor-canvas .minimap {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+/* Touch interaction support */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch device detected */
+  .grid-editor-canvas {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+
+  /* Larger interactive areas */
+  .grid-editor-canvas .interactive-element {
+    padding: 12px;
+  }
+
+  /* Disable hover effects on touch devices */
+  .grid-editor-canvas .hover-only {
+    display: none;
+  }
+
+  /* Touch-friendly scrollbars */
+  .grid-editor-canvas ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .grid-editor-canvas ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (orientation: landscape) and (max-height: 600px) {
+  /* Compact vertical layout for landscape mobile */
+  .grid-editor-canvas .toolbar {
+    padding: 4px;
+  }
+
+  .grid-editor-canvas .properties-panel {
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .grid-editor-canvas .grid-renderer {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Animation utilities */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+/* Accessibility improvements for responsive layouts */
+@media (prefers-reduced-motion: reduce) {
+  .grid-editor-canvas * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .grid-editor-canvas .toolbar,
+  .grid-editor-canvas .properties-panel,
+  .grid-editor-canvas .minimap {
+    display: none;
+  }
+
+  .grid-editor-canvas .grid-renderer {
+    width: 100%;
+    height: auto;
+  }
+}

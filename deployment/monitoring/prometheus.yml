@@ -1,0 +1,106 @@
+# Prometheus Production Configuration for Advanced ComfyUI Workflows
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Remote write for long-term storage (optional)
+# remote_write:
+#   - url: "http://victoria-metrics:8428/api/v1/write"
+
+# Remote read for long-term storage (optional)
+# remote_read:
+#   - url: "http://victoria-metrics:8428/api/v1/read"
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "alert_rules.yml"
+
+# Storage configuration is handled via command-line flags in production
+# --storage.tsdb.retention.time=30d
+# --storage.tsdb.path=/prometheus
+# --storage.tsdb.wal-compression
+
+# A scrape configuration containing exactly one endpoint to scrape:
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'advanced-workflows'
+    static_configs:
+      - targets: ['advanced-workflows:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: name
+        regex: (.+)
+      - action: labeldrop
+        regex: __meta_ec2_.*
+
+  # Health check endpoint
+  - job_name: 'advanced-workflows-health'
+    static_configs:
+      - targets: ['advanced-workflows:8080']
+    metrics_path: '/health'
+    scrape_interval: 30s
+    scrape_timeout: 5s
+
+  # System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # GPU metrics (if nvidia-dcgm-exporter is available)
+  - job_name: 'gpu-metrics'
+    static_configs:
+      - targets: ['gpu-exporter:9400']
+    scrape_interval: 15s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # Redis metrics (if redis-exporter is available)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Blackbox exporter for external endpoint monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://api.example.com/health  # Replace with actual external endpoints
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

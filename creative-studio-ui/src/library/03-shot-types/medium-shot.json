@@ -1,0 +1,13 @@
+{
+  "category": "shot-types",
+  "subcategory": "medium-shots",
+  "id": "shot-medium",
+  "name": "Medium Shot",
+  "description": "Waist-up shot showing expressions and gestures",
+  "tags": ["medium", "portrait", "expression"],
+  "prompt": "Medium shot, {SUBJECT} from waist up. Clear facial expressions and gestures, environmental context visible. {LIGHTING_SETUP}, focused composition. Cinematic portrait framing, professional lighting, sharp focus on subject.",
+  "variables": {
+    "SUBJECT": { "type": "string", "required": true },
+    "LIGHTING_SETUP": { "type": "string", "required": true }
+  }
+}

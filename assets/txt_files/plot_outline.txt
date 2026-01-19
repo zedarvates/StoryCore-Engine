@@ -1,0 +1,60 @@
+PLOT OUTLINE TEMPLATE
+====================
+
+Story Title: [Your Story Title]
+
+Genre: [e.g., Fantasy, Sci-Fi, Drama]
+
+ACT 1: SETUP
+------------
+- Inciting Incident: [What kicks off the story?]
+- Protagonist Introduction: [Who is the main character? What do they want?]
+- World Establishment: [Setting, rules, key locations]
+- Initial Conflict: [First obstacle or challenge]
+
+ACT 2: CONFRONTATION
+--------------------
+- Rising Action: [Building complications and challenges]
+- Midpoint Turning Point: [Major shift or revelation]
+- Character Development: [How does the protagonist change?]
+- Allies/Antagonists: [Supporting characters and obstacles]
+
+ACT 3: RESOLUTION
+-----------------
+- Climax: [The final confrontation]
+- Falling Action: [Tying up loose ends]
+- Resolution: [How the story ends]
+- Theme: [What message or insight is conveyed?]
+
+CHARACTER ARC
+-------------
+- Starting Point: [Protagonist's initial state]
+- Growth/Change: [How they evolve]
+- Ending Point: [Final character state]
+
+KEY PLOT POINTS
+---------------
+- Hook: [Opening that grabs attention]
+- Stakes: [What's at risk?]
+- Themes: [Underlying messages]
+- Twist: [Surprise element if any]
+
+EXAMPLE OUTLINE FOR "THE LOST MOUNTAIN"
+=======================================
+
+ACT 1: SETUP
+- Thorin learns of ancestral treasure
+- Driven by honor and family legacy
+- Mountain setting with dragon threat
+- Initial quest begins
+
+ACT 2: CONFRONTATION
+- Journey with companions
+- Battles and challenges along the way
+- Internal conflicts about greed vs honor
+- Betrayal or loss of ally
+
+ACT 3: RESOLUTION
+- Final battle with dragon
+- Treasure reclaimed but at great cost
+- Thorin questions the price of victory

@@ -1,0 +1,18 @@
+{
+  "metrics": {
+    "category": "QACategory.LIGHTING_CONSISTENCY",
+    "score": 5.0,
+    "max_score": 5.0,
+    "issues_count": 0,
+    "critical_issues": 0,
+    "high_issues": 0,
+    "medium_issues": 0,
+    "low_issues": 0,
+    "autofix_applied": 0,
+    "manual_review_required": 0,
+    "validation_time": 0.0,
+    "metadata": {}
+  },
+  "issues": [],
+  "autofix_results": []
+}

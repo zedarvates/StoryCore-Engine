@@ -1,0 +1,34 @@
+{
+  "metrics": {
+    "category": "QACategory.DATA_INTEGRITY",
+    "score": 3.0,
+    "max_score": 5.0,
+    "issues_count": 1,
+    "critical_issues": 1,
+    "high_issues": 0,
+    "medium_issues": 0,
+    "low_issues": 0,
+    "autofix_applied": 0,
+    "manual_review_required": 0,
+    "validation_time": 0.0,
+    "metadata": {}
+  },
+  "issues": [
+    {
+      "issue_id": "di_001",
+      "category": "QACategory.DATA_INTEGRITY",
+      "severity": "QASeverity.CRITICAL",
+      "title": "Missing storyboard.json",
+      "description": "Required file storyboard.json not found or invalid",
+      "affected_items": [
+        "storyboard.json"
+      ],
+      "score_impact": 2.0,
+      "autofix_available": false,
+      "autofix_action": null,
+      "autofix_confidence": 0.0,
+      "metadata": {}
+    }
+  ],
+  "autofix_results": []
+}

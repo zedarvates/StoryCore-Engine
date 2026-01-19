@@ -1,0 +1,50 @@
+{
+  "track_id": "ambience",
+  "track_type": "AudioType.AMBIENCE",
+  "clips": [
+    {
+      "clip_id": "ambience_0",
+      "audio_type": "AudioType.AMBIENCE",
+      "start_time": 0.0,
+      "duration": 10.0,
+      "content": "temp_audio_mock\\mock_stable_audio_4b19a59a.wav",
+      "character_id": null,
+      "voice_type": null,
+      "volume": 0.4,
+      "pan": 0.0,
+      "reverb_zone": null,
+      "spatial_position": null,
+      "metadata": {
+        "environment_type": "outdoor",
+        "time_of_day": "day",
+        "weather": "clear",
+        "generated_audio": "temp_audio_mock\\mock_stable_audio_4b19a59a.wav",
+        "comfyui_prompt": "outdoor atmosphere, natural environment, daytime, bright, active, clear weather, calm, ambient sound, atmospheric"
+      }
+    },
+    {
+      "clip_id": "ambience_1",
+      "audio_type": "AudioType.AMBIENCE",
+      "start_time": 10.0,
+      "duration": 10.0,
+      "content": "temp_audio_mock\\mock_stable_audio_05070882.wav",
+      "character_id": null,
+      "voice_type": null,
+      "volume": 0.4,
+      "pan": 0.0,
+      "reverb_zone": null,
+      "spatial_position": null,
+      "metadata": {
+        "environment_type": "forest",
+        "time_of_day": "day",
+        "weather": "clear",
+        "generated_audio": "temp_audio_mock\\mock_stable_audio_05070882.wav",
+        "comfyui_prompt": "forest ambience, trees, nature sounds, daytime, bright, active, clear weather, calm, ambient sound, atmospheric"
+      }
+    }
+  ],
+  "volume": 0.5,
+  "muted": false,
+  "solo": false,
+  "effects": []
+}

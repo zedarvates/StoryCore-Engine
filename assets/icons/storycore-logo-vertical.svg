@@ -1,0 +1,54 @@
+<svg width="300" height="400" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="vLogoBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="vLogoFilmGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Icon section -->
+  <g transform="translate(100, 50)">
+    <!-- Circular background -->
+    <circle cx="50" cy="50" r="45" fill="url(#vLogoBgGradient)"/>
+
+    <!-- Film reel motif -->
+    <circle cx="50" cy="50" r="16" fill="none" stroke="url(#vLogoFilmGradient)" stroke-width="2"/>
+
+    <!-- Film perforations -->
+    <rect x="34" y="34" width="3" height="3" rx="0.5" fill="url(#vLogoFilmGradient)"/>
+    <rect x="63" y="34" width="3" height="3" rx="0.5" fill="url(#vLogoFilmGradient)"/>
+    <rect x="34" y="63" width="3" height="3" rx="0.5" fill="url(#vLogoFilmGradient)"/>
+    <rect x="63" y="63" width="3" height="3" rx="0.5" fill="url(#vLogoFilmGradient)"/>
+
+    <!-- Central camera aperture -->
+    <circle cx="50" cy="50" r="8" fill="none" stroke="url(#vLogoFilmGradient)" stroke-width="1.5"/>
+    <circle cx="50" cy="50" r="5" fill="none" stroke="url(#vLogoFilmGradient)" stroke-width="1"/>
+  </g>
+
+  <!-- Text section -->
+  <g transform="translate(50, 160)">
+    <!-- Main title -->
+    <text x="0" y="0" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="700" fill="#1e3a8a" text-anchor="middle">
+      StoryCore
+    </text>
+
+    <!-- Subtitle line 1 -->
+    <text x="0" y="28" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="400" fill="#7c3aed" text-anchor="middle">
+      From Script
+    </text>
+
+    <!-- Subtitle line 2 -->
+    <text x="0" y="44" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="400" fill="#7c3aed" text-anchor="middle">
+      to Screen in
+    </text>
+
+    <!-- Subtitle line 3 -->
+    <text x="0" y="60" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="400" fill="#7c3aed" text-anchor="middle">
+      5 Minutes
+    </text>
+  </g>
+</svg>

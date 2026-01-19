@@ -1,0 +1,78 @@
+{
+  "name": "storycore-engine",
+  "version": "1.0.0",
+  "description": "**From Script to Screen in 5 Minutes — With Guaranteed Visual Coherence**",
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "test": "jest",
+    "electron:dev": "npm run electron:build && cross-env NODE_ENV=development electron .",
+    "electron:build": "tsc -p electron/tsconfig.json",
+    "electron:build:watch": "tsc -p electron/tsconfig.json --watch",
+    "electron:start": "npm run electron:build && electron .",
+    "ui:dev": "cd creative-studio-ui && npm run dev",
+    "ui:build": "cd creative-studio-ui && npm run build",
+    "dev": "concurrently \"npm run electron:build:watch\" \"npm run ui:dev\" \"wait-on http://localhost:5173 && npm run electron:dev\"",
+    "build": "npm run ui:build && npm run electron:build",
+    "package": "npm run build && electron-builder",
+    "package:win": "npm run build && electron-builder --win",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:linux": "npm run build && electron-builder --linux"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zedarvates/StoryCore-Engine.git"
+  },
+  "keywords": [
+    "storycore",
+    "creative-studio",
+    "video-generation",
+    "ai"
+  ],
+  "author": "StoryCore Team",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/zedarvates/StoryCore-Engine/issues"
+  },
+  "homepage": "https://github.com/zedarvates/StoryCore-Engine#readme",
+  "dependencies": {
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "typescript": "^5.9.3",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.8",
+    "@types/node": "^20.9.0",
+    "@types/uuid": "^10.0.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
+    "electron": "^34.5.8",
+    "electron-builder": "^25.1.8",
+    "electron-updater": "^6.7.3",
+    "fast-check": "^3.15.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "wait-on": "^8.0.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.ts",
+      "**/electron/**/*.test.ts"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "collectCoverageFrom": [
+      "electron/**/*.ts",
+      "!electron/**/*.test.ts",
+      "!electron/**/*.d.ts"
+    ]
+  }
+}

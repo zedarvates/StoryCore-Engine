@@ -1,0 +1,47 @@
+{
+  "id": "character-supporting",
+  "name": "Supporting Character",
+  "category": "character-archetypes",
+  "description": "Secondary characters who assist the protagonist and add depth to the story",
+  "tags": ["supporting", "secondary", "sidekick", "ally", "companion"],
+  "prompt": {
+    "base": "Supporting character, secondary role, sidekick, ally character, companion, helpful presence, story depth, character development",
+    "positive": "supporting character, secondary role, well-developed personality, distinct appearance, memorable traits, helpful ally, loyal companion, unique characteristics, clear motivation, complementary to protagonist, story enrichment",
+    "negative": "protagonist focus, main character spotlight, hero emphasis, central role, leading character",
+    "technical": {
+      "screen_time": "Moderate (20-40% of scenes)",
+      "character_arc": "Secondary arc supporting main story",
+      "visual_prominence": "Distinctive but not overshadowing protagonist",
+      "dialogue_weight": "Regular speaking role",
+      "relationship_focus": "Strong connection to protagonist"
+    }
+  },
+  "variations": [
+    {
+      "name": "Mentor Supporting",
+      "modifier": "wise advisor, experienced guide, teaching role, protective figure, knowledge provider"
+    },
+    {
+      "name": "Comic Relief Supporting",
+      "modifier": "humorous character, lighthearted presence, comedic timing, tension breaker, entertaining personality"
+    },
+    {
+      "name": "Loyal Sidekick",
+      "modifier": "faithful companion, always present, unwavering support, trusted ally, constant presence"
+    }
+  ],
+  "examples": [
+    "A supporting character with distinct personality, helpful ally to protagonist, memorable traits",
+    "A loyal companion in supporting role, well-developed character, complementary presence"
+  ],
+  "comfyui": {
+    "workflow_id": "supporting_character_workflow",
+    "recommended_models": ["dreamshaper", "character_design"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras",
+      "character_conditioning": "supporting"
+    }
+  }
+}

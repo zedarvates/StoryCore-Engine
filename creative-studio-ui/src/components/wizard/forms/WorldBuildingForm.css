@@ -1,0 +1,138 @@
+/* World Building Form Styles */
+
+.world-building-form {
+  width: 100%;
+}
+
+.location-input-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.location-inputs {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+}
+
+.location-name-input {
+  flex: 0 0 200px;
+}
+
+.location-description-input {
+  flex: 1;
+}
+
+.add-location-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--accent-color, #4a9eff);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.add-location-button:hover:not(:disabled) {
+  background: var(--accent-hover, #3a8eef);
+}
+
+.add-location-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.locations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--input-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.location-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--card-bg, #1e1e1e);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.location-item:hover {
+  border-color: var(--accent-color, #4a9eff);
+}
+
+.location-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.location-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  margin-bottom: 4px;
+}
+
+.location-description {
+  font-size: 13px;
+  color: var(--text-secondary, #999);
+  line-height: 1.4;
+}
+
+.remove-location-button {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-location-button:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.no-locations-message {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary, #999);
+  font-style: italic;
+  background: var(--input-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .location-input-group {
+    flex-direction: column;
+  }
+
+  .location-inputs {
+    flex-direction: column;
+  }
+
+  .location-name-input {
+    flex: 1;
+  }
+}

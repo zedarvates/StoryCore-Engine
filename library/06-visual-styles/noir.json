@@ -1,0 +1,46 @@
+{
+  "id": "visual-style-noir",
+  "name": "Noir Visual Style",
+  "category": "visual-styles",
+  "description": "High contrast black and white with dramatic shadows, chiaroscuro lighting, and film noir aesthetics",
+  "tags": ["noir", "black-and-white", "contrast", "shadows", "dramatic"],
+  "prompt": {
+    "base": "Film noir style, high contrast black and white, dramatic shadows, chiaroscuro lighting, venetian blind shadows, cigarette smoke, rain-slicked streets, detective aesthetic, 1940s atmosphere, moody cinematography",
+    "positive": "film noir, black and white, high contrast, dramatic shadows, chiaroscuro, venetian blinds, moody lighting, detective atmosphere, rain effects, cigarette smoke, dramatic angles, noir aesthetic, deep blacks, bright highlights",
+    "negative": "color, bright lighting, soft shadows, cheerful atmosphere, pastel tones, flat lighting, low contrast, modern aesthetic",
+    "technical": {
+      "rendering": "Monochrome with extreme contrast",
+      "textures": "High contrast textures emphasizing light and shadow",
+      "lighting": "Dramatic chiaroscuro with hard shadows",
+      "detail_level": "High detail in shadow transitions"
+    }
+  },
+  "variations": [
+    {
+      "name": "Classic Noir",
+      "modifier": "1940s aesthetic, detective story, femme fatale, urban night scenes, classic Hollywood"
+    },
+    {
+      "name": "Neo-Noir",
+      "modifier": "modern setting, color noir, contemporary themes, stylized violence, urban decay"
+    },
+    {
+      "name": "Tech Noir",
+      "modifier": "cyberpunk elements, neon accents, futuristic noir, rain and reflections, dystopian atmosphere"
+    }
+  ],
+  "examples": [
+    "A detective in fedora and trench coat, dramatic side lighting, venetian blind shadows, cigarette smoke, film noir atmosphere",
+    "A rain-slicked street at night, high contrast black and white, dramatic shadows, noir cinematography"
+  ],
+  "comfyui": {
+    "workflow_id": "noir_style_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras",
+      "color_mode": "monochrome"
+    }
+  }
+}

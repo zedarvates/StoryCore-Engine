@@ -135,6 +135,7 @@ class JobQueue:
         """Add job to queue."""
         with self.lock:
             self._job_lookup[job.job_id] = job
+            self.jobs.append(job)  # Maintain the jobs list for compatibility with tests
             
             if self.algorithm == SchedulingAlgorithm.FIFO:
                 self._fifo_queue.put(job)
@@ -154,10 +155,15 @@ class JobQueue:
         with self.lock:
             try:
                 if self.algorithm == SchedulingAlgorithm.FIFO:
-                    return self._fifo_queue.get_nowait()
+                    job = self._fifo_queue.get_nowait()
+                    if job in self.jobs:
+                        self.jobs.remove(job)
+                    return job
                 else:
                     if self._priority_heap:
                         _, _, job = heapq.heappop(self._priority_heap)
+                        if job in self.jobs:
+                            self.jobs.remove(job)
                         return job
                     return None
             except queue.Empty:
@@ -505,6 +511,10 @@ class BatchProcessingSystem:
                 # Re-queue the job with delay
                 time.sleep(min(2 ** result.retry_count, 60))  # Exponential backoff
                 self.job_queue.add_job(job)
+            elif result.status == JobStatus.FAILED and result.retry_count >= job.max_retries:
+                logger.warning(f"Job {job.job_id} failed after {job.max_retries} retries. Marking as failed.")
+                result.status = JobStatus.FAILED
+                self._update_job_result(result)
             
             return result
             

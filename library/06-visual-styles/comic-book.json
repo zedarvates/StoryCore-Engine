@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-comic-book",
+  "name": "Comic Book Visual Style",
+  "category": "visual-styles",
+  "description": "Bold lines and colors with comic panel aesthetics, halftone effects, and graphic novel style",
+  "tags": ["comic", "graphic-novel", "bold", "panels", "ink"],
+  "prompt": {
+    "base": "Comic book art style, bold ink lines, vibrant colors, halftone shading, graphic novel aesthetic, panel composition, dynamic angles, comic book coloring, Ben-Day dots, superhero style",
+    "positive": "comic book art, bold outlines, vibrant colors, halftone shading, ink lines, graphic novel style, dynamic composition, comic panel layout, pop art colors, strong contrast, action lines, dramatic poses",
+    "negative": "photorealistic, soft edges, muted colors, realistic shading, photograph, blurry lines, watercolor, oil painting",
+    "technical": {
+      "rendering": "Bold line art with flat color fills",
+      "textures": "Halftone patterns, Ben-Day dots, comic texture",
+      "lighting": "High contrast with defined shadows",
+      "detail_level": "Clean lines with selective detail"
+    }
+  },
+  "variations": [
+    {
+      "name": "Superhero Comic",
+      "modifier": "dynamic action, heroic poses, bold primary colors, dramatic lighting, muscular figures"
+    },
+    {
+      "name": "Noir Comic",
+      "modifier": "high contrast black and white, dramatic shadows, gritty atmosphere, detective aesthetic"
+    },
+    {
+      "name": "Indie Comic",
+      "modifier": "alternative art style, unique linework, experimental colors, artistic expression"
+    }
+  ],
+  "examples": [
+    "A superhero in dynamic pose with bold outlines, vibrant colors, halftone shading, comic book style action",
+    "A noir detective scene with high contrast, dramatic shadows, bold ink lines, graphic novel aesthetic"
+  ],
+  "comfyui": {
+    "workflow_id": "comic_book_style_workflow",
+    "recommended_models": ["comic_diffusion", "dreamshaper"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 25,
+      "sampler": "Euler a"
+    }
+  }
+}

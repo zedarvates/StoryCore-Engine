@@ -1,0 +1,33 @@
+CHARACTER DIALOGUES EXAMPLE
+=========================
+
+Dialogue Scene: Thorin and the Wise Mentor
+
+[Setting: A dimly lit tavern in a mountain village. THORIN sits at a wooden table, nursing a mug of ale. An elderly DWARF MENTOR enters and sits across from him.]
+
+MENTOR
+Thorin, my lad, I've seen that look in many eyes before. The mountains call to you, don't they? But beware the shadows that lurk in forgotten places.
+
+THORIN
+(leaning forward, eyes intense)
+The stories of our ancestors speak of a great treasure, hidden in the heart of the Lonely Mountain. Dragons guard it, they say, but I am not afraid.
+
+MENTOR
+(shaking his head)
+Bravery is not the absence of fear, boy. It's facing it head-on. But tell me, what drives you? Gold? Glory? Or something deeper?
+
+THORIN
+(pausing, his voice softening)
+My people were driven from our homes. I seek to reclaim what was ours. For honor... and for my father, who never returned from that cursed mountain.
+
+MENTOR
+(nodding wisely)
+Ah, now I see. The internal need for belonging. But remember, Thorin, even heroes have flaws. Your stubbornness may be your greatest strength... or your undoing.
+
+THORIN
+(rising, determined)
+Then let it be my strength. I leave at dawn.
+
+[Thorin exits. Mentor watches him go with a mixture of pride and concern.]
+
+END SCENE

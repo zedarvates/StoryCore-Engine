@@ -1,0 +1,144 @@
+{
+  "system_status": {
+    "execution_stats": {
+      "total_requests": 14,
+      "successful_requests": 14,
+      "failed_requests": 0,
+      "security_blocked": 0,
+      "resilience_recovered": 0
+    },
+    "security_health": {
+      "audit_log_count": 1286,
+      "access_control_users": 3
+    },
+    "resilience_health": {
+      "degradation_level": "full",
+      "error_rate": 0.016666666666666666,
+      "recovery_rate": 1.0,
+      "circuit_breakers": {
+        "workflow_video_generation": {
+          "name": "workflow_video_generation",
+          "state": "closed",
+          "failure_count": 0,
+          "success_count": 0,
+          "last_failure_time": null
+        },
+        "workflow_image_generation": {
+          "name": "workflow_image_generation",
+          "state": "closed",
+          "failure_count": 0,
+          "success_count": 0,
+          "last_failure_time": null
+        },
+        "workflow_flaky_workflow": {
+          "name": "workflow_flaky_workflow",
+          "state": "closed",
+          "failure_count": 0,
+          "success_count": 0,
+          "last_failure_time": "2026-01-14T19:42:45.308507"
+        }
+      },
+      "retry_stats": {
+        "circuit_wrapped": {
+          "attempts": 19,
+          "successes": 14,
+          "failures": 5
+        }
+      },
+      "fallback_stats": {}
+    },
+    "timestamp": "2026-01-14T19:42:49.004219"
+  },
+  "security_report": {
+    "period": {
+      "start": null,
+      "end": null
+    },
+    "total_events": 1286,
+    "events_by_action": {
+      "workflow_execution": 527,
+      "access_attempt": 752,
+      "model_download": 7
+    },
+    "events_by_result": {
+      "success": 523,
+      "failure": 11,
+      "denied": 227,
+      "granted": 525
+    },
+    "unique_users": 11,
+    "failed_access_attempts": 227
+  },
+  "resilience_report": {
+    "system_health": {
+      "degradation_level": "full",
+      "error_rate": 0.016666666666666666,
+      "recovery_rate": 1.0,
+      "circuit_breakers": {
+        "workflow_video_generation": {
+          "name": "workflow_video_generation",
+          "state": "closed",
+          "failure_count": 0,
+          "success_count": 0,
+          "last_failure_time": null
+        },
+        "workflow_image_generation": {
+          "name": "workflow_image_generation",
+          "state": "closed",
+          "failure_count": 0,
+          "success_count": 0,
+          "last_failure_time": null
+        },
+        "workflow_flaky_workflow": {
+          "name": "workflow_flaky_workflow",
+          "state": "closed",
+          "failure_count": 0,
+          "success_count": 0,
+          "last_failure_time": "2026-01-14T19:42:45.308507"
+        }
+      },
+      "retry_stats": {
+        "circuit_wrapped": {
+          "attempts": 19,
+          "successes": 14,
+          "failures": 5
+        }
+      },
+      "fallback_stats": {}
+    },
+    "error_analytics": {
+      "total_errors": 1,
+      "error_rate_per_minute": 0.016666666666666666,
+      "most_common_errors": [
+        [
+          "ConnectionError",
+          1
+        ]
+      ],
+      "errors_by_category": {
+        "network": 1
+      },
+      "errors_by_severity": {
+        "high": 1
+      },
+      "recovery_rate": 1.0,
+      "recent_critical_errors": []
+    },
+    "recovery_history": [
+      {
+        "timestamp": "2026-01-14T19:42:44.874260",
+        "error_type": "ConnectionError",
+        "strategy": "_retry_connection",
+        "success": true
+      }
+    ],
+    "timestamp": "2026-01-14T19:42:49.007719"
+  },
+  "execution_summary": {
+    "total_requests": 14,
+    "success_rate": 1.0,
+    "security_block_rate": 0.0,
+    "resilience_recovery_rate": 0
+  },
+  "timestamp": "2026-01-14T19:42:49.007719"
+}

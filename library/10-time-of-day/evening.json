@@ -1,0 +1,45 @@
+{
+  "id": "time-evening",
+  "name": "Evening Light",
+  "category": "time-of-day",
+  "description": "Late afternoon to early evening with warm golden light and lengthening shadows",
+  "tags": ["evening", "late-afternoon", "golden-hour", "warm", "sunset-approaching"],
+  "prompt": {
+    "base": "Evening light, late afternoon glow, golden hour beginning, warm illumination, lengthening shadows, sunset approaching, amber tones, magic hour, soft evening atmosphere",
+    "positive": "evening light, golden hour, warm glow, amber tones, lengthening shadows, soft illumination, magic hour, sunset approaching, warm atmosphere, golden light, romantic lighting, beautiful evening",
+    "negative": "harsh midday sun, morning light, night darkness, cold lighting, dawn colors, noon brightness",
+    "technical": {
+      "sun_position": "15-30 degrees above horizon, descending",
+      "color_temperature": "Warm golden, 2500-3500K",
+      "shadow_quality": "Long, soft shadows with warm tones",
+      "atmospheric_effects": "Golden glow, warm haze, romantic atmosphere"
+    }
+  },
+  "variations": [
+    {
+      "name": "Golden Evening",
+      "modifier": "perfect golden hour, photographer's light, warm glow, magical atmosphere, ideal lighting"
+    },
+    {
+      "name": "Cloudy Evening",
+      "modifier": "dramatic clouds, filtered light, moody sky, atmospheric evening, textured light"
+    },
+    {
+      "name": "Urban Evening",
+      "modifier": "city lights beginning, mixed lighting, transition time, metropolitan evening, twilight city"
+    }
+  ],
+  "examples": [
+    "A landscape in golden evening light, warm glow, long shadows, magic hour atmosphere",
+    "A portrait in evening light, warm golden tones, soft illumination, romantic atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "evening_lighting_workflow",
+    "recommended_models": ["realistic_vision", "dreamshaper"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

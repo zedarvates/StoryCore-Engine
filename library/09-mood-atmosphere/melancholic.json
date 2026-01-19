@@ -1,0 +1,45 @@
+{
+  "id": "mood-melancholic",
+  "name": "Melancholic Mood",
+  "category": "mood-atmosphere",
+  "description": "Wistful and contemplative atmosphere with introspective composition and bittersweet undertones",
+  "tags": ["melancholic", "wistful", "contemplative", "bittersweet", "nostalgic"],
+  "prompt": {
+    "base": "Melancholic wistful atmosphere, contemplative mood, introspective composition, bittersweet tone, nostalgic environment, pensive undertones, reflective quality, sorrowful beauty, poignant atmosphere",
+    "positive": "melancholic atmosphere, wistful mood, contemplative setting, introspective composition, bittersweet tone, nostalgic environment, pensive mood, reflective quality, sorrowful beauty, poignant atmosphere, emotional depth, tender sadness",
+    "negative": "cheerful mood, upbeat atmosphere, joyful setting, optimistic tone, energetic environment, happy mood, celebratory atmosphere",
+    "technical": {
+      "lighting": "Soft, diffused lighting with gentle shadows",
+      "color_palette": "Muted, desaturated colors with cool tones",
+      "contrast": "Low to medium contrast, soft transitions",
+      "mood_intensity": "Gentle, pervasive melancholy"
+    }
+  },
+  "variations": [
+    {
+      "name": "Romantic Melancholic",
+      "modifier": "lost love, heartbreak, romantic longing, emotional vulnerability, tender sorrow"
+    },
+    {
+      "name": "Nostalgic Melancholic",
+      "modifier": "memories of past, time passing, faded glory, wistful remembrance, bittersweet nostalgia"
+    },
+    {
+      "name": "Existential Melancholic",
+      "modifier": "life contemplation, philosophical mood, existential reflection, deep introspection, meaningful sadness"
+    }
+  ],
+  "examples": [
+    "A character gazing out a rain-streaked window, melancholic atmosphere, wistful and contemplative mood",
+    "An autumn landscape with falling leaves, bittersweet tone, nostalgic and pensive atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "melancholic_mood_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

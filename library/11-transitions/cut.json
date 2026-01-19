@@ -1,0 +1,44 @@
+{
+  "id": "transition-cut",
+  "name": "Cut Transition",
+  "category": "transitions",
+  "description": "Instant transition between shots with no intermediate frames, creating immediate change",
+  "tags": ["cut", "instant", "direct", "immediate", "standard"],
+  "prompt": {
+    "base": "Cut transition, instant change between shots, direct transition, no intermediate frames, immediate switch, standard editing cut, sharp transition, instantaneous change",
+    "positive": "cut transition, instant change, direct switch, immediate transition, sharp cut, no fade, instantaneous, standard editing, clean cut, abrupt change, quick transition",
+    "negative": "fade transition, dissolve effect, gradual change, slow transition, crossfade, wipe effect, smooth blend",
+    "technical": {
+      "transition_duration": "0 frames - instantaneous",
+      "visual_effect": "None - direct cut",
+      "use_cases": "Standard editing, maintaining pace, action sequences, dialogue",
+      "editing_style": "Invisible editing, continuity, rhythm"
+    }
+  },
+  "variations": [
+    {
+      "name": "Match Cut",
+      "modifier": "visual or thematic match between shots, creative connection, graphic match, conceptual link"
+    },
+    {
+      "name": "Jump Cut",
+      "modifier": "temporal discontinuity, same subject different time, energetic pacing, modern style"
+    },
+    {
+      "name": "L-Cut / J-Cut",
+      "modifier": "audio leads or follows video, smooth audio transition, professional editing, seamless flow"
+    }
+  },
+  "examples": [
+    "A direct cut from close-up to wide shot, instant transition, maintaining scene continuity",
+    "A match cut between similar shapes in different scenes, creative instant transition"
+  ],
+  "comfyui": {
+    "workflow_id": "cut_transition_workflow",
+    "parameters": {
+      "transition_type": "cut",
+      "duration_frames": 0,
+      "blend_mode": "none"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "issue_id": "vc_002",
+    "action": "AutofixAction.ADJUST_PARAMETERS",
+    "success": true,
+    "improvement_score": 0.4,
+    "original_score": 0.5,
+    "new_score": 0.9,
+    "execution_time": 0.0,
+    "details": "Mock autofix succeeded for Style Drift Detected",
+    "metadata": {
+      "mock_mode": true,
+      "confidence": 0.7
+    }
+  },
+  {
+    "issue_id": "cp_001",
+    "action": "AutofixAction.ADJUST_PARAMETERS",
+    "success": true,
+    "improvement_score": 0.32000000000000006,
+    "original_score": 0.4,
+    "new_score": 0.7200000000000001,
+    "execution_time": 0.0,
+    "details": "Mock autofix succeeded for Color Palette Drift",
+    "metadata": {
+      "mock_mode": true,
+      "confidence": 0.85
+    }
+  }
+]

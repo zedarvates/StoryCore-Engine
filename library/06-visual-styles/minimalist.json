@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-minimalist",
+  "name": "Minimalist Visual Style",
+  "category": "visual-styles",
+  "description": "Simple and clean with minimal elements, negative space, and essential design",
+  "tags": ["minimalist", "simple", "clean", "minimal", "essential"],
+  "prompt": {
+    "base": "Minimalist style, simple composition, clean lines, negative space, essential elements only, uncluttered design, minimal color palette, geometric simplicity, zen aesthetic, less is more",
+    "positive": "minimalist design, simple composition, clean lines, negative space, minimal elements, uncluttered, essential design, geometric shapes, limited color palette, zen aesthetic, simple beauty, elegant simplicity, white space",
+    "negative": "cluttered, busy composition, excessive detail, ornate decoration, complex patterns, maximalist, chaotic, overly detailed, baroque style",
+    "technical": {
+      "rendering": "Clean simple rendering with minimal elements",
+      "textures": "Smooth surfaces, minimal texture variation",
+      "lighting": "Simple even lighting or single light source",
+      "detail_level": "Minimal detail focusing on essential elements"
+    }
+  },
+  "variations": [
+    {
+      "name": "Scandinavian Minimalism",
+      "modifier": "natural materials, neutral colors, functional design, cozy simplicity, hygge aesthetic"
+    },
+    {
+      "name": "Japanese Minimalism",
+      "modifier": "zen philosophy, wabi-sabi aesthetic, natural elements, contemplative space, traditional influence"
+    },
+    {
+      "name": "Modern Minimalism",
+      "modifier": "geometric forms, monochrome palette, industrial materials, contemporary design, stark simplicity"
+    }
+  ],
+  "examples": [
+    "A minimalist interior with clean lines, white walls, single furniture piece, abundant negative space",
+    "A simple geometric composition with limited color palette, clean design, minimalist aesthetic"
+  ],
+  "comfyui": {
+    "workflow_id": "minimalist_style_workflow",
+    "recommended_models": ["dreamshaper", "realistic_vision"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 25,
+      "sampler": "Euler a"
+    }
+  }
+}

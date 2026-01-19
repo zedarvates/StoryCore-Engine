@@ -1,0 +1,170 @@
+{
+  "total_issues": 10,
+  "by_category": {
+    "visual_coherence": 2,
+    "pose_consistency": 2,
+    "lighting_consistency": 2,
+    "perspective_accuracy": 1,
+    "color_palette": 1,
+    "temporal_consistency": 1,
+    "data_integrity": 1
+  },
+  "by_severity": {
+    "high": 1,
+    "medium": 4,
+    "low": 4,
+    "critical": 1
+  },
+  "issues": [
+    {
+      "issue_id": "vc_001",
+      "category": "QACategory.VISUAL_COHERENCE",
+      "severity": "QASeverity.HIGH",
+      "title": "Missing Coherence Anchors",
+      "description": "No coherence anchors found in project data",
+      "affected_items": [
+        "coherence_anchors"
+      ],
+      "score_impact": 1.0,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.REGENERATE_CONTENT",
+      "autofix_confidence": 0.8,
+      "metadata": {}
+    },
+    {
+      "issue_id": "vc_002",
+      "category": "QACategory.VISUAL_COHERENCE",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Style Drift Detected",
+      "description": "Style drift of 15.0% exceeds threshold",
+      "affected_items": [
+        "generated_images"
+      ],
+      "score_impact": 0.5,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.7,
+      "metadata": {}
+    },
+    {
+      "issue_id": "pc_002",
+      "category": "QACategory.POSE_CONSISTENCY",
+      "severity": "QASeverity.LOW",
+      "title": "Pose Variance for hero",
+      "description": "Pose variance of 25.0% for character hero",
+      "affected_items": [
+        "hero"
+      ],
+      "score_impact": 0.2,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.6,
+      "metadata": {}
+    },
+    {
+      "issue_id": "pc_003",
+      "category": "QACategory.POSE_CONSISTENCY",
+      "severity": "QASeverity.LOW",
+      "title": "Pose Variance for companion",
+      "description": "Pose variance of 25.0% for character companion",
+      "affected_items": [
+        "companion"
+      ],
+      "score_impact": 0.2,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.6,
+      "metadata": {}
+    },
+    {
+      "issue_id": "lc_001",
+      "category": "QACategory.LIGHTING_CONSISTENCY",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Lighting Inconsistency in scene_1",
+      "description": "Lighting variance of 18.0% in scene_1",
+      "affected_items": [
+        "scene_1"
+      ],
+      "score_impact": 0.3,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.75,
+      "metadata": {}
+    },
+    {
+      "issue_id": "lc_002",
+      "category": "QACategory.LIGHTING_CONSISTENCY",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Lighting Inconsistency in scene_2",
+      "description": "Lighting variance of 18.0% in scene_2",
+      "affected_items": [
+        "scene_2"
+      ],
+      "score_impact": 0.3,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.75,
+      "metadata": {}
+    },
+    {
+      "issue_id": "pa_001",
+      "category": "QACategory.PERSPECTIVE_ACCURACY",
+      "severity": "QASeverity.LOW",
+      "title": "Minor Perspective Errors",
+      "description": "Perspective errors in 8.0% of content",
+      "affected_items": [
+        "generated_content"
+      ],
+      "score_impact": 0.2,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.APPLY_CORRECTION",
+      "autofix_confidence": 0.6,
+      "metadata": {}
+    },
+    {
+      "issue_id": "cp_001",
+      "category": "QACategory.COLOR_PALETTE",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Color Palette Drift",
+      "description": "Color palette drift of 12.0%",
+      "affected_items": [
+        "color_palette"
+      ],
+      "score_impact": 0.4,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.85,
+      "metadata": {}
+    },
+    {
+      "issue_id": "tc_001",
+      "category": "QACategory.TEMPORAL_CONSISTENCY",
+      "severity": "QASeverity.LOW",
+      "title": "Minor Temporal Inconsistencies",
+      "description": "Temporal variance: 6.0%",
+      "affected_items": [
+        "temporal_sequences"
+      ],
+      "score_impact": 0.1,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.APPLY_CORRECTION",
+      "autofix_confidence": 0.5,
+      "metadata": {}
+    },
+    {
+      "issue_id": "di_001",
+      "category": "QACategory.DATA_INTEGRITY",
+      "severity": "QASeverity.CRITICAL",
+      "title": "Missing storyboard.json",
+      "description": "Required file storyboard.json not found or invalid",
+      "affected_items": [
+        "storyboard.json"
+      ],
+      "score_impact": 2.0,
+      "autofix_available": false,
+      "autofix_action": null,
+      "autofix_confidence": 0.0,
+      "metadata": {}
+    }
+  ]
+}

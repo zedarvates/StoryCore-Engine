@@ -91,7 +91,66 @@ class ProjectManager:
             for status, default_val in self.default_generation_status.items():
                 if status not in project_data["generation_status"]:
                     project_data["generation_status"][status] = default_val
-        
+
+        # Ensure quality_validation structure
+        if "quality_validation" not in project_data:
+            project_data["quality_validation"] = {
+                "enabled": True,
+                "last_validation_timestamp": None,
+                "overall_quality_score": None,
+                "validation_pass": None,
+                "audio_mixing_status": "pending",
+                "quality_scores": [],
+                "detected_issues": [],
+                "improvement_suggestions": [],
+                "autofix_enabled": True,
+                "autofix_logs": [],
+                "quality_reports": [],
+                "validation_mode": "batch",
+                "quality_standard": "web_hd",
+                "continuity_results": [],
+                "audio_quality_metrics": {
+                    "voice_clarity_score": None,
+                    "metallic_artifacts_detected": None,
+                    "audio_gaps_filled": None
+                },
+                "video_quality_metrics": {
+                    "sharpness_score": None,
+                    "motion_smoothness_score": None,
+                    "noise_level_score": None,
+                    "visual_anomalies_count": None
+                },
+                "report_timestamps": []
+            }
+        else:
+            # Validate and fill quality_validation fields
+            qv = project_data["quality_validation"]
+            if "enabled" not in qv:
+                qv["enabled"] = True
+            if "autofix_enabled" not in qv:
+                qv["autofix_enabled"] = True
+            if "validation_mode" not in qv:
+                qv["validation_mode"] = "batch"
+            if "quality_standard" not in qv:
+                qv["quality_standard"] = "web_hd"
+            if "audio_quality_metrics" not in qv:
+                qv["audio_quality_metrics"] = {
+                    "voice_clarity_score": None,
+                    "metallic_artifacts_detected": None,
+                    "audio_gaps_filled": None
+                }
+            if "video_quality_metrics" not in qv:
+                qv["video_quality_metrics"] = {
+                    "sharpness_score": None,
+                    "motion_smoothness_score": None,
+                    "noise_level_score": None,
+                    "visual_anomalies_count": None
+                }
+            # Ensure lists exist
+            for list_field in ["quality_scores", "detected_issues", "improvement_suggestions", "autofix_logs", "quality_reports", "continuity_results", "report_timestamps"]:
+                if list_field not in qv:
+                    qv[list_field] = []
+
         return project_data
     
     def _create_project_json(self, project_path: Path, project_name: str, seed: int) -> None:
@@ -134,12 +193,31 @@ class ProjectManager:
             },
             "quality_validation": {
                 "enabled": True,
-                "continuity_results": [],
-                "quality_scores": [],
-                "audio_mixing_status": "pending",
                 "last_validation_timestamp": None,
                 "overall_quality_score": None,
-                "validation_pass": None
+                "validation_pass": None,
+                "audio_mixing_status": "pending",
+                "quality_scores": [],
+                "detected_issues": [],
+                "improvement_suggestions": [],
+                "autofix_enabled": True,
+                "autofix_logs": [],
+                "quality_reports": [],
+                "validation_mode": "batch",
+                "quality_standard": "web_hd",
+                "continuity_results": [],
+                "audio_quality_metrics": {
+                    "voice_clarity_score": None,
+                    "metallic_artifacts_detected": None,
+                    "audio_gaps_filled": None
+                },
+                "video_quality_metrics": {
+                    "sharpness_score": None,
+                    "motion_smoothness_score": None,
+                    "noise_level_score": None,
+                    "visual_anomalies_count": None
+                },
+                "report_timestamps": []
             }
         }
         

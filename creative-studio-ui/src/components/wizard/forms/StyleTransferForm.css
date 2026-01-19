@@ -1,0 +1,132 @@
+/* Style Transfer Form Styles */
+
+.style-transfer-form {
+  width: 100%;
+}
+
+.no-shots-message {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary, #999);
+  font-style: italic;
+  background: var(--input-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+}
+
+.shot-preview {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--input-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+}
+
+.preview-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #999);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.shot-preview-image {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}
+
+.file-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--input-bg, #2a2a2a);
+  border: 2px dashed var(--border-color, #444);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.file-upload-area:hover {
+  border-color: var(--accent-color, #4a9eff);
+  background: var(--hover-bg, #333);
+}
+
+.upload-icon {
+  color: var(--text-secondary, #999);
+  margin-bottom: 16px;
+}
+
+.upload-text {
+  text-align: center;
+}
+
+.upload-primary {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.upload-secondary {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary, #999);
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.uploaded-image-preview {
+  padding: 12px;
+  background: var(--input-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.preview-filename {
+  font-size: 14px;
+  color: var(--text-primary, #ffffff);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-image-button {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-image-button:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.style-preview-image {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}

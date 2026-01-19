@@ -1,0 +1,29 @@
+{
+  "appId": "com.storycore.creative-studio",
+  "productName": "StoryCore Creative Studio",
+  "files": [
+    "dist/**/*",
+    "creative-studio-ui/dist/**/*",
+    "package.json"
+  ],
+  "extraMetadata": {
+    "main": "dist/electron/main.js"
+  },
+  "directories": {
+    "buildResources": "build"
+  },
+  "win": {
+    "target": "nsis",
+    "icon": "build/icon.png",
+    "artifactName": "${productName}-Setup-${version}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "StoryCore Creative Studio",
+    "installerIcon": "build/icon.png",
+    "uninstallerIcon": "build/icon.png"
+  }
+}

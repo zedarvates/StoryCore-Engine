@@ -1,0 +1,45 @@
+{
+  "id": "time-morning",
+  "name": "Morning Light",
+  "category": "time-of-day",
+  "description": "Mid-morning illumination with clear bright light and energetic atmosphere",
+  "tags": ["morning", "mid-morning", "bright", "clear", "energetic"],
+  "prompt": {
+    "base": "Morning light, mid-morning illumination, bright clear atmosphere, energetic daylight, fresh lighting, crisp shadows, active mood, daytime clarity, vibrant morning",
+    "positive": "morning light, bright daylight, clear illumination, energetic atmosphere, fresh lighting, crisp shadows, active mood, vibrant colors, daytime clarity, clean light, sharp details, morning energy",
+    "negative": "dim lighting, evening mood, sunset colors, night darkness, artificial light, dusk atmosphere",
+    "technical": {
+      "sun_position": "30-45 degrees above horizon",
+      "color_temperature": "Neutral to slightly warm, 5000-5500K",
+      "shadow_quality": "Defined shadows with clear edges",
+      "atmospheric_effects": "Clear air, high visibility, crisp atmosphere"
+    }
+  },
+  "variations": [
+    {
+      "name": "Sunny Morning",
+      "modifier": "bright sunshine, clear sky, strong light, cheerful atmosphere, optimistic mood"
+    },
+    {
+      "name": "Overcast Morning",
+      "modifier": "cloudy sky, diffused light, soft shadows, muted colors, gentle illumination"
+    },
+    {
+      "name": "Indoor Morning",
+      "modifier": "window light, interior spaces, domestic morning, home atmosphere, cozy daylight"
+    }
+  ],
+  "examples": [
+    "A busy street in morning light, bright clear atmosphere, energetic mood, crisp shadows",
+    "A breakfast scene with morning sunlight streaming through windows, fresh and vibrant atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "morning_lighting_workflow",
+    "recommended_models": ["realistic_vision", "dreamshaper"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

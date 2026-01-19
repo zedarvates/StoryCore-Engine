@@ -1,0 +1,78 @@
+{
+  "metrics": {
+    "category": "QACategory.VISUAL_COHERENCE",
+    "score": 4.7,
+    "max_score": 5.0,
+    "issues_count": 2,
+    "critical_issues": 0,
+    "high_issues": 1,
+    "medium_issues": 1,
+    "low_issues": 0,
+    "autofix_applied": 2,
+    "manual_review_required": 0,
+    "validation_time": 0.0,
+    "metadata": {}
+  },
+  "issues": [
+    {
+      "issue_id": "vc_001",
+      "category": "QACategory.VISUAL_COHERENCE",
+      "severity": "QASeverity.HIGH",
+      "title": "Missing Coherence Anchors",
+      "description": "No coherence anchors found in project data",
+      "affected_items": [
+        "coherence_anchors"
+      ],
+      "score_impact": 1.0,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.REGENERATE_CONTENT",
+      "autofix_confidence": 0.8,
+      "metadata": {}
+    },
+    {
+      "issue_id": "vc_002",
+      "category": "QACategory.VISUAL_COHERENCE",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Style Drift Detected",
+      "description": "Style drift of 15.0% exceeds threshold",
+      "affected_items": [
+        "generated_images"
+      ],
+      "score_impact": 0.5,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.7,
+      "metadata": {}
+    }
+  ],
+  "autofix_results": [
+    {
+      "issue_id": "vc_001",
+      "action": "AutofixAction.REGENERATE_CONTENT",
+      "success": true,
+      "improvement_score": 0.8,
+      "original_score": 1.0,
+      "new_score": 1.8,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Missing Coherence Anchors",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.8
+      }
+    },
+    {
+      "issue_id": "vc_002",
+      "action": "AutofixAction.ADJUST_PARAMETERS",
+      "success": true,
+      "improvement_score": 0.4,
+      "original_score": 0.5,
+      "new_score": 0.9,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Style Drift Detected",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.7
+      }
+    }
+  ]
+}

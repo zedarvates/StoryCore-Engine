@@ -1,0 +1,28 @@
+{
+  "id": "camera-angle-birds-eye",
+  "name": "Bird's-Eye View",
+  "category": "camera-angles",
+  "description": "Directly overhead shot looking straight down, showing spatial relationships and patterns",
+  "tags": ["birds-eye", "overhead", "top-down", "aerial", "directly-above"],
+  "prompt": {
+    "base": "Bird's-eye view, directly overhead camera, looking straight down, top-down perspective, aerial view, 90-degree overhead angle, flat spatial view, pattern emphasis, god's-eye perspective",
+    "positive": "bird's-eye view, overhead shot, top-down angle, directly above, aerial perspective, 90-degree overhead, flat view, spatial relationships, pattern view, god's-eye angle, vertical overhead",
+    "negative": "eye-level, low angle, side view, horizontal perspective, ground-level camera, angled overhead",
+    "technical": {
+      "camera_angle": "90 degrees overhead, looking straight down",
+      "perspective": "Shows spatial relationships, patterns, and geography",
+      "use_cases": "Establishing shots, pattern emphasis, spatial relationships, artistic composition"
+    }
+  },
+  "examples": [
+    "A character lying on the ground, camera directly overhead, bird's-eye view showing full body and surroundings",
+    "An overhead view of a city intersection, top-down perspective showing traffic patterns and spatial layout"
+  ],
+  "comfyui": {
+    "workflow_id": "birds_eye_workflow",
+    "parameters": {
+      "camera_angle": -90,
+      "view_type": "overhead"
+    }
+  }
+}

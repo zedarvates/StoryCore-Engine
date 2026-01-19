@@ -108,6 +108,25 @@ while IFS= read -r url; do
         elif [[ "$filename" == *"mistral"* ]]; then
             output_path="models/text_encoders/$filename"
         else
+            output_path="models/checkpoints/$filename"
+        fi
+        
+        # Skip if file already exists
+        if [ -f "$output_path" ]; then
+            echo "✅ $filename already exists, skipping"
+            continue
+        fi
+        
+        echo "📥 Downloading $filename..."
+        wget -O "$output_path" "$url" || curl -L -o "$output_path" "$url"
+        
+        if [ -f "$output_path" ]; then
+            echo "✅ Downloaded $filename ($(du -h "$output_path" | cut -f1))"
+        else
+            echo "❌ Failed to download $filename"
+        fi
+    fi
+done < "$SCRIPT_DIR/models_links.txt"
             continue
         fi
         
@@ -135,6 +154,45 @@ echo "📋 Installing StoryCore-Engine workflow..."
 if [ -f "$PROJECT_ROOT/image_flux2 storycore1.json" ]; then
     cp "$PROJECT_ROOT/image_flux2 storycore1.json" ./
     echo "✅ Workflow installed"
+fi
+
+# Install ComfyUI Manager as fallback
+echo "🔧 Installing ComfyUI Manager (fallback system)..."
+if [ ! -d "custom_nodes/ComfyUI-Manager" ]; then
+    cd custom_nodes
+    if command -v git >/dev/null 2>&1; then
+        git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+        echo "✅ ComfyUI Manager installed"
+    else
+        echo "⚠️  Git not found, ComfyUI Manager not installed"
+    fi
+    cd ..
+else
+    echo "✅ ComfyUI Manager already installed"
+fi
+
+# Install Workflow Models Downloader
+echo "📥 Installing Workflow Models Downloader..."
+if [ ! -d "custom_nodes/ComfyUI-Workflow-Models-Downloader" ]; then
+    cd custom_nodes
+    if command -v git >/dev/null 2>&1; then
+        git clone https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader.git
+        echo "✅ Workflow Models Downloader installed"
+    else
+        echo "⚠️  Git not found, Workflow Models Downloader not installed"
+    fi
+    cd ..
+else
+    echo "✅ Workflow Models Downloader already installed"
+fi
+
+echo ""
+echo "🔍 Validating model installation..."
+if [ -f "tools/comfyui_installer/validate_models.sh" ]; then
+    chmod +x tools/comfyui_installer/validate_models.sh
+    ./tools/comfyui_installer/validate_models.sh
+else
+    echo "⚠️  Model validation script not found. Please verify models manually."
 fi
 
 echo ""

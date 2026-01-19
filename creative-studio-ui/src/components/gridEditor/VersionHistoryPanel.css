@@ -1,0 +1,454 @@
+/**
+ * Version History Panel Styles
+ */
+
+.version-history-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1e1e1e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.version-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #333;
+}
+
+.version-history-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #e0e0e0;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #333;
+}
+
+/* ============================================================================
+   Toolbar
+   ============================================================================ */
+
+.version-history-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: #007acc;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #005a9e;
+}
+
+.btn-secondary {
+  background: #333;
+  color: #e0e0e0;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #444;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Info and Stats
+   ============================================================================ */
+
+.last-saved-info {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #888;
+  border-bottom: 1px solid #333;
+}
+
+.version-history-stats {
+  display: flex;
+  gap: 16px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #888;
+  border-bottom: 1px solid #333;
+}
+
+/* ============================================================================
+   Version List
+   ============================================================================ */
+
+.version-history-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.no-versions {
+  padding: 32px 16px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+
+/* ============================================================================
+   Version Item
+   ============================================================================ */
+
+.version-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #252525;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.version-item:hover {
+  background: #2a2a2a;
+  border-color: #444;
+}
+
+.version-item.selected {
+  border-color: #007acc;
+  background: #2a3a4a;
+}
+
+.version-thumbnail {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.version-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.version-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.version-timestamp {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.version-description {
+  font-size: 13px;
+  color: #b0b0b0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.version-author {
+  font-size: 12px;
+  color: #888;
+}
+
+.version-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.version-action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.restore-btn {
+  background: #28a745;
+  color: white;
+}
+
+.restore-btn:hover {
+  background: #218838;
+}
+
+.export-btn {
+  background: #007acc;
+  color: white;
+}
+
+.export-btn:hover {
+  background: #005a9e;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+}
+
+/* ============================================================================
+   Version Comparison
+   ============================================================================ */
+
+.version-comparison-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.version-comparison-modal {
+  background: #1e1e1e;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.version-comparison-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #333;
+}
+
+.version-comparison-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.version-comparison-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #333;
+}
+
+.comparison-version {
+  padding: 12px;
+  background: #252525;
+  border-radius: 4px;
+}
+
+.comparison-version strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #007acc;
+}
+
+.comparison-description {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #b0b0b0;
+}
+
+.version-comparison-differences {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+.version-comparison-differences h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.no-differences {
+  padding: 32px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+
+.differences-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.difference-item {
+  padding: 12px;
+  background: #252525;
+  border-left: 3px solid #007acc;
+  border-radius: 4px;
+}
+
+.difference-item.panel_transform {
+  border-left-color: #ffc107;
+}
+
+.difference-item.panel_crop {
+  border-left-color: #17a2b8;
+}
+
+.difference-item.layer_added {
+  border-left-color: #28a745;
+}
+
+.difference-item.layer_removed {
+  border-left-color: #dc3545;
+}
+
+.difference-item.layer_modified {
+  border-left-color: #fd7e14;
+}
+
+.difference-item.metadata {
+  border-left-color: #6c757d;
+}
+
+.difference-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 4px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.difference-description {
+  font-size: 14px;
+  color: #e0e0e0;
+  margin-bottom: 4px;
+}
+
+.difference-panel,
+.difference-layer {
+  font-size: 12px;
+  color: #b0b0b0;
+  margin-top: 4px;
+}
+
+.version-comparison-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ============================================================================
+   Scrollbar Styling
+   ============================================================================ */
+
+.version-history-list::-webkit-scrollbar,
+.version-comparison-differences::-webkit-scrollbar {
+  width: 8px;
+}
+
+.version-history-list::-webkit-scrollbar-track,
+.version-comparison-differences::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.version-history-list::-webkit-scrollbar-thumb,
+.version-comparison-differences::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.version-history-list::-webkit-scrollbar-thumb:hover,
+.version-comparison-differences::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .version-history-toolbar {
+    flex-direction: column;
+  }
+
+  .version-item {
+    flex-direction: column;
+  }
+
+  .version-actions {
+    flex-direction: row;
+  }
+
+  .version-comparison-info {
+    grid-template-columns: 1fr;
+  }
+
+  .version-comparison-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+}

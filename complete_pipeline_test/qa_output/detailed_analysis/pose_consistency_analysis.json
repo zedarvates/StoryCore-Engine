@@ -1,0 +1,49 @@
+{
+  "metrics": {
+    "category": "QACategory.POSE_CONSISTENCY",
+    "score": 4.6,
+    "max_score": 5.0,
+    "issues_count": 2,
+    "critical_issues": 0,
+    "high_issues": 0,
+    "medium_issues": 0,
+    "low_issues": 2,
+    "autofix_applied": 0,
+    "manual_review_required": 0,
+    "validation_time": 0.0004985332489013672,
+    "metadata": {}
+  },
+  "issues": [
+    {
+      "issue_id": "pc_002",
+      "category": "QACategory.POSE_CONSISTENCY",
+      "severity": "QASeverity.LOW",
+      "title": "Pose Variance for hero",
+      "description": "Pose variance of 25.0% for character hero",
+      "affected_items": [
+        "hero"
+      ],
+      "score_impact": 0.2,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.6,
+      "metadata": {}
+    },
+    {
+      "issue_id": "pc_003",
+      "category": "QACategory.POSE_CONSISTENCY",
+      "severity": "QASeverity.LOW",
+      "title": "Pose Variance for companion",
+      "description": "Pose variance of 25.0% for character companion",
+      "affected_items": [
+        "companion"
+      ],
+      "score_impact": 0.2,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.6,
+      "metadata": {}
+    }
+  ],
+  "autofix_results": []
+}

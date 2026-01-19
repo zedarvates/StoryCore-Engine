@@ -1,0 +1,45 @@
+{
+  "id": "time-dawn",
+  "name": "Dawn / Sunrise",
+  "category": "time-of-day",
+  "description": "Early morning light with soft pastels, long shadows, and awakening atmosphere",
+  "tags": ["dawn", "sunrise", "early-morning", "first-light", "daybreak"],
+  "prompt": {
+    "base": "Dawn sunrise lighting, early morning atmosphere, soft pastel colors, first light of day, long gentle shadows, awakening mood, golden hour beginning, fresh morning air, daybreak quality",
+    "positive": "dawn lighting, sunrise colors, early morning light, soft pastels, pink and orange sky, first light, long shadows, awakening atmosphere, golden hour, fresh morning, daybreak glow, gentle illumination, new day beginning",
+    "negative": "harsh midday sun, night darkness, artificial lighting, evening light, sunset colors, noon brightness",
+    "technical": {
+      "sun_position": "Just above horizon, low angle",
+      "color_temperature": "Warm with pink and orange tones, 3000-4000K",
+      "shadow_quality": "Long, soft shadows with gentle transitions",
+      "atmospheric_effects": "Morning mist, dew, soft haze"
+    }
+  },
+  "variations": [
+    {
+      "name": "Misty Dawn",
+      "modifier": "morning fog, ethereal mist, soft diffusion, mysterious awakening, veiled sunrise"
+    },
+    {
+      "name": "Clear Dawn",
+      "modifier": "crisp morning air, sharp clarity, vibrant colors, clean light, fresh beginning"
+    },
+    {
+      "name": "Urban Dawn",
+      "modifier": "city awakening, street lights fading, early commuters, metropolitan morning, urban sunrise"
+    }
+  ],
+  "examples": [
+    "A landscape at dawn with soft pastel sky, long shadows, early morning mist, awakening atmosphere",
+    "A character silhouetted against sunrise, golden dawn light, soft morning colors, daybreak mood"
+  ],
+  "comfyui": {
+    "workflow_id": "dawn_lighting_workflow",
+    "recommended_models": ["realistic_vision", "epicrealism"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

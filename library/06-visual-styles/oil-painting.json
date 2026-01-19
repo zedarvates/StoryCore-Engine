@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-oil-painting",
+  "name": "Oil Painting Visual Style",
+  "category": "visual-styles",
+  "description": "Rich and textured with oil painting aesthetics, impasto technique, and classical art quality",
+  "tags": ["oil-painting", "classical", "textured", "rich", "fine-art"],
+  "prompt": {
+    "base": "Oil painting style, rich colors, textured brushstrokes, impasto technique, classical art quality, canvas texture, layered paint, fine art aesthetic, masterful technique, painterly quality",
+    "positive": "oil painting, rich colors, visible brushstrokes, impasto texture, canvas texture, classical art, fine art quality, painterly style, layered paint, artistic mastery, traditional technique, museum quality, textured surface",
+    "negative": "photorealistic, digital art, flat colors, smooth surface, photograph, vector art, modern digital, clean edges, minimal texture",
+    "technical": {
+      "rendering": "Oil painting simulation with visible brushwork",
+      "textures": "Canvas texture, impasto effects, paint layers",
+      "lighting": "Classical painting lighting with chiaroscuro",
+      "detail_level": "Painterly detail with visible technique"
+    }
+  },
+  "variations": [
+    {
+      "name": "Renaissance Oil",
+      "modifier": "classical technique, chiaroscuro lighting, religious themes, old master style, museum quality"
+    },
+    {
+      "name": "Impressionist Oil",
+      "modifier": "loose brushwork, light effects, outdoor scenes, vibrant colors, impressionist technique"
+    },
+    {
+      "name": "Contemporary Oil",
+      "modifier": "modern subjects, bold colors, expressive brushwork, contemporary themes, artistic freedom"
+    }
+  ],
+  "examples": [
+    "A portrait in oil painting style with rich colors, visible brushstrokes, classical lighting, fine art quality",
+    "A landscape with impasto texture, layered paint, canvas texture, oil painting aesthetics"
+  ],
+  "comfyui": {
+    "workflow_id": "oil_painting_style_workflow",
+    "recommended_models": ["dreamshaper", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

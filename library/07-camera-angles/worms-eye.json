@@ -1,0 +1,28 @@
+{
+  "id": "camera-angle-worms-eye",
+  "name": "Worm's-Eye View",
+  "category": "camera-angles",
+  "description": "Extreme low angle from ground level looking up, creating dramatic scale and power",
+  "tags": ["worms-eye", "extreme-low", "ground-level", "dramatic", "upward"],
+  "prompt": {
+    "base": "Worm's-eye view, extreme low angle, ground-level camera, looking straight up, dramatic upward perspective, subject towering above, extreme power dynamic, ant's perspective, floor-level shot",
+    "positive": "worm's-eye view, extreme low angle, ground-level camera, looking straight up, dramatic upward view, towering subject, extreme perspective, ant's view, floor-level shot, dramatic scale, powerful framing",
+    "negative": "eye-level, high angle, birds-eye view, moderate angles, downward perspective, overhead camera",
+    "technical": {
+      "camera_angle": "Ground level, 70-90 degrees upward",
+      "perspective": "Creates extreme power, scale, or architectural drama",
+      "use_cases": "Architectural photography, extreme power dynamics, dramatic reveals"
+    }
+  },
+  "examples": [
+    "Skyscrapers towering above, worm's-eye view from ground level, dramatic upward perspective",
+    "A powerful figure standing over camera, extreme low angle, worm's-eye view emphasizing dominance"
+  ],
+  "comfyui": {
+    "workflow_id": "worms_eye_workflow",
+    "parameters": {
+      "camera_angle": 80,
+      "elevation": "ground"
+    }
+  }
+}

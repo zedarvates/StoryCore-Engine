@@ -1,0 +1,36 @@
+{
+  "category": "scene-elements",
+  "subcategory": "environments",
+  "id": "env-interior-residential",
+  "name": "Residential Interior",
+  "description": "Indoor residential space with lived-in atmosphere",
+  "tags": ["environment", "interior", "residential", "home"],
+  "prompt": "Interior residential space, {ROOM_TYPE}. {TIME_OF_DAY} lighting through windows, {DECOR_STYLE} decor style. Lived-in atmosphere with {DETAILS}. Color palette: {COLORS}. Realistic materials and textures, cinematic interior photography quality, sharp architectural details.",
+  "variables": {
+    "ROOM_TYPE": { 
+      "type": "enum",
+      "required": true,
+      "options": ["living room", "bedroom", "kitchen", "bathroom", "study"]
+    },
+    "TIME_OF_DAY": { 
+      "type": "enum",
+      "required": true,
+      "options": ["morning", "afternoon", "evening", "night"]
+    },
+    "DECOR_STYLE": { 
+      "type": "enum",
+      "required": true,
+      "options": ["modern", "vintage", "rustic", "minimalist", "eclectic"]
+    },
+    "DETAILS": { 
+      "type": "string", 
+      "required": true,
+      "description": "Specific details that make it feel lived-in"
+    },
+    "COLORS": { 
+      "type": "string", 
+      "required": true,
+      "description": "Color palette for the space"
+    }
+  }
+}

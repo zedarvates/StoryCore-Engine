@@ -1,0 +1,305 @@
+{
+  "metadata": {
+    "title": "Sample Video Project",
+    "version": "1.0.0",
+    "created_at": "2026-01-18T06:59:17.233Z",
+    "updated_at": "2026-01-18T06:59:17.233Z",
+    "total_duration": 30.0,
+    "total_frames": 720,
+    "frame_rate": 24,
+    "resolution": "1920x1080",
+    "aspect_ratio": "16:9",
+    "video_codec": "H.264",
+    "audio_codec": "AAC",
+    "bitrate_video": "5000 kbps",
+    "bitrate_audio": "128 kbps",
+    "sample_rate": 44100,
+    "channels": 2,
+    "color_space": "BT.709",
+    "projection": "flat",
+    "stereoscopic": false
+  },
+  "scenes": [
+    {
+      "scene_number": 1,
+      "start_time": 0.0,
+      "end_time": 10.0,
+      "duration": 10.0,
+      "description": "Opening scene with establishing shot",
+      "timing": {
+        "timestamps": [
+          { "time": 0.0, "frame": 0, "description": "Scene start" },
+          { "time": 5.0, "frame": 120, "description": "Mid-scene transition" },
+          { "time": 10.0, "frame": 240, "description": "Scene end" }
+        ]
+      },
+      "elements": {
+        "audio": [
+          {
+            "type": "music",
+            "start_time": 0.0,
+            "end_time": 10.0,
+            "description": "Background orchestral music",
+            "volume": 0.7,
+            "fade_in": 1.0,
+            "fade_out": 1.0
+          },
+          {
+            "type": "sfx",
+            "start_time": 2.0,
+            "end_time": 3.0,
+            "description": "Bird chirping sound effect",
+            "volume": 0.5
+          }
+        ],
+        "video": [
+          {
+            "type": "visual",
+            "start_time": 0.0,
+            "end_time": 10.0,
+            "description": "Wide landscape shot",
+            "layer": 1,
+            "opacity": 1.0
+          }
+        ]
+      },
+      "characters": [
+        {
+          "name": "Character A",
+          "actions": [
+            { "time": 1.0, "action": "enters frame", "description": "Walks into view" },
+            { "time": 8.0, "action": "exits frame", "description": "Leaves scene" }
+          ],
+          "position": { "x": 0.5, "y": 0.5, "z": 0.0 }
+        }
+      ],
+      "camera": [
+        {
+          "movement": "pan",
+          "start_time": 0.0,
+          "end_time": 10.0,
+          "description": "Slow pan across the landscape",
+          "start_position": { "x": 0.0, "y": 0.0, "z": 10.0 },
+          "end_position": { "x": 5.0, "y": 0.0, "z": 10.0 },
+          "speed": "slow"
+        }
+      ],
+      "dialogue": [],
+      "effects": [
+        {
+          "type": "color_grading",
+          "start_time": 0.0,
+          "end_time": 10.0,
+          "description": "Warm sunset tones",
+          "parameters": { "brightness": 1.1, "contrast": 1.2, "saturation": 0.9 }
+        }
+      ],
+      "transitions": []
+    },
+    {
+      "scene_number": 2,
+      "start_time": 10.0,
+      "end_time": 20.0,
+      "duration": 10.0,
+      "description": "Character interaction scene",
+      "timing": {
+        "timestamps": [
+          { "time": 10.0, "frame": 240, "description": "Scene start" },
+          { "time": 15.0, "frame": 360, "description": "Dialogue peak" },
+          { "time": 20.0, "frame": 480, "description": "Scene end" }
+        ]
+      },
+      "elements": {
+        "audio": [
+          {
+            "type": "dialogue",
+            "start_time": 12.0,
+            "end_time": 18.0,
+            "description": "Conversation between characters",
+            "volume": 0.8,
+            "sync_offset": 0.0
+          }
+        ],
+        "video": [
+          {
+            "type": "visual",
+            "start_time": 10.0,
+            "end_time": 20.0,
+            "description": "Medium shot of characters",
+            "layer": 1,
+            "opacity": 1.0
+          }
+        ]
+      },
+      "characters": [
+        {
+          "name": "Character A",
+          "actions": [
+            { "time": 11.0, "action": "speaks", "description": "Delivers first line" },
+            { "time": 16.0, "action": "gestures", "description": "Points emphatically" }
+          ],
+          "position": { "x": 0.3, "y": 0.5, "z": 0.0 }
+        },
+        {
+          "name": "Character B",
+          "actions": [
+            { "time": 13.0, "action": "speaks", "description": "Responds to Character A" },
+            { "time": 17.0, "action": "nods", "description": "Agrees with statement" }
+          ],
+          "position": { "x": 0.7, "y": 0.5, "z": 0.0 }
+        }
+      ],
+      "camera": [
+        {
+          "movement": "static",
+          "start_time": 10.0,
+          "end_time": 20.0,
+          "description": "Fixed two-shot",
+          "position": { "x": 0.5, "y": 0.5, "z": 5.0 },
+          "focal_length": 50
+        }
+      ],
+      "dialogue": [
+        {
+          "speaker": "Character A",
+          "start_time": 12.0,
+          "end_time": 13.5,
+          "text": "Hello, how are you?",
+          "language": "en",
+          "sync_accuracy": 0.95
+        },
+        {
+          "speaker": "Character B",
+          "start_time": 14.0,
+          "end_time": 15.5,
+          "text": "I'm doing well, thank you.",
+          "language": "en",
+          "sync_accuracy": 0.98
+        },
+        {
+          "speaker": "Character A",
+          "start_time": 16.0,
+          "end_time": 17.5,
+          "text": "That's great to hear!",
+          "language": "en",
+          "sync_accuracy": 0.96
+        }
+      ],
+      "effects": [],
+      "transitions": [
+        {
+          "type": "fade",
+          "start_time": 9.5,
+          "end_time": 10.5,
+          "description": "Fade in from previous scene",
+          "duration": 1.0
+        }
+      ]
+    },
+    {
+      "scene_number": 3,
+      "start_time": 20.0,
+      "end_time": 30.0,
+      "duration": 10.0,
+      "description": "Climactic ending scene",
+      "timing": {
+        "timestamps": [
+          { "time": 20.0, "frame": 480, "description": "Scene start" },
+          { "time": 25.0, "frame": 600, "description": "Action sequence" },
+          { "time": 30.0, "frame": 720, "description": "Scene end" }
+        ]
+      },
+      "elements": {
+        "audio": [
+          {
+            "type": "music",
+            "start_time": 20.0,
+            "end_time": 30.0,
+            "description": "Intense action music",
+            "volume": 0.9,
+            "fade_in": 0.5,
+            "fade_out": 2.0
+          },
+          {
+            "type": "sfx",
+            "start_time": 25.0,
+            "end_time": 26.0,
+            "description": "Explosion sound",
+            "volume": 1.0
+          }
+        ],
+        "video": [
+          {
+            "type": "visual",
+            "start_time": 20.0,
+            "end_time": 30.0,
+            "description": "Action sequence montage",
+            "layer": 1,
+            "opacity": 1.0
+          }
+        ]
+      },
+      "characters": [
+        {
+          "name": "Character A",
+          "actions": [
+            { "time": 21.0, "action": "runs", "description": "Sprints across the field" },
+            { "time": 28.0, "action": "celebrates", "description": "Raises arms in victory" }
+          ],
+          "position": { "x": 0.4, "y": 0.6, "z": 0.0 }
+        }
+      ],
+      "camera": [
+        {
+          "movement": "dolly_zoom",
+          "start_time": 20.0,
+          "end_time": 25.0,
+          "description": "Dolly zoom during action",
+          "start_position": { "x": 0.0, "y": 0.0, "z": 8.0 },
+          "end_position": { "x": 0.0, "y": 0.0, "z": 6.0 },
+          "focal_length_start": 35,
+          "focal_length_end": 85,
+          "speed": "medium"
+        },
+        {
+          "movement": "quick_cut",
+          "start_time": 25.0,
+          "end_time": 30.0,
+          "description": "Rapid cuts for climax",
+          "cuts": [
+            { "time": 25.0, "description": "Close-up on face" },
+            { "time": 26.5, "description": "Wide shot of action" },
+            { "time": 28.0, "description": "Slow motion finish" }
+          ]
+        }
+      ],
+      "dialogue": [],
+      "effects": [
+        {
+          "type": "slow_motion",
+          "start_time": 28.0,
+          "end_time": 30.0,
+          "description": "Slow motion effect",
+          "speed_multiplier": 0.5
+        },
+        {
+          "type": "particle",
+          "start_time": 25.0,
+          "end_time": 26.5,
+          "description": "Explosion particles",
+          "type": "fire",
+          "intensity": 0.8
+        }
+      ],
+      "transitions": [
+        {
+          "type": "fade_to_black",
+          "start_time": 29.5,
+          "end_time": 30.0,
+          "description": "Fade to black ending",
+          "duration": 0.5
+        }
+      ]
+    }
+  ]
+}

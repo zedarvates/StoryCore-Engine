@@ -1,0 +1,45 @@
+{
+  "id": "genre-documentary",
+  "name": "Documentary Genre",
+  "category": "genres",
+  "description": "Non-fiction factual content with authentic realism, observational style, and educational purpose",
+  "tags": ["documentary", "non-fiction", "realistic", "educational", "authentic"],
+  "prompt": {
+    "base": "Documentary style, photorealistic, authentic environments, natural lighting, observational camera work, real-world settings, unposed subjects, journalistic approach, factual presentation",
+    "positive": "photorealistic, natural lighting, authentic settings, real environments, candid moments, documentary photography, journalistic style, unfiltered reality, genuine expressions, environmental context, cultural authenticity, observational framing",
+    "negative": "staged scenes, artificial lighting, fantasy elements, stylized effects, dramatic poses, fictional characters, theatrical lighting, unrealistic scenarios, CGI elements",
+    "technical": {
+      "aspect_ratio": "16:9 standard",
+      "color_palette": "Natural, ungraded colors maintaining authenticity",
+      "lighting": "Available light, natural sources, minimal artificial lighting",
+      "composition": "Observational framing, handheld aesthetic, real-world perspectives"
+    }
+  },
+  "variations": [
+    {
+      "name": "Nature Documentary",
+      "modifier": "wildlife, natural habitats, environmental beauty, patient observation, ecological context"
+    },
+    {
+      "name": "Historical Documentary",
+      "modifier": "archival aesthetic, period accuracy, historical context, educational tone, factual reconstruction"
+    },
+    {
+      "name": "Social Documentary",
+      "modifier": "human stories, cultural context, social issues, intimate portraits, community focus"
+    }
+  ],
+  "examples": [
+    "An elderly craftsman working in their workshop, natural window light, authentic environment, candid moment captured, documentary realism",
+    "Wide shot of a bustling marketplace, natural lighting, diverse people in authentic activities, observational camera work"
+  ],
+  "comfyui": {
+    "workflow_id": "documentary_genre_workflow",
+    "recommended_models": ["realistic_vision", "absolute_reality"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

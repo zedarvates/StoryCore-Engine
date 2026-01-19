@@ -1,0 +1,29 @@
+{
+  "id": "camera-movement-dolly",
+  "name": "Dolly (Forward/Backward)",
+  "category": "camera-movements",
+  "description": "Camera moving forward or backward on tracks, creating depth and immersion",
+  "tags": ["dolly", "push-in", "pull-out", "tracking", "depth"],
+  "prompt": {
+    "base": "Dolly camera movement, moving forward or backward, camera on tracks, push-in or pull-out, creating depth, smooth forward motion, dolly in or dolly out, immersive movement",
+    "positive": "dolly shot, camera moving forward, camera moving backward, push-in, pull-out, dolly in, dolly out, smooth tracking, depth creation, immersive movement, forward motion, backward motion",
+    "negative": "static camera, panning, tilting, zoom, no camera movement, fixed position, rotation only",
+    "technical": {
+      "movement_type": "Linear forward or backward on tracks",
+      "speed": "Slow to medium for dramatic effect",
+      "use_cases": "Dramatic reveals, emotional intensity, creating depth, immersive storytelling"
+    }
+  },
+  "examples": [
+    "Camera dollying in on character's face, slow push-in creating emotional intensity",
+    "Dolly out revealing the full scene, pulling back to show context and environment"
+  ],
+  "comfyui": {
+    "workflow_id": "dolly_camera_workflow",
+    "parameters": {
+      "movement": "dolly",
+      "direction": "forward",
+      "speed": "slow"
+    }
+  }
+}

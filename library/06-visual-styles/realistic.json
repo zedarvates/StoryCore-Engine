@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-realistic",
+  "name": "Realistic Visual Style",
+  "category": "visual-styles",
+  "description": "Photorealistic and natural appearance with authentic textures, lighting, and proportions",
+  "tags": ["realistic", "photorealistic", "natural", "authentic", "lifelike"],
+  "prompt": {
+    "base": "Photorealistic style, natural lighting, authentic textures, realistic proportions, lifelike details, accurate physics, true-to-life colors, documentary quality, unfiltered reality",
+    "positive": "photorealistic, 8k resolution, ultra detailed, natural skin texture, realistic lighting, accurate proportions, lifelike eyes, authentic materials, real-world physics, natural shadows, true colors, high detail, sharp focus, professional photography",
+    "negative": "stylized, cartoon, anime, illustration, painting, artistic interpretation, exaggerated features, unrealistic proportions, fantasy elements, CGI look, artificial appearance",
+    "technical": {
+      "rendering": "Photorealistic rendering with accurate light physics",
+      "textures": "High-resolution realistic textures with proper subsurface scattering",
+      "lighting": "Physically accurate lighting with natural falloff",
+      "detail_level": "Maximum detail with realistic imperfections"
+    }
+  },
+  "variations": [
+    {
+      "name": "Cinematic Realism",
+      "modifier": "film grain, cinematic color grading, professional cinematography, shallow depth of field"
+    },
+    {
+      "name": "Documentary Realism",
+      "modifier": "natural lighting, candid moments, unposed subjects, authentic environments"
+    },
+    {
+      "name": "Hyperrealism",
+      "modifier": "extreme detail, perfect clarity, enhanced textures, ultra-sharp focus"
+    }
+  ],
+  "examples": [
+    "A portrait with natural skin texture, realistic eye reflections, natural lighting, photographic quality, lifelike details",
+    "An urban street scene with accurate perspective, realistic materials, natural shadows, authentic atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "realistic_style_workflow",
+    "recommended_models": ["realistic_vision", "absolute_reality", "epicrealism"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 35,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

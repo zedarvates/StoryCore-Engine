@@ -1,0 +1,33 @@
+{
+  "category": "scene-elements",
+  "subcategory": "characters",
+  "id": "character-hero",
+  "name": "Heroic Character",
+  "description": "Main protagonist with strong, confident presence",
+  "tags": ["character", "hero", "protagonist", "main"],
+  "prompt": "Heroic character, {DESCRIPTION}. Confident pose, strong silhouette, clear readable design. {COSTUME_DETAILS}. Professional character design, cinematic lighting highlighting features, sharp focus on face and details. Background: {ENVIRONMENT}, slightly blurred for depth.",
+  "variables": {
+    "DESCRIPTION": { 
+      "type": "string", 
+      "required": true,
+      "description": "Physical description of the hero"
+    },
+    "COSTUME_DETAILS": { 
+      "type": "string", 
+      "required": true,
+      "description": "Clothing and costume details"
+    },
+    "ENVIRONMENT": { 
+      "type": "string", 
+      "required": true,
+      "description": "Background environment"
+    }
+  },
+  "examples": [
+    {
+      "DESCRIPTION": "tall athletic woman with determined expression",
+      "COSTUME_DETAILS": "tactical armor with blue accents",
+      "ENVIRONMENT": "futuristic cityscape"
+    }
+  ]
+}

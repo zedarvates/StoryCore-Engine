@@ -1,0 +1,48 @@
+{
+  "id": "palette-warm-sunset",
+  "name": "Warm Sunset Palette",
+  "category": "color-palettes",
+  "description": "Warm oranges and yellows creating vibrant, energetic, and optimistic atmosphere",
+  "tags": ["warm", "sunset", "orange", "yellow", "vibrant"],
+  "prompt": {
+    "base": "Warm sunset color palette, vibrant oranges and yellows, golden tones, warm color scheme, sunset hues, energetic colors, optimistic palette, fiery warmth",
+    "positive": "warm sunset colors, vibrant orange (#FF6B35), golden yellow (#FDC830), amber tones (#F7931E), warm palette, sunset hues, energetic colors, optimistic atmosphere, fiery warmth, golden glow, warm color harmony",
+    "negative": "cool colors, blues, greens, cold palette, muted tones, desaturated colors, monochrome, dark palette",
+    "technical": {
+      "primary_color": "#FF6B35 (Vibrant Orange)",
+      "secondary_color": "#F7931E (Amber)",
+      "accent_color": "#FDC830 (Golden Yellow)",
+      "color_temperature": "Warm (2500-3500K)",
+      "saturation": "High saturation, vibrant",
+      "use_cases": "Energetic scenes, optimistic moods, summer atmospheres, warm environments"
+    }
+  },
+  "variations": [
+    {
+      "name": "Tropical Sunset",
+      "modifier": "intense oranges, tropical warmth, beach atmosphere, vacation vibes, exotic warmth"
+    },
+    {
+      "name": "Desert Sunset",
+      "modifier": "dusty oranges, arid warmth, desert tones, dry heat atmosphere, southwestern palette"
+    },
+    {
+      "name": "Autumn Sunset",
+      "modifier": "burnt oranges, fall colors, harvest tones, seasonal warmth, rustic palette"
+    }
+  ],
+  "examples": [
+    "A landscape bathed in warm sunset colors, vibrant oranges and yellows, golden atmosphere",
+    "An interior with warm sunset palette, energetic orange accents, optimistic yellow tones"
+  ],
+  "comfyui": {
+    "workflow_id": "warm_sunset_palette_workflow",
+    "recommended_models": ["dreamshaper", "realistic_vision"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras",
+      "color_guidance": "warm_sunset"
+    }
+  }
+}

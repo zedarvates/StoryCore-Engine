@@ -1,0 +1,47 @@
+{
+  "id": "character-ensemble",
+  "name": "Ensemble Character",
+  "category": "character-archetypes",
+  "description": "Equal-weight characters in ensemble casts where multiple protagonists share the spotlight",
+  "tags": ["ensemble", "equal-weight", "group", "collective", "shared-focus"],
+  "prompt": {
+    "base": "Ensemble character, equal importance, group protagonist, shared spotlight, collective story, balanced focus, team member",
+    "positive": "ensemble character, equal importance, well-developed personality, distinct appearance, unique traits, group dynamic, shared spotlight, collective story, balanced screen time, team chemistry, individual arc within group narrative",
+    "negative": "single protagonist, solo hero, lone character, isolated focus, individual spotlight",
+    "technical": {
+      "screen_time": "Equal distribution among ensemble (varies per scene)",
+      "character_arc": "Individual arc interwoven with group story",
+      "visual_prominence": "Equal visual weight with other ensemble members",
+      "dialogue_weight": "Balanced speaking roles across ensemble",
+      "relationship_focus": "Strong connections within ensemble group"
+    }
+  },
+  "variations": [
+    {
+      "name": "Team Ensemble",
+      "modifier": "coordinated group, team dynamics, collaborative effort, unified goal, complementary skills"
+    },
+    {
+      "name": "Family Ensemble",
+      "modifier": "family unit, related characters, familial bonds, generational dynamics, household focus"
+    },
+    {
+      "name": "Diverse Ensemble",
+      "modifier": "varied backgrounds, different perspectives, contrasting personalities, rich diversity, multiple viewpoints"
+    }
+  ],
+  "examples": [
+    "An ensemble cast of characters with equal importance, group dynamic, balanced focus, team chemistry",
+    "Multiple protagonists in ensemble story, shared spotlight, collective narrative, individual arcs"
+  ],
+  "comfyui": {
+    "workflow_id": "ensemble_character_workflow",
+    "recommended_models": ["dreamshaper", "character_design"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras",
+      "character_conditioning": "ensemble"
+    }
+  }
+}

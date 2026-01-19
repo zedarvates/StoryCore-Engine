@@ -28,6 +28,79 @@ if [ -d "ComfyUI" ]; then
 else
     echo "📥 Downloading ComfyUI..."
     COMFYUI_URL="https://github.com/comfyanonymous/ComfyUI/archive/refs/heads/master.zip"
+    wget -O comfyui.zip "$COMFYUI_URL" || curl -L -o comfyui.zip "$COMFYUI_URL"
+    unzip -q comfyui.zip
+    mv ComfyUI-master ComfyUI
+    rm comfyui.zip
+    echo "✅ ComfyUI downloaded and extracted"
+fi
+
+cd "$COMFYUI_DIR"
+
+# Create Python virtual environment (PEP 668 compliance)
+echo "🐍 Setting up Python virtual environment..."
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+    echo "✅ Virtual environment created"
+else
+    echo "✅ Virtual environment already exists"
+fi
+
+# Activate virtual environment and install dependencies
+echo "📦 Installing dependencies in virtual environment..."
+source venv/bin/activate
+pip install --upgrade pip
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+echo "✅ Dependencies installed"
+
+# Download models from models_links.txt
+echo "📥 Downloading required models..."
+download_model() {
+    local url="$1"
+    local filename=$(basename "$url")
+    local subdir=""
+    
+    # Determine subdirectory based on filename
+    case "$filename" in
+        *vae*) subdir="vae" ;;
+        *diffusion*|*flux*) subdir="checkpoints" ;;
+        *text*|*mistral*|*clip*) subdir="clip" ;;
+        *lora*) subdir="loras" ;;
+        *) subdir="checkpoints" ;;
+    esac
+    
+    local target_dir="models/$subdir"
+    local target_file="$target_dir/$filename"
+    
+    mkdir -p "$target_dir"
+    
+    if [ -f "$target_file" ]; then
+        echo "✅ $filename already exists, skipping"
+        return 0
+    fi
+    
+    echo "📥 Downloading $filename to $subdir/..."
+    wget -O "$target_file" "$url" || curl -L -o "$target_file" "$url"
+    
+    if [ -f "$target_file" ]; then
+        echo "✅ Downloaded $filename ($(du -h "$target_file" | cut -f1))"
+    else
+        echo "❌ Failed to download $filename"
+        return 1
+    fi
+}
+
+# Parse models_links.txt and download models
+if [ -f "$SCRIPT_DIR/models_links.txt" ]; then
+    while IFS= read -r line; do
+        # Skip comments and empty lines
+        [[ "$line" =~ ^#.*$ ]] || [[ -z "$line" ]] && continue
+        download_model "$line"
+    done < "$SCRIPT_DIR/models_links.txt"
+else
+    echo "⚠️  models_links.txt not found, skipping model downloads"
+fi
     
     if command -v wget >/dev/null 2>&1; then
         wget -c "$COMFYUI_URL" -O comfyui-master.zip
@@ -116,6 +189,40 @@ while IFS= read -r url; do
         fi
     fi
 done < "$SCRIPT_DIR/models_links.txt"
+
+# Install ComfyUI Manager V3.39.2 (fallback system)
+echo "🔧 Installing ComfyUI Manager V3.39.2..."
+if [ ! -d "custom_nodes/ComfyUI-Manager" ]; then
+    mkdir -p custom_nodes
+    cd custom_nodes
+    git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+    cd ComfyUI-Manager
+    git checkout v3.39.2 2>/dev/null || echo "Using latest version"
+    cd ../..
+    echo "✅ ComfyUI Manager installed"
+else
+    echo "✅ ComfyUI Manager already installed"
+fi
+
+# Install Workflow Models Downloader 1.8.1 (automatic model detection)
+echo "📥 Installing Workflow Models Downloader 1.8.1..."
+if [ ! -d "custom_nodes/ComfyUI-Workflow-Models-Downloader" ]; then
+    mkdir -p custom_nodes
+    cd custom_nodes
+    git clone https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader.git
+    cd ComfyUI-Workflow-Models-Downloader
+    git checkout v1.8.1 2>/dev/null || echo "Using latest version"
+    
+    # Install dependencies if requirements.txt exists
+    if [ -f "requirements.txt" ]; then
+        source ../../venv/bin/activate
+        pip install -r requirements.txt
+    fi
+    cd ../..
+    echo "✅ Workflow Models Downloader installed"
+else
+    echo "✅ Workflow Models Downloader already installed"
+fi
 
 # Copy workflow file
 echo "📋 Installing StoryCore-Engine workflow..."

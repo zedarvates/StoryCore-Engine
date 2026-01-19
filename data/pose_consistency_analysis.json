@@ -1,0 +1,34 @@
+{
+  "metrics": {
+    "category": "QACategory.POSE_CONSISTENCY",
+    "score": 4.5,
+    "max_score": 5.0,
+    "issues_count": 1,
+    "critical_issues": 0,
+    "high_issues": 0,
+    "medium_issues": 1,
+    "low_issues": 0,
+    "autofix_applied": 0,
+    "manual_review_required": 0,
+    "validation_time": 0.0005016326904296875,
+    "metadata": {}
+  },
+  "issues": [
+    {
+      "issue_id": "pc_001",
+      "category": "QACategory.POSE_CONSISTENCY",
+      "severity": "QASeverity.MEDIUM",
+      "title": "No Character Data",
+      "description": "No character data available for pose validation",
+      "affected_items": [
+        "character_data"
+      ],
+      "score_impact": 0.5,
+      "autofix_available": false,
+      "autofix_action": null,
+      "autofix_confidence": 0.0,
+      "metadata": {}
+    }
+  ],
+  "autofix_results": []
+}

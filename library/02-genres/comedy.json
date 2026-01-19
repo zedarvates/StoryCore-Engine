@@ -1,0 +1,45 @@
+{
+  "id": "genre-comedy",
+  "name": "Comedy Genre",
+  "category": "genres",
+  "description": "Humorous and lighthearted content with comedic timing, exaggerated expressions, and playful scenarios",
+  "tags": ["comedy", "humor", "lighthearted", "funny", "playful"],
+  "prompt": {
+    "base": "Comedy style, bright and vibrant colors, exaggerated expressions, playful composition, energetic atmosphere, comedic timing, lighthearted mood, dynamic framing",
+    "positive": "bright lighting, vibrant colors, expressive faces, comedic gestures, playful energy, dynamic poses, humorous situations, cheerful atmosphere, animated expressions, comedic timing, visual gags, lighthearted mood",
+    "negative": "dark mood, serious tone, dramatic lighting, muted colors, sad expressions, tragic elements, horror elements, violence, grim atmosphere",
+    "technical": {
+      "aspect_ratio": "16:9 or 1.85:1",
+      "color_palette": "Bright, saturated colors with high contrast",
+      "lighting": "Bright, even lighting with minimal shadows",
+      "composition": "Wide shots for physical comedy, close-ups for reactions"
+    }
+  },
+  "variations": [
+    {
+      "name": "Slapstick Comedy",
+      "modifier": "physical comedy, exaggerated movements, cartoon-like expressions, fast-paced action, visual humor"
+    },
+    {
+      "name": "Romantic Comedy",
+      "modifier": "charming atmosphere, warm colors, soft lighting, chemistry between characters, playful interactions"
+    },
+    {
+      "name": "Dark Comedy",
+      "modifier": "ironic situations, subtle humor, muted colors with bright accents, deadpan expressions, absurd scenarios"
+    }
+  ],
+  "examples": [
+    "A character with an exaggerated surprised expression, bright colorful background, dynamic pose, comedic timing captured mid-action",
+    "Two characters in a humorous misunderstanding, bright lighting, expressive body language, playful composition"
+  ],
+  "comfyui": {
+    "workflow_id": "comedy_genre_workflow",
+    "recommended_models": ["dreamshaper", "anything_v5"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 25,
+      "sampler": "Euler a"
+    }
+  }
+}

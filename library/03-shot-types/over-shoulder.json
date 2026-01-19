@@ -1,0 +1,13 @@
+{
+  "category": "shot-types",
+  "subcategory": "dialogue-shots",
+  "id": "shot-over-shoulder",
+  "name": "Over-the-Shoulder Shot",
+  "description": "Shot from behind one character looking at another",
+  "tags": ["over-shoulder", "dialogue", "interaction"],
+  "prompt": "Over-the-shoulder shot, {CHARACTER_A} facing {CHARACTER_B}. Foreground character partially visible, focus on subject of attention. Cinematic dialogue framing, professional depth staging, clear eyeline.",
+  "variables": {
+    "CHARACTER_A": { "type": "string", "required": true },
+    "CHARACTER_B": { "type": "string", "required": true }
+  }
+}

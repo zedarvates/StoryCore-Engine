@@ -1,0 +1,651 @@
+/**
+ * Editor Store - Zustand store for editor-wizard-integration feature
+ * 
+ * This store manages:
+ * - Project state (currentProject, projectPath)
+ * - Wizard state (activeWizard, wizardHistory)
+ * - Asset state (assets, selectedAssetId)
+ * - Shot state (shots, selectedShotId)
+ * 
+ * Integrates with:
+ * - WizardService for wizard execution
+ * - AssetService for asset import
+ * - ProjectService for project data operations
+ * 
+ * Requirements: All requirements - state management foundation
+ */
+
+import { create } from 'zustand';
+import type { Shot } from '../types';
+import type {
+  ProjectData,
+  ShotInput,
+} from '../types/project';
+import type { AssetMetadata, ImportResult } from '../types/asset';
+import type {
+  WizardOutput,
+  CharacterWizardInput,
+  SceneGeneratorInput,
+  StoryboardInput,
+  DialogueInput,
+  WorldBuildingInput,
+  StyleTransferInput,
+  ConnectionStatus,
+} from '../services/wizard/types';
+import { WizardService } from '../services/wizard/WizardService';
+import { AssetService } from '../services/asset/AssetService';
+import { ProjectService } from '../services/project/ProjectService';
+
+/**
+ * Wizard state interface
+ */
+interface WizardState {
+  wizardId: string;
+  currentStep: number;
+  totalSteps: number;
+  formData: Record<string, any>;
+  connectionStatus: {
+    ollama: ConnectionStatus | null;
+    comfyui: ConnectionStatus | null;
+  };
+  generationStatus: {
+    inProgress: boolean;
+    progress: number;
+    stage: string;
+    error?: string;
+  };
+  preservedData?: {
+    timestamp: string;
+    data: Record<string, any>;
+  };
+}
+
+/**
+ * Editor store state interface
+ */
+interface EditorStore {
+  // Project state
+  currentProject: ProjectData | null;
+  projectPath: string | null;
+
+  // Wizard state
+  activeWizard: WizardState | null;
+  wizardHistory: WizardState[];
+
+  // Asset state
+  assets: AssetMetadata[];
+  selectedAssetId: string | null;
+
+  // Shot state
+  shots: Shot[];
+  selectedShotId: string | null;
+
+  // Service instances
+  wizardService: WizardService;
+  assetService: AssetService;
+  projectService: ProjectService;
+
+  // Project actions
+  loadProject: (path: string) => Promise<void>;
+  saveProject: () => Promise<void>;
+  setProjectPath: (path: string | null) => void;
+
+  // Wizard actions
+  openWizard: (wizardId: string, totalSteps: number) => void;
+  closeWizard: () => void;
+  updateWizardState: (updates: Partial<WizardState>) => void;
+  setWizardStep: (step: number) => void;
+  setWizardFormData: (data: Record<string, any>) => void;
+  updateWizardConnectionStatus: (service: 'ollama' | 'comfyui', status: ConnectionStatus) => void;
+  setWizardGenerationStatus: (status: Partial<WizardState['generationStatus']>) => void;
+  completeWizard: (output: WizardOutput) => Promise<void>;
+  preserveWizardSession: () => void;
+  restoreWizardSession: (wizardId: string) => boolean;
+
+  // Wizard execution actions
+  executeCharacterWizard: (input: CharacterWizardInput) => Promise<WizardOutput>;
+  executeSceneGenerator: (input: SceneGeneratorInput) => Promise<WizardOutput>;
+  executeStoryboardCreator: (input: StoryboardInput) => Promise<WizardOutput>;
+  executeDialogueWriter: (input: DialogueInput) => Promise<WizardOutput>;
+  executeWorldBuilder: (input: WorldBuildingInput) => Promise<WizardOutput>;
+  executeStyleTransfer: (input: StyleTransferInput) => Promise<WizardOutput>;
+
+  // Asset actions
+  importAssets: (files: File[], onProgress?: (current: number, total: number, filename: string) => void) => Promise<ImportResult[]>;
+  selectAsset: (assetId: string | null) => void;
+  refreshAssets: () => Promise<void>;
+
+  // Shot actions
+  createShot: (shotData: ShotInput) => Promise<Shot>;
+  updateShot: (shotId: string, updates: Partial<Shot>) => Promise<void>;
+  deleteShot: (shotId: string) => Promise<void>;
+  selectShot: (shotId: string | null) => void;
+  reorderShots: (shotIds: string[]) => Promise<void>;
+  refreshShots: () => Promise<void>;
+
+  // Connection check actions
+  checkOllamaConnection: () => Promise<ConnectionStatus>;
+  checkComfyUIConnection: () => Promise<ConnectionStatus>;
+  checkAllConnections: () => Promise<{ ollama: ConnectionStatus; comfyui: ConnectionStatus; allConnected: boolean }>;
+}
+
+/**
+ * Create editor store with Zustand
+ */
+export const useEditorStore = create<EditorStore>((set, get) => ({
+  // Initial state
+  currentProject: null,
+  projectPath: null,
+  activeWizard: null,
+  wizardHistory: [],
+  assets: [],
+  selectedAssetId: null,
+  shots: [],
+  selectedShotId: null,
+
+  // Service instances
+  wizardService: new WizardService(),
+  assetService: new AssetService(),
+  projectService: new ProjectService(),
+
+  // ============================================================================
+  // Project Actions
+  // ============================================================================
+
+  loadProject: async (path: string) => {
+    try {
+      const { projectService } = get();
+      const project = await projectService.loadProject(path);
+
+      set({
+        currentProject: project,
+        projectPath: path,
+        shots: project.storyboard || [],
+        assets: project.assets || [],
+      });
+
+      console.log('Project loaded successfully:', path);
+    } catch (error) {
+      console.error('Failed to load project:', error);
+      throw error;
+    }
+  },
+
+  saveProject: async () => {
+    try {
+      const { currentProject, projectPath, projectService } = get();
+
+      if (!currentProject || !projectPath) {
+        throw new Error('No project loaded');
+      }
+
+      await projectService.saveProject(projectPath, currentProject);
+      console.log('Project saved successfully');
+    } catch (error) {
+      console.error('Failed to save project:', error);
+      throw error;
+    }
+  },
+
+  setProjectPath: (path: string | null) => {
+    set({ projectPath: path });
+  },
+
+  // ============================================================================
+  // Wizard Actions
+  // ============================================================================
+
+  openWizard: (wizardId: string, totalSteps: number) => {
+    // Check for preserved session
+    const preserved = get().restoreWizardSession(wizardId);
+
+    if (!preserved) {
+      set({
+        activeWizard: {
+          wizardId,
+          currentStep: 0,
+          totalSteps,
+          formData: {},
+          connectionStatus: {
+            ollama: null,
+            comfyui: null,
+          },
+          generationStatus: {
+            inProgress: false,
+            progress: 0,
+            stage: '',
+          },
+        },
+      });
+    }
+
+    console.log('Wizard opened:', wizardId);
+  },
+
+  closeWizard: () => {
+    const { activeWizard } = get();
+
+    if (activeWizard) {
+      // Preserve session before closing
+      get().preserveWizardSession();
+
+      // Add to history
+      set((state) => ({
+        wizardHistory: [...state.wizardHistory, activeWizard],
+        activeWizard: null,
+      }));
+
+      console.log('Wizard closed:', activeWizard.wizardId);
+    }
+  },
+
+  updateWizardState: (updates: Partial<WizardState>) => {
+    set((state) => ({
+      activeWizard: state.activeWizard
+        ? { ...state.activeWizard, ...updates }
+        : null,
+    }));
+  },
+
+  setWizardStep: (step: number) => {
+    set((state) => ({
+      activeWizard: state.activeWizard
+        ? { ...state.activeWizard, currentStep: step }
+        : null,
+    }));
+  },
+
+  setWizardFormData: (data: Record<string, any>) => {
+    set((state) => ({
+      activeWizard: state.activeWizard
+        ? { ...state.activeWizard, formData: data }
+        : null,
+    }));
+  },
+
+  updateWizardConnectionStatus: (service: 'ollama' | 'comfyui', status: ConnectionStatus) => {
+    set((state) => ({
+      activeWizard: state.activeWizard
+        ? {
+            ...state.activeWizard,
+            connectionStatus: {
+              ...state.activeWizard.connectionStatus,
+              [service]: status,
+            },
+          }
+        : null,
+    }));
+  },
+
+  setWizardGenerationStatus: (status: Partial<WizardState['generationStatus']>) => {
+    set((state) => ({
+      activeWizard: state.activeWizard
+        ? {
+            ...state.activeWizard,
+            generationStatus: {
+              ...state.activeWizard.generationStatus,
+              ...status,
+            },
+          }
+        : null,
+    }));
+  },
+
+  completeWizard: async (output: WizardOutput) => {
+    try {
+      const { projectPath, projectService, currentProject } = get();
+
+      if (!projectPath || !currentProject) {
+        throw new Error('No project loaded');
+      }
+
+      // Save wizard output files
+      // This would typically involve writing files to the project directory
+      // For now, we'll update the project data structure
+
+      // Update project based on wizard type
+      switch (output.type) {
+        case 'character':
+          // Add character to project
+          if (!currentProject.characters) {
+            currentProject.characters = [];
+          }
+          currentProject.characters.push({
+            id: output.data.id,
+            name: output.data.name,
+            reference_image_path: output.files[0]?.path || '',
+            created_at: output.data.created_at,
+          });
+          break;
+
+        case 'scene':
+          // Add scene and shots to project
+          if (!currentProject.scenes) {
+            currentProject.scenes = [];
+          }
+          currentProject.scenes.push(output.data);
+
+          // Add shots to storyboard
+          if (output.data.shots && output.data.shots.length > 0) {
+            await projectService.addShotsToStoryboard(projectPath, output.data.shots);
+          }
+          break;
+
+        case 'storyboard':
+          // Add or replace shots based on mode
+          if (output.data.mode === 'replace') {
+            currentProject.storyboard = output.data.shots;
+          } else {
+            await projectService.addShotsToStoryboard(projectPath, output.data.shots);
+          }
+          break;
+
+        case 'dialogue':
+          // Update shots with dialogue tracks
+          // This would typically update specific shots
+          break;
+
+        case 'world':
+          // Set world definition
+          currentProject.world = output.data;
+          break;
+
+        case 'style':
+          // Update shot with styled image
+          await projectService.updateShot(projectPath, output.data.original_shot_id, {
+            image: output.files[0]?.path,
+          });
+          break;
+      }
+
+      // Update capabilities
+      await projectService.updateCapabilities(projectPath, {
+        wizard_generation: true,
+      });
+
+      // Update generation status
+      await projectService.updateGenerationStatus(projectPath, {
+        wizard: 'done',
+      });
+
+      // Refresh state
+      await get().loadProject(projectPath);
+
+      // Close wizard
+      get().closeWizard();
+
+      console.log('Wizard completed successfully:', output.type);
+    } catch (error) {
+      console.error('Failed to complete wizard:', error);
+      throw error;
+    }
+  },
+
+  preserveWizardSession: () => {
+    const { activeWizard } = get();
+
+    if (activeWizard) {
+      const preservedData = {
+        timestamp: new Date().toISOString(),
+        data: activeWizard.formData,
+      };
+
+      // Store in localStorage with 24-hour expiration
+      const storageKey = `wizard_session_${activeWizard.wizardId}`;
+      localStorage.setItem(storageKey, JSON.stringify(preservedData));
+
+      console.log('Wizard session preserved:', activeWizard.wizardId);
+    }
+  },
+
+  restoreWizardSession: (wizardId: string): boolean => {
+    const storageKey = `wizard_session_${wizardId}`;
+    const stored = localStorage.getItem(storageKey);
+
+    if (!stored) {
+      return false;
+    }
+
+    try {
+      const preservedData = JSON.parse(stored);
+      const timestamp = new Date(preservedData.timestamp);
+      const now = new Date();
+      const hoursDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60);
+
+      // Check if session is within 24 hours
+      if (hoursDiff > 24) {
+        localStorage.removeItem(storageKey);
+        return false;
+      }
+
+      // Restore wizard state
+      set({
+        activeWizard: {
+          wizardId,
+          currentStep: 0,
+          totalSteps: 0, // Will be set by wizard component
+          formData: preservedData.data,
+          connectionStatus: {
+            ollama: null,
+            comfyui: null,
+          },
+          generationStatus: {
+            inProgress: false,
+            progress: 0,
+            stage: '',
+          },
+          preservedData,
+        },
+      });
+
+      console.log('Wizard session restored:', wizardId);
+      return true;
+    } catch (error) {
+      console.error('Failed to restore wizard session:', error);
+      localStorage.removeItem(storageKey);
+      return false;
+    }
+  },
+
+  // ============================================================================
+  // Wizard Execution Actions
+  // ============================================================================
+
+  executeCharacterWizard: async (input: CharacterWizardInput) => {
+    const { wizardService } = get();
+    return await wizardService.executeCharacterWizard(input);
+  },
+
+  executeSceneGenerator: async (input: SceneGeneratorInput) => {
+    const { wizardService } = get();
+    return await wizardService.executeSceneGenerator(input);
+  },
+
+  executeStoryboardCreator: async (input: StoryboardInput) => {
+    const { wizardService } = get();
+    return await wizardService.executeStoryboardCreator(input);
+  },
+
+  executeDialogueWriter: async (input: DialogueInput) => {
+    const { wizardService } = get();
+    return await wizardService.executeDialogueWriter(input);
+  },
+
+  executeWorldBuilder: async (input: WorldBuildingInput) => {
+    const { wizardService } = get();
+    return await wizardService.executeWorldBuilder(input);
+  },
+
+  executeStyleTransfer: async (input: StyleTransferInput) => {
+    const { wizardService } = get();
+    return await wizardService.executeStyleTransfer(input);
+  },
+
+  // ============================================================================
+  // Asset Actions
+  // ============================================================================
+
+  importAssets: async (files: File[], onProgress?: (current: number, total: number, filename: string) => void) => {
+    try {
+      const { assetService, projectPath } = get();
+
+      if (!projectPath) {
+        throw new Error('No project loaded');
+      }
+
+      const results = await assetService.importAssets(files, projectPath, onProgress);
+
+      // Refresh assets
+      await get().refreshAssets();
+
+      return results;
+    } catch (error) {
+      console.error('Failed to import assets:', error);
+      throw error;
+    }
+  },
+
+  selectAsset: (assetId: string | null) => {
+    set({ selectedAssetId: assetId });
+  },
+
+  refreshAssets: async () => {
+    try {
+      const { assetService, projectPath } = get();
+
+      if (!projectPath) {
+        return;
+      }
+
+      const assets = await assetService.getAllAssets(projectPath);
+      set({ assets });
+    } catch (error) {
+      console.error('Failed to refresh assets:', error);
+    }
+  },
+
+  // ============================================================================
+  // Shot Actions
+  // ============================================================================
+
+  createShot: async (shotData: ShotInput) => {
+    try {
+      const { projectService, projectPath } = get();
+
+      if (!projectPath) {
+        throw new Error('No project loaded');
+      }
+
+      const shot = await projectService.createShot(projectPath, shotData);
+
+      // Refresh shots
+      await get().refreshShots();
+
+      // Auto-select new shot
+      set({ selectedShotId: shot.id });
+
+      return shot;
+    } catch (error) {
+      console.error('Failed to create shot:', error);
+      throw error;
+    }
+  },
+
+  updateShot: async (shotId: string, updates: Partial<Shot>) => {
+    try {
+      const { projectService, projectPath } = get();
+
+      if (!projectPath) {
+        throw new Error('No project loaded');
+      }
+
+      await projectService.updateShot(projectPath, shotId, updates);
+
+      // Refresh shots
+      await get().refreshShots();
+    } catch (error) {
+      console.error('Failed to update shot:', error);
+      throw error;
+    }
+  },
+
+  deleteShot: async (shotId: string) => {
+    try {
+      const { projectService, projectPath } = get();
+
+      if (!projectPath) {
+        throw new Error('No project loaded');
+      }
+
+      await projectService.deleteShot(projectPath, shotId);
+
+      // Refresh shots
+      await get().refreshShots();
+
+      // Clear selection if deleted shot was selected
+      const { selectedShotId } = get();
+      if (selectedShotId === shotId) {
+        set({ selectedShotId: null });
+      }
+    } catch (error) {
+      console.error('Failed to delete shot:', error);
+      throw error;
+    }
+  },
+
+  selectShot: (shotId: string | null) => {
+    set({ selectedShotId: shotId });
+  },
+
+  reorderShots: async (shotIds: string[]) => {
+    try {
+      const { projectService, projectPath } = get();
+
+      if (!projectPath) {
+        throw new Error('No project loaded');
+      }
+
+      await projectService.reorderShots(projectPath, shotIds);
+
+      // Refresh shots
+      await get().refreshShots();
+    } catch (error) {
+      console.error('Failed to reorder shots:', error);
+      throw error;
+    }
+  },
+
+  refreshShots: async () => {
+    try {
+      const { projectPath } = get();
+
+      if (!projectPath) {
+        return;
+      }
+
+      // Reload project to get updated shots
+      await get().loadProject(projectPath);
+    } catch (error) {
+      console.error('Failed to refresh shots:', error);
+    }
+  },
+
+  // ============================================================================
+  // Connection Check Actions
+  // ============================================================================
+
+  checkOllamaConnection: async () => {
+    const { wizardService } = get();
+    return await wizardService.checkOllamaConnection();
+  },
+
+  checkComfyUIConnection: async () => {
+    const { wizardService } = get();
+    return await wizardService.checkComfyUIConnection();
+  },
+
+  checkAllConnections: async () => {
+    const { wizardService } = get();
+    return await wizardService.checkAllConnections();
+  },
+}));

@@ -1,0 +1,65 @@
+{
+  "project_overview": {
+    "total_duration": 24.0,
+    "sample_rate": 48000,
+    "bit_depth": 24,
+    "track_count": 4,
+    "total_clips": 11,
+    "reverb_zones": 2,
+    "sync_markers": 8
+  },
+  "track_analysis": {
+    "dialogue": {
+      "clip_count": 4,
+      "total_duration": 9.8,
+      "average_clip_duration": 2.45,
+      "volume_range": {
+        "min": 0.8,
+        "max": 0.8
+      },
+      "content_variety": 4
+    },
+    "sfx": {
+      "clip_count": 3,
+      "total_duration": 13.0,
+      "average_clip_duration": 4.333333333333333,
+      "volume_range": {
+        "min": 0.3,
+        "max": 0.6
+      },
+      "content_variety": 3
+    },
+    "ambience": {
+      "clip_count": 2,
+      "total_duration": 20.0,
+      "average_clip_duration": 10.0,
+      "volume_range": {
+        "min": 0.4,
+        "max": 0.4
+      },
+      "content_variety": 2
+    },
+    "music": {
+      "clip_count": 2,
+      "total_duration": 20.0,
+      "average_clip_duration": 10.0,
+      "volume_range": {
+        "min": 0.3,
+        "max": 0.3
+      },
+      "content_variety": 2
+    }
+  },
+  "content_analysis": {
+    "dialogue_lines": 4,
+    "sfx_events": 3,
+    "ambience_layers": 2,
+    "music_segments": 2
+  },
+  "quality_metrics": {
+    "dialogue_coverage": 0.4083333333333334,
+    "sfx_density": 0.125,
+    "ambience_consistency": 0.9,
+    "music_continuity": 0.8
+  }
+}

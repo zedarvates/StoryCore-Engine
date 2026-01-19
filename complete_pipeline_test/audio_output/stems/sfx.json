@@ -1,0 +1,66 @@
+{
+  "track_id": "sfx",
+  "track_type": "AudioType.SFX",
+  "clips": [
+    {
+      "clip_id": "sfx_wind_0",
+      "audio_type": "AudioType.SFX",
+      "start_time": 0.0,
+      "duration": 10.0,
+      "content": "temp_audio_mock\\mock_stable_audio_2f2f8811.wav",
+      "character_id": null,
+      "voice_type": null,
+      "volume": 0.3,
+      "pan": 0.0,
+      "reverb_zone": null,
+      "spatial_position": null,
+      "metadata": {
+        "environment": "outdoor",
+        "generated_audio": "temp_audio_mock\\mock_stable_audio_2f2f8811.wav",
+        "comfyui_prompt": "wind blowing, nature sounds, outdoor ambience, forest atmosphere"
+      }
+    },
+    {
+      "clip_id": "sfx_walk_0_0",
+      "audio_type": "AudioType.SFX",
+      "start_time": 0.0,
+      "duration": 1.5,
+      "content": "temp_audio_mock\\mock_stable_audio_60f6bc63.wav",
+      "character_id": null,
+      "voice_type": null,
+      "volume": 0.6,
+      "pan": 0.0,
+      "reverb_zone": null,
+      "spatial_position": null,
+      "metadata": {
+        "action_type": "walk",
+        "scene_index": 0,
+        "generated_audio": "temp_audio_mock\\mock_stable_audio_60f6bc63.wav",
+        "comfyui_prompt": "footsteps on ground, walking sound, steady pace"
+      }
+    },
+    {
+      "clip_id": "sfx_walk_1_0",
+      "audio_type": "AudioType.SFX",
+      "start_time": 10.0,
+      "duration": 1.5,
+      "content": "temp_audio_mock\\mock_stable_audio_90397ff7.wav",
+      "character_id": null,
+      "voice_type": null,
+      "volume": 0.6,
+      "pan": 0.0,
+      "reverb_zone": null,
+      "spatial_position": null,
+      "metadata": {
+        "action_type": "walk",
+        "scene_index": 1,
+        "generated_audio": "temp_audio_mock\\mock_stable_audio_90397ff7.wav",
+        "comfyui_prompt": "footsteps on ground, walking sound, steady pace"
+      }
+    }
+  ],
+  "volume": 0.7,
+  "muted": false,
+  "solo": false,
+  "effects": []
+}

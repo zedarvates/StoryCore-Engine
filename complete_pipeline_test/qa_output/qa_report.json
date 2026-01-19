@@ -1,0 +1,464 @@
+{
+  "report_id": "qa_enhanced_1768060952",
+  "project_id": "unknown",
+  "timestamp": 1768060952.3141696,
+  "overall_score": 4.7909999999999995,
+  "passed": false,
+  "category_metrics": {
+    "visual_coherence": {
+      "category": "QACategory.VISUAL_COHERENCE",
+      "score": 4.7,
+      "max_score": 5.0,
+      "issues_count": 2,
+      "critical_issues": 0,
+      "high_issues": 1,
+      "medium_issues": 1,
+      "low_issues": 0,
+      "autofix_applied": 2,
+      "manual_review_required": 0,
+      "validation_time": 0.0,
+      "metadata": {}
+    },
+    "pose_consistency": {
+      "category": "QACategory.POSE_CONSISTENCY",
+      "score": 4.6,
+      "max_score": 5.0,
+      "issues_count": 2,
+      "critical_issues": 0,
+      "high_issues": 0,
+      "medium_issues": 0,
+      "low_issues": 2,
+      "autofix_applied": 0,
+      "manual_review_required": 0,
+      "validation_time": 0.0004985332489013672,
+      "metadata": {}
+    },
+    "lighting_consistency": {
+      "category": "QACategory.LIGHTING_CONSISTENCY",
+      "score": 4.880000000000001,
+      "max_score": 5.0,
+      "issues_count": 2,
+      "critical_issues": 0,
+      "high_issues": 0,
+      "medium_issues": 2,
+      "low_issues": 0,
+      "autofix_applied": 2,
+      "manual_review_required": 0,
+      "validation_time": 0.0,
+      "metadata": {}
+    },
+    "perspective_accuracy": {
+      "category": "QACategory.PERSPECTIVE_ACCURACY",
+      "score": 4.8,
+      "max_score": 5.0,
+      "issues_count": 1,
+      "critical_issues": 0,
+      "high_issues": 0,
+      "medium_issues": 0,
+      "low_issues": 1,
+      "autofix_applied": 0,
+      "manual_review_required": 0,
+      "validation_time": 0.0,
+      "metadata": {}
+    },
+    "character_stability": {
+      "category": "QACategory.CHARACTER_STABILITY",
+      "score": 5.0,
+      "max_score": 5.0,
+      "issues_count": 0,
+      "critical_issues": 0,
+      "high_issues": 0,
+      "medium_issues": 0,
+      "low_issues": 0,
+      "autofix_applied": 0,
+      "manual_review_required": 0,
+      "validation_time": 0.0,
+      "metadata": {}
+    },
+    "color_palette": {
+      "category": "QACategory.COLOR_PALETTE",
+      "score": 4.92,
+      "max_score": 5.0,
+      "issues_count": 1,
+      "critical_issues": 0,
+      "high_issues": 0,
+      "medium_issues": 1,
+      "low_issues": 0,
+      "autofix_applied": 1,
+      "manual_review_required": 0,
+      "validation_time": 0.0,
+      "metadata": {}
+    },
+    "audio_sync": {
+      "category": "QACategory.AUDIO_SYNC",
+      "score": 5.0,
+      "max_score": 5.0,
+      "issues_count": 0,
+      "critical_issues": 0,
+      "high_issues": 0,
+      "medium_issues": 0,
+      "low_issues": 0,
+      "autofix_applied": 0,
+      "manual_review_required": 0,
+      "validation_time": 0.0,
+      "metadata": {}
+    },
+    "motion_coherence": {
+      "category": "QACategory.MOTION_COHERENCE",
+      "score": 5.0,
+      "max_score": 5.0,
+      "issues_count": 0,
+      "critical_issues": 0,
+      "high_issues": 0,
+      "medium_issues": 0,
+      "low_issues": 0,
+      "autofix_applied": 0,
+      "manual_review_required": 0,
+      "validation_time": 0.0,
+      "metadata": {}
+    },
+    "temporal_consistency": {
+      "category": "QACategory.TEMPORAL_CONSISTENCY",
+      "score": 4.9,
+      "max_score": 5.0,
+      "issues_count": 1,
+      "critical_issues": 0,
+      "high_issues": 0,
+      "medium_issues": 0,
+      "low_issues": 1,
+      "autofix_applied": 0,
+      "manual_review_required": 0,
+      "validation_time": 0.0,
+      "metadata": {}
+    },
+    "data_integrity": {
+      "category": "QACategory.DATA_INTEGRITY",
+      "score": 3.0,
+      "max_score": 5.0,
+      "issues_count": 1,
+      "critical_issues": 1,
+      "high_issues": 0,
+      "medium_issues": 0,
+      "low_issues": 0,
+      "autofix_applied": 0,
+      "manual_review_required": 0,
+      "validation_time": 0.0,
+      "metadata": {}
+    }
+  },
+  "issues": [
+    {
+      "issue_id": "vc_001",
+      "category": "QACategory.VISUAL_COHERENCE",
+      "severity": "QASeverity.HIGH",
+      "title": "Missing Coherence Anchors",
+      "description": "No coherence anchors found in project data",
+      "affected_items": [
+        "coherence_anchors"
+      ],
+      "score_impact": 1.0,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.REGENERATE_CONTENT",
+      "autofix_confidence": 0.8,
+      "metadata": {}
+    },
+    {
+      "issue_id": "vc_002",
+      "category": "QACategory.VISUAL_COHERENCE",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Style Drift Detected",
+      "description": "Style drift of 15.0% exceeds threshold",
+      "affected_items": [
+        "generated_images"
+      ],
+      "score_impact": 0.5,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.7,
+      "metadata": {}
+    },
+    {
+      "issue_id": "pc_002",
+      "category": "QACategory.POSE_CONSISTENCY",
+      "severity": "QASeverity.LOW",
+      "title": "Pose Variance for hero",
+      "description": "Pose variance of 25.0% for character hero",
+      "affected_items": [
+        "hero"
+      ],
+      "score_impact": 0.2,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.6,
+      "metadata": {}
+    },
+    {
+      "issue_id": "pc_003",
+      "category": "QACategory.POSE_CONSISTENCY",
+      "severity": "QASeverity.LOW",
+      "title": "Pose Variance for companion",
+      "description": "Pose variance of 25.0% for character companion",
+      "affected_items": [
+        "companion"
+      ],
+      "score_impact": 0.2,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.6,
+      "metadata": {}
+    },
+    {
+      "issue_id": "lc_001",
+      "category": "QACategory.LIGHTING_CONSISTENCY",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Lighting Inconsistency in scene_1",
+      "description": "Lighting variance of 18.0% in scene_1",
+      "affected_items": [
+        "scene_1"
+      ],
+      "score_impact": 0.3,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.75,
+      "metadata": {}
+    },
+    {
+      "issue_id": "lc_002",
+      "category": "QACategory.LIGHTING_CONSISTENCY",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Lighting Inconsistency in scene_2",
+      "description": "Lighting variance of 18.0% in scene_2",
+      "affected_items": [
+        "scene_2"
+      ],
+      "score_impact": 0.3,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.75,
+      "metadata": {}
+    },
+    {
+      "issue_id": "pa_001",
+      "category": "QACategory.PERSPECTIVE_ACCURACY",
+      "severity": "QASeverity.LOW",
+      "title": "Minor Perspective Errors",
+      "description": "Perspective errors in 8.0% of content",
+      "affected_items": [
+        "generated_content"
+      ],
+      "score_impact": 0.2,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.APPLY_CORRECTION",
+      "autofix_confidence": 0.6,
+      "metadata": {}
+    },
+    {
+      "issue_id": "cp_001",
+      "category": "QACategory.COLOR_PALETTE",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Color Palette Drift",
+      "description": "Color palette drift of 12.0%",
+      "affected_items": [
+        "color_palette"
+      ],
+      "score_impact": 0.4,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.85,
+      "metadata": {}
+    },
+    {
+      "issue_id": "tc_001",
+      "category": "QACategory.TEMPORAL_CONSISTENCY",
+      "severity": "QASeverity.LOW",
+      "title": "Minor Temporal Inconsistencies",
+      "description": "Temporal variance: 6.0%",
+      "affected_items": [
+        "temporal_sequences"
+      ],
+      "score_impact": 0.1,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.APPLY_CORRECTION",
+      "autofix_confidence": 0.5,
+      "metadata": {}
+    },
+    {
+      "issue_id": "di_001",
+      "category": "QACategory.DATA_INTEGRITY",
+      "severity": "QASeverity.CRITICAL",
+      "title": "Missing storyboard.json",
+      "description": "Required file storyboard.json not found or invalid",
+      "affected_items": [
+        "storyboard.json"
+      ],
+      "score_impact": 2.0,
+      "autofix_available": false,
+      "autofix_action": null,
+      "autofix_confidence": 0.0,
+      "metadata": {}
+    }
+  ],
+  "autofix_results": [
+    {
+      "issue_id": "vc_001",
+      "action": "AutofixAction.REGENERATE_CONTENT",
+      "success": true,
+      "improvement_score": 0.8,
+      "original_score": 1.0,
+      "new_score": 1.8,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Missing Coherence Anchors",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.8
+      }
+    },
+    {
+      "issue_id": "vc_002",
+      "action": "AutofixAction.ADJUST_PARAMETERS",
+      "success": true,
+      "improvement_score": 0.4,
+      "original_score": 0.5,
+      "new_score": 0.9,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Style Drift Detected",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.7
+      }
+    },
+    {
+      "issue_id": "lc_001",
+      "action": "AutofixAction.ADJUST_PARAMETERS",
+      "success": true,
+      "improvement_score": 0.24,
+      "original_score": 0.3,
+      "new_score": 0.54,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Lighting Inconsistency in scene_1",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.75
+      }
+    },
+    {
+      "issue_id": "lc_002",
+      "action": "AutofixAction.ADJUST_PARAMETERS",
+      "success": true,
+      "improvement_score": 0.24,
+      "original_score": 0.3,
+      "new_score": 0.54,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Lighting Inconsistency in scene_2",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.75
+      }
+    },
+    {
+      "issue_id": "cp_001",
+      "action": "AutofixAction.ADJUST_PARAMETERS",
+      "success": true,
+      "improvement_score": 0.32000000000000006,
+      "original_score": 0.4,
+      "new_score": 0.7200000000000001,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Color Palette Drift",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.85
+      }
+    }
+  ],
+  "validation_summary": {
+    "overall_score": 4.7909999999999995,
+    "passed": false,
+    "total_issues": 10,
+    "severity_breakdown": {
+      "critical": 1,
+      "high": 1,
+      "medium": 4,
+      "low": 4,
+      "info": 0
+    },
+    "category_performance": {
+      "visual_coherence": {
+        "score": 4.7,
+        "issues": 2,
+        "autofix_applied": 2,
+        "validation_time": 0.0
+      },
+      "pose_consistency": {
+        "score": 4.6,
+        "issues": 2,
+        "autofix_applied": 0,
+        "validation_time": 0.0004985332489013672
+      },
+      "lighting_consistency": {
+        "score": 4.880000000000001,
+        "issues": 2,
+        "autofix_applied": 2,
+        "validation_time": 0.0
+      },
+      "perspective_accuracy": {
+        "score": 4.8,
+        "issues": 1,
+        "autofix_applied": 0,
+        "validation_time": 0.0
+      },
+      "character_stability": {
+        "score": 5.0,
+        "issues": 0,
+        "autofix_applied": 0,
+        "validation_time": 0.0
+      },
+      "color_palette": {
+        "score": 4.92,
+        "issues": 1,
+        "autofix_applied": 1,
+        "validation_time": 0.0
+      },
+      "audio_sync": {
+        "score": 5.0,
+        "issues": 0,
+        "autofix_applied": 0,
+        "validation_time": 0.0
+      },
+      "motion_coherence": {
+        "score": 5.0,
+        "issues": 0,
+        "autofix_applied": 0,
+        "validation_time": 0.0
+      },
+      "temporal_consistency": {
+        "score": 4.9,
+        "issues": 1,
+        "autofix_applied": 0,
+        "validation_time": 0.0
+      },
+      "data_integrity": {
+        "score": 3.0,
+        "issues": 1,
+        "autofix_applied": 0,
+        "validation_time": 0.0
+      }
+    },
+    "autofix_summary": {
+      "total_attempts": 5,
+      "successful": 5,
+      "failed": 0,
+      "total_improvement": 2.0
+    },
+    "validation_time": 0.0
+  },
+  "recommendations": [
+    "Address critical issues immediately - project cannot proceed without fixes"
+  ],
+  "metadata": {
+    "total_validation_time": 0.011001348495483398,
+    "categories_validated": 10,
+    "total_issues": 10,
+    "autofix_operations": 5,
+    "mock_mode": true
+  }
+}

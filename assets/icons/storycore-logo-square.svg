@@ -1,0 +1,38 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sqLogoBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="sqLogoFilmGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Icon section -->
+  <g transform="translate(78, 78)">
+    <!-- Circular background -->
+    <circle cx="50" cy="50" r="45" fill="url(#sqLogoBgGradient)"/>
+
+    <!-- Film reel motif -->
+    <circle cx="50" cy="50" r="16" fill="none" stroke="url(#sqLogoFilmGradient)" stroke-width="2"/>
+
+    <!-- Film perforations -->
+    <rect x="34" y="34" width="3" height="3" rx="0.5" fill="url(#sqLogoFilmGradient)"/>
+    <rect x="63" y="34" width="3" height="3" rx="0.5" fill="url(#sqLogoFilmGradient)"/>
+    <rect x="34" y="63" width="3" height="3" rx="0.5" fill="url(#sqLogoFilmGradient)"/>
+    <rect x="63" y="63" width="3" height="3" rx="0.5" fill="url(#sqLogoFilmGradient)"/>
+
+    <!-- Central camera aperture -->
+    <circle cx="50" cy="50" r="8" fill="none" stroke="url(#sqLogoFilmGradient)" stroke-width="1.5"/>
+    <circle cx="50" cy="50" r="5" fill="none" stroke="url(#sqLogoFilmGradient)" stroke-width="1"/>
+  </g>
+
+  <!-- Text below icon -->
+  <g transform="translate(128, 180)">
+    <text x="0" y="0" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" fill="#1e3a8a" text-anchor="middle">
+      StoryCore
+    </text>
+  </g>
+</svg>

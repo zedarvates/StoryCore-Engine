@@ -1,0 +1,385 @@
+/**
+ * Auto-Save Indicator Styles
+ */
+
+/* ============================================================================
+   Main Container
+   ============================================================================ */
+
+.auto-save-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #252525;
+  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: relative;
+}
+
+.auto-save-indicator.compact {
+  padding: 4px 8px;
+  gap: 8px;
+}
+
+/* ============================================================================
+   Status Display
+   ============================================================================ */
+
+.auto-save-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.saving-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.saved-checkmark {
+  color: #28a745;
+  font-weight: bold;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.auto-save-active {
+  color: #007acc;
+}
+
+.auto-save-inactive {
+  color: #666;
+  opacity: 0.5;
+}
+
+.status-text {
+  font-size: 13px;
+  color: #e0e0e0;
+  min-width: 120px;
+}
+
+.saving-text {
+  color: #ffc107;
+}
+
+.saved-text {
+  color: #28a745;
+}
+
+.last-saved-text {
+  color: #888;
+}
+
+.not-saved-text {
+  color: #666;
+}
+
+/* ============================================================================
+   Controls
+   ============================================================================ */
+
+.auto-save-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px;
+  border-left: 1px solid #333;
+}
+
+.auto-save-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #e0e0e0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.auto-save-checkbox {
+  cursor: pointer;
+}
+
+.manual-save-btn,
+.settings-btn {
+  padding: 6px 12px;
+  background: #333;
+  color: #e0e0e0;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.manual-save-btn:hover,
+.settings-btn:hover {
+  background: #444;
+}
+
+.settings-btn {
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+/* ============================================================================
+   Settings Panel
+   ============================================================================ */
+
+.auto-save-settings {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 320px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+}
+
+.settings-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.close-settings-btn {
+  background: none;
+  border: none;
+  color: #e0e0e0;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-settings-btn:hover {
+  background: #333;
+}
+
+.settings-content {
+  padding: 16px;
+}
+
+.interval-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: #e0e0e0;
+}
+
+.interval-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.interval-input {
+  width: 80px;
+  padding: 8px;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+.interval-input:focus {
+  outline: none;
+  border-color: #007acc;
+}
+
+.interval-unit {
+  color: #888;
+  font-size: 13px;
+}
+
+.settings-info {
+  margin-top: 16px;
+  padding: 12px;
+  background: #252525;
+  border-radius: 4px;
+}
+
+.settings-info p {
+  margin: 0;
+  font-size: 12px;
+  color: #b0b0b0;
+  line-height: 1.5;
+}
+
+.settings-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  padding: 8px 16px;
+  background: #007acc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background: #005a9e;
+}
+
+/* ============================================================================
+   Compact Mode
+   ============================================================================ */
+
+.auto-save-indicator.compact .auto-save-toggle {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.auto-save-indicator.compact .auto-save-toggle:hover {
+  background: #333;
+}
+
+.auto-save-indicator.compact .auto-save-toggle.enabled {
+  color: #007acc;
+}
+
+.auto-save-indicator.compact .auto-save-toggle.disabled {
+  color: #666;
+  opacity: 0.5;
+}
+
+.auto-save-indicator.compact .saving-indicator {
+  font-size: 11px;
+  color: #ffc107;
+}
+
+.auto-save-indicator.compact .saved-indicator {
+  font-size: 14px;
+  color: #28a745;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.auto-save-indicator.compact .last-saved-text {
+  font-size: 11px;
+  color: #888;
+}
+
+/* ============================================================================
+   Simple Toggle
+   ============================================================================ */
+
+.simple-auto-save-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #e0e0e0;
+}
+
+.simple-auto-save-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.simple-auto-save-toggle .last-saved {
+  color: #888;
+  font-size: 12px;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .auto-save-indicator {
+    flex-wrap: wrap;
+  }
+
+  .auto-save-controls {
+    padding-left: 0;
+    border-left: none;
+    padding-top: 8px;
+    border-top: 1px solid #333;
+    width: 100%;
+  }
+
+  .auto-save-settings {
+    left: 0;
+    right: 0;
+    width: auto;
+  }
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.auto-save-indicator.saving .status-icon {
+  animation: pulse 1.5s ease-in-out infinite;
+}

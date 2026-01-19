@@ -1,0 +1,57 @@
+/**
+ * Field Highlight Styles
+ */
+
+.field-highlight {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.field-highlight-error {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Highlight input fields with errors */
+.field-highlight-error input,
+.field-highlight-error textarea,
+.field-highlight-error select {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.field-highlight-error input:focus,
+.field-highlight-error textarea:focus,
+.field-highlight-error select:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  outline: none;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-0.25rem);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(0.25rem);
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .field-highlight-error input,
+  .field-highlight-error textarea,
+  .field-highlight-error select {
+    border-color: #fca5a5 !important;
+    box-shadow: 0 0 0 3px rgba(252, 165, 165, 0.15);
+  }
+
+  .field-highlight-error input:focus,
+  .field-highlight-error textarea:focus,
+  .field-highlight-error select:focus {
+    border-color: #fca5a5 !important;
+    box-shadow: 0 0 0 3px rgba(252, 165, 165, 0.25);
+  }
+}

@@ -1,0 +1,264 @@
+/* Central Configuration UI Styles */
+
+.central-configuration-ui {
+  min-height: 100vh;
+  background: var(--bg-primary, #1a1a1a);
+  color: var(--text-primary, #ffffff);
+  position: relative;
+}
+
+.central-configuration-ui.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 20px;
+  border: 4px solid var(--border-color, #444);
+  border-top-color: var(--accent-color, #4a9eff);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner p {
+  font-size: 16px;
+  color: var(--text-secondary, #999);
+}
+
+.close-ui-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: var(--card-bg, #2a2a2a);
+  color: var(--text-primary, #ffffff);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 50%;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 1000;
+}
+
+.close-ui-button:hover {
+  background: var(--danger-color, #ff4444);
+  border-color: var(--danger-color, #ff4444);
+  transform: scale(1.1);
+}
+
+/* Modal Overlay (shared by all configuration windows) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-window {
+  background: var(--bg-secondary, #222);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  max-width: 90vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 1px solid var(--border-color, #444);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.close-button {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  color: var(--text-secondary, #999);
+  border: none;
+  border-radius: 4px;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background: var(--card-hover-bg, #333);
+  color: var(--text-primary, #ffffff);
+}
+
+.modal-body {
+  padding: 30px;
+  overflow-y: auto;
+  max-height: calc(80vh - 140px);
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--bg-secondary, #222);
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--border-color, #444);
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary, #999);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 20px 30px;
+  border-top: 1px solid var(--border-color, #444);
+}
+
+.cancel-button,
+.save-button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button {
+  background: var(--card-bg, #2a2a2a);
+  color: var(--text-primary, #ffffff);
+  border: 1px solid var(--border-color, #444);
+}
+
+.cancel-button:hover {
+  background: var(--card-hover-bg, #333);
+}
+
+.save-button {
+  background: var(--accent-color, #4a9eff);
+  color: white;
+}
+
+.save-button:hover:not(:disabled) {
+  background: var(--accent-hover, #3a8eef);
+}
+
+.save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form Elements (shared) */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #ffffff);
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--input-bg, #1a1a1a);
+  color: var(--text-primary, #ffffff);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent-color, #4a9eff);
+}
+
+.form-group input.error {
+  border-color: var(--error-color, #ff4444);
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.error-message {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--error-color, #ff4444);
+}
+
+/* CSS Variables (default dark theme) */
+:root {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #222;
+  --card-bg: #2a2a2a;
+  --card-hover-bg: #333;
+  --input-bg: #1a1a1a;
+  --border-color: #444;
+  --text-primary: #ffffff;
+  --text-secondary: #999;
+  --accent-color: #4a9eff;
+  --accent-hover: #3a8eef;
+  --success-color: #4caf50;
+  --success-bg: #1e4620;
+  --error-color: #ff4444;
+  --error-bg: #4a1e1e;
+  --warning-color: #ffa500;
+  --warning-bg: #4a3a1e;
+  --danger-color: #ff4444;
+  --danger-hover: #ee3333;
+  --info-color: #4a9eff;
+  --info-bg: #1e3a4a;
+  --secondary-color: #6c757d;
+  --secondary-hover: #5c6570;
+}

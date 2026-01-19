@@ -1,0 +1,45 @@
+{
+  "id": "time-afternoon",
+  "name": "Afternoon Light",
+  "category": "time-of-day",
+  "description": "Peak daylight with strong overhead sun and high-contrast shadows",
+  "tags": ["afternoon", "midday", "overhead-sun", "bright", "high-contrast"],
+  "prompt": {
+    "base": "Afternoon light, midday sun, overhead illumination, peak daylight, strong shadows, high-contrast lighting, bright atmosphere, full daylight, intense sunlight",
+    "positive": "afternoon light, midday sun, overhead illumination, peak daylight, strong shadows, high-contrast, bright atmosphere, intense sunlight, full daylight, harsh light, maximum brightness, clear visibility",
+    "negative": "soft lighting, golden hour, dawn colors, dusk mood, dim light, evening atmosphere, gentle shadows",
+    "technical": {
+      "sun_position": "High overhead, 60-90 degrees",
+      "color_temperature": "Neutral white, 5500-6500K",
+      "shadow_quality": "Short, hard shadows with sharp edges",
+      "atmospheric_effects": "Clear visibility, heat haze possible, intense light"
+    }
+  },
+  "variations": [
+    {
+      "name": "Summer Afternoon",
+      "modifier": "intense heat, bright sunshine, harsh light, hot atmosphere, summer intensity"
+    },
+    {
+      "name": "Shaded Afternoon",
+      "modifier": "tree shade, covered areas, relief from sun, dappled light, protected spaces"
+    },
+    {
+      "name": "Indoor Afternoon",
+      "modifier": "strong window light, interior contrast, bright spots, shadow areas, indoor daylight"
+    }
+  ],
+  "examples": [
+    "A plaza at midday with strong overhead sun, harsh shadows, bright high-contrast atmosphere",
+    "A character shielding eyes from afternoon sun, intense daylight, peak brightness"
+  ],
+  "comfyui": {
+    "workflow_id": "afternoon_lighting_workflow",
+    "recommended_models": ["realistic_vision", "epicrealism"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

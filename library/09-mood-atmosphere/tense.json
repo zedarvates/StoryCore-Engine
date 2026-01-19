@@ -1,0 +1,45 @@
+{
+  "id": "mood-tense",
+  "name": "Tense Mood",
+  "category": "mood-atmosphere",
+  "description": "Anxious and suspenseful atmosphere with tight composition and nervous energy",
+  "tags": ["tense", "anxious", "suspenseful", "nervous", "stressful"],
+  "prompt": {
+    "base": "Tense anxious atmosphere, suspenseful mood, tight composition, nervous energy, stressful environment, edge-of-seat tension, claustrophobic framing, pressure-filled atmosphere, high-stakes mood",
+    "positive": "tense atmosphere, anxious mood, suspenseful tone, nervous energy, tight framing, stressful environment, edge-of-seat tension, pressure-filled, high-stakes moment, claustrophobic composition, mounting tension",
+    "negative": "relaxed mood, calm atmosphere, peaceful setting, comfortable environment, stress-free, tranquil mood, easy-going tone",
+    "technical": {
+      "lighting": "Dramatic with hard shadows creating unease",
+      "color_palette": "Desaturated with strategic color accents",
+      "contrast": "High contrast emphasizing tension",
+      "mood_intensity": "Building, escalating tension"
+    }
+  },
+  "variations": [
+    {
+      "name": "Psychological Tense",
+      "modifier": "mental pressure, paranoid atmosphere, internal conflict, mind games, psychological warfare"
+    },
+    {
+      "name": "Action Tense",
+      "modifier": "physical danger, chase energy, combat readiness, adrenaline rush, survival mode"
+    },
+    {
+      "name": "Social Tense",
+      "modifier": "awkward situation, social pressure, uncomfortable interaction, interpersonal conflict, strained relationships"
+    }
+  ],
+  "examples": [
+    "A character in a tense standoff, tight framing, anxious atmosphere, suspenseful mood with mounting tension",
+    "A claustrophobic space with tense lighting, nervous energy, high-stakes atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "tense_mood_workflow",
+    "recommended_models": ["realistic_vision", "epicrealism"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 32,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

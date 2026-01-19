@@ -1,0 +1,29 @@
+{
+  "id": "camera-movement-zoom",
+  "name": "Zoom (Lens Focal Length Change)",
+  "category": "camera-movements",
+  "description": "Changing lens focal length to magnify or widen view without moving camera",
+  "tags": ["zoom", "focal-length", "magnify", "lens", "optical"],
+  "prompt": {
+    "base": "Zoom camera effect, changing focal length, zoom in or zoom out, lens magnification, optical zoom, telephoto to wide or wide to telephoto, focal length adjustment, zoom lens effect",
+    "positive": "zoom effect, focal length change, zoom in, zoom out, lens magnification, optical zoom, telephoto effect, wide angle effect, focal adjustment, zoom lens, magnification change",
+    "negative": "dolly movement, camera position change, physical camera movement, static focal length, fixed lens",
+    "technical": {
+      "movement_type": "Optical - focal length change, no camera position change",
+      "speed": "Variable - slow for dramatic, fast for shock",
+      "use_cases": "Dramatic emphasis, shock moments, quick reframing, stylistic choice"
+    }
+  },
+  "examples": [
+    "Zoom in on character's shocked expression, rapid focal length change for dramatic emphasis",
+    "Slow zoom out revealing the full scene, gradual widening of perspective"
+  ],
+  "comfyui": {
+    "workflow_id": "zoom_camera_workflow",
+    "parameters": {
+      "movement": "zoom",
+      "type": "optical",
+      "speed": "medium"
+    }
+  }
+}

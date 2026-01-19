@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-vintage",
+  "name": "Vintage Visual Style",
+  "category": "visual-styles",
+  "description": "Classic film aesthetic with aged colors, film grain, and nostalgic atmosphere",
+  "tags": ["vintage", "retro", "classic", "aged", "nostalgic"],
+  "prompt": {
+    "base": "Vintage film aesthetic, aged colors, film grain, nostalgic atmosphere, classic photography, faded tones, retro style, old film look, sepia undertones, vintage cinematography, timeless quality",
+    "positive": "vintage photography, film grain, aged colors, nostalgic mood, classic film aesthetic, faded tones, retro style, old photograph, sepia tones, vintage texture, timeless beauty, classic cinematography, soft focus, warm tones",
+    "negative": "modern digital, sharp clarity, vibrant colors, contemporary style, high definition, clean image, digital perfection, current trends",
+    "technical": {
+      "rendering": "Aged film simulation with grain and color shift",
+      "textures": "Vintage texture overlays, film grain, subtle damage",
+      "lighting": "Soft vintage lighting with warm tones",
+      "detail_level": "Softened detail with period-appropriate clarity"
+    }
+  },
+  "variations": [
+    {
+      "name": "1920s Vintage",
+      "modifier": "silent film aesthetic, high contrast, sepia tone, art deco influence, early cinema"
+    },
+    {
+      "name": "1950s Vintage",
+      "modifier": "Technicolor aesthetic, saturated colors, golden age Hollywood, classic glamour"
+    },
+    {
+      "name": "1970s Vintage",
+      "modifier": "warm color cast, soft focus, earthy tones, retro fashion, nostalgic atmosphere"
+    }
+  ],
+  "examples": [
+    "A portrait with vintage film grain, faded colors, nostalgic atmosphere, classic photography aesthetic",
+    "A street scene with sepia tones, aged film look, vintage texture, timeless quality"
+  ],
+  "comfyui": {
+    "workflow_id": "vintage_style_workflow",
+    "recommended_models": ["realistic_vision", "dreamshaper"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

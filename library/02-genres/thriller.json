@@ -1,0 +1,45 @@
+{
+  "id": "genre-thriller",
+  "name": "Thriller Genre",
+  "category": "genres",
+  "description": "Suspenseful and tense narratives with psychological tension, mystery, and edge-of-seat anticipation",
+  "tags": ["thriller", "suspense", "tension", "mystery", "psychological"],
+  "prompt": {
+    "base": "Thriller atmosphere, high tension, suspenseful mood, dramatic shadows, intense color grading, tight framing, psychological pressure, ominous undertones, mystery elements",
+    "positive": "dramatic lighting, deep shadows, tense atmosphere, mysterious mood, intense expressions, psychological depth, suspenseful composition, ominous colors, tight close-ups, anxious energy, hidden threats, paranoid atmosphere",
+    "negative": "bright cheerful lighting, relaxed mood, comedy elements, fantasy whimsy, peaceful atmosphere, soft focus, pastel colors, lighthearted tone",
+    "technical": {
+      "aspect_ratio": "2.39:1 for cinematic tension",
+      "color_palette": "Desaturated with strategic color accents, cool tones",
+      "lighting": "High contrast with dramatic shadows, chiaroscuro",
+      "composition": "Tight framing, dutch angles, claustrophobic spaces"
+    }
+  },
+  "variations": [
+    {
+      "name": "Psychological Thriller",
+      "modifier": "mental instability, subjective reality, distorted perspectives, paranoid atmosphere, mind games"
+    },
+    {
+      "name": "Action Thriller",
+      "modifier": "high-stakes action, chase sequences, dynamic movement, explosive energy, adrenaline-fueled"
+    },
+    {
+      "name": "Crime Thriller",
+      "modifier": "urban grit, detective work, criminal underworld, noir influences, investigative atmosphere"
+    }
+  ],
+  "examples": [
+    "A character looking over their shoulder in a dark alley, dramatic side lighting, tense expression, deep shadows creating mystery",
+    "Close-up of anxious eyes reflected in a rearview mirror, desaturated colors, high contrast, suspenseful atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "thriller_genre_workflow",
+    "recommended_models": ["realistic_vision", "epicrealism"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 35,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

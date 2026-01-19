@@ -1,0 +1,350 @@
+{
+  "project_id": "audio_1768060952",
+  "sample_rate": 48000,
+  "bit_depth": 24,
+  "total_duration": 24.0,
+  "tracks": [
+    {
+      "track_id": "dialogue",
+      "track_type": "AudioType.DIALOGUE",
+      "clips": [
+        {
+          "clip_id": "dialogue_0_0",
+          "audio_type": "AudioType.DIALOGUE",
+          "start_time": 0.0,
+          "duration": 2.4000000000000004,
+          "content": "temp_audio_mock\\mock_ace_step_t2a_9c1db0ee.wav",
+          "character_id": "hero",
+          "voice_type": "VoiceType.MALE_ADULT",
+          "volume": 0.8,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "scene_index": 0,
+            "line_index": 0,
+            "emotion": "excited",
+            "intensity": 0.5,
+            "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_9c1db0ee.wav",
+            "comfyui_prompt": "speech, dialogue, adult male voice, confident, clear diction, energetic, fast-paced, enthusiastic, high quality, clear audio"
+          }
+        },
+        {
+          "clip_id": "dialogue_0_1",
+          "audio_type": "AudioType.DIALOGUE",
+          "start_time": 3.0,
+          "duration": 2.3000000000000003,
+          "content": "temp_audio_mock\\mock_ace_step_t2a_c53e3eaf.wav",
+          "character_id": "companion",
+          "voice_type": "VoiceType.FEMALE_ADULT",
+          "volume": 0.8,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "scene_index": 0,
+            "line_index": 1,
+            "emotion": "concerned",
+            "intensity": 0.5,
+            "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_c53e3eaf.wav",
+            "comfyui_prompt": "speech, dialogue, adult female voice, professional, clear, natural tone, high quality, clear audio"
+          }
+        },
+        {
+          "clip_id": "dialogue_1_0",
+          "audio_type": "AudioType.DIALOGUE",
+          "start_time": 10.0,
+          "duration": 2.4000000000000004,
+          "content": "temp_audio_mock\\mock_ace_step_t2a_1b37b1d6.wav",
+          "character_id": "hero",
+          "voice_type": "VoiceType.MALE_ADULT",
+          "volume": 0.8,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "scene_index": 1,
+            "line_index": 0,
+            "emotion": "alert",
+            "intensity": 0.5,
+            "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_1b37b1d6.wav",
+            "comfyui_prompt": "speech, dialogue, adult male voice, confident, clear diction, natural tone, high quality, clear audio"
+          }
+        },
+        {
+          "clip_id": "dialogue_1_1",
+          "audio_type": "AudioType.DIALOGUE",
+          "start_time": 13.0,
+          "duration": 2.7,
+          "content": "temp_audio_mock\\mock_ace_step_t2a_ab5315e6.wav",
+          "character_id": "companion",
+          "voice_type": "VoiceType.FEMALE_ADULT",
+          "volume": 0.8,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "scene_index": 1,
+            "line_index": 1,
+            "emotion": "determined",
+            "intensity": 0.5,
+            "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_ab5315e6.wav",
+            "comfyui_prompt": "speech, dialogue, adult female voice, professional, clear, natural tone, high quality, clear audio"
+          }
+        }
+      ],
+      "volume": 0.9,
+      "muted": false,
+      "solo": false,
+      "effects": []
+    },
+    {
+      "track_id": "sfx",
+      "track_type": "AudioType.SFX",
+      "clips": [
+        {
+          "clip_id": "sfx_wind_0",
+          "audio_type": "AudioType.SFX",
+          "start_time": 0.0,
+          "duration": 10.0,
+          "content": "temp_audio_mock\\mock_stable_audio_2f2f8811.wav",
+          "character_id": null,
+          "voice_type": null,
+          "volume": 0.3,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "environment": "outdoor",
+            "generated_audio": "temp_audio_mock\\mock_stable_audio_2f2f8811.wav",
+            "comfyui_prompt": "wind blowing, nature sounds, outdoor ambience, forest atmosphere"
+          }
+        },
+        {
+          "clip_id": "sfx_walk_0_0",
+          "audio_type": "AudioType.SFX",
+          "start_time": 0.0,
+          "duration": 1.5,
+          "content": "temp_audio_mock\\mock_stable_audio_60f6bc63.wav",
+          "character_id": null,
+          "voice_type": null,
+          "volume": 0.6,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "action_type": "walk",
+            "scene_index": 0,
+            "generated_audio": "temp_audio_mock\\mock_stable_audio_60f6bc63.wav",
+            "comfyui_prompt": "footsteps on ground, walking sound, steady pace"
+          }
+        },
+        {
+          "clip_id": "sfx_walk_1_0",
+          "audio_type": "AudioType.SFX",
+          "start_time": 10.0,
+          "duration": 1.5,
+          "content": "temp_audio_mock\\mock_stable_audio_90397ff7.wav",
+          "character_id": null,
+          "voice_type": null,
+          "volume": 0.6,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "action_type": "walk",
+            "scene_index": 1,
+            "generated_audio": "temp_audio_mock\\mock_stable_audio_90397ff7.wav",
+            "comfyui_prompt": "footsteps on ground, walking sound, steady pace"
+          }
+        }
+      ],
+      "volume": 0.7,
+      "muted": false,
+      "solo": false,
+      "effects": []
+    },
+    {
+      "track_id": "ambience",
+      "track_type": "AudioType.AMBIENCE",
+      "clips": [
+        {
+          "clip_id": "ambience_0",
+          "audio_type": "AudioType.AMBIENCE",
+          "start_time": 0.0,
+          "duration": 10.0,
+          "content": "temp_audio_mock\\mock_stable_audio_4b19a59a.wav",
+          "character_id": null,
+          "voice_type": null,
+          "volume": 0.4,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "environment_type": "outdoor",
+            "time_of_day": "day",
+            "weather": "clear",
+            "generated_audio": "temp_audio_mock\\mock_stable_audio_4b19a59a.wav",
+            "comfyui_prompt": "outdoor atmosphere, natural environment, daytime, bright, active, clear weather, calm, ambient sound, atmospheric"
+          }
+        },
+        {
+          "clip_id": "ambience_1",
+          "audio_type": "AudioType.AMBIENCE",
+          "start_time": 10.0,
+          "duration": 10.0,
+          "content": "temp_audio_mock\\mock_stable_audio_05070882.wav",
+          "character_id": null,
+          "voice_type": null,
+          "volume": 0.4,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "environment_type": "forest",
+            "time_of_day": "day",
+            "weather": "clear",
+            "generated_audio": "temp_audio_mock\\mock_stable_audio_05070882.wav",
+            "comfyui_prompt": "forest ambience, trees, nature sounds, daytime, bright, active, clear weather, calm, ambient sound, atmospheric"
+          }
+        }
+      ],
+      "volume": 0.5,
+      "muted": false,
+      "solo": false,
+      "effects": []
+    },
+    {
+      "track_id": "music",
+      "track_type": "AudioType.MUSIC",
+      "clips": [
+        {
+          "clip_id": "music_0",
+          "audio_type": "AudioType.MUSIC",
+          "start_time": 0.0,
+          "duration": 10.0,
+          "content": "temp_audio_mock\\mock_ace_step_t2a_44905004.wav",
+          "character_id": null,
+          "voice_type": null,
+          "volume": 0.3,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "mood": "adventurous",
+            "tension": 0.4,
+            "musical_key": "C_major",
+            "tempo": 83,
+            "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_44905004.wav",
+            "comfyui_prompt": "atmospheric music, calm, relaxed, peaceful, mixed instrumentation, instrumental, cinematic"
+          }
+        },
+        {
+          "clip_id": "music_1",
+          "audio_type": "AudioType.MUSIC",
+          "start_time": 10.0,
+          "duration": 10.0,
+          "content": "temp_audio_mock\\mock_ace_step_t2a_48e6d640.wav",
+          "character_id": null,
+          "voice_type": null,
+          "volume": 0.3,
+          "pan": 0.0,
+          "reverb_zone": null,
+          "spatial_position": null,
+          "metadata": {
+            "mood": "mysterious",
+            "tension": 0.7,
+            "musical_key": "C_major",
+            "tempo": 135,
+            "generated_audio": "temp_audio_mock\\mock_ace_step_t2a_48e6d640.wav",
+            "comfyui_prompt": "mysterious, ambient, ethereal, enigmatic, building, moderate intensity, engaging, ambient pads, ethereal sounds, reverb, instrumental, cinematic"
+          }
+        }
+      ],
+      "volume": 0.4,
+      "muted": false,
+      "solo": false,
+      "effects": []
+    }
+  ],
+  "reverb_zones": [
+    {
+      "zone_id": "outdoor",
+      "name": "Outdoor Environment",
+      "reverb_time": 0.3,
+      "pre_delay": 10,
+      "room_size": 1.0,
+      "damping": 0.8,
+      "wet_level": 0.2,
+      "dry_level": 0.9
+    },
+    {
+      "zone_id": "forest",
+      "name": "Forest Environment",
+      "reverb_time": 1.5,
+      "pre_delay": 20,
+      "room_size": 0.5,
+      "damping": 0.5,
+      "wet_level": 0.5,
+      "dry_level": 0.8
+    }
+  ],
+  "sync_markers": [
+    {
+      "timestamp": 0.0,
+      "type": "start",
+      "description": "Journey begins",
+      "frame_number": 0
+    },
+    {
+      "timestamp": 0.0,
+      "type": "regular",
+      "description": "Regular sync marker at 0s",
+      "frame_number": 0
+    },
+    {
+      "timestamp": 5.0,
+      "type": "regular",
+      "description": "Regular sync marker at 5s",
+      "frame_number": 120
+    },
+    {
+      "timestamp": 10.0,
+      "type": "regular",
+      "description": "Regular sync marker at 10s",
+      "frame_number": 240
+    },
+    {
+      "timestamp": 12.0,
+      "type": "scene_change",
+      "description": "Enter forest",
+      "frame_number": 0
+    },
+    {
+      "timestamp": 15.0,
+      "type": "regular",
+      "description": "Regular sync marker at 15s",
+      "frame_number": 360
+    },
+    {
+      "timestamp": 20.0,
+      "type": "regular",
+      "description": "Regular sync marker at 20s",
+      "frame_number": 480
+    },
+    {
+      "timestamp": 24.0,
+      "type": "end",
+      "description": "Scene ends",
+      "frame_number": 0
+    }
+  ],
+  "metadata": {
+    "generation_timestamp": 1768060952.2976558,
+    "quality_level": "professional",
+    "mock_mode": true,
+    "character_count": 2,
+    "scene_count": 2,
+    "total_clips": 11
+  }
+}

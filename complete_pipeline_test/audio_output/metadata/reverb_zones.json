@@ -1,0 +1,22 @@
+[
+  {
+    "zone_id": "outdoor",
+    "name": "Outdoor Environment",
+    "reverb_time": 0.3,
+    "pre_delay": 10,
+    "room_size": 1.0,
+    "damping": 0.8,
+    "wet_level": 0.2,
+    "dry_level": 0.9
+  },
+  {
+    "zone_id": "forest",
+    "name": "Forest Environment",
+    "reverb_time": 1.5,
+    "pre_delay": 20,
+    "room_size": 0.5,
+    "damping": 0.5,
+    "wet_level": 0.5,
+    "dry_level": 0.8
+  }
+]

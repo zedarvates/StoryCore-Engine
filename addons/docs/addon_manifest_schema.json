@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StoryCore Add-on Manifest",
+  "description": "Schema for StoryCore Engine add-on manifest files",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "type",
+    "author",
+    "description"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique identifier for the add-on",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "minLength": 3,
+      "maxLength": 50
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the add-on",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.-]+)?$",
+      "examples": ["1.0.0", "2.1.3-alpha"]
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of add-on",
+      "enum": [
+        "workflow_addon",
+        "ui_addon",
+        "processing_addon",
+        "model_addon",
+        "export_addon"
+      ]
+    },
+    "author": {
+      "type": "string",
+      "description": "Author or organization name",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the add-on",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "compatibility": {
+      "type": "object",
+      "description": "Compatibility requirements",
+      "properties": {
+        "engine_version": {
+          "type": "string",
+          "description": "Required StoryCore engine version",
+          "pattern": "^(>=)?\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.-]+)?$",
+          "examples": [">=2.0.0", "2.1.0"]
+        },
+        "python_version": {
+          "type": "string",
+          "description": "Required Python version",
+          "pattern": "^(>=)?\\d+\\.\\d+(\\.\\d+)?$",
+          "examples": [">=3.9", "3.10"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "permissions": {
+      "type": "array",
+      "description": "List of required permissions",
+      "items": {
+        "type": "string",
+        "enum": [
+          "model_access",
+          "file_system_read",
+          "file_system_write",
+          "network_access",
+          "ui_access",
+          "config_access",
+          "database_access",
+          "system_info_access"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "entry_points": {
+      "type": "object",
+      "description": "Entry points for the add-on",
+      "properties": {
+        "main": {
+          "type": "string",
+          "description": "Path to main module (relative to add-on root)",
+          "pattern": "^src/.*\\.py$"
+        },
+        "config": {
+          "type": "string",
+          "description": "Path to configuration module",
+          "pattern": "^src/.*\\.py$"
+        },
+        "ui": {
+          "type": "string",
+          "description": "Path to UI components (for UI add-ons)",
+          "pattern": "^src/.*\\.(js|ts|tsx)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "Python package dependencies",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+          "type": "string",
+          "description": "Version requirement for dependency",
+          "pattern": "^[><=~!]+.*$",
+          "examples": [">=1.0.0", "==2.1.0", ">=3.0,<4.0"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "description": "Tags for categorization",
+          "items": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "maxItems": 10
+        },
+        "homepage": {
+          "type": "string",
+          "description": "Homepage URL",
+          "format": "uri"
+        },
+        "repository": {
+          "type": "string",
+          "description": "Repository URL",
+          "format": "uri"
+        },
+        "license": {
+          "type": "string",
+          "description": "License identifier",
+          "examples": ["MIT", "Apache-2.0", "GPL-3.0"]
+        },
+        "keywords": {
+          "type": "array",
+          "description": "Keywords for search",
+          "items": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "maxItems": 20
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

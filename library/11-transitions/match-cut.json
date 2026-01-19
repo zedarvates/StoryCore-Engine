@@ -1,0 +1,45 @@
+{
+  "id": "transition-match-cut",
+  "name": "Match Cut Transition",
+  "category": "transitions",
+  "description": "Cut between shots with visual or thematic similarity, creating creative connection",
+  "tags": ["match-cut", "creative", "thematic", "visual-match", "artistic"],
+  "prompt": {
+    "base": "Match cut transition, visual similarity between shots, thematic connection, creative cut, graphic match, conceptual link, artistic transition, matched composition, clever editing",
+    "positive": "match cut, visual similarity, thematic connection, graphic match, creative transition, matched composition, conceptual link, artistic cut, clever editing, visual echo, compositional match",
+    "negative": "random cut, no connection, unrelated shots, jarring transition, disconnected editing, arbitrary change",
+    "technical": {
+      "transition_duration": "0 frames - instant cut",
+      "visual_effect": "Visual or thematic similarity creates smooth perception",
+      "use_cases": "Creative storytelling, thematic connections, visual poetry, artistic editing",
+      "editing_style": "Kubrick style, artistic, thoughtful, creative"
+    }
+  },
+  "variations": [
+    {
+      "name": "Graphic Match",
+      "modifier": "similar shapes or compositions, visual echo, geometric similarity, form matching"
+    },
+    {
+      "name": "Action Match",
+      "modifier": "continuous action across cut, movement match, seamless action, fluid motion"
+    },
+    {
+      "name": "Conceptual Match",
+      "modifier": "thematic similarity, metaphorical connection, idea linking, symbolic transition"
+    }
+  },
+  "examples": [
+    "A match cut from a spinning plate to a spinning planet, graphic similarity creating smooth transition",
+    "A match cut from a character's eye to a tunnel entrance, conceptual and visual connection"
+  ],
+  "comfyui": {
+    "workflow_id": "match_cut_transition_workflow",
+    "parameters": {
+      "transition_type": "match_cut",
+      "duration_frames": 0,
+      "match_type": "graphic",
+      "similarity_threshold": 0.7
+    }
+  }
+}

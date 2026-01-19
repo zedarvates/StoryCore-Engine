@@ -1,0 +1,48 @@
+{
+  "id": "palette-royal-purple",
+  "name": "Royal Purple Palette",
+  "category": "color-palettes",
+  "description": "Rich purples creating luxurious, mysterious, and regal atmosphere",
+  "tags": ["purple", "royal", "luxurious", "mysterious", "regal"],
+  "prompt": {
+    "base": "Royal purple color palette, rich purples, luxurious tones, regal color scheme, majestic hues, mysterious colors, opulent palette, nobility-inspired",
+    "positive": "royal purple colors, deep purple (#4A148C), rich violet (#7B1FA2), lavender accent (#BA68C8), luxurious palette, majestic hues, mysterious colors, regal atmosphere, opulent tones, noble colors, purple harmony",
+    "negative": "dull colors, muted tones, common palette, plain colors, ordinary hues, simple colors",
+    "technical": {
+      "primary_color": "#4A148C (Deep Royal Purple)",
+      "secondary_color": "#7B1FA2 (Rich Violet)",
+      "accent_color": "#BA68C8 (Lavender)",
+      "color_temperature": "Cool with warm undertones",
+      "saturation": "High saturation, rich",
+      "use_cases": "Luxurious scenes, mysterious moods, regal environments, opulent atmospheres"
+    }
+  },
+  "variations": [
+    {
+      "name": "Imperial Purple",
+      "modifier": "deep purples, royal court, throne room atmosphere, imperial majesty, sovereign palette"
+    },
+    {
+      "name": "Mystical Purple",
+      "modifier": "magical purples, arcane atmosphere, supernatural vibes, enchanted palette, wizard aesthetic"
+    },
+    {
+      "name": "Romantic Purple",
+      "modifier": "soft purples, lavender tones, romantic atmosphere, dreamy vibes, tender palette"
+    }
+  ],
+  "examples": [
+    "A royal throne room with rich purple palette, luxurious tones, regal and majestic atmosphere",
+    "A mystical scene with deep purples, mysterious colors, magical and enchanted mood"
+  ],
+  "comfyui": {
+    "workflow_id": "royal_purple_palette_workflow",
+    "recommended_models": ["dreamshaper", "anything_v5"],
+    "parameters": {
+      "cfg_scale": 8.0,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras",
+      "color_guidance": "royal_purple"
+    }
+  }
+}

@@ -1,0 +1,454 @@
+/**
+ * Responsive Layout Utilities
+ * 
+ * Responsive design utilities for the Central Configuration UI
+ */
+
+/* ============================================================================
+   Breakpoints
+   ============================================================================ */
+
+/* 
+  Mobile: < 640px
+  Tablet: 640px - 1024px
+  Desktop: > 1024px
+*/
+
+/* ============================================================================
+   Container Utilities
+   ============================================================================ */
+
+.container-responsive {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* ============================================================================
+   Grid Utilities
+   ============================================================================ */
+
+.grid-responsive {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.grid-responsive-auto {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* ============================================================================
+   Flex Utilities
+   ============================================================================ */
+
+.flex-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .flex-responsive {
+    flex-direction: row;
+  }
+}
+
+.flex-responsive-reverse {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .flex-responsive-reverse {
+    flex-direction: row;
+  }
+}
+
+/* ============================================================================
+   Visibility Utilities
+   ============================================================================ */
+
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hide-mobile {
+    display: block;
+  }
+}
+
+.hide-tablet {
+  display: block;
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .hide-tablet {
+    display: none;
+  }
+}
+
+.hide-desktop {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .hide-desktop {
+    display: none;
+  }
+}
+
+.show-mobile-only {
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .show-mobile-only {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   Text Utilities
+   ============================================================================ */
+
+.text-responsive {
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .text-responsive {
+    font-size: 1rem;
+  }
+}
+
+.heading-responsive {
+  font-size: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .heading-responsive {
+    font-size: 1.875rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .heading-responsive {
+    font-size: 2.25rem;
+  }
+}
+
+/* ============================================================================
+   Spacing Utilities
+   ============================================================================ */
+
+.padding-responsive {
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .padding-responsive {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .padding-responsive {
+    padding: 2rem;
+  }
+}
+
+.margin-responsive {
+  margin: 1rem;
+}
+
+@media (min-width: 640px) {
+  .margin-responsive {
+    margin: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .margin-responsive {
+    margin: 2rem;
+  }
+}
+
+/* ============================================================================
+   Modal/Dialog Responsive
+   ============================================================================ */
+
+.modal-responsive {
+  width: 95%;
+  max-width: 100%;
+  margin: 1rem;
+}
+
+@media (min-width: 640px) {
+  .modal-responsive {
+    width: 90%;
+    max-width: 42rem;
+    margin: 2rem auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .modal-responsive {
+    width: 80%;
+    max-width: 56rem;
+  }
+}
+
+/* ============================================================================
+   Form Responsive
+   ============================================================================ */
+
+.form-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-responsive .form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .form-responsive .form-row {
+    flex-direction: row;
+  }
+
+  .form-responsive .form-row > * {
+    flex: 1;
+  }
+}
+
+/* ============================================================================
+   Button Group Responsive
+   ============================================================================ */
+
+.button-group-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .button-group-responsive {
+    flex-direction: row;
+    width: auto;
+  }
+
+  .button-group-responsive > button {
+    flex: 0 1 auto;
+  }
+}
+
+/* ============================================================================
+   Card Responsive
+   ============================================================================ */
+
+.card-responsive {
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .card-responsive {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-responsive {
+    padding: 2rem;
+  }
+}
+
+/* ============================================================================
+   Sidebar Responsive
+   ============================================================================ */
+
+.layout-with-sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.layout-with-sidebar .sidebar {
+  width: 100%;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.layout-with-sidebar .main-content {
+  flex: 1;
+}
+
+@media (min-width: 1024px) {
+  .layout-with-sidebar {
+    flex-direction: row;
+  }
+
+  .layout-with-sidebar .sidebar {
+    width: 16rem;
+    border-bottom: none;
+    border-right: 1px solid #e5e7eb;
+  }
+}
+
+/* ============================================================================
+   Table Responsive
+   ============================================================================ */
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table {
+  min-width: 600px;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .table-responsive table {
+    min-width: 100%;
+  }
+}
+
+/* ============================================================================
+   Navigation Responsive
+   ============================================================================ */
+
+.nav-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .nav-responsive {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* ============================================================================
+   Image Responsive
+   ============================================================================ */
+
+.img-responsive {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ============================================================================
+   Overflow Handling
+   ============================================================================ */
+
+.overflow-responsive {
+  overflow: hidden;
+}
+
+@media (max-width: 639px) {
+  .overflow-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ============================================================================
+   Aspect Ratio Utilities
+   ============================================================================ */
+
+.aspect-ratio-16-9 {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+  overflow: hidden;
+}
+
+.aspect-ratio-16-9 > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.aspect-ratio-4-3 {
+  position: relative;
+  padding-bottom: 75%; /* 4:3 */
+  height: 0;
+  overflow: hidden;
+}
+
+.aspect-ratio-4-3 > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-full-width {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+/* ============================================================================
+   Dark Theme Responsive
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .layout-with-sidebar .sidebar {
+    border-color: #374151;
+  }
+}

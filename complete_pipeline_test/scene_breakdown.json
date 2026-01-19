@@ -1,0 +1,64 @@
+{
+  "scenes": [
+    {
+      "scene_id": "scene_1",
+      "environment": {
+        "type": "outdoor",
+        "time_of_day": "day",
+        "weather": "clear"
+      },
+      "mood": "adventurous",
+      "tension": 0.4,
+      "dialogue": [
+        {
+          "character_id": "hero",
+          "text": "The journey begins here!",
+          "emotion": "excited"
+        },
+        {
+          "character_id": "companion",
+          "text": "Are you ready for this?",
+          "emotion": "concerned"
+        }
+      ],
+      "actions": [
+        {
+          "type": "walk",
+          "description": "Characters start their journey"
+        }
+      ]
+    },
+    {
+      "scene_id": "scene_2",
+      "environment": {
+        "type": "forest",
+        "time_of_day": "day",
+        "weather": "clear"
+      },
+      "mood": "mysterious",
+      "tension": 0.7,
+      "dialogue": [
+        {
+          "character_id": "hero",
+          "text": "Something's watching us.",
+          "emotion": "alert"
+        },
+        {
+          "character_id": "companion",
+          "text": "Stay close and keep moving.",
+          "emotion": "determined"
+        }
+      ],
+      "actions": [
+        {
+          "type": "walk",
+          "description": "Cautious movement through forest"
+        },
+        {
+          "type": "look",
+          "description": "Scanning for threats"
+        }
+      ]
+    }
+  ]
+}

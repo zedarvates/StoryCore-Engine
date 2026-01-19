@@ -1,0 +1,49 @@
+{
+  "metrics": {
+    "category": "QACategory.VISUAL_COHERENCE",
+    "score": 4.9,
+    "max_score": 5.0,
+    "issues_count": 1,
+    "critical_issues": 0,
+    "high_issues": 0,
+    "medium_issues": 1,
+    "low_issues": 0,
+    "autofix_applied": 1,
+    "manual_review_required": 0,
+    "validation_time": 0.0,
+    "metadata": {}
+  },
+  "issues": [
+    {
+      "issue_id": "vc_002",
+      "category": "QACategory.VISUAL_COHERENCE",
+      "severity": "QASeverity.MEDIUM",
+      "title": "Style Drift Detected",
+      "description": "Style drift of 15.0% exceeds threshold",
+      "affected_items": [
+        "generated_images"
+      ],
+      "score_impact": 0.5,
+      "autofix_available": true,
+      "autofix_action": "AutofixAction.ADJUST_PARAMETERS",
+      "autofix_confidence": 0.7,
+      "metadata": {}
+    }
+  ],
+  "autofix_results": [
+    {
+      "issue_id": "vc_002",
+      "action": "AutofixAction.ADJUST_PARAMETERS",
+      "success": true,
+      "improvement_score": 0.4,
+      "original_score": 0.5,
+      "new_score": 0.9,
+      "execution_time": 0.0,
+      "details": "Mock autofix succeeded for Style Drift Detected",
+      "metadata": {
+        "mock_mode": true,
+        "confidence": 0.7
+      }
+    }
+  ]
+}

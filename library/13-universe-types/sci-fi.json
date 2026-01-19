@@ -1,0 +1,47 @@
+{
+  "id": "universe-scifi",
+  "name": "Sci-Fi Universe",
+  "category": "universe-types",
+  "description": "Futuristic worlds with advanced technology, space exploration, and scientific innovation",
+  "tags": ["sci-fi", "futuristic", "technology", "space", "advanced"],
+  "prompt": {
+    "base": "Sci-fi universe, futuristic world, advanced technology, space setting, scientific innovation, cybernetic environment, high-tech atmosphere",
+    "positive": "sci-fi universe, futuristic world, advanced technology, space setting, scientific innovation, cybernetic environment, high-tech atmosphere, neon lighting, holographic displays, sleek design, technological marvels",
+    "negative": "medieval setting, fantasy magic, primitive technology, historical period, natural environment, low-tech",
+    "technical": {
+      "physics_rules": "Advanced physics, theoretical science",
+      "technology_level": "Far future (2100+)",
+      "magic_system": "None (replaced by advanced technology)",
+      "world_constraints": "Bound by scientific principles (even if theoretical)",
+      "visual_approach": "Sleek, high-tech, neon lighting, holographic elements"
+    }
+  },
+  "variations": [
+    {
+      "name": "Space Opera",
+      "modifier": "galactic scale, space stations, alien worlds, interstellar travel, cosmic adventure"
+    },
+    {
+      "name": "Cyberpunk",
+      "modifier": "dystopian city, neon lights, corporate control, cybernetic implants, urban decay"
+    },
+    {
+      "name": "Hard Sci-Fi",
+      "modifier": "realistic science, plausible technology, scientific accuracy, near-future setting"
+    }
+  ],
+  "examples": [
+    "A futuristic cityscape in sci-fi universe, advanced technology, neon lighting, high-tech atmosphere",
+    "A space station in sci-fi setting, sleek design, holographic displays, cosmic environment"
+  ],
+  "comfyui": {
+    "workflow_id": "scifi_universe_workflow",
+    "recommended_models": ["dreamshaper", "sci_fi_diffusion"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras",
+      "universe_conditioning": "scifi"
+    }
+  }
+}

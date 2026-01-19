@@ -1,0 +1,70 @@
+/* LLM Configuration Window Styles */
+
+.llm-configuration-window {
+  width: 650px;
+  max-height: 80vh;
+}
+
+.provider-tabs {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.provider-tab {
+  flex: 1;
+  padding: 12px;
+  background: var(--card-bg, #2a2a2a);
+  color: var(--text-secondary, #999);
+  border: 2px solid var(--border-color, #444);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.provider-tab:hover {
+  border-color: var(--accent-color, #4a9eff);
+  color: var(--text-primary, #ffffff);
+}
+
+.provider-tab.active {
+  background: var(--accent-color, #4a9eff);
+  color: white;
+  border-color: var(--accent-color, #4a9eff);
+}
+
+.provider-config {
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--card-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+}
+
+.provider-config h3 {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  color: var(--text-primary, #ffffff);
+}
+
+.connection-status {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.connection-status.success {
+  background: var(--success-bg, #1e4620);
+  color: var(--success-color, #4caf50);
+  border: 1px solid var(--success-color, #4caf50);
+}
+
+.connection-status.error {
+  background: var(--error-bg, #4a1e1e);
+  color: var(--error-color, #ff4444);
+  border: 1px solid var(--error-color, #ff4444);
+}

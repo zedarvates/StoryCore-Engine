@@ -1,0 +1,45 @@
+{
+  "id": "mood-light",
+  "name": "Light Mood",
+  "category": "mood-atmosphere",
+  "description": "Bright and airy atmosphere with high-key lighting and optimistic undertones",
+  "tags": ["light", "bright", "airy", "optimistic", "cheerful"],
+  "prompt": {
+    "base": "Light airy atmosphere, high-key lighting, bright environment, optimistic tone, cheerful mood, soft shadows, luminous quality, uplifting atmosphere, positive energy",
+    "positive": "bright atmosphere, high-key lighting, airy mood, soft shadows, optimistic tone, cheerful environment, luminous quality, light and bright, uplifting atmosphere, positive energy, gentle lighting, ethereal glow",
+    "negative": "dark atmosphere, heavy shadows, somber mood, ominous tone, low-key lighting, gloomy environment, oppressive darkness",
+    "technical": {
+      "lighting": "High-key with soft fill light",
+      "color_palette": "Bright, saturated colors with whites and pastels",
+      "contrast": "Low to medium contrast, soft shadows",
+      "mood_intensity": "Gentle, pervasive brightness"
+    }
+  },
+  "variations": [
+    {
+      "name": "Ethereal Light",
+      "modifier": "soft glow, dreamy quality, heavenly light, angelic atmosphere, transcendent brightness"
+    },
+    {
+      "name": "Natural Light",
+      "modifier": "sunlight streaming, outdoor brightness, natural illumination, daylight atmosphere, organic light"
+    },
+    {
+      "name": "Studio Light",
+      "modifier": "even lighting, professional setup, clean brightness, commercial quality, polished atmosphere"
+    }
+  ],
+  "examples": [
+    "A sunlit room with soft shadows, bright airy atmosphere, high-key lighting creating optimistic mood",
+    "A character in gentle natural light, luminous quality, light and uplifting atmosphere"
+  ],
+  "comfyui": {
+    "workflow_id": "light_mood_workflow",
+    "recommended_models": ["dreamshaper", "realistic_vision"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 25,
+      "sampler": "Euler a"
+    }
+  }
+}

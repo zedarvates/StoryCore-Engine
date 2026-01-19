@@ -1,0 +1,17 @@
+{
+  "category": "genres",
+  "subcategory": "animation",
+  "id": "genre-animation",
+  "name": "Animation/Cartoon Scene",
+  "description": "Animated style scene with clear appealing design",
+  "tags": ["animation", "cartoon", "stylized", "vibrant"],
+  "prompt": "Animated style scene, {SPECIFIC_ELEMENT}. {ANIMATION_STYLE} aesthetic. Vibrant color palette, clear readable shapes, appealing design. Consistent art style, clean lines, professional animation quality. Lighting appropriate to animation style, sharp and clear details.",
+  "variables": {
+    "SPECIFIC_ELEMENT": { "type": "string", "required": true },
+    "ANIMATION_STYLE": { 
+      "type": "enum",
+      "required": true,
+      "options": ["2D hand-drawn", "3D CGI", "stop-motion", "anime"]
+    }
+  }
+}

@@ -1,0 +1,1 @@
+export { NarrativeForm } from './NarrativeForm';

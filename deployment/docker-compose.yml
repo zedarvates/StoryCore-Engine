@@ -1,0 +1,141 @@
+# Advanced ComfyUI Workflows - Docker Compose Configuration
+
+version: '3.8'
+
+services:
+  advanced-workflows:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    container_name: advanced-comfyui-workflows
+    restart: unless-stopped
+    
+    # GPU access
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    # Environment variables
+    environment:
+      - ENVIRONMENT=production
+      - DEPLOYMENT_NAME=advanced-workflows-prod
+      - VERSION=1.0.0
+      - ENABLE_MONITORING=true
+      - ENABLE_HEALTH_CHECKS=true
+      - ENABLE_BACKUP=true
+      - CUDA_VISIBLE_DEVICES=0
+    
+    # Port mapping
+    ports:
+      - "8080:8080"
+      - "8081:8081"  # Monitoring dashboard
+    
+    # Volume mounts
+    volumes:
+      - ../models:/app/models:ro
+      - ../config:/app/config:ro
+      - workflow_outputs:/app/outputs
+      - workflow_logs:/app/logs
+      - workflow_backups:/app/backups
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    
+    # Resource limits
+    mem_limit: 64g
+    memswap_limit: 64g
+    shm_size: 32g
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:8080/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    
+    # Network configuration
+    networks:
+      - comfyui-network
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: advanced-workflows-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - comfyui-network
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: advanced-workflows-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - comfyui-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: advanced-workflows-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - comfyui-network
+
+# Named volumes
+volumes:
+  workflow_outputs:
+    driver: local
+  workflow_logs:
+    driver: local
+  workflow_backups:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# Networks
+networks:
+  comfyui-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,48 @@
+{
+  "id": "palette-cool-ocean",
+  "name": "Cool Ocean Palette",
+  "category": "color-palettes",
+  "description": "Cool blues and teals creating calm, refreshing, and serene atmosphere",
+  "tags": ["cool", "ocean", "blue", "teal", "calm"],
+  "prompt": {
+    "base": "Cool ocean color palette, calming blues and teals, aquatic tones, cool color scheme, ocean hues, refreshing colors, serene palette, water-inspired",
+    "positive": "cool ocean colors, deep blue (#0077BE), bright cyan (#00C9FF), teal (#00A8E8), cool palette, ocean hues, refreshing colors, serene atmosphere, aquatic tones, water colors, cool color harmony",
+    "negative": "warm colors, oranges, reds, hot palette, saturated warm tones, fiery colors, desert tones",
+    "technical": {
+      "primary_color": "#0077BE (Deep Blue)",
+      "secondary_color": "#00A8E8 (Bright Teal)",
+      "accent_color": "#00C9FF (Cyan)",
+      "color_temperature": "Cool (6000-8000K)",
+      "saturation": "Medium to high saturation",
+      "use_cases": "Calm scenes, water environments, serene moods, refreshing atmospheres"
+    }
+  },
+  "variations": [
+    {
+      "name": "Deep Ocean",
+      "modifier": "dark blues, deep water, mysterious depths, nautical atmosphere, submarine palette"
+    },
+    {
+      "name": "Tropical Ocean",
+      "modifier": "bright teals, clear water, paradise atmosphere, vacation vibes, Caribbean palette"
+    },
+    {
+      "name": "Arctic Ocean",
+      "modifier": "icy blues, cold water, frozen atmosphere, polar vibes, glacial palette"
+    }
+  ],
+  "examples": [
+    "An underwater scene with cool ocean palette, calming blues and teals, serene aquatic atmosphere",
+    "A coastal landscape with ocean colors, refreshing blue tones, calm and peaceful mood"
+  ],
+  "comfyui": {
+    "workflow_id": "cool_ocean_palette_workflow",
+    "recommended_models": ["realistic_vision", "dreamshaper"],
+    "parameters": {
+      "cfg_scale": 7.0,
+      "steps": 28,
+      "sampler": "DPM++ 2M Karras",
+      "color_guidance": "cool_ocean"
+    }
+  }
+}

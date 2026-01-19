@@ -1,0 +1,17 @@
+{
+  "category": "genres",
+  "subcategory": "action-adventure",
+  "id": "genre-action",
+  "name": "Action/Adventure Scene",
+  "description": "Dynamic high-energy action scene",
+  "tags": ["action", "adventure", "dynamic", "epic"],
+  "prompt": "Dynamic action scene, {SPECIFIC_ACTION}. High energy composition, dramatic lighting with strong directional light. Motion implied. Color palette: bold saturated colors, high contrast. Epic scale, {FRAMING} framing. Sharp focus on action, motion blur where appropriate, professional action cinematography quality.",
+  "variables": {
+    "SPECIFIC_ACTION": { "type": "string", "required": true },
+    "FRAMING": { 
+      "type": "enum",
+      "required": true,
+      "options": ["wide cinematic", "intense close-up"]
+    }
+  }
+}

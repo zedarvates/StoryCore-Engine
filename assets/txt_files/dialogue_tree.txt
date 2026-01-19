@@ -1,0 +1,57 @@
+DIALOGUE TREE EXAMPLE
+====================
+
+This template shows how to structure branching dialogues with player choices and NPC responses.
+
+FORMAT:
+- NPC: Dialogue line
+- Player Choice 1: Response
+  - NPC Follow-up 1
+    - Sub-choice or end
+- Player Choice 2: Response
+  - NPC Follow-up 2
+
+EXAMPLE DIALOGUE TREE: Meeting the Dragon
+
+NPC (Dragon): Who dares enter my domain?
+- Player (Thorin): I am Thorin, seeker of lost treasures!
+  - NPC: Foolish dwarf! You seek death.
+    - Player: I am not afraid!
+      - NPC: Then face your doom! [Combat initiates]
+    - Player: Perhaps we can negotiate...
+      - NPC: Negotiate? What do you offer?
+        - Player: A share of the treasure.
+          - NPC: Acceptable. What is your proposal? [Negotiation branch]
+        - Player: Your life for my mercy.
+          - NPC: Arrogant whelp! [Combat]
+- Player (Thorin): I come in peace, ancient one.
+  - NPC: Peace? From a dwarf bearing weapons?
+    - Player: Weapons are for protection only.
+      - NPC: Very well. State your purpose.
+        - Player: I seek knowledge of the mountain.
+          - NPC: Knowledge costs. What do you offer? [Quest branch]
+        - Player: I seek to pass through.
+          - NPC: The pass is dangerous. Prove your worth. [Challenge branch]
+    - Player: Peace is my intent, not my guarantee.
+      - NPC: Then leave before I change my mind. [End dialogue]
+
+DIALOGUE TREE STRUCTURE TIPS:
+- Keep choices clear and distinct
+- Each branch should lead to different outcomes
+- Consider character personality in responses
+- Include consequences for choices
+- Balance dialogue depth with gameplay flow
+
+TEMPLATE FOR NEW TREES:
+
+NPC: [Opening line]
+- Choice A: [Player response]
+  - NPC: [Response A]
+    - Sub-choice A1: [Player]
+      - NPC: [Response A1]
+    - Sub-choice A2: [Player]
+      - NPC: [Response A2]
+- Choice B: [Player response]
+  - NPC: [Response B]
+    - Sub-choice B1: [Player]
+      - NPC: [Response B1]

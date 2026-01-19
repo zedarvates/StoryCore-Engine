@@ -1,0 +1,29 @@
+{
+  "id": "camera-movement-handheld",
+  "name": "Handheld (Organic Shake)",
+  "category": "camera-movements",
+  "description": "Camera held by operator creating natural shake and organic movement",
+  "tags": ["handheld", "shake", "organic", "documentary", "realistic"],
+  "prompt": {
+    "base": "Handheld camera, organic camera shake, natural movement, documentary style, realistic camera work, operator-held camera, subtle shake, authentic feel, cinema verite style",
+    "positive": "handheld camera, natural shake, organic movement, documentary style, realistic camera work, subtle camera shake, authentic feel, operator-held, cinema verite, natural movement, realistic shake",
+    "negative": "perfectly stable, tripod-mounted, smooth tracking, crane shot, no shake, perfectly steady, artificial stability",
+    "technical": {
+      "movement_type": "Organic shake and natural operator movement",
+      "stability": "Intentionally unstable for realism",
+      "use_cases": "Documentary style, action sequences, realistic drama, immersive POV"
+    }
+  },
+  "examples": [
+    "A tense chase scene with handheld camera, natural shake adding urgency and realism",
+    "Documentary-style interview with subtle handheld movement, authentic feel"
+  ],
+  "comfyui": {
+    "workflow_id": "handheld_camera_workflow",
+    "parameters": {
+      "movement": "handheld",
+      "shake_intensity": "medium",
+      "style": "documentary"
+    }
+  }
+}

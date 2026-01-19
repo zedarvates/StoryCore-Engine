@@ -1,0 +1,14 @@
+{
+  "category": "shot-types",
+  "subcategory": "subjective-shots",
+  "id": "shot-pov",
+  "name": "Point of View (POV)",
+  "description": "First-person perspective from character's viewpoint",
+  "tags": ["pov", "subjective", "first-person", "immersive"],
+  "prompt": "Point of view shot from {CHARACTER}'s perspective, seeing {WHAT_THEY_SEE}. First-person camera angle, immersive framing, {EMOTIONAL_CONTEXT}. Cinematic subjective camera work, appropriate lens distortion if needed.",
+  "variables": {
+    "CHARACTER": { "type": "string", "required": true },
+    "WHAT_THEY_SEE": { "type": "string", "required": true },
+    "EMOTIONAL_CONTEXT": { "type": "string", "required": true }
+  }
+}

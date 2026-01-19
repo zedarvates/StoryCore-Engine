@@ -1,0 +1,78 @@
+{
+  "storyboard_id": "sb_integration-test",
+  "project_id": "storycore_integration-test",
+  "shots": [
+    {
+      "shot_id": "shot_01",
+      "scene_id": "scene_01",
+      "shot_number": 1,
+      "version": "v1",
+      "title": "Opening shot",
+      "description": "Establishing shot to set the scene",
+      "duration_seconds": 6,
+      "prompt_modules": {
+        "subject": "Placeholder subject for shot_01",
+        "camera": "Medium shot, eye level, static",
+        "lighting": "Natural lighting, soft shadows",
+        "color": "Neutral palette, balanced colors",
+        "style": "Cinematic realism, professional quality",
+        "technical": {
+          "seed": 42,
+          "aspect_ratio": "16:9",
+          "resolution": "1920x1080",
+          "cfg_scale": 7.5,
+          "steps": 30,
+          "negative_prompt": "low quality, blurry, distorted"
+        }
+      }
+    },
+    {
+      "shot_id": "shot_02",
+      "scene_id": "scene_01",
+      "shot_number": 2,
+      "version": "v1",
+      "title": "Medium shot",
+      "description": "Focus on main subject or action",
+      "duration_seconds": 6,
+      "prompt_modules": {
+        "subject": "Placeholder subject for shot_02",
+        "camera": "Medium shot, eye level, static",
+        "lighting": "Natural lighting, soft shadows",
+        "color": "Neutral palette, balanced colors",
+        "style": "Cinematic realism, professional quality",
+        "technical": {
+          "seed": 42,
+          "aspect_ratio": "16:9",
+          "resolution": "1920x1080",
+          "cfg_scale": 7.5,
+          "steps": 30,
+          "negative_prompt": "low quality, blurry, distorted"
+        }
+      }
+    },
+    {
+      "shot_id": "shot_03",
+      "scene_id": "scene_01",
+      "shot_number": 3,
+      "version": "v1",
+      "title": "Closing shot",
+      "description": "Concluding shot to wrap the scene",
+      "duration_seconds": 6,
+      "prompt_modules": {
+        "subject": "Placeholder subject for shot_03",
+        "camera": "Medium shot, eye level, static",
+        "lighting": "Natural lighting, soft shadows",
+        "color": "Neutral palette, balanced colors",
+        "style": "Cinematic realism, professional quality",
+        "technical": {
+          "seed": 42,
+          "aspect_ratio": "16:9",
+          "resolution": "1920x1080",
+          "cfg_scale": 7.5,
+          "steps": 30,
+          "negative_prompt": "low quality, blurry, distorted"
+        }
+      }
+    }
+  ]
+}

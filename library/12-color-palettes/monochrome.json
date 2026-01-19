@@ -1,0 +1,48 @@
+{
+  "id": "palette-monochrome",
+  "name": "Monochrome Palette",
+  "category": "color-palettes",
+  "description": "Black, white, and grays creating dramatic, timeless, and sophisticated atmosphere",
+  "tags": ["monochrome", "black-white", "grayscale", "dramatic", "timeless"],
+  "prompt": {
+    "base": "Monochrome color palette, black white and grays, grayscale tones, achromatic scheme, noir palette, dramatic contrast, timeless colors, sophisticated monochrome",
+    "positive": "monochrome palette, pure black (#000000), neutral gray (#666666), light gray (#CCCCCC), pure white, grayscale tones, dramatic contrast, timeless atmosphere, sophisticated palette, noir aesthetic, achromatic harmony",
+    "negative": "color, vibrant hues, saturated colors, warm tones, cool tones, chromatic palette, colorful",
+    "technical": {
+      "primary_color": "#000000 (Pure Black)",
+      "secondary_color": "#666666 (Neutral Gray)",
+      "accent_color": "#CCCCCC (Light Gray)",
+      "color_temperature": "Neutral (no color temperature)",
+      "saturation": "Zero saturation, achromatic",
+      "use_cases": "Dramatic scenes, noir atmosphere, timeless quality, sophisticated moods"
+    }
+  },
+  "variations": [
+    {
+      "name": "High Contrast Monochrome",
+      "modifier": "stark blacks and whites, minimal grays, dramatic contrast, bold monochrome, graphic quality"
+    },
+    {
+      "name": "Soft Monochrome",
+      "modifier": "gentle grays, subtle transitions, low contrast, soft monochrome, ethereal quality"
+    },
+    {
+      "name": "Film Noir Monochrome",
+      "modifier": "classic noir, venetian blinds, cigarette smoke, detective aesthetic, 1940s quality"
+    }
+  ],
+  "examples": [
+    "A noir detective scene in monochrome, dramatic black and white contrast, timeless atmosphere",
+    "A portrait in grayscale tones, sophisticated monochrome palette, classic black and white"
+  ],
+  "comfyui": {
+    "workflow_id": "monochrome_palette_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 30,
+      "sampler": "DPM++ 2M Karras",
+      "color_mode": "monochrome"
+    }
+  }
+}

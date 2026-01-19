@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "name": "StoryCore Prompt Library",
+  "description": "Comprehensive prompt library for AI-assisted visual asset generation",
+  "categories": [
+    "master-coherence",
+    "genres",
+    "scene-elements",
+    "shot-types",
+    "narrative-moments",
+    "lighting",
+    "weather",
+    "effects",
+    "color-palettes",
+    "transitions"
+  ],
+  "tags": {
+    "character": ["hero", "villain", "support", "design-sheet"],
+    "environment": ["interior", "exterior", "urban", "nature"],
+    "style": ["realistic", "animated", "fantasy", "scifi", "horror"],
+    "mood": ["dramatic", "peaceful", "tense", "romantic", "epic"],
+    "technical": ["wide-shot", "close-up", "pov", "establishing"],
+    "time": ["day", "night", "golden-hour", "blue-hour"],
+    "quality": ["4k", "cinematic", "professional", "sharp"]
+  }
+}

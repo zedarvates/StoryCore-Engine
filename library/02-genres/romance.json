@@ -1,0 +1,12 @@
+{
+  "category": "genres",
+  "subcategory": "romance-drama",
+  "id": "genre-romance",
+  "name": "Romance/Drama Scene",
+  "description": "Emotional romantic or dramatic scene",
+  "tags": ["romance", "drama", "emotional", "intimate"],
+  "prompt": "Romantic/dramatic scene, {SPECIFIC_ELEMENT}. Soft natural lighting, warm color palette: golden hour tones, soft pastels, intimate atmosphere. Emotional composition, shallow depth of field, bokeh background. Cinematic romance aesthetic, professional color grading, film-like quality with gentle contrast.",
+  "variables": {
+    "SPECIFIC_ELEMENT": { "type": "string", "required": true }
+  }
+}

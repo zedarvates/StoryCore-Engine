@@ -1,0 +1,28 @@
+{
+  "id": "camera-angle-eye-level",
+  "name": "Eye-Level Camera Angle",
+  "category": "camera-angles",
+  "description": "Neutral perspective at subject's eye height, creating natural and relatable viewpoint",
+  "tags": ["eye-level", "neutral", "natural", "standard", "conversational"],
+  "prompt": {
+    "base": "Eye-level camera angle, neutral perspective, camera at subject's eye height, natural viewpoint, conversational framing, standard angle, relatable perspective, horizontal camera position",
+    "positive": "eye-level shot, neutral angle, natural perspective, camera at eye height, conversational framing, standard viewpoint, relatable composition, horizontal camera, direct engagement, natural interaction",
+    "negative": "high angle, low angle, dutch angle, birds-eye view, worms-eye view, tilted camera, extreme angles, distorted perspective",
+    "technical": {
+      "camera_height": "At subject's eye level",
+      "perspective": "Neutral, no power dynamics",
+      "use_cases": "Dialogue, natural interactions, documentary, realistic scenes"
+    }
+  },
+  "examples": [
+    "Two people in conversation, camera at their eye level, natural perspective, conversational framing",
+    "A character looking directly at camera, eye-level angle, neutral perspective, direct engagement"
+  ],
+  "comfyui": {
+    "workflow_id": "eye_level_angle_workflow",
+    "parameters": {
+      "camera_angle": 0,
+      "horizon_line": "center"
+    }
+  }
+}

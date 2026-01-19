@@ -1,0 +1,45 @@
+{
+  "id": "visual-style-anime",
+  "name": "Anime Visual Style",
+  "category": "visual-styles",
+  "description": "Japanese animation style with large expressive eyes, distinctive character design, and anime aesthetics",
+  "tags": ["anime", "manga", "japanese", "animation", "expressive"],
+  "prompt": {
+    "base": "Anime style, Japanese animation aesthetic, large expressive eyes, distinctive character design, clean linework, cel-shaded coloring, anime proportions, manga influence, vibrant colors",
+    "positive": "anime art style, large eyes, expressive face, clean lines, cel shading, vibrant colors, anime hair, Japanese animation, manga style, detailed eyes, anime proportions, colorful, dynamic pose, anime aesthetic",
+    "negative": "realistic, photographic, western cartoon, 3D render, ugly, deformed, blurry, bad anatomy, bad proportions",
+    "technical": {
+      "rendering": "Cel-shaded with clean linework",
+      "textures": "Flat colors with minimal texture, anime-style shading",
+      "lighting": "Simplified lighting with defined shadows",
+      "detail_level": "High detail in eyes and hair, simplified elsewhere"
+    }
+  },
+  "variations": [
+    {
+      "name": "Shonen Anime",
+      "modifier": "dynamic action poses, energetic expressions, bold lines, intense atmosphere"
+    },
+    {
+      "name": "Shoujo Anime",
+      "modifier": "soft features, romantic atmosphere, delicate details, sparkle effects, pastel colors"
+    },
+    {
+      "name": "Seinen Anime",
+      "modifier": "mature themes, detailed backgrounds, realistic proportions, sophisticated coloring"
+    }
+  ],
+  "examples": [
+    "An anime character with large expressive eyes, colorful hair, dynamic pose, cel-shaded coloring, Japanese animation style",
+    "An anime scene with vibrant colors, clean linework, expressive characters, manga-inspired composition"
+  ],
+  "comfyui": {
+    "workflow_id": "anime_style_workflow",
+    "recommended_models": ["anything_v5", "counterfeit_v3", "abyss_orange_mix"],
+    "parameters": {
+      "cfg_scale": 9.0,
+      "steps": 25,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

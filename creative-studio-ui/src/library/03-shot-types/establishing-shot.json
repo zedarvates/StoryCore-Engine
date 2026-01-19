@@ -1,0 +1,13 @@
+{
+  "category": "shot-types",
+  "subcategory": "wide-shots",
+  "id": "shot-establishing",
+  "name": "Establishing Shot",
+  "description": "Wide shot establishing location and scale",
+  "tags": ["establishing", "wide", "epic", "location"],
+  "prompt": "Wide establishing shot, {LOCATION}. Epic scale showing full environment, clear spatial relationships, {TIME_OF_DAY} lighting. Atmospheric depth, foreground/midground/background layers. Cinematic wide-angle composition, professional cinematography, sharp details throughout depth of field.",
+  "variables": {
+    "LOCATION": { "type": "string", "required": true },
+    "TIME_OF_DAY": { "type": "string", "required": true }
+  }
+}

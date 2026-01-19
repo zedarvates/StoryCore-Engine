@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="placeholderBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f9fafb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f3f4f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#placeholderBg)"/>
+  <rect x="1" y="1" width="510" height="510" fill="none" stroke="#e5e7eb" stroke-width="2"/>
+
+  <!-- Central film/camera icon -->
+  <g transform="translate(256, 256)">
+    <!-- Camera body -->
+    <rect x="-40" y="-30" width="80" height="50" rx="8" fill="none" stroke="#9ca3af" stroke-width="2"/>
+    <!-- Lens -->
+    <circle cx="0" cy="-5" r="20" fill="none" stroke="#9ca3af" stroke-width="2"/>
+    <circle cx="0" cy="-5" r="12" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+    <!-- Viewfinder -->
+    <rect x="-35" y="-25" width="15" height="10" rx="2" fill="none" stroke="#9ca3af" stroke-width="1"/>
+    <!-- Text -->
+    <text x="0" y="50" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#6b7280">
+      Drop image or generate content
+    </text>
+  </g>
+</svg>

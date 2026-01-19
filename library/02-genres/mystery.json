@@ -1,0 +1,45 @@
+{
+  "id": "genre-mystery",
+  "name": "Mystery Genre",
+  "category": "genres",
+  "description": "Puzzles and investigative stories with clues, secrets, and gradual revelation of truth",
+  "tags": ["mystery", "detective", "investigation", "puzzle", "secrets"],
+  "prompt": {
+    "base": "Mystery atmosphere, enigmatic mood, shadowy lighting, investigative focus, hidden clues, atmospheric fog, noir influences, detective aesthetic, puzzle elements, secretive ambiance",
+    "positive": "mysterious lighting, atmospheric shadows, enigmatic expressions, investigative details, hidden clues, noir aesthetic, foggy atmosphere, detective work, puzzle pieces, secretive mood, dramatic reveals, atmospheric depth",
+    "negative": "bright cheerful lighting, obvious answers, comedy elements, fantasy magic, action explosions, lighthearted tone, clear visibility, simple scenarios",
+    "technical": {
+      "aspect_ratio": "2.39:1 or 16:9",
+      "color_palette": "Muted tones with strategic lighting, noir influences",
+      "lighting": "Atmospheric with shadows, selective illumination, mystery-enhancing",
+      "composition": "Layered depth, obscured elements, revealing details gradually"
+    }
+  },
+  "variations": [
+    {
+      "name": "Detective Mystery",
+      "modifier": "crime scene investigation, detective work, evidence focus, analytical atmosphere, procedural elements"
+    },
+    {
+      "name": "Cozy Mystery",
+      "modifier": "charming settings, amateur detective, community focus, lighter tone, puzzle-solving"
+    },
+    {
+      "name": "Gothic Mystery",
+      "modifier": "old mansions, dark secrets, atmospheric locations, period settings, haunting mood"
+    }
+  ],
+  "examples": [
+    "A detective examining evidence under a desk lamp, dramatic side lighting, mysterious shadows, noir atmosphere, investigative focus",
+    "An old library with dust particles in volumetric light, hidden clues visible, mysterious atmosphere, layered depth"
+  ],
+  "comfyui": {
+    "workflow_id": "mystery_genre_workflow",
+    "recommended_models": ["realistic_vision", "deliberate_v2"],
+    "parameters": {
+      "cfg_scale": 7.5,
+      "steps": 32,
+      "sampler": "DPM++ 2M Karras"
+    }
+  }
+}

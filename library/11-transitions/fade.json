@@ -1,0 +1,44 @@
+{
+  "id": "transition-fade",
+  "name": "Fade Transition",
+  "category": "transitions",
+  "description": "Gradual transition to or from black/white, indicating passage of time or scene change",
+  "tags": ["fade", "gradual", "black", "white", "temporal"],
+  "prompt": {
+    "base": "Fade transition, gradual change to black or white, fade out and fade in, temporal transition, scene change indicator, smooth fade, time passage, gentle transition",
+    "positive": "fade transition, fade to black, fade from black, fade to white, gradual transition, smooth change, temporal indicator, scene change, time passage, gentle fade, soft transition",
+    "negative": "instant cut, abrupt change, no transition, direct switch, hard cut, immediate change",
+    "technical": {
+      "transition_duration": "1-3 seconds typical",
+      "visual_effect": "Gradual opacity change to/from black or white",
+      "use_cases": "Scene changes, time passage, chapter breaks, emotional pauses",
+      "editing_style": "Classical editing, dramatic emphasis, temporal shifts"
+    }
+  },
+  "variations": [
+    {
+      "name": "Fade to Black",
+      "modifier": "ending emphasis, dramatic conclusion, chapter close, significant pause, finality"
+    },
+    {
+      "name": "Fade to White",
+      "modifier": "dream sequence, memory, heavenly transition, ethereal quality, soft ending"
+    },
+    {
+      "name": "Cross Fade",
+      "modifier": "one shot fades while next appears, smooth blend, gentle transition, overlapping images"
+    }
+  ],
+  "examples": [
+    "A scene fading to black, gradual transition indicating time passage or chapter end",
+    "A memory sequence fading to white, ethereal transition with dreamy quality"
+  ],
+  "comfyui": {
+    "workflow_id": "fade_transition_workflow",
+    "parameters": {
+      "transition_type": "fade",
+      "duration_frames": 24,
+      "fade_color": "black"
+    }
+  }
+}
