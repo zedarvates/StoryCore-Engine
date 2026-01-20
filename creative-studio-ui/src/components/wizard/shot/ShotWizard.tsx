@@ -4,7 +4,16 @@ import { ProductionWizardContainer } from '../production-wizards/ProductionWizar
 import { WizardStep } from '@/types/wizard';
 import { ShotWizardState } from '@/types/wizard';
 import { ShotTemplate } from '@/types/template';
-import { ProductionShot } from '@/types/shot';
+import { ProductionShot, ShotType } from '@/types/shot';
+import { ShotTypeSelector } from './ShotTypeSelector';
+import {
+  CameraAngleSelector,
+  CameraMovementSelector,
+  LightingSelector,
+  MoodSelector,
+  TimeOfDaySelector,
+  TransitionSelector,
+} from '@/components/assets/AssetSelector';
 
 // Services
 import { templateManager } from '@/services/templateManager';
@@ -457,6 +466,44 @@ export function ShotWizard({
   };
 
   // ============================================================================
+  // Validation Logic
+  // ============================================================================
+
+  const canProceedFromCurrentStep = useCallback(() => {
+    const currentStepNumber = getEffectiveSteps()[wizardState.currentStep].number;
+
+    switch (currentStepNumber) {
+      case 1: // Type Selection
+        return !!wizardState.formData.type;
+      
+      case 2: // Composition
+        // Add validation for composition if needed
+        return true;
+      
+      case 3: // Camera Setup
+        // Add validation for camera if needed
+        return true;
+      
+      case 4: // Timing
+        // Add validation for timing if needed
+        return true;
+      
+      case 5: // Generation Settings
+        // Add validation for generation settings if needed
+        return true;
+      
+      case 6: // Preview
+        return true;
+      
+      case 7: // Finalize
+        return true;
+      
+      default:
+        return true;
+    }
+  }, [wizardState.currentStep, wizardState.formData, getEffectiveSteps]);
+
+  // ============================================================================
   // Step Content Renderer (Shell - placeholders for now)
   // ============================================================================
 
@@ -466,63 +513,282 @@ export function ShotWizard({
     switch (currentStepNumber) {
       case 1:
         return (
-          <div className="text-center py-8">
-            <h3 className="text-lg font-medium mb-4">Type Selection</h3>
-            <p className="text-gray-600">Shot type selection component will be implemented here.</p>
-          </div>
+          <ShotTypeSelector
+            selectedType={wizardState.formData.type}
+            onSelect={(type: ShotType) => {
+              updateFormData({ type });
+            }}
+          />
         );
 
       case 2:
         return (
-          <div className="text-center py-8">
-            <h3 className="text-lg font-medium mb-4">Composition</h3>
-            <p className="text-gray-600">Composition configuration component will be implemented here.</p>
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Composition Setup</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Configure the visual composition and atmosphere of your shot
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <LightingSelector
+                selectedAssetId={wizardState.formData.composition?.lightingMood}
+                onSelect={(asset) => {
+                  updateFormData({
+                    composition: {
+                      ...wizardState.formData.composition,
+                      lightingMood: asset.id,
+                    } as any,
+                  });
+                }}
+              />
+
+              <TimeOfDaySelector
+                selectedAssetId={wizardState.formData.composition?.timeOfDay}
+                onSelect={(asset) => {
+                  updateFormData({
+                    composition: {
+                      ...wizardState.formData.composition,
+                      timeOfDay: asset.id,
+                    } as any,
+                  });
+                }}
+              />
+
+              <MoodSelector
+                selectedAssetId={wizardState.formData.composition?.lightingMood}
+                onSelect={(asset) => {
+                  updateFormData({
+                    composition: {
+                      ...wizardState.formData.composition,
+                      lightingMood: asset.id,
+                    } as any,
+                  });
+                }}
+                className="md:col-span-2"
+              />
+            </div>
+
+            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                💡 <strong>Tip:</strong> These settings will influence the AI generation prompt
+                to create the desired atmosphere and lighting conditions.
+              </p>
+            </div>
           </div>
         );
 
       case 3:
         return (
-          <div className="text-center py-8">
-            <h3 className="text-lg font-medium mb-4">Camera Setup</h3>
-            <p className="text-gray-600">Camera setup component will be implemented here.</p>
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Camera Setup</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Define how the camera will capture this shot
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CameraAngleSelector
+                selectedAssetId={wizardState.formData.camera?.angle}
+                onSelect={(asset) => {
+                  updateFormData({
+                    camera: {
+                      ...wizardState.formData.camera,
+                      angle: asset.id as any,
+                    } as any,
+                  });
+                }}
+              />
+
+              <CameraMovementSelector
+                selectedAssetId={wizardState.formData.camera?.movement?.type}
+                onSelect={(asset) => {
+                  updateFormData({
+                    camera: {
+                      ...wizardState.formData.camera,
+                      movement: {
+                        type: asset.id as any,
+                      },
+                    } as any,
+                  });
+                }}
+              />
+            </div>
+
+            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                💡 <strong>Tip:</strong> Camera angle and movement greatly affect the emotional
+                impact and storytelling of your shot.
+              </p>
+            </div>
           </div>
         );
 
       case 4:
         return (
-          <div className="text-center py-8">
-            <h3 className="text-lg font-medium mb-4">Timing</h3>
-            <p className="text-gray-600">Timing configuration component will be implemented here.</p>
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Timing & Transitions</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Set the duration and transition style for this shot
+            </p>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Duration (seconds)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="60"
+                  value={wizardState.formData.timing?.duration || 5}
+                  onChange={(e) => {
+                    updateFormData({
+                      timing: {
+                        ...wizardState.formData.timing,
+                        duration: parseInt(e.target.value) || 5,
+                      } as any,
+                    });
+                  }}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                />
+              </div>
+
+              <TransitionSelector
+                selectedAssetId={wizardState.formData.timing?.transition}
+                onSelect={(asset) => {
+                  updateFormData({
+                    timing: {
+                      ...wizardState.formData.timing,
+                      transition: asset.id as any,
+                    } as any,
+                  });
+                }}
+              />
+            </div>
           </div>
         );
 
       case 5:
         return (
-          <div className="text-center py-8">
-            <h3 className="text-lg font-medium mb-4">Generation Settings</h3>
-            <p className="text-gray-600">Generation settings component will be implemented here.</p>
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Generation Settings</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Configure AI generation parameters
+            </p>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Custom Prompt (Optional)
+                </label>
+                <textarea
+                  rows={4}
+                  value={wizardState.generatedPrompt}
+                  onChange={(e) => updateGeneratedPrompt(e.target.value)}
+                  placeholder="Add custom prompt details or leave empty to use template-based generation..."
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                />
+              </div>
+
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h4 className="text-sm font-medium mb-2">Auto-Generated Prompt Preview</h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Based on your selections, the following prompt will be generated:
+                </p>
+                <div className="mt-2 p-3 bg-white dark:bg-gray-900 rounded border text-xs font-mono">
+                  {wizardState.formData.type || '[shot type]'},{' '}
+                  {wizardState.formData.camera?.angle || '[camera angle]'},{' '}
+                  {wizardState.formData.composition?.lightingMood || '[lighting]'},{' '}
+                  {wizardState.formData.composition?.timeOfDay || '[time of day]'}
+                </div>
+              </div>
+            </div>
           </div>
         );
 
       case 6:
         return (
-          <div className="text-center py-8">
-            <h3 className="text-lg font-medium mb-4">Preview</h3>
-            <p className="text-gray-600">Preview component will be implemented here.</p>
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Preview & Review</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Review your shot configuration before finalizing
+            </p>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h4 className="text-sm font-medium mb-3">Shot Configuration</h4>
+                <dl className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600 dark:text-gray-400">Type:</dt>
+                    <dd className="font-medium">{wizardState.formData.type || 'Not set'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600 dark:text-gray-400">Camera Angle:</dt>
+                    <dd className="font-medium">{wizardState.formData.camera?.angle || 'Not set'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600 dark:text-gray-400">Camera Movement:</dt>
+                    <dd className="font-medium">{wizardState.formData.camera?.movement?.type || 'Not set'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600 dark:text-gray-400">Lighting:</dt>
+                    <dd className="font-medium">{wizardState.formData.composition?.lightingMood || 'Not set'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600 dark:text-gray-400">Time of Day:</dt>
+                    <dd className="font-medium">{wizardState.formData.composition?.timeOfDay || 'Not set'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600 dark:text-gray-400">Duration:</dt>
+                    <dd className="font-medium">{wizardState.formData.timing?.duration || 5}s</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600 dark:text-gray-400">Transition:</dt>
+                    <dd className="font-medium">{wizardState.formData.timing?.transition || 'Not set'}</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
           </div>
         );
 
       case 7:
         return (
-          <div className="text-center py-8">
-            <h3 className="text-lg font-medium mb-4">Finalize</h3>
-            <p className="text-gray-600">Finalize component will be implemented here.</p>
-            <button
-              onClick={handleComplete}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Complete Shot Wizard
-            </button>
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Finalize Shot</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Your shot is ready to be saved or generated
+            </p>
+
+            <div className="p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-3 mb-4">
+                <svg className="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <h4 className="font-semibold text-green-900 dark:text-green-100">
+                    Shot Configuration Complete
+                  </h4>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    All required settings have been configured
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleComplete}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Save Shot
+                </button>
+                <button
+                  onClick={handleComplete}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Save & Generate
+                </button>
+              </div>
+            </div>
           </div>
         );
 
@@ -539,22 +805,29 @@ export function ShotWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCancel}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <DialogTitle>Create Shot</DialogTitle>
         </DialogHeader>
 
         {/* Context Header */}
         <ContextHeader />
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <ProductionWizardContainer
             title="Shot Wizard"
             steps={effectiveSteps}
+            currentStep={wizardState.currentStep}
+            onNextStep={nextStep}
+            onPreviousStep={previousStep}
+            onGoToStep={goToStep}
             onCancel={handleCancel}
             onComplete={wizardState.currentStep === effectiveSteps.length - 1 ? handleComplete : nextStep}
             allowJumpToStep={false} // Can be enabled later if needed
             showAutoSaveIndicator={!existingShot}
+            canProceed={canProceedFromCurrentStep()}
+            isDirty={wizardState.isDirty}
+            lastSaved={wizardState.lastSaved}
             className="h-full"
           >
             {isLoading ? (

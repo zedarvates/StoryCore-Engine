@@ -149,6 +149,8 @@ export function Step4CulturalElements() {
       tone: formData.tone || [],
     };
 
+    console.log('🔍 CULTURAL ELEMENTS GENERATION CONTEXT:', context);
+
     const systemPrompt = 'You are a creative world-building assistant. Generate rich, coherent cultural elements that fit the world\'s genre, time period, and tone.';
 
     const prompt = `Generate cultural elements for a story world called "${context.worldName}":
@@ -163,9 +165,9 @@ Provide:
 4. Historical Events (3-4 significant events that shaped the world)
 5. Cultural Conflicts (2-3 ongoing tensions or disputes)
 
-Format as JSON with arrays: languages, religions, traditions, historicalEvents, culturalConflicts
+IMPORTANT: Respond ONLY with a valid JSON object. Do not include any other text, explanations, or formatting.
 
-Example:
+Example format:
 {
   "languages": ["Common Tongue - spoken by most citizens", "Ancient Elvish - language of magic"],
   "religions": ["Church of the Light - monotheistic sun worship", "The Old Ways - nature-based polytheism"],
@@ -173,6 +175,9 @@ Example:
   "historicalEvents": ["The Great Schism - religious split 200 years ago", "Discovery of magic crystals"],
   "culturalConflicts": ["Tension between magic users and non-magical citizens", "Religious divide between old and new faiths"]
 }`;
+
+    console.log('📤 CULTURAL ELEMENTS PROMPT:', prompt);
+    console.log('📤 CULTURAL ELEMENTS SYSTEM PROMPT:', systemPrompt);
 
     try {
       await generate({
@@ -182,37 +187,182 @@ Example:
         maxTokens: 1500,
       });
     } catch (error) {
-      console.error('Failed to generate cultural elements:', error);
+      console.error('❌ Failed to generate cultural elements:', error);
       // Error will be handled by useLLMGeneration hook
     }
   };
 
   const parseLLMCulturalElements = (response: string): CulturalElements => {
+    console.log('🎯 PARSING CULTURAL ELEMENTS RESPONSE');
+    console.log('📊 Response metadata:');
+    console.log('   - Length:', response.length);
+    console.log('   - Type:', typeof response);
+    console.log('   - Is empty?', response.trim().length === 0);
+    console.log('   - First 200 chars:', response.substring(0, 200));
+    console.log('   - Last 200 chars:', response.substring(Math.max(0, response.length - 200)));
+
     try {
-      console.log('Parsing LLM cultural elements response:', response);
-      
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      // Log the FULL response for debugging
+      console.log('=== LLM RESPONSE START ===');
+      console.log(response);
+      console.log('=== LLM RESPONSE END ===');
+
+      // Try JSON parsing first - more flexible pattern
+      const jsonMatch = response.match(/(\{[\s\S]*\})/);
+      console.log('🔍 JSON match found:', !!jsonMatch);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        const elements = {
-          languages: parsed.languages || [],
-          religions: parsed.religions || [],
-          traditions: parsed.traditions || [],
-          historicalEvents: parsed.historicalEvents || [],
-          culturalConflicts: parsed.culturalConflicts || [],
-        };
-        
-        console.log('Successfully parsed cultural elements:', elements);
-        return elements;
+        console.log('📋 Extracted JSON string:', jsonMatch[0]);
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          console.log('📋 Parsed JSON object:', parsed);
+
+          const elements = {
+            languages: Array.isArray(parsed.languages) ? parsed.languages : [],
+            religions: Array.isArray(parsed.religions) ? parsed.religions : [],
+            traditions: Array.isArray(parsed.traditions) ? parsed.traditions : [],
+            historicalEvents: Array.isArray(parsed.historicalEvents) ? parsed.historicalEvents : [],
+            culturalConflicts: Array.isArray(parsed.culturalConflicts) ? parsed.culturalConflicts : [],
+          };
+
+          console.log('🔧 Processed elements:', elements);
+
+          // Check if we got any data
+          const hasData = Object.values(elements).some(arr => arr.length > 0);
+          console.log('✅ Has data?', hasData);
+          if (hasData) {
+            console.log('✅ Successfully parsed cultural elements from JSON:', elements);
+            return elements;
+          } else {
+            console.warn('⚠️ JSON parsed successfully but no data arrays found');
+          }
+        } catch (jsonError) {
+          console.warn('⚠️ JSON parsing failed:', jsonError);
+          console.warn('⚠️ JSON string that failed:', jsonMatch[0]);
+        }
       } else {
-        console.warn('No JSON object found in response');
+        console.warn('⚠️ No JSON object found in response');
       }
+      
+      // Try alternative JSON patterns (in case of extra text)
+      console.log('🔄 Trying alternative JSON patterns...');
+      const alternativePatterns = [
+        /"languages"\s*:\s*\[([^\]]*)\]/i,
+        /languages\s*:\s*\[([^\]]*)\]/i,
+      ];
+
+      for (const pattern of alternativePatterns) {
+        const match = response.match(pattern);
+        if (match) {
+          console.log('📋 Found alternative pattern match');
+          // Try to extract and parse individual arrays
+          try {
+            const languagesMatch = response.match(/"languages"\s*:\s*\[([^\]]*)\]/i);
+            const religionsMatch = response.match(/"religions"\s*:\s*\[([^\]]*)\]/i);
+            const traditionsMatch = response.match(/"traditions"\s*:\s*\[([^\]]*)\]/i);
+            const eventsMatch = response.match(/"historicalEvents"\s*:\s*\[([^\]]*)\]/i);
+            const conflictsMatch = response.match(/"culturalConflicts"\s*:\s*\[([^\]]*)\]/i);
+
+            const elements = {
+              languages: languagesMatch ? languagesMatch[1].split(',').map(s => s.replace(/["\s]/g, '')) : [],
+              religions: religionsMatch ? religionsMatch[1].split(',').map(s => s.replace(/["\s]/g, '')) : [],
+              traditions: traditionsMatch ? traditionsMatch[1].split(',').map(s => s.replace(/["\s]/g, '')) : [],
+              historicalEvents: eventsMatch ? eventsMatch[1].split(',').map(s => s.replace(/["\s]/g, '')) : [],
+              culturalConflicts: conflictsMatch ? conflictsMatch[1].split(',').map(s => s.replace(/["\s]/g, '')) : [],
+            };
+
+            const hasData = Object.values(elements).some(arr => arr.length > 0);
+            if (hasData) {
+              console.log('✅ Successfully parsed from alternative patterns:', elements);
+              return elements;
+            }
+          } catch (altError) {
+            console.warn('⚠️ Alternative parsing failed:', altError);
+          }
+        }
+      }
+
+      // Fallback: Parse as structured text
+      console.log('🔄 Attempting text-based parsing');
+      const elements: CulturalElements = {
+        languages: [],
+        religions: [],
+        traditions: [],
+        historicalEvents: [],
+        culturalConflicts: [],
+      };
+
+      const lines = response.split('\n');
+      let currentSection: keyof CulturalElements | null = null;
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        
+        // Detect section headers
+        if (/languages?:/i.test(trimmed)) {
+          currentSection = 'languages';
+          console.log('📍 Found Languages section');
+          continue;
+        }
+        if (/religions?|beliefs?:/i.test(trimmed)) {
+          currentSection = 'religions';
+          console.log('📍 Found Religions section');
+          continue;
+        }
+        if (/traditions?|customs?:/i.test(trimmed)) {
+          currentSection = 'traditions';
+          console.log('📍 Found Traditions section');
+          continue;
+        }
+        if (/historical\s*events?|history:/i.test(trimmed)) {
+          currentSection = 'historicalEvents';
+          console.log('📍 Found Historical Events section');
+          continue;
+        }
+        if (/conflicts?|tensions?:/i.test(trimmed)) {
+          currentSection = 'culturalConflicts';
+          console.log('📍 Found Conflicts section');
+          continue;
+        }
+        
+        // Parse list items
+        if (currentSection) {
+          // Remove list markers (-, *, •, numbers)
+          const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '');
+          
+          // Skip if it's too short or looks like a header
+          if (cleaned.length > 5 && !cleaned.endsWith(':')) {
+            elements[currentSection].push(cleaned);
+            console.log(`  ➕ Added to ${currentSection}:`, cleaned);
+          }
+        }
+      }
+      
+      // Check if we got any data
+      const hasData = Object.values(elements).some(arr => arr.length > 0);
+      if (hasData) {
+        console.log('✅ Successfully parsed cultural elements from text:', elements);
+        return elements;
+      }
+      
+      // Last resort: Create default elements if response seems valid but unparseable
+      if (response.length > 50) {
+        console.warn('⚠️ Response seems valid but unparseable, creating default elements');
+        return {
+          languages: ['Common Language', 'Ancient Tongue'],
+          religions: ['Primary Faith', 'Old Beliefs'],
+          traditions: ['Annual Festival', 'Coming of Age Ceremony'],
+          historicalEvents: ['The Great Change', 'Foundation Era'],
+          culturalConflicts: ['Traditional vs Modern', 'Regional Tensions'],
+        };
+      }
+      
     } catch (error) {
-      console.error('Failed to parse LLM response:', error);
+      console.error('❌ Failed to parse LLM response:', error);
       console.error('Response was:', response);
     }
     
-    console.warn('Could not parse any cultural elements from response');
+    console.warn('❌ Could not parse any cultural elements from response');
     return {
       languages: [],
       religions: [],

@@ -113,23 +113,127 @@ Example:
 
   const parseLLMBackground = (response: string): Partial<Character['background']> | null => {
     try {
-      // Try to extract JSON from response
+      console.log('Parsing LLM background response:', response);
+      
+      // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        // Only include fields that have values
-        const result: Partial<Character['background']> = {};
-        if (parsed.origin) result.origin = parsed.origin;
-        if (parsed.occupation) result.occupation = parsed.occupation;
-        if (parsed.education) result.education = parsed.education;
-        if (parsed.family) result.family = parsed.family;
-        if (Array.isArray(parsed.significant_events)) result.significant_events = parsed.significant_events;
-        if (parsed.current_situation) result.current_situation = parsed.current_situation;
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          const result: Partial<Character['background']> = {};
+          
+          // Map all fields with aliases
+          if (parsed.origin) result.origin = parsed.origin;
+          if (parsed.occupation) result.occupation = parsed.occupation;
+          if (parsed.education) result.education = parsed.education;
+          if (parsed.family) result.family = parsed.family;
+          if (Array.isArray(parsed.significant_events) || Array.isArray(parsed.significantEvents)) {
+            result.significant_events = parsed.significant_events || parsed.significantEvents;
+          }
+          if (parsed.current_situation || parsed.currentSituation) {
+            result.current_situation = parsed.current_situation || parsed.currentSituation;
+          }
+          
+          // Check if we got any data
+          if (Object.keys(result).length > 0) {
+            console.log('Successfully parsed background from JSON:', result);
+            return result;
+          }
+        } catch (jsonError) {
+          console.warn('JSON parsing failed, trying text parsing');
+        }
+      }
+      
+      // Fallback: Parse as structured text
+      console.log('Attempting text-based parsing');
+      const result: Partial<Character['background']> = {};
+      const lines = response.split('\n');
+      
+      const significantEvents: string[] = [];
+      let inEventsSection = false;
+      let currentField: string | null = null;
+      let currentValue = '';
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        
+        // Detect significant events section
+        if (/significant\s*(?:life\s*)?events?:/i.test(trimmed)) {
+          if (currentField && currentValue) {
+            // Save previous field
+            if (currentField === 'origin') result.origin = currentValue;
+            else if (currentField === 'occupation') result.occupation = currentValue;
+            else if (currentField === 'education') result.education = currentValue;
+            else if (currentField === 'family') result.family = currentValue;
+            else if (currentField === 'current_situation') result.current_situation = currentValue;
+          }
+          inEventsSection = true;
+          currentField = null;
+          currentValue = '';
+          continue;
+        }
+        
+        // Parse list items in events section
+        if (inEventsSection) {
+          const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '');
+          if (cleaned.length > 10 && !cleaned.endsWith(':')) {
+            significantEvents.push(cleaned);
+          }
+          // Check if we're leaving the events section
+          if (/^(origin|occupation|education|family|current\s*situation):/i.test(trimmed)) {
+            inEventsSection = false;
+          } else {
+            continue;
+          }
+        }
+        
+        // Parse field headers and values
+        const fieldMatch = trimmed.match(/^(origin|occupation|education|family|current\s*situation)(?:\s*and\s*upbringing)?:\s*(.+)/i);
+        if (fieldMatch) {
+          // Save previous field
+          if (currentField && currentValue) {
+            if (currentField === 'origin') result.origin = currentValue;
+            else if (currentField === 'occupation') result.occupation = currentValue;
+            else if (currentField === 'education') result.education = currentValue;
+            else if (currentField === 'family') result.family = currentValue;
+            else if (currentField === 'current_situation') result.current_situation = currentValue;
+          }
+          
+          currentField = fieldMatch[1].toLowerCase().replace(/\s+/g, '_');
+          currentValue = fieldMatch[2].trim();
+          continue;
+        }
+        
+        // Continue multi-line field value
+        if (currentField && trimmed.length > 10 && !trimmed.endsWith(':')) {
+          currentValue += ' ' + trimmed;
+        }
+      }
+      
+      // Save last field
+      if (currentField && currentValue) {
+        if (currentField === 'origin') result.origin = currentValue;
+        else if (currentField === 'occupation') result.occupation = currentValue;
+        else if (currentField === 'education') result.education = currentValue;
+        else if (currentField === 'family') result.family = currentValue;
+        else if (currentField === 'current_situation') result.current_situation = currentValue;
+      }
+      
+      if (significantEvents.length > 0) result.significant_events = significantEvents;
+      
+      // Check if we got any data
+      if (Object.keys(result).length > 0) {
+        console.log('Successfully parsed background from text:', result);
         return result;
       }
+      
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
+      console.error('Response was:', response);
     }
+    
+    console.warn('Could not parse any background data from response');
     return null;
   };
 

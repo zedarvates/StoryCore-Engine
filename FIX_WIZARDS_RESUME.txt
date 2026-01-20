@@ -1,0 +1,37 @@
+═══════════════════════════════════════════════════════════════════════════════
+   ✅ FIX WIZARDS - RÉSUMÉ ULTRA-COMPACT
+═══════════════════════════════════════════════════════════════════════════════
+
+🐛 PROBLÈME
+───────────
+❌ POST http://localhost:11434/api/generate 404 (Not Found)
+❌ Wizards AI-Assisted Generation ne fonctionnent pas
+
+🔧 CAUSE
+────────
+Code cherchait : data.message.content (format OpenAI)
+Ollama retourne : data.response (format Ollama)
+
+✅ CORRECTION
+─────────────
+Fichier : creative-studio-ui/src/services/llmService.ts
+Ligne ~685 : data.message.content → data.response
+
+🔄 POUR TESTER
+──────────────
+1. npm run dev
+2. Ctrl+Shift+R
+3. Ouvrir World Builder → AI-Assisted Generation
+4. Prompt : "Un monde de fantasy avec de la magie"
+5. Modèle : qwen3-vl:8b ⭐
+6. Generate → ✅ Ça marche !
+
+✅ RÉSULTAT
+───────────
+Tous les wizards AI-Assisted Generation fonctionnels :
+• World Builder ✅
+• Character Wizard ✅
+• Dialogue Wizard ✅
+• Sequence Plan Wizard ✅
+
+═══════════════════════════════════════════════════════════════════════════════

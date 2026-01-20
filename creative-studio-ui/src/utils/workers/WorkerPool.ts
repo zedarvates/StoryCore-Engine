@@ -1,222 +1,326 @@
 /**
- * WorkerPool manages a pool of Web Workers for asynchronous processing
- * Supports task queuing, worker allocation, and progress tracking
+ * WorkerPool - Gestion d'un pool de Web Workers pour traitement asynchrone
+ * 
+ * Cette classe gère un pool de workers pour exécuter des tâches en arrière-plan
+ * sans bloquer l'interface utilisateur. Elle implémente une file d'attente de tâches
+ * et alloue automatiquement les workers disponibles.
+ * 
+ * Exigences: 10.1, 10.6
  */
 
-export interface WorkerTask {
+export interface WorkerTask<T = any, R = any> {
   id: string;
   type: string;
-  data: any;
+  data: T;
+  resolve: (result: R) => void;
+  reject: (error: Error) => void;
   priority?: number;
 }
 
-export interface WorkerResult {
-  taskId: string;
-  success: boolean;
-  data?: any;
-  error?: string;
+export interface WorkerMessage<T = any> {
+  id: string;
+  type: string;
+  data: T;
 }
 
-export interface WorkerProgress {
-  taskId: string;
-  progress: number;
-  message?: string;
+export interface WorkerResponse<R = any> {
+  id: string;
+  status: 'completed' | 'error' | 'progress';
+  result?: R;
+  error?: string;
+  progress?: number;
 }
 
 export class WorkerPool {
   private workers: Worker[] = [];
   private availableWorkers: Worker[] = [];
   private taskQueue: WorkerTask[] = [];
-  private activeTasks = new Map<string, WorkerTask>();
-  private maxWorkers: number;
-  private onResult?: (result: WorkerResult) => void;
-  private onProgress?: (progress: WorkerProgress) => void;
-  private nextWorkerId = 0;
+  public readonly size: number;
+  private workerUrl: string;
 
-  constructor(maxWorkers: number = navigator.hardwareConcurrency || 4) {
-    this.maxWorkers = Math.min(maxWorkers, 8); // Cap at 8 workers
+  /**
+   * Crée un nouveau pool de workers
+   * @param size - Nombre de workers dans le pool (par défaut: nombre de cœurs CPU)
+   * @param workerUrl - URL du script worker à charger
+   */
+  constructor(
+    size: number = navigator.hardwareConcurrency || 4,
+    workerUrl: string = new URL('../../workers/processing.worker.ts', import.meta.url).href
+  ) {
+    this.size = size;
+    this.workerUrl = workerUrl;
     this.initializeWorkers();
   }
 
-  private initializeWorkers() {
-    for (let i = 0; i < this.maxWorkers; i++) {
-      this.createWorker();
+  /**
+   * Initialise tous les workers du pool
+   * Exigence: 10.1 - Traitement non-bloquant
+   */
+  private initializeWorkers(): void {
+    for (let i = 0; i < this.size; i++) {
+      const worker = this.createWorker();
+      this.workers.push(worker);
+      this.availableWorkers.push(worker);
     }
   }
 
+  /**
+   * Crée un nouveau worker avec les gestionnaires d'événements
+   */
   private createWorker(): Worker {
-    const worker = new Worker(new URL('./processing.worker.ts', import.meta.url), {
-      type: 'module'
-    });
+    const worker = new Worker(this.workerUrl, { type: 'module' });
 
-    const workerId = this.nextWorkerId++;
-    worker.postMessage({ type: 'INIT', workerId });
-
-    worker.onmessage = (event) => {
-      const { type, taskId, ...data } = event.data;
-
-      switch (type) {
-        case 'TASK_COMPLETE':
-          this.handleTaskComplete(taskId, data.success, data.result, data.error);
-          break;
-        case 'TASK_PROGRESS':
-          this.handleTaskProgress(taskId, data.progress, data.message);
-          break;
-        case 'WORKER_READY':
-          this.availableWorkers.push(worker);
-          this.processQueue();
-          break;
-      }
+    worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
+      this.handleWorkerMessage(worker, event.data);
     };
 
-    worker.onerror = (error) => {
-      console.error('Worker error:', error);
-      // Remove faulty worker and create a new one
-      this.removeWorker(worker);
-      this.createWorker();
+    worker.onerror = (error: ErrorEvent) => {
+      this.handleWorkerError(worker, error);
     };
 
-    this.workers.push(worker);
     return worker;
   }
 
-  private removeWorker(worker: Worker) {
-    const index = this.workers.indexOf(worker);
-    if (index > -1) {
-      this.workers.splice(index, 1);
-    }
+  /**
+   * Exécute une tâche dans le pool de workers
+   * @param type - Type de tâche à exécuter
+   * @param data - Données à traiter
+   * @param priority - Priorité de la tâche (optionnel)
+   * @returns Promise qui se résout avec le résultat
+   * 
+   * Exigence: 10.6 - File d'attente avec priorités
+   */
+  async execute<T, R>(type: string, data: T, priority: number = 0): Promise<R> {
+    return new Promise((resolve, reject) => {
+      const task: WorkerTask<T, R> = {
+        id: this.generateTaskId(),
+        type,
+        data,
+        resolve,
+        reject,
+        priority
+      };
 
-    const availIndex = this.availableWorkers.indexOf(worker);
-    if (availIndex > -1) {
-      this.availableWorkers.splice(availIndex, 1);
-    }
+      const worker = this.availableWorkers.pop();
 
-    worker.terminate();
+      if (worker) {
+        // Worker disponible, exécuter immédiatement
+        this.executeTask(worker, task);
+      } else {
+        // Aucun worker disponible, ajouter à la file d'attente
+        this.enqueueTask(task);
+      }
+    });
   }
 
-  private handleTaskComplete(taskId: string, success: boolean, result?: any, error?: string) {
-    const task = this.activeTasks.get(taskId);
-    if (!task) return;
-
-    this.activeTasks.delete(taskId);
-
-    if (this.onResult) {
-      this.onResult({
-        taskId,
-        success,
-        data: result,
-        error
-      });
-    }
-
-    // Worker becomes available again
-    // Note: In a real implementation, we'd track which worker completed the task
-    this.processQueue();
-  }
-
-  private handleTaskProgress(taskId: string, progress: number, message?: string) {
-    if (this.onProgress) {
-      this.onProgress({
-        taskId,
-        progress,
-        message
-      });
+  /**
+   * Ajoute une tâche à la file d'attente en respectant les priorités
+   * Exigence: 10.6 - Gestion des priorités
+   */
+  private enqueueTask(task: WorkerTask): void {
+    // Insérer la tâche en fonction de sa priorité (plus haute priorité = plus tôt dans la file)
+    const insertIndex = this.taskQueue.findIndex(t => (t.priority || 0) < (task.priority || 0));
+    
+    if (insertIndex === -1) {
+      this.taskQueue.push(task);
+    } else {
+      this.taskQueue.splice(insertIndex, 0, task);
     }
   }
 
-  private processQueue() {
-    if (this.taskQueue.length === 0 || this.availableWorkers.length === 0) {
+  /**
+   * Exécute une tâche sur un worker spécifique
+   */
+  private executeTask(worker: Worker, task: WorkerTask): void {
+    const message: WorkerMessage = {
+      id: task.id,
+      type: task.type,
+      data: task.data
+    };
+
+    worker.postMessage(message);
+
+    // Stocker la tâche pour la résolution ultérieure
+    (worker as any).__currentTask = task;
+  }
+
+  /**
+   * Gère les messages reçus d'un worker
+   * Exigence: 10.2 - Mises à jour de progression
+   */
+  private handleWorkerMessage(worker: Worker, response: WorkerResponse): void {
+    const task = (worker as any).__currentTask as WorkerTask;
+
+    if (!task || response.id !== task.id) {
+      console.warn('Received message for unknown task:', response.id);
       return;
     }
 
-    // Sort queue by priority (higher number = higher priority)
-    this.taskQueue.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    if (response.status === 'progress') {
+      // Message de progression - ne pas libérer le worker
+      // Les callbacks de progression peuvent être ajoutés dans une version future
+      return;
+    }
 
-    const task = this.taskQueue.shift()!;
-    const worker = this.availableWorkers.pop()!;
+    if (response.status === 'error') {
+      task.reject(new Error(response.error || 'Worker task failed'));
+    } else if (response.status === 'completed') {
+      task.resolve(response.result);
+    }
 
-    this.activeTasks.set(task.id, task);
+    // Libérer le worker
+    delete (worker as any).__currentTask;
+    this.availableWorkers.push(worker);
 
-    worker.postMessage({
-      type: 'EXECUTE_TASK',
-      taskId: task.id,
-      taskType: task.type,
-      data: task.data
-    });
+    // Traiter la prochaine tâche en attente
+    this.processNextTask(worker);
   }
 
   /**
-   * Execute a task asynchronously
+   * Traite la prochaine tâche dans la file d'attente
    */
-  async executeTask(task: WorkerTask): Promise<WorkerResult> {
-    return new Promise((resolve) => {
-      const originalOnResult = this.onResult;
+  private processNextTask(worker: Worker): void {
+    const nextTask = this.taskQueue.shift();
+    if (nextTask) {
+      // Retirer le worker de la liste des disponibles
+      const index = this.availableWorkers.indexOf(worker);
+      if (index !== -1) {
+        this.availableWorkers.splice(index, 1);
+      }
+      this.executeTask(worker, nextTask);
+    }
+  }
 
-      this.onResult = (result) => {
-        if (result.taskId === task.id) {
-          this.onResult = originalOnResult;
-          resolve(result);
-        } else if (originalOnResult) {
-          originalOnResult(result);
+  /**
+   * Gère les erreurs d'un worker
+   * Exigence: 10.7 - Gestion d'erreurs avec contexte
+   */
+  private handleWorkerError(worker: Worker, error: ErrorEvent): void {
+    const task = (worker as any).__currentTask as WorkerTask;
+
+    if (task) {
+      task.reject(new Error(`Worker error: ${error.message}`));
+      delete (worker as any).__currentTask;
+    }
+
+    // Recréer le worker défaillant
+    const index = this.workers.indexOf(worker);
+    if (index !== -1) {
+      worker.terminate();
+      this.workers.splice(index, 1);
+
+      const newWorker = this.createWorker();
+      this.workers.push(newWorker);
+      this.availableWorkers.push(newWorker);
+    }
+  }
+
+  /**
+   * Annule une tâche spécifique par son ID
+   * Exigence: 10.5 - Annulation de tâches
+   */
+  cancel(taskId: string): boolean {
+    // Chercher dans la file d'attente
+    const queueIndex = this.taskQueue.findIndex(t => t.id === taskId);
+    if (queueIndex !== -1) {
+      const task = this.taskQueue.splice(queueIndex, 1)[0];
+      task.reject(new Error('Task cancelled'));
+      return true;
+    }
+
+    // Chercher dans les tâches en cours
+    for (const worker of this.workers) {
+      const task = (worker as any).__currentTask as WorkerTask;
+      if (task && task.id === taskId) {
+        task.reject(new Error('Task cancelled'));
+        delete (worker as any).__currentTask;
+        
+        // Envoyer un message d'annulation au worker
+        worker.postMessage({ id: taskId, type: 'cancel' });
+        
+        // Rendre le worker disponible
+        if (!this.availableWorkers.includes(worker)) {
+          this.availableWorkers.push(worker);
         }
-      };
+        
+        // Traiter la prochaine tâche
+        this.processNextTask(worker);
+        return true;
+      }
+    }
 
-      this.taskQueue.push(task);
-      this.processQueue();
-    });
+    return false;
   }
 
   /**
-   * Add a task to the queue (fire and forget)
+   * Annule toutes les tâches en cours et en attente
+   * Exigence: 10.5 - Annulation de tâches
    */
-  enqueueTask(task: WorkerTask) {
-    this.taskQueue.push(task);
-    this.processQueue();
+  cancelAll(): void {
+    // Rejeter toutes les tâches en attente
+    while (this.taskQueue.length > 0) {
+      const task = this.taskQueue.shift();
+      if (task) {
+        task.reject(new Error('Task cancelled'));
+      }
+    }
+
+    // Rejeter toutes les tâches en cours
+    for (const worker of this.workers) {
+      const task = (worker as any).__currentTask as WorkerTask;
+      if (task) {
+        task.reject(new Error('Task cancelled'));
+        delete (worker as any).__currentTask;
+        
+        // Envoyer un message d'annulation au worker
+        worker.postMessage({ id: task.id, type: 'cancel' });
+      }
+    }
+
+    // Réinitialiser la liste des workers disponibles
+    this.availableWorkers = [...this.workers];
   }
 
   /**
-   * Cancel all pending tasks
+   * Termine proprement tous les workers du pool
+   * Exigence: 10.5 - Terminaison propre
    */
-  cancelAll() {
-    this.taskQueue.length = 0;
-    // Note: Active tasks would need to be cancelled individually
-    // For now, we just clear the queue
+  terminate(): void {
+    this.cancelAll();
+
+    for (const worker of this.workers) {
+      worker.terminate();
+    }
+
+    this.workers = [];
+    this.availableWorkers = [];
   }
 
   /**
-   * Set result callback
+   * Retourne le nombre de tâches en attente
    */
-  setOnResult(callback: (result: WorkerResult) => void) {
-    this.onResult = callback;
+  getQueueSize(): number {
+    return this.taskQueue.length;
   }
 
   /**
-   * Set progress callback
+   * Retourne le nombre de workers disponibles
    */
-  setOnProgress(callback: (progress: WorkerProgress) => void) {
-    this.onProgress = callback;
+  getAvailableWorkers(): number {
+    return this.availableWorkers.length;
   }
 
   /**
-   * Get current status
+   * Retourne le nombre de workers occupés
    */
-  getStatus() {
-    return {
-      totalWorkers: this.workers.length,
-      availableWorkers: this.availableWorkers.length,
-      queuedTasks: this.taskQueue.length,
-      activeTasks: this.activeTasks.size
-    };
+  getBusyWorkers(): number {
+    return this.size - this.availableWorkers.length;
   }
 
   /**
-   * Cleanup all workers
+   * Génère un ID unique pour une tâche
    */
-  destroy() {
-    this.workers.forEach(worker => worker.terminate());
-    this.workers.length = 0;
-    this.availableWorkers.length = 0;
-    this.taskQueue.length = 0;
-    this.activeTasks.clear();
+  private generateTaskId(): string {
+    return `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }

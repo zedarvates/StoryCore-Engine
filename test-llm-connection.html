@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test de Connexion LLM - StoryCore</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .test-section {
+      margin-bottom: 30px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .test-header {
+      background: #f5f5f5;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .test-header:hover {
+      background: #eeeeee;
+    }
+
+    .test-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .test-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .status-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .status-pending {
+      background: #ffa726;
+      color: white;
+    }
+
+    .status-pass {
+      background: #66bb6a;
+      color: white;
+    }
+
+    .status-fail {
+      background: #ef5350;
+      color: white;
+    }
+
+    .status-running {
+      background: #42a5f5;
+      color: white;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .test-body {
+      padding: 20px;
+      background: white;
+      display: none;
+    }
+
+    .test-body.expanded {
+      display: block;
+    }
+
+    .test-result {
+      background: #f9f9f9;
+      border-left: 4px solid #42a5f5;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+
+    .test-result.success {
+      border-left-color: #66bb6a;
+      background: #e8f5e9;
+    }
+
+    .test-result.error {
+      border-left-color: #ef5350;
+      background: #ffebee;
+    }
+
+    .test-result pre {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .summary {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .summary-item {
+      text-align: center;
+      padding: 15px;
+      background: white;
+      border-radius: 6px;
+    }
+
+    .summary-value {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .summary-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔍 Test de Connexion LLM</h1>
+      <p>Diagnostic automatique de la configuration LLM pour StoryCore</p>
+    </div>
+
+    <div class="content">
+      <div class="summary">
+        <h2 style="margin-bottom: 10px;">Résumé</h2>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="summary-value" id="total-tests">0</div>
+            <div class="summary-label">Tests</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-value" style="color: #66bb6a;" id="passed-tests">0</div>
+            <div class="summary-label">Réussis</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-value" style="color: #ef5350;" id="failed-tests">0</div>
+            <div class="summary-label">Échoués</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-value" style="color: #ffa726;" id="pending-tests">5</div>
+            <div class="summary-label">En attente</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tests-container"></div>
+
+      <div class="actions">
+        <button class="button" id="run-all-btn">▶️ Lancer Tous les Tests</button>
+        <button class="button" id="export-btn" style="background: #42a5f5;">📥 Exporter les Résultats</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tests = [
+      {
+        id: 'localStorage',
+        title: 'Test 1: LocalStorage',
+        description: 'Vérification de la disponibilité et du contenu de localStorage',
+        run: async () => {
+          try {
+            // Test write
+            const testKey = '__test__';
+            localStorage.setItem(testKey, 'test');
+            localStorage.removeItem(testKey);
+
+            // Check config
+            const config = localStorage.getItem('storycore_llm_config');
+            const apiKey = localStorage.getItem('storycore_api_key_enc');
+
+            const result = {
+              available: true,
+              hasConfig: !!config,
+              hasApiKey: !!apiKey,
+              config: config ? JSON.parse(config) : null
+            };
+
+            if (!config) {
+              return {
+                success: false,
+                message: 'Aucune configuration LLM trouvée',
+                data: result
+              };
+            }
+
+            return {
+              success: true,
+              message: 'Configuration LLM trouvée',
+              data: result
+            };
+          } catch (error) {
+            return {
+              success: false,
+              message: `Erreur: ${error.message}`,
+              data: { error: error.message }
+            };
+          }
+        }
+      },
+      {
+        id: 'crypto',
+        title: 'Test 2: Web Crypto API',
+        description: 'Vérification de la disponibilité de l\'API de chiffrement',
+        run: async () => {
+          try {
+            const available = typeof crypto !== 'undefined' && 
+                            typeof crypto.subtle !== 'undefined';
+
+            const encKey = sessionStorage.getItem('storycore_encryption_key');
+
+            const result = {
+              cryptoAvailable: available,
+              hasEncryptionKey: !!encKey,
+              isSecureContext: window.isSecureContext
+            };
+
+            if (!available) {
+              return {
+                success: false,
+                message: 'Web Crypto API non disponible',
+                data: result
+              };
+            }
+
+            return {
+              success: true,
+              message: 'Web Crypto API disponible',
+              data: result
+            };
+          } catch (error) {
+            return {
+              success: false,
+              message: `Erreur: ${error.message}`,
+              data: { error: error.message }
+            };
+          }
+        }
+      },
+      {
+        id: 'ollama',
+        title: 'Test 3: Ollama',
+        description: 'Test de connexion au serveur Ollama local',
+        run: async () => {
+          try {
+            const response = await fetch('http://localhost:11434/api/tags', {
+              method: 'GET',
+              signal: AbortSignal.timeout(5000)
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            return {
+              success: true,
+              message: `Ollama disponible avec ${data.models?.length || 0} modèle(s)`,
+              data: {
+                available: true,
+                models: data.models?.map(m => m.name) || []
+              }
+            };
+          } catch (error) {
+            return {
+              success: false,
+              message: 'Ollama non disponible',
+              data: {
+                available: false,
+                error: error.message,
+                suggestion: 'Installer Ollama: https://ollama.ai'
+              }
+            };
+          }
+        }
+      },
+      {
+        id: 'openai',
+        title: 'Test 4: OpenAI API',
+        description: 'Test de connexion à l\'API OpenAI (si configurée)',
+        run: async () => {
+          try {
+            const config = localStorage.getItem('storycore_llm_config');
+            if (!config) {
+              return {
+                success: false,
+                message: 'Aucune configuration trouvée',
+                data: { configured: false }
+              };
+            }
+
+            const parsed = JSON.parse(config);
+            if (parsed.provider !== 'openai') {
+              return {
+                success: false,
+                message: 'Provider n\'est pas OpenAI',
+                data: { provider: parsed.provider }
+              };
+            }
+
+            const encApiKey = localStorage.getItem('storycore_api_key_enc');
+            if (!encApiKey) {
+              return {
+                success: false,
+                message: 'API key manquante',
+                data: { hasApiKey: false }
+              };
+            }
+
+            // Note: We can't actually test the API key without decryption
+            return {
+              success: true,
+              message: 'Configuration OpenAI trouvée (API key non testée)',
+              data: {
+                configured: true,
+                model: parsed.model,
+                note: 'La clé API est chiffrée et ne peut pas être testée ici'
+              }
+            };
+          } catch (error) {
+            return {
+              success: false,
+              message: `Erreur: ${error.message}`,
+              data: { error: error.message }
+            };
+          }
+        }
+      },
+      {
+        id: 'config-validity',
+        title: 'Test 5: Validité de la Configuration',
+        description: 'Vérification de la cohérence de la configuration LLM',
+        run: async () => {
+          try {
+            const config = localStorage.getItem('storycore_llm_config');
+            if (!config) {
+              return {
+                success: false,
+                message: 'Aucune configuration',
+                data: { exists: false }
+              };
+            }
+
+            const parsed = JSON.parse(config);
+            const issues = [];
+
+            if (!parsed.provider) issues.push('Provider manquant');
+            if (!parsed.model) issues.push('Modèle manquant');
+
+            const requiresApiKey = parsed.provider === 'openai' || parsed.provider === 'anthropic';
+            const hasApiKey = !!localStorage.getItem('storycore_api_key_enc');
+
+            if (requiresApiKey && !hasApiKey) {
+              issues.push('API key requise mais manquante');
+            }
+
+            if (issues.length > 0) {
+              return {
+                success: false,
+                message: `${issues.length} problème(s) détecté(s)`,
+                data: { issues, config: parsed }
+              };
+            }
+
+            return {
+              success: true,
+              message: 'Configuration valide',
+              data: {
+                provider: parsed.provider,
+                model: parsed.model,
+                hasApiKey,
+                streamingEnabled: parsed.streamingEnabled
+              }
+            };
+          } catch (error) {
+            return {
+              success: false,
+              message: `Erreur: ${error.message}`,
+              data: { error: error.message }
+            };
+          }
+        }
+      }
+    ];
+
+    let results = {};
+
+    function createTestElement(test) {
+      const section = document.createElement('div');
+      section.className = 'test-section';
+      section.id = `test-${test.id}`;
+
+      section.innerHTML = `
+        <div class="test-header" onclick="toggleTest('${test.id}')">
+          <div class="test-title">
+            <span>${test.title}</span>
+          </div>
+          <div class="test-status">
+            <div class="status-icon status-pending" id="status-${test.id}">⏳</div>
+            <span id="status-text-${test.id}">En attente</span>
+          </div>
+        </div>
+        <div class="test-body" id="body-${test.id}">
+          <p style="color: #666; margin-bottom: 10px;">${test.description}</p>
+          <button class="button" onclick="runTest('${test.id}')">▶️ Lancer ce test</button>
+          <div id="result-${test.id}"></div>
+        </div>
+      `;
+
+      return section;
+    }
+
+    function toggleTest(testId) {
+      const body = document.getElementById(`body-${testId}`);
+      body.classList.toggle('expanded');
+    }
+
+    async function runTest(testId) {
+      const test = tests.find(t => t.id === testId);
+      if (!test) return;
+
+      const statusIcon = document.getElementById(`status-${testId}`);
+      const statusText = document.getElementById(`status-text-${testId}`);
+      const resultDiv = document.getElementById(`result-${testId}`);
+
+      // Update status to running
+      statusIcon.className = 'status-icon status-running';
+      statusIcon.textContent = '⏳';
+      statusText.textContent = 'En cours...';
+      resultDiv.innerHTML = '';
+
+      try {
+        const result = await test.run();
+        results[testId] = result;
+
+        // Update status
+        if (result.success) {
+          statusIcon.className = 'status-icon status-pass';
+          statusIcon.textContent = '✓';
+          statusText.textContent = 'Réussi';
+        } else {
+          statusIcon.className = 'status-icon status-fail';
+          statusIcon.textContent = '✗';
+          statusText.textContent = 'Échoué';
+        }
+
+        // Display result
+        const resultClass = result.success ? 'success' : 'error';
+        resultDiv.innerHTML = `
+          <div class="test-result ${resultClass}">
+            <strong>${result.message}</strong>
+            <pre>${JSON.stringify(result.data, null, 2)}</pre>
+          </div>
+        `;
+
+        updateSummary();
+      } catch (error) {
+        statusIcon.className = 'status-icon status-fail';
+        statusIcon.textContent = '✗';
+        statusText.textContent = 'Erreur';
+
+        resultDiv.innerHTML = `
+          <div class="test-result error">
+            <strong>Erreur inattendue</strong>
+            <pre>${error.message}</pre>
+          </div>
+        `;
+      }
+    }
+
+    async function runAllTests() {
+      const btn = document.getElementById('run-all-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Tests en cours...';
+
+      for (const test of tests) {
+        await runTest(test.id);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      btn.disabled = false;
+      btn.textContent = '✓ Tests terminés';
+      setTimeout(() => {
+        btn.textContent = '▶️ Relancer Tous les Tests';
+      }, 2000);
+    }
+
+    function updateSummary() {
+      const total = tests.length;
+      const passed = Object.values(results).filter(r => r.success).length;
+      const failed = Object.values(results).filter(r => !r.success).length;
+      const pending = total - passed - failed;
+
+      document.getElementById('total-tests').textContent = total;
+      document.getElementById('passed-tests').textContent = passed;
+      document.getElementById('failed-tests').textContent = failed;
+      document.getElementById('pending-tests').textContent = pending;
+    }
+
+    function exportResults() {
+      const report = {
+        timestamp: new Date().toISOString(),
+        tests: results,
+        summary: {
+          total: tests.length,
+          passed: Object.values(results).filter(r => r.success).length,
+          failed: Object.values(results).filter(r => !r.success).length
+        }
+      };
+
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `llm-test-report-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Initialize
+    const container = document.getElementById('tests-container');
+    tests.forEach(test => {
+      container.appendChild(createTestElement(test));
+    });
+
+    document.getElementById('run-all-btn').addEventListener('click', runAllTests);
+    document.getElementById('export-btn').addEventListener('click', exportResults);
+
+    updateSummary();
+  </script>
+</body>
+</html>

@@ -1,119 +1,108 @@
 /**
  * useKeyboardShortcuts Hook
  * 
- * Custom hook for managing keyboard shortcuts
+ * Provides keyboard shortcut functionality for the application.
+ * Supports common actions like navigation, save, and modal controls.
+ * 
+ * Requirements: All UI requirements - keyboard navigation support
  */
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback } from 'react';
+
+// ============================================================================
+// Types
+// ============================================================================
 
 export interface KeyboardShortcut {
   key: string;
-  ctrl?: boolean;
-  shift?: boolean;
-  alt?: boolean;
-  meta?: boolean;
-  handler: (event: KeyboardEvent) => void;
-  description?: string;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+  metaKey?: boolean;
+  action: () => void;
+  description: string;
   preventDefault?: boolean;
 }
 
 export interface UseKeyboardShortcutsOptions {
+  shortcuts: KeyboardShortcut[];
   enabled?: boolean;
-  preventDefault?: boolean;
 }
 
+// ============================================================================
+// Hook
+// ============================================================================
+
 /**
- * Hook for registering keyboard shortcuts
+ * useKeyboardShortcuts Hook
+ * 
+ * Registers keyboard shortcuts and handles keyboard events.
+ * Automatically cleans up event listeners on unmount.
  */
-export function useKeyboardShortcuts(
-  shortcuts: KeyboardShortcut[],
-  options: UseKeyboardShortcutsOptions = {}
-) {
-  const { enabled = true, preventDefault = true } = options;
-  const shortcutsRef = useRef(shortcuts);
-
-  // Update ref when shortcuts change
-  useEffect(() => {
-    shortcutsRef.current = shortcuts;
-  }, [shortcuts]);
-
+export const useKeyboardShortcuts = ({
+  shortcuts,
+  enabled = true,
+}: UseKeyboardShortcutsOptions): void => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (!enabled) return;
 
-      const matchingShortcut = shortcutsRef.current.find((shortcut) => {
-        const keyMatches = event.key.toLowerCase() === shortcut.key.toLowerCase();
-        const ctrlMatches = shortcut.ctrl ? event.ctrlKey || event.metaKey : !event.ctrlKey && !event.metaKey;
-        const shiftMatches = shortcut.shift ? event.shiftKey : !event.shiftKey;
-        const altMatches = shortcut.alt ? event.altKey : !event.altKey;
-        const metaMatches = shortcut.meta ? event.metaKey : true;
+      // Don't trigger shortcuts when typing in input fields
+      const target = event.target as HTMLElement;
+      const isInputField =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable;
+
+      // Allow Escape key even in input fields
+      if (isInputField && event.key !== 'Escape') {
+        return;
+      }
+
+      // Find matching shortcut
+      const matchingShortcut = shortcuts.find((shortcut) => {
+        const keyMatches = shortcut.key.toLowerCase() === event.key.toLowerCase();
+        const ctrlMatches = shortcut.ctrlKey === undefined || shortcut.ctrlKey === event.ctrlKey;
+        const shiftMatches = shortcut.shiftKey === undefined || shortcut.shiftKey === event.shiftKey;
+        const altMatches = shortcut.altKey === undefined || shortcut.altKey === event.altKey;
+        const metaMatches = shortcut.metaKey === undefined || shortcut.metaKey === event.metaKey;
 
         return keyMatches && ctrlMatches && shiftMatches && altMatches && metaMatches;
       });
 
       if (matchingShortcut) {
-        if (matchingShortcut.preventDefault ?? preventDefault) {
+        if (matchingShortcut.preventDefault !== false) {
           event.preventDefault();
         }
-        matchingShortcut.handler(event);
+        matchingShortcut.action();
       }
     },
-    [enabled, preventDefault]
+    [shortcuts, enabled]
   );
 
   useEffect(() => {
     if (!enabled) return;
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [enabled, handleKeyDown]);
-}
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown, enabled]);
+};
 
 /**
  * Common keyboard shortcuts
  */
-export const CommonShortcuts = {
-  save: { key: 's', ctrl: true, description: 'Save' },
-  close: { key: 'Escape', description: 'Close' },
-  cancel: { key: 'Escape', description: 'Cancel' },
-  submit: { key: 'Enter', ctrl: true, description: 'Submit' },
-  undo: { key: 'z', ctrl: true, description: 'Undo' },
-  redo: { key: 'y', ctrl: true, description: 'Redo' },
-  copy: { key: 'c', ctrl: true, description: 'Copy' },
-  paste: { key: 'v', ctrl: true, description: 'Paste' },
-  cut: { key: 'x', ctrl: true, description: 'Cut' },
-  selectAll: { key: 'a', ctrl: true, description: 'Select All' },
-  find: { key: 'f', ctrl: true, description: 'Find' },
-  help: { key: 'F1', description: 'Help' },
-  refresh: { key: 'F5', description: 'Refresh' },
-};
+export const COMMON_SHORTCUTS = {
+  ESCAPE: 'Escape',
+  ENTER: 'Enter',
+  ARROW_UP: 'ArrowUp',
+  ARROW_DOWN: 'ArrowDown',
+  ARROW_LEFT: 'ArrowLeft',
+  ARROW_RIGHT: 'ArrowRight',
+  TAB: 'Tab',
+  SPACE: ' ',
+} as const;
 
-/**
- * Format shortcut for display
- */
-export function formatShortcut(shortcut: KeyboardShortcut): string {
-  const parts: string[] = [];
-
-  if (shortcut.ctrl) parts.push('Ctrl');
-  if (shortcut.shift) parts.push('Shift');
-  if (shortcut.alt) parts.push('Alt');
-  if (shortcut.meta) parts.push('Cmd');
-
-  // Capitalize first letter of key
-  const key = shortcut.key.charAt(0).toUpperCase() + shortcut.key.slice(1);
-  parts.push(key);
-
-  return parts.join('+');
-}
-
-/**
- * Hook for displaying keyboard shortcuts help
- */
-export function useShortcutHelp(shortcuts: KeyboardShortcut[]) {
-  const formattedShortcuts = shortcuts.map((shortcut) => ({
-    shortcut: formatShortcut(shortcut),
-    description: shortcut.description || 'No description',
-  }));
-
-  return formattedShortcuts;
-}
+export default useKeyboardShortcuts;

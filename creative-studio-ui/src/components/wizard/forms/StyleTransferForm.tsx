@@ -8,7 +8,7 @@
  * Requirements: 8.1
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
 import { FormField, FormSection } from '../WizardFormLayout';
 import './StyleTransferForm.css';
@@ -29,6 +29,7 @@ export interface StyleTransferFormProps {
   shots: Shot[];
   onSubmit: (data: StyleTransferInput) => void;
   onChange?: (data: Partial<StyleTransferInput>) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 interface FormErrors {
@@ -41,6 +42,7 @@ export function StyleTransferForm({
   shots,
   onSubmit,
   onChange,
+  onValidationChange,
 }: StyleTransferFormProps) {
   const [formData, setFormData] = useState<StyleTransferInput>({
     shotId: initialData?.shotId || '',
@@ -50,6 +52,14 @@ export function StyleTransferForm({
   const [errors, setErrors] = useState<FormErrors>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.shotId || formData.styleReferenceImage) {
+      validateForm();
+    }
+  }, [formData]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -63,8 +73,10 @@ export function StyleTransferForm({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData]);
+    const isValid = Object.keys(newErrors).length === 0;
+    onValidationChange?.(isValid);
+    return isValid;
+  }, [formData, onValidationChange]);
 
   const handleFieldChange = useCallback((field: keyof StyleTransferInput, value: any) => {
     setFormData(prev => {

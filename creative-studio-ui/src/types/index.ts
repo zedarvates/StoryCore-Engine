@@ -527,6 +527,43 @@ export type {
   ValidationResult as ProjectValidationResult,
 } from './project';
 
+// Import ProjectDashboard types from projectDashboard.ts
+export type {
+  Shot as DashboardShot,
+  DialoguePhrase,
+  VoiceParameters,
+  PromptValidation,
+  ValidationError as PromptValidationError,
+  ValidationWarning,
+  GenerationResults,
+  GeneratedShot,
+  QAReport,
+  GenerationError,
+  GenerationStatus as DashboardGenerationStatus,
+  Project as DashboardProject,
+  Sequence,
+  GenerationRecord,
+} from './projectDashboard';
+export {
+  VoiceParametersSchema,
+  ValidationErrorSchema,
+  ValidationWarningSchema,
+  PromptValidationSchema,
+  ShotSchema as DashboardShotSchema,
+  DialoguePhraseSchema,
+  GeneratedShotSchema,
+  QAReportSchema,
+  GenerationErrorSchema,
+  GenerationResultsSchema,
+  GenerationStatusSchema as DashboardGenerationStatusSchema,
+  SequenceSchema,
+  GenerationRecordSchema,
+  ProjectSchema as DashboardProjectSchema,
+  isValidPrompt,
+  isDialoguePhraseValid,
+  hasValidPrompts,
+} from './projectDashboard';
+
 // ============================================================================
 // Task Queue Types
 // ============================================================================

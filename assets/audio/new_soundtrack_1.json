@@ -1,0 +1,14 @@
+{
+  "asset_id": "audio_new_st_001",
+  "name": "Epic Adventure Theme",
+  "type": "audio",
+  "format": "mp3",
+  "duration": "180",
+  "description": "An epic orchestral piece perfect for adventure sequences",
+  "tags": ["epic", "orchestral", "adventure", "heroic"],
+  "usage": "Background music for action scenes",
+  "created_at": "2026-01-20T19:57:00.000Z",
+  "version": "1.0",
+  "bpm": 120,
+  "instruments": ["Strings", "Brass", "Percussion"]
+}

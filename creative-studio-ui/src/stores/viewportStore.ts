@@ -241,15 +241,43 @@ export const useViewportStore = create<ViewportStore>((set, get) => ({
   },
 
   zoomIn: () => {
-    const { zoom, maxZoom } = get();
+    const { zoom, maxZoom, bounds, pan } = get();
     const newZoom = Math.min(zoom * ZOOM_STEP_FACTOR, maxZoom);
-    set({ zoom: newZoom });
+    
+    // Zoom towards center of viewport
+    const centerPoint = {
+      x: bounds.width / 2,
+      y: bounds.height / 2,
+    };
+    
+    // Calculate new pan to keep center point stable
+    const zoomRatio = newZoom / zoom;
+    const newPan: Point = {
+      x: centerPoint.x - (centerPoint.x - pan.x) * zoomRatio,
+      y: centerPoint.y - (centerPoint.y - pan.y) * zoomRatio,
+    };
+    
+    set({ zoom: newZoom, pan: newPan });
   },
 
   zoomOut: () => {
-    const { zoom, minZoom } = get();
+    const { zoom, minZoom, bounds, pan } = get();
     const newZoom = Math.max(zoom / ZOOM_STEP_FACTOR, minZoom);
-    set({ zoom: newZoom });
+    
+    // Zoom towards center of viewport
+    const centerPoint = {
+      x: bounds.width / 2,
+      y: bounds.height / 2,
+    };
+    
+    // Calculate new pan to keep center point stable
+    const zoomRatio = newZoom / zoom;
+    const newPan: Point = {
+      x: centerPoint.x - (centerPoint.x - pan.x) * zoomRatio,
+      y: centerPoint.y - (centerPoint.y - pan.y) * zoomRatio,
+    };
+    
+    set({ zoom: newZoom, pan: newPan });
   },
 
   fitToView: (gridBounds: Bounds) => {
@@ -272,8 +300,16 @@ export const useViewportStore = create<ViewportStore>((set, get) => ({
     const { zoom, pan, minZoom, maxZoom } = get();
     const clampedZoom = clamp(newZoom, minZoom, maxZoom);
 
+    // If zoom didn't change (already at min/max), don't update pan
+    if (clampedZoom === zoom) {
+      return;
+    }
+
     // Calculate new pan to keep the point under the cursor
-    // Formula: newPan = point - (point - oldPan) * (newZoom / oldZoom)
+    // The point in canvas space should remain at the same screen position
+    // canvasPoint = (screenPoint - pan) / zoom
+    // We want: (point - newPan) / newZoom = (point - oldPan) / oldZoom
+    // Solving for newPan: newPan = point - (point - oldPan) * (newZoom / oldZoom)
     const zoomRatio = clampedZoom / zoom;
     const newPan: Point = {
       x: point.x - (point.x - pan.x) * zoomRatio,

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SequencePlan } from '@/types/sequencePlan';
+import { GenreSelector, VisualStyleSelector, ColorPaletteSelector } from '@/components/assets/AssetSelector';
 
 interface Step2BasicInformationProps {
   formData: Partial<SequencePlan>;
@@ -242,6 +243,24 @@ export function Step2BasicInformation({
                 Tags help organize and search your sequence plans
               </p>
             </div>
+
+            {/* Genre Selection */}
+            <GenreSelector
+              selectedAssetId={(formData as any).genre}
+              onSelect={(asset) => handleInputChange('genre' as any, asset.id)}
+            />
+
+            {/* Visual Style Selection */}
+            <VisualStyleSelector
+              selectedAssetId={(formData as any).visualStyle}
+              onSelect={(asset) => handleInputChange('visualStyle' as any, asset.id)}
+            />
+
+            {/* Color Palette Selection */}
+            <ColorPaletteSelector
+              selectedAssetId={(formData as any).colorPalette}
+              onSelect={(asset) => handleInputChange('colorPalette' as any, asset.id)}
+            />
           </div>
         </div>
 

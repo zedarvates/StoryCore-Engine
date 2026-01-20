@@ -42,10 +42,36 @@ export function WizardLauncher({
       
       const wizardService = new WizardService();
       
+      console.log('[WizardLauncher] Checking service connections...');
+      
+      // Silently check connections - errors are expected when services aren't running
       const [ollamaStatus, comfyuiStatus] = await Promise.all([
-        wizardService.checkOllamaConnection().catch(() => ({ connected: false })),
-        wizardService.checkComfyUIConnection().catch(() => ({ connected: false })),
+        wizardService.checkOllamaConnection().catch((error) => {
+          console.log('[WizardLauncher] Ollama check failed:', error);
+          return { 
+            connected: false,
+            service: 'ollama' as const,
+            endpoint: 'http://localhost:11434',
+            error: 'Service not available'
+          };
+        }),
+        wizardService.checkComfyUIConnection().catch((error) => {
+          console.log('[WizardLauncher] ComfyUI check failed:', error);
+          return { 
+            connected: false,
+            service: 'comfyui' as const,
+            endpoint: 'http://localhost:8188',
+            error: 'Service not available'
+          };
+        }),
       ]);
+      
+      console.log('[WizardLauncher] Connection status:', {
+        ollama: ollamaStatus.connected,
+        comfyui: comfyuiStatus.connected,
+        ollamaEndpoint: ollamaStatus.endpoint,
+        comfyuiEndpoint: comfyuiStatus.endpoint,
+      });
       
       setConnectionStatus({
         ollama: ollamaStatus.connected,
@@ -56,8 +82,8 @@ export function WizardLauncher({
     
     checkConnections();
     
-    // Recheck every 30 seconds
-    const interval = setInterval(checkConnections, 30000);
+    // Recheck every 60 seconds (reduced frequency to minimize console noise)
+    const interval = setInterval(checkConnections, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -207,13 +233,19 @@ export function WizardLauncher({
         
         {/* Connection Status Indicators */}
         <div className="connection-status">
-          <div className={`status-indicator ${connectionStatus.checking ? 'checking' : connectionStatus.ollama ? 'connected' : 'disconnected'}`}>
+          <div 
+            className={`status-indicator ${connectionStatus.checking ? 'checking' : connectionStatus.ollama ? 'connected' : 'disconnected'}`}
+            title="Ollama provides AI text generation capabilities"
+          >
             <span className="status-dot"></span>
             <span className="status-label">Ollama</span>
           </div>
-          <div className={`status-indicator ${connectionStatus.checking ? 'checking' : connectionStatus.comfyui ? 'connected' : 'disconnected'}`}>
+          <div 
+            className={`status-indicator ${connectionStatus.checking ? 'checking' : connectionStatus.comfyui ? 'connected' : 'disconnected'}`}
+            title="ComfyUI is optional - app works in fallback mode without it"
+          >
             <span className="status-dot"></span>
-            <span className="status-label">ComfyUI</span>
+            <span className="status-label">ComfyUI (Optional)</span>
           </div>
         </div>
       </div>

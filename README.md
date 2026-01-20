@@ -23,6 +23,19 @@
 
 ## 🚀 Quick Start
 
+### ComfyUI Setup (2 minutes)
+
+**Super fast?** → [⚡ 30 Seconds Setup](COMFYUI_30_SECONDS.md) - Absolute minimum!
+
+**Not sure which ComfyUI you have?** → [🔍 Identify Your ComfyUI](WHICH_COMFYUI_DO_I_HAVE.md) (30 seconds)
+
+**Need to connect ComfyUI?** → [📋 Setup Cheatsheet](COMFYUI_SETUP_CHEATSHEET.md) - Ultra-quick reference!
+
+**Key Info**: 
+- ComfyUI Desktop uses port **8000**
+- Manual ComfyUI uses port **8188**
+- Full guides: [Quick Start](docs/COMFYUI_QUICK_START.md) | [Desktop Setup](docs/COMFYUI_DESKTOP_SETUP.md)
+
 ### Download Pre-built Application
 
 **MVP Release v1.0.0** is now available!
@@ -329,6 +342,11 @@ python3 storycore.py export --project demo-project
 
 # View results
 python3 storycore.py dashboard --project demo-project
+
+# Roadmap management
+python3 storycore.py roadmap generate  # Generate public roadmap
+python3 storycore.py roadmap update    # Update existing roadmap
+python3 storycore.py roadmap validate  # Validate roadmap links
 ```
 
 ### **2. Technical Dashboard**
@@ -489,7 +507,15 @@ StoryCore Engine includes a comprehensive set of professional visual assets opti
 
 ## 🏆 Changelog
 
-### v1.0-hackathon (2026-01-08)
+### v2.1.0 (2026-01-19)
+- **🎬 Wizard Integration Complete**: Full production wizard system with sequence planning, shot creation, and dialogue management
+- **🎯 Production Features**: Auto-save functionality, draft management, and reusable template system
+- **🎨 Enhanced Grid Editor**: Professional grid editor with integrated video player and advanced controls
+- **⚡ UI/UX Improvements**: New components, global keyboard shortcuts, and improved workflow efficiency
+- **📚 Documentation Index**: Comprehensive navigation system for all project documentation
+- **🐛 TypeScript Fixes**: Resolved build errors in creative-studio-ui components
+
+### v2.0.0-complete (2026-01-14)
 - **🎊 PROJECT 100% COMPLETE! 🎊**
 - **All 18 tasks completed across 4 phases plus 2 cross-cutting tasks!**
 - **✅ Security Validation System**: Enterprise-grade input validation, model integrity, access control, audit logging
@@ -499,24 +525,18 @@ StoryCore Engine includes a comprehensive set of professional visual assets opti
 - **✅ Comprehensive Testing**: 410+ tests with >98% pass rate
 - **✅ Complete Documentation**: 100,000 words of documentation
 
+### v1.1.0-production (2026-01-14)
+- **🔒 Security & Resilience**: Full enterprise-grade security validation and error handling systems
+- **🎬 Advanced Workflows**: 8 AI models integrated (HunyuanVideo, Wan Video, NewBie, Qwen)
+- **📊 Monitoring Dashboard**: Real-time system health and performance tracking
+- **⚙️ Advanced Configuration**: Comprehensive workflow configuration with validation
 
-- **✅ Security Validation System**: Enterprise-grade input validation, model integrity, access control, audit logging
-- **✅ Error Handling & Resilience**: Retry mechanisms, circuit breakers, fallback chains, graceful degradation
-- **✅ HunyuanVideo Integration**: Text-to-video and image-to-video workflows with super-resolution
-- **✅ Integrated Workflow System**: Unified orchestration with monitoring dashboard
-- **✅ Advanced Model Manager**: Compatibility checking, versioning, upgrade suggestions
-- **✅ Extended Configuration**: Advanced workflow configuration system
-- **✅ Comprehensive Testing**: 350+ tests with 95%+ success rate
-- **✅ Complete Documentation**: Security guides, error handling guides, API references, integration guides
-
-
-- **✅ Complete Pipeline**: Init → Grid → Promote → Refine → QA → Export
-- **✅ AutofixEngine**: Self-correcting quality loop with Laplacian variance
-- **✅ Technical Dashboard**: Standalone HTML interface with manual image injection
-- **✅ Data Contract v1**: Schema compliance and capability tracking
-- **✅ Deterministic Seeds**: Hierarchical seed system for reproducibility
-- **✅ ComfyUI Ready**: Layer-aware conditioning system prepared
-- **✅ Backend Integration**: UI complete, real API server implemented
+### v1.0.0-hackathon (2026-01-08)
+- **🎬 Complete Pipeline**: From script to screen in 5 minutes with guaranteed visual coherence
+- **🔄 Self-Correcting Quality**: Automatic detection and fixing using Laplacian variance analysis
+- **🎯 Deterministic Results**: 100% reproducible with hierarchical seed system
+- **🎨 Master Coherence Sheet**: 3x3 visual DNA locking for consistent style
+- **📦 Production-Ready**: ComfyUI integration, technical dashboard, and export system
 
 ---
 
@@ -542,6 +562,9 @@ StoryCore Engine includes a comprehensive set of professional visual assets opti
 - **[docs/SECURITY.md](docs/SECURITY.md)** - Security overview
 - **[docs/ERROR_HANDLING.md](docs/ERROR_HANDLING.md)** - Error handling overview
 - **[docs/INTEGRATION_GUIDE.md](docs/INTEGRATION_GUIDE.md)** - Integration guide
+- **[docs/COMFYUI_QUICK_START.md](docs/COMFYUI_QUICK_START.md)** - ⚡ ComfyUI quick start (2 minutes)
+- **[docs/COMFYUI_DESKTOP_SETUP.md](docs/COMFYUI_DESKTOP_SETUP.md)** - ComfyUI Desktop setup guide
+- **[docs/COMFYUI_PORT_REFERENCE.md](docs/COMFYUI_PORT_REFERENCE.md)** - ComfyUI port configuration reference
 - **[docs/comfyui-multi-instance-user-guide.md](docs/comfyui-multi-instance-user-guide.md)** - Multi-instance ComfyUI user guide
 - **[docs/comfyui-instance-troubleshooting.md](docs/comfyui-instance-troubleshooting.md)** - ComfyUI instance troubleshooting
 - **[docs/advanced-workflows/](docs/advanced-workflows/)** - Advanced workflows documentation

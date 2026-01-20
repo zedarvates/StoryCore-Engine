@@ -342,6 +342,11 @@ REM Required for some Python packages (PyTorch, etc.)
 
 #### **CORS Errors**
 ```bash
+# For ComfyUI Desktop:
+# Open Settings → Enable CORS header field
+# Enter: * (for all origins) or http://localhost:5173 (specific domain)
+
+# For manual ComfyUI installation:
 # Ensure ComfyUI is started with CORS enabled
 python main.py --enable-cors-header
 
@@ -378,7 +383,9 @@ python main.py --enable-cors-header --cpu
 ## Integration Testing
 
 ### **Manual Test**
-1. Start ComfyUI with CORS: `python main.py --enable-cors-header`
+1. Start ComfyUI:
+   - **ComfyUI Desktop**: Open app → Settings → Enable CORS header: `*`
+   - **Manual installation**: `python main.py --enable-cors-header`
 2. Load workflow: `image_flux2 storycore1.json`
 3. Upload test image to LoadImage node
 4. Set prompt: "cinematic portrait, highly detailed"

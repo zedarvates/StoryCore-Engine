@@ -31,7 +31,19 @@
 **Solutions**:
 
 #### Option A: Configure ComfyUI Server (Recommended)
-Add CORS headers to ComfyUI server configuration. This requires modifying ComfyUI's server settings.
+
+**For ComfyUI Desktop**:
+- Open ComfyUI Desktop application
+- Go to Settings (gear icon)
+- Find "Enable CORS header" field
+- Enter: `*` (for all origins) or `http://localhost:5173` (specific domain)
+- Save and restart ComfyUI Desktop
+
+**For Manual ComfyUI Installation**:
+Start ComfyUI with CORS enabled:
+```bash
+python main.py --enable-cors-header --cors-header-value=http://localhost:5173
+```
 
 #### Option B: Use Vite Proxy (Quick Fix)
 Configure Vite to proxy ComfyUI requests, avoiding CORS issues.

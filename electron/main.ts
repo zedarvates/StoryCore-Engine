@@ -1,15 +1,21 @@
-import { app, BrowserWindow, Menu } from 'electron';
+import type { App, BrowserWindow as BW, Menu as M } from 'electron';
+// const { app, BrowserWindow, Menu } = require('electron');
+// Temporary workaround for electron API issue
+const app = require('app');
+const BrowserWindow = require('browser-window');
+const Menu = require('menu');
 import * as path from 'path';
 import { ViteServerManager, LauncherConfig } from './ViteServerManager';
 import { ProjectService } from './ProjectService';
 import { RecentProjectsManager } from './RecentProjectsManager';
 import { ConfigStorage } from './ConfigStorage';
 import { IPCHandlers } from './ipcChannels';
-import { createTOSWindow } from './tosDialogManager';
-import { TOSStorageService } from './tosStorageService';
+// DISABLED: TOS Dialog imports (dialog has been disabled)
+// import { createTOSWindow } from './tosDialogManager';
+// import { TOSStorageService } from './tosStorageService';
 // import { UpdateManager } from './UpdateManager';
 
-let mainWindow: BrowserWindow | null = null;
+let mainWindow: BW | null = null;
 let serverManager: ViteServerManager | null = null;
 let ipcHandlers: IPCHandlers | null = null;
 // let updateManager: UpdateManager | null = null;
@@ -46,7 +52,7 @@ function createWindow(url: string): void {
     const csp = isDevelopment
       ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* ws://localhost:* data: blob:;"
       : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://localhost:* ws://localhost:*;";
-    
+
     callback({
       responseHeaders: {
         ...details.responseHeaders,
@@ -192,6 +198,11 @@ async function initialize(): Promise<void> {
     await app.whenReady();
     console.log('Electron app ready');
 
+    // DISABLED: Terms of Service dialog
+    // The TOS dialog has been disabled as it doesn't have the desired appearance
+    // Uncomment the code below to re-enable it
+    
+    /*
     // Check if TOS already accepted (Requirements: 4.2.2, 4.2.3, 4.2.4)
     const tosStorage = new TOSStorageService('1.0');
     const shouldShow = await tosStorage.shouldShowDialog();
@@ -228,6 +239,7 @@ async function initialize(): Promise<void> {
         timestamp: acceptance?.timestamp ? new Date(acceptance.timestamp).toISOString() : 'unknown',
       });
     }
+    */
 
     // Initialize update manager
     // updateManager = new UpdateManager('https://api.storycore.com/updates/latest');
@@ -254,56 +266,58 @@ async function initialize(): Promise<void> {
   }
 }
 
-// Quit when all windows are closed (except on macOS)
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-// Handle app quit
-app.on('will-quit', async () => {
-  console.log('StoryCore Creative Studio shutting down');
-
-  // Unregister IPC handlers
-  if (ipcHandlers) {
-    ipcHandlers.unregisterHandlers();
-    console.log('IPC handlers unregistered');
-  }
-
-  // Clean up update manager
-  // if (updateManager) {
-  //   updateManager.dispose();
-  //   console.log('Update manager disposed');
-  // }
-
-  // Clean up Vite server process if running
-  if (serverManager) {
-    try {
-      await serverManager.stop();
-      console.log('Vite server stopped gracefully');
-    } catch (error) {
-      console.error('Error stopping Vite server:', error);
-    }
-  }
-});
-
-// Prevent multiple instances
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-  console.log('Another instance is already running');
-  app.quit();
-} else {
-  app.on('second-instance', () => {
-    // Focus the existing window if user tries to open another instance
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) {
-        mainWindow.restore();
-      }
-      mainWindow.focus();
+// Start the application
+initialize().then(() => {
+  // Quit when all windows are closed (except on macOS)
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      app.quit();
     }
   });
 
-  // Start the application
-  initialize();
-}
+  // Handle app quit
+  app.on('will-quit', async () => {
+    console.log('StoryCore Creative Studio shutting down');
+
+    // Unregister IPC handlers
+    if (ipcHandlers) {
+      ipcHandlers.unregisterHandlers();
+      console.log('IPC handlers unregistered');
+    }
+
+    // Clean up update manager
+    // if (updateManager) {
+    //   updateManager.dispose();
+    //   console.log('Update manager disposed');
+    // }
+
+    // Clean up Vite server process if running
+    if (serverManager) {
+      try {
+        await serverManager.stop();
+        console.log('Vite server stopped gracefully');
+      } catch (error) {
+        console.error('Error stopping Vite server:', error);
+      }
+    }
+  });
+
+  // Prevent multiple instances
+  const gotTheLock = app.requestSingleInstanceLock();
+  if (!gotTheLock) {
+    console.log('Another instance is already running');
+    app.quit();
+  } else {
+    app.on('second-instance', () => {
+      // Focus the existing window if user tries to open another instance
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) {
+          mainWindow.restore();
+        }
+        mainWindow.focus();
+      }
+    });
+  }
+}).catch((error) => {
+  console.error('Failed to start application:', error);
+});

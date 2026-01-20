@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic LLM - StoryCore</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .test-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .test-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        .status.pending {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .status.running {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .status.success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status.error {
+            background: #f44336;
+            color: white;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px 5px;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .button.danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .summary h2 {
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        
+        .icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        
+        .progress {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnostic LLM Complet</h1>
+        <p class="subtitle">Analyse automatique de tous les problèmes LLM dans StoryCore</p>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progress" style="width: 0%">0%</div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="button" onclick="runAllTests()" id="runBtn">
+                🚀 Lancer le Diagnostic Complet
+            </button>
+            <button class="button secondary" onclick="fixAllIssues()" id="fixBtn" disabled>
+                🔧 Corriger Tous les Problèmes
+            </button>
+            <button class="button danger" onclick="resetEverything()" id="resetBtn">
+                🔄 Reset Complet
+            </button>
+        </div>
+        
+        <div class="summary" id="summary" style="display: none;">
+            <h2>📊 Résumé</h2>
+            <div class="summary-item">
+                <span>Tests Réussis:</span>
+                <span id="successCount">0</span>
+            </div>
+            <div class="summary-item">
+                <span>Tests Échoués:</span>
+                <span id="errorCount">0</span>
+            </div>
+            <div class="summary-item">
+                <span>Problèmes Détectés:</span>
+                <span id="issueCount">0</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>1️⃣ Vérification localStorage</h2>
+            <div class="test-item" id="test-localstorage">
+                <h3>
+                    <span class="icon">💾</span>
+                    État du localStorage
+                    <span class="status pending" id="status-localstorage">En attente</span>
+                </h3>
+                <div class="result" id="result-localstorage"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>2️⃣ Vérification Configuration LLM</h2>
+            <div class="test-item" id="test-config">
+                <h3>
+                    <span class="icon">⚙️</span>
+                    Configuration LLM
+                    <span class="status pending" id="status-config">En attente</span>
+                </h3>
+                <div class="result" id="result-config"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>3️⃣ Vérification Ollama</h2>
+            <div class="test-item" id="test-ollama">
+                <h3>
+                    <span class="icon">🤖</span>
+                    Connexion Ollama
+                    <span class="status pending" id="status-ollama">En attente</span>
+                </h3>
+                <div class="result" id="result-ollama"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>4️⃣ Test Endpoint API</h2>
+            <div class="test-item" id="test-endpoint">
+                <h3>
+                    <span class="icon">🌐</span>
+                    Endpoint /api/generate
+                    <span class="status pending" id="status-endpoint">En attente</span>
+                </h3>
+                <div class="result" id="result-endpoint"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>5️⃣ Vérification systemPrompts</h2>
+            <div class="test-item" id="test-prompts">
+                <h3>
+                    <span class="icon">📝</span>
+                    System Prompts
+                    <span class="status pending" id="status-prompts">En attente</span>
+                </h3>
+                <div class="result" id="result-prompts"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            success: 0,
+            error: 0,
+            issues: []
+        };
+
+        function updateProgress(percent) {
+            const progressBar = document.getElementById('progress');
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = Math.round(percent) + '%';
+        }
+
+        function updateStatus(testId, status, message) {
+            const statusEl = document.getElementById(`status-${testId}`);
+            const resultEl = document.getElementById(`result-${testId}`);
+            
+            statusEl.className = `status ${status}`;
+            statusEl.textContent = status === 'running' ? 'En cours...' : 
+                                   status === 'success' ? '✅ Réussi' : 
+                                   status === 'error' ? '❌ Échoué' : 'En attente';
+            
+            if (message) {
+                resultEl.textContent = message;
+                resultEl.style.display = 'block';
+            }
+        }
+
+        async function testLocalStorage() {
+            updateStatus('localstorage', 'running');
+            
+            try {
+                const keys = [
+                    'storycore_llm_config',
+                    'storycore_api_key_enc',
+                    'storycore-settings',
+                    'llm-config'
+                ];
+                
+                let result = '📊 État du localStorage:\n\n';
+                let hasIssues = false;
+                
+                keys.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    if (value) {
+                        result += `❌ ${key}: PRÉSENT (${value.length} caractères)\n`;
+                        hasIssues = true;
+                        testResults.issues.push(`localStorage contient: ${key}`);
+                    } else {
+                        result += `✅ ${key}: VIDE\n`;
+                    }
+                });
+                
+                result += `\nTotal: ${localStorage.length} clés\n`;
+                
+                if (hasIssues) {
+                    result += '\n⚠️ PROBLÈME: Anciennes configurations détectées';
+                    result += '\n💡 SOLUTION: Cliquer sur "Corriger Tous les Problèmes"';
+                    updateStatus('localstorage', 'error', result);
+                    testResults.error++;
+                } else {
+                    result += '\n✨ Tout est propre!';
+                    updateStatus('localstorage', 'success', result);
+                    testResults.success++;
+                }
+            } catch (error) {
+                updateStatus('localstorage', 'error', '❌ Erreur: ' + error.message);
+                testResults.error++;
+            }
+        }
+
+        async function testLLMConfig() {
+            updateStatus('config', 'running');
+            
+            try {
+                const settings = localStorage.getItem('storycore-settings');
+                
+                if (!settings) {
+                    updateStatus('config', 'success', '✅ Aucune configuration (normal après reset)');
+                    testResults.success++;
+                    return;
+                }
+                
+                const parsed = JSON.parse(settings);
+                let result = '📋 Configuration LLM:\n\n';
+                
+                if (parsed.llm) {
+                    result += `Provider: ${parsed.llm.config?.provider || 'N/A'}\n`;
+                    result += `Model: ${parsed.llm.config?.model || 'N/A'}\n`;
+                    result += `Endpoint: ${parsed.llm.config?.apiEndpoint || 'N/A'}\n`;
+                    
+                    if (parsed.llm.config?.systemPrompts) {
+                        result += '\n✅ systemPrompts: PRÉSENT\n';
+                        result += `  - worldGeneration: ${parsed.llm.config.systemPrompts.worldGeneration ? 'OK' : 'MANQUANT'}\n`;
+                        result += `  - characterGeneration: ${parsed.llm.config.systemPrompts.characterGeneration ? 'OK' : 'MANQUANT'}\n`;
+                        result += `  - dialogueGeneration: ${parsed.llm.config.systemPrompts.dialogueGeneration ? 'OK' : 'MANQUANT'}\n`;
+                        updateStatus('config', 'success', result);
+                        testResults.success++;
+                    } else {
+                        result += '\n❌ systemPrompts: MANQUANT\n';
+                        result += '\n⚠️ PROBLÈME: Configuration incomplète';
+                        result += '\n💡 SOLUTION: Reconfigurer le LLM dans Settings';
+                        updateStatus('config', 'error', result);
+                        testResults.error++;
+                        testResults.issues.push('systemPrompts manquant dans la configuration');
+                    }
+                } else {
+                    updateStatus('config', 'success', '✅ Aucune configuration LLM');
+                    testResults.success++;
+                }
+            } catch (error) {
+                updateStatus('config', 'error', '❌ Erreur: ' + error.message);
+                testResults.error++;
+            }
+        }
+
+        async function testOllama() {
+            updateStatus('ollama', 'running');
+            
+            try {
+                const response = await fetch('http://localhost:11434/api/tags');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const models = data.models || [];
+                
+                let result = '✅ Ollama est accessible!\n\n';
+                result += `📦 Modèles disponibles (${models.length}):\n`;
+                models.forEach(model => {
+                    result += `  • ${model.name}\n`;
+                });
+                
+                if (models.length === 0) {
+                    result += '\n⚠️ ATTENTION: Aucun modèle installé';
+                    result += '\n💡 SOLUTION: ollama pull llama3.1:8b';
+                    updateStatus('ollama', 'error', result);
+                    testResults.error++;
+                    testResults.issues.push('Aucun modèle Ollama installé');
+                } else {
+                    updateStatus('ollama', 'success', result);
+                    testResults.success++;
+                }
+            } catch (error) {
+                let result = '❌ Ollama non accessible\n\n';
+                result += `Erreur: ${error.message}\n\n`;
+                result += '🔧 Vérifications:\n';
+                result += '  1. Ollama est-il lancé?\n';
+                result += '  2. Port 11434 accessible?\n';
+                result += '  3. Firewall bloque-t-il?\n\n';
+                result += '💡 Commandes:\n';
+                result += '  • Vérifier: curl http://localhost:11434/api/tags\n';
+                result += '  • Lister: ollama list\n';
+                updateStatus('ollama', 'error', result);
+                testResults.error++;
+                testResults.issues.push('Ollama non accessible');
+            }
+        }
+
+        async function testEndpoint() {
+            updateStatus('endpoint', 'running');
+            
+            try {
+                const response = await fetch('http://localhost:11434/api/tags');
+                if (!response.ok) {
+                    throw new Error('Ollama non accessible');
+                }
+                
+                const data = await response.json();
+                const models = data.models || [];
+                
+                if (models.length === 0) {
+                    updateStatus('endpoint', 'error', '❌ Aucun modèle pour tester');
+                    testResults.error++;
+                    return;
+                }
+                
+                const testModel = models[0].name;
+                const testResponse = await fetch('http://localhost:11434/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: testModel,
+                        prompt: 'Test',
+                        stream: false
+                    })
+                });
+                
+                if (testResponse.ok) {
+                    const result = await testResponse.json();
+                    let message = '✅ Endpoint /api/generate fonctionne!\n\n';
+                    message += `Modèle testé: ${testModel}\n`;
+                    message += `Réponse reçue: ${result.response ? 'OUI' : 'NON'}\n`;
+                    message += `\n✨ Tout est correct!`;
+                    updateStatus('endpoint', 'success', message);
+                    testResults.success++;
+                } else {
+                    throw new Error(`HTTP ${testResponse.status}`);
+                }
+            } catch (error) {
+                let result = '❌ Endpoint /api/generate ne fonctionne pas\n\n';
+                result += `Erreur: ${error.message}\n\n`;
+                result += '⚠️ PROBLÈME: Le code utilise peut-être encore /api/chat\n';
+                result += '💡 SOLUTION: Vider le cache et recharger\n';
+                result += '  1. Ctrl+Shift+R (Hard Refresh)\n';
+                result += '  2. Redémarrer le serveur de dev\n';
+                updateStatus('endpoint', 'error', result);
+                testResults.error++;
+                testResults.issues.push('Endpoint /api/generate ne répond pas');
+            }
+        }
+
+        async function testSystemPrompts() {
+            updateStatus('prompts', 'running');
+            
+            try {
+                const settings = localStorage.getItem('storycore-settings');
+                
+                if (!settings) {
+                    updateStatus('prompts', 'success', '✅ Aucune configuration (normal)');
+                    testResults.success++;
+                    return;
+                }
+                
+                const parsed = JSON.parse(settings);
+                
+                if (!parsed.llm || !parsed.llm.config) {
+                    updateStatus('prompts', 'success', '✅ Aucune configuration LLM');
+                    testResults.success++;
+                    return;
+                }
+                
+                const config = parsed.llm.config;
+                let result = '📝 Vérification systemPrompts:\n\n';
+                
+                if (config.systemPrompts) {
+                    const prompts = config.systemPrompts;
+                    result += '✅ systemPrompts existe\n\n';
+                    result += `worldGeneration: ${prompts.worldGeneration ? '✅ OK' : '❌ MANQUANT'}\n`;
+                    result += `characterGeneration: ${prompts.characterGeneration ? '✅ OK' : '❌ MANQUANT'}\n`;
+                    result += `dialogueGeneration: ${prompts.dialogueGeneration ? '✅ OK' : '❌ MANQUANT'}\n`;
+                    
+                    if (prompts.worldGeneration && prompts.characterGeneration && prompts.dialogueGeneration) {
+                        result += '\n✨ Tous les prompts sont présents!';
+                        updateStatus('prompts', 'success', result);
+                        testResults.success++;
+                    } else {
+                        result += '\n⚠️ PROBLÈME: Certains prompts manquent';
+                        result += '\n💡 SOLUTION: Reconfigurer dans Settings';
+                        updateStatus('prompts', 'error', result);
+                        testResults.error++;
+                        testResults.issues.push('Prompts incomplets');
+                    }
+                } else {
+                    result += '❌ systemPrompts: MANQUANT\n\n';
+                    result += '⚠️ PROBLÈME: Configuration incomplète\n';
+                    result += '💡 SOLUTION: Supprimer la config et reconfigurer';
+                    updateStatus('prompts', 'error', result);
+                    testResults.error++;
+                    testResults.issues.push('systemPrompts complètement manquant');
+                }
+            } catch (error) {
+                updateStatus('prompts', 'error', '❌ Erreur: ' + error.message);
+                testResults.error++;
+            }
+        }
+
+        async function runAllTests() {
+            const runBtn = document.getElementById('runBtn');
+            const fixBtn = document.getElementById('fixBtn');
+            
+            runBtn.disabled = true;
+            testResults = { success: 0, error: 0, issues: [] };
+            
+            await testLocalStorage();
+            updateProgress(20);
+            
+            await testLLMConfig();
+            updateProgress(40);
+            
+            await testOllama();
+            updateProgress(60);
+            
+            await testEndpoint();
+            updateProgress(80);
+            
+            await testSystemPrompts();
+            updateProgress(100);
+            
+            // Afficher le résumé
+            document.getElementById('summary').style.display = 'block';
+            document.getElementById('successCount').textContent = testResults.success;
+            document.getElementById('errorCount').textContent = testResults.error;
+            document.getElementById('issueCount').textContent = testResults.issues.length;
+            
+            runBtn.disabled = false;
+            fixBtn.disabled = testResults.issues.length === 0;
+        }
+
+        function fixAllIssues() {
+            if (confirm('⚠️ Cela va supprimer toutes les configurations LLM.\n\nContinuer?')) {
+                localStorage.removeItem('storycore_llm_config');
+                localStorage.removeItem('storycore_api_key_enc');
+                localStorage.removeItem('storycore-settings');
+                localStorage.removeItem('llm-config');
+                
+                alert('✅ Configurations supprimées!\n\nÉtapes suivantes:\n1. Recharger la page (Ctrl+Shift+R)\n2. Reconfigurer le LLM dans Settings');
+                
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            }
+        }
+
+        function resetEverything() {
+            if (confirm('⚠️ ATTENTION: Cela va supprimer TOUT le localStorage.\n\nContinuer?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                alert('✅ Reset complet effectué!\n\nRechargement de la page...');
+                
+                setTimeout(() => {
+                    location.reload(true);
+                }, 1500);
+            }
+        }
+    </script>
+</body>
+</html>

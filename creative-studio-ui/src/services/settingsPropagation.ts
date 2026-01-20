@@ -104,6 +104,20 @@ class SettingsPropagationManager {
         }
       }
 
+      // Update OllamaClient if provider is local
+      if (payload.provider === 'local') {
+        try {
+          const { updateOllamaClientFromSettings } = await import('./wizard/OllamaClient');
+          await updateOllamaClientFromSettings();
+          
+          if (import.meta.env.DEV) {
+            console.log('[SettingsPropagation] OllamaClient updated with new config');
+          }
+        } catch (error) {
+          console.error('[SettingsPropagation] Failed to update OllamaClient:', error);
+        }
+      }
+
       // Notify all registered listeners (Requirement: 7.8)
       await this.notifyLLMListeners(storedConfig);
 

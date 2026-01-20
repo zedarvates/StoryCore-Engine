@@ -1,0 +1,202 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║   🧪 COMMANDES POUR TESTER LES SERVICES CORRIGÉS                           ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 1️⃣  REBUILD DE L'APPLICATION                                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   cd creative-studio-ui
+   npm run build
+
+   ✅ Résultat attendu: Build réussi en ~6-7 secondes, 0 erreurs
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 2️⃣  LANCER L'APPLICATION                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   # Option 1: Mode développement
+   cd creative-studio-ui
+   npm run dev
+
+   # Option 2: Mode production (après build)
+   npm run preview
+
+   # Option 3: Electron
+   npm run electron:dev
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 3️⃣  TESTER LA SYNCHRONISATION - SequencePlanService                         │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   TEST 1: Créer un plan dans un composant
+   ────────────────────────────────────────
+   1. Ouvrir l'application
+   2. Aller dans "Sequence Plans"
+   3. Créer un nouveau plan
+   4. ✅ Vérifier que la liste se met à jour automatiquement
+   5. ✅ Vérifier dans la console: "[useSequencePlan] Plan list updated"
+
+   TEST 2: Modifier un plan
+   ─────────────────────────
+   1. Sélectionner un plan existant
+   2. Modifier son nom ou description
+   3. ✅ Vérifier que tous les composants affichant ce plan se mettent à jour
+   4. ✅ Vérifier dans la console: "[useSequencePlan] Plan updated"
+
+   TEST 3: Auto-save
+   ─────────────────
+   1. Activer l'auto-save
+   2. ✅ Vérifier dans la console: "[useSequencePlan] Auto-save status: true"
+   3. Désactiver l'auto-save
+   4. ✅ Vérifier dans la console: "[useSequencePlan] Auto-save status: false"
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 4️⃣  TESTER LA SYNCHRONISATION - AssetLibraryService                         │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   TEST 1: Charger les assets
+   ───────────────────────────
+   1. Ouvrir l'application
+   2. Aller dans "Asset Library"
+   3. ✅ Vérifier que les assets se chargent
+   4. ✅ Vérifier dans la console: "[useAssetLibrary] Sources updated"
+
+   TEST 2: Rechercher des assets
+   ──────────────────────────────
+   1. Utiliser la barre de recherche
+   2. Taper "background" ou "music"
+   3. ✅ Vérifier que les résultats s'affichent
+   4. ✅ Vérifier que le compteur se met à jour
+
+   TEST 3: Rafraîchir le cache
+   ────────────────────────────
+   1. Cliquer sur "Refresh" ou "Clear Cache"
+   2. ✅ Vérifier que tous les composants se mettent à jour
+   3. ✅ Vérifier dans la console: "[AssetLibraryService] Sources updated"
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 5️⃣  VÉRIFIER LES LOGS DE CONSOLE                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   Ouvrir la console du navigateur (F12) et chercher:
+
+   SequencePlanService:
+   ├─ "[SequencePlanService] Service initialized with Observer pattern"
+   ├─ "[useSequencePlan] Plan list updated: X"
+   ├─ "[useSequencePlan] Plan updated: plan-xxx"
+   └─ "[useSequencePlan] Auto-save status: true/false"
+
+   AssetLibraryService:
+   ├─ "[AssetLibraryService] Service initialized with Observer pattern"
+   ├─ "[useAssetLibrary] Sources updated: X"
+   └─ "[AssetLibraryService] Sources updated"
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 6️⃣  TESTER LA SYNCHRONISATION MULTI-COMPOSANTS                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   TEST: Ouvrir plusieurs composants utilisant le même service
+   ────────────────────────────────────────────────────────────
+   1. Ouvrir 2 fenêtres/onglets de l'application
+   2. Dans la fenêtre 1: Créer un nouveau plan
+   3. ✅ Vérifier que la fenêtre 2 se met à jour automatiquement
+   4. Dans la fenêtre 2: Modifier le plan
+   5. ✅ Vérifier que la fenêtre 1 se met à jour automatiquement
+
+   Note: Cela fonctionne si les 2 fenêtres partagent le même localStorage
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 7️⃣  COMPARER AVEC LE PROBLÈME INITIAL                                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   AVANT (❌ Problème):
+   ────────────────────
+   1. Changer la config LLM dans Settings
+   2. Aller dans un Wizard
+   3. ❌ Le wizard utilise toujours l'ancienne config
+   4. ❌ Nécessite rechargement de la page
+
+   APRÈS (✅ Solution):
+   ────────────────────
+   1. Changer la config LLM dans Settings
+   2. Aller dans un Wizard
+   3. ✅ Le wizard utilise automatiquement la nouvelle config
+   4. ✅ Pas besoin de recharger la page
+
+   MAINTENANT PAREIL POUR:
+   ├─ SequencePlanService (plans, auto-save)
+   └─ AssetLibraryService (assets, cache)
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 8️⃣  DÉBOGUER EN CAS DE PROBLÈME                                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   Si un service ne se synchronise pas:
+
+   1. Vérifier la console pour les logs d'initialisation
+      → "[ServiceName] Service initialized with Observer pattern"
+
+   2. Vérifier que le hook est bien utilisé dans le composant
+      → import { useSequencePlan } from '@/hooks/useSequencePlan';
+
+   3. Vérifier que les notifications sont appelées
+      → Chercher "notify" dans les logs de console
+
+   4. Vérifier que le build est à jour
+      → npm run build dans creative-studio-ui
+
+   5. Vider le cache du navigateur
+      → Ctrl+Shift+Delete → Vider le cache
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 9️⃣  DOCUMENTATION COMPLÈTE                                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   Fichiers à consulter:
+   ├─ CORRECTION_SERVICES_PRIORITE_HAUTE_COMPLETE.md
+   │  └─ Documentation détaillée de toutes les modifications
+   │
+   ├─ RESUME_VISUEL_SERVICES_CORRIGES.txt
+   │  └─ Résumé visuel rapide
+   │
+   ├─ ANALYSE_PROBLEMES_SYNCHRONISATION_GLOBAUX.md
+   │  └─ Analyse complète de tous les services
+   │
+   └─ COMMANDES_TEST_SERVICES_CORRIGES.txt (ce fichier)
+      └─ Commandes pour tester
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🔟  PROCHAINES ÉTAPES (OPTIONNEL)                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+   Si vous voulez corriger les services restants:
+
+   Priorité MOYENNE (4-6 heures):
+   ├─ TimelineService
+   └─ ProjectTemplateService
+
+   Priorité BASSE (2-3 heures):
+   ├─ NarrativeService
+   └─ ThumbnailCache
+
+   Commande pour démarrer:
+   → "corriger les services de priorité moyenne"
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║   ✅ SERVICES PRIORITÉ HAUTE CORRIGÉS ET TESTABLES                          ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝

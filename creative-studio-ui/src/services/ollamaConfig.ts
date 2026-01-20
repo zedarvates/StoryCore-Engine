@@ -24,13 +24,13 @@ export interface OllamaModelConfig {
 }
 
 /**
- * Available Gemma 3 models for Ollama
+ * Available local models for Ollama (Gemma 2 and Llama 3.2)
  */
 export const GEMMA3_MODELS: OllamaModelConfig[] = [
   {
-    id: 'gemma3:1b',
-    name: 'Gemma 3 1B',
-    size: '1b',
+    id: 'gemma2:2b',
+    name: 'Gemma 2 2B',
+    size: '2b',
     minRAM: 2,
     recommendedRAM: 4,
     minVRAM: 1,
@@ -38,9 +38,9 @@ export const GEMMA3_MODELS: OllamaModelConfig[] = [
     description: 'Smallest model, fast responses, good for basic tasks',
   },
   {
-    id: 'gemma3:4b',
-    name: 'Gemma 3 4B',
-    size: '4b',
+    id: 'llama3.2:3b',
+    name: 'Llama 3.2 3B',
+    size: '3b',
     minRAM: 6,
     recommendedRAM: 8,
     minVRAM: 3,
@@ -48,14 +48,14 @@ export const GEMMA3_MODELS: OllamaModelConfig[] = [
     description: 'Balanced model, good quality and speed',
   },
   {
-    id: 'gemma3:12b',
-    name: 'Gemma 3 12B',
-    size: '12b',
+    id: 'llama3.2:1b',
+    name: 'Llama 3.2 1B',
+    size: '1b',
     minRAM: 16,
     recommendedRAM: 24,
     minVRAM: 8,
     contextWindow: 8192,
-    description: 'Largest model, best quality, slower responses',
+    description: 'Lightweight model, very fast responses',
   },
 ];
 

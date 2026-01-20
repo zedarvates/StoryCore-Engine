@@ -12,3 +12,11 @@ export { useTouchInteraction } from './useTouchInteraction';
 export { Toolbar } from './Toolbar';
 export { useKeyboardShortcuts } from './useKeyboardShortcuts';
 export { VideoPlayer } from './VideoPlayer';
+
+// Grid Layout with Snap-to-Grid (Task 8)
+export { GridLayout } from './GridLayout';
+export { GridLines } from './GridLines';
+export { GridItem } from './GridItem';
+export { AlignmentGuides } from './AlignmentGuides';
+export { GridLayoutToolbar } from './GridLayoutToolbar';
+export { GridLayoutContainer } from './GridLayoutContainer';

@@ -105,25 +105,122 @@ Example:
 
   const parseLLMPersonality = (response: string): Partial<Character['personality']> | null => {
     try {
-      // Try to extract JSON from response
+      console.log('Parsing LLM personality response:', response);
+      
+      // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        // Only include fields that have values
-        const result: Partial<Character['personality']> = {};
-        if (Array.isArray(parsed.traits)) result.traits = parsed.traits;
-        if (Array.isArray(parsed.values)) result.values = parsed.values;
-        if (Array.isArray(parsed.fears)) result.fears = parsed.fears;
-        if (Array.isArray(parsed.desires)) result.desires = parsed.desires;
-        if (Array.isArray(parsed.flaws)) result.flaws = parsed.flaws;
-        if (Array.isArray(parsed.strengths)) result.strengths = parsed.strengths;
-        if (parsed.temperament) result.temperament = parsed.temperament;
-        if (parsed.communication_style) result.communication_style = parsed.communication_style;
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          const result: Partial<Character['personality']> = {};
+          
+          // Map all fields
+          if (Array.isArray(parsed.traits)) result.traits = parsed.traits;
+          if (Array.isArray(parsed.values)) result.values = parsed.values;
+          if (Array.isArray(parsed.fears)) result.fears = parsed.fears;
+          if (Array.isArray(parsed.desires)) result.desires = parsed.desires;
+          if (Array.isArray(parsed.flaws)) result.flaws = parsed.flaws;
+          if (Array.isArray(parsed.strengths)) result.strengths = parsed.strengths;
+          if (parsed.temperament) result.temperament = parsed.temperament;
+          if (parsed.communication_style || parsed.communicationStyle) {
+            result.communication_style = parsed.communication_style || parsed.communicationStyle;
+          }
+          
+          // Check if we got any data
+          if (Object.keys(result).length > 0) {
+            console.log('Successfully parsed personality from JSON:', result);
+            return result;
+          }
+        } catch (jsonError) {
+          console.warn('JSON parsing failed, trying text parsing');
+        }
+      }
+      
+      // Fallback: Parse as structured text
+      console.log('Attempting text-based parsing');
+      const result: Partial<Character['personality']> = {
+        traits: [],
+        values: [],
+        fears: [],
+        desires: [],
+        flaws: [],
+        strengths: [],
+      };
+      
+      const lines = response.split('\n');
+      let currentSection: 'traits' | 'values' | 'fears' | 'desires' | 'flaws' | 'strengths' | null = null;
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        
+        // Detect section headers
+        if (/(?:core\s*)?(?:personality\s*)?traits?:/i.test(trimmed)) {
+          currentSection = 'traits';
+          continue;
+        }
+        if (/values?(?:\s*and\s*beliefs?)?:/i.test(trimmed)) {
+          currentSection = 'values';
+          continue;
+        }
+        if (/fears?:/i.test(trimmed)) {
+          currentSection = 'fears';
+          continue;
+        }
+        if (/desires?(?:\s*and\s*goals?)?:/i.test(trimmed)) {
+          currentSection = 'desires';
+          continue;
+        }
+        if (/flaws?:/i.test(trimmed)) {
+          currentSection = 'flaws';
+          continue;
+        }
+        if (/strengths?:/i.test(trimmed)) {
+          currentSection = 'strengths';
+          continue;
+        }
+        
+        // Parse temperament
+        const tempMatch = trimmed.match(/temperament:\s*(.+)/i);
+        if (tempMatch) {
+          result.temperament = tempMatch[1].trim();
+          currentSection = null;
+          continue;
+        }
+        
+        // Parse communication style
+        const commMatch = trimmed.match(/communication\s*style:\s*(.+)/i);
+        if (commMatch) {
+          result.communication_style = commMatch[1].trim();
+          currentSection = null;
+          continue;
+        }
+        
+        // Parse list items in current section
+        if (currentSection) {
+          const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '');
+          if (cleaned.length > 2 && !cleaned.endsWith(':')) {
+            result[currentSection]?.push(cleaned);
+          }
+        }
+      }
+      
+      // Check if we got any data
+      const hasData = Object.values(result).some(val => 
+        Array.isArray(val) ? val.length > 0 : !!val
+      );
+      
+      if (hasData) {
+        console.log('Successfully parsed personality from text:', result);
         return result;
       }
+      
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
+      console.error('Response was:', response);
     }
+    
+    console.warn('Could not parse any personality data from response');
     return null;
   };
 

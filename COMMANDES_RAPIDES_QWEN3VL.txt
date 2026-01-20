@@ -1,0 +1,145 @@
+═══════════════════════════════════════════════════════════════════════════════
+   ⚡ COMMANDES RAPIDES - QWEN3-VL AVEC ⭐
+═══════════════════════════════════════════════════════════════════════════════
+
+🔄 REDÉMARRER L'APPLICATION
+═══════════════════════════════════════════════════════════════════════════════
+
+# 1. Arrêter le serveur (dans le terminal où npm run dev tourne)
+Ctrl+C
+
+# 2. Redémarrer
+cd creative-studio-ui
+npm run dev
+
+═══════════════════════════════════════════════════════════════════════════════
+   🧹 VIDER LE CACHE (DANS LE NAVIGATEUR)
+═══════════════════════════════════════════════════════════════════════════════
+
+# Option 1 : Interface graphique
+Ctrl+Shift+Delete
+→ Cocher "Cached images and files"
+→ Cliquer "Clear data"
+
+# Option 2 : Console (F12)
+localStorage.clear()
+sessionStorage.clear()
+
+# Option 3 : Hard reload
+Ctrl+Shift+R
+
+═══════════════════════════════════════════════════════════════════════════════
+   ✅ VÉRIFIER OLLAMA
+═══════════════════════════════════════════════════════════════════════════════
+
+# Lister les modèles installés
+ollama list
+
+# Résultat attendu :
+# qwen3-vl:8b    901cae732162    6.1 GB    2 months ago
+
+# Tester le modèle
+ollama run qwen3-vl:8b "Bonjour, décris un monde fantastique"
+
+# Vérifier qu'Ollama tourne
+curl http://localhost:11434/api/tags
+
+═══════════════════════════════════════════════════════════════════════════════
+   🎯 SÉQUENCE COMPLÈTE (COPIER-COLLER)
+═══════════════════════════════════════════════════════════════════════════════
+
+# 1. Vérifier Ollama
+ollama list | grep qwen3-vl
+
+# 2. Redémarrer le serveur dev
+cd creative-studio-ui
+npm run dev
+
+# 3. Dans le navigateur (F12 → Console)
+localStorage.clear(); sessionStorage.clear(); location.reload(true);
+
+# 4. Ouvrir l'interface
+# → http://localhost:5173
+# → Cliquer sur ⚙️ Settings
+# → LLM Configuration
+# → Provider: Local
+# → Voir le ⭐ sur Qwen 3 VL 8B !
+
+═══════════════════════════════════════════════════════════════════════════════
+   🔍 VÉRIFIER QUE ÇA MARCHE
+═══════════════════════════════════════════════════════════════════════════════
+
+# Dans l'interface StoryCore :
+1. Ouvrir Settings (⚙️)
+2. Aller dans "LLM Configuration"
+3. Sélectionner Provider: "Local"
+4. Endpoint: http://localhost:11434
+5. Chercher "⭐ Qwen 3 VL 8B (RECOMMENDED)"
+
+# Vous devriez voir :
+┌─────────────────────────────────────────────────────────┐
+│ ⭐ Qwen 3 VL 8B (RECOMMENDED)  [✓ Installed]          │
+│                                                          │
+│ Alibaba's latest vision-language model...               │
+│                                                          │
+│ 💾 6.1GB  🧠 8GB RAM min  ⚡ GPU: No                   │
+│                                                          │
+│ [text-generation] [chat] [vision-understanding]         │
+│ [image-analysis] [visual-storytelling] +2 more          │
+│                                                          │
+│ [✓ Selected]  [🗑️ Delete]                              │
+└─────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+   🐛 DÉPANNAGE
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ PAS DE ⭐ VISIBLE ?
+──────────────────────
+1. Vérifier que le serveur dev est redémarré
+2. Vider COMPLÈTEMENT le cache (Ctrl+Shift+Delete)
+3. Vider localStorage (F12 → localStorage.clear())
+4. Hard reload (Ctrl+Shift+R)
+5. Vérifier que Provider = "Local"
+
+❌ MODÈLE PAS DANS LA LISTE ?
+──────────────────────────────
+1. Vérifier Ollama : ollama list
+2. Vérifier endpoint : http://localhost:11434
+3. Tester connexion : curl http://localhost:11434/api/tags
+4. Redémarrer Ollama si besoin
+
+❌ ERREUR DE CONNEXION ?
+─────────────────────────
+1. Vérifier qu'Ollama tourne
+2. Vérifier le port 11434
+3. Tester : ollama run qwen3-vl:8b "test"
+
+═══════════════════════════════════════════════════════════════════════════════
+   📝 FICHIERS MODIFIÉS
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ creative-studio-ui/src/services/localModelService.ts
+   Ligne ~235-250 : Ajout de qwen3-vl:8b avec ⭐
+
+✅ creative-studio-ui/src/utils/ollamaModelDetection.ts
+   Ligne ~55 : qwen3-vl:8b déjà en priorité #1
+
+═══════════════════════════════════════════════════════════════════════════════
+   🎉 RÉSUMÉ
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ UN SEUL système LLM (pas de duplication)
+✅ qwen3-vl:8b ajouté avec ⭐ RECOMMENDED
+✅ Priorité #1 dans la détection auto
+✅ Capacités vision-language activées
+
+🔄 Pour voir le ⭐ :
+   1. npm run dev (redémarrer)
+   2. Ctrl+Shift+Delete (vider cache)
+   3. localStorage.clear() (vider storage)
+   4. Ctrl+Shift+R (recharger)
+   5. Settings → LLM Config → Local
+   6. Voir le ⭐ !
+
+═══════════════════════════════════════════════════════════════════════════════

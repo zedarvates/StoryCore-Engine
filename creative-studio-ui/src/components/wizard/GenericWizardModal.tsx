@@ -20,11 +20,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
+import { useToast } from '@/hooks/use-toast';
+import { LLMStatusBanner } from './LLMStatusBanner';
 import { DialogueWriterForm } from './forms/DialogueWriterForm';
 import { SceneGeneratorForm } from './forms/SceneGeneratorForm';
 import { StoryboardCreatorForm } from './forms/StoryboardCreatorForm';
 import { StyleTransferForm } from './forms/StyleTransferForm';
-import { WorldBuildingForm } from './forms/WorldBuildingForm';
 import type { Character } from '@/types/character';
 import type { Shot } from '@/types';
 
@@ -42,7 +43,7 @@ interface WizardConfig {
 const WIZARD_CONFIG: Record<WizardType, WizardConfig> = {
   'dialogue-writer': {
     title: 'Dialogue Writer',
-    description: 'Generate natural dialogue for your scenes',
+    description: 'Generate natural dialogue for your scenes. Requires at least one character.',
     component: DialogueWriterForm,
     submitLabel: 'Generate Dialogue',
     requiresCharacters: true,
@@ -52,7 +53,7 @@ const WIZARD_CONFIG: Record<WizardType, WizardConfig> = {
     description: 'Create complete scenes with AI assistance',
     component: SceneGeneratorForm,
     submitLabel: 'Generate Scene',
-    requiresCharacters: true,
+    requiresCharacters: false, // Scenes can exist without characters (documentaries, voiceover, etc.)
   },
   'storyboard-creator': {
     title: 'Storyboard Creator',
@@ -67,11 +68,19 @@ const WIZARD_CONFIG: Record<WizardType, WizardConfig> = {
     submitLabel: 'Apply Style',
     requiresShots: true,
   },
-  'world-building': {
-    title: 'World Building',
-    description: 'Design rich, detailed worlds for your stories',
-    component: WorldBuildingForm,
-    submitLabel: 'Create World',
+  // Note: 'sequence-plan' and 'shot' wizards are handled by separate modals
+  // 'world' and 'character' wizards are multi-step and use WorldWizardModal/CharacterWizardModal
+  'sequence-plan': {
+    title: 'Sequence Plan',
+    description: 'Plan your video sequence',
+    component: () => null, // Handled by SequencePlanWizardModal
+    submitLabel: 'Create Plan',
+  },
+  'shot': {
+    title: 'Shot',
+    description: 'Create a new shot',
+    component: () => null, // Handled by ShotWizardModal
+    submitLabel: 'Create Shot',
   },
 };
 
@@ -89,6 +98,7 @@ interface WizardFormRendererProps {
   onCancel: () => void;
   onChange?: (data: any) => void;
   onFormReady?: (submitFn: () => void) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 function WizardFormRenderer({
@@ -97,6 +107,7 @@ function WizardFormRenderer({
   onCancel,
   onChange,
   onFormReady,
+  onValidationChange,
 }: WizardFormRendererProps): React.ReactElement {
   const project = useAppStore((state) => state.project);
   const shots = useAppStore((state) => state.shots);
@@ -105,7 +116,23 @@ function WizardFormRenderer({
   const [error, setError] = useState<string | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [projectShots, setProjectShots] = useState<Shot[]>([]);
+  const [isFormValid, setIsFormValid] = useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
+
+  // Handler for validation state changes - MUST be defined before any conditional returns
+  const handleValidationChange = useCallback((isValid: boolean) => {
+    setIsFormValid(isValid);
+  }, []);
+
+  // Wrapper to add ref to form elements
+  const wrapFormWithRef = useCallback((formElement: React.ReactElement) => {
+    return React.cloneElement(formElement, { ref: formRef } as any);
+  }, []);
+
+  // Notify parent of validation state changes
+  useEffect(() => {
+    onValidationChange?.(isFormValid);
+  }, [isFormValid, onValidationChange]);
 
   // Notify parent when form is ready
   useEffect(() => {
@@ -131,7 +158,7 @@ function WizardFormRenderer({
         // Fetch characters if required
         if (config.requiresCharacters) {
           if (!project?.characters || project.characters.length === 0) {
-            setError('No characters available. Create characters first using the Character Wizard.');
+            setError('⚠️ No characters available. Please create at least one character using the Character Wizard before using this tool.');
             setIsLoading(false);
             return;
           }
@@ -172,11 +199,30 @@ function WizardFormRenderer({
   // Show error state
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 px-4">
-        <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-        <p className="text-sm text-center text-muted-foreground mb-4">{error}</p>
-        <Button variant="outline" onClick={onCancel}>
-          Close
+      <div className="flex flex-col items-center justify-center py-8 px-4" style={{
+        backgroundColor: '#fef3c7',
+        border: '2px solid #f59e0b',
+        borderRadius: '0.75rem',
+        padding: '2rem',
+        margin: '1rem 0'
+      }}>
+        <AlertCircle className="h-16 w-16 mb-4" style={{ color: '#f59e0b' }} />
+        <p className="text-base font-semibold text-center mb-2" style={{ color: '#92400e' }}>
+          {error.includes('⚠️') ? error : `⚠️ ${error}`}
+        </p>
+        <p className="text-sm text-center mb-4" style={{ color: '#78350f' }}>
+          This wizard requires characters to function properly.
+        </p>
+        <Button 
+          variant="outline" 
+          onClick={onCancel}
+          style={{
+            borderColor: '#f59e0b',
+            color: '#92400e',
+            fontWeight: '600'
+          }}
+        >
+          Close and Create Characters
         </Button>
       </div>
     );
@@ -184,11 +230,6 @@ function WizardFormRenderer({
 
   // Render the appropriate wizard form
   const config = WIZARD_CONFIG[wizardType];
-
-  // Wrapper to add ref to form elements
-  const wrapFormWithRef = (formElement: React.ReactElement) => {
-    return React.cloneElement(formElement, { ref: formRef } as any);
-  };
 
   // Map wizard type to form props
   switch (wizardType) {
@@ -199,6 +240,7 @@ function WizardFormRenderer({
           onSubmit={onSubmit}
           onCancel={onCancel}
           onChange={onChange}
+          onValidationChange={handleValidationChange}
         />
       );
 
@@ -209,6 +251,7 @@ function WizardFormRenderer({
           onSubmit={onSubmit}
           onCancel={onCancel}
           onChange={onChange}
+          onValidationChange={handleValidationChange}
         />
       );
 
@@ -218,23 +261,17 @@ function WizardFormRenderer({
           onSubmit={onSubmit}
           onCancel={onCancel}
           onChange={onChange}
+          onValidationChange={handleValidationChange}
         />
       );
 
     case 'style-transfer':
       return wrapFormWithRef(
         <StyleTransferForm
-          shots={projectShots.map(s => ({ id: s.id, title: s.title, frame_path: s.frame_path }))}
+          shots={projectShots.map(s => ({ id: s.id, title: s.title, frame_path: s.image }))}
           onSubmit={onSubmit}
           onChange={onChange}
-        />
-      );
-
-    case 'world-building':
-      return wrapFormWithRef(
-        <WorldBuildingForm
-          onSubmit={onSubmit}
-          onChange={onChange}
+          onValidationChange={handleValidationChange}
         />
       );
 
@@ -269,12 +306,16 @@ export function GenericWizardModal({
 }: GenericWizardModalProps): React.ReactElement {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitFormFn, setSubmitFormFn] = useState<(() => void) | null>(null);
+  const [isFormValid, setIsFormValid] = useState(false);
+  const { toast } = useToast();
+  const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setIsSubmitting(false);
       setSubmitFormFn(null);
+      setIsFormValid(false);
     }
   }, [isOpen]);
 
@@ -285,15 +326,35 @@ export function GenericWizardModal({
       // Call completion handler with form data
       await onComplete?.(formData);
       
+      // Show success toast
+      const wizardConfig = wizardType ? WIZARD_CONFIG[wizardType] : null;
+      if (wizardConfig) {
+        toast({
+          title: 'Success',
+          description: `${wizardConfig.title} completed successfully.`,
+          variant: 'default',
+        });
+      }
+      
       // Close modal on success
       onClose();
     } catch (error) {
       console.error('[GenericWizardModal] Submission error:', error);
-      // Error handling will be enhanced in later tasks
+      
+      // Display error toast with specific message
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'An unexpected error occurred. Please try again.';
+      
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setIsSubmitting(false);
     }
-  }, [onComplete, onClose]);
+  }, [onComplete, onClose, wizardType, toast]);
 
   // Handle submit button click
   const handleSubmitClick = useCallback(() => {
@@ -311,6 +372,11 @@ export function GenericWizardModal({
   // Handle form data changes (for auto-save in later tasks)
   const handleFormChange = useCallback((data: any) => {
     // This will be used for draft auto-save in task 10
+  }, []);
+
+  // Handle validation state changes from form
+  const handleValidationChange = useCallback((isValid: boolean) => {
+    setIsFormValid(isValid);
   }, []);
 
   // Get wizard configuration
@@ -336,14 +402,28 @@ export function GenericWizardModal({
           </DialogDescription>
         </DialogHeader>
 
+        {/* LLM Status Banner */}
+        <LLMStatusBanner onConfigure={() => setShowLLMSettings(true)} />
+
         {/* Render wizard form */}
-        <div className="py-4">
+        <div className="py-4 relative">
+          {/* Loading overlay during submission */}
+          {isSubmitting && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-md">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">Processing...</span>
+              </div>
+            </div>
+          )}
+          
           <WizardFormRenderer
             wizardType={wizardType}
             onSubmit={handleFormSubmit}
             onCancel={onClose}
             onChange={handleFormChange}
             onFormReady={handleFormReady}
+            onValidationChange={handleValidationChange}
           />
         </div>
 
@@ -359,8 +439,9 @@ export function GenericWizardModal({
           <Button
             type="button"
             onClick={handleSubmitClick}
-            disabled={isSubmitting || !submitFormFn}
+            disabled={isSubmitting || !submitFormFn || !isFormValid}
           >
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? 'Processing...' : wizardConfig.submitLabel}
           </Button>
         </DialogFooter>

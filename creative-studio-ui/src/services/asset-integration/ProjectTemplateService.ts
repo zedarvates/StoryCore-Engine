@@ -1,14 +1,83 @@
 import { ProjectTemplate } from '../../types/asset-integration';
 
+/**
+ * Callback type for template updates
+ */
+export type TemplateUpdateCallback = (path: string, template: ProjectTemplate) => void;
+
+/**
+ * Callback type for cache updates
+ */
+export type TemplateCacheUpdateCallback = (cacheCleared: boolean) => void;
+
+/**
+ * Project Template Service with Observer pattern for real-time synchronization
+ */
 export class ProjectTemplateService {
   private static instance: ProjectTemplateService;
   private cache: Map<string, ProjectTemplate> = new Map();
+  
+  // Subscribers for different events
+  private templateUpdateSubscribers: Set<TemplateUpdateCallback> = new Set();
+  private cacheUpdateSubscribers: Set<TemplateCacheUpdateCallback> = new Set();
+
+  private constructor() {
+    console.log('[ProjectTemplateService] Service initialized with Observer pattern');
+  }
 
   static getInstance(): ProjectTemplateService {
     if (!ProjectTemplateService.instance) {
       ProjectTemplateService.instance = new ProjectTemplateService();
     }
     return ProjectTemplateService.instance;
+  }
+
+  /**
+   * Subscribe to template updates
+   * Returns unsubscribe function
+   */
+  public subscribeToTemplateUpdates(callback: TemplateUpdateCallback): () => void {
+    this.templateUpdateSubscribers.add(callback);
+    return () => {
+      this.templateUpdateSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to cache updates
+   * Returns unsubscribe function
+   */
+  public subscribeToCacheUpdates(callback: TemplateCacheUpdateCallback): () => void {
+    this.cacheUpdateSubscribers.add(callback);
+    return () => {
+      this.cacheUpdateSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Notify subscribers of template update
+   */
+  private notifyTemplateUpdate(path: string, template: ProjectTemplate): void {
+    this.templateUpdateSubscribers.forEach(callback => {
+      try {
+        callback(path, template);
+      } catch (error) {
+        console.error('[ProjectTemplateService] Error in template update subscriber:', error);
+      }
+    });
+  }
+
+  /**
+   * Notify subscribers of cache update
+   */
+  private notifyCacheUpdate(cacheCleared: boolean): void {
+    this.cacheUpdateSubscribers.forEach(callback => {
+      try {
+        callback(cacheCleared);
+      } catch (error) {
+        console.error('[ProjectTemplateService] Error in cache update subscriber:', error);
+      }
+    });
   }
 
   async loadProjectTemplate(path: string): Promise<ProjectTemplate> {
@@ -29,6 +98,10 @@ export class ProjectTemplateService {
       }
 
       this.cache.set(path, data);
+      
+      // Notify subscribers
+      this.notifyTemplateUpdate(path, data);
+      
       return data;
     } catch (error) {
       console.error('Error loading project template:', error);
@@ -40,6 +113,12 @@ export class ProjectTemplateService {
     try {
       // Update timestamps
       template.project.updated_at = new Date().toISOString();
+
+      // Update cache
+      this.cache.set(path, template);
+      
+      // Notify subscribers
+      this.notifyTemplateUpdate(path, template);
 
       // In a real implementation, this would use Electron API to save to file
       // For now, we'll simulate with localStorage or throw an error
@@ -128,5 +207,8 @@ export class ProjectTemplateService {
 
   clearCache(): void {
     this.cache.clear();
+    
+    // Notify subscribers
+    this.notifyCacheUpdate(true);
   }
 }

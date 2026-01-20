@@ -39,7 +39,7 @@ export function WizardFormLayout({
 // ============================================================================
 
 interface FormFieldProps {
-  label: string;
+  label: ReactNode;
   name: string;
   required?: boolean;
   error?: string;

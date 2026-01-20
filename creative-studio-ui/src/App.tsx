@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
+import { LLMProvider } from '@/providers/LLMProvider';
 import { MenuBar } from '@/components/MenuBar';
 import { WorldWizardDemo } from '@/pages/WorldWizardDemo';
 import { LandingPageDemo } from '@/pages/LandingPageDemo';
 import { LandingPageWithHooks } from '@/pages/LandingPageWithHooks';
-import { EditorPage } from '@/pages/EditorPage';
+import { EditorPageSimple } from '@/pages/EditorPageSimple';
 import { ProjectDashboardPage } from '@/pages/ProjectDashboardPage';
 import { InstallationWizardModal } from '@/components/installation/InstallationWizardModal';
 import { WorldWizardModal } from '@/components/wizard/WorldWizardModal';
@@ -18,6 +19,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { useOllamaInit } from '@/hooks/useOllamaInit';
 import { useGlobalKeyboardShortcuts } from '@/hooks/useGlobalKeyboardShortcuts';
+import { initializeLLMConfigService } from '@/services/llmConfigService'; // NEW: Initialize unified LLM service
+import { initializeLLMConfig } from '@/utils/migrateLLMConfig'; // NEW: Migrate legacy configs
 import {
   createEmptyProject,
   getRecentProjects,
@@ -29,7 +32,7 @@ import {
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
 
-function App() {
+function AppContent() {
   const { 
     project, 
     setProject, 
@@ -45,12 +48,11 @@ function App() {
     setShowLLMSettings,
     showComfyUISettings,
     setShowComfyUISettings,
-    // Generic wizard state (Requirements 1.1, 1.2)
+    // Generic wizard state (simple forms in GenericWizardModal)
     showDialogueWriter,
     showSceneGenerator,
     showStoryboardCreator,
     showStyleTransfer,
-    showWorldBuilding,
     closeActiveWizard,
   } = useAppStore();
   
@@ -65,6 +67,23 @@ function App() {
   
   // Initialize global keyboard shortcuts
   useGlobalKeyboardShortcuts();
+  
+  // Initialize LLM configuration service (NEW)
+  useEffect(() => {
+    async function initializeLLM() {
+      console.log('[App] Initializing LLM configuration...');
+      
+      // Migrate legacy configurations
+      await initializeLLMConfig();
+      
+      // Initialize unified service
+      await initializeLLMConfigService();
+      
+      console.log('[App] LLM configuration initialized');
+    }
+    
+    initializeLLM();
+  }, []);
   
   // Show Ollama status in console
   useEffect(() => {
@@ -81,6 +100,7 @@ function App() {
   const [_showLandingPageDemo, _setShowLandingPageDemo] = useState(false);
   const [_showLandingPageWithHooks, _setShowLandingPageWithHooks] = useState(false);
   const [currentView, setCurrentView] = useState<'dashboard' | 'editor'>('dashboard');
+  const [selectedSequenceId, setSelectedSequenceId] = useState<string | undefined>(undefined);
 
   const handleNewProject = () => {};
 
@@ -254,50 +274,6 @@ function App() {
             description: 'Style has been applied to the selected shot',
           });
           break;
-          
-        case 'world-building':
-          // Add world data to project
-          const newWorld: World = {
-            id: `world-${Date.now()}`,
-            name: data.worldName,
-            genre: [],
-            timePeriod: data.timePeriod,
-            tone: [],
-            locations: data.locations.map((loc: any, index: number) => ({
-              id: `loc-${Date.now()}-${index}`,
-              name: loc.name,
-              description: loc.description,
-              significance: 'medium',
-              atmosphere: '',
-            })),
-            rules: [],
-            atmosphere: data.setting,
-            culturalElements: {
-              languages: [],
-              religions: [],
-              traditions: [],
-              historicalEvents: [],
-              culturalConflicts: [],
-            },
-            technology: '',
-            magic: '',
-            conflicts: [],
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
-          
-          const updatedProjectWithWorld = {
-            ...project,
-            worlds: [...(project.worlds || []), newWorld],
-            selectedWorldId: newWorld.id,
-          };
-          setProject(updatedProjectWithWorld);
-          
-          toast({
-            title: 'World Created',
-            description: `World "${data.worldName}" has been added with ${data.locations.length} locations`,
-          });
-          break;
       }
     }
     
@@ -411,7 +387,13 @@ function App() {
           onExportProject={handleExportProject}
           onCloseProject={handleCloseProject}
         />
-        <EditorPage onBackToDashboard={() => setCurrentView('dashboard')} />
+        <EditorPageSimple 
+          sequenceId={selectedSequenceId}
+          onBackToDashboard={() => {
+            setSelectedSequenceId(undefined);
+            setCurrentView('dashboard');
+          }}
+        />
         
         {/* All Wizard Modals */}
         <InstallationWizardModal
@@ -465,7 +447,20 @@ function App() {
         onExportProject={handleExportProject}
         onCloseProject={handleCloseProject}
       />
-      <ProjectDashboardPage onOpenEditor={() => setCurrentView('editor')} />
+      {currentView === 'dashboard' ? (
+        <ProjectDashboardPage onOpenEditor={(sequenceId) => {
+          setSelectedSequenceId(sequenceId);
+          setCurrentView('editor');
+        }} />
+      ) : (
+        <EditorPageSimple 
+          sequenceId={selectedSequenceId}
+          onBackToDashboard={() => {
+            setSelectedSequenceId(undefined);
+            setCurrentView('dashboard');
+          }}
+        />
+      )}
       
       {/* Installation Wizard Modal */}
       <InstallationWizardModal
@@ -515,6 +510,15 @@ function App() {
       {/* Toast Notifications */}
       <Toaster />
     </>
+  );
+}
+
+// Wrapper component with LLMProvider
+function App() {
+  return (
+    <LLMProvider>
+      <AppContent />
+    </LLMProvider>
   );
 }
 

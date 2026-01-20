@@ -1,14 +1,83 @@
 import { VideoTimelineMetadata, Scene } from '../../types/asset-integration';
 
+/**
+ * Callback type for timeline updates
+ */
+export type TimelineUpdateCallback = (path: string, timeline: VideoTimelineMetadata) => void;
+
+/**
+ * Callback type for cache updates
+ */
+export type TimelineCacheUpdateCallback = (cacheCleared: boolean) => void;
+
+/**
+ * Timeline Service with Observer pattern for real-time synchronization
+ */
 export class TimelineService {
   private static instance: TimelineService;
   private cache: Map<string, VideoTimelineMetadata> = new Map();
+  
+  // Subscribers for different events
+  private timelineUpdateSubscribers: Set<TimelineUpdateCallback> = new Set();
+  private cacheUpdateSubscribers: Set<TimelineCacheUpdateCallback> = new Set();
+
+  private constructor() {
+    console.log('[TimelineService] Service initialized with Observer pattern');
+  }
 
   static getInstance(): TimelineService {
     if (!TimelineService.instance) {
       TimelineService.instance = new TimelineService();
     }
     return TimelineService.instance;
+  }
+
+  /**
+   * Subscribe to timeline updates
+   * Returns unsubscribe function
+   */
+  public subscribeToTimelineUpdates(callback: TimelineUpdateCallback): () => void {
+    this.timelineUpdateSubscribers.add(callback);
+    return () => {
+      this.timelineUpdateSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to cache updates
+   * Returns unsubscribe function
+   */
+  public subscribeToCacheUpdates(callback: TimelineCacheUpdateCallback): () => void {
+    this.cacheUpdateSubscribers.add(callback);
+    return () => {
+      this.cacheUpdateSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Notify subscribers of timeline update
+   */
+  private notifyTimelineUpdate(path: string, timeline: VideoTimelineMetadata): void {
+    this.timelineUpdateSubscribers.forEach(callback => {
+      try {
+        callback(path, timeline);
+      } catch (error) {
+        console.error('[TimelineService] Error in timeline update subscriber:', error);
+      }
+    });
+  }
+
+  /**
+   * Notify subscribers of cache update
+   */
+  private notifyCacheUpdate(cacheCleared: boolean): void {
+    this.cacheUpdateSubscribers.forEach(callback => {
+      try {
+        callback(cacheCleared);
+      } catch (error) {
+        console.error('[TimelineService] Error in cache update subscriber:', error);
+      }
+    });
   }
 
   async loadTimeline(path: string): Promise<VideoTimelineMetadata> {
@@ -29,6 +98,10 @@ export class TimelineService {
       }
 
       this.cache.set(path, data);
+      
+      // Notify subscribers
+      this.notifyTimelineUpdate(path, data);
+      
       return data;
     } catch (error) {
       console.error('Error loading timeline:', error);
@@ -40,6 +113,12 @@ export class TimelineService {
     try {
       // Update timestamps
       timeline.metadata.updated_at = new Date().toISOString();
+
+      // Update cache
+      this.cache.set(path, timeline);
+      
+      // Notify subscribers
+      this.notifyTimelineUpdate(path, timeline);
 
       // Simulate save - requires Electron API
       throw new Error('Save functionality requires Electron API integration');
@@ -126,5 +205,8 @@ export class TimelineService {
 
   clearCache(): void {
     this.cache.clear();
+    
+    // Notify subscribers
+    this.notifyCacheUpdate(true);
   }
 }

@@ -48,7 +48,7 @@ export class OllamaClient {
 
   constructor(
     endpoint: string = 'http://localhost:11434',
-    model: string = 'gemma3:1b',
+    model: string = 'gemma2:2b',
     defaultOptions?: OllamaGenerationOptions
   ) {
     this.endpoint = endpoint;
@@ -632,8 +632,44 @@ let ollamaClientInstance: OllamaClient | null = null;
 
 /**
  * Get the singleton Ollama client instance
+ * Automatically configures from stored LLM settings if available
  */
-export function getOllamaClient(): OllamaClient {
+export async function getOllamaClient(): Promise<OllamaClient> {
+  if (!ollamaClientInstance) {
+    // Try to load configuration from settings
+    try {
+      const { loadLLMSettings } = await import('@/utils/secureStorage');
+      const llmConfig = await loadLLMSettings();
+      
+      if (llmConfig && llmConfig.provider === 'local') {
+        // Use configuration from settings
+        const endpoint = llmConfig.apiEndpoint || 'http://localhost:11434';
+        const model = llmConfig.model || 'gemma2:2b';
+        const options = {
+          temperature: llmConfig.parameters?.temperature ?? 0.7,
+          top_p: llmConfig.parameters?.topP ?? 0.9,
+          max_tokens: llmConfig.parameters?.maxTokens ?? 2000,
+        };
+        
+        ollamaClientInstance = new OllamaClient(endpoint, model, options);
+      } else {
+        // Fallback to default configuration
+        ollamaClientInstance = new OllamaClient();
+      }
+    } catch (error) {
+      console.warn('[OllamaClient] Failed to load LLM settings, using defaults:', error);
+      ollamaClientInstance = new OllamaClient();
+    }
+  }
+  return ollamaClientInstance;
+}
+
+/**
+ * Get the singleton Ollama client instance synchronously
+ * Note: This may use default configuration if settings haven't been loaded yet
+ * Prefer using getOllamaClient() for proper configuration loading
+ */
+export function getOllamaClientSync(): OllamaClient {
   if (!ollamaClientInstance) {
     ollamaClientInstance = new OllamaClient();
   }
@@ -656,4 +692,41 @@ export function createOllamaClient(
  */
 export function setOllamaClient(client: OllamaClient): void {
   ollamaClientInstance = client;
+}
+
+/**
+ * Reset the singleton instance to force reloading configuration
+ * Useful when LLM settings are updated
+ */
+export function resetOllamaClient(): void {
+  ollamaClientInstance = null;
+}
+
+/**
+ * Update the Ollama client configuration from LLM settings
+ * Call this when LLM settings are changed
+ */
+export async function updateOllamaClientFromSettings(): Promise<void> {
+  try {
+    const { loadLLMSettings } = await import('@/utils/secureStorage');
+    const llmConfig = await loadLLMSettings();
+    
+    if (llmConfig && llmConfig.provider === 'local') {
+      const endpoint = llmConfig.apiEndpoint || 'http://localhost:11434';
+      const model = llmConfig.model || 'gemma2:2b';
+      const options = {
+        temperature: llmConfig.parameters?.temperature ?? 0.7,
+        top_p: llmConfig.parameters?.topP ?? 0.9,
+        max_tokens: llmConfig.parameters?.maxTokens ?? 2000,
+      };
+      
+      // Create new client with updated configuration
+      ollamaClientInstance = new OllamaClient(endpoint, model, options);
+    } else if (ollamaClientInstance) {
+      // If provider changed from local to something else, reset the client
+      ollamaClientInstance = null;
+    }
+  } catch (error) {
+    console.error('[OllamaClient] Failed to update from settings:', error);
+  }
 }

@@ -1,8 +1,9 @@
 // ============================================================================
 // Character Persistence Hook
 // ============================================================================
-// Handles saving and loading characters to/from JSON files in characters/ directory
+// Handles saving and loading characters to/from localStorage
 // Integrates with Zustand store for state management
+// Note: Backend API integration can be added later for file system persistence
 
 import { useCallback } from 'react';
 import { useStore } from '../store';
@@ -90,21 +91,15 @@ export function useCharacterPersistence() {
       };
 
       try {
-        // Save to JSON file in characters/ directory
-        const response = await fetch('/api/characters/save', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(character),
-        });
+        // Save directly to localStorage and Zustand store
+        // (Backend API integration can be added later)
+        
+        const existingCharacters = getAllCharacters();
+        const characterIndex = existingCharacters.findIndex(
+          (c) => c.character_id === character_id
+        );
 
-        if (!response.ok) {
-          throw new Error(`Failed to save character: ${response.statusText}`);
-        }
-
-        // Update Zustand store
-        if (characterData.character_id) {
+        if (characterIndex >= 0) {
           // Update existing character
           updateCharacter(character_id, character);
         } else {
@@ -112,75 +107,49 @@ export function useCharacterPersistence() {
           addCharacter(character);
         }
 
+        // Save to localStorage for persistence
+        localStorage.setItem(
+          `character-${character_id}`,
+          JSON.stringify(character)
+        );
+
+        // Also save to a master list for easy retrieval
+        const allCharacterIds = JSON.parse(
+          localStorage.getItem('character-ids') || '[]'
+        ) as string[];
+        
+        if (!allCharacterIds.includes(character_id)) {
+          allCharacterIds.push(character_id);
+          localStorage.setItem('character-ids', JSON.stringify(allCharacterIds));
+        }
+
+        console.log('Character saved successfully:', character_id);
         return character;
       } catch (error) {
         console.error('Error saving character:', error);
-        
-        // Fallback: Save to localStorage if API fails
-        try {
-          const existingCharacters = getAllCharacters();
-          const characterIndex = existingCharacters.findIndex(
-            (c) => c.character_id === character_id
-          );
-
-          if (characterIndex >= 0) {
-            // Update existing
-            updateCharacter(character_id, character);
-          } else {
-            // Add new
-            addCharacter(character);
-          }
-
-          // Also save to localStorage as backup
-          localStorage.setItem(
-            `character-${character_id}`,
-            JSON.stringify(character)
-          );
-
-          console.warn('Character saved to localStorage as fallback');
-          return character;
-        } catch (localError) {
-          console.error('Failed to save character to localStorage:', localError);
-          throw new Error('Failed to save character');
-        }
+        throw new Error('Failed to save character');
       }
     },
     [addCharacter, updateCharacter, getAllCharacters]
   );
 
   /**
-   * Load a character from JSON file
+   * Load a character from localStorage
    */
   const loadCharacter = useCallback(
     async (character_id: string): Promise<Character | null> => {
       try {
-        const response = await fetch(`/api/characters/${character_id}`);
-
-        if (!response.ok) {
-          throw new Error(`Failed to load character: ${response.statusText}`);
+        const stored = localStorage.getItem(`character-${character_id}`);
+        if (stored) {
+          const character: Character = JSON.parse(stored);
+          addCharacter(character);
+          return character;
         }
-
-        const character: Character = await response.json();
-
-        // Update store
-        addCharacter(character);
-
-        return character;
+        
+        console.warn(`Character not found: ${character_id}`);
+        return null;
       } catch (error) {
         console.error('Error loading character:', error);
-
-        // Fallback: Try localStorage
-        try {
-          const stored = localStorage.getItem(`character-${character_id}`);
-          if (stored) {
-            const character: Character = JSON.parse(stored);
-            addCharacter(character);
-            return character;
-          }
-        } catch (localError) {
-          console.error('Failed to load character from localStorage:', localError);
-        }
-
         return null;
       }
     },
@@ -188,82 +157,60 @@ export function useCharacterPersistence() {
   );
 
   /**
-   * Load all characters from characters/ directory
+   * Load all characters from localStorage
    */
   const loadAllCharacters = useCallback(async (): Promise<Character[]> => {
     try {
-      const response = await fetch('/api/characters');
-
-      if (!response.ok) {
-        throw new Error(`Failed to load characters: ${response.statusText}`);
+      const characterIds = JSON.parse(
+        localStorage.getItem('character-ids') || '[]'
+      ) as string[];
+      
+      const characters: Character[] = [];
+      
+      for (const id of characterIds) {
+        const stored = localStorage.getItem(`character-${id}`);
+        if (stored) {
+          try {
+            const character = JSON.parse(stored);
+            characters.push(character);
+            addCharacter(character);
+          } catch (parseError) {
+            console.error(`Failed to parse character ${id}:`, parseError);
+          }
+        }
       }
-
-      const characters: Character[] = await response.json();
-
-      // Update store with all characters
-      characters.forEach((character) => {
-        addCharacter(character);
-      });
 
       return characters;
     } catch (error) {
       console.error('Error loading characters:', error);
-
-      // Fallback: Try localStorage
-      try {
-        const characters: Character[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key?.startsWith('character-')) {
-            const stored = localStorage.getItem(key);
-            if (stored) {
-              characters.push(JSON.parse(stored));
-            }
-          }
-        }
-
-        characters.forEach((character) => {
-          addCharacter(character);
-        });
-
-        return characters;
-      } catch (localError) {
-        console.error('Failed to load characters from localStorage:', localError);
-        return [];
-      }
+      return [];
     }
   }, [addCharacter]);
 
   /**
-   * Delete a character from JSON file and store
+   * Delete a character from localStorage and store
    */
   const removeCharacter = useCallback(
     async (character_id: string): Promise<void> => {
       try {
-        const response = await fetch(`/api/characters/${character_id}`, {
-          method: 'DELETE',
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to delete character: ${response.statusText}`);
-        }
-
-        // Update store
+        // Remove from Zustand store
         deleteCharacter(character_id);
 
-        // Also remove from localStorage
+        // Remove from localStorage
         localStorage.removeItem(`character-${character_id}`);
+
+        // Update character IDs list
+        const characterIds = JSON.parse(
+          localStorage.getItem('character-ids') || '[]'
+        ) as string[];
+        
+        const updatedIds = characterIds.filter((id) => id !== character_id);
+        localStorage.setItem('character-ids', JSON.stringify(updatedIds));
+
+        console.log('Character deleted successfully:', character_id);
       } catch (error) {
         console.error('Error deleting character:', error);
-
-        // Fallback: Remove from localStorage
-        try {
-          deleteCharacter(character_id);
-          localStorage.removeItem(`character-${character_id}`);
-        } catch (localError) {
-          console.error('Failed to delete character from localStorage:', localError);
-          throw new Error('Failed to delete character');
-        }
+        throw new Error('Failed to delete character');
       }
     },
     [deleteCharacter]

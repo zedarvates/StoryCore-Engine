@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
+import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
+import { useAppStore } from '@/stores/useAppStore';
 
 // ============================================================================
 // Step 3: Locations
@@ -18,6 +20,8 @@ import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 export function Step3Locations() {
   const { formData, updateFormData } = useWizard<World>();
   const [expandedLocationId, setExpandedLocationId] = useState<string | null>(null);
+  const { llmConfigured } = useServiceStatus();
+  const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
   const {
     generate,
@@ -111,20 +115,106 @@ Example:
 
   const parseLLMLocations = (response: string): Location[] => {
     try {
+      console.log('Parsing LLM locations response:', response);
+      
+      // Try JSON parsing first
       const jsonMatch = response.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return parsed.map((item: any) => ({
-          id: crypto.randomUUID(),
-          name: item.name || '',
-          description: item.description || '',
-          significance: item.significance || '',
-          atmosphere: item.atmosphere || '',
-        }));
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (Array.isArray(parsed)) {
+            const locations = parsed.map((item: any) => ({
+              id: crypto.randomUUID(),
+              name: item.name || '',
+              description: item.description || '',
+              significance: item.significance || '',
+              atmosphere: item.atmosphere || item.mood || '',
+            })).filter(loc => loc.name); // Only keep locations with names
+            
+            if (locations.length > 0) {
+              console.log('Successfully parsed locations from JSON:', locations);
+              return locations;
+            }
+          }
+        } catch (jsonError) {
+          console.warn('JSON parsing failed, trying text parsing');
+        }
       }
+      
+      // Fallback: Parse as structured text
+      console.log('Attempting text-based parsing');
+      const locations: Location[] = [];
+      const lines = response.split('\n');
+      
+      let currentLocation: Partial<Location> | null = null;
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        
+        // Look for location name (often starts with number or dash)
+        const nameMatch = trimmed.match(/^(?:\d+\.|[-*•])\s*(?:Name:?\s*)?(.+?)(?:\s*[-–—]\s*|$)/i);
+        if (nameMatch && nameMatch[1].length > 2 && nameMatch[1].length < 50) {
+          // Save previous location if exists
+          if (currentLocation && currentLocation.name) {
+            locations.push({
+              id: crypto.randomUUID(),
+              name: currentLocation.name,
+              description: currentLocation.description || '',
+              significance: currentLocation.significance || '',
+              atmosphere: currentLocation.atmosphere || '',
+            });
+          }
+          currentLocation = { name: nameMatch[1].trim() };
+          continue;
+        }
+        
+        // Look for description
+        if (currentLocation && /description:/i.test(trimmed)) {
+          currentLocation.description = trimmed.replace(/description:\s*/i, '').trim();
+          continue;
+        }
+        
+        // Look for significance
+        if (currentLocation && /significance:/i.test(trimmed)) {
+          currentLocation.significance = trimmed.replace(/significance:\s*/i, '').trim();
+          continue;
+        }
+        
+        // Look for atmosphere/mood
+        if (currentLocation && /(atmosphere|mood):/i.test(trimmed)) {
+          currentLocation.atmosphere = trimmed.replace(/(atmosphere|mood):\s*/i, '').trim();
+          continue;
+        }
+        
+        // If we have a location name but no description yet, and this is a substantial line
+        if (currentLocation && currentLocation.name && !currentLocation.description && trimmed.length > 20) {
+          currentLocation.description = trimmed;
+        }
+      }
+      
+      // Add the last location
+      if (currentLocation && currentLocation.name) {
+        locations.push({
+          id: crypto.randomUUID(),
+          name: currentLocation.name,
+          description: currentLocation.description || '',
+          significance: currentLocation.significance || '',
+          atmosphere: currentLocation.atmosphere || '',
+        });
+      }
+      
+      if (locations.length > 0) {
+        console.log('Successfully parsed locations from text:', locations);
+        return locations;
+      }
+      
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
+      console.error('Response was:', response);
     }
+    
+    console.warn('Could not parse any locations from response');
     return [];
   };
 
@@ -144,13 +234,22 @@ Example:
           </div>
           <Button
             onClick={handleGenerateLocations}
-            disabled={isLoading || !formData.name}
+            disabled={isLoading || !formData.name || !llmConfigured}
             className="gap-2"
           >
             <Sparkles className="h-4 w-4" />
             {isLoading ? 'Generating...' : 'Generate Locations'}
           </Button>
         </div>
+
+        {/* Service Warning */}
+        {!llmConfigured && (
+          <ServiceWarning
+            service="llm"
+            variant="inline"
+            onConfigure={() => setShowLLMSettings(true)}
+          />
+        )}
 
         {/* Loading State */}
         {isLoading && (

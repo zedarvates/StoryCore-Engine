@@ -1,0 +1,122 @@
+/* Timeline Tracks Styles */
+
+.timeline-tracks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px;
+  background: #0f0f0f;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+}
+
+.timeline-track-row {
+  display: flex;
+  gap: 12px;
+  min-height: 48px;
+  transition: all 0.2s;
+}
+
+.timeline-track-row.drag-over {
+  background: rgba(124, 58, 237, 0.1);
+  border-radius: 4px;
+}
+
+.track-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+  padding: 8px 12px;
+  background: #1a1a1a;
+  border-left: 3px solid;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.track-header svg {
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.track-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #9ca3af;
+  flex: 1;
+}
+
+.track-count {
+  font-size: 10px;
+  color: #6b7280;
+  background: #2a2a2a;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.track-content {
+  flex: 1;
+  background: #1a1a1a;
+  border: 1px dashed #2a2a2a;
+  border-radius: 4px;
+  min-height: 48px;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.timeline-track-row.drag-over .track-content {
+  border-color: #7c3aed;
+  border-style: solid;
+  background: rgba(124, 58, 237, 0.05);
+}
+
+.track-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6b7280;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.track-clips {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  align-items: center;
+  height: 100%;
+}
+
+.track-clip {
+  height: 32px;
+  border-radius: 4px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 60px;
+  max-width: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.track-clip:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.clip-name {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Track-specific colors are applied inline via style prop */

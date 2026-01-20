@@ -1,0 +1,279 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                  📋 COMMANDES À COPIER-COLLER                                ║
+║                                                                              ║
+║                    CORRECTION WIZARDS LLM                                    ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 1: RÉINITIALISATION COMPLÈTE (RECOMMANDÉE)                      ┃
+┃                                                                            ┃
+┃  À copier-coller dans la CONSOLE DU NAVIGATEUR (F12)                      ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+console.log('🔧 Début de la réinitialisation...');
+localStorage.removeItem('storycore-llm-config');
+localStorage.setItem('storycore-llm-config', JSON.stringify({
+  provider: 'local',
+  model: 'qwen3-vl:4b',
+  apiKey: '',
+  apiEndpoint: 'http://localhost:11434',
+  streamingEnabled: true,
+  parameters: {
+    temperature: 0.7,
+    maxTokens: 2000,
+    topP: 0.9,
+    frequencyPenalty: 0,
+    presencePenalty: 0
+  },
+  systemPrompts: {
+    worldGeneration: 'You are a creative world-building assistant...',
+    characterGeneration: 'You are a character development expert...',
+    dialogueGeneration: 'You are a dialogue writing specialist...'
+  },
+  timeout: 30000,
+  retryAttempts: 3
+}));
+console.log('✅ Configuration réinitialisée avec qwen3-vl:4b');
+console.log('🔄 Rechargement de la page dans 1 seconde...');
+setTimeout(() => location.reload(), 1000);
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 2: VERSION ULTRA-COURTE (UNE LIGNE)                             ┃
+┃                                                                            ┃
+┃  À copier-coller dans la CONSOLE DU NAVIGATEUR (F12)                      ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+localStorage.removeItem('storycore-llm-config');localStorage.setItem('storycore-llm-config',JSON.stringify({provider:'local',model:'qwen3-vl:4b',apiKey:'',apiEndpoint:'http://localhost:11434',streamingEnabled:true,parameters:{temperature:0.7,maxTokens:2000,topP:0.9,frequencyPenalty:0,presencePenalty:0},systemPrompts:{worldGeneration:'You are a creative world-building assistant...',characterGeneration:'You are a character development expert...',dialogueGeneration:'You are a dialogue writing specialist...'},timeout:30000,retryAttempts:3}));console.log('✅ Configuration réinitialisée');setTimeout(()=>location.reload(),1000);
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 3: VÉRIFIER LA CONFIGURATION                                    ┃
+┃                                                                            ┃
+┃  À copier-coller dans la CONSOLE DU NAVIGATEUR (F12)                      ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+const config = JSON.parse(localStorage.getItem('storycore-llm-config'));
+console.table({
+  'Provider': config.provider,
+  'Model': config.model,
+  'Endpoint': config.apiEndpoint,
+  'Streaming': config.streamingEnabled,
+  'Temperature': config.parameters.temperature,
+  'Max Tokens': config.parameters.maxTokens
+});
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 4: TESTER OLLAMA (POWERSHELL)                                   ┃
+┃                                                                            ┃
+┃  À copier-coller dans POWERSHELL                                          ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+# Vérifier les modèles installés
+ollama list
+
+# Tester l'API
+curl http://localhost:11434/api/tags
+
+# Vérifier le port
+netstat -an | findstr "11434"
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 5: CHANGER DE MODÈLE                                            ┃
+┃                                                                            ┃
+┃  À copier-coller dans la CONSOLE DU NAVIGATEUR (F12)                      ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+// Pour gemma3:1b (ultra rapide)
+const config = JSON.parse(localStorage.getItem('storycore-llm-config'));
+config.model = 'gemma3:1b';
+localStorage.setItem('storycore-llm-config', JSON.stringify(config));
+console.log('✅ Modèle changé pour gemma3:1b');
+location.reload();
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 6: INSTALLER UN MODÈLE (POWERSHELL)                             ┃
+┃                                                                            ┃
+┃  À copier-coller dans POWERSHELL                                          ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+# Installer qwen3-vl:4b
+ollama pull qwen3-vl:4b
+
+# Installer gemma3:1b (plus rapide)
+ollama pull gemma3:1b
+
+# Installer llama3.1:8b (haute qualité)
+ollama pull llama3.1:8b
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 7: REDÉMARRER OLLAMA (POWERSHELL)                               ┃
+┃                                                                            ┃
+┃  À copier-coller dans POWERSHELL                                          ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+# Arrêter Ollama
+taskkill /F /IM ollama.exe
+
+# Redémarrer Ollama
+ollama serve
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 8: TESTER LA GÉNÉRATION (POWERSHELL)                            ┃
+┃                                                                            ┃
+┃  À copier-coller dans POWERSHELL                                          ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+# Test simple
+ollama run qwen3-vl:4b "Bonjour, comment vas-tu?"
+
+# Test API
+curl -X POST http://localhost:11434/api/generate -H "Content-Type: application/json" -d "{\"model\":\"qwen3-vl:4b\",\"prompt\":\"Hello\",\"stream\":false}"
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 9: VIDER LE CACHE (CONSOLE NAVIGATEUR)                          ┃
+┃                                                                            ┃
+┃  À copier-coller dans la CONSOLE DU NAVIGATEUR (F12)                      ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+// Supprimer toute la configuration LLM
+localStorage.removeItem('storycore-llm-config');
+console.log('✅ Configuration supprimée');
+location.reload();
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMMANDE 10: AUGMENTER LE TIMEOUT (CONSOLE NAVIGATEUR)                   ┃
+┃                                                                            ┃
+┃  À copier-coller dans la CONSOLE DU NAVIGATEUR (F12)                      ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+// Augmenter le timeout à 60 secondes
+const config = JSON.parse(localStorage.getItem('storycore-llm-config'));
+config.timeout = 60000;
+localStorage.setItem('storycore-llm-config', JSON.stringify(config));
+console.log('✅ Timeout augmenté à 60 secondes');
+location.reload();
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                        CONFIGURATIONS ALTERNATIVES                           ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  CONFIG A: GEMMA3:1B (ULTRA RAPIDE)                                       ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+localStorage.removeItem('storycore-llm-config');localStorage.setItem('storycore-llm-config',JSON.stringify({provider:'local',model:'gemma3:1b',apiEndpoint:'http://localhost:11434',streamingEnabled:true,parameters:{temperature:0.7,maxTokens:2000,topP:0.9,frequencyPenalty:0,presencePenalty:0}}));location.reload();
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  CONFIG B: LLAMA3.1:8B (HAUTE QUALITÉ)                                    ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+localStorage.removeItem('storycore-llm-config');localStorage.setItem('storycore-llm-config',JSON.stringify({provider:'local',model:'llama3.1:8b',apiEndpoint:'http://localhost:11434',streamingEnabled:true,parameters:{temperature:0.7,maxTokens:2000,topP:0.9,frequencyPenalty:0,presencePenalty:0}}));location.reload();
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  CONFIG C: GEMMA3:4B (ÉQUILIBRÉ)                                          ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+localStorage.removeItem('storycore-llm-config');localStorage.setItem('storycore-llm-config',JSON.stringify({provider:'local',model:'gemma3:4b',apiEndpoint:'http://localhost:11434',streamingEnabled:true,parameters:{temperature:0.7,maxTokens:2000,topP:0.9,frequencyPenalty:0,presencePenalty:0}}));location.reload();
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                          GUIDE D'UTILISATION                                 ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  1️⃣  Choisir la commande appropriée ci-dessus
+  
+  2️⃣  Copier la commande complète (Ctrl+C)
+  
+  3️⃣  Ouvrir la console appropriée:
+      - Console Navigateur: F12 → onglet Console
+      - PowerShell: Menu Démarrer → PowerShell
+  
+  4️⃣  Coller la commande (Ctrl+V)
+  
+  5️⃣  Appuyer sur ENTRÉE
+  
+  6️⃣  Attendre le résultat
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                            ORDRE RECOMMANDÉ                                  ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  ÉTAPE 1: Vérifier Ollama (Commande 4 dans PowerShell)
+  
+  ÉTAPE 2: Réinitialiser la config (Commande 1 dans Console Navigateur)
+  
+  ÉTAPE 3: Vérifier la config (Commande 3 dans Console Navigateur)
+  
+  ÉTAPE 4: Tester dans l'application (ouvrir un wizard)
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                              NOTES IMPORTANTES                               ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  ⚠️  Les commandes Console Navigateur doivent être exécutées dans la console
+      du navigateur (F12), PAS dans PowerShell!
+  
+  ⚠️  Les commandes PowerShell doivent être exécutées dans PowerShell,
+      PAS dans la console du navigateur!
+  
+  ⚠️  Après chaque modification de configuration, la page se recharge
+      automatiquement
+  
+  ⚠️  Si un modèle n'est pas installé, utilisez la Commande 6 pour
+      l'installer d'abord
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              FIN DES COMMANDES
+═══════════════════════════════════════════════════════════════════════════════

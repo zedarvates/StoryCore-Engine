@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -330,9 +330,12 @@ export function SequencePlanManager({
 
       {/* Create Plan Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent>
+        <DialogContent aria-describedby="create-plan-description">
           <DialogHeader>
             <DialogTitle>Create New Sequence Plan</DialogTitle>
+            <DialogDescription id="create-plan-description">
+              Create a new sequence plan to organize your shots and scenes
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -368,13 +371,13 @@ export function SequencePlanManager({
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!showDeleteModal} onOpenChange={() => setShowDeleteModal(null)}>
-        <DialogContent>
+        <DialogContent aria-describedby="delete-plan-description">
           <DialogHeader>
             <DialogTitle>Delete Sequence Plan</DialogTitle>
+            <DialogDescription id="delete-plan-description">
+              Are you sure you want to delete this sequence plan? This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete this sequence plan? This action cannot be undone.
-          </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteModal(null)}>
               Cancel

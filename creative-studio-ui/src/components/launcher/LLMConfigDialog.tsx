@@ -1,10 +1,11 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo, useMemo } from 'react';
 import { Settings, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,7 @@ import {
 export interface LLMConfigDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentConfig: LLMConfig;
+  currentConfig: LLMConfig | null;
   onSave: (config: LLMConfig) => Promise<void>;
   onValidateConnection: (config: LLMConfig) => Promise<boolean>;
 }
@@ -54,13 +55,38 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
   onSave,
   onValidateConnection,
 }: LLMConfigDialogProps) {
+  // Default config if currentConfig is null
+  const defaultConfig: LLMConfig = useMemo(() => ({
+    provider: 'local',
+    model: 'gemma2:2b',
+    apiKey: '',
+    apiEndpoint: 'http://localhost:11434',
+    parameters: {
+      temperature: 0.7,
+      maxTokens: 2000,
+      topP: 1,
+      frequencyPenalty: 0,
+      presencePenalty: 0,
+    },
+    systemPrompts: {
+      worldGeneration: '',
+      characterGeneration: '',
+      dialogueGeneration: '',
+    },
+    timeout: 30000,
+    retryAttempts: 3,
+    streamingEnabled: true,
+  }), []);
+  
+  const config = currentConfig || defaultConfig;
+  
   // Form state
-  const [provider, setProvider] = useState<LLMProvider>(currentConfig.provider);
-  const [model, setModel] = useState(currentConfig.model);
-  const [apiKey, setApiKey] = useState(currentConfig.apiKey);
-  const [temperature, setTemperature] = useState(currentConfig.parameters.temperature);
-  const [maxTokens, setMaxTokens] = useState(currentConfig.parameters.maxTokens);
-  const [streamingEnabled, setStreamingEnabled] = useState(currentConfig.streamingEnabled);
+  const [provider, setProvider] = useState<LLMProvider>(config.provider);
+  const [model, setModel] = useState(config.model);
+  const [apiKey, setApiKey] = useState(config.apiKey);
+  const [temperature, setTemperature] = useState(config.parameters.temperature);
+  const [maxTokens, setMaxTokens] = useState(config.parameters.maxTokens);
+  const [streamingEnabled, setStreamingEnabled] = useState(config.streamingEnabled);
   
   // Validation state
   const [validation, setValidation] = useState<ValidationState>({
@@ -83,16 +109,16 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      setProvider(currentConfig.provider);
-      setModel(currentConfig.model);
-      setApiKey(currentConfig.apiKey);
-      setTemperature(currentConfig.parameters.temperature);
-      setMaxTokens(currentConfig.parameters.maxTokens);
-      setStreamingEnabled(currentConfig.streamingEnabled);
+      setProvider(config.provider);
+      setModel(config.model);
+      setApiKey(config.apiKey);
+      setTemperature(config.parameters.temperature);
+      setMaxTokens(config.parameters.maxTokens);
+      setStreamingEnabled(config.streamingEnabled);
       setValidation({ isValidating: false, isValid: null, error: null });
       setErrors({});
     }
-  }, [open, currentConfig]);
+  }, [open, config]);
 
   // Update model when provider changes
   useEffect(() => {
@@ -267,9 +293,9 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
               </span>
             )}
           </DialogTitle>
-          <p id="config-dialog-description" className="sr-only">
+          <DialogDescription id="config-dialog-description" className="sr-only">
             Configure your LLM provider, model, and parameters for the AI assistant
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4" role="form" aria-label="LLM configuration form">

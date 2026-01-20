@@ -25,6 +25,12 @@ export const IPC_CHANNELS = {
   PROJECT_VALIDATE: 'project:validate',
   PROJECT_SELECT_DIRECTORY: 'project:select-directory',
   PROJECT_LIST_DIRECTORY: 'project:list-directory',
+  PROJECT_UPDATE_METADATA: 'project:update-metadata',
+  
+  // Sequence management
+  SEQUENCE_UPDATE_SHOT: 'sequence:update-shot',
+  SEQUENCE_GET_SHOTS: 'sequence:get-shots',
+  SEQUENCE_GET_ALL: 'sequence:get-all',
 
   // Recent projects
   RECENT_PROJECTS_GET: 'recent-projects:get',
@@ -80,6 +86,7 @@ export class IPCHandlers {
    */
   registerHandlers(): void {
     this.registerProjectHandlers();
+    this.registerSequenceHandlers();
     this.registerRecentProjectsHandlers();
     this.registerServerHandlers();
     this.registerUpdateHandlers();
@@ -97,6 +104,12 @@ export class IPCHandlers {
     ipcMain.removeHandler(IPC_CHANNELS.PROJECT_VALIDATE);
     ipcMain.removeHandler(IPC_CHANNELS.PROJECT_SELECT_DIRECTORY);
     ipcMain.removeHandler(IPC_CHANNELS.PROJECT_LIST_DIRECTORY);
+    ipcMain.removeHandler(IPC_CHANNELS.PROJECT_UPDATE_METADATA);
+    
+    // Sequence handlers
+    ipcMain.removeHandler(IPC_CHANNELS.SEQUENCE_UPDATE_SHOT);
+    ipcMain.removeHandler(IPC_CHANNELS.SEQUENCE_GET_SHOTS);
+    ipcMain.removeHandler(IPC_CHANNELS.SEQUENCE_GET_ALL);
 
     // Recent projects handlers
     ipcMain.removeHandler(IPC_CHANNELS.RECENT_PROJECTS_GET);
@@ -267,6 +280,34 @@ export class IPCHandlers {
       }
     });
 
+    // Update project metadata
+    ipcMain.handle(IPC_CHANNELS.PROJECT_UPDATE_METADATA, async (_event, projectPath: string, metadata: Record<string, any>) => {
+      try {
+        // Validate input
+        if (!projectPath || typeof projectPath !== 'string') {
+          throw new Error('Invalid project path');
+        }
+
+        if (!metadata || typeof metadata !== 'object') {
+          throw new Error('Invalid metadata');
+        }
+
+        // Update metadata
+        const updatedProject = await this.projectService.updateMetadata(projectPath, metadata);
+
+        return {
+          success: true,
+          project: updatedProject,
+        };
+      } catch (error) {
+        console.error('Failed to update project metadata:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
     // Select directory
     ipcMain.handle(IPC_CHANNELS.PROJECT_SELECT_DIRECTORY, async (event) => {
       try {
@@ -362,6 +403,105 @@ export class IPCHandlers {
         };
       }
     });
+  }
+
+  /**
+   * Register sequence management handlers
+   */
+  private registerSequenceHandlers(): void {
+    // Update shot in sequence
+    ipcMain.handle(
+      IPC_CHANNELS.SEQUENCE_UPDATE_SHOT,
+      async (_event, projectPath: string, sequenceId: string, shotId: string, updates: Record<string, any>) => {
+        try {
+          // Validate input
+          if (!projectPath || typeof projectPath !== 'string') {
+            throw new Error('Invalid project path');
+          }
+          if (!sequenceId || typeof sequenceId !== 'string') {
+            throw new Error('Invalid sequence ID');
+          }
+          if (!shotId || typeof shotId !== 'string') {
+            throw new Error('Invalid shot ID');
+          }
+          if (!updates || typeof updates !== 'object') {
+            throw new Error('Invalid updates');
+          }
+
+          // Update shot
+          await this.projectService.updateShotInSequence(projectPath, sequenceId, shotId, updates);
+
+          return {
+            success: true,
+          };
+        } catch (error) {
+          console.error('Failed to update shot in sequence:', error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          };
+        }
+      }
+    );
+
+    // Get shots from sequence
+    ipcMain.handle(
+      IPC_CHANNELS.SEQUENCE_GET_SHOTS,
+      async (_event, projectPath: string, sequenceId: string) => {
+        try {
+          // Validate input
+          if (!projectPath || typeof projectPath !== 'string') {
+            throw new Error('Invalid project path');
+          }
+          if (!sequenceId || typeof sequenceId !== 'string') {
+            throw new Error('Invalid sequence ID');
+          }
+
+          // Get shots
+          const shots = await this.projectService.getShotsFromSequence(projectPath, sequenceId);
+
+          return {
+            success: true,
+            shots,
+          };
+        } catch (error) {
+          console.error('Failed to get shots from sequence:', error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+            shots: [],
+          };
+        }
+      }
+    );
+
+    // Get all sequences
+    ipcMain.handle(
+      IPC_CHANNELS.SEQUENCE_GET_ALL,
+      async (_event, projectPath: string) => {
+        try {
+          // Validate input
+          if (!projectPath || typeof projectPath !== 'string') {
+            throw new Error('Invalid project path');
+          }
+
+          // Get all sequences
+          const sequences = await this.projectService.getAllSequences(projectPath);
+
+          return {
+            success: true,
+            sequences,
+          };
+        } catch (error) {
+          console.error('Failed to get all sequences:', error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+            sequences: [],
+          };
+        }
+      }
+    );
   }
 
   /**

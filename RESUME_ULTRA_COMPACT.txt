@@ -1,0 +1,40 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                    🎯 RÉSUMÉ ULTRA-COMPACT                                   ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+PROBLÈME:
+  Vous avez qwen3-vl:8b
+  StoryCore cherche qwen3-vl:4b
+  → Erreur 404
+
+
+SOLUTION:
+  F12 → Console → Coller:
+
+  localStorage.removeItem('storycore-llm-config');
+  localStorage.setItem('storycore-llm-config',JSON.stringify({
+    provider:'local',model:'qwen3-vl:8b',
+    apiEndpoint:'http://localhost:11434',streamingEnabled:true,
+    parameters:{temperature:0.7,maxTokens:2000,topP:0.9,
+    frequencyPenalty:0,presencePenalty:0}
+  }));
+  location.reload();
+
+  → ENTRÉE → ✅ RÉGLÉ!
+
+
+FICHIERS À LIRE:
+  1. COMMANDE_RAPIDE_QWEN8B.txt      ← COMMENCER ICI
+  2. SOLUTION_QWEN_8B_VS_4B.txt      ← Guide visuel
+  3. PROBLEME_MODELE_INEXISTANT.md   ← Explications
+  4. RESOLUTION_COMPLETE.md          ← Tout le détail
+
+
+TEMPS: 30 secondes
+RÉSULTAT: Wizards fonctionnels avec LLM
+
+
+═══════════════════════════════════════════════════════════════════════════════

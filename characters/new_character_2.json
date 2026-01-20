@@ -1,0 +1,35 @@
+{
+  "character_id": "new_char_002",
+  "name": "Luna Starlight",
+  "creation_method": "manual",
+  "creation_timestamp": "2026-01-20T19:55:00.000000",
+  "version": "1.0",
+  "visual_identity": {
+    "hair_color": "Silver",
+    "hair_style": "Long wavy",
+    "hair_length": "Long",
+    "eye_color": "Violet",
+    "eye_shape": "Round",
+    "skin_tone": "Pale",
+    "facial_structure": "Heart-shaped",
+    "distinctive_features": ["Glowing eyes", "Elven ears"],
+    "age_range": "young_adult",
+    "height": "165cm",
+    "build": "Slender",
+    "posture": "Graceful",
+    "clothing_style": "Fantasy robes",
+    "color_palette": ["Purple", "Silver", "Gold"]
+  },
+  "personality": {
+    "traits": ["Wise", "Mysterious", "Compassionate"],
+    "background": "Ancient elf guardian",
+    "motivations": ["Protect ancient knowledge", "Guide heroes"],
+    "flaws": ["Distant", "Overly cautious"]
+  },
+  "relationships": ["Apprentice: Young hero", "Rival: Dark sorcerer"],
+  "arc": {
+    "starting_point": "Isolated protector",
+    "development": "Forms deep bonds",
+    "ending_point": "United guardian"
+  }
+}

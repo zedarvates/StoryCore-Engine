@@ -58,6 +58,38 @@ const electronAPI: ElectronAPI = {
       }
       return result.contents;
     },
+    updateMetadata: async (path: string, metadata: Record<string, any>) => {
+      const result = await ipcRenderer.invoke('project:update-metadata', path, metadata);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update project metadata');
+      }
+      return result.project;
+    },
+  },
+
+  // Sequence management
+  sequence: {
+    updateShot: async (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, any>) => {
+      const result = await ipcRenderer.invoke('sequence:update-shot', projectPath, sequenceId, shotId, updates);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update shot in sequence');
+      }
+      return result.shot;
+    },
+    getShots: async (projectPath: string, sequenceId: string) => {
+      const result = await ipcRenderer.invoke('sequence:get-shots', projectPath, sequenceId);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get shots from sequence');
+      }
+      return result.shots;
+    },
+    getAll: async (projectPath: string) => {
+      const result = await ipcRenderer.invoke('sequence:get-all', projectPath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get all sequences');
+      }
+      return result.sequences;
+    },
   },
 
   // Recent projects management (to be implemented in future tasks)

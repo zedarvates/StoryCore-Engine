@@ -97,17 +97,33 @@ HTTP GET /system_stats failed: Network error
 
 **Error Messages**:
 ```
+WARNING: request with non matching host and origin localhost:8000 != localhost:5173, returning 403
+```
+or
+```
 WARNING: request with non matching host and origin localhost:8188 != localhost:5173, returning 403
 ```
 
 **Cause**: ComfyUI blocks requests from different origins (ports/domains) for security reasons. This commonly occurs when:
 - Creative Studio UI runs on `localhost:5173` (Vite dev server)
-- ComfyUI runs on `localhost:8188`
+- ComfyUI Desktop runs on `localhost:8000` (default port)
+- Manual ComfyUI runs on `localhost:8188` (default port)
 - The browser blocks cross-origin requests
+
+> **Note**: ComfyUI Desktop uses port **8000** by default, while manual installations use port **8188**.
 
 **Solutions**:
 
 1. **Enable CORS in ComfyUI (Recommended for Development)**
+   
+   **For ComfyUI Desktop Users**:
+   - Open ComfyUI Desktop application
+   - Go to Settings (gear icon)
+   - Find the CORS configuration section
+   - In the field **"Enable CORS header"**, enter:
+     - `*` for all origins (development/testing)
+     - Or specify your domain: `http://localhost:5173`
+   - Save settings and restart ComfyUI Desktop
    
    **For StabilityMatrix Users**:
    - Open StabilityMatrix
@@ -246,7 +262,14 @@ WARNING: request with non matching host and origin localhost:8188 != localhost:5
 - Check ComfyUI console logs for CORS warnings
 - Open browser DevTools Network tab to see 403 responses
 - After applying fix, requests should return 200 status codes
-- Test from your frontend: `curl -H "Origin: http://localhost:5173" http://localhost:8188/system_stats`
+- Test from your frontend:
+  ```bash
+  # For ComfyUI Desktop (port 8000)
+  curl -H "Origin: http://localhost:5173" http://localhost:8000/system_stats
+  
+  # For Manual ComfyUI (port 8188)
+  curl -H "Origin: http://localhost:5173" http://localhost:8188/system_stats
+  ```
 
 **Security Note**: Only enable CORS for trusted origins. Using `*` (all origins) is convenient for development but should never be used in production environments.
 
@@ -577,13 +600,19 @@ instanceManager.setDebugMode(true);
 
 ```bash
 # Test basic connectivity
+# For ComfyUI Desktop (port 8000)
+curl -X GET http://localhost:8000/system_stats
+
+# For Manual ComfyUI (port 8188)
 curl -X GET http://localhost:8188/system_stats
 
 # Check port binding
-netstat -tulpn | grep 8188
+netstat -tulpn | grep 8000  # ComfyUI Desktop
+netstat -tulpn | grep 8188  # Manual ComfyUI
 
 # Test with timeout
-curl --connect-timeout 5 http://localhost:8188/
+curl --connect-timeout 5 http://localhost:8000/  # Desktop
+curl --connect-timeout 5 http://localhost:8188/  # Manual
 ```
 
 ### Performance Profiling

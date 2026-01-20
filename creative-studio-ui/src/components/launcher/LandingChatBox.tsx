@@ -5,19 +5,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
 import { StatusIndicator, ConnectionStatus } from './StatusIndicator';
 import { LanguageSelector } from './LanguageSelector';
-import { LLMConfigDialog } from './LLMConfigDialog';
 import { TypingIndicator } from './TypingIndicator';
-import { type LLMConfig, LLMService, type LLMRequest, type ErrorRecoveryOptions, LLMError } from '@/services/llmService';
+import { type LLMConfig, type LLMRequest, type ErrorRecoveryOptions, LLMError } from '@/services/llmService';
+import { useLLMConfig } from '@/services/llmConfigService';
 import { buildSystemPrompt } from '@/utils/systemPromptBuilder';
 import { getWelcomeMessage } from '@/utils/chatboxTranslations';
 import { InlineLLMError } from '@/components/wizard/LLMErrorDisplay';
 import { getInitialLanguagePreference } from '@/utils/languageDetection';
+import { useAppStore } from '@/stores/useAppStore'; // NEW: Use global store for LLM settings
 import { 
   type LanguageCode, 
-  saveConfiguration, 
   saveLanguagePreference,
-  type ChatboxLLMConfig,
-  loadConfiguration 
 } from '@/utils/llmConfigStorage';
 import { 
   autoMigrate, 
@@ -62,6 +60,12 @@ export function LandingChatBox({
   onSendMessage,
   placeholder = "Décrivez votre projet ou posez une question...",
 }: LandingChatBoxProps) {
+  // Use unified LLM configuration service
+  const { config: llmConfig, service: llmService, isConfigured } = useLLMConfig();
+  
+  // Use global store to open LLM settings modal
+  const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -69,29 +73,7 @@ export function LandingChatBox({
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
   const [providerName, setProviderName] = useState<string>('');
   const [modelName, setModelName] = useState<string>('');
-  const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => getInitialLanguagePreference());
-  const [llmConfig, setLlmConfig] = useState<LLMConfig>({
-    provider: 'openai',
-    model: 'gpt-4',
-    apiKey: '',
-    parameters: {
-      temperature: 0.7,
-      maxTokens: 2000,
-      topP: 1,
-      frequencyPenalty: 0,
-      presencePenalty: 0,
-    },
-    systemPrompts: {
-      worldGeneration: '',
-      characterGeneration: '',
-      dialogueGeneration: '',
-    },
-    timeout: 30000,
-    retryAttempts: 3,
-    streamingEnabled: true,
-  });
-  const [llmService, setLlmService] = useState<LLMService | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [currentStreamRequestId, setCurrentStreamRequestId] = useState<string | null>(null);
@@ -100,7 +82,6 @@ export function LandingChatBox({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const configDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Helper function to add messages with history limit
   const addMessage = useCallback((newMessage: Message | Message[]) => {
@@ -136,12 +117,10 @@ export function LandingChatBox({
     }
   }, []); // Run only once on mount
 
-  // Check for Ollama migration and load configuration on mount
+  // Check for Ollama migration on mount (for backward compatibility)
   useEffect(() => {
-    async function initializeConfiguration() {
-      setConnectionStatus('connecting');
-      
-      // Perform automatic migration if needed
+    async function checkOllamaMigration() {
+      // Perform automatic Ollama migration if needed
       const migrationResult = await autoMigrate();
       
       if (migrationResult && migrationResult.success) {
@@ -178,107 +157,6 @@ export function LandingChatBox({
         }
       }
       
-      // Load configuration (either migrated or existing)
-      const loadedConfig = await loadConfiguration();
-      
-      // Check Ollama availability first
-      const ollamaAvailable = await checkOllamaStatus();
-      setIsOllamaAvailable(ollamaAvailable);
-      
-      if (loadedConfig) {
-        // If loaded config is OpenAI/Anthropic without API key, prefer Ollama if available
-        const requiresApiKey = loadedConfig.provider === 'openai' || loadedConfig.provider === 'anthropic';
-        const hasApiKey = loadedConfig.apiKey && loadedConfig.apiKey.trim().length > 0;
-        
-        if (requiresApiKey && !hasApiKey && ollamaAvailable) {
-          // Use Ollama instead of invalid OpenAI/Anthropic config
-          setLlmConfig({
-            provider: 'local',
-            model: 'gemma3:1b',
-            apiKey: '',
-            apiEndpoint: 'http://localhost:11434',
-            parameters: {
-              temperature: 0.7,
-              maxTokens: 2000,
-              topP: 1,
-              frequencyPenalty: 0,
-              presencePenalty: 0,
-            },
-            systemPrompts: {
-              worldGeneration: '',
-              characterGeneration: '',
-              dialogueGeneration: '',
-            },
-            timeout: 30000,
-            retryAttempts: 3,
-            streamingEnabled: true,
-          });
-          setProviderName('Ollama');
-          setModelName('gemma3:1b');
-          setConnectionStatus('online');
-          setIsFallbackMode(false);
-        } else {
-          // Use loaded configuration
-          setLlmConfig({
-            provider: loadedConfig.provider,
-            model: loadedConfig.model,
-            apiKey: loadedConfig.apiKey,
-            apiEndpoint: loadedConfig.provider === 'local' ? 'http://localhost:11434' : undefined,
-            parameters: {
-              temperature: loadedConfig.temperature,
-              maxTokens: loadedConfig.maxTokens,
-              topP: 1,
-              frequencyPenalty: 0,
-              presencePenalty: 0,
-            },
-            systemPrompts: {
-              worldGeneration: '',
-              characterGeneration: '',
-              dialogueGeneration: '',
-            },
-            timeout: 30000,
-            retryAttempts: 3,
-            streamingEnabled: loadedConfig.streamingEnabled,
-          });
-          
-          setProviderName(loadedConfig.provider);
-          setModelName(loadedConfig.model);
-          setConnectionStatus('online');
-          setIsFallbackMode(false);
-        }
-      } else if (ollamaAvailable) {
-        // No configuration found, use Ollama as default
-        setLlmConfig({
-          provider: 'local',
-          model: 'gemma3:1b',
-          apiKey: '',
-          apiEndpoint: 'http://localhost:11434',
-          parameters: {
-            temperature: 0.7,
-            maxTokens: 2000,
-            topP: 1,
-            frequencyPenalty: 0,
-            presencePenalty: 0,
-          },
-          systemPrompts: {
-            worldGeneration: '',
-            characterGeneration: '',
-            dialogueGeneration: '',
-          },
-          timeout: 30000,
-          retryAttempts: 3,
-          streamingEnabled: true,
-        });
-        setConnectionStatus('online');
-        setProviderName('Ollama');
-        setModelName('gemma3:1b');
-        setIsFallbackMode(false);
-      } else {
-        // No LLM provider configured, activate fallback mode (Requirement 10.1)
-        setConnectionStatus('fallback');
-        setIsFallbackMode(true);
-      }
-      
       // Check for pending migration notification
       const notification = getMigrationNotification();
       if (notification) {
@@ -291,41 +169,27 @@ export function LandingChatBox({
         addMessage(systemMessage);
         clearMigrationNotification();
       }
+      
+      // Check Ollama availability for warning banner
+      const ollamaAvailable = await checkOllamaStatus();
+      setIsOllamaAvailable(ollamaAvailable);
     }
     
-    initializeConfiguration();
+    checkOllamaMigration();
   }, [addMessage]);
 
-  // Initialize LLM Service when configuration changes
+  // Update connection status based on LLM configuration
   useEffect(() => {
-    // Only initialize if we have an API key (for providers that require it)
-    const requiresApiKey = llmConfig.provider === 'openai' || llmConfig.provider === 'anthropic';
-    
-    if (requiresApiKey && !llmConfig.apiKey) {
-      // No API key configured, stay in fallback mode (Requirement 10.1)
-      setLlmService(null);
+    if (llmConfig && llmService) {
+      setProviderName(llmConfig.provider);
+      setModelName(llmConfig.model);
+      setConnectionStatus('online');
+      setIsFallbackMode(false);
+    } else {
       setConnectionStatus('fallback');
       setIsFallbackMode(true);
-      return;
     }
-
-    // Initialize LLM service with current configuration
-    const service = new LLMService(llmConfig);
-    setLlmService(service);
-    
-    // Update connection status based on provider
-    setProviderName(llmConfig.provider);
-    setModelName(llmConfig.model);
-    setConnectionStatus('online');
-    setIsFallbackMode(false);
-
-    // Cleanup function to cancel all requests on unmount or config change
-    return () => {
-      if (service) {
-        service.cancelAllRequests();
-      }
-    };
-  }, [llmConfig]);
+  }, [llmConfig, llmService]);
 
   // Cleanup streaming connections on unmount
   useEffect(() => {
@@ -333,11 +197,6 @@ export function LandingChatBox({
       // Cancel any ongoing streaming requests
       if (llmService && currentStreamRequestId) {
         llmService.cancelRequest(currentStreamRequestId);
-      }
-      
-      // Clear debounce timer
-      if (configDebounceTimerRef.current) {
-        clearTimeout(configDebounceTimerRef.current);
       }
     };
   }, [llmService, currentStreamRequestId]);
@@ -388,7 +247,7 @@ export function LandingChatBox({
         {
           label: 'Configure',
           action: () => {
-            setShowConfigDialog(true);
+            setShowLLMSettings(true);
           },
           primary: !llmError.retryable,
         },
@@ -552,6 +411,38 @@ export function LandingChatBox({
     }
 
     // Validate API key before sending (Requirement 3.7)
+    // Check if llmConfig is loaded
+    if (!llmConfig) {
+      // Configuration not loaded - prompt user to configure
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        type: 'error',
+        content: '⚠️ LLM configuration not found. Please configure your LLM settings to use the AI assistant.',
+        timestamp: new Date(),
+        error: {
+          message: 'Configuration required',
+          userMessage: 'Please configure your LLM settings in Settings → LLM Configuration.',
+          category: 'configuration' as const,
+          retryable: false,
+          actions: [
+            {
+              label: 'Configure Now',
+              action: () => setShowLLMSettings(true),
+              primary: true,
+            },
+            {
+              label: 'Cancel',
+              action: () => setMessages(prev => prev.filter(msg => msg.type !== 'error')),
+              primary: false,
+            },
+          ],
+        },
+      };
+      addMessage(errorMessage);
+      setShowLLMSettings(true);
+      return;
+    }
+
     const requiresApiKey = llmConfig.provider === 'openai' || llmConfig.provider === 'anthropic';
     if (requiresApiKey && !llmConfig.apiKey) {
       // Show error message and prompt to configure
@@ -568,7 +459,7 @@ export function LandingChatBox({
           actions: [
             {
               label: 'Configure',
-              action: () => setShowConfigDialog(true),
+              action: () => setShowLLMSettings(true),
               primary: true,
             },
             {
@@ -580,7 +471,7 @@ export function LandingChatBox({
         },
       };
       addMessage(errorMessage);
-      setShowConfigDialog(true);
+      setShowLLMSettings(true);
       return;
     }
 
@@ -617,7 +508,7 @@ export function LandingChatBox({
         const request: LLMRequest = {
           prompt: userInput,
           systemPrompt,
-          stream: llmConfig.streamingEnabled,
+          stream: llmConfig?.streamingEnabled ?? true,
         };
 
         // Generate unique request ID for cancellation support
@@ -625,7 +516,7 @@ export function LandingChatBox({
         setCurrentStreamRequestId(requestId);
 
         // Route request to LLM provider via LLMService (Requirement 3.1)
-        if (llmConfig.streamingEnabled) {
+        if (llmConfig?.streamingEnabled ?? true) {
           // Streaming mode (Requirements 8.1, 8.3)
           setIsStreaming(true);
           
@@ -800,95 +691,6 @@ export function LandingChatBox({
     }
   };
 
-  // Handle configuration save with debouncing
-  const handleConfigSave = useCallback(async (config: LLMConfig) => {
-    // Clear any existing debounce timer
-    if (configDebounceTimerRef.current) {
-      clearTimeout(configDebounceTimerRef.current);
-    }
-    
-    // Debounce configuration changes to prevent excessive updates
-    configDebounceTimerRef.current = setTimeout(async () => {
-      // Persist configuration to localStorage (Requirements 1.7, 6.4)
-      try {
-        const chatboxConfig: ChatboxLLMConfig = {
-          provider: config.provider,
-          model: config.model,
-          temperature: config.parameters.temperature,
-          maxTokens: config.parameters.maxTokens,
-          apiKey: config.apiKey,
-          streamingEnabled: config.streamingEnabled,
-        };
-        
-        await saveConfiguration(chatboxConfig);
-        console.log('Configuration persisted to localStorage');
-      } catch (error) {
-        console.error('Failed to persist configuration:', error);
-        // Continue with state update even if persistence fails
-      }
-      
-      // Update UI state after successful save (Requirement 1.7)
-      setLlmConfig(config);
-      setProviderName(config.provider);
-      setModelName(config.model);
-      
-      // Update connection status and check for automatic mode recovery (Requirement 10.5)
-      const requiresApiKey = config.provider === 'openai' || config.provider === 'anthropic';
-      const wasInFallbackMode = isFallbackMode;
-      
-      if (requiresApiKey && !config.apiKey) {
-        setConnectionStatus('fallback');
-        setIsFallbackMode(true);
-        
-        // Add system message about fallback mode (Requirement 4.6)
-        const systemMessage: Message = {
-          id: Date.now().toString(),
-          type: 'system',
-          content: '⚠️ Connection status: Offline mode. API key required for live AI responses.',
-          timestamp: new Date(),
-        };
-        addMessage(systemMessage);
-      } else {
-        // Service is now configured, switch from fallback to live mode (Requirement 10.5)
-        setConnectionStatus('online');
-        setIsFallbackMode(false);
-        
-        // Add system message about mode recovery if we were in fallback mode (Requirement 4.6)
-        if (wasInFallbackMode) {
-          const providerNames: Record<string, string> = {
-            openai: 'OpenAI',
-            anthropic: 'Anthropic',
-            local: 'Local',
-            custom: 'Custom',
-          };
-          
-          const systemMessage: Message = {
-            id: Date.now().toString(),
-            type: 'system',
-            content: `✅ Connection status: Online. Connected to ${providerNames[config.provider] || config.provider} (${config.model}). Live AI responses enabled.`,
-            timestamp: new Date(),
-          };
-          addMessage(systemMessage);
-        }
-      }
-      
-      // Configuration saved successfully
-      console.log('LLM configuration saved');
-    }, CONFIG_DEBOUNCE_DELAY);
-  }, [isFallbackMode, addMessage]);
-
-  // Handle connection validation
-  const handleValidateConnection = async (config: LLMConfig): Promise<boolean> => {
-    // Mock validation for now - in real implementation, this would test the actual connection
-    console.log('Validating connection for provider:', config.provider);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Simulate successful validation
-        resolve(true);
-      }, 1500);
-    });
-  };
-
   // Handle language change
   const handleLanguageChange = useCallback((language: LanguageCode) => {
     // Persist language preference on selection (Requirements 2.4, 6.5)
@@ -962,7 +764,7 @@ export function LandingChatBox({
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setShowConfigDialog(true)}
+          onClick={() => setShowLLMSettings(true)}
           className="text-gray-400 hover:text-white hover:bg-gray-700 ml-2"
           title="Configure LLM"
           aria-label="Configure LLM settings"
@@ -1065,7 +867,7 @@ export function LandingChatBox({
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => setShowConfigDialog(true)}
+                    onClick={() => setShowLLMSettings(true)}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition-colors"
                     aria-label="Configure LLM settings"
                   >
@@ -1253,15 +1055,6 @@ export function LandingChatBox({
           Appuyez sur Entrée pour envoyer, Shift+Entrée pour une nouvelle ligne
         </p>
       </div>
-
-      {/* LLM Configuration Dialog */}
-      <LLMConfigDialog
-        open={showConfigDialog}
-        onOpenChange={setShowConfigDialog}
-        currentConfig={llmConfig}
-        onSave={handleConfigSave}
-        onValidateConnection={handleValidateConnection}
-      />
     </div>
   );
 }

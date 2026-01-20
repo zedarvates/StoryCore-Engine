@@ -542,6 +542,9 @@ StoryCore Engine includes a comprehensive set of professional visual assets opti
 - **[docs/SECURITY.md](docs/SECURITY.md)** - Security overview
 - **[docs/ERROR_HANDLING.md](docs/ERROR_HANDLING.md)** - Error handling overview
 - **[docs/INTEGRATION_GUIDE.md](docs/INTEGRATION_GUIDE.md)** - Integration guide
+- **[docs/COMFYUI_QUICK_START.md](docs/COMFYUI_QUICK_START.md)** - ⚡ ComfyUI quick start (2 minutes)
+- **[docs/COMFYUI_DESKTOP_SETUP.md](docs/COMFYUI_DESKTOP_SETUP.md)** - ComfyUI Desktop setup guide
+- **[docs/COMFYUI_PORT_REFERENCE.md](docs/COMFYUI_PORT_REFERENCE.md)** - ComfyUI port configuration reference
 - **[docs/comfyui-multi-instance-user-guide.md](docs/comfyui-multi-instance-user-guide.md)** - Multi-instance ComfyUI user guide
 - **[docs/comfyui-instance-troubleshooting.md](docs/comfyui-instance-troubleshooting.md)** - ComfyUI instance troubleshooting
 - **[docs/advanced-workflows/](docs/advanced-workflows/)** - Advanced workflows documentation

@@ -93,12 +93,29 @@ export function LandingPageWithHooks() {
         onCreateProject={handleCreateProjectSubmit}
       />
 
-      {/* Open Project Dialog */}
-      <FolderNavigationModal
-        open={showOpenDialog}
-        onOpenChange={setShowOpenDialog}
-        onSelectProject={handleOpenProjectSubmit}
-      />
+      {/* 
+        Open Project Dialog - FALLBACK FOR OLDER BROWSERS
+        
+        CRITICAL: This modal is only shown when:
+        1. Running in browser mode (!window.electronAPI)
+        2. AND File System Access API is not available
+        
+        Modern browsers (Chrome, Edge, Opera) use the native showDirectoryPicker() API.
+        Electron uses the native OS file dialog.
+        
+        This custom modal is a fallback for older browsers (Firefox, Safari) that
+        don't support the File System Access API yet.
+        
+        @see useLandingPage.ts - handleOpenProject() for native dialog implementation
+        @see FolderNavigationModal.tsx - component documentation
+      */}
+      {!window.electronAPI && !('showDirectoryPicker' in window) && (
+        <FolderNavigationModal
+          open={showOpenDialog}
+          onOpenChange={setShowOpenDialog}
+          onSelectProject={handleOpenProjectSubmit}
+        />
+      )}
 
       {/* Loading Overlay */}
       {(isLoading || isLoadingProjects) && (

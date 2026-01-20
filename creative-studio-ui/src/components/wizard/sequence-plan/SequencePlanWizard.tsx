@@ -259,6 +259,10 @@ export function SequencePlanWizard({
     }));
   }, []);
 
+  const handleShotsChange = useCallback((shots: ProductionShot[]) => {
+    updateFormData({ shots });
+  }, [updateFormData]);
+
   const goToStep = useCallback((stepIndex: number) => {
     if (stepIndex >= 0 && stepIndex < SEQUENCE_PLAN_STEPS.length) {
       setWizardState(prev => ({
@@ -401,7 +405,7 @@ export function SequencePlanWizard({
         return (
           <Step5ShotPreview
             sequencePlan={wizardState.formData}
-            onShotsChange={(shots: ProductionShot[]) => updateFormData({ shots })}
+            onShotsChange={handleShotsChange}
           />
         );
 
@@ -426,19 +430,26 @@ export function SequencePlanWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCancel}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Create Sequence Plan</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto min-h-0">
           <ProductionWizardContainer
             title="Sequence Plan Wizard"
             steps={SEQUENCE_PLAN_STEPS}
+            currentStep={wizardState.currentStep}
+            onNextStep={nextStep}
+            onPreviousStep={previousStep}
+            onGoToStep={goToStep}
             onCancel={handleCancel}
             onComplete={wizardState.currentStep === SEQUENCE_PLAN_STEPS.length - 1 ? handleComplete : nextStep}
             allowJumpToStep={false} // Can be enabled later if needed
             showAutoSaveIndicator={!existingSequencePlan}
+            canProceed={true} // Can add validation logic here
+            isDirty={wizardState.isDirty}
+            lastSaved={wizardState.lastSaved}
             className="h-full"
           >
             {isLoading ? (

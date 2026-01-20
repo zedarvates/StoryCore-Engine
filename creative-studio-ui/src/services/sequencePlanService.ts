@@ -38,15 +38,39 @@ export interface ExportOptions {
 }
 
 /**
+ * Callback type for sequence plan updates
+ */
+export type SequencePlanUpdateCallback = (planId: string, plan: SequencePlanData) => void;
+
+/**
+ * Callback type for sequence plan list updates
+ */
+export type SequencePlanListUpdateCallback = (plans: SequencePlan[]) => void;
+
+/**
+ * Callback type for auto-save status updates
+ */
+export type AutoSaveStatusCallback = (enabled: boolean, lastSaveTime: number | null) => void;
+
+/**
  * Sequence Plan Service Class
+ * 
+ * Now with Observer pattern for real-time synchronization
  */
 export class SequencePlanService {
   private static instance: SequencePlanService;
   private autoSaveInterval: NodeJS.Timeout | null = null;
   private lastSaveTime: number | null = null;
   private isDirty: boolean = false;
+  
+  // Subscribers for different events
+  private planUpdateSubscribers: Set<SequencePlanUpdateCallback> = new Set();
+  private planListSubscribers: Set<SequencePlanListUpdateCallback> = new Set();
+  private autoSaveStatusSubscribers: Set<AutoSaveStatusCallback> = new Set();
 
-  private constructor() {}
+  private constructor() {
+    console.log('[SequencePlanService] Service initialized with Observer pattern');
+  }
 
   /**
    * Get singleton instance
@@ -56,6 +80,80 @@ export class SequencePlanService {
       SequencePlanService.instance = new SequencePlanService();
     }
     return SequencePlanService.instance;
+  }
+
+  /**
+   * Subscribe to plan updates
+   * Returns unsubscribe function
+   */
+  public subscribeToPlanUpdates(callback: SequencePlanUpdateCallback): () => void {
+    this.planUpdateSubscribers.add(callback);
+    return () => {
+      this.planUpdateSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to plan list updates
+   * Returns unsubscribe function
+   */
+  public subscribeToPlanList(callback: SequencePlanListUpdateCallback): () => void {
+    this.planListSubscribers.add(callback);
+    return () => {
+      this.planListSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to auto-save status updates
+   * Returns unsubscribe function
+   */
+  public subscribeToAutoSaveStatus(callback: AutoSaveStatusCallback): () => void {
+    this.autoSaveStatusSubscribers.add(callback);
+    return () => {
+      this.autoSaveStatusSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Notify subscribers of plan update
+   */
+  private notifyPlanUpdate(planId: string, plan: SequencePlanData): void {
+    this.planUpdateSubscribers.forEach(callback => {
+      try {
+        callback(planId, plan);
+      } catch (error) {
+        console.error('[SequencePlanService] Error in plan update subscriber:', error);
+      }
+    });
+  }
+
+  /**
+   * Notify subscribers of plan list update
+   */
+  private async notifyPlanListUpdate(): Promise<void> {
+    const plans = await this.listSequencePlans();
+    this.planListSubscribers.forEach(callback => {
+      try {
+        callback(plans);
+      } catch (error) {
+        console.error('[SequencePlanService] Error in plan list subscriber:', error);
+      }
+    });
+  }
+
+  /**
+   * Notify subscribers of auto-save status change
+   */
+  private notifyAutoSaveStatus(): void {
+    const enabled = this.autoSaveInterval !== null;
+    this.autoSaveStatusSubscribers.forEach(callback => {
+      try {
+        callback(enabled, this.lastSaveTime);
+      } catch (error) {
+        console.error('[SequencePlanService] Error in auto-save status subscriber:', error);
+      }
+    });
   }
 
   /**
@@ -124,6 +222,10 @@ export class SequencePlanService {
     await this.savePlan(updatedPlan);
     this.markDirty();
 
+    // Notify subscribers
+    this.notifyPlanUpdate(planId, updatedPlan);
+    await this.notifyPlanListUpdate();
+
     return updatedPlan;
   }
 
@@ -138,6 +240,9 @@ export class SequencePlanService {
       const planList = await this.listSequencePlans();
       const updatedList = planList.filter((p) => p.id !== planId);
       localStorage.setItem('sequence-plan-list', JSON.stringify(updatedList));
+
+      // Notify subscribers
+      await this.notifyPlanListUpdate();
     } catch (error) {
       console.error('Failed to delete sequence plan:', error);
       throw new Error('Failed to delete sequence plan');
@@ -171,6 +276,10 @@ export class SequencePlanService {
     };
 
     await this.savePlan(duplicatedPlan);
+
+    // Notify subscribers
+    this.notifyPlanUpdate(duplicatedPlan.id, duplicatedPlan);
+    await this.notifyPlanListUpdate();
 
     return duplicatedPlan;
   }
@@ -260,6 +369,10 @@ export class SequencePlanService {
 
     await this.savePlan(plan);
 
+    // Notify subscribers
+    this.notifyPlanUpdate(plan.id, plan);
+    await this.notifyPlanListUpdate();
+
     return plan;
   }
 
@@ -319,6 +432,9 @@ export class SequencePlanService {
         this.saveCurrentPlan();
       }
     }, intervalMs);
+
+    // Notify subscribers
+    this.notifyAutoSaveStatus();
   }
 
   /**
@@ -329,6 +445,9 @@ export class SequencePlanService {
       clearInterval(this.autoSaveInterval);
       this.autoSaveInterval = null;
     }
+
+    // Notify subscribers
+    this.notifyAutoSaveStatus();
   }
 
   /**
@@ -395,6 +514,10 @@ export class SequencePlanService {
 
       this.lastSaveTime = Date.now();
       this.isDirty = false;
+
+      // Notify subscribers
+      this.notifyPlanUpdate(plan.id, plan);
+      await this.notifyPlanListUpdate();
     } catch (error) {
       console.error('Failed to save sequence plan:', error);
       throw new Error('Failed to save sequence plan');

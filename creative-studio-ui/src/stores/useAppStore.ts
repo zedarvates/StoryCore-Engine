@@ -2,13 +2,15 @@ import { create } from 'zustand';
 import type { Project, Shot, Asset, GenerationTask, PanelSizes, ChatMessage } from '@/types';
 import type { SequencePlanWizardContext, ShotWizardContext } from '@/types/wizard';
 
-// Wizard type for generic wizard forms
+// Wizard type for generic wizard forms (simple forms in GenericWizardModal)
+// Multi-step wizards (world, character) are handled separately via their own modals
 export type WizardType =
   | 'dialogue-writer'
   | 'scene-generator'
   | 'storyboard-creator'
   | 'style-transfer'
-  | 'world-building';
+  | 'sequence-plan'
+  | 'shot';
 
 interface AppState {
   // Project data
@@ -49,12 +51,12 @@ interface AppState {
   showShotWizard: boolean;
   shotWizardContext: ShotWizardContext | null;
 
-  // Generic wizard forms state (Requirements 3.1, 3.2)
+  // Generic wizard forms state (simple forms in GenericWizardModal)
+  // Multi-step wizards (world, character) use separate state (showWorldWizard, showCharacterWizard)
   showDialogueWriter: boolean;
   showSceneGenerator: boolean;
   showStoryboardCreator: boolean;
   showStyleTransfer: boolean;
-  showWorldBuilding: boolean;
   activeWizardType: WizardType | null;
 
   // Undo/Redo
@@ -91,12 +93,11 @@ interface AppState {
   openShotWizard: (context?: ShotWizardContext) => void;
   closeShotWizard: () => void;
 
-  // Generic wizard form actions (Requirements 3.2, 3.3, 3.4)
+  // Generic wizard form actions (simple forms in GenericWizardModal)
   setShowDialogueWriter: (show: boolean) => void;
   setShowSceneGenerator: (show: boolean) => void;
   setShowStoryboardCreator: (show: boolean) => void;
   setShowStyleTransfer: (show: boolean) => void;
-  setShowWorldBuilding: (show: boolean) => void;
   openWizard: (wizardType: WizardType) => void;
   closeActiveWizard: () => void;
 }
@@ -132,12 +133,11 @@ export const useAppStore = create<AppState>((set) => ({
   showShotWizard: false,
   shotWizardContext: null,
 
-  // Generic wizard forms initial state (Requirements 3.1, 3.2)
+  // Generic wizard forms initial state (simple forms in GenericWizardModal)
   showDialogueWriter: false,
   showSceneGenerator: false,
   showStoryboardCreator: false,
   showStyleTransfer: false,
-  showWorldBuilding: false,
   activeWizardType: null,
 
   // Actions
@@ -197,12 +197,11 @@ export const useAppStore = create<AppState>((set) => ({
       shotWizardContext: null,
     }),
 
-  // Generic wizard form actions (Requirements 3.2, 3.3, 3.4)
+  // Generic wizard form actions (simple forms in GenericWizardModal)
   setShowDialogueWriter: (show) => set({ showDialogueWriter: show }),
   setShowSceneGenerator: (show) => set({ showSceneGenerator: show }),
   setShowStoryboardCreator: (show) => set({ showStoryboardCreator: show }),
   setShowStyleTransfer: (show) => set({ showStyleTransfer: show }),
-  setShowWorldBuilding: (show) => set({ showWorldBuilding: show }),
 
   // Open wizard with mutual exclusion (Requirement 3.4)
   openWizard: (wizardType) =>
@@ -212,7 +211,6 @@ export const useAppStore = create<AppState>((set) => ({
       showSceneGenerator: false,
       showStoryboardCreator: false,
       showStyleTransfer: false,
-      showWorldBuilding: false,
       // Set active wizard type
       activeWizardType: wizardType,
       // Open the requested wizard
@@ -220,7 +218,6 @@ export const useAppStore = create<AppState>((set) => ({
       ...(wizardType === 'scene-generator' && { showSceneGenerator: true }),
       ...(wizardType === 'storyboard-creator' && { showStoryboardCreator: true }),
       ...(wizardType === 'style-transfer' && { showStyleTransfer: true }),
-      ...(wizardType === 'world-building' && { showWorldBuilding: true }),
     }),
 
   // Close active wizard (Requirement 3.3)
@@ -230,7 +227,6 @@ export const useAppStore = create<AppState>((set) => ({
       showSceneGenerator: false,
       showStoryboardCreator: false,
       showStyleTransfer: false,
-      showWorldBuilding: false,
       activeWizardType: null,
     }),
 }));

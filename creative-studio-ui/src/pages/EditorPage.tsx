@@ -12,7 +12,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import { useEditorStore } from '@/stores/editorStore';
 import { useSequencePlanStore, usePlans, useSequencePlanActions } from '@/stores/sequencePlanStore';
-import type { Shot } from '../types';
+import type { Shot, Asset } from '../types';
 import { ChatBox } from '@/components/ChatBox';
 import { CentralConfigurationUI } from '@/components';
 import { WizardLauncher } from '@/components/wizards/WizardLauncher';
@@ -26,6 +26,7 @@ import { ProjectTemplateService } from '@/services/asset-integration';
 import { ProjectTemplate, VideoTimelineMetadata, NarrativeText } from '@/types/asset-integration';
 import { Timeline } from '@/components/Timeline';
 import { DialogueWriterWizard } from '@/components/wizard';
+import { AssetLibraryService, type AssetSource, ASSET_CATEGORIES } from '@/services/assetLibraryService';
 import {
   Plus,
   Image as ImageIcon,
@@ -43,13 +44,15 @@ import {
   Edit,
   Zap,
   Film,
+  RefreshCw,
 } from 'lucide-react';
 
 interface EditorPageProps {
+  sequenceId?: string;
   onBackToDashboard: () => void;
 }
 
-export function EditorPage({ onBackToDashboard }: EditorPageProps) {
+export function EditorPage({ sequenceId, onBackToDashboard }: EditorPageProps) {
   const { project } = useAppStore();
   const {
     shots,
@@ -63,7 +66,32 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
     activeWizard,
     projectPath,
     loadProject,
+    currentProject,
   } = useEditorStore();
+  
+  // Load sequence data if sequenceId is provided
+  const [sequenceShots, setSequenceShots] = useState<Shot[]>([]);
+  const [sequenceName, setSequenceName] = useState<string>('');
+  
+  useEffect(() => {
+    if (sequenceId && shots) {
+      // Filter shots for this sequence
+      const filtered = shots.filter((shot: any) => shot.sequence_id === sequenceId);
+      setSequenceShots(filtered);
+      
+      // Get sequence name from first shot or generate default
+      if (filtered.length > 0) {
+        const firstShot = filtered[0] as any;
+        setSequenceName(firstShot.sequence_name || `Sequence ${sequenceId}`);
+      }
+      
+      console.log(`Loaded ${filtered.length} shots for sequence ${sequenceId}`);
+    } else {
+      // No sequence selected, show all shots
+      setSequenceShots(shots || []);
+      setSequenceName('All Shots');
+    }
+  }, [sequenceId, shots]);
   
   // Wizard actions from useAppStore
   const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
@@ -97,6 +125,13 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
   const [loadedNarrative, setLoadedNarrative] = useState<NarrativeText | null>(null);
   const [rightPanelTab, setRightPanelTab] = useState<'properties' | 'chat' | 'assets' | 'plans'>('properties');
 
+  // Asset library state
+  const [assetSources, setAssetSources] = useState<AssetSource[]>([]);
+  const [filteredAssets, setFilteredAssets] = useState<Asset[]>([]);
+  const [assetSearchQuery, setAssetSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+
   // Get selected shot for properties panel
   const selectedShot = selectedShotId ? shots.find(shot => shot.id === selectedShotId) : null;
 
@@ -108,6 +143,11 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
   // Auto-save status
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // Type guard to check if shot has generation data
+  const isProductionShot = (shot: any): boolean => {
+    return shot && 'generation' in shot && shot.generation !== undefined;
+  };
 
   // Update form when selected shot changes
   useEffect(() => {
@@ -211,12 +251,115 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
     });
   }, [loadPlans]);
 
+  // Load assets on mount
+  useEffect(() => {
+    const loadAssets = async () => {
+      setIsLoadingAssets(true);
+      try {
+        const service = AssetLibraryService.getInstance();
+        const sources = await service.getAllAssets(projectPath || undefined);
+        setAssetSources(sources);
+        
+        // Flatten all assets for initial display
+        const allAssets = sources.flatMap(s => s.assets);
+        setFilteredAssets(allAssets);
+        
+        console.log(`Loaded ${allAssets.length} assets from ${sources.length} sources`);
+      } catch (error) {
+        console.error('Failed to load assets:', error);
+        toast({
+          title: 'Asset Loading Error',
+          description: 'Failed to load asset library',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoadingAssets(false);
+      }
+    };
+    
+    loadAssets();
+  }, [projectPath, toast]);
+
+  // Handle asset search
+  const handleAssetSearch = async (query: string) => {
+    setAssetSearchQuery(query);
+    
+    try {
+      const service = AssetLibraryService.getInstance();
+      const results = await service.searchAssets(
+        {
+          query: query.trim() || undefined,
+          category: selectedCategory,
+        },
+        assetSources
+      );
+      setFilteredAssets(results);
+    } catch (error) {
+      console.error('Asset search failed:', error);
+    }
+  };
+
+  // Handle category change
+  const handleCategoryChange = async (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    
+    try {
+      const service = AssetLibraryService.getInstance();
+      const results = await service.searchAssets(
+        {
+          query: assetSearchQuery.trim() || undefined,
+          category: categoryId,
+        },
+        assetSources
+      );
+      setFilteredAssets(results);
+    } catch (error) {
+      console.error('Category filter failed:', error);
+    }
+  };
+
+  // Handle refresh assets
+  const handleRefreshAssets = async () => {
+    setIsLoadingAssets(true);
+    try {
+      const service = AssetLibraryService.getInstance();
+      const sources = await service.refresh(projectPath || undefined);
+      setAssetSources(sources);
+      
+      // Re-apply current filters
+      const results = await service.searchAssets(
+        {
+          query: assetSearchQuery.trim() || undefined,
+          category: selectedCategory,
+        },
+        sources
+      );
+      setFilteredAssets(results);
+      
+      toast({
+        title: 'Assets Refreshed',
+        description: `Loaded ${results.length} assets`,
+      });
+    } catch (error) {
+      console.error('Failed to refresh assets:', error);
+      toast({
+        title: 'Refresh Failed',
+        description: 'Failed to refresh asset library',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingAssets(false);
+    }
+  };
+
   // Load project on mount if project is available
   useEffect(() => {
-    if (project && !projectPath) {
-      // Try to load project from app store
+    if (project && !currentProject) {
+      // If we have a project in app store but not in editor store
       const path = (project as any).path || (project as any).projectPath;
+      
       if (path) {
+        // Load from file system if path is available
         loadProject(path).catch((error) => {
           console.error('Failed to load project:', error);
           toast({
@@ -225,9 +368,18 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
             variant: 'destructive',
           });
         });
+      } else {
+        // Initialize editor store with project data directly (for JSON-loaded projects)
+        useEditorStore.setState({
+          currentProject: project as any,
+          projectPath: null, // No file system path for JSON-loaded projects
+          shots: project.storyboard || [],
+          assets: project.assets || [],
+        });
+        console.log('Editor store initialized with project data');
       }
     }
-  }, [project, projectPath, loadProject, toast]);
+  }, [project, currentProject, loadProject, toast]);
 
   // Auto-scroll storyboard to selected shot
   useEffect(() => {
@@ -450,10 +602,22 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
       <div className="w-64 border-r border-border bg-card flex flex-col">
         {/* Assets Header */}
         <div className="p-4 border-b border-border">
-          <h2 className="text-lg font-semibold mb-3">Assets</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Assets</h2>
+            <button
+              onClick={handleRefreshAssets}
+              disabled={isLoadingAssets}
+              className="p-1 hover:bg-muted rounded-md disabled:opacity-50"
+              title="Refresh assets"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoadingAssets ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
           <input
             type="text"
             placeholder="Rechercher..."
+            value={assetSearchQuery}
+            onChange={(e) => handleAssetSearch(e.target.value)}
             className="w-full px-3 py-1.5 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
@@ -461,67 +625,98 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
         {/* Asset Categories */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-2">
-            {/* Category: All */}
-            <button className="w-full px-3 py-2 text-left text-sm hover:bg-muted rounded-md flex items-center gap-2">
-              <Layers className="w-4 h-4" />
-              Tous
-            </button>
-
-            {/* Category: Images */}
-            <button className="w-full px-3 py-2 text-left text-sm hover:bg-muted rounded-md flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" />
-              Images
-            </button>
-
-            {/* Category: Audio */}
-            <button className="w-full px-3 py-2 text-left text-sm hover:bg-muted rounded-md flex items-center gap-2">
-              <Music className="w-4 h-4" />
-              Audio
-            </button>
-
-            {/* Category: Video */}
-            <button className="w-full px-3 py-2 text-left text-sm hover:bg-muted rounded-md flex items-center gap-2">
-              <Video className="w-4 h-4" />
-              Vidéo
-            </button>
-
-            {/* Category: Text */}
-            <button className="w-full px-3 py-2 text-left text-sm hover:bg-muted rounded-md flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Texte
-            </button>
-          </div>
-
-          {/* Asset Grid */}
-          <div className="p-4 space-y-2">
-            <h3 className="text-xs font-semibold text-muted-foreground mb-2">Prompt Data</h3>
-            
-            {/* Sample Assets */}
-            {[
-              { name: 'Camera_shot...', type: 'image' },
-              { name: 'Production.jpg', type: 'image' },
-              { name: 'Background_...', type: 'audio' },
-              { name: 'Sound_effect...', type: 'audio' },
-              { name: 'Narration.mp3', type: 'audio' },
-            ].map((asset, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-2 p-2 rounded-md hover:bg-muted cursor-pointer border border-border"
+            {/* Category Buttons */}
+            {ASSET_CATEGORIES.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => handleCategoryChange(category.id)}
+                className={`w-full px-3 py-2 text-left text-sm rounded-md flex items-center gap-2 ${
+                  selectedCategory === category.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-muted'
+                }`}
               >
-                <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
-                  {asset.type === 'image' ? (
-                    <ImageIcon className="w-6 h-6 text-muted-foreground" />
-                  ) : (
-                    <Music className="w-6 h-6 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate">{asset.name}</p>
-                  <p className="text-xs text-muted-foreground">{asset.type}</p>
-                </div>
-              </div>
+                {category.icon === 'layers' && <Layers className="w-4 h-4" />}
+                {category.icon === 'image' && <ImageIcon className="w-4 h-4" />}
+                {category.icon === 'music' && <Music className="w-4 h-4" />}
+                {category.icon === 'video' && <Video className="w-4 h-4" />}
+                {category.icon === 'file-text' && <FileText className="w-4 h-4" />}
+                {category.name}
+              </button>
             ))}
           </div>
+
+          {/* Asset Grid by Source */}
+          {isLoadingAssets ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="p-4 space-y-4">
+              {assetSources.map((source) => {
+                const sourceAssets = filteredAssets.filter(asset =>
+                  source.assets.some(sa => sa.id === asset.id)
+                );
+                
+                if (sourceAssets.length === 0) return null;
+                
+                return (
+                  <div key={source.id}>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xs font-semibold text-muted-foreground">
+                        {source.name}
+                      </h3>
+                      <span className="text-xs text-muted-foreground">
+                        {sourceAssets.length}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {sourceAssets.map((asset) => (
+                        <div
+                          key={asset.id}
+                          className="flex items-center gap-2 p-2 rounded-md hover:bg-muted cursor-pointer border border-border"
+                          title={asset.name}
+                        >
+                          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                            {asset.thumbnail ? (
+                              <img
+                                src={asset.thumbnail}
+                                alt={asset.name}
+                                className="w-full h-full object-cover rounded"
+                              />
+                            ) : asset.type === 'image' ? (
+                              <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                            ) : asset.type === 'audio' ? (
+                              <Music className="w-6 h-6 text-muted-foreground" />
+                            ) : asset.type === 'video' ? (
+                              <Video className="w-6 h-6 text-muted-foreground" />
+                            ) : (
+                              <FileText className="w-6 h-6 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">{asset.name}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{asset.type}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {filteredAssets.length === 0 && !isLoadingAssets && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No assets found</p>
+                  {assetSearchQuery && (
+                    <p className="text-xs mt-1">Try a different search</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Import Button */}
@@ -672,19 +867,95 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
           <div className="flex-1 overflow-hidden">
             <GridEditorCanvas
               projectId={project?.project_name || 'default'}
-              onSave={(config) => {
-                console.log('Grid configuration saved:', config);
-                toast({
-                  title: 'Configuration Saved',
-                  description: 'Grid configuration has been saved successfully',
-                });
+              onSave={async (config) => {
+                try {
+                  if (!projectPath) {
+                    toast({
+                      title: 'Error',
+                      description: 'No project loaded. Please open or create a project first.',
+                      variant: 'destructive',
+                    });
+                    return;
+                  }
+
+                  // Save grid configuration to project file
+                  const configPath = `${projectPath}/grid_config.json`;
+                  const configJson = JSON.stringify(config, null, 2);
+                  
+                  if (window.electronAPI?.saveFile) {
+                    await window.electronAPI.saveFile(configPath, configJson);
+                    
+                    toast({
+                      title: 'Configuration Saved',
+                      description: 'Grid configuration has been saved successfully',
+                    });
+                    
+                    console.log('Grid configuration saved to:', configPath);
+                  } else {
+                    // Fallback: download as file in browser
+                    const blob = new Blob([configJson], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'grid_config.json';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    
+                    toast({
+                      title: 'Configuration Downloaded',
+                      description: 'Grid configuration has been downloaded as a file',
+                    });
+                  }
+                } catch (error) {
+                  console.error('Failed to save grid configuration:', error);
+                  toast({
+                    title: 'Save Failed',
+                    description: 'Failed to save grid configuration. Please try again.',
+                    variant: 'destructive',
+                  });
+                }
               }}
-              onExport={(config) => {
-                console.log('Grid configuration exported:', config);
-                toast({
-                  title: 'Configuration Exported',
-                  description: 'Grid configuration has been exported successfully',
-                });
+              onExport={async (config) => {
+                try {
+                  // Export grid configuration with timestamp
+                  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                  const filename = `grid_export_${timestamp}.json`;
+                  const configJson = JSON.stringify(config, null, 2);
+                  
+                  if (projectPath && window.electronAPI?.saveFile) {
+                    // Save to exports folder
+                    const exportPath = `${projectPath}/exports/${filename}`;
+                    await window.electronAPI.saveFile(exportPath, configJson);
+                    
+                    toast({
+                      title: 'Configuration Exported',
+                      description: `Grid configuration exported to: ${filename}`,
+                    });
+                    
+                    console.log('Grid configuration exported to:', exportPath);
+                  } else {
+                    // Fallback: download as file
+                    const blob = new Blob([configJson], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    
+                    toast({
+                      title: 'Configuration Exported',
+                      description: `Grid configuration downloaded as: ${filename}`,
+                    });
+                  }
+                } catch (error) {
+                  console.error('Failed to export grid configuration:', error);
+                  toast({
+                    title: 'Export Failed',
+                    description: 'Failed to export grid configuration. Please try again.',
+                    variant: 'destructive',
+                  });
+                }
               }}
             />
           </div>
@@ -748,7 +1019,7 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
                           <ImageIcon className="w-12 h-12 text-muted-foreground" />
                         )}
                         <div className="absolute top-2 left-2 bg-black/70 px-2 py-1 rounded text-xs">
-                          {shot.position + 1}
+                          {(shot.position != null ? shot.position : 0) + 1}
                         </div>
                         {/* Edit button overlay */}
                         <button
@@ -758,7 +1029,7 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
                               mode: 'edit',
                               sourceLocation: 'shot-card',
                               // Pass basic shot info - wizard will load full ProductionShot if needed
-                              shotNumber: shot.position + 1,
+                              shotNumber: (shot.position != null ? shot.position : 0) + 1,
                             });
                           }}
                           className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black/90 rounded transition-colors opacity-0 group-hover:opacity-100"
@@ -774,8 +1045,25 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
                         <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                           {shot.description}
                         </p>
+                        
+                        {/* Generation data if available */}
+                        {isProductionShot(shot) && (shot as any).generation?.prompt && (
+                          <div className="mb-2 pb-2 border-b border-border">
+                            <div className="text-xs text-primary truncate" title={(shot as any).generation.prompt}>
+                              📝 {(shot as any).generation.prompt}
+                            </div>
+                            {(shot as any).generation.model && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                🤖 {(shot as any).generation.model}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Durée: {shot.duration}s</span>
+                          <span className="text-muted-foreground">
+                            Durée: {shot.duration != null ? `${shot.duration}s` : 'N/A'}
+                          </span>
                           <div className="flex gap-1">
                             {shot.audioTracks?.length > 0 && (
                               <span className="text-primary">{shot.audioTracks.length} 🎵</span>
@@ -936,9 +1224,11 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
                         type="number"
                         value={shotDuration}
                         onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          setShotDuration(value);
-                          handleDurationChange(value);
+                          const value = parseFloat(e.target.value);
+                          if (!isNaN(value) && value > 0) {
+                            setShotDuration(value);
+                            handleDurationChange(value);
+                          }
                         }}
                         min="0.1"
                         step="0.1"
@@ -946,6 +1236,136 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
                         placeholder="5"
                       />
                     </div>
+                    
+                    {/* Generation Settings (if available) */}
+                    {isProductionShot(selectedShot) && (selectedShot as any).generation && (
+                      <div className="pt-4 border-t border-border">
+                        <h4 className="text-xs font-semibold mb-3 text-primary">Paramètres de Génération</h4>
+                        
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground">Prompt</label>
+                          <textarea
+                            value={(selectedShot as any).generation.prompt || ''}
+                            onChange={(e) => {
+                              const updatedGeneration = {
+                                ...(selectedShot as any).generation,
+                                prompt: e.target.value,
+                              };
+                              handleUpdateShot({ generation: updatedGeneration } as any);
+                            }}
+                            className="w-full mt-1 px-3 py-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                            rows={3}
+                            placeholder="Prompt de génération..."
+                          />
+                        </div>
+                        
+                        <div className="mt-2">
+                          <label className="text-xs font-medium text-muted-foreground">Negative Prompt</label>
+                          <textarea
+                            value={(selectedShot as any).generation.negativePrompt || ''}
+                            onChange={(e) => {
+                              const updatedGeneration = {
+                                ...(selectedShot as any).generation,
+                                negativePrompt: e.target.value,
+                              };
+                              handleUpdateShot({ generation: updatedGeneration } as any);
+                            }}
+                            className="w-full mt-1 px-3 py-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                            rows={2}
+                            placeholder="Negative prompt..."
+                          />
+                        </div>
+                        
+                        <div className="mt-2">
+                          <label className="text-xs font-medium text-muted-foreground">Model</label>
+                          <input
+                            type="text"
+                            value={(selectedShot as any).generation.model || ''}
+                            onChange={(e) => {
+                              const updatedGeneration = {
+                                ...(selectedShot as any).generation,
+                                model: e.target.value,
+                              };
+                              handleUpdateShot({ generation: updatedGeneration } as any);
+                            }}
+                            className="w-full mt-1 px-3 py-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="Model name..."
+                          />
+                        </div>
+                        
+                        {(selectedShot as any).generation.parameters && (
+                          <div className="mt-2 grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">Steps</label>
+                              <input
+                                type="number"
+                                value={(selectedShot as any).generation.parameters.steps || 20}
+                                onChange={(e) => {
+                                  const value = parseInt(e.target.value);
+                                  if (!isNaN(value)) {
+                                    const updatedGeneration = {
+                                      ...(selectedShot as any).generation,
+                                      parameters: {
+                                        ...(selectedShot as any).generation.parameters,
+                                        steps: value,
+                                      },
+                                    };
+                                    handleUpdateShot({ generation: updatedGeneration } as any);
+                                  }
+                                }}
+                                className="w-full mt-1 px-3 py-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                min="1"
+                                max="150"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">CFG Scale</label>
+                              <input
+                                type="number"
+                                value={(selectedShot as any).generation.parameters.cfgScale || 7}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value);
+                                  if (!isNaN(value)) {
+                                    const updatedGeneration = {
+                                      ...(selectedShot as any).generation,
+                                      parameters: {
+                                        ...(selectedShot as any).generation.parameters,
+                                        cfgScale: value,
+                                      },
+                                    };
+                                    handleUpdateShot({ generation: updatedGeneration } as any);
+                                  }
+                                }}
+                                className="w-full mt-1 px-3 py-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                min="1"
+                                max="30"
+                                step="0.5"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="mt-2">
+                          <label className="text-xs font-medium text-muted-foreground">Seed</label>
+                          <input
+                            type="number"
+                            value={(selectedShot as any).generation.seed || ''}
+                            onChange={(e) => {
+                              const value = e.target.value ? parseInt(e.target.value) : undefined;
+                              const updatedGeneration = {
+                                ...(selectedShot as any).generation,
+                                seed: value,
+                              };
+                              handleUpdateShot({ generation: updatedGeneration } as any);
+                            }}
+                            className="w-full mt-1 px-3 py-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="Random (leave empty)"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="pt-2 border-t border-border">
                       <div className="text-xs text-muted-foreground">
                         <div className="flex justify-between">
@@ -954,7 +1374,7 @@ export function EditorPage({ onBackToDashboard }: EditorPageProps) {
                         </div>
                         <div className="flex justify-between mt-1">
                           <span>Position:</span>
-                          <span>{selectedShot.position + 1}</span>
+                          <span>{(selectedShot.position != null ? selectedShot.position : 0) + 1}</span>
                         </div>
                         {selectedShot.audioTracks && selectedShot.audioTracks.length > 0 && (
                           <div className="flex justify-between mt-1">

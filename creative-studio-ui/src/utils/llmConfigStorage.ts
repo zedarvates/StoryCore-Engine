@@ -68,8 +68,8 @@ export const STORAGE_KEYS = {
  * Default LLM configuration
  */
 export const DEFAULT_LLM_CONFIG: ChatboxLLMConfig = {
-  provider: 'openai',
-  model: 'gpt-4',
+  provider: 'local',
+  model: 'llama3.2:1b', // Modèle Ollama léger par défaut
   temperature: 0.7,
   maxTokens: 2000,
   apiKey: '',

@@ -1,3 +1,27 @@
+/**
+ * ComfyUI Configuration Window Component
+ * 
+ * QUICK SETUP INTERFACE (Dashboard Page)
+ * 
+ * This is the simplified ComfyUI configuration interface accessible from:
+ * Dashboard > Configuration > ComfyUI Settings
+ * 
+ * Features:
+ * - Single server configuration
+ * - Quick connection testing
+ * - CORS troubleshooting information
+ * - Basic workflow setup
+ * 
+ * For advanced features (multi-server, workflow assignments, etc.),
+ * use Settings > ComfyUI Configuration from the top menu bar.
+ * 
+ * This quick interface is recommended for:
+ * - Initial setup and testing
+ * - CORS troubleshooting
+ * - Single-server configurations
+ * - Quick connection verification
+ */
+
 import React, { useState, useEffect } from 'react';
 import type { ComfyUIConfiguration } from '../../electron/configurationTypes';
 import { useConfiguration } from './ConfigurationContext';

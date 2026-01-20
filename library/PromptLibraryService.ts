@@ -104,6 +104,73 @@ export class PromptLibraryService {
   }
 
   /**
+   * Get total prompt count
+   */
+  async getTotalPromptCount(): Promise<number> {
+    const index = await this.loadIndex();
+    return index.totalPrompts;
+  }
+
+  /**
+   * Category-specific helper methods for wizards
+   */
+  async getTimeOfDayPrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('10-time-of-day');
+  }
+
+  async getMoodPrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('09-mood-atmosphere');
+  }
+
+  async getShotTypePrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('03-shot-types');
+  }
+
+  async getCameraAnglePrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('07-camera-angles');
+  }
+
+  async getCameraMovementPrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('08-camera-movements');
+  }
+
+  async getTransitionPrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('11-transitions');
+  }
+
+  async getLightingPrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('04-lighting');
+  }
+
+  async getGenrePrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('02-genres');
+  }
+
+  async getVisualStylePrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('06-visual-styles');
+  }
+
+  async getColorPalettePrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('12-color-palettes');
+  }
+
+  async getUniverseTypePrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('13-universe-types');
+  }
+
+  async getCharacterArchetypePrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('14-character-archetypes');
+  }
+
+  async getMasterCoherencePrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('01-master-coherence');
+  }
+
+  async getSceneElementPrompts(): Promise<PromptTemplate[]> {
+    return this.getPromptsByCategory('05-scene-elements');
+  }
+
+  /**
    * Search prompts by tags
    */
   async searchByTags(tags: string[]): Promise<PromptTemplate[]> {

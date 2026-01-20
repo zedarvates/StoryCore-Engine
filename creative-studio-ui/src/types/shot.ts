@@ -41,6 +41,24 @@ export interface CharacterPosition {
   expression?: string;
 }
 
+export interface Shot {
+  id: string;
+  number: number;
+  type: ShotType;
+  timing: {
+    duration: number;
+    inPoint: number;
+    outPoint: number;
+    transition: TransitionType;
+    transitionDuration: number;
+  };
+  thumbnailUrl?: string;
+  status: string;
+  tags: string[];
+  sequencePlanId?: string;
+  sceneId?: string;
+}
+
 export interface ProductionShot {
   id: string;
   sequencePlanId: string;

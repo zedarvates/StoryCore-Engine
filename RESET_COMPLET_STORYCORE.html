@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Complet StoryCore - Correction Endpoint Ollama</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .button.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .button.danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        .button.warning {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            color: #2d3436;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            display: none;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .status.show {
+            display: block;
+        }
+        .status.success {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        .status.error {
+            background: rgba(244, 67, 54, 0.3);
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .info h3 {
+            margin-top: 0;
+        }
+        .info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .info li {
+            margin: 5px 0;
+        }
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .alert {
+            background: rgba(255, 193, 7, 0.3);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .alert h4 {
+            margin-top: 0;
+        }
+        .step {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4facfe;
+        }
+        .step h4 {
+            margin-top: 0;
+            color: #4facfe;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Reset Complet StoryCore</h1>
+        <div class="subtitle">Correction Endpoint Ollama: /api/chat → /api/generate</div>
+        
+        <div class="alert">
+            <h4>⚠️ Problème Identifié</h4>
+            <p>Le code utilise le mauvais endpoint Ollama:</p>
+            <ul>
+                <li>❌ <code>/api/chat</code> (n'existe pas) → Erreur 404</li>
+                <li>✅ <code>/api/generate</code> (correct)</li>
+            </ul>
+            <p><strong>Solution:</strong> Nettoyer le cache et recharger l'application</p>
+        </div>
+
+        <div class="info">
+            <h3>📋 Ce que cet outil va faire:</h3>
+            <ul>
+                <li>Supprimer toutes les anciennes configurations LLM</li>
+                <li>Nettoyer le cache du navigateur</li>
+                <li>Réinitialiser localStorage</li>
+                <li>Forcer le rechargement du code corrigé</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h4>Étape 1: Vérifier l'État Actuel</h4>
+            <button class="button success" onclick="checkStatus()">
+                ✅ Vérifier l'État
+            </button>
+        </div>
+
+        <div class="step">
+            <h4>Étape 2: Nettoyer les Configurations</h4>
+            <button class="button" onclick="clearLLMConfig()">
+                🗑️ Supprimer Configuration LLM
+            </button>
+        </div>
+
+        <div class="step">
+            <h4>Étape 3: Nettoyer Tout</h4>
+            <button class="button warning" onclick="clearAllStorage()">
+                🧹 Nettoyer Tout le localStorage
+            </button>
+        </div>
+
+        <div class="step">
+            <h4>Étape 4: Reset Complet</h4>
+            <button class="button danger" onclick="resetAndReload()">
+                🔄 Reset Complet + Hard Reload
+            </button>
+        </div>
+
+        <div class="step">
+            <h4>Étape 5: Tester Ollama</h4>
+            <button class="button success" onclick="testOllama()">
+                🧪 Tester Connexion Ollama
+            </button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="info">
+            <h3>⚠️ Après le reset:</h3>
+            <ol>
+                <li>Redémarrer le serveur de dev:
+                    <br><code>cd creative-studio-ui && npm run dev</code>
+                </li>
+                <li>Ouvrir <code>http://localhost:5173</code></li>
+                <li>Faire un Hard Refresh: <code>Ctrl+Shift+R</code></li>
+                <li>Ouvrir Settings → LLM Configuration</li>
+                <li>Sélectionner "Local LLM"</li>
+                <li>Endpoint: <code>http://localhost:11434</code></li>
+                <li>Choisir un modèle (ex: llama3.1:8b)</li>
+                <li>Tester la connexion ✅</li>
+                <li>Sauvegarder</li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h3>🔍 Vérification que ça fonctionne:</h3>
+            <ul>
+                <li>Ouvrir DevTools (F12) → Network</li>
+                <li>Envoyer un message dans le chatbox</li>
+                <li>Vérifier que la requête va vers: <code>http://localhost:11434/api/generate</code></li>
+                <li>Si c'est encore <code>/api/chat</code>, refaire le reset</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(message, isSuccess = true) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status show ' + (isSuccess ? 'success' : 'error');
+        }
+
+        function clearLLMConfig() {
+            try {
+                const keys = [
+                    'storycore_llm_config',
+                    'storycore_api_key_enc',
+                    'storycore-settings',
+                    'llm-config'
+                ];
+                
+                let removed = 0;
+                keys.forEach(key => {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
+                        removed++;
+                    }
+                });
+                
+                showStatus(`✅ Configuration LLM supprimée!\n${removed} clés supprimées:\n${keys.join('\n')}`, true);
+            } catch (error) {
+                showStatus('❌ Erreur: ' + error.message, false);
+            }
+        }
+
+        function clearAllStorage() {
+            try {
+                const count = localStorage.length;
+                const keys = [];
+                for (let i = 0; i < count; i++) {
+                    keys.push(localStorage.key(i));
+                }
+                
+                localStorage.clear();
+                showStatus(`✅ ${count} éléments supprimés du localStorage!\n\nClés supprimées:\n${keys.join('\n')}`, true);
+            } catch (error) {
+                showStatus('❌ Erreur: ' + error.message, false);
+            }
+        }
+
+        function checkStatus() {
+            const items = {
+                'storycore_llm_config': localStorage.getItem('storycore_llm_config'),
+                'storycore_api_key_enc': localStorage.getItem('storycore_api_key_enc'),
+                'storycore-settings': localStorage.getItem('storycore-settings'),
+                'llm-config': localStorage.getItem('llm-config')
+            };
+
+            let message = '📊 État actuel du localStorage:\n\n';
+            let hasData = false;
+
+            for (const [key, value] of Object.entries(items)) {
+                if (value) {
+                    message += `❌ ${key}: PRÉSENT (${value.length} caractères)\n`;
+                    hasData = true;
+                } else {
+                    message += `✅ ${key}: VIDE\n`;
+                }
+            }
+
+            message += `\nTotal localStorage: ${localStorage.length} clés\n`;
+
+            if (!hasData) {
+                message += '\n✨ Toutes les configurations LLM sont propres!';
+            } else {
+                message += '\n⚠️ Certaines configurations sont encore présentes';
+                message += '\n\n💡 Cliquez sur "Supprimer Configuration LLM" pour nettoyer';
+            }
+
+            showStatus(message, !hasData);
+        }
+
+        async function testOllama() {
+            showStatus('🔄 Test de connexion à Ollama...', true);
+            
+            try {
+                // Test 1: Vérifier que Ollama est accessible
+                const response1 = await fetch('http://localhost:11434/api/tags');
+                if (!response1.ok) {
+                    throw new Error(`Ollama non accessible (${response1.status})`);
+                }
+                
+                const data = await response1.json();
+                const models = data.models || [];
+                
+                let message = '✅ Ollama est accessible!\n\n';
+                message += `📦 Modèles disponibles (${models.length}):\n`;
+                models.forEach(model => {
+                    message += `  • ${model.name}\n`;
+                });
+                
+                // Test 2: Tester l'endpoint /api/generate
+                message += '\n🧪 Test de l\'endpoint /api/generate...\n';
+                
+                if (models.length > 0) {
+                    const testModel = models[0].name;
+                    const response2 = await fetch('http://localhost:11434/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: testModel,
+                            prompt: 'Test',
+                            stream: false
+                        })
+                    });
+                    
+                    if (response2.ok) {
+                        const result = await response2.json();
+                        message += `✅ Endpoint /api/generate fonctionne!\n`;
+                        message += `   Modèle testé: ${testModel}\n`;
+                        message += `   Réponse reçue: ${result.response ? 'OUI' : 'NON'}\n`;
+                    } else {
+                        message += `❌ Endpoint /api/generate erreur ${response2.status}\n`;
+                    }
+                } else {
+                    message += '⚠️ Aucun modèle installé pour tester\n';
+                    message += '\n💡 Installez un modèle avec:\n';
+                    message += '   ollama pull llama3.1:8b\n';
+                }
+                
+                showStatus(message, true);
+            } catch (error) {
+                let message = '❌ Erreur de connexion à Ollama:\n\n';
+                message += error.message + '\n\n';
+                message += '🔧 Vérifications:\n';
+                message += '  1. Ollama est-il lancé?\n';
+                message += '  2. Port 11434 accessible?\n';
+                message += '  3. Firewall bloque-t-il?\n\n';
+                message += '💡 Commandes utiles:\n';
+                message += '  • Vérifier: curl http://localhost:11434/api/tags\n';
+                message += '  • Lister: ollama list\n';
+                message += '  • Installer: ollama pull llama3.1:8b\n';
+                showStatus(message, false);
+            }
+        }
+
+        function resetAndReload() {
+            if (confirm('⚠️ Êtes-vous sûr de vouloir tout réinitialiser et recharger la page?\n\nCela va:\n1. Supprimer tout le localStorage\n2. Vider le cache\n3. Recharger la page (hard refresh)')) {
+                try {
+                    // Supprimer localStorage
+                    localStorage.clear();
+                    
+                    // Supprimer sessionStorage aussi
+                    sessionStorage.clear();
+                    
+                    showStatus('✅ Reset complet effectué!\n\n🔄 Rechargement avec cache vidé...', true);
+                    
+                    setTimeout(() => {
+                        // Hard reload avec cache vidé
+                        window.location.reload(true);
+                    }, 1500);
+                } catch (error) {
+                    showStatus('❌ Erreur: ' + error.message, false);
+                }
+            }
+        }
+
+        // Vérifier l'état au chargement
+        window.onload = function() {
+            checkStatus();
+            
+            // Afficher un message d'aide
+            setTimeout(() => {
+                if (localStorage.length > 0) {
+                    showStatus('💡 Conseil: Commencez par "Vérifier l\'État" pour voir ce qui doit être nettoyé', true);
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -373,11 +373,13 @@ All rights reserved.`;
           </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
+          {/* COMMENTED OUT: ComfyUI Portable installation feature not ready for release
           <DropdownMenuItem onSelect={handleInstallComfyUI}>
             <DownloadIcon className="mr-2 h-4 w-4" />
             Install ComfyUI Portable
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          */}
           <DropdownMenuItem onSelect={handleLLMSettings}>
             <PlugIcon className="mr-2 h-4 w-4" />
             LLM Configuration

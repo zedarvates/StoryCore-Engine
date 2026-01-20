@@ -5,27 +5,28 @@ All notable changes to StoryCore-Engine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.1.0] - 2026-01-19
 
-### Added - Backend Integration Completion
-- **API Server**: Simple HTTP server (`src/api_server.py`) with CORS support and JSON endpoints
-- **Project Management APIs**: GET/POST endpoints for projects, export, and panel re-promotion
-- **UI Backend Integration**: Updated `StoryCoreDashboard.tsx` to use real API calls instead of mock data
-- **Export Functionality**: Real API endpoint for project export with timestamped paths
-- **Panel Re-Promotion**: API endpoint for manual panel re-promotion with custom parameters
-- **Error Handling**: Graceful fallback to mock data when API is unavailable
-- **CORS Support**: Cross-origin resource sharing for frontend-backend communication
+### Added - Wizard Integration & Production Features
+- **Complete Wizard Forms**: Full integration of sequence plan, shot, and dialogue wizards with auto-save functionality
+- **Production Wizard System**: Comprehensive production workflow with draft management and template support
+- **Template Management**: Reusable asset templates for consistent production workflows
+- **Enhanced Grid Editor**: Advanced grid editor with integrated video player and professional controls
+- **New UI Components**: Expanded component library with global keyboard shortcuts and improved UX
+- **Documentation Index**: Comprehensive documentation navigation system for easy access to all guides
+
+### Added - UI/UX Enhancements
+- **Wizard Integration**: Seamless wizard forms for sequence planning, shot creation, and dialogue management
+- **Production Features**: Auto-save, draft management, and template system for professional workflows
+- **Grid Editor Improvements**: Video player integration and advanced editing controls
+- **Global Shortcuts**: Keyboard shortcuts for improved productivity and workflow efficiency
 
 ### Changed
-- **Backend Integration Status**: Changed from "UI complete, API calls mocked for demo" to "UI complete, real API server implemented"
-- **Dashboard Data Source**: Now fetches real project data from backend API instead of hardcoded values
+- **Root README**: Restored README.md at repository root for better GitHub display and project visibility
+- **Documentation Navigation**: Enhanced INDEX.md with comprehensive navigation links and organized structure
 
-### Planned
-- Enhanced PII detection with machine learning
-- Full digital signature verification for models
-- Chaos engineering test suite
-- Security monitoring dashboard
-- Advanced analytics and metrics collection
+### Fixed
+- **TypeScript Build Errors**: Resolved TypeScript compilation issues in creative-studio-ui components
 
 ---
 

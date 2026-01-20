@@ -4,6 +4,16 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 // Wizard Context Types
 // ============================================================================
 
+export type WizardType = 
+  | 'world' 
+  | 'character'
+  | 'dialogue-writer'
+  | 'scene-generator'
+  | 'storyboard-creator'
+  | 'style-transfer'
+  | 'sequence-plan'
+  | 'shot';
+
 export interface WizardContextState<T> {
   currentStep: number;
   totalSteps: number;
@@ -29,7 +39,7 @@ export interface WizardContextState<T> {
 
 interface WizardProviderProps<T> {
   children: ReactNode;
-  wizardType: 'world' | 'character';
+  wizardType: WizardType;
   totalSteps: number;
   initialData?: Partial<T>;
   onSubmit: (data: T) => Promise<void>;
@@ -55,6 +65,7 @@ export function WizardProvider<T>({
   totalSteps,
   initialData = {},
   onSubmit,
+  onComplete,
   onValidateStep,
   autoSave = true,
   autoSaveDelay = 2000,
@@ -137,6 +148,15 @@ export function WizardProvider<T>({
       if (timeout) clearTimeout(timeout);
     };
   }, [formData, autoSave, autoSaveDelay, isDirty, saveProgress]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeout) {
+        clearTimeout(autoSaveTimeout);
+      }
+    };
+  }, [autoSaveTimeout]);
 
   // ============================================================================
   // Navigation Actions
@@ -222,6 +242,11 @@ export function WizardProvider<T>({
       // Submit the form
       await onSubmit(formData as T);
       
+      // Call onComplete callback after successful submission
+      if (onComplete) {
+        onComplete(formData as T);
+      }
+      
       // Clear saved progress on successful submission
       localStorage.removeItem(`wizard-${wizardType}`);
       
@@ -236,7 +261,7 @@ export function WizardProvider<T>({
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, totalSteps, validateStep, onSubmit, wizardType, initialData]);
+  }, [formData, totalSteps, validateStep, onSubmit, onComplete, wizardType, initialData]);
 
   // ============================================================================
   // Reset

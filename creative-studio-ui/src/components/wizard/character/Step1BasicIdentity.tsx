@@ -1,6 +1,7 @@
 import React from 'react';
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout } from '../WizardFormLayout';
+import { ValidationErrorSummary } from '../ValidationErrorSummary';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -75,7 +76,7 @@ export function Step1BasicIdentity({ worldContext }: Step1BasicIdentityProps) {
     },
   });
 
-  const handleGenerateName = async () => {
+  const handleGenerateName = async (random: boolean = false) => {
     clearError();
 
     const context = {
@@ -108,7 +109,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
     await generate({
       prompt,
       systemPrompt,
-      temperature: 0.9, // Higher temperature for more creative names
+      temperature: random ? 0.9 : 0.7, // Higher temperature for random, lower for intelligent
       maxTokens: 200,
     });
   };
@@ -185,23 +186,38 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
       title="Basic Identity"
       description="Define the fundamental aspects of your character"
     >
+      {/* Validation Error Summary */}
+      <ValidationErrorSummary errors={validationErrors} className="mb-6" />
+
       <div className="space-y-6">
         {/* Character Name with LLM Generation */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="character-name" className="required">
-              Character Name
+              Character Name <span className="text-red-600">*</span>
             </Label>
-            <Button
-              onClick={handleGenerateName}
-              disabled={isLoading || !formData.role?.archetype || !llmConfigured}
-              variant="ghost"
-              size="sm"
-              className="gap-2 h-8"
-            >
-              <Sparkles className="h-3 w-3" />
-              {isLoading ? 'Generating...' : 'Suggest Name'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleGenerateName(false)}
+                disabled={isLoading || !formData.role?.archetype || !llmConfigured}
+                variant="ghost"
+                size="sm"
+                className="gap-2 h-8"
+              >
+                <Sparkles className="h-3 w-3" />
+                {isLoading ? 'Generating...' : 'Intelligent'}
+              </Button>
+              <Button
+                onClick={() => handleGenerateName(true)}
+                disabled={isLoading || !formData.role?.archetype || !llmConfigured}
+                variant="ghost"
+                size="sm"
+                className="gap-2 h-8"
+              >
+                <Sparkles className="h-3 w-3" />
+                {isLoading ? 'Generating...' : 'Random'}
+              </Button>
+            </div>
           </div>
           
           {/* Service Warning */}
@@ -235,6 +251,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
             aria-required="true"
             aria-invalid={!!validationErrors.name}
             aria-describedby={validationErrors.name ? 'name-error' : undefined}
+            className={validationErrors.name ? 'border-red-500 focus:ring-red-500' : ''}
           />
           {validationErrors.name && (
             <p id="name-error" className="text-sm text-destructive" role="alert">
@@ -254,7 +271,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
         {/* Archetype */}
         <div className="space-y-2">
           <Label htmlFor="archetype" className="required">
-            Character Archetype
+            Character Archetype <span className="text-red-600">*</span>
           </Label>
           <Select
             value={formData.role?.archetype || ''}
@@ -289,7 +306,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
         {/* Age Range */}
         <div className="space-y-2">
           <Label htmlFor="age-range" className="required">
-            Age Range
+            Age Range <span className="text-red-600">*</span>
           </Label>
           <Select
             value={formData.visual_identity?.age_range || ''}

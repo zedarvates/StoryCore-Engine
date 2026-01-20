@@ -246,6 +246,26 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
+  margin-bottom: 16px;
+}
+
+.config-info {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+  border-radius: 4px;
+  margin-top: 16px;
+}
+
+.config-info p {
+  margin: 0;
+  color: #495057;
+  line-height: 1.5;
+}
+
+.config-info strong {
+  color: #007bff;
+  font-weight: 600;
 }
 
 .config-button {

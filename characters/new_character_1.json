@@ -1,0 +1,35 @@
+{
+  "character_id": "new_char_001",
+  "name": "Alex Thunder",
+  "creation_method": "manual",
+  "creation_timestamp": "2026-01-20T19:54:00.000000",
+  "version": "1.0",
+  "visual_identity": {
+    "hair_color": "Blonde",
+    "hair_style": "Messy",
+    "hair_length": "Short",
+    "eye_color": "Green",
+    "eye_shape": "Almond",
+    "skin_tone": "Tan",
+    "facial_structure": "Square",
+    "distinctive_features": ["Beard", "Tattoo on arm"],
+    "age_range": "adult",
+    "height": "185cm",
+    "build": "Muscular",
+    "posture": "Strong",
+    "clothing_style": "Streetwear",
+    "color_palette": ["Black", "Red", "White"]
+  },
+  "personality": {
+    "traits": ["Adventurous", "Loyal", "Quick-witted"],
+    "background": "Former soldier turned detective",
+    "motivations": ["Solve mysteries", "Protect the innocent"],
+    "flaws": ["Reckless", "Trust issues"]
+  },
+  "relationships": ["Partner: Jamie", "Mentor: Old Captain"],
+  "arc": {
+    "starting_point": "Cynical investigator",
+    "development": "Learns to trust again",
+    "ending_point": "Hopeful hero"
+  }
+}

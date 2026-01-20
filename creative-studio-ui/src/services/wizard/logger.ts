@@ -144,6 +144,15 @@ export class WizardLogger {
    * Log to console with appropriate formatting
    */
   private logToConsole(entry: LogEntry): void {
+    // Suppress connection errors for optional services (Ollama/ComfyUI)
+    // These are expected when services aren't installed/running
+    if (entry.level === 'error' && entry.category === 'connection') {
+      // Only show connection errors in debug mode
+      if (this.config.level !== 'debug') {
+        return;
+      }
+    }
+
     const prefix = `[${entry.timestamp}] [${entry.level.toUpperCase()}] [${entry.category}]`;
     const message = `${prefix} ${entry.message}`;
 

@@ -650,47 +650,81 @@ class CustomProvider extends LLMProviderBase {
   async generateCompletion(request: LLMRequest): Promise<LLMResponse> {
     const endpoint = this.config.apiEndpoint || 'http://localhost:11434';
     
-    // Use Ollama's native API format
-    const response = await fetch(`${endpoint}/api/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: this.config.model,
-        messages: [
-          ...(request.systemPrompt ? [{ role: 'system', content: request.systemPrompt }] : []),
-          { role: 'user', content: request.prompt },
-        ],
-        stream: false,
-        options: {
-          temperature: request.temperature ?? this.config.parameters.temperature,
-          num_predict: request.maxTokens ?? this.config.parameters.maxTokens,
+    try {
+      // Use Ollama's native API format
+      const response = await fetch(`${endpoint}/api/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      }),
-    });
+        body: JSON.stringify({
+          model: this.config.model,
+          prompt: request.systemPrompt 
+            ? `${request.systemPrompt}\n\n${request.prompt}`
+            : request.prompt,
+          stream: false,
+          options: {
+            temperature: request.temperature ?? this.config.parameters.temperature,
+            num_predict: request.maxTokens ?? this.config.parameters.maxTokens,
+          },
+        }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 404) {
+          throw new LLMError(
+            'Ollama service not found. Please ensure Ollama is running and accessible at ' + endpoint,
+            'connection',
+            true,
+            { endpoint, status: 404 }
+          );
+        }
+        
+        const error = await response.json().catch(() => ({}));
+        throw new LLMError(
+          error.error || `Ollama request failed with status ${response.status}`,
+          'api_error',
+          response.status === 429 || response.status >= 500,
+          error
+        );
+      }
+
+      const data = await response.json();
+
+      return {
+        content: data.response || '',
+        finishReason: data.done ? 'stop' : 'length',
+        usage: data.prompt_eval_count ? {
+          promptTokens: data.prompt_eval_count || 0,
+          completionTokens: data.eval_count || 0,
+          totalTokens: (data.prompt_eval_count || 0) + (data.eval_count || 0),
+        } : undefined,
+      };
+    } catch (error) {
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new LLMError(
+          'Cannot connect to Ollama. Please ensure Ollama is running at ' + endpoint,
+          'network',
+          true,
+          { endpoint, originalError: error.message }
+        );
+      }
+      
+      // Re-throw LLMError as-is
+      if (error instanceof LLMError) {
+        throw error;
+      }
+      
+      // Wrap other errors
       throw new LLMError(
-        error.error || 'Ollama request failed',
-        'api_error',
-        response.status === 429 || response.status >= 500,
-        error
+        error instanceof Error ? error.message : 'Unknown error occurred',
+        'unknown',
+        false,
+        { originalError: error }
       );
     }
-
-    const data = await response.json();
-
-    return {
-      content: data.message?.content || '',
-      finishReason: data.done ? 'stop' : 'length',
-      usage: data.prompt_eval_count ? {
-        promptTokens: data.prompt_eval_count || 0,
-        completionTokens: data.eval_count || 0,
-        totalTokens: (data.prompt_eval_count || 0) + (data.eval_count || 0),
-      } : undefined,
-    };
   }
 
   async generateStreamingCompletion(
@@ -699,37 +733,71 @@ class CustomProvider extends LLMProviderBase {
   ): Promise<LLMResponse> {
     const endpoint = this.config.apiEndpoint || 'http://localhost:11434';
     
-    // Use Ollama's native API format with streaming
-    const response = await fetch(`${endpoint}/api/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: this.config.model,
-        messages: [
-          ...(request.systemPrompt ? [{ role: 'system', content: request.systemPrompt }] : []),
-          { role: 'user', content: request.prompt },
-        ],
-        stream: true,
-        options: {
-          temperature: request.temperature ?? this.config.parameters.temperature,
-          num_predict: request.maxTokens ?? this.config.parameters.maxTokens,
+    try {
+      // Use Ollama's native API format with streaming
+      const response = await fetch(`${endpoint}/api/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      }),
-    });
+        body: JSON.stringify({
+          model: this.config.model,
+          prompt: request.systemPrompt 
+            ? `${request.systemPrompt}\n\n${request.prompt}`
+            : request.prompt,
+          stream: true,
+          options: {
+            temperature: request.temperature ?? this.config.parameters.temperature,
+            num_predict: request.maxTokens ?? this.config.parameters.maxTokens,
+          },
+        }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 404) {
+          throw new LLMError(
+            'Ollama service not found. Please ensure Ollama is running and accessible at ' + endpoint,
+            'connection',
+            true,
+            { endpoint, status: 404 }
+          );
+        }
+        
+        const error = await response.json().catch(() => ({}));
+        throw new LLMError(
+          error.error || `Ollama request failed with status ${response.status}`,
+          'api_error',
+          response.status === 429 || response.status >= 500,
+          error
+        );
+      }
+
+      return this.processOllamaStream(response, onChunk);
+    } catch (error) {
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new LLMError(
+          'Cannot connect to Ollama. Please ensure Ollama is running at ' + endpoint,
+          'network',
+          true,
+          { endpoint, originalError: error.message }
+        );
+      }
+      
+      // Re-throw LLMError as-is
+      if (error instanceof LLMError) {
+        throw error;
+      }
+      
+      // Wrap other errors
       throw new LLMError(
-        error.error || 'Ollama request failed',
-        'api_error',
-        response.status === 429 || response.status >= 500,
-        error
+        error instanceof Error ? error.message : 'Unknown error occurred',
+        'unknown',
+        false,
+        { originalError: error }
       );
     }
-
-    return this.processOllamaStream(response, onChunk);
   }
 
   private async processOllamaStream(
@@ -756,7 +824,8 @@ class CustomProvider extends LLMProviderBase {
         for (const line of lines) {
           try {
             const parsed = JSON.parse(line);
-            const content = parsed.message?.content;
+            // For /api/generate, the response is directly in 'response' field
+            const content = parsed.response;
             if (content) {
               fullContent += content;
               onChunk(content);
@@ -778,8 +847,6 @@ class CustomProvider extends LLMProviderBase {
       finishReason,
     };
   }
-
-  // Keep the old processStream for backward compatibility if needed
   private async processStream(
     response: Response,
     onChunk: StreamChunkCallback
@@ -1260,10 +1327,58 @@ export function getAvailableProviders(): LLMProviderInfo[] {
       name: 'Local LLM',
       models: [
         {
-          id: 'local-model',
-          name: 'Local Model',
+          id: 'qwen3-vl:8b',
+          name: 'Qwen 3 VL 8B (Vision + Language) ⭐ HIGH QUALITY',
+          contextWindow: 32768,
+          capabilities: ['chat', 'completion', 'streaming', 'vision', 'multimodal'],
+        },
+        {
+          id: 'qwen3-vl:4b',
+          name: 'Qwen 3 VL 4B (Vision + Language) ⭐ RECOMMENDED',
+          contextWindow: 32768,
+          capabilities: ['chat', 'completion', 'streaming', 'vision', 'multimodal'],
+        },
+        {
+          id: 'llama3.1:8b',
+          name: 'Llama 3.1 8B (High Quality)',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'llama3.2:3b',
+          name: 'Llama 3.2 3B (Balanced)',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'gemma3:4b',
+          name: 'Gemma 3 4B (Fast)',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'gemma3:1b',
+          name: 'Gemma 3 1B (Ultra Fast)',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'mistral:latest',
+          name: 'Mistral 7B',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'qwen2.5-coder:latest',
+          name: 'Qwen 2.5 Coder (Code Generation)',
+          contextWindow: 32768,
+          capabilities: ['chat', 'completion', 'streaming', 'code'],
+        },
+        {
+          id: 'phi3:mini',
+          name: 'Phi 3 Mini',
           contextWindow: 4096,
-          capabilities: ['chat', 'completion'],
+          capabilities: ['chat', 'completion', 'streaming'],
         },
       ],
       requiresApiKey: false,
@@ -1293,10 +1408,10 @@ export function getAvailableProviders(): LLMProviderInfo[] {
  */
 export function getDefaultSystemPrompts() {
   return {
-    worldGeneration: `You are a creative world-building assistant for storytelling. Generate rich, coherent, and detailed world descriptions that are internally consistent. Consider genre conventions, cultural elements, and narrative potential. Provide specific, vivid details that help creators visualize and understand the world.`,
+    worldGeneration: `You are a creative world-building assistant for storytelling and visual content creation. Generate rich, coherent, and detailed world descriptions that are internally consistent and visually compelling. Consider genre conventions, cultural elements, visual aesthetics, color palettes, and narrative potential. Provide specific, vivid details that help creators visualize and understand the world. When describing visual elements, be precise about composition, lighting, atmosphere, and mood.`,
     
-    characterGeneration: `You are a character development expert for storytelling. Create well-rounded, believable characters with consistent traits, motivations, and backgrounds. Ensure that appearance, personality, and backstory align logically. Consider character archetypes, narrative roles, and relationship dynamics.`,
+    characterGeneration: `You are a character development expert for storytelling and visual media. Create well-rounded, believable characters with consistent traits, motivations, backgrounds, and distinctive visual appearances. Ensure that physical appearance, personality, and backstory align logically. Consider character archetypes, narrative roles, relationship dynamics, and visual design elements like costume, color schemes, and distinctive features. Provide detailed visual descriptions that can guide character design and illustration.`,
     
-    dialogueGeneration: `You are a dialogue writing specialist. Create natural, character-appropriate dialogue that reveals personality, advances plot, and maintains consistent voice. Consider character background, emotional state, and relationship dynamics when crafting conversations.`,
+    dialogueGeneration: `You are a dialogue writing specialist for narrative content. Create natural, character-appropriate dialogue that reveals personality, advances plot, maintains consistent voice, and feels authentic to the character's background and emotional state. Consider subtext, pacing, and how dialogue can convey visual actions and reactions. Ensure dialogue works well for both text and potential voice acting or animation.`,
   };
 }

@@ -57,14 +57,22 @@ export const GridEditorCanvas: React.FC<GridEditorCanvasProps> = ({
   const activeTool = useGridStore((state) => state.activeTool);
   const selectPanel = useGridStore((state) => state.selectPanel);
   
-  const viewport = useViewportStore((state) => ({
-    zoom: state.zoom,
-    pan: state.pan,
-    bounds: state.bounds,
-    focusedPanelId: state.focusedPanelId,
-  }));
+  // Memoize viewport selector to prevent infinite loops
+  const viewportZoom = useViewportStore((state) => state.zoom);
+  const viewportPan = useViewportStore((state) => state.pan);
+  const viewportBounds = useViewportStore((state) => state.bounds);
+  const viewportFocusedPanelId = useViewportStore((state) => state.focusedPanelId);
   
-  const { undo, redo } = useUndoRedoStore();
+  const viewport = React.useMemo(() => ({
+    zoom: viewportZoom,
+    pan: viewportPan,
+    bounds: viewportBounds,
+    focusedPanelId: viewportFocusedPanelId,
+  }), [viewportZoom, viewportPan, viewportBounds, viewportFocusedPanelId]);
+  
+  // Extract undo/redo functions separately to avoid object creation
+  const undo = useUndoRedoStore((state) => state.undo);
+  const redo = useUndoRedoStore((state) => state.redo);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const announcerRef = useRef<ScreenReaderAnnouncer | null>(null);

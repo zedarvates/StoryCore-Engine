@@ -132,6 +132,46 @@ export interface ElectronAPI {
      * @throws Error if listing fails
      */
     listDirectory: (path: string) => Promise<DirectoryItem[]>;
+
+    /**
+     * Update project metadata
+     * @param path Path to the project directory
+     * @param metadata Metadata to update (partial)
+     * @returns Updated project information
+     * @throws Error if update fails
+     */
+    updateMetadata: (path: string, metadata: Record<string, any>) => Promise<Project>;
+  };
+
+  // Sequence management
+  sequence: {
+    /**
+     * Update a shot in a sequence file
+     * @param projectPath Path to the project directory
+     * @param sequenceId ID of the sequence (e.g., "001")
+     * @param shotId ID of the shot to update
+     * @param updates Partial shot data to update
+     * @returns Updated shot data
+     * @throws Error if update fails
+     */
+    updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, any>) => Promise<any>;
+
+    /**
+     * Get all shots from a sequence
+     * @param projectPath Path to the project directory
+     * @param sequenceId ID of the sequence (e.g., "001")
+     * @returns Array of shots in the sequence
+     * @throws Error if retrieval fails
+     */
+    getShots: (projectPath: string, sequenceId: string) => Promise<any[]>;
+
+    /**
+     * Get all sequences from a project
+     * @param projectPath Path to the project directory
+     * @returns Array of all sequences
+     * @throws Error if retrieval fails
+     */
+    getAll: (projectPath: string) => Promise<any[]>;
   };
 
   // Recent projects management

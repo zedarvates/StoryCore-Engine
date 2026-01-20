@@ -1,0 +1,175 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║              COMMANDES DE TEST - CORRECTION PARSING LLM                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+🚀 LANCER L'APPLICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cd creative-studio-ui
+npm run dev
+
+Puis ouvrir: http://localhost:5173
+
+🧪 TESTS WORLD WIZARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣ TEST STEP 1 - BASIC INFORMATION
+   ✓ Créer nouveau projet
+   ✓ Cliquer "Create World"
+   ✓ Sélectionner Genre: Fantasy, Sci-Fi
+   ✓ Sélectionner Tone: Dark, Epic
+   ✓ Entrer Time Period: "Medieval Era"
+   ✓ Cliquer "Suggest Name"
+   ✓ VÉRIFIER: Nom du monde généré dans le champ
+   ✓ VÉRIFIER: Console log "Successfully parsed suggestions"
+
+2️⃣ TEST STEP 2 - WORLD RULES
+   ✓ Cliquer "Next"
+   ✓ Cliquer "Generate Rules"
+   ✓ VÉRIFIER: 4-6 règles ajoutées avec catégories
+   ✓ VÉRIFIER: Chaque règle a: catégorie, règle, implications
+   ✓ VÉRIFIER: Console log "Successfully parsed rules"
+   ✓ Tester ajout manuel d'une règle
+   ✓ Tester suppression d'une règle
+
+3️⃣ TEST STEP 3 - LOCATIONS
+   ✓ Cliquer "Next"
+   ✓ Cliquer "Generate Locations"
+   ✓ VÉRIFIER: 3-5 lieux ajoutés
+   ✓ VÉRIFIER: Chaque lieu a: nom, description, signification, atmosphère
+   ✓ VÉRIFIER: Console log "Successfully parsed locations"
+   ✓ Cliquer sur un lieu pour l'éditer
+   ✓ Tester ajout manuel d'un lieu
+
+4️⃣ TEST STEP 4 - CULTURAL ELEMENTS
+   ✓ Cliquer "Next"
+   ✓ Cliquer "Generate Elements"
+   ✓ VÉRIFIER: Langues ajoutées (badges)
+   ✓ VÉRIFIER: Religions ajoutées (badges)
+   ✓ VÉRIFIER: Traditions ajoutées (badges)
+   ✓ VÉRIFIER: Événements historiques ajoutés (badges)
+   ✓ VÉRIFIER: Conflits culturels ajoutés (badges)
+   ✓ VÉRIFIER: Console log "Successfully parsed cultural elements"
+   ✓ Tester ajout manuel d'éléments
+   ✓ Tester suppression d'éléments
+
+🧪 TESTS CHARACTER WIZARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣ TEST STEP 1 - BASIC IDENTITY
+   ✓ Créer nouveau personnage
+   ✓ Sélectionner Archetype: "Protagonist"
+   ✓ Sélectionner Age Range: "Young Adult (20-29)"
+   ✓ Cliquer "Intelligent"
+   ✓ VÉRIFIER: Nom généré dans le champ
+   ✓ VÉRIFIER: Console log "Successfully parsed"
+   ✓ Cliquer "Random" pour tester variation
+   ✓ VÉRIFIER: Nouveau nom différent
+
+2️⃣ TEST STEP 2 - PHYSICAL APPEARANCE
+   ✓ Cliquer "Next"
+   ✓ Cliquer "Generate Appearance"
+   ✓ VÉRIFIER: Champs cheveux remplis (couleur, style, longueur)
+   ✓ VÉRIFIER: Champs yeux remplis (couleur, forme)
+   ✓ VÉRIFIER: Peau, structure faciale remplis
+   ✓ VÉRIFIER: Taille, corpulence, posture remplis
+   ✓ VÉRIFIER: Style vestimentaire rempli
+   ✓ VÉRIFIER: Traits distinctifs ajoutés (badges)
+   ✓ VÉRIFIER: Palette de couleurs ajoutée (badges)
+   ✓ VÉRIFIER: Console log "Successfully parsed appearance"
+
+3️⃣ TEST STEP 3 - PERSONALITY
+   ✓ Cliquer "Next"
+   ✓ Cliquer "Generate Personality"
+   ✓ VÉRIFIER: Traits de personnalité ajoutés (5-7 badges)
+   ✓ VÉRIFIER: Valeurs ajoutées (badges)
+   ✓ VÉRIFIER: Peurs ajoutées (badges)
+   ✓ VÉRIFIER: Désirs ajoutés (badges)
+   ✓ VÉRIFIER: Défauts ajoutés (badges)
+   ✓ VÉRIFIER: Forces ajoutées (badges)
+   ✓ VÉRIFIER: Tempérament rempli
+   ✓ VÉRIFIER: Style de communication rempli
+   ✓ VÉRIFIER: Console log "Successfully parsed personality"
+
+4️⃣ TEST STEP 4 - BACKGROUND
+   ✓ Cliquer "Next"
+   ✓ Cliquer "Generate Background"
+   ✓ VÉRIFIER: Origine remplie
+   ✓ VÉRIFIER: Occupation remplie
+   ✓ VÉRIFIER: Éducation remplie
+   ✓ VÉRIFIER: Famille remplie
+   ✓ VÉRIFIER: Événements significatifs ajoutés (3-5 items)
+   ✓ VÉRIFIER: Situation actuelle remplie
+   ✓ VÉRIFIER: Console log "Successfully parsed background"
+
+🔍 VÉRIFICATIONS CONSOLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ouvrir DevTools (F12) → Console
+
+✅ LOGS ATTENDUS (succès):
+   "Parsing LLM response: ..."
+   "Successfully parsed ... from JSON: ..."
+   OU
+   "Attempting text-based parsing"
+   "Successfully parsed ... from text: ..."
+
+❌ LOGS À ÉVITER (échec):
+   "Could not parse any ... from response"
+   "Failed to parse LLM response"
+
+📊 MÉTRIQUES DE SUCCÈS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+World Wizard:
+✓ Step 1: Nom généré                    → 1/1 champ rempli
+✓ Step 2: Règles générées               → 4-6 règles ajoutées
+✓ Step 3: Lieux générés                 → 3-5 lieux ajoutés
+✓ Step 4: Éléments culturels générés    → 5 catégories remplies
+
+Character Wizard:
+✓ Step 1: Nom généré                    → 1/1 champ rempli
+✓ Step 2: Apparence générée             → 13 champs remplis
+✓ Step 3: Personnalité générée          → 8 catégories remplies
+✓ Step 4: Background généré             → 6 champs remplis
+
+🐛 DEBUGGING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Si un bouton ne fonctionne pas:
+
+1. Vérifier la console pour les logs
+2. Chercher "Response was: ..." pour voir la réponse brute
+3. Vérifier que Ollama est lancé: http://localhost:11434
+4. Vérifier le modèle configuré dans Settings → LLM
+5. Tester avec un prompt simple dans Settings → LLM → Test
+
+Si parsing échoue:
+1. Copier la réponse brute de la console
+2. Vérifier le format (JSON, texte, liste)
+3. Signaler le format non supporté
+4. Ajouter support dans le parser concerné
+
+📝 RAPPORT DE TEST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Après les tests, noter:
+
+World Wizard:
+[ ] Step 1 - Suggest Name          : ✓ / ✗
+[ ] Step 2 - Generate Rules        : ✓ / ✗
+[ ] Step 3 - Generate Locations    : ✓ / ✗
+[ ] Step 4 - Generate Elements     : ✓ / ✗
+
+Character Wizard:
+[ ] Step 1 - Generate Name         : ✓ / ✗
+[ ] Step 2 - Generate Appearance   : ✓ / ✗
+[ ] Step 3 - Generate Personality  : ✓ / ✗
+[ ] Step 4 - Generate Background   : ✓ / ✗
+
+Taux de succès global: ___/8 (___%)
+
+🎉 SUCCÈS ATTENDU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8/8 tests passent (100%)
+Tous les champs sont remplis après génération
+Aucune erreur "Could not parse" dans la console

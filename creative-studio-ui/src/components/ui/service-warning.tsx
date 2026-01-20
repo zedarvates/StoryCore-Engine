@@ -96,26 +96,43 @@ export function useServiceStatus() {
   const [comfyUIConfigured, setComfyUIConfigured] = React.useState(false);
 
   React.useEffect(() => {
-    // Check LLM configuration
+    // Check LLM configuration from storycore-settings
     try {
-      const llmConfig = localStorage.getItem('llm-config');
-      if (llmConfig) {
-        const config = JSON.parse(llmConfig);
-        setLLMConfigured(!!(config.provider && (config.apiKey || config.provider === 'ollama')));
+      const storedSettings = localStorage.getItem('storycore-settings');
+      if (storedSettings) {
+        const settings = JSON.parse(storedSettings);
+        // LLM is configured if we have a provider and either an encrypted API key or it's Ollama
+        const hasLLMConfig = settings.llm?.config?.provider;
+        const hasApiKey = settings.llm?.encryptedApiKey;
+        const isOllama = settings.llm?.config?.provider === 'ollama' || settings.llm?.config?.provider === 'local';
+        setLLMConfigured(!!(hasLLMConfig && (hasApiKey || isOllama)));
+      } else {
+        setLLMConfigured(false);
       }
     } catch (error) {
       console.error('Failed to check LLM config:', error);
+      setLLMConfigured(false);
     }
 
-    // Check ComfyUI configuration
+    // Check ComfyUI configuration from storycore-settings
     try {
-      const comfyUIConfig = localStorage.getItem('comfyui-config');
-      if (comfyUIConfig) {
-        const config = JSON.parse(comfyUIConfig);
-        setComfyUIConfigured(!!(config.serverUrl));
+      const storedSettings = localStorage.getItem('storycore-settings');
+      if (storedSettings) {
+        const settings = JSON.parse(storedSettings);
+        setComfyUIConfigured(!!(settings.comfyui?.config?.serverUrl));
+      } else {
+        // Fallback: check old comfyui-servers storage
+        const comfyUIServers = localStorage.getItem('comfyui-servers');
+        if (comfyUIServers) {
+          const servers = JSON.parse(comfyUIServers);
+          setComfyUIConfigured(!!(servers.servers && servers.servers.length > 0));
+        } else {
+          setComfyUIConfigured(false);
+        }
       }
     } catch (error) {
       console.error('Failed to check ComfyUI config:', error);
+      setComfyUIConfigured(false);
     }
   }, []);
 

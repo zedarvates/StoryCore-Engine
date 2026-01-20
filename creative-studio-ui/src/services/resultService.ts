@@ -6,6 +6,7 @@
  */
 
 import type { GenerationTask } from '../types';
+import { getCachedPlaceholder } from '../utils/placeholderImage';
 
 export interface GeneratedResult {
   taskId: string;
@@ -52,6 +53,13 @@ export class ResultService {
 
   constructor(baseUrl: string = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000') {
     this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Generate a placeholder image as data URI to avoid CSP violations
+   */
+  private generatePlaceholderImage(width: number, height: number, text: string): string {
+    return getCachedPlaceholder(width, height, text);
   }
 
   /**
@@ -236,8 +244,8 @@ export class MockResultService extends ResultService {
           id: `asset-${taskId}-1`,
           type: 'image',
           name: `generated-image-${taskId}.png`,
-          url: `https://via.placeholder.com/800x600?text=Generated+Image+${taskId}`,
-          thumbnail: `https://via.placeholder.com/200x150?text=Thumbnail+${taskId}`,
+          url: this.generatePlaceholderImage(800, 600, `Generated Image ${taskId}`),
+          thumbnail: this.generatePlaceholderImage(200, 150, `Thumbnail ${taskId}`),
           size: 1024 * 500, // 500 KB
           format: 'png',
           dimensions: { width: 800, height: 600 },

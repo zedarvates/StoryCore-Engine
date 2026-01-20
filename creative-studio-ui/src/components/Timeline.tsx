@@ -1,10 +1,12 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { useDrag, useDrop, DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useSequencePlanStore, useCurrentPlanShots, useSequencePlanActions } from '@/stores/sequencePlanStore';
 import { useAppStore } from '@/stores/useAppStore';
 import type { Shot } from '../types';
 import { Clock, Play, Pause, SkipBack, SkipForward, FolderOpen, Layers, Plus } from 'lucide-react';
+import { ShotThumbnail } from './timeline/ShotThumbnail';
+import { PerformanceMonitor } from './timeline/PerformanceMonitor';
 
 // Constants for timeline rendering
 const PIXELS_PER_SECOND = 50; // 50 pixels = 1 second
@@ -43,8 +45,8 @@ interface TimelineShotProps {
   onContextMenu?: (shotId: string, x: number, y: number) => void;
 }
 
-// Timeline Shot Component with drag-and-drop
-const TimelineShot: React.FC<TimelineShotProps> = ({
+// Timeline Shot Component with drag-and-drop (Optimized with React.memo)
+const TimelineShot = memo<TimelineShotProps>(({
   shot,
   startX,
   width,
@@ -82,13 +84,13 @@ const TimelineShot: React.FC<TimelineShotProps> = ({
     }),
   });
 
-  // Handle resize start
-  const handleResizeStart = (e: React.MouseEvent) => {
+  // Handle resize start - memoized to prevent recreation
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsResizing(true);
     setResizeStartX(e.clientX);
     setResizeStartWidth(width);
-  };
+  }, [width]);
 
   // Handle resize
   useEffect(() => {
@@ -114,8 +116,8 @@ const TimelineShot: React.FC<TimelineShotProps> = ({
     };
   }, [isResizing, resizeStartX, resizeStartWidth, shot.id, onDurationChange]);
 
-  // Determine border style based on selection state
-  const getBorderStyle = () => {
+  // Memoize border style calculation
+  const borderStyle = useMemo(() => {
     if (isMultiSelected) {
       return 'border-purple-400 border-2'; // Purple for multi-selection
     }
@@ -123,10 +125,10 @@ const TimelineShot: React.FC<TimelineShotProps> = ({
       return 'border-primary border-2'; // Primary for single selection
     }
     return 'border-blue-400'; // Default
-  };
+  }, [isMultiSelected, isSelected]);
 
-  // Determine ring style based on selection state
-  const getRingStyle = () => {
+  // Memoize ring style calculation
+  const ringStyle = useMemo(() => {
     if (isMultiSelected) {
       return 'ring-2 ring-purple-400'; // Purple ring for multi-selection
     }
@@ -134,7 +136,22 @@ const TimelineShot: React.FC<TimelineShotProps> = ({
       return 'ring-2 ring-primary'; // Primary ring for single selection
     }
     return '';
-  };
+  }, [isMultiSelected, isSelected]);
+
+  // Memoize click handler
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect(shot.id, e);
+  }, [shot.id, onSelect]);
+
+  // Memoize context menu handler
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onContextMenu) {
+      onContextMenu(shot.id, e.clientX, e.clientY);
+    }
+  }, [shot.id, onContextMenu]);
 
   return (
     <div ref={(node) => {
@@ -143,32 +160,25 @@ const TimelineShot: React.FC<TimelineShotProps> = ({
       <div
         className={`absolute top-0 cursor-move group ${isDragging ? 'opacity-50' : ''} ${
           isOver ? 'ring-2 ring-blue-400' : ''
-        } ${getRingStyle()}`}
+        } ${ringStyle}`}
         style={{
           left: startX,
           width: width,
           height: SHOT_TRACK_HEIGHT,
         }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(shot.id, e);
-        }}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (onContextMenu) {
-            onContextMenu(shot.id, e.clientX, e.clientY);
-          }
-        }}
+        onClick={handleClick}
+        onContextMenu={handleContextMenu}
       >
-        <div className={`h-full bg-blue-600 hover:bg-blue-500 border rounded overflow-hidden transition-colors relative ${getBorderStyle()}`}>
-          {/* Thumbnail Background */}
-          {shot.image && (
+        <div className={`h-full bg-blue-600 hover:bg-blue-500 border rounded overflow-hidden transition-colors relative ${borderStyle}`}>
+          {/* Thumbnail Background - Async loaded */}
+          {(shot.image || shot.videoUrl) && (
             <div className="absolute inset-0">
-              <img
-                src={shot.image}
+              <ShotThumbnail
+                imageUrl={shot.image}
+                videoUrl={shot.videoUrl}
+                timestamp={0}
                 alt={shot.title}
-                className="w-full h-full object-cover opacity-40"
+                className="w-full h-full opacity-40"
               />
               {/* Gradient overlay for better text readability */}
               <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/60 to-transparent" />
@@ -219,7 +229,24 @@ const TimelineShot: React.FC<TimelineShotProps> = ({
       )}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  // Only re-render if these specific props change
+  return (
+    prevProps.shot.id === nextProps.shot.id &&
+    prevProps.shot.title === nextProps.shot.title &&
+    prevProps.shot.duration === nextProps.shot.duration &&
+    prevProps.shot.image === nextProps.shot.image &&
+    prevProps.shot.audioTracks.length === nextProps.shot.audioTracks.length &&
+    prevProps.shot.transitionOut?.type === nextProps.shot.transitionOut?.type &&
+    prevProps.startX === nextProps.startX &&
+    prevProps.width === nextProps.width &&
+    prevProps.transitionWidth === nextProps.transitionWidth &&
+    prevProps.index === nextProps.index &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isMultiSelected === nextProps.isMultiSelected
+  );
+});
 
 export const Timeline: React.FC<TimelineProps> = ({ 
   className = '',
@@ -266,36 +293,41 @@ export const Timeline: React.FC<TimelineProps> = ({
     insertPosition?: number;
   } | null>(null);
   
-  // Calculate total duration
-  const totalDuration = shots.reduce((sum, shot) => {
-    let duration = sum + shot.duration;
-    if (shot.transitionOut) {
-      duration += shot.transitionOut.duration;
-    }
-    return duration;
-  }, 0);
+  // Calculate total duration - memoized to avoid recalculation on every render
+  const totalDuration = useMemo(() => {
+    return shots.reduce((sum, shot) => {
+      let duration = sum + shot.duration;
+      if (shot.transitionOut) {
+        duration += shot.transitionOut.duration;
+      }
+      return duration;
+    }, 0);
+  }, [shots]);
   
-  const totalWidth = Math.max(totalDuration * PIXELS_PER_SECOND, 1000);
+  // Calculate total width - memoized
+  const totalWidth = useMemo(() => {
+    return Math.max(totalDuration * PIXELS_PER_SECOND, 1000);
+  }, [totalDuration]);
   
-  // Format time as MM:SS
-  const formatTime = (seconds: number): string => {
+  // Format time as MM:SS - memoized function
+  const formatTime = useCallback((seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
   
-  // Generate time markers (every 5 seconds)
-  const generateTimeMarkers = () => {
+  // Generate time markers (every 5 seconds) - memoized
+  const timeMarkers = useMemo(() => {
     const markers: number[] = [];
     const interval = 5; // 5 second intervals
     for (let i = 0; i <= Math.ceil(totalDuration); i += interval) {
       markers.push(i);
     }
     return markers;
-  };
+  }, [totalDuration]);
   
-  // Calculate shot positions
-  const getShotPositions = () => {
+  // Calculate shot positions - memoized to avoid recalculation
+  const shotPositions = useMemo(() => {
     let currentPosition = 0;
     return shots.map((shot) => {
       const startX = currentPosition;
@@ -315,12 +347,10 @@ export const Timeline: React.FC<TimelineProps> = ({
         transitionWidth,
       };
     });
-  };
+  }, [shots]);
   
-  const shotPositions = getShotPositions();
-  
-  // Handle shot reordering
-  const handleShotReorder = async (dragIndex: number, hoverIndex: number) => {
+  // Handle shot reordering - memoized callback
+  const handleShotReorder = useCallback(async (dragIndex: number, hoverIndex: number) => {
     if (!currentPlanData) return;
     
     const newShots = [...shots];
@@ -339,10 +369,10 @@ export const Timeline: React.FC<TimelineProps> = ({
     } catch (error) {
       console.error('Failed to reorder shots:', error);
     }
-  };
+  }, [currentPlanData, shots, reorderShotsInPlan]);
   
-  // Handle duration change
-  const handleDurationChange = async (shotId: string, newDuration: number) => {
+  // Handle duration change - memoized callback
+  const handleDurationChange = useCallback(async (shotId: string, newDuration: number) => {
     if (!currentPlanData) return;
     
     try {
@@ -350,10 +380,10 @@ export const Timeline: React.FC<TimelineProps> = ({
     } catch (error) {
       console.error('Failed to update shot duration:', error);
     }
-  };
+  }, [currentPlanData, updateShotInPlan]);
   
-  // Handle shot selection
-  const handleShotSelect = (shotId: string, event: React.MouseEvent) => {
+  // Handle shot selection - memoized callback
+  const handleShotSelect = useCallback((shotId: string, event: React.MouseEvent) => {
     if (multiSelectMode) {
       // Multi-selection mode
       if (event.ctrlKey || event.metaKey) {
@@ -406,20 +436,20 @@ export const Timeline: React.FC<TimelineProps> = ({
         setLocalSelectedShotId(shotId);
       }
     }
-  };
+  }, [multiSelectMode, selectedShotIds, lastSelectedShotId, shots, externalOnMultiShotSelect, externalOnShotSelect]);
   
-  // Handle timeline click to move playhead
-  const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Handle timeline click to move playhead - memoized callback
+  const handleTimelineClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!timelineRef.current) return;
 
     const rect = timelineRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left + timelineRef.current.scrollLeft;
     const time = x / PIXELS_PER_SECOND;
     setCurrentTime(Math.max(0, Math.min(time, totalDuration)));
-  };
+  }, [totalDuration]);
 
-  // Handle context menu for timeline (insert shot)
-  const handleTimelineContextMenu = (x: number, y: number) => {
+  // Handle context menu for timeline (insert shot) - memoized callback
+  const handleTimelineContextMenu = useCallback((x: number, y: number) => {
     if (!timelineRef.current) return;
 
     const rect = timelineRef.current.getBoundingClientRect();
@@ -447,10 +477,10 @@ export const Timeline: React.FC<TimelineProps> = ({
       type: 'timeline',
       insertPosition,
     });
-  };
+  }, [shots]);
 
-  // Handle context menu for shot
-  const handleShotContextMenu = (shotId: string, x: number, y: number) => {
+  // Handle context menu for shot - memoized callback
+  const handleShotContextMenu = useCallback((shotId: string, x: number, y: number) => {
     setContextMenu({
       x,
       y,
@@ -458,15 +488,15 @@ export const Timeline: React.FC<TimelineProps> = ({
       type: 'shot',
       shotId,
     });
-  };
+  }, []);
 
-  // Close context menu
-  const closeContextMenu = () => {
+  // Close context menu - memoized callback
+  const closeContextMenu = useCallback(() => {
     setContextMenu(null);
-  };
+  }, []);
 
-  // Handle context menu actions
-  const handleInsertShot = async () => {
+  // Handle context menu actions - memoized callbacks
+  const handleInsertShot = useCallback(async () => {
     if (!contextMenu || contextMenu.type !== 'timeline' || contextMenu.insertPosition === undefined) return;
 
     const newShot: Shot = {
@@ -487,9 +517,9 @@ export const Timeline: React.FC<TimelineProps> = ({
     } catch (error) {
       console.error('Failed to insert shot:', error);
     }
-  };
+  }, [contextMenu, insertShotAtPosition, closeContextMenu]);
 
-  const handleSplitShot = async () => {
+  const handleSplitShot = useCallback(async () => {
     if (!contextMenu || contextMenu.type !== 'shot' || !contextMenu.shotId) return;
 
     try {
@@ -498,9 +528,9 @@ export const Timeline: React.FC<TimelineProps> = ({
     } catch (error) {
       console.error('Failed to split shot:', error);
     }
-  };
+  }, [contextMenu, currentTime, splitShot, closeContextMenu]);
 
-  const handleMergeShots = async () => {
+  const handleMergeShots = useCallback(async () => {
     if (!contextMenu || contextMenu.type !== 'shot' || !contextMenu.shotId) return;
 
     const shotIndex = shots.findIndex(s => s.id === contextMenu.shotId);
@@ -516,13 +546,13 @@ export const Timeline: React.FC<TimelineProps> = ({
         console.error('Failed to merge shots:', error);
       }
     }
-  };
+  }, [contextMenu, shots, mergeShots, closeContextMenu]);
   
-  // Handle playhead dragging
-  const handlePlayheadMouseDown = (e: React.MouseEvent) => {
+  // Handle playhead dragging - memoized callback
+  const handlePlayheadMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsDraggingPlayhead(true);
-  };
+  }, []);
   
   useEffect(() => {
     if (!isDraggingPlayhead) return;
@@ -639,18 +669,18 @@ export const Timeline: React.FC<TimelineProps> = ({
     }
   }, [selectedShotId, selectedShotIds, multiSelectMode, shots]);
   
-  // Playback controls
-  const handlePlayPause = () => {
+  // Playback controls - memoized callbacks
+  const handlePlayPause = useCallback(() => {
     setIsPlaying(!isPlaying);
-  };
+  }, [isPlaying]);
   
-  const handleSkipBack = () => {
+  const handleSkipBack = useCallback(() => {
     setCurrentTime(Math.max(0, currentTime - 5));
-  };
+  }, [currentTime]);
   
-  const handleSkipForward = () => {
+  const handleSkipForward = useCallback(() => {
     setCurrentTime(Math.min(totalDuration, currentTime + 5));
-  };
+  }, [totalDuration, currentTime]);
   
   // Playback loop
   useEffect(() => {
@@ -929,6 +959,17 @@ export const Timeline: React.FC<TimelineProps> = ({
             </span>
           )}
         </div>
+        
+        {/* Performance Monitor */}
+        {shots.length > 0 && (
+          <div className="ml-4">
+            <PerformanceMonitor
+              shotCount={shots.length}
+              enabled={true}
+              showWarnings={true}
+            />
+          </div>
+        )}
       </div>
       
       {/* Empty State - No Plan Selected */}
@@ -979,7 +1020,7 @@ export const Timeline: React.FC<TimelineProps> = ({
         >
           {/* Time Markers */}
           <div className="absolute top-0 left-0 right-0" style={{ height: TIME_MARKER_HEIGHT }}>
-            {generateTimeMarkers().map((time) => (
+            {timeMarkers.map((time) => (
               <div
                 key={time}
                 className="absolute top-0 flex flex-col items-center"

@@ -1,0 +1,259 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    🔄 REDÉMARRAGE DE L'APPLICATION                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📋 ÉTAPES DE REDÉMARRAGE                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Étape 1: Arrêter l'application actuelle
+Étape 2: Nettoyer le cache (optionnel mais recommandé)
+Étape 3: Redémarrer l'application
+Étape 4: Vérifier que tout fonctionne
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 💻 COMMANDES À EXÉCUTER                                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Option 1: Redémarrage Simple (Recommandé)
+==========================================
+
+1. Arrêter l'application:
+   → Appuyer sur Ctrl+C dans le terminal où l'app tourne
+   → Ou fermer le terminal
+
+2. Redémarrer l'application:
+   npm run dev
+
+3. Attendre que l'application démarre:
+   → Vite devrait afficher "Local: http://localhost:5173/"
+   → Ouvrir le navigateur à cette adresse
+
+
+Option 2: Redémarrage avec Nettoyage du Cache
+==============================================
+
+1. Arrêter l'application (Ctrl+C)
+
+2. Nettoyer le cache:
+   npm run clean
+   
+   OU manuellement:
+   rmdir /s /q node_modules\.vite
+   rmdir /s /q creative-studio-ui\node_modules\.vite
+   rmdir /s /q dist
+   rmdir /s /q creative-studio-ui\dist
+
+3. Redémarrer:
+   npm run dev
+
+
+Option 3: Redémarrage Complet (Si problèmes)
+=============================================
+
+1. Arrêter l'application (Ctrl+C)
+
+2. Nettoyer complètement:
+   rmdir /s /q node_modules
+   rmdir /s /q creative-studio-ui\node_modules
+   rmdir /s /q dist
+   rmdir /s /q creative-studio-ui\dist
+
+3. Réinstaller les dépendances:
+   npm install
+
+4. Redémarrer:
+   npm run dev
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🎯 COMMANDES RAPIDES (COPIER-COLLER)                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Redémarrage Simple:
+-------------------
+npm run dev
+
+
+Redémarrage avec Nettoyage:
+---------------------------
+npm run clean
+npm run dev
+
+
+Redémarrage Complet:
+--------------------
+rmdir /s /q node_modules & rmdir /s /q dist & npm install & npm run dev
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ✅ VÉRIFICATIONS APRÈS REDÉMARRAGE                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. L'application démarre sans erreurs
+   ✅ Vite affiche "Local: http://localhost:5173/"
+   ✅ Pas d'erreurs de compilation dans le terminal
+
+2. Ouvrir le navigateur
+   ✅ Aller à http://localhost:5173/
+   ✅ L'application se charge correctement
+
+3. Tester les corrections
+   ✅ Ouvrir World Wizard ou Character Wizard
+   ✅ Vérifier les astérisques rouges (*) sur les champs requis
+   ✅ Laisser Step 1 vide et cliquer "Next"
+   ✅ Vérifier que les erreurs s'affichent
+   ✅ Vérifier que le toast notification apparaît
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🐛 RÉSOLUTION DE PROBLÈMES                                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Problème: "npm run dev" ne fonctionne pas
+Solution: Vérifier que vous êtes dans le bon répertoire
+  cd creative-studio-ui
+  npm run dev
+
+Problème: Erreurs de compilation TypeScript
+Solution: Nettoyer et réinstaller
+  rmdir /s /q node_modules
+  npm install
+  npm run dev
+
+Problème: Port 5173 déjà utilisé
+Solution: Tuer le processus ou utiliser un autre port
+  netstat -ano | findstr :5173
+  taskkill /PID [PID_NUMBER] /F
+  
+  OU changer le port dans vite.config.ts:
+  server: { port: 5174 }
+
+Problème: Modifications non visibles
+Solution: Vider le cache du navigateur
+  → Ctrl+Shift+R (hard refresh)
+  → Ou ouvrir en mode incognito
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📊 STRUCTURE DU PROJET                                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+storycore-engine/
+├── creative-studio-ui/          ← Application React
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── wizard/
+│   │   │       ├── ValidationErrorSummary.tsx  ← NOUVEAU
+│   │   │       ├── world/
+│   │   │       │   └── Step1BasicInformation.tsx  ← MODIFIÉ
+│   │   │       └── character/
+│   │   │           └── Step1BasicIdentity.tsx  ← MODIFIÉ
+│   │   └── hooks/
+│   │       └── useWizardNavigation.ts  ← MODIFIÉ
+│   ├── package.json
+│   └── vite.config.ts
+├── package.json
+└── README.md
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🎬 DÉMARRAGE ÉTAPE PAR ÉTAPE                                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. Ouvrir un terminal (PowerShell ou CMD)
+
+2. Naviguer vers le répertoire du projet:
+   cd C:\chemin\vers\storycore-engine
+
+3. Aller dans le répertoire de l'UI:
+   cd creative-studio-ui
+
+4. Démarrer l'application:
+   npm run dev
+
+5. Attendre le message:
+   "VITE v5.x.x  ready in XXX ms
+    ➜  Local:   http://localhost:5173/
+    ➜  Network: use --host to expose"
+
+6. Ouvrir le navigateur:
+   → Aller à http://localhost:5173/
+
+7. Tester les wizards:
+   → Cliquer sur "Create World" ou "Create Character"
+   → Observer les nouvelles fonctionnalités
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🧪 TESTS À EFFECTUER APRÈS REDÉMARRAGE                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Test 1: Vérifier les Astérisques Rouges
+  1. Ouvrir World Wizard
+  2. Observer Step 1
+  3. Vérifier:
+     ✅ "World Name *" a un astérisque rouge
+     ✅ "Time Period *" a un astérisque rouge
+     ✅ "Genre *" a un astérisque rouge
+     ✅ "Tone *" a un astérisque rouge
+
+Test 2: Vérifier l'Affichage des Erreurs
+  1. Laisser Step 1 vide
+  2. Cliquer "Next"
+  3. Vérifier:
+     ✅ Résumé des erreurs en haut (fond rouge)
+     ✅ Bordures rouges sur les champs vides
+     ✅ Messages d'erreur sous chaque champ
+     ✅ Toast notification apparaît
+
+Test 3: Vérifier la Validation Réussie
+  1. Remplir tous les champs requis:
+     - World Name: "Test World"
+     - Time Period: "Medieval"
+     - Genre: Sélectionner "Fantasy"
+     - Tone: Sélectionner "Epic"
+  2. Cliquer "Next"
+  3. Vérifier:
+     ✅ Navigation vers Step 2
+     ✅ Pas d'erreurs affichées
+     ✅ Pas de toast notification
+
+Test 4: Vérifier le Bouton Complete
+  1. Compléter Step 1 avec les champs requis
+  2. Passer rapidement les steps 2-4 (optionnels)
+  3. Arriver à Step 5 (Review)
+  4. Vérifier:
+     ✅ Bouton "Complete" est ACTIVÉ
+  5. Cliquer "Complete"
+  6. Vérifier:
+     ✅ Wizard se ferme
+     ✅ World créé avec succès
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📝 NOTES IMPORTANTES                                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+• Les modifications sont dans le code TypeScript/React
+• Pas besoin de rebuild complet, Vite recharge automatiquement
+• Si les modifications ne sont pas visibles, faire Ctrl+Shift+R
+• Les corrections affectent World Wizard ET Character Wizard
+• Tous les fichiers modifiés sont dans creative-studio-ui/src/
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🎉 APRÈS LE REDÉMARRAGE                                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Vous devriez voir:
+  ✅ Astérisques rouges (*) sur les champs requis
+  ✅ Résumé des erreurs quand validation échoue
+  ✅ Bordures rouges sur les champs invalides
+  ✅ Messages d'erreur inline
+  ✅ Notifications toast
+  ✅ Bouton "Complete" activé quand Step 1 est valide
+
+Si tout fonctionne:
+  🎊 Les corrections sont appliquées avec succès!
+  🎊 Les wizards sont maintenant faciles à utiliser!
+  🎊 Le problème du bouton "Complete" est résolu!
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    ✅ PRÊT À REDÉMARRER L'APPLICATION                        ║
+║                                                                              ║
+║  Commande rapide: npm run dev                                                ║
+║  Puis ouvrir: http://localhost:5173/                                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝

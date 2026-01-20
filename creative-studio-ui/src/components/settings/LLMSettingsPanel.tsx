@@ -39,6 +39,7 @@ import {
   isCryptoAvailable,
   getLastValidationTime,
 } from '@/utils/secureStorage';
+import { LocalModelSelector } from './LocalModelSelector';
 
 // ============================================================================
 // Types
@@ -220,7 +221,15 @@ export function LLMSettingsPanel({
           // Populate form with stored settings
           setProvider(storedConfig.provider);
           setApiKey(storedConfig.apiKey);
-          setApiEndpoint(storedConfig.apiEndpoint || '');
+          
+          // Use stored endpoint or fall back to provider's default
+          let endpoint = storedConfig.apiEndpoint || '';
+          if (!endpoint && (storedConfig.provider === 'local' || storedConfig.provider === 'custom')) {
+            const providerInfo = providers.find(p => p.id === storedConfig.provider);
+            endpoint = providerInfo?.defaultEndpoint || '';
+          }
+          setApiEndpoint(endpoint);
+          
           setModel(storedConfig.model);
           setTemperature(storedConfig.parameters.temperature);
           setMaxTokens(storedConfig.parameters.maxTokens);
@@ -230,9 +239,18 @@ export function LLMSettingsPanel({
           setTimeout(storedConfig.timeout);
           setRetryAttempts(storedConfig.retryAttempts);
           setStreamingEnabled(storedConfig.streamingEnabled);
-          setWorldPrompt(storedConfig.systemPrompts.worldGeneration);
-          setCharacterPrompt(storedConfig.systemPrompts.characterGeneration);
-          setDialoguePrompt(storedConfig.systemPrompts.dialogueGeneration);
+          
+          // Safely access systemPrompts with fallback to defaults
+          if (storedConfig.systemPrompts) {
+            setWorldPrompt(storedConfig.systemPrompts.worldGeneration || defaultPrompts.worldGeneration);
+            setCharacterPrompt(storedConfig.systemPrompts.characterGeneration || defaultPrompts.characterGeneration);
+            setDialoguePrompt(storedConfig.systemPrompts.dialogueGeneration || defaultPrompts.dialogueGeneration);
+          } else {
+            // Use defaults if systemPrompts is missing
+            setWorldPrompt(defaultPrompts.worldGeneration);
+            setCharacterPrompt(defaultPrompts.characterGeneration);
+            setDialoguePrompt(defaultPrompts.dialogueGeneration);
+          }
 
           // Set last validation time
           const lastValidation = getLastValidationTime();
@@ -508,9 +526,18 @@ export function LLMSettingsPanel({
             setTimeout(storedConfig.timeout);
             setRetryAttempts(storedConfig.retryAttempts);
             setStreamingEnabled(storedConfig.streamingEnabled);
-            setWorldPrompt(storedConfig.systemPrompts.worldGeneration);
-            setCharacterPrompt(storedConfig.systemPrompts.characterGeneration);
-            setDialoguePrompt(storedConfig.systemPrompts.dialogueGeneration);
+            
+            // Safely access systemPrompts with fallback to defaults
+            const defaults = getDefaultSystemPrompts();
+            if (storedConfig.systemPrompts) {
+              setWorldPrompt(storedConfig.systemPrompts.worldGeneration || defaults.worldGeneration);
+              setCharacterPrompt(storedConfig.systemPrompts.characterGeneration || defaults.characterGeneration);
+              setDialoguePrompt(storedConfig.systemPrompts.dialogueGeneration || defaults.dialogueGeneration);
+            } else {
+              setWorldPrompt(defaults.worldGeneration);
+              setCharacterPrompt(defaults.characterGeneration);
+              setDialoguePrompt(defaults.dialogueGeneration);
+            }
           }
 
           setConnectionStatus({
@@ -625,7 +652,16 @@ export function LLMSettingsPanel({
           <div className="space-y-3">
             <Label>Provider</Label>
             <RadioGroup value={provider} onValueChange={(value) => {
-              setProvider(value as LLMProvider);
+              const newProvider = value as LLMProvider;
+              setProvider(newProvider);
+              
+              // Get the default endpoint for the selected provider
+              const providerInfo = providers.find(p => p.id === newProvider);
+              const defaultEndpoint = providerInfo?.defaultEndpoint || '';
+              
+              // Set the endpoint to the provider's default
+              setApiEndpoint(defaultEndpoint);
+              
               // Clear connection status when provider changes
               if (connectionStatus.state !== 'idle') {
                 setConnectionStatus({ state: 'idle' });
@@ -650,33 +686,53 @@ export function LLMSettingsPanel({
           {/* Model Selection */}
           <div className="space-y-2">
             <Label htmlFor="model">Model</Label>
-            <Select value={model} onValueChange={setModel}>
-              <SelectTrigger id="model">
-                <SelectValue placeholder="Select a model" />
-              </SelectTrigger>
-              <SelectContent>
-                {currentProviderInfo?.models.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    {m.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {currentModelInfo && (
-              <div className="text-xs text-muted-foreground space-y-1 mt-2">
-                <div className="flex items-center gap-2">
-                  <Info className="h-3 w-3" />
-                  <span>Context: {currentModelInfo.contextWindow.toLocaleString()} tokens</span>
-                </div>
-                {currentModelInfo.costPer1kTokens && (
-                  <div className="ml-5">
-                    Cost: ${currentModelInfo.costPer1kTokens}/1K tokens
+            {(provider === 'local' || provider === 'custom') ? (
+              // Show Local Model Selector for local/custom providers
+              <div className="mt-4">
+                <LocalModelSelector
+                  selectedModel={model}
+                  onModelSelect={(modelId) => {
+                    setModel(modelId);
+                    // Clear connection status when model changes
+                    if (connectionStatus.state !== 'idle') {
+                      setConnectionStatus({ state: 'idle' });
+                    }
+                  }}
+                  endpoint={apiEndpoint || 'http://localhost:11434'}
+                />
+              </div>
+            ) : (
+              // Show regular dropdown for cloud providers
+              <>
+                <Select value={model} onValueChange={setModel}>
+                  <SelectTrigger id="model">
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentProviderInfo?.models.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {currentModelInfo && (
+                  <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                    <div className="flex items-center gap-2">
+                      <Info className="h-3 w-3" />
+                      <span>Context: {currentModelInfo.contextWindow.toLocaleString()} tokens</span>
+                    </div>
+                    {currentModelInfo.costPer1kTokens && (
+                      <div className="ml-5">
+                        Cost: ${currentModelInfo.costPer1kTokens}/1K tokens
+                      </div>
+                    )}
+                    <div className="ml-5">
+                      Capabilities: {currentModelInfo.capabilities.join(', ')}
+                    </div>
                   </div>
                 )}
-                <div className="ml-5">
-                  Capabilities: {currentModelInfo.capabilities.join(', ')}
-                </div>
-              </div>
+              </>
             )}
           </div>
 
@@ -736,7 +792,7 @@ export function LLMSettingsPanel({
                     setConnectionStatus({ state: 'idle' });
                   }
                 }}
-                placeholder="http://localhost:8000"
+                placeholder={currentProviderInfo?.defaultEndpoint || 'http://localhost:8000'}
                 className={cn(
                   apiEndpoint && validateEndpointFormat(apiEndpoint) && 'border-red-500 focus-visible:ring-red-500'
                 )}
@@ -744,7 +800,7 @@ export function LLMSettingsPanel({
                 aria-describedby={apiEndpoint && validateEndpointFormat(apiEndpoint) ? 'endpoint-error' : undefined}
               />
               <p className="text-xs text-muted-foreground">
-                The base URL for your {provider} LLM server
+                The base URL for your {provider} LLM server (default: {currentProviderInfo?.defaultEndpoint || 'http://localhost:8000'})
               </p>
               {apiEndpoint && validateEndpointFormat(apiEndpoint) && (
                 <p id="endpoint-error" className="text-xs text-red-600 dark:text-red-400" role="alert">

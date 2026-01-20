@@ -1,0 +1,35 @@
+{
+  "character_id": "template_character",
+  "name": "Character Name",
+  "creation_method": "template",
+  "creation_timestamp": "2026-01-20T19:53:00.000000",
+  "version": "1.0",
+  "visual_identity": {
+    "hair_color": "Brown",
+    "hair_style": "Short",
+    "hair_length": "Medium",
+    "eye_color": "Blue",
+    "eye_shape": "Round",
+    "skin_tone": "Fair",
+    "facial_structure": "Oval",
+    "distinctive_features": ["Scar on cheek"],
+    "age_range": "adult",
+    "height": "175cm",
+    "build": "Athletic",
+    "posture": "Confident",
+    "clothing_style": "Casual",
+    "color_palette": []
+  },
+  "personality": {
+    "traits": ["Brave", "Intelligent", "Compassionate"],
+    "background": "Mysterious past",
+    "motivations": ["Protect family", "Seek justice"],
+    "flaws": ["Impatient", "Stubborn"]
+  },
+  "relationships": [],
+  "arc": {
+    "starting_point": "Ordinary person",
+    "development": "Faces challenges",
+    "ending_point": "Transformed hero"
+  }
+}

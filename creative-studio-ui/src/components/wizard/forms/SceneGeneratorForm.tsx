@@ -8,7 +8,7 @@
  * Requirements: 4.1
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FormField, FormSection, FormGrid } from '../WizardFormLayout';
 import './SceneGeneratorForm.css';
 
@@ -31,6 +31,7 @@ export interface SceneGeneratorFormProps {
   onSubmit: (data: SceneGeneratorInput) => void;
   onCancel: () => void;
   onChange?: (data: Partial<SceneGeneratorInput>) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 interface FormErrors {
@@ -60,6 +61,7 @@ export function SceneGeneratorForm({
   onSubmit,
   onCancel,
   onChange,
+  onValidationChange,
 }: SceneGeneratorFormProps) {
   const [formData, setFormData] = useState<SceneGeneratorInput>({
     concept: initialData?.concept || '',
@@ -70,6 +72,14 @@ export function SceneGeneratorForm({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.concept || formData.mood || formData.characters.length > 0 || formData.location) {
+      validateForm();
+    }
+  }, [formData]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -90,17 +100,17 @@ export function SceneGeneratorForm({
       newErrors.duration = 'Duration cannot exceed 300 seconds';
     }
 
-    if (formData.characters.length === 0) {
-      newErrors.characters = 'At least one character must be selected';
-    }
+    // Characters are optional - scenes can exist without characters (documentaries, voiceover, etc.)
 
     if (!formData.location.trim()) {
       newErrors.location = 'Location is required';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData]);
+    const isValid = Object.keys(newErrors).length === 0;
+    onValidationChange?.(isValid);
+    return isValid;
+  }, [formData, onValidationChange]);
 
   const handleFieldChange = useCallback((field: keyof SceneGeneratorInput, value: any) => {
     setFormData(prev => {
@@ -206,14 +216,26 @@ export function SceneGeneratorForm({
 
         <FormField
           name="characters"
-          label="Characters"
-          required
+          label="Characters (Optional)"
           error={errors.characters}
-          helpText="Select characters that appear in this scene"
+          helpText={characters.length === 0 
+            ? "No characters available. You can create scenes without characters (e.g., documentaries, voiceover)" 
+            : "Select characters that appear in this scene (optional - leave empty for voiceover/documentary scenes)"}
         >
           {characters.length === 0 ? (
-            <div className="no-characters-message">
-              No characters available. Create characters first using the Character Wizard.
+            <div className="no-characters-message" style={{
+              padding: '1rem',
+              backgroundColor: '#f3f4f6',
+              border: '2px dashed #9ca3af',
+              borderRadius: '0.5rem',
+              textAlign: 'center',
+              color: '#6b7280',
+              fontWeight: '500'
+            }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>ℹ️</div>
+              <div style={{ fontSize: '0.875rem' }}>
+                No characters available. You can still create scenes without characters (documentaries, voiceover, etc.)
+              </div>
             </div>
           ) : (
             <div className="character-selection">

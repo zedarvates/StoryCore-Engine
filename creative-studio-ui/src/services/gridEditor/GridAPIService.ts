@@ -12,6 +12,7 @@ import type {
   Transform,
   CropRegion,
 } from '@/types/gridEditor';
+import { getCachedPlaceholder } from '@/utils/placeholderImage';
 
 /**
  * Panel generation configuration
@@ -631,8 +632,8 @@ export class MockGridAPIService extends GridAPIService {
   }
 
   private generateMockImageUrl(panelId: string): string {
-    // Generate a placeholder image URL
-    return `https://via.placeholder.com/512x512.png?text=Panel+${panelId}`;
+    // Generate a local placeholder image as data URI to avoid CSP violations
+    return getCachedPlaceholder(512, 512, `Panel ${panelId}`);
   }
 
   setMockDelay(ms: number): void {

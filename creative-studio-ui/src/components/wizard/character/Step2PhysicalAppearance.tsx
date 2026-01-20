@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, X } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
+import { useServiceStatus } from '@/components/ui/service-warning';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
 
@@ -25,6 +26,9 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
     useWizard<Character>();
   const [newFeature, setNewFeature] = useState('');
   const [newColor, setNewColor] = useState('');
+
+  // Check if LLM service is configured
+  const { llmConfigured } = useServiceStatus();
 
   // LLM generation for appearance suggestions
   const {
@@ -113,30 +117,121 @@ Example:
 
   const parseLLMAppearance = (response: string): Partial<Character['visual_identity']> | null => {
     try {
-      // Try to extract JSON from response
+      console.log('Parsing LLM appearance response:', response);
+      
+      // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        // Only include fields that have values
-        const result: Partial<Character['visual_identity']> = {};
-        if (parsed.hair_color) result.hair_color = parsed.hair_color;
-        if (parsed.hair_style) result.hair_style = parsed.hair_style;
-        if (parsed.hair_length) result.hair_length = parsed.hair_length;
-        if (parsed.eye_color) result.eye_color = parsed.eye_color;
-        if (parsed.eye_shape) result.eye_shape = parsed.eye_shape;
-        if (parsed.skin_tone) result.skin_tone = parsed.skin_tone;
-        if (parsed.facial_structure) result.facial_structure = parsed.facial_structure;
-        if (parsed.height) result.height = parsed.height;
-        if (parsed.build) result.build = parsed.build;
-        if (parsed.posture) result.posture = parsed.posture;
-        if (parsed.clothing_style) result.clothing_style = parsed.clothing_style;
-        if (Array.isArray(parsed.distinctive_features)) result.distinctive_features = parsed.distinctive_features;
-        if (Array.isArray(parsed.color_palette)) result.color_palette = parsed.color_palette;
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          const result: Partial<Character['visual_identity']> = {};
+          
+          // Map all possible fields with aliases
+          if (parsed.hair_color || parsed.hairColor) result.hair_color = parsed.hair_color || parsed.hairColor;
+          if (parsed.hair_style || parsed.hairStyle) result.hair_style = parsed.hair_style || parsed.hairStyle;
+          if (parsed.hair_length || parsed.hairLength) result.hair_length = parsed.hair_length || parsed.hairLength;
+          if (parsed.eye_color || parsed.eyeColor) result.eye_color = parsed.eye_color || parsed.eyeColor;
+          if (parsed.eye_shape || parsed.eyeShape) result.eye_shape = parsed.eye_shape || parsed.eyeShape;
+          if (parsed.skin_tone || parsed.skinTone) result.skin_tone = parsed.skin_tone || parsed.skinTone;
+          if (parsed.facial_structure || parsed.facialStructure) result.facial_structure = parsed.facial_structure || parsed.facialStructure;
+          if (parsed.height) result.height = parsed.height;
+          if (parsed.build) result.build = parsed.build;
+          if (parsed.posture) result.posture = parsed.posture;
+          if (parsed.clothing_style || parsed.clothingStyle) result.clothing_style = parsed.clothing_style || parsed.clothingStyle;
+          if (Array.isArray(parsed.distinctive_features) || Array.isArray(parsed.distinctiveFeatures)) {
+            result.distinctive_features = parsed.distinctive_features || parsed.distinctiveFeatures;
+          }
+          if (Array.isArray(parsed.color_palette) || Array.isArray(parsed.colorPalette)) {
+            result.color_palette = parsed.color_palette || parsed.colorPalette;
+          }
+          
+          // Check if we got any data
+          if (Object.keys(result).length > 0) {
+            console.log('Successfully parsed appearance from JSON:', result);
+            return result;
+          }
+        } catch (jsonError) {
+          console.warn('JSON parsing failed, trying text parsing');
+        }
+      }
+      
+      // Fallback: Parse as structured text
+      console.log('Attempting text-based parsing');
+      const result: Partial<Character['visual_identity']> = {};
+      const lines = response.split('\n');
+      
+      const distinctiveFeatures: string[] = [];
+      const colorPalette: string[] = [];
+      let inFeaturesSection = false;
+      let inColorsSection = false;
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        
+        // Detect sections
+        if (/distinctive\s*features?:/i.test(trimmed)) {
+          inFeaturesSection = true;
+          inColorsSection = false;
+          continue;
+        }
+        if (/color\s*palette:/i.test(trimmed)) {
+          inColorsSection = true;
+          inFeaturesSection = false;
+          continue;
+        }
+        
+        // Parse list items in sections
+        if (inFeaturesSection) {
+          const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '');
+          if (cleaned.length > 3 && !cleaned.endsWith(':')) {
+            distinctiveFeatures.push(cleaned);
+          }
+          continue;
+        }
+        if (inColorsSection) {
+          const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '');
+          if (cleaned.length > 2 && !cleaned.endsWith(':')) {
+            colorPalette.push(cleaned);
+          }
+          continue;
+        }
+        
+        // Parse key-value pairs
+        const kvMatch = trimmed.match(/^(hair\s*color|hair\s*style|hair\s*length|eye\s*color|eye\s*shape|skin\s*tone|facial\s*structure|height|build|posture|clothing\s*style):\s*(.+)/i);
+        if (kvMatch) {
+          const key = kvMatch[1].toLowerCase().replace(/\s+/g, '_');
+          const value = kvMatch[2].trim();
+          
+          if (key.includes('hair_color')) result.hair_color = value;
+          else if (key.includes('hair_style')) result.hair_style = value;
+          else if (key.includes('hair_length')) result.hair_length = value;
+          else if (key.includes('eye_color')) result.eye_color = value;
+          else if (key.includes('eye_shape')) result.eye_shape = value;
+          else if (key.includes('skin_tone')) result.skin_tone = value;
+          else if (key.includes('facial_structure')) result.facial_structure = value;
+          else if (key === 'height') result.height = value;
+          else if (key === 'build') result.build = value;
+          else if (key === 'posture') result.posture = value;
+          else if (key.includes('clothing_style')) result.clothing_style = value;
+        }
+      }
+      
+      if (distinctiveFeatures.length > 0) result.distinctive_features = distinctiveFeatures;
+      if (colorPalette.length > 0) result.color_palette = colorPalette;
+      
+      // Check if we got any data
+      if (Object.keys(result).length > 0) {
+        console.log('Successfully parsed appearance from text:', result);
         return result;
       }
+      
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
+      console.error('Response was:', response);
     }
+    
+    console.warn('Could not parse any appearance data from response');
     return null;
   };
 
@@ -214,7 +309,7 @@ Example:
             </div>
             <Button
               onClick={handleGenerateAppearance}
-              disabled={isLoading || !formData.role?.archetype}
+              disabled={isLoading || !formData.role?.archetype || !llmConfigured}
               className="gap-2"
             >
               <Sparkles className="h-4 w-4" />

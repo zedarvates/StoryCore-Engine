@@ -1,0 +1,254 @@
+═══════════════════════════════════════════════════════════════════════════════
+   ⭐ CORRECTION APPLIQUÉE - QWEN3-VL AVEC ÉTOILE
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ PROBLÈME RÉSOLU
+──────────────────
+Le modèle qwen3-vl:8b n'apparaissait pas avec ⭐ dans l'interface
+→ Maintenant ajouté au catalogue LOCAL_MODELS avec l'étoile !
+
+═══════════════════════════════════════════════════════════════════════════════
+   📋 RÉPONSE À VOTRE QUESTION
+═══════════════════════════════════════════════════════════════════════════════
+
+❓ "il y as t il qu un seule systeme de LLM Configuration ?"
+
+✅ OUI ! Il y a UN SEUL système de configuration LLM dans StoryCore :
+
+   📁 LLMSettingsPanel.tsx  ← SYSTÈME UNIQUE
+      ├─ Utilisé partout dans l'application
+      ├─ Gère TOUS les paramètres LLM
+      └─ Intègre LocalModelSelector pour les modèles locaux
+
+   Les autres fichiers sont juste des wrappers ou des outils :
+   • LLMSettingsModal.tsx    → Fenêtre popup (utilise Panel)
+   • LocalModelSelector.tsx  → Intégré DANS Panel
+   • LLMDiagnosticPanel.tsx  → Outil de diagnostic seulement
+
+═══════════════════════════════════════════════════════════════════════════════
+   🔧 MODIFICATION APPLIQUÉE
+═══════════════════════════════════════════════════════════════════════════════
+
+📄 Fichier : creative-studio-ui/src/services/localModelService.ts
+📍 Ligne : ~235-250
+
+AJOUT :
+───────
+{
+  id: 'qwen3-vl:8b',
+  name: 'qwen3-vl:8b',
+  displayName: '⭐ Qwen 3 VL 8B (RECOMMENDED)',  ← ⭐ ÉTOILE ICI !
+  size: '6.1GB',
+  sizeBytes: 6.1 * 1024 * 1024 * 1024,
+  description: 'Alibaba\'s latest vision-language model, excellent for StoryCore visual storytelling and multimodal tasks',
+  capabilities: [
+    'text-generation',
+    'chat',
+    'reasoning',
+    'multilingual',
+    'vision-understanding',      ← NOUVEAU !
+    'image-analysis',            ← NOUVEAU !
+    'visual-storytelling'        ← NOUVEAU !
+  ],
+  minRAM: 8,
+  recommendedRAM: 16,
+  requiresGPU: false,
+  contextWindow: 32768,
+  family: 'qwen',
+}
+
+═══════════════════════════════════════════════════════════════════════════════
+   🎯 PRIORITÉ AUTOMATIQUE
+═══════════════════════════════════════════════════════════════════════════════
+
+📄 Fichier : creative-studio-ui/src/utils/ollamaModelDetection.ts
+📍 Ligne : ~55
+
+const preferredModels = [
+  'qwen3-vl:8b',        ← #1 PRIORITÉ (déjà configuré)
+  'llama3.1:8b',        ← #2
+  'llama3.2:3b',        ← #3
+  'gemma3:4b',          ← #4
+  // ...
+];
+
+═══════════════════════════════════════════════════════════════════════════════
+   🖥️ OÙ VOIR L'ÉTOILE ⭐
+═══════════════════════════════════════════════════════════════════════════════
+
+1️⃣  OUVRIR SETTINGS
+    ────────────────
+    Cliquer sur l'icône ⚙️ dans l'interface
+
+2️⃣  ALLER DANS LLM CONFIGURATION
+    ─────────────────────────────
+    Sélectionner l'onglet "LLM Configuration"
+
+3️⃣  CHOISIR PROVIDER LOCAL
+    ───────────────────────
+    Provider: "Local" ou "Custom"
+    Endpoint: http://localhost:11434
+
+4️⃣  VOIR LA CARTE AVEC ⭐
+    ─────────────────────
+    ┌─────────────────────────────────────────────────────────┐
+    │ ⭐ Qwen 3 VL 8B (RECOMMENDED)  [✓ Installed]          │
+    │                                                          │
+    │ Alibaba's latest vision-language model, excellent for   │
+    │ StoryCore visual storytelling and multimodal tasks      │
+    │                                                          │
+    │ 💾 6.1GB  🧠 8GB RAM min  ⚡ GPU: No                   │
+    │                                                          │
+    │ [text-generation] [chat] [vision-understanding]         │
+    │ [image-analysis] [visual-storytelling] +2 more          │
+    │                                                          │
+    │ [✓ Selected]  [🗑️ Delete]                              │
+    └─────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+   🔄 ÉTAPES POUR VOIR LE CHANGEMENT
+═══════════════════════════════════════════════════════════════════════════════
+
+⚠️ IMPORTANT : Le cache doit être vidé pour voir le ⭐ !
+
+1️⃣  ARRÊTER LE SERVEUR DEV
+    ───────────────────────
+    Ctrl+C dans le terminal
+
+2️⃣  REDÉMARRER LE SERVEUR
+    ──────────────────────
+    cd creative-studio-ui
+    npm run dev
+
+3️⃣  VIDER LE CACHE NAVIGATEUR
+    ──────────────────────────
+    Chrome/Edge : Ctrl+Shift+Delete
+    ✓ Cocher "Cached images and files"
+    ✓ Cliquer "Clear data"
+
+4️⃣  VIDER LE LOCALSTORAGE
+    ──────────────────────
+    F12 → Console → Taper :
+    localStorage.clear()
+
+5️⃣  RECHARGER LA PAGE
+    ──────────────────
+    Ctrl+Shift+R (hard reload)
+
+6️⃣  OUVRIR SETTINGS
+    ────────────────
+    ⚙️ → LLM Configuration → Provider: Local
+    
+    → Vous devriez voir le ⭐ !
+
+═══════════════════════════════════════════════════════════════════════════════
+   ✅ VÉRIFICATION
+═══════════════════════════════════════════════════════════════════════════════
+
+VÉRIFIER QUE LE MODÈLE EST INSTALLÉ :
+──────────────────────────────────────
+ollama list
+
+RÉSULTAT ATTENDU :
+──────────────────
+NAME                       ID              SIZE      MODIFIED
+qwen3-vl:8b                901cae732162    6.1 GB    2 months ago  ✓
+
+TESTER LE MODÈLE :
+──────────────────
+ollama run qwen3-vl:8b "Décris un monde fantastique"
+
+═══════════════════════════════════════════════════════════════════════════════
+   🎨 CAPACITÉS SPÉCIALES
+═══════════════════════════════════════════════════════════════════════════════
+
+QWEN3-VL EST PARFAIT POUR STORYCORE CAR :
+
+🖼️ VISION + LANGUAGE
+   ─────────────────
+   • Comprend les images ET le texte
+   • Analyse visuelle de scènes
+   • Description d'images détaillée
+
+💬 MULTIMODAL
+   ──────────
+   • Combine texte et images
+   • Contexte visuel enrichi
+   • Storytelling visuel cohérent
+
+🌍 MULTILINGUE
+   ────────────
+   • Français, Anglais, Chinois, etc.
+   • Traduction contextuelle
+   • Adaptation culturelle
+
+🎬 STORYTELLING VISUEL
+   ───────────────────
+   • Génération de mondes visuels
+   • Description de personnages
+   • Planification de scènes
+   • Cohérence narrative
+
+═══════════════════════════════════════════════════════════════════════════════
+   📊 COMPARAISON AVEC VOS AUTRES MODÈLES
+═══════════════════════════════════════════════════════════════════════════════
+
+VOS MODÈLES INSTALLÉS :
+───────────────────────
+✓ gemma3:1b                815 MB    → Rapide, basique
+✓ llama3.1:8b              4.9 GB    → Haute qualité texte
+✓ qwen2.5-coder:latest     4.7 GB    → Code spécialisé
+✓ gemma:latest             5.0 GB    → Équilibré
+✓ mistral:latest           4.4 GB    → Rapide, efficace
+⭐ qwen3-vl:8b             6.1 GB    → MEILLEUR pour StoryCore !
+✓ gpt-oss:20b              13 GB     → Très puissant (lourd)
+✓ nomic-embed-text:latest  274 MB    → Embeddings seulement
+✓ gemma3:4b                3.3 GB    → Équilibré
+
+POURQUOI QWEN3-VL EST #1 :
+──────────────────────────
+• Seul modèle avec capacités VISION
+• Parfait pour storytelling visuel
+• Taille raisonnable (6.1 GB)
+• Multilingue natif
+• Contexte 32K tokens
+• Pas besoin de GPU
+
+═══════════════════════════════════════════════════════════════════════════════
+   🎯 RÉSUMÉ FINAL
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ UN SEUL système de configuration LLM (LLMSettingsPanel)
+✅ qwen3-vl:8b ajouté au catalogue LOCAL_MODELS
+✅ Étoile ⭐ dans le displayName
+✅ Priorité #1 dans la détection automatique
+✅ Capacités vision-language activées
+✅ Badge "RECOMMENDED" affiché
+✅ Prêt pour le storytelling visuel
+
+🔄 ACTIONS REQUISES :
+   1. Redémarrer serveur dev (Ctrl+C puis npm run dev)
+   2. Vider cache navigateur (Ctrl+Shift+Delete)
+   3. Vider localStorage (F12 → localStorage.clear())
+   4. Recharger page (Ctrl+Shift+R)
+   5. Ouvrir Settings → LLM Configuration
+   6. Voir le ⭐ sur Qwen 3 VL 8B !
+
+═══════════════════════════════════════════════════════════════════════════════
+   📚 DOCUMENTATION CRÉÉE
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ RESUME_VISUEL_LLM_FINAL.txt
+   → Résumé visuel complet avec architecture
+
+✅ GUIDE_SYSTEME_LLM_UNIQUE.md
+   → Guide technique détaillé
+
+✅ RESUME_VISUEL_CORRECTION_MODELES.txt
+   → Ce fichier (résumé rapide)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎉 CORRECTION TERMINÉE ! Le ⭐ devrait apparaître après le cache clearing.
+
+═══════════════════════════════════════════════════════════════════════════════

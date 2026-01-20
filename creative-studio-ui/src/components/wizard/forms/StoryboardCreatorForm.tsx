@@ -8,7 +8,7 @@
  * Requirements: 5.1, 12.3
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FormField, FormSection, FormGrid } from '../WizardFormLayout';
 import './StoryboardCreatorForm.css';
 
@@ -24,6 +24,7 @@ export interface StoryboardCreatorFormProps {
   onSubmit: (data: StoryboardInput) => void;
   onCancel: () => void;
   onChange?: (data: Partial<StoryboardInput>) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 interface FormErrors {
@@ -51,6 +52,7 @@ export function StoryboardCreatorForm({
   onSubmit,
   onCancel,
   onChange,
+  onValidationChange,
 }: StoryboardCreatorFormProps) {
   const [formData, setFormData] = useState<StoryboardInput>({
     scriptText: initialData?.scriptText || '',
@@ -60,6 +62,14 @@ export function StoryboardCreatorForm({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.scriptText || formData.visualStyle) {
+      validateForm();
+    }
+  }, [formData]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -83,8 +93,10 @@ export function StoryboardCreatorForm({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData]);
+    const isValid = Object.keys(newErrors).length === 0;
+    onValidationChange?.(isValid);
+    return isValid;
+  }, [formData, onValidationChange]);
 
   const handleFieldChange = useCallback((field: keyof StoryboardInput, value: any) => {
     setFormData(prev => {

@@ -151,11 +151,10 @@ export function Step3NarrativeStructure({
         </p>
       </div>
 
-      {/* Duration Summary */}
-      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-medium text-blue-900">Duration Summary</h3>
-          <Badge variant={isDurationValid ? "secondary" : "destructive"}>
+          <Badge variant={isDurationValid ? "secondary" : "destructive"} className="bg-blue-600 text-white">
             {formatDuration(actsTotalDuration)} / {formatDuration(targetDuration)}
           </Badge>
         </div>
@@ -293,13 +292,13 @@ function ActCard({
             <div className="flex-1">
               <h3 className="font-medium text-gray-900">{act.title || 'Untitled Act'}</h3>
               {act.narrativePurpose && (
-                <Badge variant="outline" className="mt-1">
+                <Badge variant="outline" className="mt-1 border-blue-600 text-blue-700 bg-blue-50">
                   {act.narrativePurpose}
                 </Badge>
               )}
             </div>
             <div className="flex items-center gap-2 ml-4">
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 bg-gray-200 text-gray-900">
                 <Clock className="h-3 w-3" />
                 {formatDuration(act.targetDuration)}
               </Badge>

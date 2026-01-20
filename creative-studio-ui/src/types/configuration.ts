@@ -324,7 +324,7 @@ export const DEFAULT_LLM_CONFIG: LLMConfiguration = {
   provider: 'ollama',
   ollama: {
     baseUrl: 'http://localhost:11434',
-    model: 'gemma3:1b',
+    model: 'gemma2:2b',
     temperature: 0.7,
     maxTokens: 2048,
   },

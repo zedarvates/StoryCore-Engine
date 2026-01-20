@@ -1,4 +1,4 @@
-/**
+ /**
  * Property-based tests for VideoPlayer component
  * Tests video synchronization, frame-accurate seeking, and timecode formatting
  */

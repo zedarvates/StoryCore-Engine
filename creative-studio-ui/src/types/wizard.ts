@@ -4,6 +4,20 @@
  */
 
 // ============================================================================
+// Wizard Type Definition
+// ============================================================================
+
+export type WizardType = 
+  | 'world' 
+  | 'character'
+  | 'dialogue-writer'
+  | 'scene-generator'
+  | 'storyboard-creator'
+  | 'style-transfer'
+  | 'sequence-plan'
+  | 'shot';
+
+// ============================================================================
 // Project Type Data
 // ============================================================================
 
@@ -286,6 +300,9 @@ export interface ValidationResult {
 // ============================================================================
 
 export interface WizardState {
+  // Wizard metadata
+  wizardType: WizardType | null;
+  
   // Navigation state
   currentStep: number;
   completedSteps: Set<number>;
@@ -307,6 +324,7 @@ export interface WizardState {
   validationErrors: Map<number, ValidationError[]>;
 
   // Actions
+  setWizardType: (type: WizardType) => void;
   setCurrentStep: (step: number) => void;
   updateStepData: (step: number, data: Partial<WizardStepData>) => void;
   markStepComplete: (step: number) => void;

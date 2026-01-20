@@ -6,8 +6,10 @@
  */
 
 import { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { CharacterWizard } from './character/CharacterWizard';
+import { LLMStatusBanner } from './LLMStatusBanner';
+import { useAppStore } from '@/stores/useAppStore';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
 
@@ -26,6 +28,8 @@ export function CharacterWizardModal({
   worldContext,
   initialData,
 }: CharacterWizardModalProps) {
+  const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+
   const handleComplete = (character: Character) => {
     onComplete?.(character);
     onClose();
@@ -37,7 +41,12 @@ export function CharacterWizardModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6" aria-describedby={undefined}>
+        <DialogTitle className="sr-only">Character Creation Wizard</DialogTitle>
+        
+        {/* LLM Status Banner */}
+        <LLMStatusBanner onConfigure={() => setShowLLMSettings(true)} />
+        
         <CharacterWizard
           onComplete={handleComplete}
           onCancel={handleCancel}

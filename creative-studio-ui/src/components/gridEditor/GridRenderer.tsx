@@ -410,7 +410,8 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
       .then(() => {
         renderGrid(ctx, width, height);
       });
-  }, [panels, selectedPanelIds, viewport, setupCanvas, loadImage, renderGrid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [panels, selectedPanelIds, viewport]);
 
   /**
    * Handle canvas click to detect panel selection
@@ -484,7 +485,8 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [setupCanvas, renderGrid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div

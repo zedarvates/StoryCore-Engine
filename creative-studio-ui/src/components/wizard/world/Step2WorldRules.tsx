@@ -67,7 +67,7 @@ export function Step2WorldRules() {
 
   const handleGenerateRules = async () => {
     clearError();
-    
+
     // Provide helpful message if no genre selected
     if (!formData.genre?.length) {
       console.warn('Cannot generate rules: No genre selected');
@@ -79,6 +79,8 @@ export function Step2WorldRules() {
       timePeriod: formData.timePeriod || '',
       tone: formData.tone || [],
     };
+
+    console.log('🔍 WORLD RULES GENERATION CONTEXT:', context);
 
     const systemPrompt = 'You are a creative world-building assistant. Generate coherent, genre-appropriate world rules that are internally consistent and narratively interesting.';
 
@@ -92,9 +94,9 @@ For each rule, provide:
 2. The rule itself (concise statement)
 3. Implications (how this affects the world)
 
-Format as JSON array with objects containing: category, rule, implications
+IMPORTANT: Respond ONLY with a valid JSON array. Do not include any other text, explanations, or formatting.
 
-Example:
+Example format:
 [
   {
     "category": "magical",
@@ -102,6 +104,9 @@ Example:
     "implications": "Powerful spells can be dangerous to the caster, creating moral dilemmas about the cost of magic"
   }
 ]`;
+
+    console.log('📤 WORLD RULES PROMPT:', prompt);
+    console.log('📤 WORLD RULES SYSTEM PROMPT:', systemPrompt);
 
     try {
       await generate({
@@ -111,56 +116,146 @@ Example:
         maxTokens: 1000,
       });
     } catch (error) {
-      console.error('Failed to generate rules:', error);
+      console.error('❌ Failed to generate rules:', error);
       // Error will be handled by useLLMGeneration hook
     }
   };
 
   const parseLLMRules = (response: string): WorldRule[] => {
+    console.log('🎯 PARSING WORLD RULES RESPONSE');
+    console.log('📊 Response metadata:');
+    console.log('   - Length:', response.length);
+    console.log('   - Type:', typeof response);
+    console.log('   - Is empty?', response.trim().length === 0);
+    console.log('   - First 200 chars:', response.substring(0, 200));
+    console.log('   - Last 200 chars:', response.substring(Math.max(0, response.length - 200)));
+
     try {
-      console.log('Parsing LLM response:', response);
-      
-      // Try to extract JSON from response
-      const jsonMatch = response.match(/\[[\s\S]*\]/);
+      console.log('=== LLM RESPONSE START ===');
+      console.log(response);
+      console.log('=== LLM RESPONSE END ===');
+
+      // Try to extract JSON from response - more flexible pattern
+      const jsonMatch = response.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
+      console.log('🔍 JSON match found:', !!jsonMatch);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        const rules = parsed.map((item: any) => ({
-          id: crypto.randomUUID(),
-          category: item.category || 'physical',
-          rule: item.rule || '',
-          implications: item.implications || '',
-        }));
-        
-        console.log('Successfully parsed rules:', rules);
-        return rules;
-      } else {
-        console.warn('No JSON array found in response, trying to parse as plain text');
-        
-        // Fallback: Try to parse as plain text with numbered list
-        const lines = response.split('\n').filter(line => line.trim());
-        const rules: WorldRule[] = [];
-        
-        for (const line of lines) {
-          // Look for patterns like "1. Category: Rule - Implications"
-          const match = line.match(/^\d+\.\s*(?:\[?(\w+)\]?:?\s*)?(.+?)(?:\s*-\s*(.+))?$/);
-          if (match) {
-            const [, category, rule, implications] = match;
-            if (rule) {
-              rules.push({
-                id: crypto.randomUUID(),
-                category: (category?.toLowerCase() as WorldRule['category']) || 'physical',
-                rule: rule.trim(),
-                implications: implications?.trim() || '',
-              });
-            }
+        console.log('📋 Extracted JSON string:', jsonMatch[0]);
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          console.log('📋 Parsed JSON object:', parsed);
+
+          // Handle both single object and array
+          let items = [];
+          if (Array.isArray(parsed)) {
+            items = parsed;
+          } else if (parsed && typeof parsed === 'object') {
+            // If it's a single rule object, wrap it in array
+            items = [parsed];
           }
+
+          if (items.length > 0) {
+            const rules = items.map((item: any) => ({
+              id: crypto.randomUUID(),
+              category: (item.category?.toLowerCase() as WorldRule['category']) || 'physical',
+              rule: item.rule || item.name || item.title || '',
+              implications: item.implications || item.description || item.effect || '',
+            }));
+
+            console.log('🔧 Processed rules:', rules);
+            const filtered = rules.filter(r => r.rule.trim()); // Only return rules with content
+            console.log('✅ Filtered rules with content:', filtered);
+            return filtered;
+          } else {
+            console.warn('⚠️ No items found in parsed JSON');
+          }
+        } catch (jsonError) {
+          console.warn('⚠️ JSON parsing failed:', jsonError);
+          console.warn('⚠️ JSON string that failed:', jsonMatch[0]);
+        }
+      } else {
+        console.warn('⚠️ No JSON found in response');
+      }
+      
+      // Fallback: Parse as structured text
+      console.log('Attempting text-based parsing');
+      const rules: WorldRule[] = [];
+      const lines = response.split('\n');
+      
+      let currentRule: Partial<WorldRule> | null = null;
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Look for category indicators
+        const categoryMatch = line.match(/(?:category|type):\s*(\w+)/i);
+        if (categoryMatch) {
+          if (currentRule && currentRule.rule) {
+            rules.push({
+              id: crypto.randomUUID(),
+              category: currentRule.category || 'physical',
+              rule: currentRule.rule,
+              implications: currentRule.implications || '',
+            });
+          }
+          currentRule = {
+            category: categoryMatch[1].toLowerCase() as WorldRule['category'],
+          };
+          continue;
         }
         
-        if (rules.length > 0) {
-          console.log('Parsed rules from plain text:', rules);
-          return rules;
+        // Look for rule content
+        const ruleMatch = line.match(/(?:rule|law):\s*(.+)/i);
+        if (ruleMatch && currentRule) {
+          currentRule.rule = ruleMatch[1].trim();
+          continue;
+        }
+        
+        // Look for implications
+        const implicationMatch = line.match(/(?:implication|effect|consequence)s?:\s*(.+)/i);
+        if (implicationMatch && currentRule) {
+          currentRule.implications = implicationMatch[1].trim();
+          continue;
+        }
+        
+        // Try numbered list format: "1. [Category] Rule - Implications"
+        const numberedMatch = line.match(/^\d+\.\s*(?:\[?(\w+)\]?:?\s*)?(.+?)(?:\s*[-–—]\s*(.+))?$/);
+        if (numberedMatch) {
+          const [, category, rule, implications] = numberedMatch;
+          if (rule && rule.length > 10) { // Ensure it's substantial
+            rules.push({
+              id: crypto.randomUUID(),
+              category: (category?.toLowerCase() as WorldRule['category']) || 'physical',
+              rule: rule.trim(),
+              implications: implications?.trim() || '',
+            });
+          }
+          continue;
+        }
+        
+        // If we have a current rule being built and this looks like content
+        if (currentRule && !currentRule.rule && line.length > 15) {
+          currentRule.rule = line;
+        } else if (currentRule && currentRule.rule && !currentRule.implications && line.length > 15) {
+          currentRule.implications = line;
         }
       }
+      
+      // Add the last rule if exists
+      if (currentRule && currentRule.rule) {
+        rules.push({
+          id: crypto.randomUUID(),
+          category: currentRule.category || 'physical',
+          rule: currentRule.rule,
+          implications: currentRule.implications || '',
+        });
+      }
+      
+      if (rules.length > 0) {
+        console.log('Successfully parsed rules from text:', rules);
+        return rules;
+      }
+      
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
       console.error('Response was:', response);

@@ -140,20 +140,16 @@ const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               <div className="config-icon">🔗</div>
               <div className="config-label">API Settings</div>
             </button>
-            <button
-              className="config-button llm-config"
-              onClick={() => onOpenSettings('llm')}
-            >
-              <div className="config-icon">🤖</div>
-              <div className="config-label">LLM Configuration</div>
-            </button>
-            <button
-              className="config-button comfyui-config"
-              onClick={() => onOpenSettings('comfyui')}
-            >
-              <div className="config-icon">🎨</div>
-              <div className="config-label">ComfyUI Settings</div>
-            </button>
+            {/* 
+              LLM and ComfyUI configuration removed from dashboard to avoid conflicts.
+              Use Settings menu (top bar) > LLM Configuration / ComfyUI Configuration
+              This ensures a single source of truth for all settings.
+            */}
+          </div>
+          <div className="config-info">
+            <p className="text-sm text-muted-foreground">
+              💡 To configure LLM and ComfyUI, use the <strong>Settings</strong> menu in the top menu bar.
+            </p>
           </div>
         </section>
 

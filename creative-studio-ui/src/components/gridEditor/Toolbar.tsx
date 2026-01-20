@@ -10,11 +10,12 @@
  * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useGridStore, Tool } from '../../stores/gridEditorStore';
 import { useUndoRedoStore } from '../../stores/undoRedoStore';
 import { useViewportStore } from '../../stores/viewportStore';
 import { ExportImportControls } from './ExportImportControls';
+import { QuickHelpModal } from './QuickHelpModal';
 
 // ============================================================================
 // Type Definitions
@@ -55,42 +56,42 @@ const TOOL_CONFIGS: ToolConfig[] = [
     label: 'Select',
     icon: '⬚',
     shortcut: 'V',
-    title: 'Select Tool (V)',
+    title: 'Select Tool (V) - Click to select panels, drag to move, Ctrl+Click for multi-select',
   },
   {
     id: 'crop',
     label: 'Crop',
     icon: '✂',
     shortcut: 'C',
-    title: 'Crop Tool (C)',
+    title: 'Crop Tool (C) - Define crop region for selected panels, drag handles to adjust',
   },
   {
     id: 'rotate',
     label: 'Rotate',
     icon: '↻',
     shortcut: 'R',
-    title: 'Rotate Tool (R)',
+    title: 'Rotate Tool (R) - Rotate selected panels, drag to rotate or enter angle value',
   },
   {
     id: 'scale',
     label: 'Scale',
     icon: '⇲',
     shortcut: 'S',
-    title: 'Scale Tool (S)',
+    title: 'Scale Tool (S) - Resize selected panels, drag corners to scale, Shift for uniform',
   },
   {
     id: 'pan',
     label: 'Pan',
     icon: '✋',
     shortcut: 'Space',
-    title: 'Pan Tool (Space)',
+    title: 'Pan Tool (Space) - Navigate the canvas, drag to move viewport, scroll to zoom',
   },
   {
     id: 'annotate',
     label: 'Annotate',
     icon: '✎',
     shortcut: 'A',
-    title: 'Annotate Tool (A)',
+    title: 'Annotate Tool (A) - Draw annotations, add text notes, mark areas of interest',
   },
 ];
 
@@ -120,6 +121,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const zoomOut = useViewportStore((state) => state.zoomOut);
   const fitToView = useViewportStore((state) => state.fitToView);
   const zoomToActual = useViewportStore((state) => state.zoomToActual);
+
+  // Help modal state
+  const [showHelp, setShowHelp] = useState(false);
 
   // ============================================================================
   // Event Handlers
@@ -206,14 +210,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <ActionButton
           label="Undo"
           icon="↶"
-          title="Undo (Ctrl+Z)"
+          title="Undo (Ctrl+Z) - Revert last action"
           disabled={!canUndo}
           onClick={handleUndo}
         />
         <ActionButton
           label="Redo"
           icon="↷"
-          title="Redo (Ctrl+Shift+Z)"
+          title="Redo (Ctrl+Shift+Z) - Restore undone action"
           disabled={!canRedo}
           onClick={handleRedo}
         />
@@ -230,19 +234,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <ActionButton
           label="Fit"
           icon="⊡"
-          title="Fit to View (F)"
+          title="Fit to View (F) - Zoom to fit entire grid in viewport"
           onClick={handleFitToView}
         />
         <ActionButton
           label="1:1"
           icon="1:1"
-          title="Zoom to Actual Size (100%)"
+          title="Zoom to Actual Size (100%) - View at original resolution"
           onClick={handleZoomToActual}
         />
         <ActionButton
           label="-"
           icon="-"
-          title="Zoom Out"
+          title="Zoom Out (-) - Decrease zoom level"
           onClick={handleZoomOut}
         />
         <div
@@ -253,13 +257,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             fontSize: '12px',
             fontFamily: 'monospace',
           }}
+          title="Current zoom level"
         >
           {Math.round(zoom * 100)}%
         </div>
         <ActionButton
           label="+"
           icon="+"
-          title="Zoom In"
+          title="Zoom In (+) - Increase zoom level"
           onClick={handleZoomIn}
         />
       </div>
@@ -270,10 +275,49 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           marginLeft: 'auto',
           paddingLeft: '16px',
           borderLeft: '1px solid #444',
+          display: 'flex',
+          gap: '8px',
+          alignItems: 'center',
         }}
       >
         <ExportImportControls compact={true} />
+        
+        {/* Help Button */}
+        <button
+          type="button"
+          onClick={() => setShowHelp(true)}
+          title="Quick Help (?) - Keyboard shortcuts and tips"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '32px',
+            height: '32px',
+            backgroundColor: '#3a3a3a',
+            color: '#4a90e2',
+            border: '1px solid #555',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: '700',
+            transition: 'all 0.2s ease',
+            outline: 'none',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#444';
+            e.currentTarget.style.borderColor = '#4a90e2';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#3a3a3a';
+            e.currentTarget.style.borderColor = '#555';
+          }}
+        >
+          ?
+        </button>
       </div>
+
+      {/* Help Modal */}
+      <QuickHelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 };

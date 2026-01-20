@@ -2,15 +2,15 @@
  * Project Dashboard Page
  * 
  * Main dashboard view after opening/creating a project
- * Shows the ProjectWorkspace with configuration options and wizard launchers
+ * Shows the new redesigned dashboard with sequences, LLM assistant, and more
  */
 
-import { CentralConfigurationUI } from '@/components';
+import { ProjectDashboardNew } from '@/components/workspace/ProjectDashboardNew';
 import { useAppStore } from '@/stores/useAppStore';
 import { Film } from 'lucide-react';
 
 interface ProjectDashboardPageProps {
-  onOpenEditor: () => void;
+  onOpenEditor: (sequenceId?: string) => void;
 }
 
 export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps) {
@@ -47,20 +47,23 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
             <Film className="w-4 h-4" />
             Nouveau Plan
           </button>
+          {/* Open Editor button commented out - sequences now open editor directly
           <button
-            onClick={onOpenEditor}
+            onClick={() => onOpenEditor()}
             className="px-4 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 flex items-center gap-2"
           >
             🎬 Open Editor
           </button>
+          */}
         </div>
       </div>
 
-      {/* Main Content - Central Configuration UI with ProjectWorkspace */}
-      <div className="flex-1 overflow-auto">
-        <CentralConfigurationUI
-          projectId={project.project_name}
+      {/* Main Content - New Dashboard */}
+      <div className="flex-1 overflow-hidden">
+        <ProjectDashboardNew
+          projectId={project.metadata?.id || project.project_name}
           projectName={project.project_name}
+          onOpenEditor={onOpenEditor}
         />
       </div>
     </div>

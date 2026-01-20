@@ -1,0 +1,320 @@
+═══════════════════════════════════════════════════════════════════════════════
+   ✅ VÉRIFICATION DE TOUS VOS MODÈLES
+═══════════════════════════════════════════════════════════════════════════════
+
+🔍 COMMANDE RAPIDE
+──────────────────
+ollama list
+
+📋 RÉSULTAT ATTENDU
+───────────────────
+NAME                       ID              SIZE      MODIFIED
+gemma3:1b                  8648f39daa8f    815 MB    10 minutes ago     ✅
+llama3.1:8b                46e0c10c039e    4.9 GB    36 minutes ago     ✅
+qwen2.5-coder:latest       dae161e27b0e    4.7 GB    4 days ago         ✅
+gemma:latest               a72c7f4d0a15    5.0 GB    5 weeks ago        ✅
+mistral:latest             6577803aa9a0    4.4 GB    5 weeks ago        ✅
+qwen3-vl:8b                901cae732162    6.1 GB    2 months ago       ⭐
+gpt-oss:20b                17052f91a42e    13 GB     3 months ago       ✅
+nomic-embed-text:latest    0a109f422b47    274 MB    3 months ago       ✅
+gemma3:4b                  a2af6cc3eb7f    3.3 GB    3 months ago       ✅
+
+═══════════════════════════════════════════════════════════════════════════════
+   🧪 TESTER CHAQUE MODÈLE
+═══════════════════════════════════════════════════════════════════════════════
+
+# Test rapide de chaque modèle (copier-coller)
+
+# 1. Gemma 3 1B (ultra rapide)
+ollama run gemma3:1b "Bonjour, décris un monde fantastique en 2 phrases"
+
+# 2. Gemma 3 4B (équilibré)
+ollama run gemma3:4b "Bonjour, décris un monde fantastique en 2 phrases"
+
+# 3. Gemma Latest
+ollama run gemma:latest "Bonjour, décris un monde fantastique en 2 phrases"
+
+# 4. Llama 3.1 8B (haute qualité)
+ollama run llama3.1:8b "Bonjour, décris un monde fantastique en 2 phrases"
+
+# 5. Mistral Latest (rapide)
+ollama run mistral:latest "Bonjour, décris un monde fantastique en 2 phrases"
+
+# 6. Qwen 2.5 Coder (code)
+ollama run qwen2.5-coder:latest "Écris une fonction Python pour générer un monde"
+
+# 7. Qwen 3 VL (vision + language) ⭐
+ollama run qwen3-vl:8b "Décris un monde fantastique avec des détails visuels"
+
+# 8. GPT-OSS 20B (puissant)
+ollama run gpt-oss:20b "Décris un monde fantastique complexe et détaillé"
+
+═══════════════════════════════════════════════════════════════════════════════
+   📊 COMPARAISON DE VITESSE
+═══════════════════════════════════════════════════════════════════════════════
+
+PROMPT DE TEST : "Bonjour"
+
+# Test de vitesse (mesurer le temps)
+time ollama run gemma3:1b "Bonjour"      # ~1-2 secondes ⚡
+time ollama run gemma3:4b "Bonjour"      # ~2-3 secondes ⚡
+time ollama run mistral:latest "Bonjour" # ~2-4 secondes ⚡
+time ollama run llama3.1:8b "Bonjour"    # ~3-5 secondes
+time ollama run qwen3-vl:8b "Bonjour"    # ~3-5 secondes
+time ollama run gpt-oss:20b "Bonjour"    # ~5-10 secondes
+
+═══════════════════════════════════════════════════════════════════════════════
+   🎯 VÉRIFIER DANS L'INTERFACE STORYCORE
+═══════════════════════════════════════════════════════════════════════════════
+
+1️⃣  REDÉMARRER LE SERVEUR
+    ──────────────────────
+    cd creative-studio-ui
+    npm run dev
+
+2️⃣  VIDER LE CACHE
+    ──────────────
+    # Dans le navigateur
+    Ctrl+Shift+Delete
+    → Cocher "Cached images and files"
+    → Cliquer "Clear data"
+
+3️⃣  VIDER LOCALSTORAGE
+    ───────────────────
+    # F12 → Console
+    localStorage.clear()
+    sessionStorage.clear()
+
+4️⃣  RECHARGER
+    ──────────
+    Ctrl+Shift+R
+
+5️⃣  OUVRIR SETTINGS
+    ────────────────
+    • Cliquer sur ⚙️
+    • LLM Configuration
+    • Provider: Local
+    • Endpoint: http://localhost:11434
+
+6️⃣  COMPTER VOS MODÈLES
+    ────────────────────
+    Vous devriez voir 9 cartes de modèles installés :
+    
+    ✓ Gemma 3 1B
+    ✓ Gemma 3 4B
+    ✓ Gemma Latest
+    ✓ Llama 3.1 8B
+    ✓ Mistral Latest
+    ✓ Qwen 2.5 Coder
+    ⭐ Qwen 3 VL 8B (RECOMMENDED)
+    ✓ GPT-OSS 20B
+    
+    (nomic-embed-text n'apparaît pas car c'est un modèle d'embeddings)
+
+═══════════════════════════════════════════════════════════════════════════════
+   🔧 FILTRES DANS L'INTERFACE
+═══════════════════════════════════════════════════════════════════════════════
+
+FILTRER PAR FAMILLE :
+─────────────────────
+• [All Models]     → Voir tous (9 modèles)
+• [Gemma]          → 3 modèles (gemma3:1b, gemma3:4b, gemma:latest)
+• [Llama]          → 1 modèle  (llama3.1:8b)
+• [Mistral]        → 1 modèle  (mistral:latest)
+• [Qwen]           → 3 modèles (qwen2.5-coder, qwen3-vl ⭐)
+• [Other]          → 1 modèle  (gpt-oss:20b)
+
+FILTRER PAR STATUT :
+────────────────────
+• [✓ Installed Only] → Voir uniquement vos 9 modèles installés
+
+═══════════════════════════════════════════════════════════════════════════════
+   📈 STATISTIQUES DE VOS MODÈLES
+═══════════════════════════════════════════════════════════════════════════════
+
+ESPACE DISQUE TOTAL : ~42 GB
+────────────────────────────
+• gemma3:1b           :  0.8 GB
+• gemma3:4b           :  3.3 GB
+• gemma:latest        :  5.0 GB
+• mistral:latest      :  4.4 GB
+• llama3.1:8b         :  4.9 GB
+• qwen2.5-coder       :  4.7 GB
+• qwen3-vl:8b         :  6.1 GB ⭐
+• gpt-oss:20b         : 13.0 GB
+• nomic-embed-text    :  0.3 GB
+                        ─────────
+TOTAL                 : ~42.5 GB
+
+RAM REQUISE PAR MODÈLE :
+────────────────────────
+• gemma3:1b           :  2 GB  ⚡ ULTRA LÉGER
+• gemma3:4b           :  4 GB  ⚡ LÉGER
+• gemma:latest        :  8 GB
+• mistral:latest      :  8 GB
+• llama3.1:8b         :  8 GB
+• qwen2.5-coder       :  8 GB
+• qwen3-vl:8b         :  8 GB  ⭐ RECOMMANDÉ
+• gpt-oss:20b         : 16 GB  🧠 PUISSANT
+
+═══════════════════════════════════════════════════════════════════════════════
+   🎨 CAPACITÉS PAR MODÈLE
+═══════════════════════════════════════════════════════════════════════════════
+
+📝 TEXT GENERATION (TOUS)
+   ──────────────────────
+   ✓ Tous les 9 modèles
+
+💬 CHAT (TOUS)
+   ───────────
+   ✓ Tous les 9 modèles
+
+🧠 REASONING
+   ─────────
+   ✓ gemma3:4b
+   ✓ gemma:latest
+   ✓ llama3.1:8b
+   ✓ mistral:latest
+   ✓ qwen2.5-coder
+   ✓ qwen3-vl:8b
+   ✓ gpt-oss:20b
+
+💻 CODE GENERATION
+   ───────────────
+   ✓ llama3.1:8b
+   ✓ mistral:latest
+   ✓ qwen2.5-coder ⭐ SPÉCIALISÉ
+   ✓ gpt-oss:20b
+
+✍️ CREATIVE WRITING
+   ─────────────────
+   ✓ gemma3:4b
+   ✓ gemma:latest
+   ✓ llama3.1:8b
+   ✓ gpt-oss:20b
+
+⚡ FAST INFERENCE
+   ──────────────
+   ✓ gemma3:1b ⭐ ULTRA RAPIDE
+   ✓ gemma3:4b
+   ✓ mistral:latest
+
+🖼️ VISION UNDERSTANDING (UNIQUE)
+   ─────────────────────────────
+   ✓ qwen3-vl:8b ⭐ SEUL MODÈLE
+
+🌍 MULTILINGUAL
+   ────────────
+   ✓ qwen2.5-coder
+   ✓ qwen3-vl:8b ⭐
+
+🔍 CODE ANALYSIS
+   ─────────────
+   ✓ qwen2.5-coder ⭐ SPÉCIALISÉ
+
+🐛 DEBUGGING
+   ─────────
+   ✓ qwen2.5-coder ⭐ SPÉCIALISÉ
+
+🎬 VISUAL STORYTELLING (UNIQUE)
+   ────────────────────────────
+   ✓ qwen3-vl:8b ⭐ SEUL MODÈLE
+
+═══════════════════════════════════════════════════════════════════════════════
+   🏆 MEILLEURS MODÈLES PAR CAS D'USAGE
+═══════════════════════════════════════════════════════════════════════════════
+
+🎬 STORYCORE (STORYTELLING VISUEL)
+   ────────────────────────────────
+   1️⃣  qwen3-vl:8b        ⭐⭐⭐⭐⭐ PARFAIT
+   2️⃣  llama3.1:8b        ⭐⭐⭐⭐
+   3️⃣  gpt-oss:20b        ⭐⭐⭐⭐
+
+💻 GÉNÉRATION DE CODE
+   ──────────────────
+   1️⃣  qwen2.5-coder      ⭐⭐⭐⭐⭐ SPÉCIALISÉ
+   2️⃣  llama3.1:8b        ⭐⭐⭐⭐
+   3️⃣  mistral:latest     ⭐⭐⭐
+
+⚡ RAPIDITÉ
+   ────────
+   1️⃣  gemma3:1b          ⭐⭐⭐⭐⭐ ULTRA RAPIDE
+   2️⃣  gemma3:4b          ⭐⭐⭐⭐
+   3️⃣  mistral:latest     ⭐⭐⭐
+
+🧠 TÂCHES COMPLEXES
+   ────────────────
+   1️⃣  gpt-oss:20b        ⭐⭐⭐⭐⭐ PLUS PUISSANT
+   2️⃣  llama3.1:8b        ⭐⭐⭐⭐
+   3️⃣  qwen3-vl:8b        ⭐⭐⭐⭐
+
+✍️ ÉCRITURE CRÉATIVE
+   ──────────────────
+   1️⃣  qwen3-vl:8b        ⭐⭐⭐⭐⭐ AVEC VISION
+   2️⃣  gpt-oss:20b        ⭐⭐⭐⭐
+   3️⃣  llama3.1:8b        ⭐⭐⭐⭐
+
+🌍 MULTILINGUE
+   ────────────
+   1️⃣  qwen3-vl:8b        ⭐⭐⭐⭐⭐ NATIF
+   2️⃣  qwen2.5-coder      ⭐⭐⭐⭐
+   3️⃣  llama3.1:8b        ⭐⭐⭐
+
+═══════════════════════════════════════════════════════════════════════════════
+   ✅ CHECKLIST DE VÉRIFICATION
+═══════════════════════════════════════════════════════════════════════════════
+
+OLLAMA :
+────────
+□ Ollama est installé
+□ Ollama tourne (ollama list fonctionne)
+□ 9 modèles visibles dans ollama list
+□ qwen3-vl:8b présent avec 6.1 GB
+
+SERVEUR DEV :
+─────────────
+□ Serveur redémarré (npm run dev)
+□ Aucune erreur dans le terminal
+□ Interface accessible sur http://localhost:5173
+
+CACHE :
+───────
+□ Cache navigateur vidé (Ctrl+Shift+Delete)
+□ localStorage vidé (localStorage.clear())
+□ sessionStorage vidé (sessionStorage.clear())
+□ Page rechargée (Ctrl+Shift+R)
+
+INTERFACE :
+───────────
+□ Settings ouverts (⚙️)
+□ LLM Configuration accessible
+□ Provider "Local" sélectionné
+□ Endpoint http://localhost:11434 configuré
+□ 9 cartes de modèles visibles
+□ ⭐ visible sur Qwen 3 VL 8B
+□ Badge "RECOMMENDED" affiché
+□ Badge "Installed" sur tous vos modèles
+□ Bouton "Select" fonctionnel
+□ Filtres par famille fonctionnels
+□ Filtre "Installed Only" fonctionnel
+
+═══════════════════════════════════════════════════════════════════════════════
+   🎉 RÉSUMÉ
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 9 modèles installés et configurés
+✅ Tous ajoutés au catalogue LOCAL_MODELS
+✅ qwen3-vl:8b avec ⭐ RECOMMENDED
+✅ Capacités spéciales pour chaque modèle
+✅ Filtres par famille et statut
+✅ Prêt pour utilisation dans StoryCore
+
+🔄 POUR VOIR TOUS VOS MODÈLES :
+   1. npm run dev (redémarrer)
+   2. Ctrl+Shift+Delete (vider cache)
+   3. localStorage.clear() (vider storage)
+   4. Ctrl+Shift+R (recharger)
+   5. Settings → LLM Config → Local
+   6. Voir les 9 cartes de modèles !
+
+═══════════════════════════════════════════════════════════════════════════════

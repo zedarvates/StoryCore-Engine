@@ -70,7 +70,7 @@ const DEFAULT_OLLAMA_ENDPOINT = 'http://localhost:11434';
 /**
  * Default Ollama model
  */
-const DEFAULT_OLLAMA_MODEL = 'gemma3:1b';
+const DEFAULT_OLLAMA_MODEL = 'gemma2:2b';
 
 // ============================================================================
 // Detection Functions

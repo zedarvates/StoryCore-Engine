@@ -1,0 +1,115 @@
+/**
+ * ThumbnailPreview Styles
+ */
+
+.thumbnail-preview {
+  display: inline-block;
+  object-fit: cover;
+  border-radius: 4px;
+  background-color: #1a1a1a;
+}
+
+.thumbnail-loading,
+.thumbnail-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  color: #ff6b6b;
+  text-align: center;
+}
+
+.error-content svg {
+  width: 32px;
+  height: 32px;
+}
+
+.error-content p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.retry-button {
+  padding: 4px 12px;
+  font-size: 12px;
+  background-color: #3a3a3a;
+  color: #fff;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retry-button:hover {
+  background-color: #4a4a4a;
+}
+
+.thumbnail-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: #2a2a2a;
+  border-radius: 4px;
+}
+
+.skeleton-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .spinner,
+  .skeleton-shimmer {
+    animation: none;
+  }
+}

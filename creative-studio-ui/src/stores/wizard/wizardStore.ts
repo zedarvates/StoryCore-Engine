@@ -20,8 +20,14 @@ import type {
   ShotPlan,
 } from '../../types/wizard';
 
+// Import WizardType from storage utilities
+import type { WizardType } from '../../utils/wizardStorage';
+
 // Initial state factory
 const createInitialState = () => ({
+  // Wizard metadata
+  wizardType: null as WizardType | null,
+  
   // Navigation state
   currentStep: 1,
   completedSteps: new Set<number>(),
@@ -52,6 +58,14 @@ export const useWizardStore = create<WizardState>()(
     persist(
       (set, get) => ({
         ...createInitialState(),
+
+        /**
+         * Set the wizard type
+         * @param type - Wizard type identifier
+         */
+        setWizardType: (type: WizardType) => {
+          set({ wizardType: type }, false, 'setWizardType');
+        },
 
         /**
          * Set the current step
@@ -347,13 +361,25 @@ export const useWizardStore = create<WizardState>()(
           completedSteps: Array.from(state.completedSteps),
           validationErrors: Array.from(state.validationErrors.entries()),
         }),
-        // Custom deserialization for Set and Map
-        merge: (persistedState: any, currentState) => ({
-          ...currentState,
-          ...persistedState,
-          completedSteps: new Set(persistedState.completedSteps || []),
-          validationErrors: new Map(persistedState.validationErrors || []),
-        }),
+        // Custom deserialization for Set and Map with proper type handling
+        merge: (persistedState: any, currentState) => {
+          // Safely convert completedSteps to Set
+          const completedSteps = Array.isArray(persistedState.completedSteps)
+            ? new Set(persistedState.completedSteps)
+            : new Set<number>();
+
+          // Safely convert validationErrors to Map
+          const validationErrors = Array.isArray(persistedState.validationErrors)
+            ? new Map(persistedState.validationErrors)
+            : new Map<number, ValidationError[]>();
+
+          return {
+            ...currentState,
+            ...persistedState,
+            completedSteps,
+            validationErrors,
+          };
+        },
       }
     ),
     { name: 'WizardStore' }

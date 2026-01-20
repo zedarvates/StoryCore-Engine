@@ -2,8 +2,18 @@
 // Wizard Storage Utilities
 // ============================================================================
 
+export type WizardType = 
+  | 'world' 
+  | 'character'
+  | 'dialogue-writer'
+  | 'scene-generator'
+  | 'storyboard-creator'
+  | 'style-transfer'
+  | 'sequence-plan'
+  | 'shot';
+
 export interface WizardAutoSaveState<T> {
-  wizardType: 'world' | 'character';
+  wizardType: WizardType;
   timestamp: string;
   currentStep: number;
   formData: Partial<T>;
@@ -14,7 +24,7 @@ export interface WizardAutoSaveState<T> {
 // Storage Key Generation
 // ============================================================================
 
-function getStorageKey(wizardType: 'world' | 'character'): string {
+function getStorageKey(wizardType: WizardType): string {
   return `wizard-${wizardType}`;
 }
 
@@ -23,7 +33,7 @@ function getStorageKey(wizardType: 'world' | 'character'): string {
 // ============================================================================
 
 export function saveWizardState<T>(
-  wizardType: 'world' | 'character',
+  wizardType: WizardType,
   currentStep: number,
   formData: Partial<T>,
   expirationDays: number = 7
@@ -42,11 +52,16 @@ export function saveWizardState<T>(
     
     return true;
   } catch (error) {
-    console.error('Failed to save wizard state:', error);
+    // Failed to save wizard state - log for debugging in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to save wizard state:', error);
+    }
     
     // Check if storage is full
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      console.warn('LocalStorage quota exceeded. Cannot save wizard progress.');
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('LocalStorage quota exceeded. Cannot save wizard progress.');
+      }
     }
     
     return false;
@@ -58,7 +73,7 @@ export function saveWizardState<T>(
 // ============================================================================
 
 export function loadWizardState<T>(
-  wizardType: 'world' | 'character'
+  wizardType: WizardType
 ): WizardAutoSaveState<T> | null {
   try {
     const key = getStorageKey(wizardType);
@@ -72,7 +87,9 @@ export function loadWizardState<T>(
     
     // Validate state structure
     if (!isValidWizardState(state)) {
-      console.warn('Invalid wizard state structure, clearing corrupted data');
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Invalid wizard state structure, clearing corrupted data');
+      }
       clearWizardState(wizardType);
       return null;
     }
@@ -86,7 +103,10 @@ export function loadWizardState<T>(
 
     return state;
   } catch (error) {
-    console.error('Failed to load wizard state:', error);
+    // Failed to load wizard state - log for debugging in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to load wizard state:', error);
+    }
     
     // Clear corrupted state
     clearWizardState(wizardType);
@@ -109,7 +129,7 @@ export interface LoadStateResult<T> {
 }
 
 export function loadWizardStateWithValidation<T>(
-  wizardType: 'world' | 'character'
+  wizardType: WizardType
 ): LoadStateResult<T> {
   try {
     const key = getStorageKey(wizardType);
@@ -168,12 +188,15 @@ export function loadWizardStateWithValidation<T>(
 // Clear Wizard State
 // ============================================================================
 
-export function clearWizardState(wizardType: 'world' | 'character'): void {
+export function clearWizardState(wizardType: WizardType): void {
   try {
     const key = getStorageKey(wizardType);
     localStorage.removeItem(key);
   } catch (error) {
-    console.error('Failed to clear wizard state:', error);
+    // Failed to clear wizard state - log for debugging in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to clear wizard state:', error);
+    }
   }
 }
 
@@ -181,7 +204,7 @@ export function clearWizardState(wizardType: 'world' | 'character'): void {
 // Check if Wizard State Exists
 // ============================================================================
 
-export function hasWizardState(wizardType: 'world' | 'character'): boolean {
+export function hasWizardState(wizardType: WizardType): boolean {
   const state = loadWizardState(wizardType);
   return state !== null;
 }
@@ -191,7 +214,7 @@ export function hasWizardState(wizardType: 'world' | 'character'): boolean {
 // ============================================================================
 
 export function exportWizardState<T>(
-  wizardType: 'world' | 'character'
+  wizardType: WizardType
 ): string | null {
   const state = loadWizardState<T>(wizardType);
   
@@ -202,7 +225,10 @@ export function exportWizardState<T>(
   try {
     return JSON.stringify(state.formData, null, 2);
   } catch (error) {
-    console.error('Failed to export wizard state:', error);
+    // Failed to export wizard state - log for debugging in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to export wizard state:', error);
+    }
     return null;
   }
 }
@@ -212,7 +238,7 @@ export function exportWizardState<T>(
 // ============================================================================
 
 export function importWizardState<T>(
-  wizardType: 'world' | 'character',
+  wizardType: WizardType,
   jsonData: string
 ): boolean {
   try {
@@ -220,7 +246,10 @@ export function importWizardState<T>(
     
     return saveWizardState(wizardType, 1, formData);
   } catch (error) {
-    console.error('Failed to import wizard state:', error);
+    // Failed to import wizard state - log for debugging in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to import wizard state:', error);
+    }
     return false;
   }
 }
@@ -232,11 +261,22 @@ export function importWizardState<T>(
 // Using 'any' for state parameter to validate arbitrary wizard state structures
 // before type narrowing with the type guard
 function isValidWizardState(state: any): state is WizardAutoSaveState<any> {
+  const validWizardTypes: WizardType[] = [
+    'world',
+    'character',
+    'dialogue-writer',
+    'scene-generator',
+    'storyboard-creator',
+    'style-transfer',
+    'sequence-plan',
+    'shot',
+  ];
+
   return (
     state &&
     typeof state === 'object' &&
     typeof state.wizardType === 'string' &&
-    (state.wizardType === 'world' || state.wizardType === 'character') &&
+    validWizardTypes.includes(state.wizardType as WizardType) &&
     typeof state.timestamp === 'string' &&
     typeof state.currentStep === 'number' &&
     typeof state.formData === 'object' &&
@@ -287,7 +327,10 @@ export function getLocalStorageUsage(): {
       percentage,
     };
   } catch (error) {
-    console.error('Failed to calculate storage usage:', error);
+    // Failed to calculate storage usage - log for debugging in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to calculate storage usage:', error);
+    }
     return {
       used: 0,
       available: 0,
@@ -301,8 +344,18 @@ export function getLocalStorageUsage(): {
 // ============================================================================
 
 export function clearAllWizardStates(): void {
-  clearWizardState('world');
-  clearWizardState('character');
+  const wizardTypes: WizardType[] = [
+    'world',
+    'character',
+    'dialogue-writer',
+    'scene-generator',
+    'storyboard-creator',
+    'style-transfer',
+    'sequence-plan',
+    'shot',
+  ];
+  
+  wizardTypes.forEach(type => clearWizardState(type));
 }
 
 // ============================================================================
@@ -310,14 +363,16 @@ export function clearAllWizardStates(): void {
 // ============================================================================
 
 export function emergencyExportWizardState<T>(
-  wizardType: 'world' | 'character',
+  wizardType: WizardType,
   error?: Error
 ): void {
   try {
     const state = loadWizardState<T>(wizardType);
     
     if (!state) {
-      console.warn('No wizard state to export');
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('No wizard state to export');
+      }
       return;
     }
 
@@ -344,9 +399,14 @@ export function emergencyExportWizardState<T>(
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    console.info('Emergency export completed successfully');
+    if (process.env.NODE_ENV === 'development') {
+      console.info('Emergency export completed successfully');
+    }
   } catch (exportError) {
-    console.error('Emergency export failed:', exportError);
+    // Failed emergency export - log for debugging in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Emergency export failed:', exportError);
+    }
   }
 }
 
@@ -363,19 +423,32 @@ export function enableAutoExportOnError(): void {
 
   autoExportEnabled = true;
 
+  const wizardTypes: WizardType[] = [
+    'world',
+    'character',
+    'dialogue-writer',
+    'scene-generator',
+    'storyboard-creator',
+    'style-transfer',
+    'sequence-plan',
+    'shot',
+  ];
+
   // Listen for unhandled errors
   window.addEventListener('error', (event) => {
-    console.warn('Unhandled error detected, attempting emergency export');
-    emergencyExportWizardState('world', event.error);
-    emergencyExportWizardState('character', event.error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Unhandled error detected, attempting emergency export');
+    }
+    wizardTypes.forEach(type => emergencyExportWizardState(type, event.error));
   });
 
   // Listen for unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
-    console.warn('Unhandled rejection detected, attempting emergency export');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Unhandled rejection detected, attempting emergency export');
+    }
     const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
-    emergencyExportWizardState('world', error);
-    emergencyExportWizardState('character', error);
+    wizardTypes.forEach(type => emergencyExportWizardState(type, error));
   });
 }
 

@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef } from 'react';
-import { LLMService, LLMError, getLLMService } from '@/services/llmService';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { LLMService, LLMError } from '@/services/llmService';
+import { llmConfigService } from '@/services/llmConfigService';
 import type {
   LLMRequest,
   LLMResponse,
@@ -39,8 +40,29 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
     onManualEntry,
     autoRetry = false,
     maxRetries = 1,
-    llmService = getLLMService(),
   } = options;
+
+  // Get LLM service from llmConfigService (always up-to-date)
+  const [llmService, setLLMService] = useState<LLMService | null>(() => 
+    options.llmService || llmConfigService.getService()
+  );
+
+  // Subscribe to configuration changes
+  useEffect(() => {
+    if (options.llmService) {
+      // If a custom service is provided, use it
+      return;
+    }
+
+    // Subscribe to config changes
+    const unsubscribe = llmConfigService.subscribe(() => {
+      const newService = llmConfigService.getService();
+      console.log('[useLLMGeneration] LLM service updated');
+      setLLMService(newService);
+    });
+
+    return unsubscribe;
+  }, [options.llmService]);
 
   const [state, setState] = useState<LLMGenerationState>({
     isLoading: false,
@@ -60,6 +82,11 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
 
   const generate = useCallback(
     async (request: LLMRequest) => {
+      if (!llmService) {
+        console.error('[useLLMGeneration] No LLM service available');
+        return;
+      }
+
       // Store request for retry
       lastRequestRef.current = request;
       retryCountRef.current = 0;
@@ -78,6 +105,8 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
         const response = await llmService.generateCompletion(request, state.requestId || undefined);
 
         if (response.success && response.data) {
+          console.log('✅ LLM GENERATION SUCCESS - Content length:', response.data.content.length);
+          console.log('✅ LLM GENERATION SUCCESS - Content preview:', response.data.content.substring(0, 300));
           setState((prev) => ({
             ...prev,
             isLoading: false,
@@ -85,6 +114,7 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
           }));
           onSuccess?.(response.data);
         } else {
+          console.error('❌ LLM GENERATION FAILED - Error:', response.error, 'Code:', response.code);
           throw new LLMError(
             response.error || 'Generation failed',
             response.code || 'unknown',
@@ -104,6 +134,11 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
 
   const generateStreaming = useCallback(
     async (request: LLMRequest) => {
+      if (!llmService) {
+        console.error('[useLLMGeneration] No LLM service available');
+        return;
+      }
+
       // Store request for retry
       lastRequestRef.current = request;
       retryCountRef.current = 0;
@@ -158,6 +193,11 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
 
   const handleError = useCallback(
     (error: Error) => {
+      if (!llmService) {
+        console.error('[useLLMGeneration] No LLM service available for error handling');
+        return;
+      }
+
       const recoveryOptions = llmService.createRecoveryOptions(
         error,
         () => retry(),
@@ -210,6 +250,8 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
   // ============================================================================
 
   const cancel = useCallback(() => {
+    if (!llmService) return;
+    
     if (state.requestId) {
       llmService.cancelRequest(state.requestId);
     }

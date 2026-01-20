@@ -32,6 +32,7 @@
 /* Processing overlay styles */
 .processing-overlay {
     background: rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
 }
 

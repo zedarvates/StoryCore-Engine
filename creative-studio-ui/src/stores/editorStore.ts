@@ -530,21 +530,53 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   createShot: async (shotData: ShotInput) => {
     try {
-      const { projectService, projectPath } = get();
+      const { projectService, projectPath, currentProject } = get();
 
-      if (!projectPath) {
+      if (!currentProject) {
         throw new Error('No project loaded');
       }
 
-      const shot = await projectService.createShot(projectPath, shotData);
-
-      // Refresh shots
-      await get().refreshShots();
-
-      // Auto-select new shot
-      set({ selectedShotId: shot.id });
-
-      return shot;
+      // If we have a projectPath, use the service to persist
+      if (projectPath) {
+        const shot = await projectService.createShot(projectPath, shotData);
+        
+        // Refresh shots
+        await get().refreshShots();
+        
+        // Auto-select new shot
+        set({ selectedShotId: shot.id });
+        
+        return shot;
+      } else {
+        // For in-memory projects (JSON-loaded), create shot directly
+        const shot: Shot = {
+          id: crypto.randomUUID(),
+          number: shotData.number || (currentProject.storyboard?.length || 0) + 1,
+          description: shotData.description || '',
+          duration: shotData.duration || 3,
+          camera_movement: shotData.camera_movement,
+          transition: shotData.transition,
+          image: shotData.image,
+          audio: shotData.audio,
+          dialogue: shotData.dialogue,
+          created_at: new Date().toISOString(),
+        };
+        
+        // Update current project
+        const updatedProject = {
+          ...currentProject,
+          storyboard: [...(currentProject.storyboard || []), shot],
+        };
+        
+        set({
+          currentProject: updatedProject,
+          shots: updatedProject.storyboard || [],
+          selectedShotId: shot.id,
+        });
+        
+        console.log('Shot created in memory:', shot.id);
+        return shot;
+      }
     } catch (error) {
       console.error('Failed to create shot:', error);
       throw error;
@@ -553,16 +585,59 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   updateShot: async (shotId: string, updates: Partial<Shot>) => {
     try {
-      const { projectService, projectPath } = get();
+      const { projectService, projectPath, currentProject, shots } = get();
 
-      if (!projectPath) {
+      if (!currentProject) {
         throw new Error('No project loaded');
       }
 
-      await projectService.updateShot(projectPath, shotId, updates);
-
-      // Refresh shots
-      await get().refreshShots();
+      // If we have a projectPath, use the service to persist
+      if (projectPath) {
+        // Find the shot to get its sequence ID
+        const shot = shots.find(s => s.id === shotId);
+        
+        if (shot && (shot as any).sequencePlanId) {
+          // This is a ProductionShot with sequence information
+          const sequenceId = (shot as any).sequencePlanId;
+          
+          // Use the new sequence IPC method to update the shot in its sequence file
+          if (window.electronAPI?.sequence) {
+            try {
+              await window.electronAPI.sequence.updateShot(projectPath, sequenceId, shotId, updates);
+              console.log(`Shot ${shotId} updated in sequence ${sequenceId}`);
+            } catch (error) {
+              console.warn('Failed to update shot in sequence file, falling back to project service:', error);
+              await projectService.updateShot(projectPath, shotId, updates);
+            }
+          } else {
+            // Fallback to old method if sequence API not available
+            await projectService.updateShot(projectPath, shotId, updates);
+          }
+        } else {
+          // Regular shot without sequence information, use old method
+          await projectService.updateShot(projectPath, shotId, updates);
+        }
+        
+        // Refresh shots
+        await get().refreshShots();
+      } else {
+        // For in-memory projects, update shot directly
+        const updatedStoryboard = (currentProject.storyboard || []).map(shot =>
+          shot.id === shotId ? { ...shot, ...updates } : shot
+        );
+        
+        const updatedProject = {
+          ...currentProject,
+          storyboard: updatedStoryboard,
+        };
+        
+        set({
+          currentProject: updatedProject,
+          shots: updatedStoryboard,
+        });
+        
+        console.log('Shot updated in memory:', shotId);
+      }
     } catch (error) {
       console.error('Failed to update shot:', error);
       throw error;
@@ -571,21 +646,36 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   deleteShot: async (shotId: string) => {
     try {
-      const { projectService, projectPath } = get();
+      const { projectService, projectPath, currentProject, selectedShotId } = get();
 
-      if (!projectPath) {
+      if (!currentProject) {
         throw new Error('No project loaded');
       }
 
-      await projectService.deleteShot(projectPath, shotId);
-
-      // Refresh shots
-      await get().refreshShots();
-
-      // Clear selection if deleted shot was selected
-      const { selectedShotId } = get();
-      if (selectedShotId === shotId) {
-        set({ selectedShotId: null });
+      // If we have a projectPath, use the service to persist
+      if (projectPath) {
+        await projectService.deleteShot(projectPath, shotId);
+        
+        // Refresh shots
+        await get().refreshShots();
+      } else {
+        // For in-memory projects, delete shot directly
+        const updatedStoryboard = (currentProject.storyboard || []).filter(
+          shot => shot.id !== shotId
+        );
+        
+        const updatedProject = {
+          ...currentProject,
+          storyboard: updatedStoryboard,
+        };
+        
+        set({
+          currentProject: updatedProject,
+          shots: updatedStoryboard,
+          selectedShotId: selectedShotId === shotId ? null : selectedShotId,
+        });
+        
+        console.log('Shot deleted from memory:', shotId);
       }
     } catch (error) {
       console.error('Failed to delete shot:', error);
@@ -599,16 +689,37 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   reorderShots: async (shotIds: string[]) => {
     try {
-      const { projectService, projectPath } = get();
+      const { projectService, projectPath, currentProject } = get();
 
-      if (!projectPath) {
+      if (!currentProject) {
         throw new Error('No project loaded');
       }
 
-      await projectService.reorderShots(projectPath, shotIds);
-
-      // Refresh shots
-      await get().refreshShots();
+      // If we have a projectPath, use the service to persist
+      if (projectPath) {
+        await projectService.reorderShots(projectPath, shotIds);
+        
+        // Refresh shots
+        await get().refreshShots();
+      } else {
+        // For in-memory projects, reorder shots directly
+        const shotMap = new Map((currentProject.storyboard || []).map(shot => [shot.id, shot]));
+        const reorderedStoryboard = shotIds
+          .map(id => shotMap.get(id))
+          .filter((shot): shot is Shot => shot !== undefined);
+        
+        const updatedProject = {
+          ...currentProject,
+          storyboard: reorderedStoryboard,
+        };
+        
+        set({
+          currentProject: updatedProject,
+          shots: reorderedStoryboard,
+        });
+        
+        console.log('Shots reordered in memory');
+      }
     } catch (error) {
       console.error('Failed to reorder shots:', error);
       throw error;

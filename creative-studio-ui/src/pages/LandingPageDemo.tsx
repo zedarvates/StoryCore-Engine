@@ -3,6 +3,8 @@ import { LandingPage } from './LandingPage';
 import type { RecentProject } from '@/components/launcher/RecentProjectsList';
 import { CreateProjectDialog } from '@/components/launcher/CreateProjectDialog';
 import { OpenProjectDialog } from '@/components/launcher/OpenProjectDialog';
+import { generateProjectTemplate, sequencesToShots } from '@/utils/projectTemplateGenerator';
+import type { SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
 
 // ============================================================================
 // Landing Page Demo Component
@@ -52,8 +54,18 @@ export function LandingPageDemo() {
     setShowOpenDialog(true);
   };
 
-  const handleCreateProjectSubmit = async (projectName: string, projectPath: string) => {
-    console.log('Creating project:', { projectName, projectPath });
+  const handleCreateProjectSubmit = async (projectName: string, projectPath: string, format: SerializableProjectFormat) => {
+    console.log('Creating project:', { projectName, projectPath, format });
+    
+    // Generate project template
+    const template = generateProjectTemplate(format);
+    const initialShots = sequencesToShots(template.sequences);
+    
+    console.log('Generated template:', {
+      sequences: template.sequences.length,
+      shots: template.totalShots,
+      duration: template.totalDuration,
+    });
     
     // Simulate project creation
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -68,7 +80,7 @@ export function LandingPageDemo() {
     };
     
     setRecentProjects((prev) => [newProject, ...prev].slice(0, 10));
-    alert(`Project "${projectName}" created successfully!`);
+    alert(`Project "${projectName}" created successfully with format: ${format.name}!\n\n${template.sequences.length} sequences and ${template.totalShots} shots created.`);
   };
 
   const handleOpenProjectSubmit = async (projectPath: string) => {

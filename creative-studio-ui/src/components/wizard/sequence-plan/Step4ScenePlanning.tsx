@@ -357,7 +357,7 @@ function SceneCard({
                   {scene.estimatedShotCount} shot{scene.estimatedShotCount !== 1 ? 's' : ''}
                 </span>
                 {scene.beats.length > 0 && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs border-gray-600 text-gray-700 bg-gray-50">
                     {scene.beats.length} beat{scene.beats.length !== 1 ? 's' : ''}
                   </Badge>
                 )}
@@ -477,7 +477,7 @@ function SceneEditorDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {scene.id ? 'Edit Scene' : 'Add New Scene'}
@@ -487,7 +487,7 @@ function SceneEditorDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-y-auto flex-1 pr-2">
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="scene-title">Title *</Label>
@@ -595,7 +595,7 @@ function SceneEditorDialog({
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex justify-end gap-2 pt-4 border-t mt-4">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>

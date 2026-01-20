@@ -8,7 +8,7 @@
  * Requirements: 6.1
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FormField, FormSection, FormGrid } from '../WizardFormLayout';
 import './DialogueWriterForm.css';
 
@@ -29,6 +29,7 @@ export interface DialogueWriterFormProps {
   onSubmit: (data: DialogueInput) => void;
   onCancel: () => void;
   onChange?: (data: Partial<DialogueInput>) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 interface FormErrors {
@@ -56,6 +57,7 @@ export function DialogueWriterForm({
   onSubmit,
   onCancel,
   onChange,
+  onValidationChange,
 }: DialogueWriterFormProps) {
   const [formData, setFormData] = useState<DialogueInput>({
     sceneContext: initialData?.sceneContext || '',
@@ -64,6 +66,14 @@ export function DialogueWriterForm({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.sceneContext || formData.characters.length > 0 || formData.tone) {
+      validateForm();
+    }
+  }, [formData, validateForm]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -85,8 +95,10 @@ export function DialogueWriterForm({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData]);
+    const isValid = Object.keys(newErrors).length === 0;
+    onValidationChange?.(isValid);
+    return isValid;
+  }, [formData, onValidationChange]);
 
   const handleFieldChange = useCallback((field: keyof DialogueInput, value: any) => {
     setFormData(prev => {
@@ -141,11 +153,25 @@ export function DialogueWriterForm({
           label="Characters"
           required
           error={errors.characters}
-          helpText="Select characters who will speak in this scene (max 6)"
+          helpText={characters.length === 0 
+            ? "⚠️ You need to create at least one character first" 
+            : "Select characters who will speak in this scene (max 6)"}
         >
           {characters.length === 0 ? (
-            <div className="no-characters-message">
-              No characters available. Create characters first using the Character Wizard.
+            <div className="no-characters-message" style={{
+              padding: '1.5rem',
+              backgroundColor: '#fef3c7',
+              border: '2px solid #f59e0b',
+              borderRadius: '0.5rem',
+              textAlign: 'center',
+              color: '#92400e',
+              fontWeight: '500'
+            }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
+              <div style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>No characters available</div>
+              <div style={{ fontSize: '0.875rem' }}>
+                Please create at least one character using the Character Wizard before writing dialogue.
+              </div>
             </div>
           ) : (
             <div className="character-selection">

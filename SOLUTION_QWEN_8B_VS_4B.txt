@@ -1,0 +1,222 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                  🎯 SOLUTION - QWEN 8B vs 4B                                 ║
+║                                                                              ║
+║                    PROBLÈME DE MODÈLE INEXISTANT                             ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  LE PROBLÈME DÉCOUVERT                                                     ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+  Vous avez:     qwen3-vl:8b  ✅ (installé dans Ollama)
+  
+  StoryCore veut: qwen3-vl:4b  ❌ (pas installé)
+  
+  Résultat:      Erreur 404 - Modèle introuvable!
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  SOLUTION RAPIDE (30 SECONDES)                                            ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+  1️⃣  Appuyer sur F12 dans le navigateur
+  
+  2️⃣  Copier-coller cette ligne dans la Console:
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  localStorage.removeItem('storycore-llm-config');                           │
+│  localStorage.setItem('storycore-llm-config',JSON.stringify({              │
+│    provider:'local',model:'qwen3-vl:8b',                                    │
+│    apiEndpoint:'http://localhost:11434',streamingEnabled:true,              │
+│    parameters:{temperature:0.7,maxTokens:2000,topP:0.9,                     │
+│    frequencyPenalty:0,presencePenalty:0}                                    │
+│  }));location.reload();                                                     │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  3️⃣  Appuyer sur ENTRÉE
+  
+  4️⃣  ✅ C'EST RÉGLÉ!
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  VERSION ULTRA-COURTE (UNE LIGNE)                                         ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  localStorage.removeItem('storycore-llm-config');localStorage.setItem(     │
+│  'storycore-llm-config',JSON.stringify({provider:'local',model:            │
+│  'qwen3-vl:8b',apiEndpoint:'http://localhost:11434',streamingEnabled:      │
+│  true,parameters:{temperature:0.7,maxTokens:2000,topP:0.9,                 │
+│  frequencyPenalty:0,presencePenalty:0}}));location.reload();               │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  POURQUOI ÇA MARCHE?                                                       ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+  AVANT:
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ StoryCore → Demande qwen3-vl:4b → Ollama → ❌ Pas trouvé → 404        │
+  └────────────────────────────────────────────────────────────────────────┘
+
+  APRÈS:
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ StoryCore → Demande qwen3-vl:8b → Ollama → ✅ Trouvé → Génération!    │
+  └────────────────────────────────────────────────────────────────────────┘
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  COMPARAISON 8B vs 4B                                                      ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │                    QWEN3-VL:8B              QWEN3-VL:4B                │
+  ├────────────────────────────────────────────────────────────────────────┤
+  │ Taille:            ~5 GB                    ~2.5 GB                    │
+  │ RAM Requise:       8-10 GB                  4-6 GB                     │
+  │ Vitesse:           ⭐⭐⭐                     ⭐⭐⭐⭐                      │
+  │ Qualité:           ⭐⭐⭐⭐⭐                  ⭐⭐⭐⭐                      │
+  │ Recommandé pour:   Haute qualité            Équilibré                  │
+  └────────────────────────────────────────────────────────────────────────┘
+
+  VOUS AVEZ LE 8B → Meilleure qualité! ✅
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  VÉRIFICATION                                                              ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+  ✅ Ouvrir un wizard (World Building)
+  ✅ Pas de banner jaune
+  ✅ Cliquer sur "Generate World Concept"
+  ✅ Ça génère du texte!
+  ✅ Pas d'erreur 404
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  ALTERNATIVE: INSTALLER LE 4B                                             ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+  Si vous préférez le modèle 4B (plus rapide):
+
+  ÉTAPE 1 - Dans PowerShell:
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ ollama pull qwen3-vl:4b                                                │
+  └────────────────────────────────────────────────────────────────────────┘
+
+  ÉTAPE 2 - Dans la Console du Navigateur (F12):
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ localStorage.removeItem('storycore-llm-config');                       │
+  │ localStorage.setItem('storycore-llm-config',JSON.stringify({          │
+  │   provider:'local',model:'qwen3-vl:4b',                                │
+  │   apiEndpoint:'http://localhost:11434',streamingEnabled:true,          │
+  │   parameters:{temperature:0.7,maxTokens:2000,topP:0.9,                 │
+  │   frequencyPenalty:0,presencePenalty:0}                                │
+  │ }));location.reload();                                                 │
+  └────────────────────────────────────────────────────────────────────────┘
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  VÉRIFIER VOS MODÈLES                                                      ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+  Dans PowerShell:
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ ollama list                                                            │
+  └────────────────────────────────────────────────────────────────────────┘
+
+  Vous devriez voir:
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ NAME              ID              SIZE      MODIFIED                   │
+  │ qwen3-vl:8b       abc123def       5.0 GB    2 days ago                │
+  │ gemma3:1b         def456ghi       1.2 GB    3 days ago                │
+  │ llama3.1:8b       ghi789jkl       4.7 GB    1 week ago                │
+  └────────────────────────────────────────────────────────────────────────┘
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  AUTRES MODÈLES DISPONIBLES                                               ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+  Vous avez aussi ces modèles installés:
+
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ gemma3:1b      → Ultra rapide, pour tests rapides                     │
+  │ llama3.1:8b    → Haute qualité, pour texte uniquement                 │
+  └────────────────────────────────────────────────────────────────────────┘
+
+  Pour changer vers gemma3:1b (ultra rapide):
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ localStorage.removeItem('storycore-llm-config');                       │
+  │ localStorage.setItem('storycore-llm-config',JSON.stringify({          │
+  │   provider:'local',model:'gemma3:1b',                                  │
+  │   apiEndpoint:'http://localhost:11434',streamingEnabled:true,          │
+  │   parameters:{temperature:0.7,maxTokens:2000,topP:0.9,                 │
+  │   frequencyPenalty:0,presencePenalty:0}                                │
+  │ }));location.reload();                                                 │
+  └────────────────────────────────────────────────────────────────────────┘
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                            ┃
+┃  RÉSUMÉ                                                                    ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │                                                                        │
+  │  PROBLÈME:  StoryCore cherchait qwen3-vl:4b                           │
+  │             Mais vous avez qwen3-vl:8b                                 │
+  │                                                                        │
+  │  SOLUTION:  Dire à StoryCore d'utiliser qwen3-vl:8b                   │
+  │                                                                        │
+  │  MÉTHODE:   Copier-coller le script dans la console (F12)             │
+  │                                                                        │
+  │  TEMPS:     30 secondes                                                │
+  │                                                                        │
+  │  BONUS:     Le 8B est meilleur que le 4B! ✨                           │
+  │                                                                        │
+  └────────────────────────────────────────────────────────────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                    🎉 PROBLÈME RÉSOLU EN 30 SECONDES!                        ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+  📌 CONSEIL:
+  
+  Le modèle 8B que vous avez est MEILLEUR que le 4B!
+  Vous avez de la chance! 🍀
+
+═══════════════════════════════════════════════════════════════════════════════

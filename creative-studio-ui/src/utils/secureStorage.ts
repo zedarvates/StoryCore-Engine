@@ -130,6 +130,19 @@ export async function decryptValue(encrypted: string, iv: string): Promise<strin
   try {
     const key = await getEncryptionKey();
 
+    // Validate inputs
+    if (!encrypted || !iv) {
+      throw new Error('Missing encrypted data or IV');
+    }
+
+    // Validate base64 format
+    try {
+      atob(encrypted);
+      atob(iv);
+    } catch {
+      throw new Error('Invalid base64 format');
+    }
+
     // Convert from base64
     const encryptedArray = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
     const ivArray = Uint8Array.from(atob(iv), c => c.charCodeAt(0));
@@ -143,7 +156,19 @@ export async function decryptValue(encrypted: string, iv: string): Promise<strin
     const decoder = new TextDecoder();
     return decoder.decode(decrypted);
   } catch (error) {
-    console.error('Decryption failed:', error);
+    // Silently handle decryption failures - this is expected when session expires
+    // The calling code will handle clearing corrupted settings
+    if (error instanceof DOMException && error.name === 'OperationError') {
+      // This is a normal case when encryption key doesn't match (session expired)
+      throw new Error('DECRYPTION_KEY_MISMATCH');
+    }
+    
+    if (error instanceof Error) {
+      if (error.message.includes('operation-specific reason')) {
+        throw new Error('DECRYPTION_KEY_MISMATCH');
+      }
+      throw new Error(`Failed to decrypt value: ${error.message}`);
+    }
     throw new Error('Failed to decrypt value');
   }
 }
@@ -207,15 +232,41 @@ export async function loadLLMSettings(): Promise<LLMConfig | null> {
     // Decrypt API key
     let apiKey = '';
     if (settings.llm.encryptedApiKey) {
-      const [encrypted, iv] = settings.llm.encryptedApiKey.split(':');
-      apiKey = await decryptValue(encrypted, iv);
+      try {
+        const [encrypted, iv] = settings.llm.encryptedApiKey.split(':');
+        if (!encrypted || !iv) {
+          console.warn('Invalid encrypted data format, clearing settings');
+          deleteLLMSettings();
+          return null;
+        }
+        apiKey = await decryptValue(encrypted, iv);
+      } catch (decryptError) {
+        // Check if it's a key mismatch (expected when session expires)
+        if (decryptError instanceof Error && decryptError.message === 'DECRYPTION_KEY_MISMATCH') {
+          console.info('Session expired - settings need to be re-entered');
+        } else {
+          console.warn('Failed to decrypt API key:', decryptError);
+        }
+        // Clear corrupted settings and reset encryption key
+        deleteLLMSettings();
+        resetEncryptionKey();
+        return null;
+      }
     }
 
-    // Reconstruct full config
-    return {
+    // Reconstruct full config with defaults for missing fields
+    const config = {
       ...settings.llm.config,
       apiKey,
     } as LLMConfig;
+    
+    // Ensure systemPrompts exists with defaults if missing
+    if (!config.systemPrompts) {
+      const { getDefaultSystemPrompts } = await import('@/services/llmService');
+      config.systemPrompts = getDefaultSystemPrompts();
+    }
+    
+    return config;
   } catch (error) {
     console.error('Failed to load LLM settings:', error);
     return null;
@@ -317,6 +368,18 @@ export function clearAllSettings(): void {
   } catch (error) {
     console.error('Failed to clear settings:', error);
     throw new Error('Failed to clear settings');
+  }
+}
+
+/**
+ * Reset encryption key (useful when decryption fails due to corrupted key)
+ */
+export function resetEncryptionKey(): void {
+  try {
+    sessionStorage.removeItem('encryption-key');
+    console.log('Encryption key reset. New key will be generated on next encryption.');
+  } catch (error) {
+    console.error('Failed to reset encryption key:', error);
   }
 }
 

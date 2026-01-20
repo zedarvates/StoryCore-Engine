@@ -101,8 +101,13 @@ export const Viewport: React.FC<ViewportProps> = ({
         y: e.clientY - rect.top,
       };
 
-      // Calculate new zoom level
-      const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1; // Zoom out or in
+      // Calculate zoom delta based on wheel direction
+      // Positive deltaY = scroll down = zoom out
+      // Negative deltaY = scroll up = zoom in
+      const zoomSpeed = 0.1; // 10% per scroll step
+      const direction = e.deltaY > 0 ? -1 : 1; // Invert for natural scrolling
+      const zoomDelta = 1 + (direction * zoomSpeed);
+      
       const newZoom = zoom * zoomDelta;
 
       // Zoom to cursor point

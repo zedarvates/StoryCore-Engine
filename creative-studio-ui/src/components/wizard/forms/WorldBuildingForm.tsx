@@ -8,7 +8,7 @@
  * Requirements: 7.1
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { FormField, FormSection } from '../WizardFormLayout';
 import './WorldBuildingForm.css';
@@ -29,6 +29,7 @@ export interface WorldBuildingFormProps {
   initialData?: Partial<WorldBuildingInput>;
   onSubmit: (data: WorldBuildingInput) => void;
   onChange?: (data: Partial<WorldBuildingInput>) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 interface FormErrors {
@@ -42,6 +43,7 @@ export function WorldBuildingForm({
   initialData,
   onSubmit,
   onChange,
+  onValidationChange,
 }: WorldBuildingFormProps) {
   const [formData, setFormData] = useState<WorldBuildingInput>({
     worldName: initialData?.worldName || '',
@@ -52,6 +54,14 @@ export function WorldBuildingForm({
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [newLocation, setNewLocation] = useState<Location>({ name: '', description: '' });
+
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.worldName || formData.setting || formData.timePeriod || formData.locations.length > 0) {
+      validateForm();
+    }
+  }, [formData]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -77,8 +87,10 @@ export function WorldBuildingForm({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData]);
+    const isValid = Object.keys(newErrors).length === 0;
+    onValidationChange?.(isValid);
+    return isValid;
+  }, [formData, onValidationChange]);
 
   const handleFieldChange = useCallback((field: keyof WorldBuildingInput, value: any) => {
     setFormData(prev => {

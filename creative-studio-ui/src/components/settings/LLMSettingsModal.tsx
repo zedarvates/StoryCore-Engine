@@ -26,9 +26,16 @@ export function LLMSettingsModal({ isOpen, onClose }: LLMSettingsModalProps) {
       const loadSettings = async () => {
         try {
           const settings = await loadLLMSettings();
-          setCurrentConfig(settings || undefined);
+          if (settings) {
+            setCurrentConfig(settings);
+          } else {
+            // Settings were cleared or don't exist - start fresh
+            setCurrentConfig(undefined);
+          }
         } catch (error) {
           console.error('Failed to load LLM settings:', error);
+          // On error, start with empty config
+          setCurrentConfig(undefined);
         }
       };
       loadSettings();

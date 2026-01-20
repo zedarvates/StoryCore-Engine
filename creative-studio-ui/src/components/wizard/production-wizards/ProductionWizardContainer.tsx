@@ -19,6 +19,14 @@ interface ProductionWizardContainerProps {
   allowJumpToStep?: boolean;
   showAutoSaveIndicator?: boolean;
   className?: string;
+  // Navigation state and callbacks
+  currentStep?: number;
+  onNextStep?: () => void;
+  onPreviousStep?: () => void;
+  onGoToStep?: (step: number) => void;
+  canProceed?: boolean;
+  isDirty?: boolean;
+  lastSaved?: number;
 }
 
 export function ProductionWizardContainer({
@@ -30,36 +38,45 @@ export function ProductionWizardContainer({
   allowJumpToStep = false,
   showAutoSaveIndicator = true,
   className,
+  currentStep = 0,
+  onNextStep,
+  onPreviousStep,
+  onGoToStep,
+  canProceed = true,
+  isDirty = false,
+  lastSaved = 0,
 }: ProductionWizardContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // We'll use the production wizard context
-  // For now, create mock functions - will be replaced with actual context usage
-  const mockWizard = {
-    currentStep: 0,
+  // Use provided props or fallback to defaults
+  const wizard = {
+    currentStep,
     totalSteps: steps.length,
-    isDirty: false,
-    lastSaved: 0,
-    canProceed: true,
+    isDirty,
+    lastSaved,
+    canProceed,
     submit: async () => {
       if (onComplete) onComplete();
     },
-    saveDraft: async () => {},
-    nextStep: () => {},
-    previousStep: () => {},
-    goToStep: (step: number) => {},
+    saveDraft: async () => {
+      // Draft saving would be handled by parent component
+      console.log('Manual save requested');
+    },
+    nextStep: onNextStep || (() => console.warn('nextStep not provided')),
+    previousStep: onPreviousStep || (() => console.warn('previousStep not provided')),
+    goToStep: onGoToStep || ((step: number) => console.warn('goToStep not provided', step)),
   };
 
   const handleSubmit = async () => {
     try {
-      await mockWizard.submit();
+      await wizard.submit();
     } catch (error) {
       console.error('Wizard submission failed:', error);
     }
   };
 
   const handleManualSave = async () => {
-    await mockWizard.saveDraft();
+    await wizard.saveDraft();
   };
 
   const formatLastSaved = (timestamp: number) => {
@@ -87,10 +104,10 @@ export function ProductionWizardContainer({
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
 
           {/* Auto-save Indicator */}
-          {showAutoSaveIndicator && mockWizard.lastSaved > 0 && (
+          {showAutoSaveIndicator && wizard.lastSaved > 0 && (
             <div className="flex items-center gap-2 text-sm text-gray-600" role="status" aria-live="polite">
               <Clock className="h-4 w-4" aria-hidden="true" />
-              <span>Last saved {formatLastSaved(mockWizard.lastSaved)}</span>
+              <span>Last saved {formatLastSaved(wizard.lastSaved)}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -108,14 +125,14 @@ export function ProductionWizardContainer({
         {/* Step Indicator */}
         <ProductionWizardStepIndicator
           steps={steps}
-          currentStep={mockWizard.currentStep}
-          onStepClick={allowJumpToStep ? mockWizard.goToStep : undefined}
+          currentStep={wizard.currentStep}
+          onStepClick={allowJumpToStep ? wizard.goToStep : undefined}
           allowJumpToStep={allowJumpToStep}
         />
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0" style={{ scrollBehavior: 'smooth' }}>
         <div className="max-w-4xl mx-auto">
           {children}
         </div>
@@ -125,14 +142,14 @@ export function ProductionWizardContainer({
       <div className="border-t bg-gray-50 px-6 py-4">
         <div className="max-w-4xl mx-auto">
           <ProductionWizardNavigation
-            currentStep={mockWizard.currentStep}
-            totalSteps={mockWizard.totalSteps}
-            onPrevious={mockWizard.previousStep}
-            onNext={mockWizard.nextStep}
+            currentStep={wizard.currentStep}
+            totalSteps={wizard.totalSteps}
+            onPrevious={wizard.previousStep}
+            onNext={wizard.nextStep}
             onCancel={onCancel}
             onSubmit={handleSubmit}
-            canGoNext={mockWizard.canProceed}
-            canGoPrevious={mockWizard.currentStep > 0}
+            canGoNext={wizard.canProceed}
+            canGoPrevious={wizard.currentStep > 0}
           />
         </div>
       </div>

@@ -55,6 +55,37 @@ interface TreeNode {
 // Folder Navigation Modal Component
 // ============================================================================
 
+/**
+ * Folder Navigation Modal Component
+ * 
+ * **DEMO MODE ONLY**: This component provides a custom folder navigation
+ * interface for web browser environments where native OS dialogs are unavailable.
+ * 
+ * **DO NOT USE IN ELECTRON MODE**: When running as a desktop application,
+ * the native OS file dialog (Windows File Explorer, macOS Finder, etc.) 
+ * should ALWAYS be used via window.electronAPI.project.selectForOpen().
+ * 
+ * The native dialog provides:
+ * - Familiar user experience with OS-native controls
+ * - Better performance and responsiveness
+ * - Access to all file system features (network drives, shortcuts, etc.)
+ * - Proper keyboard navigation and accessibility
+ * - Integration with OS-level file management features
+ * 
+ * This custom modal should only be rendered when window.electronAPI is undefined.
+ * It has been incorrectly reintroduced 3 times in place of the native dialog,
+ * causing poor user experience. The conditional rendering in LandingPageWithHooks.tsx
+ * ensures this component is excluded from the React component tree in Electron mode.
+ * 
+ * @see LandingPageWithHooks.tsx for conditional rendering implementation
+ * @see useLandingPage.ts for native dialog usage in Electron mode
+ * 
+ * @param {FolderNavigationModalProps} props - Component props
+ * @param {boolean} props.open - Whether the modal is open
+ * @param {function} props.onOpenChange - Callback when modal open state changes
+ * @param {function} props.onSelectProject - Callback when a project is selected
+ * @param {string} [props.initialPath] - Optional initial directory path
+ */
 export function FolderNavigationModal({
   open,
   onOpenChange,

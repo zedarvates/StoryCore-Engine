@@ -17,6 +17,8 @@ export interface NewProjectData {
   name: string;
   location: string;
   template?: string;
+  format?: any; // Project format configuration
+  initialShots?: any[]; // Initial shots to create
 }
 
 /**
@@ -69,7 +71,7 @@ const DEFAULT_TEMPLATE: ProjectTemplate = {
       quality_threshold: 100,
     },
   },
-  directories: ['scenes', 'characters', 'worlds', 'assets'],
+  directories: ['sequences', 'scenes', 'characters', 'worlds', 'assets'],
   files: {
     'README.md': `# {PROJECT_NAME}
 
@@ -83,6 +85,7 @@ A StoryCore Creative Studio project.
 
 ## Project Structure
 
+- \`sequences/\` - Sequence plans and shot definitions
 - \`scenes/\` - Scene definitions and storyboards
 - \`characters/\` - Character data and assets
 - \`worlds/\` - World building information
@@ -149,6 +152,7 @@ export class ProjectService {
         const dirPath = path.join(projectPath, dir);
         try {
           fs.mkdirSync(dirPath, { recursive: true });
+          console.log(`Created directory: ${dir}`);
         } catch (error) {
           // Clean up on failure
           this.cleanupDirectory(projectPath);
@@ -168,16 +172,21 @@ export class ProjectService {
         created_at: now,
         modified_at: now,
         storycore_version: '1.0.0',
+        shots: data.initialShots || [],
         metadata: {
           id: uuidv4(),
           created_at: now,
           updated_at: now,
+          format: data.format,
+          sequences: data.initialShots ? new Set(data.initialShots.map(s => s.sequence_id)).size : 0,
+          totalShots: data.initialShots?.length || 0,
         },
       } as ProjectConfig;
 
       const projectJsonPath = path.join(projectPath, 'project.json');
       try {
         fs.writeFileSync(projectJsonPath, JSON.stringify(projectConfig, null, 2), 'utf-8');
+        console.log('Created project.json');
       } catch (error) {
         // Clean up on failure
         this.cleanupDirectory(projectPath);
@@ -186,6 +195,64 @@ export class ProjectService {
           `Failed to create project.json: ${error instanceof Error ? error.message : String(error)}`,
           projectJsonPath
         );
+      }
+
+      // Create sequence files if we have initial shots
+      if (data.initialShots && data.initialShots.length > 0) {
+        console.log(`Creating sequence files for ${data.initialShots.length} shots...`);
+        
+        const sequencesDir = path.join(projectPath, 'sequences');
+        
+        // Ensure sequences directory exists
+        if (!fs.existsSync(sequencesDir)) {
+          fs.mkdirSync(sequencesDir, { recursive: true });
+          console.log('Created sequences directory');
+        }
+
+        // Group shots by sequence_id
+        const sequenceMap = new Map<string, any[]>();
+        data.initialShots.forEach(shot => {
+          if (!sequenceMap.has(shot.sequence_id)) {
+            sequenceMap.set(shot.sequence_id, []);
+          }
+          sequenceMap.get(shot.sequence_id)!.push(shot);
+        });
+
+        console.log(`Grouped into ${sequenceMap.size} sequences`);
+
+        // Create a JSON file for each sequence
+        let sequenceNumber = 1;
+        for (const [sequenceId, shots] of sequenceMap.entries()) {
+          const sequenceData = {
+            id: sequenceId,
+            name: `Sequence ${sequenceNumber}`,
+            description: `Default sequence ${sequenceNumber}`,
+            duration: shots.reduce((sum, shot) => sum + (shot.duration || 0), 0),
+            shots: shots,
+            order: sequenceNumber,
+            metadata: {
+              created_at: now,
+              updated_at: now,
+              status: 'draft',
+            },
+          };
+
+          const sequenceFileName = `sequence_${sequenceNumber.toString().padStart(3, '0')}.json`;
+          const sequenceFilePath = path.join(sequencesDir, sequenceFileName);
+          
+          try {
+            fs.writeFileSync(sequenceFilePath, JSON.stringify(sequenceData, null, 2), 'utf-8');
+            console.log(`Created sequence file: ${sequenceFileName}`);
+          } catch (error) {
+            console.warn(`Failed to create sequence file ${sequenceFileName}:`, error);
+          }
+
+          sequenceNumber++;
+        }
+        
+        console.log(`Successfully created ${sequenceNumber - 1} sequence files`);
+      } else {
+        console.log('No initial shots provided, skipping sequence file creation');
       }
 
       // Create template files
@@ -198,6 +265,45 @@ export class ProjectService {
         } catch (error) {
           // Non-fatal error, just log it
           console.warn(`Failed to create ${fileName}:`, error);
+        }
+      }
+
+      // Create project summary file if we have format info
+      if (data.format) {
+        const summaryContent = `# ${data.name} - Project Summary
+
+## Format
+- **Type**: ${data.format.name}
+- **Duration**: ${data.format.duration}
+- **Sequences**: ${data.format.sequences}
+- **Shot Duration**: ${data.format.shotDuration}s
+
+## Structure
+- Total Sequences: ${data.initialShots ? new Set(data.initialShots.map((s: any) => s.sequence_id)).size : 0}
+- Total Shots: ${data.initialShots?.length || 0}
+- Estimated Duration: ~${data.format.durationMinutes} minutes
+
+## Sequences
+${data.initialShots ? 
+  Array.from(new Set(data.initialShots.map((s: any) => s.sequence_id)))
+    .map((seqId, idx) => {
+      const seqShots = data.initialShots!.filter((s: any) => s.sequence_id === seqId);
+      return `- Sequence ${idx + 1}: ${seqShots.length} shot(s), ${seqShots.reduce((sum: number, s: any) => sum + (s.duration || 0), 0)}s`;
+    })
+    .join('\n')
+  : 'No sequences created'}
+
+## Created
+${now}
+
+---
+Generated by StoryCore Creative Studio
+`;
+        
+        try {
+          fs.writeFileSync(path.join(projectPath, 'PROJECT_SUMMARY.md'), summaryContent, 'utf-8');
+        } catch (error) {
+          console.warn('Failed to create PROJECT_SUMMARY.md:', error);
         }
       }
 
@@ -401,4 +507,273 @@ export class ProjectService {
     }
     return ProjectErrorCode.INVALID_STRUCTURE;
   }
+
+  /**
+   * Update project metadata
+   * @param projectPath Path to the project directory
+   * @param metadata Metadata to update (partial)
+   * @returns Updated project information
+   */
+  async updateMetadata(projectPath: string, metadata: Record<string, any>): Promise<Project> {
+    try {
+      // Validate and sanitize path
+      const sanitizedPath = this.sanitizePath(projectPath);
+      
+      // Check if project exists
+      const projectJsonPath = path.join(sanitizedPath, 'project.json');
+      if (!fs.existsSync(projectJsonPath)) {
+        throw new FileSystemError(
+          FileSystemErrorCode.NOT_FOUND,
+          'Project file not found',
+          projectJsonPath
+        );
+      }
+
+      // Read current project.json
+      let projectConfig: ProjectConfig;
+      try {
+        const content = fs.readFileSync(projectJsonPath, 'utf-8');
+        projectConfig = JSON.parse(content);
+      } catch (error) {
+        throw new ProjectError(
+          ProjectErrorCode.CORRUPTED_CONFIG,
+          `Failed to read project.json: ${error instanceof Error ? error.message : String(error)}`,
+          projectJsonPath
+        );
+      }
+
+      // Update metadata
+      const now = new Date().toISOString();
+      projectConfig.metadata = {
+        ...projectConfig.metadata,
+        ...metadata,
+        updated_at: now,
+      };
+      projectConfig.modified_at = now;
+
+      // Write updated project.json
+      try {
+        fs.writeFileSync(projectJsonPath, JSON.stringify(projectConfig, null, 2), 'utf-8');
+        console.log('Project metadata updated successfully');
+      } catch (error) {
+        throw new FileSystemError(
+          FileSystemErrorCode.WRITE_FAILED,
+          `Failed to write project.json: ${error instanceof Error ? error.message : String(error)}`,
+          projectJsonPath
+        );
+      }
+
+      // Return updated project information
+      return {
+        id: (projectConfig.metadata as any)?.id || uuidv4(),
+        name: projectConfig.project_name,
+        path: sanitizedPath,
+        version: projectConfig.storycore_version || '1.0.0',
+        createdAt: projectConfig.created_at ? new Date(projectConfig.created_at) : new Date(),
+        modifiedAt: new Date(now),
+        config: projectConfig,
+      };
+    } catch (error) {
+      if (error instanceof ProjectError || error instanceof FileSystemError) {
+        throw error;
+      }
+      throw new ProjectError(
+        ProjectErrorCode.INVALID_STRUCTURE,
+        `Failed to update project metadata: ${error instanceof Error ? error.message : String(error)}`,
+        projectPath
+      );
+    }
+  }
+
+  /**
+   * Update a shot in a sequence file
+   * @param projectPath Path to the project directory
+   * @param sequenceId ID of the sequence containing the shot
+   * @param shotId ID of the shot to update
+   * @param updates Partial shot data to update
+   */
+  async updateShotInSequence(
+    projectPath: string,
+    sequenceId: string,
+    shotId: string,
+    updates: Record<string, any>
+  ): Promise<void> {
+    try {
+      const sanitizedPath = this.sanitizePath(projectPath);
+      const sequencesDir = path.join(sanitizedPath, 'sequences');
+      
+      // Check if sequences directory exists
+      if (!fs.existsSync(sequencesDir)) {
+        throw new FileSystemError(
+          FileSystemErrorCode.NOT_FOUND,
+          'Sequences directory not found',
+          sequencesDir
+        );
+      }
+      
+      // Find the sequence file
+      const files = fs.readdirSync(sequencesDir);
+      let sequenceFile: string | null = null;
+      let sequenceData: any = null;
+      
+      for (const file of files) {
+        if (!file.endsWith('.json')) continue;
+        
+        try {
+          const filePath = path.join(sequencesDir, file);
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const data = JSON.parse(content);
+          
+          if (data.id === sequenceId) {
+            sequenceFile = file;
+            sequenceData = data;
+            break;
+          }
+        } catch (error) {
+          console.warn(`Failed to read sequence file ${file}:`, error);
+          continue;
+        }
+      }
+      
+      if (!sequenceFile || !sequenceData) {
+        throw new FileSystemError(
+          FileSystemErrorCode.NOT_FOUND,
+          `Sequence ${sequenceId} not found`,
+          sequencesDir
+        );
+      }
+      
+      // Find and update the shot
+      const shotIndex = sequenceData.shots.findIndex((s: any) => s.id === shotId);
+      if (shotIndex === -1) {
+        throw new FileSystemError(
+          FileSystemErrorCode.NOT_FOUND,
+          `Shot ${shotId} not found in sequence ${sequenceId}`,
+          path.join(sequencesDir, sequenceFile)
+        );
+      }
+      
+      // Update the shot
+      sequenceData.shots[shotIndex] = {
+        ...sequenceData.shots[shotIndex],
+        ...updates,
+      };
+      
+      // Update sequence metadata
+      const now = new Date().toISOString();
+      sequenceData.metadata = {
+        ...sequenceData.metadata,
+        updated_at: now,
+      };
+      
+      // Write back to file
+      const sequenceFilePath = path.join(sequencesDir, sequenceFile);
+      try {
+        fs.writeFileSync(sequenceFilePath, JSON.stringify(sequenceData, null, 2), 'utf-8');
+        console.log(`Shot ${shotId} updated in sequence ${sequenceId}`);
+      } catch (error) {
+        throw new FileSystemError(
+          FileSystemErrorCode.WRITE_FAILED,
+          `Failed to write sequence file: ${error instanceof Error ? error.message : String(error)}`,
+          sequenceFilePath
+        );
+      }
+    } catch (error) {
+      if (error instanceof FileSystemError) {
+        throw error;
+      }
+      throw new FileSystemError(
+        FileSystemErrorCode.WRITE_FAILED,
+        `Failed to update shot in sequence: ${error instanceof Error ? error.message : String(error)}`,
+        projectPath
+      );
+    }
+  }
+
+  /**
+   * Get all shots from a sequence
+   * @param projectPath Path to the project directory
+   * @param sequenceId ID of the sequence
+   * @returns Array of shots
+   */
+  async getShotsFromSequence(
+    projectPath: string,
+    sequenceId: string
+  ): Promise<any[]> {
+    try {
+      const sanitizedPath = this.sanitizePath(projectPath);
+      const sequencesDir = path.join(sanitizedPath, 'sequences');
+      
+      if (!fs.existsSync(sequencesDir)) {
+        return [];
+      }
+      
+      // Find the sequence file
+      const files = fs.readdirSync(sequencesDir);
+      
+      for (const file of files) {
+        if (!file.endsWith('.json')) continue;
+        
+        try {
+          const filePath = path.join(sequencesDir, file);
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const data = JSON.parse(content);
+          
+          if (data.id === sequenceId) {
+            return data.shots || [];
+          }
+        } catch (error) {
+          console.warn(`Failed to read sequence file ${file}:`, error);
+          continue;
+        }
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Failed to get shots from sequence:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all sequences from project
+   * @param projectPath Path to the project directory
+   * @returns Array of sequence data
+   */
+  async getAllSequences(projectPath: string): Promise<any[]> {
+    try {
+      const sanitizedPath = this.sanitizePath(projectPath);
+      const sequencesDir = path.join(sanitizedPath, 'sequences');
+      
+      if (!fs.existsSync(sequencesDir)) {
+        return [];
+      }
+      
+      const files = fs.readdirSync(sequencesDir);
+      const sequences: any[] = [];
+      
+      for (const file of files) {
+        if (!file.endsWith('.json')) continue;
+        
+        try {
+          const filePath = path.join(sequencesDir, file);
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const data = JSON.parse(content);
+          sequences.push(data);
+        } catch (error) {
+          console.warn(`Failed to read sequence file ${file}:`, error);
+          continue;
+        }
+      }
+      
+      // Sort by order
+      sequences.sort((a, b) => (a.order || 0) - (b.order || 0));
+      
+      return sequences;
+    } catch (error) {
+      console.error('Failed to get all sequences:', error);
+      return [];
+    }
+  }
 }
+

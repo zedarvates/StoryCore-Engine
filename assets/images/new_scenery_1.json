@@ -1,0 +1,12 @@
+{
+  "asset_id": "img_new_scenery_001",
+  "name": "Mystical Forest Clearing",
+  "type": "image",
+  "format": "png",
+  "resolution": "1920x1080",
+  "description": "A serene forest clearing with ancient trees and mystical lighting",
+  "tags": ["forest", "nature", "mystical", "clearing"],
+  "usage": "Background for fantasy scenes",
+  "created_at": "2026-01-20T19:56:00.000Z",
+  "version": "1.0"
+}

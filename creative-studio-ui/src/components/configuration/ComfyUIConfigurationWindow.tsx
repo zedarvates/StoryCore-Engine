@@ -1,7 +1,26 @@
 /**
  * ComfyUI Configuration Window Component
  * 
- * Modal window for configuring ComfyUI backend settings
+ * ADVANCED MULTI-SERVER CONFIGURATION
+ * 
+ * This is the comprehensive ComfyUI configuration interface accessible from:
+ * Settings > ComfyUI Configuration (top menu)
+ * 
+ * Features:
+ * - Multi-server management (add/edit/delete multiple ComfyUI instances)
+ * - Connection testing with detailed error messages
+ * - CORS configuration guidance
+ * - Workflow assignments per task type
+ * - Default server selection
+ * 
+ * For quick setup with CORS info, users can also use the dashboard page button
+ * (Configuration > ComfyUI Settings), which provides basic connection testing
+ * and CORS troubleshooting information.
+ * 
+ * This advanced interface is recommended for:
+ * - Managing multiple ComfyUI servers
+ * - Assigning specific workflows to different servers
+ * - Production environments with complex setups
  */
 
 import { useState, useEffect } from 'react';

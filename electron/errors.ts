@@ -200,6 +200,8 @@ export enum FileSystemErrorCode {
   INSUFFICIENT_SPACE = 'INSUFFICIENT_SPACE',
   INVALID_PATH = 'INVALID_PATH',
   PATH_TOO_LONG = 'PATH_TOO_LONG',
+  NOT_FOUND = 'NOT_FOUND',
+  WRITE_FAILED = 'WRITE_FAILED',
 }
 
 export class FileSystemError extends LauncherError {
@@ -221,6 +223,10 @@ export class FileSystemError extends LauncherError {
         return 'The path contains invalid characters.';
       case FileSystemErrorCode.PATH_TOO_LONG:
         return 'The path is too long.';
+      case FileSystemErrorCode.NOT_FOUND:
+        return 'File or directory not found.';
+      case FileSystemErrorCode.WRITE_FAILED:
+        return 'Failed to write to file.';
       default:
         return 'A file system error occurred.';
     }
@@ -251,6 +257,18 @@ export class FileSystemError extends LauncherError {
           'Use a shorter path',
           'Move the project closer to the root directory',
           'Shorten folder names',
+        ];
+      case FileSystemErrorCode.NOT_FOUND:
+        return [
+          'Check if the file or directory exists',
+          'Verify the path is correct',
+          'Restore from backup if deleted',
+        ];
+      case FileSystemErrorCode.WRITE_FAILED:
+        return [
+          'Check file permissions',
+          'Ensure the file is not open in another program',
+          'Check available disk space',
         ];
       default:
         return ['Try again', 'Choose a different location'];

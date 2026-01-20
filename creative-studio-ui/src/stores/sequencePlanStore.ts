@@ -194,6 +194,7 @@ export const useSequencePlanStore = create<SequencePlanState>()(
 
       // Update current plan
       updateCurrentPlan: async (updates: Partial<SequencePlanData>) => {
+        console.log('sequencePlanStore updateCurrentPlan called with updates:', Object.keys(updates));
         const { currentPlanId, currentPlanData } = get();
         if (!currentPlanId || !currentPlanData) {
           throw new Error('No plan selected');
@@ -205,10 +206,11 @@ export const useSequencePlanStore = create<SequencePlanState>()(
             currentPlanId,
             updates
           );
-          
+
           // Reload plans list to update summary
           const plans = await sequencePlanService.listSequencePlans();
-          
+
+          console.log('sequencePlanStore setting state after updateCurrentPlan');
           set({
             plans,
             currentPlanData: updatedPlan,
@@ -456,15 +458,49 @@ export const useSequencePlanStore = create<SequencePlanState>()(
   )
 );
 
+// Stable empty array to prevent infinite re-renders
+const EMPTY_SHOTS_ARRAY: Shot[] = [];
+
 // Export selector hooks for common use cases
 // These selectors are stable and won't cause re-renders
 const selectCurrentPlan = (state: SequencePlanState) => state.currentPlanData;
-const selectCurrentPlanShots = (state: SequencePlanState) => state.currentPlanData?.shots || [];
+const selectCurrentPlanShots = (state: SequencePlanState) => state.currentPlanData?.shots || EMPTY_SHOTS_ARRAY;
 const selectPlans = (state: SequencePlanState) => state.plans;
 
 export const useCurrentPlan = () => useSequencePlanStore(selectCurrentPlan);
 export const useCurrentPlanShots = () => useSequencePlanStore(selectCurrentPlanShots);
 export const usePlans = () => useSequencePlanStore(selectPlans);
+
+// Add updatePlan function outside the hook
+export const updatePlan = async (id: string, plan: SequencePlan) => {
+  // Update via service - convert ProductionShot[] to Shot[]
+  const updatedData = await sequencePlanService.updateSequencePlan(id, {
+    name: plan.name,
+    description: plan.description || '',
+    shots: plan.shots as any, // Cast to avoid type mismatch for now
+    totalDuration: plan.targetDuration || 0,
+    frameRate: plan.frameRate || 24,
+    resolution: plan.resolution,
+    modifiedAt: plan.modifiedAt || Date.now(),
+    metadata: {
+      worldId: plan.worldId,
+      templateId: plan.templateId,
+      acts: plan.acts,
+      scenes: plan.scenes,
+      tags: plan.tags,
+    },
+  });
+
+  // Reload plans list
+  const plans = await sequencePlanService.listSequencePlans();
+
+  // Update store using setState
+  useSequencePlanStore.setState({
+    plans,
+    currentPlanData: updatedData,
+    isLoading: false,
+  });
+};
 
 export const useSequencePlanActions = () => {
   return useMemo(() => {
@@ -484,6 +520,7 @@ export const useSequencePlanActions = () => {
       insertShotAtPosition: state.insertShotAtPosition,
       splitShot: state.splitShot,
       mergeShots: state.mergeShots,
+      updatePlan,
     };
   }, []);
 };

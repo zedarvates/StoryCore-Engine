@@ -87,6 +87,20 @@
   border-color: var(--accent-color, #4a9eff);
 }
 
+.settings-info-badge {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--info-bg, #1e3a4a);
+  color: var(--info-color, #4a9eff);
+  border: 1px solid var(--info-color, #4a9eff);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: help;
+  white-space: nowrap;
+}
+
 /* Pipeline Status */
 .pipeline-status {
   margin-bottom: 30px;

@@ -12,7 +12,8 @@
  */
 
 import { z } from 'zod';
-import type { Shot, ProductionShot } from './shot';
+import type { Shot } from './index';
+import type { ProductionShot } from './shot';
 
 // ============================================================================
 // Video Visualization Types
@@ -87,7 +88,7 @@ export interface DropTarget {
 
 export interface DragState {
   isDragging: boolean;
-  draggedItems: (Shot | ProductionShot)[];
+  draggedItems: ProductionShot[];
   dragPreview: React.ReactNode | null;
   dropTarget: DropTarget | null;
   isValidDrop: boolean;
@@ -95,10 +96,10 @@ export interface DragState {
 }
 
 export interface DraggableShotProps {
-  shot: Shot | ProductionShot;
+  shot: ProductionShot;
   isSelected: boolean;
-  onDragStart?: (shot: Shot | ProductionShot) => void;
-  onDragEnd?: (shot: Shot | ProductionShot, position: Position) => void;
+  onDragStart?: (shot: ProductionShot) => void;
+  onDragEnd?: (shot: ProductionShot, position: Position) => void;
 }
 
 // ============================================================================
@@ -125,7 +126,7 @@ export interface GridPanel {
   id: string;
   position: Position;
   size: { width: number; height: number };
-  content: Shot | ProductionShot;
+  content: ProductionShot;
   zIndex: number;
 }
 
@@ -236,7 +237,7 @@ export type BatchOperationType = 'delete' | 'duplicate' | 'export' | 'transform'
 export interface BatchOperation {
   id: string;
   type: BatchOperationType;
-  items: (Shot | ProductionShot)[];
+  items: ProductionShot[];
   status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
   progress: number;
   startTime?: number;
@@ -245,13 +246,13 @@ export interface BatchOperation {
 }
 
 export interface BatchOperationResult {
-  success: (Shot | ProductionShot)[];
-  failed: Array<{ shot: Shot | ProductionShot; error: Error }>;
+  success: ProductionShot[];
+  failed: Array<{ shot: ProductionShot; error: Error }>;
   totalTime: number;
 }
 
 export interface BatchOperationsToolbarProps {
-  selectedShots: (Shot | ProductionShot)[];
+  selectedShots: ProductionShot[];
   onOperationComplete?: (result: BatchOperationResult) => void;
 }
 
@@ -269,7 +270,7 @@ export interface WorkerTask {
 
 export interface WorkerMessage {
   id: string;
-  type: 'result' | 'error' | 'progress';
+  type: string;
   data?: any;
   error?: string;
   progress?: number;

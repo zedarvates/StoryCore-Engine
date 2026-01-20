@@ -1,279 +1,226 @@
-# Creative Studio UI Documentation
+# Documentation - StoryCore Creative Studio UI
 
-Welcome to the Creative Studio UI documentation. This directory contains comprehensive guides for developers working with the build system, configuration, and troubleshooting.
+## Vue d'Ensemble
 
-## 📚 Documentation Index
+Bienvenue dans la documentation de StoryCore Creative Studio UI. Cette documentation couvre tous les aspects de l'application, de l'utilisation basique au développement avancé.
 
-### Build Configuration
+## 📚 Documentation Utilisateur
 
-- **[BUILD_CONFIGURATION.md](BUILD_CONFIGURATION.md)** - Complete guide to the TypeScript build configuration system
-  - Architecture overview
-  - Component details
-  - Configuration files
-  - Testing strategy
-  - CI/CD integration
-  - Advanced topics
+### Guides Principaux
 
-- **[SCRIPTS_REFERENCE.md](SCRIPTS_REFERENCE.md)** - Quick reference for all build scripts
-  - Cleanup scripts
-  - Validation scripts
-  - Development scripts
-  - Build scripts
-  - Testing scripts
-  - Common workflows
+- **[Guide Utilisateur de l'Éditeur de Grille](./GRID_EDITOR_USER_GUIDE.md)** - Guide complet pour utiliser l'éditeur de grille avancé
+- **[Référence Rapide](./GRID_EDITOR_QUICK_REFERENCE.md)** - Raccourcis et actions rapides
+- **[Guide Utilisateur Général](./USER_GUIDE.md)** - Guide d'utilisation de l'application complète
 
-- **[TROUBLESHOOTING_BUILD.md](TROUBLESHOOTING_BUILD.md)** - Solutions for common build issues
-  - Module resolution errors
-  - TypeScript configuration issues
-  - Git and version control
-  - Development server issues
-  - Build failures
-  - Performance issues
+### Guides Spécialisés
 
-### User Guides
+- **[Guide des Wizards](./WIZARD_USER_GUIDE.md)** - Utilisation des assistants de création
+- **[Configuration LLM Chatbox](./LLM_CHATBOX_CONFIGURATION_GUIDE.md)** - Configuration du chatbox IA
 
-- **[USER_GUIDE.md](USER_GUIDE.md)** - Complete guide for end users (if available)
-- **[API_REFERENCE.md](API_REFERENCE.md)** - Developer API documentation (if available)
-- **[EXAMPLES.md](EXAMPLES.md)** - Practical code examples (if available)
+## 👨‍💻 Documentation Développeur
 
-## 🚀 Quick Start
+### Architecture et Conception
 
-### For Developers
+- **[Guide Développeur de l'Éditeur de Grille](./GRID_EDITOR_DEVELOPER_GUIDE.md)** - Guide technique complet
+- **[Architecture de l'Éditeur de Grille](./GRID_EDITOR_ARCHITECTURE.md)** - Diagrammes et patterns
+- **[Documentation Technique des Wizards](./WIZARD_TECHNICAL_DOCUMENTATION.md)** - Architecture des wizards
 
-If you're new to the project, start here:
+### Référence API
 
-1. **Read the main [README](../README.md)** - Get an overview of the project
-2. **Review [BUILD_CONFIGURATION.md](BUILD_CONFIGURATION.md)** - Understand the build system
-3. **Bookmark [SCRIPTS_REFERENCE.md](SCRIPTS_REFERENCE.md)** - Quick reference for daily tasks
-4. **Keep [TROUBLESHOOTING_BUILD.md](TROUBLESHOOTING_BUILD.md)** handy - For when things go wrong
+- **[Référence API](./API_REFERENCE.md)** - Documentation des APIs
+- **[Référence des Scripts](./SCRIPTS_REFERENCE.md)** - Scripts disponibles
 
-### Common Tasks
+### Guides de Développement
 
-**Starting development:**
-```bash
-npm run clean
-npm run dev
+- **[Configuration de Build](./BUILD_CONFIGURATION.md)** - Configuration Vite et TypeScript
+- **[Exemples](./EXAMPLES.md)** - Exemples de code et d'utilisation
+
+## 🚀 Performance et Optimisation
+
+- **[Optimisation des Performances](./PERFORMANCE_OPTIMIZATION.md)** - Guide d'optimisation complet
+- **[Compatibilité Navigateurs](./BROWSER_COMPATIBILITY.md)** - Support et tests navigateurs
+- **[Checklist de Polish Visuel](./VISUAL_POLISH_CHECKLIST.md)** - Standards de qualité visuelle
+
+## 🔧 Maintenance et Dépannage
+
+- **[Dépannage Build](./TROUBLESHOOTING_BUILD.md)** - Résolution de problèmes de build
+- **[Sécurité des Clés API](./API_KEY_SECURITY.md)** - Bonnes pratiques de sécurité
+
+## 📋 Checklists et Guides
+
+- **[Checklist d'Intégration](./INTEGRATION_CHECKLIST.md)** - Vérifications avant déploiement
+- **[Guide de Test](../TEST_GUIDE.md)** - Stratégie et exécution des tests
+
+## 🎯 Par Fonctionnalité
+
+### Éditeur de Grille
+
+1. [Guide Utilisateur](./GRID_EDITOR_USER_GUIDE.md) - Comment utiliser l'éditeur
+2. [Référence Rapide](./GRID_EDITOR_QUICK_REFERENCE.md) - Raccourcis et actions
+3. [Guide Développeur](./GRID_EDITOR_DEVELOPER_GUIDE.md) - Architecture et code
+4. [Architecture](./GRID_EDITOR_ARCHITECTURE.md) - Diagrammes et patterns
+
+### Wizards
+
+1. [Guide Utilisateur](./WIZARD_USER_GUIDE.md) - Utilisation des wizards
+2. [Documentation Technique](./WIZARD_TECHNICAL_DOCUMENTATION.md) - Architecture
+
+### LLM Chatbox
+
+1. [Guide de Configuration](./LLM_CHATBOX_CONFIGURATION_GUIDE.md) - Configuration
+2. [Résumé de Documentation](./LLM_CHATBOX_DOCUMENTATION_SUMMARY.md) - Vue d'ensemble
+
+## 🎨 Par Rôle
+
+### Pour les Utilisateurs Finaux
+
+1. [Guide Utilisateur Général](./USER_GUIDE.md)
+2. [Guide de l'Éditeur de Grille](./GRID_EDITOR_USER_GUIDE.md)
+3. [Référence Rapide](./GRID_EDITOR_QUICK_REFERENCE.md)
+4. [Guide des Wizards](./WIZARD_USER_GUIDE.md)
+
+### Pour les Développeurs
+
+1. [Guide Développeur](./GRID_EDITOR_DEVELOPER_GUIDE.md)
+2. [Architecture](./GRID_EDITOR_ARCHITECTURE.md)
+3. [Référence API](./API_REFERENCE.md)
+4. [Configuration de Build](./BUILD_CONFIGURATION.md)
+5. [Exemples](./EXAMPLES.md)
+
+### Pour les DevOps
+
+1. [Configuration de Build](./BUILD_CONFIGURATION.md)
+2. [Dépannage Build](./TROUBLESHOOTING_BUILD.md)
+3. [Compatibilité Navigateurs](./BROWSER_COMPATIBILITY.md)
+4. [Checklist d'Intégration](./INTEGRATION_CHECKLIST.md)
+
+### Pour les Designers
+
+1. [Checklist de Polish Visuel](./VISUAL_POLISH_CHECKLIST.md)
+2. [Guide Utilisateur](./GRID_EDITOR_USER_GUIDE.md)
+3. [Exemples](./EXAMPLES.md)
+
+## 📖 Structure de la Documentation
+
+```
+docs/
+├── README.md (ce fichier)
+│
+├── Utilisateur/
+│   ├── USER_GUIDE.md
+│   ├── GRID_EDITOR_USER_GUIDE.md
+│   ├── GRID_EDITOR_QUICK_REFERENCE.md
+│   └── WIZARD_USER_GUIDE.md
+│
+├── Développeur/
+│   ├── GRID_EDITOR_DEVELOPER_GUIDE.md
+│   ├── GRID_EDITOR_ARCHITECTURE.md
+│   ├── WIZARD_TECHNICAL_DOCUMENTATION.md
+│   ├── API_REFERENCE.md
+│   └── EXAMPLES.md
+│
+├── Performance/
+│   ├── PERFORMANCE_OPTIMIZATION.md
+│   ├── BROWSER_COMPATIBILITY.md
+│   └── VISUAL_POLISH_CHECKLIST.md
+│
+├── Configuration/
+│   ├── BUILD_CONFIGURATION.md
+│   ├── LLM_CHATBOX_CONFIGURATION_GUIDE.md
+│   └── API_KEY_SECURITY.md
+│
+└── Maintenance/
+    ├── TROUBLESHOOTING_BUILD.md
+    ├── INTEGRATION_CHECKLIST.md
+    └── SCRIPTS_REFERENCE.md
 ```
 
-**Before committing:**
-```bash
-npm run validate
-npm test
-```
+## 🔍 Recherche Rapide
 
-**Building for production:**
-```bash
-npm run build
-```
+### Je veux...
 
-**Troubleshooting:**
-```bash
-npm run clean
-npm run validate
-```
+- **Apprendre à utiliser l'éditeur** → [Guide Utilisateur](./GRID_EDITOR_USER_GUIDE.md)
+- **Voir les raccourcis clavier** → [Référence Rapide](./GRID_EDITOR_QUICK_REFERENCE.md)
+- **Comprendre l'architecture** → [Architecture](./GRID_EDITOR_ARCHITECTURE.md)
+- **Développer une nouvelle fonctionnalité** → [Guide Développeur](./GRID_EDITOR_DEVELOPER_GUIDE.md)
+- **Optimiser les performances** → [Optimisation](./PERFORMANCE_OPTIMIZATION.md)
+- **Tester sur différents navigateurs** → [Compatibilité](./BROWSER_COMPATIBILITY.md)
+- **Résoudre un problème de build** → [Dépannage](./TROUBLESHOOTING_BUILD.md)
+- **Voir des exemples de code** → [Exemples](./EXAMPLES.md)
 
-## 🔧 Build System Overview
+## 📝 Conventions
 
-The Creative Studio UI uses a carefully configured TypeScript/Vite build system designed to prevent module resolution conflicts. Key features:
+### Symboles Utilisés
 
-- **Automated cleanup** - Removes stray `.js` files before builds
-- **Configuration validation** - Detects and reports issues
-- **TypeScript no-emit** - Prevents `.js` generation in source
-- **Git protection** - Ignores compiled artifacts
-- **CI/CD ready** - Works in automated pipelines
+- ✅ : Fonctionnalité complète et testée
+- ⚠️ : Limitation ou avertissement
+- ❌ : Non supporté ou déprécié
+- 🔧 : Configuration requise
+- 📝 : Note importante
+- 💡 : Conseil ou astuce
+- 🚀 : Optimisation de performance
 
-### Key Scripts
+### Niveaux de Priorité
 
-| Script | Purpose |
-|--------|---------|
-| `npm run clean` | Remove `.js` files from `src/` |
-| `npm run validate` | Check build configuration |
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
+- **🔴 Haute** : Critique, doit être lu
+- **🟡 Moyenne** : Important, recommandé
+- **🟢 Basse** : Optionnel, pour référence
 
-See [SCRIPTS_REFERENCE.md](SCRIPTS_REFERENCE.md) for complete details.
+## 🆘 Support
 
-## 🐛 Troubleshooting
+### Obtenir de l'Aide
 
-### Most Common Issues
+1. **Documentation** : Consultez d'abord cette documentation
+2. **Exemples** : Voir les exemples dans `src/examples/`
+3. **Tests** : Consultez les tests pour des exemples d'utilisation
+4. **Issues** : Créez une issue sur GitHub si problème persistant
 
-1. **Module resolution errors** → `npm run clean && npm run dev`
-2. **TypeScript generating .js files** → Set `noEmit: true` in tsconfig
-3. **Git tracking .js files** → `npm run validate -- --fix`
-4. **HMR not working** → `npm run clean && npm run dev`
+### Contribuer à la Documentation
 
-See [TROUBLESHOOTING_BUILD.md](TROUBLESHOOTING_BUILD.md) for detailed solutions.
+1. Les fichiers sont en Markdown
+2. Suivez la structure existante
+3. Ajoutez des exemples de code
+4. Testez les liens
+5. Mettez à jour le README si nécessaire
 
-## 📖 Documentation Structure
+## 📅 Historique des Versions
 
-### BUILD_CONFIGURATION.md
+### Version 1.0.0 (Janvier 2026)
 
-Comprehensive guide covering:
-- Problem statement and solution
-- Architecture and data flow
-- Component implementation details
-- TypeScript configuration
-- Cleanup and validation systems
-- Troubleshooting guide
-- CI/CD integration
-- Advanced topics
+- ✅ Documentation complète de l'éditeur de grille
+- ✅ Guides utilisateur et développeur
+- ✅ Documentation de performance
+- ✅ Compatibilité navigateurs
+- ✅ Checklist de polish visuel
 
-**Best for:** Understanding the system in depth, implementing custom solutions
+### Prochaines Versions
 
-### SCRIPTS_REFERENCE.md
+- 📝 Traduction en anglais
+- 📝 Documentation vidéo
+- 📝 Documentation interactive
+- 📝 Exemples interactifs
 
-Quick reference guide covering:
-- All available scripts
-- Usage examples
-- Options and flags
-- Common workflows
-- Troubleshooting commands
+## 🔗 Liens Utiles
 
-**Best for:** Daily development tasks, quick lookups
+### Ressources Externes
 
-### TROUBLESHOOTING_BUILD.md
-
-Problem-solution guide covering:
-- Common error messages
-- Step-by-step solutions
-- Diagnostic commands
-- Preventive measures
-- Emergency recovery
-
-**Best for:** Fixing issues quickly, debugging problems
-
-## 🎯 Getting Help
-
-### Self-Service
-
-1. **Check [TROUBLESHOOTING_BUILD.md](TROUBLESHOOTING_BUILD.md)** - Most issues are covered
-2. **Run diagnostics** - `npm run validate`
-3. **Search documentation** - Use Ctrl+F in the docs
-4. **Check the main [README](../README.md)** - General project information
-
-### Asking for Help
-
-If you need to create an issue, include:
-
-1. **Error message** - Full terminal output
-2. **Validation output** - Result of `npm run validate`
-3. **Configuration** - Contents of `tsconfig.app.json`
-4. **Environment** - Node version, OS, npm version
-5. **Steps to reproduce** - What you did before the error
-
-## 🔄 Keeping Documentation Updated
-
-This documentation is maintained alongside the codebase. When making changes:
-
-1. **Update relevant docs** - Keep documentation in sync with code
-2. **Add examples** - Show how to use new features
-3. **Update troubleshooting** - Add solutions for new issues
-4. **Test instructions** - Verify all commands work
-
-## 📝 Contributing to Documentation
-
-Improvements to documentation are always welcome! When contributing:
-
-1. **Be clear and concise** - Use simple language
-2. **Provide examples** - Show, don't just tell
-3. **Test commands** - Ensure all code examples work
-4. **Follow structure** - Match existing documentation style
-5. **Update index** - Add new docs to this README
-
-## 🏗️ Documentation Standards
-
-### File Naming
-
-- Use `SCREAMING_SNAKE_CASE.md` for documentation files
-- Use descriptive names that indicate content
-- Group related docs in subdirectories
-
-### Content Structure
-
-- Start with table of contents for long docs
-- Use clear headings and subheadings
-- Include code examples with syntax highlighting
-- Add "Quick Start" sections for common tasks
-- End with "Summary" or "Next Steps"
-
-### Code Examples
-
-```bash
-# Always include comments
-npm run clean  # Remove .js files from src/
-
-# Show expected output when helpful
-npm run validate
-# Output:
-# ✓ No .js files found in src/
-# ✓ TypeScript noEmit is correctly set
-```
-
-### Formatting
-
-- Use **bold** for emphasis
-- Use `code` for commands, file names, and code
-- Use > blockquotes for important notes
-- Use tables for comparisons
-- Use lists for steps or options
-
-## 🔗 Related Resources
-
-### Internal
-
-- [Main README](../README.md) - Project overview
-- [Package.json](../package.json) - Script definitions
-- [TypeScript Config](../tsconfig.app.json) - TypeScript settings
-- [Vite Config](../vite.config.ts) - Build configuration
-
-### External
-
-- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
-- [Vite Documentation](https://vitejs.dev/guide/)
 - [React Documentation](https://react.dev/)
-- [Vitest Documentation](https://vitest.dev/)
+- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+- [Vite Documentation](https://vitejs.dev/)
+- [Framer Motion Documentation](https://www.framer.com/motion/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 
-## 📊 Documentation Metrics
+### Ressources Internes
 
-- **Total documentation**: 4 main guides
-- **Total pages**: ~100 pages equivalent
-- **Code examples**: 50+ examples
-- **Troubleshooting solutions**: 20+ common issues
-- **Last updated**: 2026-01-17
-
-## 🎓 Learning Path
-
-### Beginner
-
-1. Read main [README](../README.md)
-2. Follow Quick Start in [BUILD_CONFIGURATION.md](BUILD_CONFIGURATION.md)
-3. Try common workflows in [SCRIPTS_REFERENCE.md](SCRIPTS_REFERENCE.md)
-
-### Intermediate
-
-1. Study architecture in [BUILD_CONFIGURATION.md](BUILD_CONFIGURATION.md)
-2. Learn all scripts in [SCRIPTS_REFERENCE.md](SCRIPTS_REFERENCE.md)
-3. Practice troubleshooting with [TROUBLESHOOTING_BUILD.md](TROUBLESHOOTING_BUILD.md)
-
-### Advanced
-
-1. Understand implementation details in [BUILD_CONFIGURATION.md](BUILD_CONFIGURATION.md)
-2. Customize scripts and configuration
-3. Contribute to documentation and tooling
-
-## 📞 Support
-
-For questions or issues:
-
-1. **Documentation** - Check this directory first
-2. **GitHub Issues** - Search existing issues
-3. **Create Issue** - Provide detailed information
-4. **Email** - support@storycore-engine.com (if available)
+- [Spécifications](../../.kiro/specs/advanced-grid-editor-improvements/)
+- [Tests](../src/__tests__/)
+- [Exemples](../src/examples/)
+- [Composants](../src/components/)
 
 ---
 
-**Last Updated:** January 17, 2026
+**Dernière mise à jour** : Janvier 2026  
+**Version** : 1.0.0  
+**Mainteneur** : StoryCore Creative Studio Team
 
-**Maintained By:** StoryCore-Engine Development Team
-
-**License:** MIT
+💡 **Astuce** : Utilisez Ctrl+F pour rechercher rapidement dans cette page !

@@ -23,6 +23,7 @@ import { OllamaClient, getOllamaClient } from './OllamaClient';
 import { ComfyUIClient, getComfyUIClient } from './ComfyUIClient';
 import { ComfyUIInstanceManager } from './ComfyUIInstanceManager';
 import { joinPath } from './pathUtils';
+import { getComfyUIServersService } from '../comfyuiServersService';
 
 /**
  * Connection retry configuration
@@ -131,10 +132,15 @@ export class WizardService {
       const latency = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-      this.logger.error('connection', 'Ollama connection failed', error as Error, {
-        endpoint,
-        latency,
-      });
+      // Silently handle - Ollama not running is expected and normal
+      // Only log at debug level to avoid console noise
+      if (this.logger.getLevel() === 'debug') {
+        this.logger.debug('connection', 'Ollama not available (this is normal if not installed)', {
+          endpoint,
+          latency,
+          error: errorMessage,
+        });
+      }
 
       return {
         connected: false,
@@ -148,13 +154,16 @@ export class WizardService {
 
   /**
    * Check ComfyUI connection
-   * Pings http://localhost:8188/system_stats to verify service availability
+   * Pings the active ComfyUI server's /system_stats to verify service availability
    * 
    * Requirements: 1.2
    */
   async checkComfyUIConnection(): Promise<ConnectionStatus> {
     const startTime = Date.now();
-    const endpoint = `${this.comfyuiEndpoint}/system_stats`;
+    
+    // Get active ComfyUI server endpoint from multi-server configuration
+    const activeEndpoint = this.getActiveComfyUIEndpoint();
+    const endpoint = `${activeEndpoint}/system_stats`;
 
     this.logger.debug('connection', 'Checking ComfyUI connection', { endpoint });
 
@@ -177,7 +186,7 @@ export class WizardService {
         return {
           connected: false,
           service: 'comfyui',
-          endpoint: this.comfyuiEndpoint,
+          endpoint: activeEndpoint,
           error,
           latency,
         };
@@ -204,7 +213,7 @@ export class WizardService {
       return {
         connected: true,
         service: 'comfyui',
-        endpoint: this.comfyuiEndpoint,
+        endpoint: activeEndpoint,
         latency,
         metadata,
       };
@@ -212,16 +221,21 @@ export class WizardService {
       const latency = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-      this.logger.error('connection', 'ComfyUI connection failed', error as Error, {
-        endpoint,
-        latency,
-      });
+      // Silently handle - ComfyUI not running is expected and normal
+      // Only log at debug level to avoid console noise
+      if (this.logger.getLevel() === 'debug') {
+        this.logger.debug('connection', 'ComfyUI not available (this is normal if not installed)', {
+          endpoint,
+          latency,
+          error: errorMessage,
+        });
+      }
 
       return {
         connected: false,
         service: 'comfyui',
-        endpoint: this.comfyuiEndpoint,
-        error: `Cannot reach ComfyUI service: ${errorMessage}`,
+        endpoint: activeEndpoint,
+        error: `ComfyUI not running (this is normal if not installed)`,
         latency,
       };
     }
@@ -377,6 +391,34 @@ export class WizardService {
   }
 
   /**
+   * Get active ComfyUI endpoint from multi-server configuration
+   * Falls back to default endpoint if no active server is configured
+   */
+  private getActiveComfyUIEndpoint(): string {
+    try {
+      const serversService = getComfyUIServersService();
+      const activeServer = serversService.getActiveServer();
+      
+      if (activeServer && activeServer.serverUrl) {
+        this.logger.debug('connection', 'Using active ComfyUI server', { 
+          serverUrl: activeServer.serverUrl,
+          serverName: activeServer.name 
+        });
+        console.log('[WizardService] Using active ComfyUI server:', activeServer.serverUrl);
+        return activeServer.serverUrl;
+      }
+      
+      console.log('[WizardService] No active ComfyUI server, using default:', this.comfyuiEndpoint);
+    } catch (error) {
+      this.logger.debug('connection', 'Failed to get active ComfyUI server, using default', { error });
+      console.log('[WizardService] Error getting active server, using default:', this.comfyuiEndpoint, error);
+    }
+    
+    // Fall back to default endpoint
+    return this.comfyuiEndpoint;
+  }
+
+  /**
    * Update retry configuration
    */
   setRetryConfig(config: Partial<RetryConfig>): void {
@@ -438,7 +480,7 @@ export class WizardService {
   ): Promise<WizardOutput> {
     this.logger.info('wizard', 'Executing Character Wizard', { characterName: input.name });
 
-    const ollama = ollamaClient || getOllamaClient();
+    const ollama = ollamaClient || await getOllamaClient();
     const comfyui = comfyuiClient || this.getComfyUIClient();
 
     try {
@@ -526,7 +568,7 @@ export class WizardService {
   ): Promise<WizardOutput> {
     this.logger.info('wizard', 'Executing Scene Generator', { concept: input.concept });
 
-    const ollama = ollamaClient || getOllamaClient();
+    const ollama = ollamaClient || await getOllamaClient();
 
     try {
       // Generate scene breakdown with Ollama
@@ -610,7 +652,7 @@ export class WizardService {
       mode: input.mode,
     });
 
-    const ollama = ollamaClient || getOllamaClient();
+    const ollama = ollamaClient || await getOllamaClient();
     const comfyui = comfyuiClient || this.getComfyUIClient();
 
     try {
@@ -727,7 +769,7 @@ export class WizardService {
       tone: input.tone,
     });
 
-    const ollama = ollamaClient || getOllamaClient();
+    const ollama = ollamaClient || await getOllamaClient();
 
     try {
       // Generate dialogue with Ollama
@@ -802,7 +844,7 @@ export class WizardService {
   ): Promise<WizardOutput> {
     this.logger.info('wizard', 'Executing World Builder', { worldName: input.name });
 
-    const ollama = ollamaClient || getOllamaClient();
+    const ollama = ollamaClient || await getOllamaClient();
 
     try {
       // Generate world documentation with Ollama

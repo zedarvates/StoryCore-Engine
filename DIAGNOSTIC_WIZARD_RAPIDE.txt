@@ -1,0 +1,183 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    DIAGNOSTIC WIZARD - GUIDE RAPIDE                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+🚨 PROBLÈME : Bouton "Complete" Grisé
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CAUSE #1 : Champs Requis Non Remplis (90% des cas)
+────────────────────────────────────────────────────────────────────────────────
+✅ SOLUTION : Retournez au Step 1 et vérifiez :
+
+   [ ] World Name rempli          (ex: "Eldoria")
+   [ ] Time Period rempli          (ex: "Medieval Era")
+   [ ] Au moins 1 Genre coché      (ex: ☑ Fantasy)
+   [ ] Au moins 1 Tone coché       (ex: ☑ Dark)
+
+🔧 ACTIONS IMMÉDIATES :
+   1. Cliquez sur "Previous" jusqu'au Step 1
+   2. Remplissez les 4 champs ci-dessus
+   3. Cliquez sur "Next" pour avancer
+   4. Le bouton "Complete" devrait être actif au Step 5
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 PROBLÈME : Boutons "Generate..." Ne Fonctionnent Pas
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CAUSE #1 : Ollama Non Lancé
+────────────────────────────────────────────────────────────────────────────────
+✅ SOLUTION : Vérifiez Ollama
+
+   1. Ouvrez un navigateur
+   2. Allez sur : http://localhost:11434
+   3. Vous devriez voir : "Ollama is running"
+
+   ❌ Si erreur "Cannot connect" :
+      → Lancez Ollama depuis votre terminal ou application
+
+CAUSE #2 : Prérequis Non Remplis
+────────────────────────────────────────────────────────────────────────────────
+✅ SOLUTION : Vérifiez les prérequis
+
+   "Suggest Name" nécessite :
+   [ ] Genre sélectionné
+   [ ] Tone sélectionné
+
+   "Generate Rules/Locations/Elements" nécessite :
+   [ ] Step 1 complété (tous les champs requis)
+
+CAUSE #3 : LLM Lent ou Bloqué
+────────────────────────────────────────────────────────────────────────────────
+✅ SOLUTION : Attendez et vérifiez
+
+   1. Attendez 10-15 secondes après avoir cliqué
+   2. Ouvrez la console (F12)
+   3. Cherchez : "=== LLM RESPONSE START ==="
+   4. Si vous voyez la réponse, le parsing a peut-être échoué
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 DIAGNOSTIC CONSOLE (F12)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ÉTAPE 1 : Ouvrir la Console
+────────────────────────────────────────────────────────────────────────────────
+   Windows/Linux : F12 ou Ctrl+Shift+I
+   Mac           : Cmd+Option+I
+
+ÉTAPE 2 : Chercher les Logs
+────────────────────────────────────────────────────────────────────────────────
+   ✅ LOGS NORMAUX (succès) :
+      "=== LLM RESPONSE START ==="
+      "✅ Successfully parsed ... from JSON"
+      OU
+      "✅ Successfully parsed ... from text"
+
+   ❌ LOGS D'ERREUR (échec) :
+      "❌ Could not parse any ... from response"
+      "Failed to parse LLM response"
+      "No LLM service available"
+
+ÉTAPE 3 : Actions Selon les Logs
+────────────────────────────────────────────────────────────────────────────────
+   Si vous voyez "=== LLM RESPONSE START ===" :
+   → Copiez TOUTE la réponse entre START et END
+   → Remplissez manuellement les champs avec ces infos
+   → Signalez le problème avec la réponse copiée
+
+   Si vous voyez "No LLM service available" :
+   → Vérifiez que Ollama est lancé
+   → Allez dans Settings → LLM pour configurer
+
+   Si vous ne voyez aucun log :
+   → Le bouton n'a peut-être pas été cliqué
+   → Ou les prérequis ne sont pas remplis
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ CHECKLIST COMPLÈTE AVANT DE COMMENCER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AVANT D'OUVRIR LE WIZARD :
+   [ ] Ollama est lancé (http://localhost:11434 fonctionne)
+   [ ] Un modèle LLM est installé (qwen3-vl:8b ou gemma2:2b)
+   [ ] L'application est lancée (npm run dev)
+
+PENDANT LE WIZARD :
+   [ ] Step 1 : Remplir les 4 champs requis
+   [ ] Step 2-4 : Utiliser "Generate..." OU remplir manuellement
+   [ ] Step 5 : Vérifier et cliquer "Complete"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 WORKFLOW MINIMAL (2 MINUTES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Si vous voulez juste créer un monde rapidement :
+
+1. Step 1 - Remplir le minimum :
+   ✓ World Name : "Test World"
+   ✓ Time Period : "Medieval"
+   ✓ Genre : Cocher "Fantasy"
+   ✓ Tone : Cocher "Dark"
+   → Cliquer "Next"
+
+2. Steps 2-4 - Sauter :
+   → Cliquer "Next" (3 fois)
+
+3. Step 5 - Terminer :
+   → Cliquer "Complete"
+
+RÉSULTAT : Monde créé avec les informations minimales
+TEMPS : ~30 secondes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎨 WORKFLOW COMPLET AVEC IA (5 MINUTES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Si vous voulez utiliser l'IA pour tout générer :
+
+1. Step 1 :
+   ✓ Cocher Genre : "Fantasy"
+   ✓ Cocher Tone : "Dark", "Epic"
+   ✓ Time Period : "Medieval Era"
+   ✓ Cliquer "Suggest Name" → Attendre 5 sec
+   → Cliquer "Next"
+
+2. Step 2 :
+   ✓ Cliquer "Generate Rules" → Attendre 10 sec
+   → Vérifier les règles générées
+   → Cliquer "Next"
+
+3. Step 3 :
+   ✓ Cliquer "Generate Locations" → Attendre 10 sec
+   → Vérifier les lieux générés
+   → Cliquer "Next"
+
+4. Step 4 :
+   ✓ Cliquer "Generate Elements" → Attendre 10 sec
+   → Vérifier les éléments générés
+   → Cliquer "Next"
+
+5. Step 5 :
+   → Vérifier tout
+   → Cliquer "Complete"
+
+RÉSULTAT : Monde complet généré par IA
+TEMPS : ~5 minutes (avec attente IA)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 BESOIN D'AIDE ?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Lisez GUIDE_UTILISATION_WIZARDS.md pour le guide complet
+2. Ouvrez la console (F12) et copiez les erreurs
+3. Vérifiez que Ollama fonctionne : http://localhost:11434
+4. Essayez le workflow minimal ci-dessus pour tester
+
+═══════════════════════════════════════════════════════════════════════════════
+Version: 1.0 | Date: 20/01/2026 | Status: ✅ À jour
+═══════════════════════════════════════════════════════════════════════════════

@@ -4,6 +4,8 @@ import { useState, useCallback } from 'react';
 import type { RecentProject } from '@/components/launcher/RecentProjectsList';
 import { useAppStore } from '@/stores/useAppStore';
 import type { Project as StoreProject } from '@/types';
+import { generateProjectTemplate, sequencesToShots } from '@/utils/projectTemplateGenerator';
+import type { SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
 
 // Helper function to convert Electron project to Store project format
 function convertElectronProjectToStore(electronProject: any): StoreProject {
@@ -59,7 +61,7 @@ interface UseLandingPageReturn {
   // Actions
   handleCreateProject: () => void;
   handleOpenProject: () => void;
-  handleCreateProjectSubmit: (projectName: string, projectPath: string) => Promise<void>;
+  handleCreateProjectSubmit: (projectName: string, projectPath: string, format: any) => Promise<void>;
   handleOpenProjectSubmit: (projectPath: string) => Promise<void>;
   handleRecentProjectClick: (project: RecentProject) => void;
   handleRemoveRecentProject: (projectPath: string) => Promise<void>;
@@ -104,21 +106,49 @@ export function useLandingPage(): UseLandingPageReturn {
 
   // Handle create project submission
   const handleCreateProjectSubmit = useCallback(
-    async (projectName: string, projectPath: string) => {
+    async (projectName: string, projectPath: string, format: SerializableProjectFormat) => {
       setIsLoading(true);
       setError(null);
 
       try {
+        // Generate project template based on format
+        const template = generateProjectTemplate(format);
+        const initialShots = sequencesToShots(template.sequences);
+
+        console.log('Generated project template:', {
+          sequences: template.sequences.length,
+          shots: template.totalShots,
+          duration: template.totalDuration,
+          initialShots: initialShots.length,
+        });
+        
+        console.log('First shot sample:', initialShots[0]);
+        console.log('Format data:', format);
+
         if (window.electronAPI) {
-          // Create project via Electron API (returns Project directly, throws on error)
-          const electronProject = await window.electronAPI.project.create({ name: projectName, location: projectPath });
+          // Create project via Electron API with format (returns Project directly, throws on error)
+          console.log('Calling Electron API with:', {
+            name: projectName,
+            location: projectPath,
+            format: format,
+            initialShotsCount: initialShots.length,
+          });
+          
+          const electronProject = await window.electronAPI.project.create({ 
+            name: projectName, 
+            location: projectPath,
+            format: format,
+            initialShots: initialShots,
+          });
+
+          console.log('Electron API returned:', electronProject);
 
           // Convert Electron project to Store project format
           const storeProject = convertElectronProjectToStore(electronProject);
 
           // Load the created project into the store
           setProject(storeProject);
-          setShots(storeProject.shots || []);
+          setShots(storeProject.shots || initialShots);
 
           // Reload recent projects
           await loadRecentProjects();
@@ -131,11 +161,11 @@ export function useLandingPage(): UseLandingPageReturn {
           // Demo mode - simulate creation
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          // Create a demo project in Store format
+          // Create a demo project in Store format with format info and initial shots
           const demoProject: StoreProject = {
             schema_version: '1.0',
             project_name: projectName,
-            shots: [],
+            shots: initialShots,
             assets: [],
             capabilities: {
               grid_generation: true,
@@ -152,12 +182,16 @@ export function useLandingPage(): UseLandingPageReturn {
               path: `${projectPath}/${projectName}`,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
+              format: format,
+              sequences: template.sequences.length,
+              totalShots: template.totalShots,
+              totalDuration: template.totalDuration,
             },
           };
 
           // Load into store
           setProject(demoProject);
-          setShots([]);
+          setShots(initialShots);
 
           // Add to recent projects
           const newProject: RecentProject = {
@@ -171,7 +205,8 @@ export function useLandingPage(): UseLandingPageReturn {
           setRecentProjects((prev) => [newProject, ...prev].slice(0, 10));
           setShowCreateDialog(false);
 
-          console.log('Project created (demo mode):', demoProject);
+          console.log('Project created (demo mode) with format:', format.name, demoProject);
+          console.log('Initial shots created:', initialShots.length);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to create project';
@@ -255,21 +290,32 @@ export function useLandingPage(): UseLandingPageReturn {
     [loadRecentProjects, setProject, setShots]
   );
 
+  // ============================================================================
   // Handle open project button click
+  // ============================================================================
+  //
+  // CRITICAL: This function implements two distinct code paths based on the
+  // execution environment (Electron vs Browser mode). Native dialogs are
+  // preferred in both environments when available.
+  //
   const handleOpenProject = useCallback(async () => {
     setError(null);
     
-    // If Electron API is available, use selectForOpen to get path directly
+    // ========================================================================
+    // ELECTRON MODE: Use native OS file dialog
+    // ========================================================================
     if (window.electronAPI) {
       try {
         setIsLoading(true);
+        
+        // Open native OS file dialog - returns selected path or null
         const selectedPath = await window.electronAPI.project.selectForOpen();
         
         if (selectedPath) {
-          // User selected a path, now open it
+          // User selected a path - proceed to open the project
           await handleOpenProjectSubmit(selectedPath);
         }
-        // If null, user canceled - do nothing
+        // If selectedPath is null, user canceled the dialog - do nothing
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to select project';
         setError(errorMessage);
@@ -277,8 +323,40 @@ export function useLandingPage(): UseLandingPageReturn {
         setIsLoading(false);
       }
     } else {
-      // Demo mode - show dialog
-      setShowOpenDialog(true);
+      // ======================================================================
+      // BROWSER MODE: Try File System Access API, fallback to custom modal
+      // ======================================================================
+      
+      // Check if File System Access API is available (Chrome, Edge, Opera)
+      if ('showDirectoryPicker' in window) {
+        try {
+          setIsLoading(true);
+          
+          // Open native browser directory picker
+          const dirHandle = await (window as any).showDirectoryPicker({
+            mode: 'read',
+          });
+          
+          // Get the full path (if available) or use the directory name
+          const projectPath = dirHandle.name;
+          
+          if (projectPath) {
+            await handleOpenProjectSubmit(projectPath);
+          }
+        } catch (err) {
+          // User canceled or error occurred
+          if (err instanceof Error && err.name !== 'AbortError') {
+            const errorMessage = err.message || 'Failed to select project';
+            setError(errorMessage);
+          }
+          // AbortError means user canceled - not an error
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        // Fallback to custom modal for browsers without File System Access API
+        setShowOpenDialog(true);
+      }
     }
   }, [handleOpenProjectSubmit]);
 

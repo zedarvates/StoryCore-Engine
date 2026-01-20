@@ -1,14 +1,83 @@
 import { NarrativeText } from '../../types/asset-integration';
 
+/**
+ * Callback type for narrative updates
+ */
+export type NarrativeUpdateCallback = (path: string, narrative: NarrativeText) => void;
+
+/**
+ * Callback type for cache updates
+ */
+export type NarrativeCacheUpdateCallback = (cacheCleared: boolean) => void;
+
+/**
+ * Narrative Service with Observer pattern for real-time synchronization
+ */
 export class NarrativeService {
   private static instance: NarrativeService;
   private cache: Map<string, NarrativeText> = new Map();
+  
+  // Subscribers for different events
+  private narrativeUpdateSubscribers: Set<NarrativeUpdateCallback> = new Set();
+  private cacheUpdateSubscribers: Set<NarrativeCacheUpdateCallback> = new Set();
+
+  private constructor() {
+    console.log('[NarrativeService] Service initialized with Observer pattern');
+  }
 
   static getInstance(): NarrativeService {
     if (!NarrativeService.instance) {
       NarrativeService.instance = new NarrativeService();
     }
     return NarrativeService.instance;
+  }
+
+  /**
+   * Subscribe to narrative updates
+   * Returns unsubscribe function
+   */
+  public subscribeToNarrativeUpdates(callback: NarrativeUpdateCallback): () => void {
+    this.narrativeUpdateSubscribers.add(callback);
+    return () => {
+      this.narrativeUpdateSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to cache updates
+   * Returns unsubscribe function
+   */
+  public subscribeToCacheUpdates(callback: NarrativeCacheUpdateCallback): () => void {
+    this.cacheUpdateSubscribers.add(callback);
+    return () => {
+      this.cacheUpdateSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Notify subscribers of narrative update
+   */
+  private notifyNarrativeUpdate(path: string, narrative: NarrativeText): void {
+    this.narrativeUpdateSubscribers.forEach(callback => {
+      try {
+        callback(path, narrative);
+      } catch (error) {
+        console.error('[NarrativeService] Error in narrative update subscriber:', error);
+      }
+    });
+  }
+
+  /**
+   * Notify subscribers of cache update
+   */
+  private notifyCacheUpdate(cacheCleared: boolean): void {
+    this.cacheUpdateSubscribers.forEach(callback => {
+      try {
+        callback(cacheCleared);
+      } catch (error) {
+        console.error('[NarrativeService] Error in cache update subscriber:', error);
+      }
+    });
   }
 
   async loadNarrativeText(path: string): Promise<NarrativeText> {
@@ -35,6 +104,10 @@ export class NarrativeService {
       };
 
       this.cache.set(path, narrativeText);
+      
+      // Notify subscribers
+      this.notifyNarrativeUpdate(path, narrativeText);
+      
       return narrativeText;
     } catch (error) {
       console.error('Error loading narrative text:', error);
@@ -45,6 +118,12 @@ export class NarrativeService {
   async saveNarrativeText(narrative: NarrativeText, path: string): Promise<void> {
     try {
       narrative.updated_at = new Date().toISOString();
+
+      // Update cache
+      this.cache.set(path, narrative);
+      
+      // Notify subscribers
+      this.notifyNarrativeUpdate(path, narrative);
 
       // Simulate save - requires Electron API
       throw new Error('Save functionality requires Electron API integration');
@@ -103,5 +182,8 @@ export class NarrativeService {
 
   clearCache(): void {
     this.cache.clear();
+    
+    // Notify subscribers
+    this.notifyCacheUpdate(true);
   }
 }

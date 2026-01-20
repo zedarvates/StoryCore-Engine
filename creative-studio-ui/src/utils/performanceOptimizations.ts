@@ -1,96 +1,184 @@
 /**
- * Performance Optimization Utilities
+ * Performance optimization utilities for ProjectDashboardNew
  * 
- * Provides debouncing, throttling, and memoization utilities
- * Requirements: Performance goals from design
+ * Provides memoization, debouncing, and other performance optimizations
+ * to improve responsiveness with large projects.
+ * 
+ * Requirements: 10.1, 10.2, 10.3, 10.4
  */
 
-import { useCallback, useEffect, useRef, useMemo } from 'react';
+import { useMemo, useCallback, useRef, useEffect } from 'react';
+import type { Project, PromptValidation } from '../types/projectDashboard';
+import { validatePrompt } from './promptValidation';
+import { analyzeProjectPrompts, type ProjectPromptAnalysis } from './promptAnalysis';
+
+// ============================================================================
+// Memoization Cache
+// ============================================================================
 
 /**
- * Debounce function - delays execution until after wait time has elapsed
- * since the last invocation
+ * Simple LRU cache for memoization
  */
-// Using 'any[]' in generic constraint to allow debouncing functions with any parameter types
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  // Use number type for browser setTimeout compatibility
-  let timeout: number | null = null;
+class LRUCache<K, V> {
+  private cache: Map<K, V>;
+  private maxSize: number;
 
-  return function executedFunction(...args: Parameters<T>) {
-    const later = () => {
-      timeout = null;
-      func(...args);
-    };
+  constructor(maxSize: number = 100) {
+    this.cache = new Map();
+    this.maxSize = maxSize;
+  }
 
-    if (timeout !== null) {
-      clearTimeout(timeout);
+  get(key: K): V | undefined {
+    const value = this.cache.get(key);
+    if (value !== undefined) {
+      // Move to end (most recently used)
+      this.cache.delete(key);
+      this.cache.set(key, value);
     }
-    timeout = window.setTimeout(later, wait) as unknown as number;
-  };
-}
+    return value;
+  }
 
-/**
- * Throttle function - ensures function is called at most once per wait period
- */
-// Using 'any[]' in generic constraint to allow throttling functions with any parameter types
-export function throttle<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let inThrottle: boolean = false;
-
-  return function executedFunction(...args: Parameters<T>) {
-    if (!inThrottle) {
-      func(...args);
-      inThrottle = true;
-      setTimeout(() => {
-        inThrottle = false;
-      }, wait);
+  set(key: K, value: V): void {
+    // Remove if exists (to update position)
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
     }
-  };
+    
+    // Add to end
+    this.cache.set(key, value);
+    
+    // Evict oldest if over capacity
+    if (this.cache.size > this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
+    }
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  has(key: K): boolean {
+    return this.cache.has(key);
+  }
+}
+
+// ============================================================================
+// Validation Memoization
+// ============================================================================
+
+/**
+ * Cache for prompt validation results
+ * Requirements: 10.1
+ */
+const validationCache = new LRUCache<string, PromptValidation>(500);
+
+/**
+ * Memoized prompt validation
+ * Caches validation results to avoid redundant computations
+ * 
+ * @param prompt - The prompt to validate
+ * @returns Cached or newly computed validation result
+ */
+export function memoizedValidatePrompt(prompt: string): PromptValidation {
+  // Check cache first
+  const cached = validationCache.get(prompt);
+  if (cached) {
+    return cached;
+  }
+
+  // Compute and cache
+  const result = validatePrompt(prompt);
+  validationCache.set(prompt, result);
+  return result;
 }
 
 /**
- * React hook for debounced values
- * Useful for search inputs and form validation
+ * Clear validation cache
+ * Useful when validation rules change
  */
-export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = React.useState<T>(value);
+export function clearValidationCache(): void {
+  validationCache.clear();
+}
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
+// ============================================================================
+// Analysis Memoization
+// ============================================================================
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
+/**
+ * Cache for project analysis results
+ * Requirements: 10.1
+ */
+const analysisCache = new LRUCache<string, ProjectPromptAnalysis>(50);
 
-  return debouncedValue;
+/**
+ * Generate cache key for project analysis
+ */
+function getProjectAnalysisCacheKey(project: Project): string {
+  // Create a key based on shot prompts
+  const promptsHash = project.shots
+    .map(shot => `${shot.id}:${shot.prompt}`)
+    .join('|');
+  return promptsHash;
 }
 
 /**
- * React hook for debounced callbacks
- * Useful for event handlers that should be debounced
+ * Memoized project prompt analysis
+ * Caches analysis results to avoid redundant computations
+ * 
+ * @param project - The project to analyze
+ * @returns Cached or newly computed analysis result
  */
-// Using 'any[]' in generic constraint to allow debouncing callbacks with any parameter types
-export function useDebouncedCallback<T extends (...args: any[]) => any>(
+export function memoizedAnalyzeProjectPrompts(project: Project): ProjectPromptAnalysis {
+  const cacheKey = getProjectAnalysisCacheKey(project);
+  
+  // Check cache first
+  const cached = analysisCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  // Compute and cache
+  const result = analyzeProjectPrompts(project);
+  analysisCache.set(cacheKey, result);
+  return result;
+}
+
+/**
+ * Clear analysis cache
+ * Useful when analysis logic changes
+ */
+export function clearAnalysisCache(): void {
+  analysisCache.clear();
+}
+
+// ============================================================================
+// Debouncing
+// ============================================================================
+
+/**
+ * Debounce hook for expensive operations
+ * Requirements: 10.2
+ * 
+ * @param callback - Function to debounce
+ * @param delay - Delay in milliseconds
+ * @returns Debounced function
+ */
+export function useDebounce<T extends (...args: any[]) => any>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const callbackRef = useRef(callback);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Update callback ref when callback changes
+  // Update callback ref when it changes
   useEffect(() => {
     callbackRef.current = callback;
   }, [callback]);
 
-  // Cleanup timeout on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -99,302 +187,361 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
     };
   }, []);
 
-  return useCallback(
-    (...args: Parameters<T>) => {
+  return useCallback((...args: Parameters<T>) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      callbackRef.current(...args);
+    }, delay);
+  }, [delay]);
+}
+
+// ============================================================================
+// Throttling
+// ============================================================================
+
+/**
+ * Throttle hook for rate-limiting expensive operations
+ * Requirements: 10.2
+ * 
+ * @param callback - Function to throttle
+ * @param delay - Minimum delay between calls in milliseconds
+ * @returns Throttled function
+ */
+export function useThrottle<T extends (...args: any[]) => any>(
+  callback: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  const lastRunRef = useRef<number>(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const callbackRef = useRef(callback);
+
+  // Update callback ref when it changes
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return useCallback((...args: Parameters<T>) => {
+    const now = Date.now();
+    const timeSinceLastRun = now - lastRunRef.current;
+
+    if (timeSinceLastRun >= delay) {
+      // Enough time has passed, execute immediately
+      callbackRef.current(...args);
+      lastRunRef.current = now;
+    } else {
+      // Schedule for later
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
 
       timeoutRef.current = setTimeout(() => {
         callbackRef.current(...args);
-      }, delay);
-    },
-    [delay]
-  );
-}
-
-/**
- * React hook for throttled callbacks
- * Useful for scroll and resize handlers
- */
-// Using 'any[]' in generic constraint to allow throttling callbacks with any parameter types
-export function useThrottledCallback<T extends (...args: any[]) => any>(
-  callback: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  const callbackRef = useRef(callback);
-  const throttleRef = useRef(false);
-
-  // Update callback ref when callback changes
-  useEffect(() => {
-    callbackRef.current = callback;
-  }, [callback]);
-
-  return useCallback(
-    (...args: Parameters<T>) => {
-      if (!throttleRef.current) {
-        callbackRef.current(...args);
-        throttleRef.current = true;
-
-        setTimeout(() => {
-          throttleRef.current = false;
-        }, delay);
-      }
-    },
-    [delay]
-  );
-}
-
-/**
- * Memoize expensive computations
- * Simple memoization with single argument
- */
-// Using 'any[]' in generic constraint to allow memoizing functions with any parameter types
-export function memoize<T extends (...args: any[]) => any>(fn: T): T {
-  const cache = new Map<string, ReturnType<T>>();
-
-  return ((...args: Parameters<T>) => {
-    const key = JSON.stringify(args);
-
-    if (cache.has(key)) {
-      return cache.get(key)!;
+        lastRunRef.current = Date.now();
+      }, delay - timeSinceLastRun);
     }
-
-    const result = fn(...args);
-    cache.set(key, result);
-    return result;
-  }) as T;
+  }, [delay]);
 }
 
-/**
- * React hook for memoized expensive computations
- * Wrapper around useMemo with better ergonomics
- */
-export function useMemoizedValue<T>(
-  factory: () => T,
-  deps: React.DependencyList
-): T {
-  return useMemo(factory, deps);
-}
+// ============================================================================
+// Virtual Scrolling Utilities
+// ============================================================================
 
 /**
- * Virtual scrolling helper
- * Calculates visible items for large lists
+ * Calculate visible items for virtual scrolling
+ * Requirements: 10.2
+ * 
+ * @param items - All items
+ * @param scrollTop - Current scroll position
+ * @param containerHeight - Height of the container
+ * @param itemHeight - Height of each item
+ * @param overscan - Number of items to render outside viewport
+ * @returns Visible items with their positions
  */
-export function calculateVisibleRange(
+export function calculateVisibleItems<T>(
+  items: T[],
   scrollTop: number,
   containerHeight: number,
   itemHeight: number,
-  totalItems: number,
   overscan: number = 3
-): { start: number; end: number } {
-  const start = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
-  const visibleCount = Math.ceil(containerHeight / itemHeight);
-  const end = Math.min(totalItems, start + visibleCount + overscan * 2);
-
-  return { start, end };
-}
-
-/**
- * React hook for virtual scrolling
- */
-export function useVirtualScroll({
-  itemCount,
-  itemHeight,
-  containerHeight,
-  overscan = 3,
-}: {
-  itemCount: number;
-  itemHeight: number;
-  containerHeight: number;
-  overscan?: number;
-}) {
-  const [scrollTop, setScrollTop] = React.useState(0);
-
-  const { start, end } = useMemo(
-    () =>
-      calculateVisibleRange(
-        scrollTop,
-        containerHeight,
-        itemHeight,
-        itemCount,
-        overscan
-      ),
-    [scrollTop, containerHeight, itemHeight, itemCount, overscan]
+): {
+  visibleItems: T[];
+  startIndex: number;
+  endIndex: number;
+  totalHeight: number;
+  offsetY: number;
+} {
+  const totalHeight = items.length * itemHeight;
+  
+  // Calculate visible range
+  const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+  const endIndex = Math.min(
+    items.length - 1,
+    Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
   );
 
-  const totalHeight = itemCount * itemHeight;
-
-  const handleScroll = useThrottledCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop);
-  }, 16); // ~60fps
+  // Get visible items
+  const visibleItems = items.slice(startIndex, endIndex + 1);
+  
+  // Calculate offset for positioning
+  const offsetY = startIndex * itemHeight;
 
   return {
-    start,
-    end,
+    visibleItems,
+    startIndex,
+    endIndex,
     totalHeight,
-    handleScroll,
-    visibleItems: Array.from({ length: end - start }, (_, i) => start + i),
+    offsetY,
   };
 }
 
 /**
- * Batch updates helper
- * Collects multiple updates and applies them in a single batch
+ * Hook for virtual scrolling
+ * Requirements: 10.2
+ * 
+ * @param items - All items to virtualize
+ * @param itemHeight - Height of each item in pixels
+ * @param containerHeight - Height of the container in pixels
+ * @param overscan - Number of items to render outside viewport
+ * @returns Virtual scrolling state and handlers
  */
-export class BatchUpdater<T> {
-  private updates: T[] = [];
-  private timeout: ReturnType<typeof setTimeout> | null = null;
-  private callback: (updates: T[]) => void;
-  private delay: number;
-
-  constructor(callback: (updates: T[]) => void, delay: number = 100) {
-    this.callback = callback;
-    this.delay = delay;
-  }
-
-  add(update: T): void {
-    this.updates.push(update);
-
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-    }
-
-    this.timeout = setTimeout(() => {
-      this.flush();
-    }, this.delay);
-  }
-
-  flush(): void {
-    if (this.updates.length > 0) {
-      this.callback([...this.updates]);
-      this.updates = [];
-    }
-
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
-  }
-
-  clear(): void {
-    this.updates = [];
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
-  }
-}
-
-/**
- * React hook for batch updates
- */
-export function useBatchUpdates<T>(
-  callback: (updates: T[]) => void,
-  delay: number = 100
+export function useVirtualScroll<T>(
+  items: T[],
+  itemHeight: number,
+  containerHeight: number,
+  overscan: number = 3
 ) {
-  const batcherRef = useRef<BatchUpdater<T> | null>(null);
+  const [scrollTop, setScrollTop] = React.useState(0);
 
-  if (!batcherRef.current) {
-    batcherRef.current = new BatchUpdater(callback, delay);
-  }
-
-  useEffect(() => {
-    return () => {
-      batcherRef.current?.flush();
-    };
+  const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
   }, []);
 
+  const virtualState = useMemo(() => {
+    return calculateVisibleItems(
+      items,
+      scrollTop,
+      containerHeight,
+      itemHeight,
+      overscan
+    );
+  }, [items, scrollTop, containerHeight, itemHeight, overscan]);
+
   return {
-    add: (update: T) => batcherRef.current?.add(update),
-    flush: () => batcherRef.current?.flush(),
-    clear: () => batcherRef.current?.clear(),
+    ...virtualState,
+    handleScroll,
+  };
+}
+
+// ============================================================================
+// Web Worker Utilities
+// ============================================================================
+
+/**
+ * Web Worker wrapper for heavy computations
+ * Requirements: 10.4
+ */
+export class WorkerPool {
+  private workers: Worker[] = [];
+  private availableWorkers: Worker[] = [];
+  private taskQueue: Array<{
+    data: any;
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
+  }> = [];
+
+  constructor(workerScript: string, poolSize: number = navigator.hardwareConcurrency || 4) {
+    // Create worker pool
+    for (let i = 0; i < poolSize; i++) {
+      const worker = new Worker(workerScript);
+      this.workers.push(worker);
+      this.availableWorkers.push(worker);
+    }
+  }
+
+  /**
+   * Execute task in worker pool
+   */
+  async execute<T = any>(data: any): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const worker = this.availableWorkers.pop();
+
+      if (worker) {
+        // Worker available, execute immediately
+        this.executeInWorker(worker, data, resolve, reject);
+      } else {
+        // No workers available, queue the task
+        this.taskQueue.push({ data, resolve, reject });
+      }
+    });
+  }
+
+  /**
+   * Execute task in specific worker
+   */
+  private executeInWorker(
+    worker: Worker,
+    data: any,
+    resolve: (value: any) => void,
+    reject: (error: any) => void
+  ): void {
+    const handleMessage = (e: MessageEvent) => {
+      worker.removeEventListener('message', handleMessage);
+      worker.removeEventListener('error', handleError);
+      
+      // Return worker to pool
+      this.availableWorkers.push(worker);
+      
+      // Process next task if any
+      this.processNextTask();
+      
+      resolve(e.data);
+    };
+
+    const handleError = (e: ErrorEvent) => {
+      worker.removeEventListener('message', handleMessage);
+      worker.removeEventListener('error', handleError);
+      
+      // Return worker to pool
+      this.availableWorkers.push(worker);
+      
+      // Process next task if any
+      this.processNextTask();
+      
+      reject(e.error || new Error(e.message));
+    };
+
+    worker.addEventListener('message', handleMessage);
+    worker.addEventListener('error', handleError);
+    worker.postMessage(data);
+  }
+
+  /**
+   * Process next task in queue
+   */
+  private processNextTask(): void {
+    if (this.taskQueue.length > 0 && this.availableWorkers.length > 0) {
+      const task = this.taskQueue.shift()!;
+      const worker = this.availableWorkers.pop()!;
+      this.executeInWorker(worker, task.data, task.resolve, task.reject);
+    }
+  }
+
+  /**
+   * Terminate all workers
+   */
+  terminate(): void {
+    this.workers.forEach(worker => worker.terminate());
+    this.workers = [];
+    this.availableWorkers = [];
+    this.taskQueue = [];
+  }
+}
+
+// ============================================================================
+// Lazy Loading Utilities
+// ============================================================================
+
+/**
+ * Hook for lazy loading data
+ * Requirements: 10.3
+ * 
+ * @param loadFn - Function to load data
+ * @param deps - Dependencies that trigger reload
+ * @returns Loading state and data
+ */
+export function useLazyLoad<T>(
+  loadFn: () => Promise<T>,
+  deps: React.DependencyList = []
+): {
+  data: T | null;
+  isLoading: boolean;
+  error: Error | null;
+  reload: () => void;
+} {
+  const [data, setData] = React.useState<T | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<Error | null>(null);
+  const loadFnRef = useRef(loadFn);
+
+  // Update load function ref
+  useEffect(() => {
+    loadFnRef.current = loadFn;
+  }, [loadFn]);
+
+  const load = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const result = await loadFnRef.current();
+      setData(result);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to load'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Load on mount and when deps change
+  useEffect(() => {
+    load();
+  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return {
+    data,
+    isLoading,
+    error,
+    reload: load,
   };
 }
 
 /**
- * Lazy load images helper
- * Returns a function to check if an element is in viewport
+ * Hook for intersection observer (lazy loading on scroll)
+ * Requirements: 10.3
+ * 
+ * @param options - Intersection observer options
+ * @returns Ref and visibility state
  */
-export function createIntersectionObserver(
-  callback: (entry: IntersectionObserverEntry) => void,
-  options?: IntersectionObserverInit
-): IntersectionObserver {
-  return new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        callback(entry);
-      }
-    });
-  }, options);
-}
-
-/**
- * React hook for lazy loading images
- */
-export function useLazyLoad(ref: React.RefObject<HTMLElement>) {
+export function useIntersectionObserver(
+  options: IntersectionObserverInit = {}
+): {
+  ref: React.RefObject<HTMLElement | null>;
+  isVisible: boolean;
+} {
+  const ref = useRef<HTMLElement | null>(null);
   const [isVisible, setIsVisible] = React.useState(false);
 
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
 
-    const observer = createIntersectionObserver(
-      (entry) => {
-        setIsVisible(entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsVisible(entry.isIntersecting);
+    }, options);
 
     observer.observe(element);
 
     return () => {
       observer.disconnect();
     };
-  }, [ref]);
+  }, [options]);
 
-  return isVisible;
+  return { ref, isVisible };
 }
 
-/**
- * Performance monitoring helper
- * Measures execution time of functions
- */
-// Using 'any[]' in generic constraint to allow measuring performance of functions with any parameter types
-export function measurePerformance<T extends (...args: any[]) => any>(
-  fn: T,
-  label: string
-): T {
-  return ((...args: Parameters<T>) => {
-    const start = performance.now();
-    const result = fn(...args);
-    const end = performance.now();
+// ============================================================================
+// React Import (for hooks that use React.useState)
+// ============================================================================
 
-    console.log(`[Performance] ${label}: ${(end - start).toFixed(2)}ms`);
-
-    return result;
-  }) as T;
-}
-
-/**
- * React hook for performance monitoring
- */
-export function usePerformanceMonitor(label: string, deps: React.DependencyList) {
-  const startTimeRef = useRef<number>(0);
-
-  useEffect(() => {
-    startTimeRef.current = performance.now();
-  }, deps);
-
-  useEffect(() => {
-    const endTime = performance.now();
-    const duration = endTime - startTimeRef.current;
-
-    if (duration > 0) {
-      console.log(`[Performance] ${label}: ${duration.toFixed(2)}ms`);
-    }
-  });
-}
-
-// Re-export React for useDebounce hook
 import React from 'react';

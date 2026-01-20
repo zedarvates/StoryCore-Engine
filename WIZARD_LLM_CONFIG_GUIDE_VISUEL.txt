@@ -1,0 +1,182 @@
+═══════════════════════════════════════════════════════════════════════════
+  GUIDE VISUEL: Configuration LLM pour les Wizards
+═══════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│  PROBLÈME RÉSOLU ✅                                                     │
+│  ═══════════════                                                        │
+│                                                                         │
+│  Avant: Les wizards cherchaient toujours 'gemma3:1b'                   │
+│  Après: Les wizards utilisent le modèle configuré dans Settings        │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ÉTAPE 1: Configurer votre modèle LLM                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  1. Ouvrir Settings (⚙️)
+  2. Aller dans "LLM Configuration"
+  3. Sélectionner:
+     
+     Provider:  [Local (Ollama)     ▼]
+     
+     Model:     [llama3:8b          ▼]  ← Votre modèle installé
+     
+     Endpoint:  [http://localhost:11434]
+     
+  4. Cliquer sur "Save Settings"
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ÉTAPE 2: Utiliser un Wizard                                           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  1. Ouvrir n'importe quel wizard:
+     • Character Wizard
+     • Scene Generator
+     • Dialogue Writer
+     • World Builder
+     • Storyboard Creator
+     
+  2. Remplir le formulaire
+  
+  3. Cliquer sur "Generate"
+  
+  ✅ Le wizard utilisera automatiquement votre modèle configuré!
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  COMMENT ÇA MARCHE MAINTENANT                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  AVANT (❌ Problème):
+  ═══════════════════
+  
+  Wizard → OllamaClient → Modèle hardcodé: 'gemma3:1b'
+                          ↓
+                          Erreur: "model not found"
+
+
+  APRÈS (✅ Solution):
+  ══════════════════
+  
+  Settings → Sauvegarde config → localStorage (chiffré)
+                                  ↓
+  Wizard → OllamaClient → Charge config → Utilise votre modèle
+                          ↓
+                          ✅ Fonctionne avec n'importe quel modèle!
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  MODÈLES SUPPORTÉS                                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  Vous pouvez maintenant utiliser N'IMPORTE QUEL modèle Ollama:
+  
+  • llama3:8b          (Recommandé - Bon équilibre)
+  • llama3:70b         (Meilleure qualité)
+  • mistral:7b         (Rapide)
+  • codellama:13b      (Pour le code)
+  • gemma2:9b          (Efficace)
+  • qwen2.5:7b         (Multilingue)
+  • ... et tous les autres modèles Ollama!
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  CHANGEMENT DE MODÈLE EN TEMPS RÉEL                                    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  Vous pouvez changer de modèle à tout moment:
+  
+  1. Ouvrir Settings
+  2. Changer le modèle
+  3. Sauvegarder
+  
+  ✅ Le changement est immédiat!
+  ✅ Pas besoin de redémarrer l'application!
+  ✅ Les wizards utilisent le nouveau modèle instantanément!
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  VÉRIFICATION                                                           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  Pour vérifier que votre modèle est utilisé:
+  
+  1. Ouvrir la Console du navigateur (F12)
+  2. Utiliser un wizard
+  3. Chercher dans les logs:
+  
+     [OllamaClient] Generating completion
+     {
+       model: "llama3:8b",  ← Votre modèle configuré
+       ...
+     }
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  DÉPANNAGE                                                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  ❓ Le wizard utilise toujours 'gemma3:1b'?
+  
+  → Vérifier que vous avez bien sauvegardé les settings
+  → Rafraîchir la page (F5)
+  → Vérifier que Provider = "Local (Ollama)"
+  
+  
+  ❓ Erreur "model not found"?
+  
+  → Vérifier que le modèle est installé dans Ollama:
+    ollama list
+  
+  → Si absent, installer le modèle:
+    ollama pull llama3:8b
+  
+  
+  ❓ Le wizard ne répond pas?
+  
+  → Vérifier qu'Ollama est démarré:
+    curl http://localhost:11434/api/tags
+  
+  → Vérifier l'endpoint dans Settings
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  AVANTAGES DE CETTE CORRECTION                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  ✅ Flexibilité totale: Utilisez n'importe quel modèle
+  ✅ Pas de code hardcodé: Configuration centralisée
+  ✅ Changement instantané: Pas de redémarrage nécessaire
+  ✅ Fallback sécurisé: Valeurs par défaut si pas de config
+  ✅ Type-safe: TypeScript garantit la sécurité
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  EXEMPLE D'UTILISATION                                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  Scénario: Vous voulez utiliser llama3:70b pour une meilleure qualité
+  
+  1. Settings → LLM Configuration
+     Model: llama3:70b
+     Save
+  
+  2. Character Wizard
+     Name: "Alice"
+     Description: "A brave warrior"
+     Generate ✨
+  
+  3. ✅ Le personnage est généré avec llama3:70b
+     → Meilleure qualité de description
+     → Plus de détails
+     → Personnalité plus riche
+
+
+═══════════════════════════════════════════════════════════════════════════
+  FIN DU GUIDE
+═══════════════════════════════════════════════════════════════════════════
