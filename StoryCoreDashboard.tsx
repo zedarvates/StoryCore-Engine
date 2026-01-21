@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Download, RotateCcw, Info, CheckCircle, AlertCircle, RefreshCw, HardDrive } from 'lucide-react';
+import { Download, RotateCcw, Info, CheckCircle, AlertCircle, RefreshCw, HardDrive, Edit3 } from 'lucide-react';
 import ModelDownloadModal from './ModelDownloadModal';
 import { useModelDownload } from './useModelDownload';
+import PlanEditor from './PlanEditor';
 
 interface MissingModel {
   name: string;
@@ -42,6 +43,7 @@ interface LLMConfig {
 }
 
 const StoryCoreDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'plans'>('dashboard');
   const [selectedPanel, setSelectedPanel] = useState<string>('panel_01');
   const [denoisingStrength, setDenoisingStrength] = useState(0.35);
   const [sharpenAmount, setSharpenAmount] = useState(1.2);
@@ -423,7 +425,37 @@ const StoryCoreDashboard: React.FC = () => {
         </div>
       )}
 
-      <div className="flex h-[calc(100vh-80px)]">
+      {/* Tab Navigation */}
+      <div className="bg-gray-800 border-b border-gray-700 px-6">
+        <div className="flex space-x-1">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-4 py-3 text-sm font-medium rounded-t-lg transition-colors ${
+              activeTab === 'dashboard'
+                ? 'bg-gray-900 text-white border-b-2 border-blue-500'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            📊 Dashboard
+          </button>
+          <button
+            onClick={() => setActiveTab('plans')}
+            className={`px-4 py-3 text-sm font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
+              activeTab === 'plans'
+                ? 'bg-gray-900 text-white border-b-2 border-blue-500'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            <Edit3 className="w-4 h-4" />
+            Plans Scène
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'plans' ? (
+        <PlanEditor projectId="demo-project" />
+      ) : (
+        <div className="flex h-[calc(100vh-80px)]">
         {/* Left Sidebar */}
         <aside className="w-80 bg-gray-800 border-r border-gray-700 p-6">
           <div className="space-y-6">
@@ -739,7 +771,8 @@ const StoryCoreDashboard: React.FC = () => {
             </section>
           </div>
         </main>
-      </div>
+        </div>
+      )}
 
       {/* Model Download Modal */}
       <ModelDownloadModal

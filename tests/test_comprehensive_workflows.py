@@ -29,15 +29,15 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 # Import all workflow components
-from enhanced_video_engine import EnhancedVideoEngine, VideoEngineConfig
-from enhanced_image_engine import EnhancedImageEngine, ImageEngineConfig
-from advanced_performance_optimizer import AdvancedPerformanceOptimizer, PerformanceConfig
-from advanced_video_quality_monitor import AdvancedVideoQualityMonitor, VideoQualityConfig
-from advanced_image_quality_monitor import AdvancedImageQualityMonitor, ImageQualityConfig
-from newbie_image_integration import NewBieImageIntegration, NewBieConfig
-from qwen_image_suite_integration import QwenImageSuiteIntegration, QwenConfig
-from hunyuan_video_integration import HunyuanVideoIntegration, HunyuanConfig
-from wan_video_integration import WanVideoIntegration, WanConfig
+from src.enhanced_video_engine import EnhancedVideoEngine, VideoEngineConfig
+from src.enhanced_image_engine import EnhancedImageEngine, ImageEngineConfig
+from src.advanced_performance_optimizer import AdvancedPerformanceOptimizer, PerformanceConfig
+from src.advanced_video_quality_monitor import AdvancedVideoQualityMonitor, VideoQualityConfig
+from src.advanced_image_quality_monitor import AdvancedImageQualityMonitor, ImageQualityConfig
+from src.newbie_image_integration import NewBieImageIntegration, NewBieConfig
+from src.qwen_image_suite_integration import QwenImageSuiteIntegration, QwenConfig
+from src.hunyuan_video_integration import HunyuanVideoIntegration
+from src.wan_video_integration import WanVideoIntegration
 
 
 class TestWorkflowUnitTests:

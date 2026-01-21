@@ -23,7 +23,7 @@ export const BasicToolbarExample: React.FC = () => {
       <Toolbar
         gridBounds={gridBounds}
         onToolChange={(tool) => {
-          console.log('Tool changed to:', tool);
+          ;
         }}
       />
 
@@ -51,15 +51,15 @@ export const ToolbarWithKeyboardShortcutsExample: React.FC = () => {
     enabled: true,
     gridBounds,
     onShortcut: (action, key) => {
-      console.log(`Shortcut triggered: ${action} (${key})`);
+      `);
       setLastShortcut(`${action} (${key})`);
     },
     onDelete: () => {
-      console.log('Delete action triggered');
+      ;
       // Implement delete logic here
     },
     onDuplicate: () => {
-      console.log('Duplicate action triggered');
+      ;
       // Implement duplicate logic here
     },
   });
@@ -111,11 +111,11 @@ export const CompleteGridEditorExample: React.FC = () => {
     enabled: true,
     gridBounds,
     onShortcut: (action, key) => {
-      console.log(`Shortcut: ${action} (${key})`);
+      `);
     },
     onDelete: () => {
       if (selectedPanelIds.length > 0) {
-        console.log('Deleting selected panels:', selectedPanelIds);
+        ;
         // Implement delete logic
         // Example: Clear layers from selected panels
         selectedPanelIds.forEach((panelId) => {
@@ -131,7 +131,7 @@ export const CompleteGridEditorExample: React.FC = () => {
     onDuplicate: () => {
       if (selectedPanelIds.length === 1) {
         const sourcePanelId = selectedPanelIds[0];
-        console.log('Duplicating panel:', sourcePanelId);
+        ;
         // Implement duplicate logic
         // Example: Copy to clipboard
         useGridStore.getState().copyPanel(sourcePanelId);
@@ -145,7 +145,7 @@ export const CompleteGridEditorExample: React.FC = () => {
       <Toolbar
         gridBounds={gridBounds}
         onToolChange={(tool) => {
-          console.log('Tool changed:', tool);
+          ;
         }}
       />
 
@@ -195,7 +195,7 @@ export const ConditionalShortcutsExample: React.FC = () => {
     enabled: shortcutsEnabled,
     gridBounds,
     onShortcut: (action, key) => {
-      console.log(`Shortcut: ${action} (${key})`);
+      `);
     },
   });
 
@@ -243,7 +243,7 @@ export const CustomStyledToolbarExample: React.FC = () => {
         className="custom-toolbar"
         gridBounds={gridBounds}
         onToolChange={(tool) => {
-          console.log('Tool changed:', tool);
+          ;
         }}
       />
 

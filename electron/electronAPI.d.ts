@@ -231,6 +231,61 @@ export interface ElectronAPI {
      */
     showDevTools: () => void;
   };
+
+  // ComfyUI integration
+  comfyui: {
+    /**
+     * Execute a ComfyUI workflow
+     * @param workflowData Workflow data to execute
+     * @returns Execution result
+     * @throws Error if execution fails
+     */
+    executeWorkflow: (workflowData: any) => Promise<any>;
+
+    /**
+     * Get ComfyUI queue status
+     * @returns Queue status information
+     * @throws Error if retrieval fails
+     */
+    getQueueStatus: () => Promise<any>;
+
+    /**
+     * Upload media to ComfyUI
+     * @param mediaPath Path to media file
+     * @returns Upload result
+     * @throws Error if upload fails
+     */
+    uploadMedia: (mediaPath: string) => Promise<any>;
+
+    /**
+     * Download output from ComfyUI
+     * @param outputId ID of the output to download
+     * @returns Download result
+     * @throws Error if download fails
+     */
+    downloadOutput: (outputId: string) => Promise<any>;
+
+    /**
+     * Get ComfyUI service status
+     * @returns Service status information
+     * @throws Error if retrieval fails
+     */
+    getServiceStatus: () => Promise<any>;
+
+    /**
+     * Start ComfyUI service
+     * @returns Service start result
+     * @throws Error if start fails
+     */
+    startService: () => Promise<any>;
+
+    /**
+     * Stop ComfyUI service
+     * @returns Service stop result
+     * @throws Error if stop fails
+     */
+    stopService: () => Promise<any>;
+  };
 }
 
 /**

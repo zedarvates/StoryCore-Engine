@@ -39,7 +39,7 @@ export function CharacterWizardDemo() {
   };
 
   const handleComplete = (character: Character) => {
-    console.log('Character created:', character);
+    ;
     setCreatedCharacter(character);
     setShowWizard(false);
   };

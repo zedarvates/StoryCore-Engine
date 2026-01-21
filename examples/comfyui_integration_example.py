@@ -24,7 +24,7 @@ def main():
     # Initialize integration manager
     manager = ComfyUIIntegrationManager(
         base_url="http://127.0.0.1:8188",
-        workflow_path="workflows/storycore_flux2.json"
+        workflow_path="assets/workflows/storycore_flux2.json"
     )
     
     # Initialize the integration

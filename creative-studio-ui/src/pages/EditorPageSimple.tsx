@@ -42,7 +42,7 @@ export function EditorPageSimple({ sequenceId, onBackToDashboard }: EditorPageSi
             setSequenceName(`Sequence ${sequenceId}`);
           }
           
-          console.log(`Loaded ${filtered.length} shots for sequence ${sequenceId}`);
+          ;
         } else {
           // No sequence selected, show all shots
           setSequenceShots(shots || []);

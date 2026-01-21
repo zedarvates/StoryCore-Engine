@@ -117,7 +117,7 @@ Example:
 
   const parseLLMAppearance = (response: string): Partial<Character['visual_identity']> | null => {
     try {
-      console.log('Parsing LLM appearance response:', response);
+      ;
       
       // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -147,7 +147,7 @@ Example:
           
           // Check if we got any data
           if (Object.keys(result).length > 0) {
-            console.log('Successfully parsed appearance from JSON:', result);
+            ;
             return result;
           }
         } catch (jsonError) {
@@ -156,7 +156,7 @@ Example:
       }
       
       // Fallback: Parse as structured text
-      console.log('Attempting text-based parsing');
+      ;
       const result: Partial<Character['visual_identity']> = {};
       const lines = response.split('\n');
       
@@ -222,7 +222,7 @@ Example:
       
       // Check if we got any data
       if (Object.keys(result).length > 0) {
-        console.log('Successfully parsed appearance from text:', result);
+        ;
         return result;
       }
       

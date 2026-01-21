@@ -1,0 +1,73 @@
+{
+  "template_name": "Nature",
+  "context": "Un youtubeur faisant une promenade dans la nature.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_9_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Explorez la nature avec nous !",
+      "subtitle": "Découvrez nos conseils en plein air."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "fade",
+        "duration": 1.5
+      },
+      {
+        "type": "slide",
+        "direction": "up",
+        "duration": 1.0
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "fadeIn",
+        "duration": 2.0
+      }
+    ],
+    "nature_effects": [
+      {
+        "type": "leaves_falling",
+        "speed": "slow"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Présentation du sujet en plein air.",
+        "background": "assets/jpg_files/file_9_2.jpg"
+      }
+    },
+    {
+      "name": "Contenu Principal",
+      "content": {
+        "title": "Contenu Principal",
+        "subtitle": "Développement du sujet.",
+        "background": "assets/jpg_files/file_9_3.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit",
+      "content": {
+        "title": "Placement de Produit",
+        "subtitle": "Découvrez notre produit en harmonie avec la nature.",
+        "background": "assets/jpg_files/file_10_1.jpg",
+        "animation": "fadeIn"
+      }
+    },
+    {
+      "name": "Conclusion",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "Merci de nous avoir accompagnés !",
+        "background": "assets/jpg_files/file_10_2.jpg",
+        "cta": "Abonnez-vous pour plus d'aventures en nature !"
+      }
+    }
+  ]
+}

@@ -114,8 +114,8 @@ export function Step2BasicInformation({
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900">Basic Information</h2>
-        <p className="text-gray-600">
+        <h2 className="text-2xl font-bold text-slate-800">Basic Information</h2>
+        <p className="text-slate-600">
           Set the foundation for your sequence plan with essential details and technical specifications.
         </p>
       </div>
@@ -146,7 +146,7 @@ export function Step2BasicInformation({
               {validationErrors.name && (
                 <p className="text-sm text-red-600">{validationErrors.name}</p>
               )}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-600">
                 Choose a descriptive name for your sequence plan
               </p>
             </div>
@@ -164,7 +164,7 @@ export function Step2BasicInformation({
                 rows={3}
                 className="resize-none"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-600">
                 {formData.description?.length || 0}/500 characters
               </p>
             </div>
@@ -189,7 +189,7 @@ export function Step2BasicInformation({
                       <div>
                         <div className="font-medium">{world.name}</div>
                         {world.description && (
-                          <div className="text-xs text-gray-500">{world.description}</div>
+                          <div className="text-xs text-slate-600">{world.description}</div>
                         )}
                       </div>
                     </SelectItem>
@@ -199,7 +199,7 @@ export function Step2BasicInformation({
               {validationErrors.worldId && (
                 <p className="text-sm text-red-600">{validationErrors.worldId}</p>
               )}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-600">
                 The world provides context, locations, and character data
               </p>
             </div>
@@ -239,7 +239,7 @@ export function Step2BasicInformation({
                   ))}
                 </div>
               )}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-600">
                 Tags help organize and search your sequence plans
               </p>
             </div>
@@ -290,7 +290,7 @@ export function Step2BasicInformation({
               {validationErrors.targetDuration && (
                 <p className="text-sm text-red-600">{validationErrors.targetDuration}</p>
               )}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-600">
                 Total length in MM:SS format (e.g., 05:30 for 5 minutes 30 seconds)
               </p>
             </div>
@@ -312,13 +312,13 @@ export function Step2BasicInformation({
                     <SelectItem key={option.value} value={option.value.toString()}>
                       <div>
                         <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-gray-500">{option.description}</div>
+                      <div className="text-xs text-slate-600">{option.description}</div>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-600">
                 Frames per second - affects motion smoothness and file size
               </p>
             </div>
@@ -346,13 +346,13 @@ export function Step2BasicInformation({
                     >
                       <div>
                         <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-gray-500">{option.description}</div>
+                        <div className="text-xs text-slate-600">{option.description}</div>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-600">
                 Output resolution - higher resolutions produce better quality but larger files
               </p>
             </div>

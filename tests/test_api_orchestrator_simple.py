@@ -66,8 +66,11 @@ class TestAPIOrchestrator:
             mock_response.status = 200
             mock_response.json = AsyncMock(return_value={"prompt_id": "test-prompt-123"})
             
-            mock_session.post.return_value.__aenter__.return_value = mock_response
-            mock_session.post.return_value.__aexit__.return_value = None
+            # Mock the async context manager for post
+            mock_post_context = MagicMock()
+            mock_post_context.__aenter__ = AsyncMock(return_value=mock_response)
+            mock_post_context.__aexit__ = AsyncMock(return_value=None)
+            mock_session.post.return_value = mock_post_context
             
             orchestrator._session = mock_session
             orchestrator._connected = True
@@ -100,8 +103,11 @@ class TestAPIOrchestrator:
             mock_response.status = 200
             mock_response.json = AsyncMock(return_value={"prompt_id": "test-prompt-456"})
             
-            mock_session.post.return_value.__aenter__.return_value = mock_response
-            mock_session.post.return_value.__aexit__.return_value = None
+            # Mock the async context manager for post
+            mock_post_context = MagicMock()
+            mock_post_context.__aenter__ = AsyncMock(return_value=mock_response)
+            mock_post_context.__aexit__ = AsyncMock(return_value=None)
+            mock_session.post.return_value = mock_post_context
             
             orchestrator._session = mock_session
             orchestrator._connected = True
@@ -136,8 +142,11 @@ class TestAPIOrchestrator:
                 "queue_pending": [["prompt-2", {}], ["prompt-3", {}]]
             })
             
-            mock_session.get.return_value.__aenter__.return_value = mock_response
-            mock_session.get.return_value.__aexit__.return_value = None
+            # Mock the async context manager for get
+            mock_get_context = MagicMock()
+            mock_get_context.__aenter__ = AsyncMock(return_value=mock_response)
+            mock_get_context.__aexit__ = AsyncMock(return_value=None)
+            mock_session.get.return_value = mock_get_context
             
             orchestrator._session = mock_session
             
@@ -161,8 +170,11 @@ class TestAPIOrchestrator:
             # Mock successful cancellation
             mock_response.status = 200
             
-            mock_session.post.return_value.__aenter__.return_value = mock_response
-            mock_session.post.return_value.__aexit__.return_value = None
+            # Mock the async context manager for post
+            mock_post_context = MagicMock()
+            mock_post_context.__aenter__ = AsyncMock(return_value=mock_response)
+            mock_post_context.__aexit__ = AsyncMock(return_value=None)
+            mock_session.post.return_value = mock_post_context
             
             orchestrator._session = mock_session
             

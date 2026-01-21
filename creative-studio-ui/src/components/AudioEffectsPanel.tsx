@@ -196,6 +196,8 @@ const AudioEffectCard: React.FC<AudioEffectCardProps> = ({
   const effectInfo = EFFECT_TYPES.find((e) => e.type === effect.type);
   const [showAutomation, setShowAutomation] = useState(false);
 
+  console.log('AudioEffectCard: Checking checkbox accessibility - effect:', effect.id, 'enabled:', effect.enabled);
+  
   return (
     <div className="border rounded bg-gray-50">
       {/* Header */}
@@ -203,9 +205,11 @@ const AudioEffectCard: React.FC<AudioEffectCardProps> = ({
         <div className="flex items-center gap-3 flex-1">
           <input
             type="checkbox"
+            id={`effect-enabled-${effect.id}`}
             checked={effect.enabled}
             onChange={onToggle}
             className="w-4 h-4"
+            aria-label={`Enable ${effectInfo?.name || effect.type} effect`}
           />
           <div className="flex-1">
             <div className="font-medium">{effectInfo?.name || effect.type}</div>
@@ -277,7 +281,10 @@ interface EffectParametersProps {
 }
 
 const EffectParameters: React.FC<EffectParametersProps> = ({ effect, onUpdate }) => {
+  console.log('EffectParameters: Rendering for effect:', effect.type, 'with parameters:', effect.parameters);
+  
   const updateParameter = (key: keyof AudioEffectParameters, value: any) => {
+    console.log('EffectParameters: Updating parameter', key, 'to value:', value);
     onUpdate({ ...effect.parameters, [key]: value });
   };
 
@@ -328,11 +335,14 @@ const EffectParameters: React.FC<EffectParametersProps> = ({ effect, onUpdate })
       return (
         <>
           <div>
-            <label className="text-xs text-gray-600 block mb-1">Type</label>
+            <label htmlFor="distortion-type-select" className="text-xs text-gray-600 block mb-1">Type</label>
             <select
+              id="distortion-type-select"
               value={effect.parameters.distortionType ?? 'soft'}
               onChange={(e) => updateParameter('distortionType', e.target.value)}
               className="w-full px-2 py-1 text-sm border rounded"
+              title="Select distortion type"
+              aria-label="Distortion type selector"
             >
               <option value="soft">Soft</option>
               <option value="hard">Hard</option>
@@ -510,20 +520,24 @@ const ParameterSlider: React.FC<ParameterSliderProps> = ({
   step,
   onChange,
 }) => {
+  console.log('ParameterSlider: Rendering slider with label:', label, 'value:', value);
+  
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <label className="text-xs text-gray-600">{label}</label>
+        <label htmlFor={label.replace(/\s+/g, '-').toLowerCase()} className="text-xs text-gray-600">{label}</label>
         <span className="text-xs text-gray-500">{value.toFixed(1)}</span>
       </div>
       <input
         type="range"
+        id={label.replace(/\s+/g, '-').toLowerCase()}
         min={min}
         max={max}
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         className="w-full"
+        aria-labelledby={label.replace(/\s+/g, '-').toLowerCase()}
       />
     </div>
   );

@@ -14,6 +14,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import type { Shot } from '@/types';
+import { sequencePlanService } from '@/services/sequencePlanService';
+import { migrationService } from '@/services/MigrationService';
+import { syncManager } from '@/services/SyncManager';
 import {
   Film,
   Users,
@@ -22,19 +25,19 @@ import {
   FileText,
   Wand2,
   Plus,
-  Minus,
   Sparkles,
   CheckCircle2,
   Trash2,
   Edit3,
+  Database,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { LandingChatBox } from '@/components/launcher/LandingChatBox';
 import { SequenceEditModal } from './SequenceEditModal';
 import './ProjectDashboardNew.css';
 
 interface ProjectDashboardNewProps {
-  projectId: string;
-  projectName: string;
   onOpenEditor: (sequenceId?: string) => void;
 }
 
@@ -48,8 +51,6 @@ interface SequenceData {
 }
 
 export function ProjectDashboardNew({
-  projectId,
-  projectName,
   onOpenEditor,
 }: ProjectDashboardNewProps) {
   const project = useAppStore((state) => state.project);
@@ -62,17 +63,25 @@ export function ProjectDashboardNew({
   const setShowCharacterWizard = useAppStore((state) => state.setShowCharacterWizard);
   
   const [globalResume, setGlobalResume] = useState(
-    project?.metadata?.globalResume || 
+    project?.metadata?.globalResume ||
     "Vidéo d'aventure dans le monde actuel avec une pointe de mystérisme..."
   );
   const [isEditingResume, setIsEditingResume] = useState(false);
   const [ollamaStatus, setOllamaStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
   const [comfyuiStatus, setComfyuiStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
   const [editingSequence, setEditingSequence] = useState<SequenceData | null>(null);
+  const [forceUpdate, setForceUpdate] = useState(0);
+  const [chatterboxHeight, setChatterboxHeight] = useState<number>(() => {
+    // Load saved height from localStorage, default to 400px
+    const saved = localStorage.getItem('chatterboxHeight');
+    return saved ? parseInt(saved, 10) : 400;
+  });
 
   // Generate sequences from project shots
   const sequences = useMemo<SequenceData[]>(() => {
+    console.log('[DEBUG] ProjectDashboardNew sequences useMemo called, shots:', shots?.length || 0, 'forceUpdate:', forceUpdate);
     if (!shots || shots.length === 0) {
+      console.log('[DEBUG] No shots found, returning empty sequences');
       return [];
     }
 
@@ -85,6 +94,8 @@ export function ProjectDashboardNew({
       }
       sequenceMap.get(seqId)!.push(shot);
     });
+
+    console.log('[DEBUG] Found', sequenceMap.size, 'sequence groups');
 
     // Convert to sequence data array
     const sequenceArray: SequenceData[] = [];
@@ -114,8 +125,10 @@ export function ProjectDashboardNew({
     }
 
     // Sort by order
-    return sequenceArray.sort((a, b) => a.order - b.order);
-  }, [shots]);
+    const sortedSequences = sequenceArray.sort((a, b) => a.order - b.order);
+    console.log('[DEBUG] Generated', sortedSequences.length, 'sequences');
+    return sortedSequences;
+  }, [shots, forceUpdate]);
 
   // Update global resume when project changes
   useEffect(() => {
@@ -124,6 +137,29 @@ export function ProjectDashboardNew({
     }
   }, [project]);
 
+  // Subscribe to sequence plan updates
+  useEffect(() => {
+    console.log('[DEBUG] Subscribing to sequence plan updates');
+    
+    const planUpdateUnsubscribe = sequencePlanService.subscribeToPlanUpdates((planId, plan) => {
+      console.log('[DEBUG] Received plan update for planId:', planId);
+      // Force re-render by updating state
+      setForceUpdate(prev => prev + 1);
+    });
+
+    const planListUnsubscribe = sequencePlanService.subscribeToPlanList((plans) => {
+      console.log('[DEBUG] Received plan list update, plans:', plans.length);
+      // Force re-render by updating state
+      setForceUpdate(prev => prev + 1);
+    });
+
+    return () => {
+      console.log('[DEBUG] Unsubscribing from sequence plan updates');
+      planUpdateUnsubscribe();
+      planListUnsubscribe();
+    };
+  }, []);
+
   // Check Ollama and ComfyUI status
   useEffect(() => {
     const checkServices = async () => {
@@ -131,10 +167,16 @@ export function ProjectDashboardNew({
       try {
         const response = await fetch('http://localhost:11434/api/tags', {
           method: 'GET',
-          signal: AbortSignal.timeout(2000),
+          signal: AbortSignal.timeout(5000),
         });
-        setOllamaStatus(response.ok ? 'connected' : 'disconnected');
+        if (response.ok) {
+          setOllamaStatus('connected');
+        } else {
+          console.warn('[ProjectDashboard] Ollama responded with error:', response.status);
+          setOllamaStatus('disconnected');
+        }
       } catch (error) {
+        console.warn('[ProjectDashboard] Ollama connection failed:', error);
         setOllamaStatus('disconnected');
       }
 
@@ -144,20 +186,18 @@ export function ProjectDashboardNew({
         const { getComfyUIServersService } = await import('@/services/comfyuiServersService');
         const service = getComfyUIServersService();
         const activeServer = service.getActiveServer();
-        
+
         if (activeServer) {
           // Use the configured server URL
           const serverUrl = activeServer.serverUrl.replace(/\/$/, ''); // Remove trailing slash
-          console.log('[ProjectDashboard] Checking ComfyUI at:', serverUrl);
-          
+
           try {
             const response = await fetch(`${serverUrl}/system_stats`, {
               method: 'GET',
-              signal: AbortSignal.timeout(2000),
+              signal: AbortSignal.timeout(5000),
             });
-            
+
             if (response.ok) {
-              console.log('[ProjectDashboard] ComfyUI connected at:', serverUrl);
               setComfyuiStatus('connected');
             } else {
               console.warn('[ProjectDashboard] ComfyUI responded with error:', response.status);
@@ -169,16 +209,13 @@ export function ProjectDashboardNew({
           }
         } else {
           // No server configured, try default
-          console.log('[ProjectDashboard] No ComfyUI server configured, trying default');
-          
           try {
             const response = await fetch('http://localhost:8188/system_stats', {
               method: 'GET',
-              signal: AbortSignal.timeout(2000),
+              signal: AbortSignal.timeout(5000),
             });
-            
+
             if (response.ok) {
-              console.log('[ProjectDashboard] ComfyUI connected at default port');
               setComfyuiStatus('connected');
             } else {
               console.warn('[ProjectDashboard] Default ComfyUI responded with error:', response.status);
@@ -203,6 +240,109 @@ export function ProjectDashboardNew({
 
     return () => clearInterval(interval);
   }, []);
+
+  // Listen for wizard launch events from chat
+  useEffect(() => {
+    const handleLaunchWizard = (event: CustomEvent) => {
+      const { wizardType } = event.detail;
+      console.log('[ProjectDashboard] Launching wizard from chat:', wizardType);
+      handleLaunchWizard(wizardType);
+    };
+
+    window.addEventListener('launch-wizard', handleLaunchWizard as EventListener);
+
+    return () => {
+      window.removeEventListener('launch-wizard', handleLaunchWizard as EventListener);
+    };
+  }, []);
+
+  // Automatic data migration on project load
+  useEffect(() => {
+    const performAutoMigration = async () => {
+      if (!project?.metadata?.path) {
+        return; // Pas de projet chargé
+      }
+
+      try {
+        console.log('[ProjectDashboard] Checking if migration is needed...');
+
+        const migrationNeeded = await migrationService.isMigrationNeeded(project.metadata.path);
+
+        if (migrationNeeded) {
+          console.log('[ProjectDashboard] Migration needed, starting automatic migration...');
+
+          // Afficher une notification de migration en cours
+          const migrationNotification = {
+            id: 'migration-in-progress',
+            type: 'system',
+            content: '🔄 Migration automatique des données en cours... Veuillez patienter.',
+            timestamp: new Date(),
+          };
+
+          // Démarrer la migration
+          const migrationResult = await migrationService.migrateAllData(project.metadata.path);
+
+          if (migrationResult.success) {
+            console.log(`[ProjectDashboard] Migration completed successfully: ${migrationResult.migrated} entities migrated`);
+
+            // Notification de succès
+            const successNotification = {
+              id: 'migration-success',
+              type: 'system',
+              content: `✅ Migration terminée avec succès ! ${migrationResult.migrated} entités migrées.`,
+              timestamp: new Date(),
+            };
+
+            // Déclencher une synchronisation complète
+            await syncManager.fullSync(project.metadata.path);
+
+          } else {
+            console.error('[ProjectDashboard] Migration failed:', migrationResult.errors);
+
+            // Notification d'erreur avec option de retry
+            const errorNotification = {
+              id: 'migration-error',
+              type: 'error',
+              content: `❌ Migration échouée: ${migrationResult.errors.length} erreurs. Vérifiez la console pour plus de détails.`,
+              timestamp: new Date(),
+              error: {
+                message: `Migration failed with ${migrationResult.errors.length} errors`,
+                userMessage: 'La migration automatique a échoué. Certaines données peuvent être manquantes.',
+                category: 'migration',
+                retryable: true,
+                actions: [
+                  {
+                    label: 'Retry Migration',
+                    action: async () => {
+                      // Retry logic would go here
+                      console.log('Retry migration requested');
+                    },
+                    primary: true,
+                  },
+                  {
+                    label: 'View Details',
+                    action: () => {
+                      console.log('Migration errors:', migrationResult.errors);
+                    },
+                    primary: false,
+                  },
+                ],
+              },
+            };
+          }
+        } else {
+          console.log('[ProjectDashboard] No migration needed');
+        }
+      } catch (error) {
+        console.error('[ProjectDashboard] Auto-migration error:', error);
+      }
+    };
+
+    // Délai pour laisser le temps au projet de se charger complètement
+    const migrationTimeout = setTimeout(performAutoMigration, 2000);
+
+    return () => clearTimeout(migrationTimeout);
+  }, [project?.metadata?.path]);
 
   // Mock recent activity
   const recentActivity = useMemo(() => {
@@ -334,7 +474,7 @@ export function ProjectDashboardNew({
         });
       }
 
-      console.log('Sequence created successfully:', sequenceId);
+      ;
 
     } catch (error) {
       console.error('Failed to create sequence:', error);
@@ -372,8 +512,8 @@ export function ProjectDashboardNew({
       // Delete sequence JSON file
       const fileName = `sequence_${sequenceId.padStart(3, '0')}.json`;
       const filePath = `${sequencesDir}/${fileName}`;
-      if (window.electronAPI?.fs?.unlink) {
-        await window.electronAPI.fs.unlink(filePath);
+      if ((window.electronAPI?.fs as any)?.unlink) {
+        await (window.electronAPI.fs as any).unlink(filePath);
       }
 
       // Find associated shots
@@ -384,8 +524,8 @@ export function ProjectDashboardNew({
       for (const shot of associatedShots) {
         const shotFileName = `shot_${shot.id}.json`;
         const shotFilePath = `${shotsDir}/${shotFileName}`;
-        if (window.electronAPI?.fs?.unlink) {
-          await window.electronAPI.fs.unlink(shotFilePath);
+        if ((window.electronAPI?.fs as any)?.unlink) {
+          await (window.electronAPI.fs as any).unlink(shotFilePath);
         }
       }
 
@@ -429,7 +569,7 @@ export function ProjectDashboardNew({
         });
       }
 
-      console.log('Sequence deleted successfully:', sequenceId);
+      ;
     } catch (error) {
       console.error('Failed to delete sequence:', error);
       alert(`Failed to delete sequence. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -451,7 +591,7 @@ export function ProjectDashboardNew({
     shots: number;
     resume: string;
   }) => {
-    console.log('Saving sequence edit:', updatedSequence);
+    ;
 
     try {
       if (!project?.metadata?.path) {
@@ -527,7 +667,7 @@ export function ProjectDashboardNew({
         });
       }
 
-      console.log('Sequence saved successfully:', updatedSequence.id);
+      ;
       setEditingSequence(null);
 
     } catch (error) {
@@ -560,31 +700,120 @@ export function ProjectDashboardNew({
     const jsonString = JSON.stringify(sequenceData, null, 2);
 
     if (window.electronAPI?.fs?.writeFile) {
-      // Convert string to Uint8Array for Electron API
+      // Convert string to Buffer for Electron API
       const encoder = new TextEncoder();
-      const dataBuffer = encoder.encode(jsonString);
+      const dataBuffer = Buffer.from(encoder.encode(jsonString));
       await window.electronAPI.fs.writeFile(filePath, dataBuffer);
     }
   };
 
   // Handle sequence click
   const handleSequenceClick = (sequenceId: string) => {
-    console.log('Opening editor for sequence:', sequenceId);
+    ;
     onOpenEditor(sequenceId);
   };
 
-  // Handle LLM improve resume
-  const handleImproveResume = () => {
-    // TODO: Call LLM API to improve resume
-    console.log('Improve resume with LLM - to be implemented');
-    alert('L\'amélioration du résumé avec LLM sera bientôt disponible.\n\nCette fonctionnalité utilisera le même système LLM que le Chatterbox Assistant.');
+  // Handle LLM create/improve resume
+  const handleCreateResumeWithAI = async () => {
+    if (ollamaStatus !== 'connected') {
+      alert('L\'assistant IA n\'est pas disponible. Veuillez vérifier qu\'Ollama est en cours d\'exécution.');
+      return;
+    }
+
+    try {
+      // Show loading state
+      setIsEditingResume(true);
+
+      // Gather project information for context
+      const projectInfo = {
+        sequences: sequences.length,
+        shots: shots?.length || 0,
+        characters: project?.characters?.length || 0,
+        worlds: project?.worlds?.length || 0,
+        currentResume: globalResume,
+        projectName: project?.metadata?.name || 'Projet StoryCore'
+      };
+
+      // Build AI prompt for resume generation
+      const aiPrompt = `En tant qu'assistant créatif pour StoryCore, générez un résumé global captivant pour ce projet vidéo.
+
+Informations du projet :
+- Nom du projet : ${projectInfo.projectName}
+- Nombre de séquences : ${projectInfo.sequences}
+- Nombre de plans : ${projectInfo.shots}
+- Nombre de personnages : ${projectInfo.characters}
+- Nombre de mondes : ${projectInfo.worlds}
+
+Résumé actuel : "${projectInfo.currentResume}"
+
+Générez un nouveau résumé global de 300-400 caractères maximum qui :
+1. Capture l'essence et l'atmosphère du projet
+2. Met en avant les éléments clés (séquences, personnages, mondes)
+3. Est engageant et professionnel
+4. Utilise un langage cinématographique approprié
+
+Le résumé doit être en français et commencer par une accroche forte.`;
+
+      // Use the same LLM system as LandingChatBox
+      const { useLLMConfig } = await import('@/services/llmConfigService');
+      const { llmConfig, service: llmService } = useLLMConfig();
+
+      if (!llmService || !llmConfig) {
+        throw new Error('Service LLM non configuré');
+      }
+
+      // Import system prompt builder
+      const { buildSystemPrompt } = await import('@/utils/systemPromptBuilder');
+      const systemPrompt = buildSystemPrompt('fr');
+
+      // Create LLM request
+      const request = {
+        prompt: aiPrompt,
+        systemPrompt,
+        stream: false, // Non-streaming for resume generation
+      };
+
+      // Call LLM service
+      const response = await llmService.generateCompletion(request, `resume-gen-${Date.now()}`);
+
+      if (response.success && response.data?.content) {
+        // Extract and clean the generated resume
+        let generatedResume = response.data.content.trim();
+
+        // Remove any markdown formatting or extra text
+        generatedResume = generatedResume.replace(/^["""]|["""]$/g, ''); // Remove quotes
+        generatedResume = generatedResume.replace(/^\*\*.*?\*\*\s*/g, ''); // Remove bold markdown
+        generatedResume = generatedResume.replace(/^#+\s*/gm, ''); // Remove headers
+
+        // Limit to 500 characters
+        if (generatedResume.length > 500) {
+          generatedResume = generatedResume.substring(0, 497) + '...';
+        }
+
+        // Update the resume
+        setGlobalResume(generatedResume);
+
+        // Auto-save
+        await handleSaveResume();
+
+        alert('✅ Résumé généré avec succès par l\'assistant IA !');
+      } else {
+        throw new Error(response.error || 'Erreur lors de la génération du résumé');
+      }
+
+    } catch (error) {
+      console.error('Erreur lors de la génération du résumé IA:', error);
+      alert(`Erreur lors de la génération du résumé : ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    } finally {
+      setIsEditingResume(false);
+    }
   };
 
   // Handle save resume
   const handleSaveResume = async () => {
-    console.log('Saving resume:', globalResume);
+    ;
     setIsEditingResume(false);
-    
+
     // Update project metadata in store
     if (project) {
       const updatedProject = {
@@ -595,9 +824,9 @@ export function ProjectDashboardNew({
           updated_at: new Date().toISOString(),
         },
       };
-      
+
       setProject(updatedProject);
-      
+
       // Save to file system via Electron API
       if (window.electronAPI?.project?.updateMetadata) {
         try {
@@ -605,15 +834,21 @@ export function ProjectDashboardNew({
             project.metadata?.path || '',
             { globalResume: globalResume }
           );
-          console.log('Resume saved to project.json');
+          ;
         } catch (error) {
           console.error('Failed to save resume to file:', error);
           alert('Erreur lors de la sauvegarde du résumé. Vérifiez la console pour plus de détails.');
         }
       } else {
-        console.log('Resume saved to store (Electron API not available)');
+        console.log('Resume saved successfully');
       }
     }
+  };
+
+  // Handle chatterbox resize
+  const handleChatterboxResize = (newHeight: number) => {
+    setChatterboxHeight(newHeight);
+    localStorage.setItem('chatterboxHeight', newHeight.toString());
   };
 
   return (
@@ -682,13 +917,14 @@ export function ProjectDashboardNew({
             <div className="section-header">
               <h2>Globale Resume</h2>
               <span className="char-count">(sur 500 characteres)</span>
-              <button 
+              <button
                 className="btn-improve"
-                onClick={handleImproveResume}
-                title="Améliorer avec LLM"
+                onClick={handleCreateResumeWithAI}
+                title="Créer le résumé avec l'assistant IA"
+                disabled={ollamaStatus !== 'connected'}
               >
                 <Sparkles className="w-4 h-4" />
-                <span>LLM ASSISTANT</span>
+                <span>CRÉER LE RÉSUMÉ AVEC L'ASSISTANT</span>
               </button>
             </div>
             
@@ -700,6 +936,7 @@ export function ProjectDashboardNew({
                   onChange={(e) => setGlobalResume(e.target.value)}
                   maxLength={500}
                   autoFocus
+                  placeholder="Enter your global resume here..."
                 />
                 <div className="resume-edit-actions">
                   <button 
@@ -791,27 +1028,12 @@ export function ProjectDashboardNew({
             </div>
           </div>
 
-          {/* Chatterbox Assistant LLM - Reusing LandingChatBox */}
-          <div className="chatterbox-section">
-            <div className="chatterbox-header">
-              <h3>Chatterbox Assistant LLM</h3>
-              <p className="chatterbox-subtitle">
-                Posez des questions sur votre projet, demandez des modifications, ou obtenez de l'aide
-              </p>
-            </div>
-            <div className="chatterbox-container">
-              <LandingChatBox 
-                placeholder="Demandez des modifications, posez des questions sur votre projet..."
-              />
-            </div>
-          </div>
-
           {/* Plan Sequences */}
           <div className="plan-sequences-section">
             <div className="section-header">
               <h3>Plan Sequences</h3>
               <div className="sequence-controls">
-                <button 
+                <button
                   className="btn-sequence-control add"
                   onClick={handleAddSequence}
                   title="Ajouter une séquence"
@@ -828,7 +1050,7 @@ export function ProjectDashboardNew({
                 </div>
               ) : (
                 sequences.map((seq) => (
-                  <div 
+                  <div
                     key={seq.id}
                     className="sequence-card"
                     onClick={() => handleSequenceClick(seq.id)}
@@ -863,6 +1085,54 @@ export function ProjectDashboardNew({
                   </div>
                 ))
               )}
+            </div>
+          </div>
+
+          {/* Chatterbox Assistant LLM - Reusing LandingChatBox */}
+          <div className="chatterbox-section">
+            <div className="chatterbox-header">
+              <h3>Chatterbox Assistant LLM</h3>
+              <p className="chatterbox-subtitle">
+                Posez des questions sur votre projet, demandez des modifications, ou obtenez de l'aide
+              </p>
+              <p className="chatterbox-subtitle text-xs text-gray-400 mt-1">
+                Available wizards: World Building, Character Creation, Scene Generator, Dialogue Writer, Storyboard Creator, Style Transfer, Comic to Sequence, Audio Production, Transitions, Plan Sequences
+              </p>
+            </div>
+            <div
+              className="chatterbox-container resizable"
+              style={{ height: `${chatterboxHeight}px` }}
+            >
+              <LandingChatBox
+                placeholder="Demandez des modifications, posez des questions sur votre projet..."
+                height={chatterboxHeight}
+              />
+              <div className="chatterbox-resize-handle">
+                <div
+                  className="resize-grip"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    const startY = e.clientY;
+                    const startHeight = chatterboxHeight;
+
+                    const handleMouseMove = (moveEvent: MouseEvent) => {
+                      const newHeight = Math.max(200, startHeight + (moveEvent.clientY - startY));
+                      handleChatterboxResize(newHeight);
+                    };
+
+                    const handleMouseUp = () => {
+                      document.removeEventListener('mousemove', handleMouseMove);
+                      document.removeEventListener('mouseup', handleMouseUp);
+                    };
+
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                  }}
+                  title="Redimensionner le Chatterbox"
+                >
+                  ⋮⋮
+                </div>
+              </div>
             </div>
           </div>
         </div>

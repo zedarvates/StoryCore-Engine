@@ -1,9 +1,4 @@
-import type { App, BrowserWindow as BW, Menu as M } from 'electron';
-// const { app, BrowserWindow, Menu } = require('electron');
-// Temporary workaround for electron API issue
-const app = require('app');
-const BrowserWindow = require('browser-window');
-const Menu = require('menu');
+import { app, BrowserWindow, Menu, dialog } from 'electron';
 import * as path from 'path';
 import { ViteServerManager, LauncherConfig } from './ViteServerManager';
 import { ProjectService } from './ProjectService';
@@ -15,7 +10,7 @@ import { IPCHandlers } from './ipcChannels';
 // import { TOSStorageService } from './tosStorageService';
 // import { UpdateManager } from './UpdateManager';
 
-let mainWindow: BW | null = null;
+let mainWindow: BrowserWindow | null = null;
 let serverManager: ViteServerManager | null = null;
 let ipcHandlers: IPCHandlers | null = null;
 // let updateManager: UpdateManager | null = null;
@@ -48,7 +43,7 @@ function createWindow(url: string): void {
 
   // Set Content Security Policy
   const isDevelopment = process.env.NODE_ENV === 'development';
-  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+  mainWindow!.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     const csp = isDevelopment
       ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* ws://localhost:* data: blob:;"
       : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://localhost:* ws://localhost:*;";
@@ -62,24 +57,24 @@ function createWindow(url: string): void {
   });
 
   // Load the provided URL
-  mainWindow.loadURL(url);
+  mainWindow!.loadURL(url);
   
   // Always open DevTools for debugging
-  mainWindow.webContents.openDevTools();
+  mainWindow!.webContents.openDevTools();
 
   // Show window when ready to prevent flickering
-  mainWindow.once('ready-to-show', () => {
+  mainWindow!.once('ready-to-show', () => {
     mainWindow?.show();
     console.log('StoryCore Creative Studio window ready');
   });
 
   // Handle window close
-  mainWindow.on('closed', () => {
+  mainWindow!.on('closed', () => {
     mainWindow = null;
   });
 
   // Handle navigation errors
-  mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
+  mainWindow!.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
     console.error('Failed to load:', errorCode, errorDescription);
     if (isDevelopment) {
       console.log('Make sure Vite dev server is running');
@@ -142,7 +137,6 @@ async function startServer(): Promise<void> {
       } catch (error) {
         console.error('Failed to start Vite server:', error);
         // Show error dialog to user
-        const { dialog } = require('electron');
         await dialog.showErrorBox(
           'Server Start Failed',
           `Failed to start the development server:\n\n${error instanceof Error ? error.message : String(error)}\n\nPlease check if ports 5173-5183 are available.`

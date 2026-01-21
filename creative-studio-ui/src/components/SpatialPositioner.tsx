@@ -310,8 +310,7 @@ export const SpatialPositioner: React.FC<SpatialPositionerProps> = ({ config, on
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            className="cursor-move"
-            style={{ maxWidth: '100%', height: 'auto' }}
+            className="w-full h-auto cursor-move"
           />
         </div>
         <p className="text-xs text-gray-500 text-center">
@@ -323,8 +322,9 @@ export const SpatialPositioner: React.FC<SpatialPositionerProps> = ({ config, on
       {/* Coordinate Inputs */}
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">X (Left/Right)</label>
+          <label htmlFor="x-coordinate" className="text-sm font-medium text-gray-700">X (Left/Right)</label>
           <input
+            id="x-coordinate"
             type="number"
             min="-1"
             max="1"
@@ -337,8 +337,9 @@ export const SpatialPositioner: React.FC<SpatialPositionerProps> = ({ config, on
         </div>
 
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Y (Front/Back)</label>
+          <label htmlFor="y-coordinate" className="text-sm font-medium text-gray-700">Y (Front/Back)</label>
           <input
+            id="y-coordinate"
             type="number"
             min="-1"
             max="1"
@@ -351,8 +352,9 @@ export const SpatialPositioner: React.FC<SpatialPositionerProps> = ({ config, on
         </div>
 
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Z (Height)</label>
+          <label htmlFor="z-coordinate" className="text-sm font-medium text-gray-700">Z (Height)</label>
           <input
+            id="z-coordinate"
             type="number"
             min="-1"
             max="1"

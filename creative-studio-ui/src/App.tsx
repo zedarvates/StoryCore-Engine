@@ -15,6 +15,12 @@ import { ShotWizardModal } from '@/components/wizard/ShotWizardModal';
 import { GenericWizardModal } from '@/components/wizard/GenericWizardModal';
 import { LLMSettingsModal } from '@/components/settings/LLMSettingsModal';
 import { ComfyUISettingsModal } from '@/components/settings/ComfyUISettingsModal';
+import { AddonsModal } from '@/components/settings/AddonsModal';
+import { CharactersModal } from '@/components/modals/CharactersModal';
+import { WorldModal } from '@/components/modals/WorldModal';
+import { LocationsModal } from '@/components/modals/LocationsModal';
+import { ObjectsModal } from '@/components/modals/ObjectsModal';
+import { ImageGalleryModal } from '@/components/modals/ImageGalleryModal';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { useOllamaInit } from '@/hooks/useOllamaInit';
@@ -48,6 +54,18 @@ function AppContent() {
     setShowLLMSettings,
     showComfyUISettings,
     setShowComfyUISettings,
+    showAddonsModal,
+    setShowAddonsModal,
+    showCharactersModal,
+    setShowCharactersModal,
+    showWorldModal,
+    setShowWorldModal,
+    showLocationsModal,
+    setShowLocationsModal,
+    showObjectsModal,
+    setShowObjectsModal,
+    showImageGalleryModal,
+    setShowImageGalleryModal,
     // Generic wizard state (simple forms in GenericWizardModal)
     showDialogueWriter,
     showSceneGenerator,
@@ -71,7 +89,7 @@ function AppContent() {
   // Initialize LLM configuration service (NEW)
   useEffect(() => {
     async function initializeLLM() {
-      console.log('[App] Initializing LLM configuration...');
+      ;
       
       // Migrate legacy configurations
       await initializeLLMConfig();
@@ -79,7 +97,7 @@ function AppContent() {
       // Initialize unified service
       await initializeLLMConfigService();
       
-      console.log('[App] LLM configuration initialized');
+      ;
     }
     
     initializeLLM();
@@ -89,9 +107,9 @@ function AppContent() {
   useEffect(() => {
     if (ollamaState.isInitialized && ollamaState.recommendation) {
       if (ollamaState.isOllamaAvailable) {
-        console.log(`🚀 StoryCore ready with ${ollamaState.recommendation.model.name}`);
+        console.log('Ollama available:', ollamaState.recommendation);
       } else {
-        console.log('⚠️ StoryCore ready (Ollama not available - LLM features limited)');
+        console.warn('Ollama not available:', ollamaState.recommendation);
       }
     }
   }, [ollamaState]);
@@ -160,7 +178,7 @@ function AppContent() {
   };
 
   const handleInstallationComplete = (installationPath: string) => {
-    console.log('ComfyUI installed at:', installationPath);
+    ;
     setInstallationComplete(true);
     setShowInstallationWizard(false);
     // Could update app configuration here
@@ -171,20 +189,20 @@ function AppContent() {
   };
 
   const handleWorldComplete = (world: World) => {
-    console.log('World created:', world);
+    ;
     // World is already saved to store by the wizard
     setShowWorldWizard(false);
   };
 
   const handleCharacterComplete = (character: Character) => {
-    console.log('Character created:', character);
+    ;
     // Character is already saved to store by the wizard
     setShowCharacterWizard(false);
   };
 
   // Generic wizard completion handler (Requirement 5.3, 9.1)
   const handleWizardComplete = (data: any) => {
-    console.log('Wizard completed with data:', data);
+    ;
     
     // Integrate wizard results into project based on wizard type (Requirement 5.3)
     if (activeWizardType && project) {
@@ -358,11 +376,35 @@ function AppContent() {
           isOpen={showComfyUISettings}
           onClose={() => setShowComfyUISettings(false)}
         />
-        
+        <AddonsModal
+          isOpen={showAddonsModal}
+          onClose={() => setShowAddonsModal(false)}
+        />
+        <CharactersModal
+          isOpen={showCharactersModal}
+          onClose={() => setShowCharactersModal(false)}
+        />
+        <WorldModal
+          isOpen={showWorldModal}
+          onClose={() => setShowWorldModal(false)}
+        />
+        <LocationsModal
+          isOpen={showLocationsModal}
+          onClose={() => setShowLocationsModal(false)}
+        />
+        <ObjectsModal
+          isOpen={showObjectsModal}
+          onClose={() => setShowObjectsModal(false)}
+        />
+        <ImageGalleryModal
+          isOpen={showImageGalleryModal}
+          onClose={() => setShowImageGalleryModal(false)}
+        />
+
         {/* Production Wizards */}
         <SequencePlanWizardModal />
         <ShotWizardModal />
-        
+
         {/* Generic Wizard Modal (Requirements 1.2, 1.3, 1.4) */}
         <GenericWizardModal
           isOpen={activeWizardType !== null}
@@ -370,7 +412,7 @@ function AppContent() {
           onClose={closeActiveWizard}
           onComplete={handleWizardComplete}
         />
-        
+
         <Toaster />
       </>
     );
@@ -419,11 +461,36 @@ function AppContent() {
           isOpen={showComfyUISettings}
           onClose={() => setShowComfyUISettings(false)}
         />
-        
+        <AddonsModal
+          isOpen={showAddonsModal}
+          onClose={() => setShowAddonsModal(false)}
+        />
+
+        <CharactersModal
+          isOpen={showCharactersModal}
+          onClose={() => setShowCharactersModal(false)}
+        />
+        <WorldModal
+          isOpen={showWorldModal}
+          onClose={() => setShowWorldModal(false)}
+        />
+        <LocationsModal
+          isOpen={showLocationsModal}
+          onClose={() => setShowLocationsModal(false)}
+        />
+        <ObjectsModal
+          isOpen={showObjectsModal}
+          onClose={() => setShowObjectsModal(false)}
+        />
+        <ImageGalleryModal
+          isOpen={showImageGalleryModal}
+          onClose={() => setShowImageGalleryModal(false)}
+        />
+
         {/* Production Wizards */}
         <SequencePlanWizardModal />
         <ShotWizardModal />
-        
+
         {/* Generic Wizard Modal (Requirements 1.2, 1.3, 1.4) */}
         <GenericWizardModal
           isOpen={activeWizardType !== null}
@@ -431,7 +498,7 @@ function AppContent() {
           onClose={closeActiveWizard}
           onComplete={handleWizardComplete}
         />
-        
+
         <Toaster />
       </>
     );
@@ -493,6 +560,42 @@ function AppContent() {
       <ComfyUISettingsModal
         isOpen={showComfyUISettings}
         onClose={() => setShowComfyUISettings(false)}
+      />
+
+      {/* Add-ons Modal */}
+      <AddonsModal
+        isOpen={showAddonsModal}
+        onClose={() => setShowAddonsModal(false)}
+      />
+
+      {/* Characters Modal */}
+      <CharactersModal
+        isOpen={showCharactersModal}
+        onClose={() => setShowCharactersModal(false)}
+      />
+
+      {/* World Modal */}
+      <WorldModal
+        isOpen={showWorldModal}
+        onClose={() => setShowWorldModal(false)}
+      />
+
+      {/* Locations Modal */}
+      <LocationsModal
+        isOpen={showLocationsModal}
+        onClose={() => setShowLocationsModal(false)}
+      />
+
+      {/* Objects Modal */}
+      <ObjectsModal
+        isOpen={showObjectsModal}
+        onClose={() => setShowObjectsModal(false)}
+      />
+
+      {/* Image Gallery Modal */}
+      <ImageGalleryModal
+        isOpen={showImageGalleryModal}
+        onClose={() => setShowImageGalleryModal(false)}
       />
 
       {/* Production Wizards */}

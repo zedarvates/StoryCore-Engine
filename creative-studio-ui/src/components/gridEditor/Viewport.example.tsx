@@ -43,7 +43,7 @@ export const ViewportWithGridExample: React.FC = () => {
         <GridRenderer
           panels={config.panels}
           selectedPanelIds={[]}
-          onPanelClick={(panelId) => console.log('Panel clicked:', panelId)}
+          onPanelClick={(panelId) => }
         />
       </Viewport>
     </div>

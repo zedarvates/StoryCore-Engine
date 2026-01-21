@@ -114,11 +114,11 @@ export const GridEditorCanvas: React.FC<GridEditorCanvasProps> = ({
     enablePan: true,
     enableLongPress: true,
     onLongPress: (point) => {
-      console.log('Long press detected at:', point);
+      ;
       // Could trigger context menu or other actions
     },
     onSwipe: (direction) => {
-      console.log('Swipe detected:', direction);
+      ;
       // Could trigger panel navigation or other actions
     },
   });

@@ -178,7 +178,7 @@ export function GenerationProgressModalExample() {
    * Handle cancel
    */
   const handleCancel = () => {
-    console.log('Generation cancelled');
+    ;
     setIsModalOpen(false);
     setStatus({
       stage: 'idle',
@@ -190,7 +190,7 @@ export function GenerationProgressModalExample() {
    * Handle close
    */
   const handleClose = () => {
-    console.log('Modal closed');
+    ;
     setIsModalOpen(false);
     setStatus({
       stage: 'idle',
@@ -202,7 +202,7 @@ export function GenerationProgressModalExample() {
    * Handle retry
    */
   const handleRetry = () => {
-    console.log('Retrying generation');
+    ;
     simulateGeneration();
   };
 

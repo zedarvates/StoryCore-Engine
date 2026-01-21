@@ -28,11 +28,11 @@ import numpy as np
 from PIL import Image
 
 # Import from our existing modules
-from advanced_model_manager import (
+from src.advanced_model_manager import (
     AdvancedModelManager, ModelInfo, ModelType, ModelPriority,
     QuantizationType, ModelManagerConfig
 )
-from advanced_workflow_config import HunyuanVideoConfig
+from src.advanced_workflow_config import HunyuanVideoConfig
 
 logger = logging.getLogger(__name__)
 

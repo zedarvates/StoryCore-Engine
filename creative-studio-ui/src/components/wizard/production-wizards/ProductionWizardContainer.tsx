@@ -60,7 +60,7 @@ export function ProductionWizardContainer({
     },
     saveDraft: async () => {
       // Draft saving would be handled by parent component
-      console.log('Manual save requested');
+      ;
     },
     nextStep: onNextStep || (() => console.warn('nextStep not provided')),
     previousStep: onPreviousStep || (() => console.warn('previousStep not provided')),

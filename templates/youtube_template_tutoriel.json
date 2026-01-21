@@ -1,0 +1,92 @@
+{
+  "template_name": "Tutoriel et Guide",
+  "context": "Un youtubeur expliquant étape par étape comment faire quelque chose.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_32_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Apprenez avec moi !",
+      "subtitle": "Guide complet et détaillé."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "step_by_step",
+        "duration": 1.0
+      },
+      {
+        "type": "progress_bar",
+        "duration": 1.2
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "checklist_complete",
+        "duration": 2.0
+      }
+    ],
+    "tutorial_effects": [
+      {
+        "type": "step_highlights",
+        "numbers": true
+      },
+      {
+        "type": "tool_tips",
+        "display": true
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction du Tutoriel",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Ce que vous allez apprendre.",
+        "background": "assets/jpg_files/file_32_2.jpg"
+      }
+    },
+    {
+      "name": "Matériel Nécessaire",
+      "content": {
+        "title": "Matériel",
+        "subtitle": "Tout ce dont vous avez besoin.",
+        "background": "assets/jpg_files/file_33_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Utiles",
+      "content": {
+        "title": "Placement Produit",
+        "subtitle": "Les outils que j'utilise dans ce tutoriel.",
+        "background": "assets/jpg_files/file_33_2.jpg",
+        "animation": "checklist_complete"
+      }
+    },
+    {
+      "name": "Étapes Détaillées",
+      "content": {
+        "title": "Tutoriel",
+        "subtitle": "Suivez chaque étape précisément.",
+        "background": "assets/jpg_files/file_34_1.jpg"
+      }
+    },
+    {
+      "name": "Conseils et Astuces",
+      "content": {
+        "title": "Astuces",
+        "subtitle": "Pour réussir du premier coup.",
+        "background": "assets/jpg_files/file_34_2.jpg"
+      }
+    },
+    {
+      "name": "Conclusion du Tutoriel",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "Vous êtes maintenant expert !",
+        "background": "assets/jpg_files/file_35_1.jpg",
+        "cta": "Abonnez-vous pour plus de tutoriels utiles !"
+      }
+    }
+  ]
+}

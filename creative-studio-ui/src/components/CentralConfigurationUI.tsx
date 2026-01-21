@@ -33,6 +33,29 @@ function CentralConfigurationUIContent({
   // Load configuration on mount
   useEffect(() => {
     loadConfiguration(projectId);
+    
+    // Log browser detection for backdrop-filter compatibility
+    const userAgent = window.navigator.userAgent;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    console.log('Browser Detection:', {
+      userAgent,
+      isSafari,
+      isIOS,
+      isSafariOrIOS: isSafari || isIOS
+    });
+    
+    // Check CSS property support
+    const style = document.createElement('div').style;
+    const supportsBackdropFilter = 'backdropFilter' in style || '-webkit-backdrop-filter' in style;
+    const supportsWebkitBackdropFilter = '-webkit-backdrop-filter' in style;
+    
+    console.log('CSS Backdrop Filter Support:', {
+      supportsBackdropFilter,
+      supportsWebkitBackdropFilter,
+      needsWebkitPrefix: isSafari || isIOS
+    });
   }, [projectId, loadConfiguration]);
 
   // Handle opening settings windows

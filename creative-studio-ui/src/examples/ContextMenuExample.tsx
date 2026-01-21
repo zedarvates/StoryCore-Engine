@@ -52,26 +52,26 @@ const ContextMenuExample: React.FC = () => {
   // Context menu handlers
   const handlers = {
     onDuplicate: (duplicatedShots: Shot[]) => {
-      console.log('Duplicating shots:', duplicatedShots);
+      ;
       setShots([...shots, ...duplicatedShots]);
       hideContextMenu();
     },
     onDelete: (shotIds: string[]) => {
-      console.log('Deleting shots:', shotIds);
+      ;
       setShots(shots.filter(shot => !shotIds.includes(shot.id)));
       setSelectedShotIds([]);
       hideContextMenu();
     },
     onExport: (exportedShots: Shot[]) => {
-      console.log('Exporting shots:', exportedShots);
+      ;
       hideContextMenu();
     },
     onTransform: (transformedShots: Shot[], transformType: string) => {
-      console.log('Transforming shots:', transformedShots, 'Type:', transformType);
+      ;
       hideContextMenu();
     },
     onTag: (taggedShots: Shot[], tag: string) => {
-      console.log('Tagging shots:', taggedShots, 'Tag:', tag);
+      ;
       const updatedShots = shots.map(shot => {
         if (taggedShots.find(s => s.id === shot.id)) {
           return {
@@ -88,7 +88,7 @@ const ContextMenuExample: React.FC = () => {
       hideContextMenu();
     },
     onCreate: () => {
-      console.log('Creating new shot');
+      ;
       const newShot: Shot = {
         id: `shot-${Date.now()}`,
         title: 'New Shot',

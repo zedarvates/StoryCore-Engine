@@ -106,7 +106,7 @@ export function NewProjectDialog({ isOpen, onClose, onCreateProject }: NewProjec
               }}
               placeholder="Enter project name"
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              aria-invalid={!!error}
+              aria-invalid={error ? "true" : "false"}
               aria-describedby={error ? 'project-name-error' : undefined}
             />
             {error && (

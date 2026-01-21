@@ -123,7 +123,7 @@ export const AnnotationIntegrationExample: React.FC = () => {
                     style={drawingStyle}
                     textStyle={textStyle}
                     onAnnotationCreated={() => {
-                      console.log('Annotation created');
+                      ;
                     }}
                   />
                 )}

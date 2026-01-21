@@ -33,7 +33,7 @@ export const GridEditorWithErrorBoundary: React.FC = () => {
     <GridEditorErrorBoundary
       onError={(error, errorInfo) => {
         // Optional: Send error to monitoring service
-        console.log('Error caught by boundary:', error, errorInfo);
+        ;
       }}
     >
       {/* Your Grid Editor components here */}
@@ -321,7 +321,7 @@ export const GridEditorWithCustomFallback: React.FC = () => {
 const errorMonitoringService = {
   captureError: (error: Error, context?: any) => {
     // Send to Sentry, LogRocket, etc.
-    console.log('Error captured:', error, context);
+    ;
   },
 };
 

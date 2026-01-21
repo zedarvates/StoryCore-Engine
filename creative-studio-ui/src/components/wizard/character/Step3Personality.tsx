@@ -105,7 +105,7 @@ Example:
 
   const parseLLMPersonality = (response: string): Partial<Character['personality']> | null => {
     try {
-      console.log('Parsing LLM personality response:', response);
+      ;
       
       // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -128,7 +128,7 @@ Example:
           
           // Check if we got any data
           if (Object.keys(result).length > 0) {
-            console.log('Successfully parsed personality from JSON:', result);
+            ;
             return result;
           }
         } catch (jsonError) {
@@ -137,7 +137,7 @@ Example:
       }
       
       // Fallback: Parse as structured text
-      console.log('Attempting text-based parsing');
+      ;
       const result: Partial<Character['personality']> = {
         traits: [],
         values: [],
@@ -211,7 +211,7 @@ Example:
       );
       
       if (hasData) {
-        console.log('Successfully parsed personality from text:', result);
+        ;
         return result;
       }
       

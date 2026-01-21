@@ -41,7 +41,7 @@ export class PromptLibraryService {
   private static instance: PromptLibraryService;
   private index: LibraryIndex | null = null;
   private cache: Map<string, PromptTemplate> = new Map();
-  private basePath = '/library';
+  private basePath = '/assets/library';
 
   private constructor() {}
 
@@ -58,9 +58,42 @@ export class PromptLibraryService {
   async loadIndex(): Promise<LibraryIndex> {
     if (this.index) return this.index;
     
-    const response = await fetch(`${this.basePath}/index.json`);
-    this.index = await response.json();
-    return this.index!;
+    try {
+      console.log(`[PromptLibraryService] Attempting to load index from: ${this.basePath}/index.json`);
+      
+      // Try to load from local files first
+      try {
+        const indexModule = await import(`${this.basePath}/index.json`);
+        const localIndex = indexModule.default || indexModule;
+        
+        if (localIndex) {
+          this.index = localIndex;
+          console.log(`[PromptLibraryService] Successfully loaded index from local files with ${this.index.totalPrompts} prompts`);
+          return this.index;
+        }
+      } catch (localError) {
+        console.log(`[PromptLibraryService] Local file loading failed, trying fetch: ${localError}`);
+      }
+      
+      // Fallback to fetch if local loading fails
+      const response = await fetch(`${this.basePath}/index.json`);
+      
+      if (!response.ok) {
+        console.error(`[PromptLibraryService] Failed to load index: HTTP ${response.status} - ${response.statusText}`);
+        console.error(`[PromptLibraryService] Response URL: ${response.url}`);
+        throw new Error(`Failed to load library index: HTTP ${response.status}`);
+      }
+      
+      const responseText = await response.text();
+      console.log(`[PromptLibraryService] Raw response text (first 200 chars): ${responseText.substring(0, 200)}`);
+      
+      this.index = JSON.parse(responseText);
+      console.log(`[PromptLibraryService] Successfully loaded index with ${this.index.totalPrompts} prompts`);
+      return this.index;
+    } catch (error) {
+      console.error(`[PromptLibraryService] Error loading index: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
   }
 
   /**
@@ -78,11 +111,44 @@ export class PromptLibraryService {
     if (this.cache.has(path)) {
       return this.cache.get(path)!;
     }
-
-    const response = await fetch(`${this.basePath}/${path}`);
-    const template = await response.json();
-    this.cache.set(path, template);
-    return template;
+ 
+    try {
+      console.log(`[PromptLibraryService] Attempting to load prompt from: ${this.basePath}/${path}`);
+      
+      // Try to load from local files first
+      try {
+        const promptModule = await import(`${this.basePath}/${path}`);
+        const localPrompt = promptModule.default || promptModule;
+        
+        if (localPrompt) {
+          this.cache.set(path, localPrompt);
+          console.log(`[PromptLibraryService] Successfully loaded prompt from local files: ${localPrompt.name}`);
+          return localPrompt;
+        }
+      } catch (localError) {
+        console.log(`[PromptLibraryService] Local file loading failed, trying fetch: ${localError}`);
+      }
+      
+      // Fallback to fetch if local loading fails
+      const response = await fetch(`${this.basePath}/${path}`);
+      
+      if (!response.ok) {
+        console.error(`[PromptLibraryService] Failed to load prompt ${path}: HTTP ${response.status} - ${response.statusText}`);
+        console.error(`[PromptLibraryService] Response URL: ${response.url}`);
+        throw new Error(`Failed to load prompt ${path}: HTTP ${response.status}`);
+      }
+      
+      const responseText = await response.text();
+      console.log(`[PromptLibraryService] Raw prompt response (first 200 chars): ${responseText.substring(0, 200)}`);
+      
+      const template = JSON.parse(responseText);
+      this.cache.set(path, template);
+      console.log(`[PromptLibraryService] Successfully loaded prompt: ${template.name}`);
+      return template;
+    } catch (error) {
+      console.error(`[PromptLibraryService] Error loading prompt ${path}: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
   }
 
   /**

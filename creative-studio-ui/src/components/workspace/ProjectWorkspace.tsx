@@ -26,7 +26,7 @@ export function ProjectWorkspace({
 
   // Handle wizard launch
   const handleLaunchWizard = (wizardId: string) => {
-    console.log(`Launching wizard: ${wizardId} for project: ${projectId}`);
+    ;
     
     // Map wizard IDs to appropriate wizard openers
     // Multi-step wizards (world, character) use separate modals
@@ -78,14 +78,14 @@ export function ProjectWorkspace({
 
   // Handle opening Grid Editor
   const handleOpenGridEditor = () => {
-    console.log('Opening Grid Editor for project:', projectId);
+    ;
     // Navigate to editor page with grid view
     window.location.href = '/editor?view=grid';
   };
 
   // Handle analytics dashboard
   const handleOpenAnalytics = () => {
-    console.log('Opening analytics dashboard for project:', projectId);
+    ;
     // TODO: Implement analytics dashboard navigation
     alert('Analytics dashboard will be available in a future update.');
   };
@@ -98,7 +98,7 @@ export function ProjectWorkspace({
         return;
       }
 
-      console.log('Exporting project:', projectId);
+      ;
       
       // Check if there's content to export
       const hasShots = currentProject.storyboard && currentProject.storyboard.length > 0;
@@ -119,7 +119,7 @@ export function ProjectWorkspace({
 
   // Handle settings navigation
   const handleOpenProjectSettings = () => {
-    console.log('Opening project settings for:', projectId);
+    ;
     onOpenSettings('api');
   };
 

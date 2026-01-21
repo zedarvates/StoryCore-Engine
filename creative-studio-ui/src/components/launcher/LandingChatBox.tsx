@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings } from 'lucide-react';
+import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings, Lightbulb, Globe, Users, Film, MessageSquare as MessageIcon, FileText, Wand2, Music, Zap, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
@@ -13,17 +13,19 @@ import { getWelcomeMessage } from '@/utils/chatboxTranslations';
 import { InlineLLMError } from '@/components/wizard/LLMErrorDisplay';
 import { getInitialLanguagePreference } from '@/utils/languageDetection';
 import { useAppStore } from '@/stores/useAppStore'; // NEW: Use global store for LLM settings
-import { 
-  type LanguageCode, 
+import {
+  type LanguageCode,
   saveLanguagePreference,
 } from '@/utils/llmConfigStorage';
-import { 
-  autoMigrate, 
-  getMigrationNotification, 
+import {
+  autoMigrate,
+  getMigrationNotification,
   clearMigrationNotification,
   getMigratedChatHistory,
-  clearMigratedChatHistory 
+  clearMigratedChatHistory
 } from '@/utils/ollamaMigration';
+import { formAutoFill } from '@/services/FormAutoFill';
+import { promptSuggestionService, type PromptSuggestion } from '@/services/PromptSuggestionService';
 
 // ============================================================================
 // Constants
@@ -50,6 +52,8 @@ interface Message {
 interface LandingChatBoxProps {
   onSendMessage?: (message: string, attachments?: File[]) => void;
   placeholder?: string;
+  height?: number;
+  onLaunchWizard?: (wizardType: string) => void;
 }
 
 // ============================================================================
@@ -59,6 +63,7 @@ interface LandingChatBoxProps {
 export function LandingChatBox({
   onSendMessage,
   placeholder = "Décrivez votre projet ou posez une question...",
+  height,
 }: LandingChatBoxProps) {
   // Use unified LLM configuration service
   const { config: llmConfig, service: llmService, isConfigured } = useLLMConfig();
@@ -79,6 +84,9 @@ export function LandingChatBox({
   const [currentStreamRequestId, setCurrentStreamRequestId] = useState<string | null>(null);
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
   const [isFallbackMode, setIsFallbackMode] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [dynamicSuggestions, setDynamicSuggestions] = useState<PromptSuggestion[]>([]);
+  const [promptRepetitionEnabled, setPromptRepetitionEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -124,7 +132,7 @@ export function LandingChatBox({
       const migrationResult = await autoMigrate();
       
       if (migrationResult && migrationResult.success) {
-        console.log('Ollama configuration migrated:', migrationResult);
+        ;
         
         // Show migration notification
         if (migrationResult.notification) {
@@ -207,6 +215,162 @@ export function LandingChatBox({
   }, [messages]);
 
 
+
+  // Génère des suggestions dynamiques basées sur la conversation
+  const updateDynamicSuggestions = useCallback(() => {
+    if (inputValue.trim().length > 0) {
+      const suggestions = promptSuggestionService.generateSuggestions(
+        messages,
+        currentLanguage,
+        inputValue
+      );
+      setDynamicSuggestions(suggestions);
+    } else if (messages.length > 1) {
+      // Suggestions basées sur la conversation si pas de texte en cours
+      const suggestions = promptSuggestionService.generateSuggestions(
+        messages,
+        currentLanguage,
+        ''
+      );
+      setDynamicSuggestions(suggestions.slice(0, 4)); // Limite à 4 suggestions
+    } else {
+      // Suggestions par défaut au démarrage
+      const defaultSuggestions = promptSuggestionService.getDefaultSuggestions(currentLanguage);
+      setDynamicSuggestions(defaultSuggestions);
+    }
+  }, [messages, currentLanguage, inputValue]);
+
+  // Met à jour les suggestions quand le texte change ou la langue change
+  useEffect(() => {
+    updateDynamicSuggestions();
+  }, [updateDynamicSuggestions]);
+
+  // Fonction pour utiliser le texte de l'utilisateur comme base pour les suggestions
+  const handleUseUserTextAsPrompt = () => {
+    if (inputValue.trim()) {
+      const enhancedSuggestions = promptSuggestionService.generateInputBasedSuggestions(
+        inputValue,
+        {
+          language: currentLanguage,
+          lastUserMessage: inputValue,
+          lastAssistantMessage: messages[messages.length - 1]?.content || '',
+          messageCount: messages.length,
+          hasProjectContext: false,
+          recentTopics: [],
+          conversationTone: 'professional',
+          userIntent: 'create'
+        }
+      );
+      setDynamicSuggestions(enhancedSuggestions);
+    }
+  };
+
+  // Fonction pour réviser le prompt : contexte en premier, question après
+  const handleRevisePrompt = () => {
+    if (!inputValue.trim()) return;
+
+    // Analyser le texte pour séparer contexte et question
+    const text = inputValue.trim();
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+
+    if (sentences.length <= 1) {
+      // Si une seule phrase, on ne peut pas séparer
+      return;
+    }
+
+    // Dernière phrase = question, le reste = contexte
+    const question = sentences[sentences.length - 1].trim() + (text.includes('?') ? '?' : '.');
+    const context = sentences.slice(0, -1).join('. ').trim();
+
+    if (context && question) {
+      // Restructurer : contexte d'abord, puis question
+      const revisedPrompt = `${context}.\n\n${question}`;
+      setInputValue(revisedPrompt);
+    }
+  };
+
+  // Fonction pour optimiser le prompt selon le modèle actuel
+  const handleOptimizeForModel = () => {
+    const text = inputValue.trim();
+    const modelName = llmConfig?.model || 'unknown';
+
+    // Si pas de texte, utiliser un exemple par défaut
+    const defaultText = currentLanguage === 'fr'
+      ? "Décrivez-moi un personnage principal pour une histoire de science-fiction."
+      : "Describe a main character for a science fiction story.";
+
+    const promptText = text || defaultText;
+    let optimizedPrompt = promptText;
+
+    // Optimisations spécifiques selon le modèle
+    if (modelName.toLowerCase().includes('gpt')) {
+      // GPT models préfèrent des instructions claires et structurées
+      optimizedPrompt = currentLanguage === 'fr'
+        ? `Veuillez analyser et répondre de manière détaillée à la demande suivante :\n\n${promptText}\n\nFournissez une réponse complète et bien structurée.`
+        : `Please analyze and respond in detail to the following request:\n\n${promptText}\n\nProvide a complete and well-structured response.`;
+    } else if (modelName.toLowerCase().includes('claude')) {
+      // Claude aime les contextes riches
+      const context = messages.slice(-2).map(m => m.content).join(' ').substring(0, 200);
+      const contextText = context || (currentLanguage === 'fr' ? 'Création de contenu créatif' : 'Creative content creation');
+      optimizedPrompt = currentLanguage === 'fr'
+        ? `Contexte : ${contextText}\n\nDemande : ${promptText}\n\nRépondez de manière helpful et précise.`
+        : `Context: ${contextText}\n\nRequest: ${promptText}\n\nRespond helpfully and precisely.`;
+    } else if (modelName.toLowerCase().includes('llama') || modelName.toLowerCase().includes('mistral')) {
+      // Modèles open-source préfèrent la concision
+      optimizedPrompt = promptText.length > 200 ? promptText.substring(0, 200) + '...' : promptText;
+    } else {
+      // Optimisation générique
+      optimizedPrompt = currentLanguage === 'fr'
+        ? `${promptText}\n\nVeuillez fournir une réponse détaillée et utile.`
+        : `${promptText}\n\nPlease provide a detailed and helpful response.`;
+    }
+
+    setInputValue(optimizedPrompt);
+  };
+
+  // Fonction pour ajouter des instructions système
+  const handleAddSystemInstructions = () => {
+    const text = inputValue.trim();
+    const defaultText = currentLanguage === 'fr'
+      ? "Expliquez-moi comment créer un personnage mémorable."
+      : "Explain how to create a memorable character.";
+
+    const promptText = text || defaultText;
+
+    const systemInstructions = currentLanguage === 'fr'
+      ? "Instructions système :\n- Soyez précis et concis\n- Fournissez des exemples concrets\n- Structurez votre réponse clairement\n- Utilisez un langage professionnel\n\n"
+      : "System instructions:\n- Be precise and concise\n- Provide concrete examples\n- Structure your response clearly\n- Use professional language\n\n";
+
+    const enhancedPrompt = `${systemInstructions}${promptText}`;
+    setInputValue(enhancedPrompt);
+  };
+
+  // Fonction pour nettoyer et réduire le prompt
+  const handleCleanPrompt = () => {
+    const text = inputValue.trim();
+    const defaultText = currentLanguage === 'fr'
+      ? "Je veux créer une histoire fantastique avec des dragons et des magiciens. Les dragons sont très importants dans cette histoire car ils représentent la puissance et la sagesse ancienne. Les magiciens contrôlent les dragons avec leur magie."
+      : "I want to create a fantasy story with dragons and wizards. Dragons are very important in this story because they represent power and ancient wisdom. Wizards control dragons with their magic.";
+
+    const promptText = text || defaultText;
+
+    let cleanedPrompt = promptText;
+
+    // Supprimer les répétitions
+    const sentences = cleanedPrompt.split(/[.!?]+/).filter(s => s.trim().length > 3);
+    const uniqueSentences = [...new Set(sentences.map(s => s.trim()))];
+    cleanedPrompt = uniqueSentences.join('. ');
+
+    // Réduire la longueur si nécessaire
+    if (cleanedPrompt.length > 300) {
+      cleanedPrompt = cleanedPrompt.substring(0, 300) + '...';
+    }
+
+    // Nettoyer les espaces multiples
+    cleanedPrompt = cleanedPrompt.replace(/\s+/g, ' ').trim();
+
+    setInputValue(cleanedPrompt);
+  };
 
   // Helper function to create error message with recovery options (Requirements 7.1-7.8)
   const createErrorMessage = (error: Error | LLMError, userInput: string): Message => {
@@ -387,7 +551,7 @@ export function LandingChatBox({
     if (isStreaming && currentStreamRequestId && llmService) {
       const cancelled = llmService.cancelRequest(currentStreamRequestId);
       if (cancelled) {
-        console.log('Cancelled ongoing stream:', currentStreamRequestId);
+        ;
         
         // Mark the streaming message as interrupted
         if (streamingMessageId) {
@@ -696,7 +860,7 @@ export function LandingChatBox({
     // Persist language preference on selection (Requirements 2.4, 6.5)
     try {
       saveLanguagePreference(language, false);
-      console.log('Language preference persisted to localStorage:', language);
+      ;
     } catch (error) {
       console.error('Failed to persist language preference:', error);
       // Continue with state update even if persistence fails
@@ -720,7 +884,7 @@ export function LandingChatBox({
     
     // Build language-aware system prompt for LLM
     const systemPrompt = buildSystemPrompt(language);
-    console.log('System prompt updated for language:', language, systemPrompt);
+    ;
     
     // Add system message about language change (Requirement 2.7)
     const languageNames: Record<LanguageCode, string> = {
@@ -745,7 +909,10 @@ export function LandingChatBox({
   }, [addMessage]);
 
   return (
-    <div className="flex flex-col h-[400px] bg-gray-900 rounded-lg border border-gray-700 overflow-hidden">
+    <div
+      className="flex flex-col bg-gray-900 rounded-lg border border-gray-700 overflow-hidden"
+      style={{ height: height ? `${height}px` : '800px' }}
+    >
       {/* Header */}
       <div 
         className="flex items-center gap-2 px-4 py-3 bg-gray-800 border-b border-gray-700"
@@ -967,7 +1134,7 @@ export function LandingChatBox({
 
       {/* Attachments Preview */}
       {attachments.length > 0 && (
-        <div 
+        <div
           className="px-4 py-2 bg-gray-800 border-t border-gray-700"
           role="region"
           aria-label="Attached files"
@@ -995,12 +1162,208 @@ export function LandingChatBox({
         </div>
       )}
 
+      {/* Dynamic Prompt Suggestions */}
+      {showSuggestions && dynamicSuggestions.length > 0 && (
+        <div className="px-4 py-3 bg-gray-800 border-t border-gray-700">
+          <div className="flex items-center gap-2 mb-3">
+            <Lightbulb className="w-4 h-4 text-yellow-400" />
+            <span className="text-sm text-gray-300 font-medium">
+              {currentLanguage === 'fr' ? 'Suggestions intelligentes' : 'Smart Suggestions'}
+            </span>
+            {inputValue.trim() && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleUseUserTextAsPrompt}
+                className="ml-auto text-xs text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
+                title={currentLanguage === 'fr' ? 'Utiliser mon texte comme base' : 'Use my text as base'}
+              >
+                <Zap className="w-3 h-3 mr-1" />
+                {currentLanguage === 'fr' ? 'Améliorer' : 'Enhance'}
+              </Button>
+            )}
+            <button
+              onClick={() => setShowSuggestions(false)}
+              className="text-gray-500 hover:text-gray-300 text-xs"
+              title={currentLanguage === 'fr' ? 'Masquer les suggestions' : 'Hide suggestions'}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Suggestions Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {dynamicSuggestions.map((suggestion) => {
+              const isGhostTracker = suggestion.id.startsWith('ghost-tracker-');
+
+              return (
+                <button
+                  key={suggestion.id}
+                  onClick={() => setInputValue(suggestion.text)}
+                  className="flex items-start gap-2 p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-left transition-colors group relative"
+                  title={`${suggestion.category} - Pertinence: ${(suggestion.relevance * 100).toFixed(0)}% ${isGhostTracker ? ' - Recommandation Ghost Tracker' : ''}`}
+                >
+                  {/* Ghost Tracker Badge */}
+                  {isGhostTracker && (
+                    <div className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs px-1 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm">
+                      <span className="text-xs">👻</span>
+                      <span className="text-[10px] font-bold">AI</span>
+                    </div>
+                  )}
+
+                  <span className="text-lg flex-shrink-0 mt-0.5" role="img" aria-label={suggestion.category}>
+                    {suggestion.icon}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className={`text-sm line-clamp-2 group-hover:text-white ${isGhostTracker ? 'text-purple-200' : 'text-gray-200'}`}>
+                      {suggestion.text}
+                    </span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        suggestion.category === 'follow-up' ? 'bg-blue-900/50 text-blue-300' :
+                        suggestion.category === 'clarification' ? 'bg-orange-900/50 text-orange-300' :
+                        suggestion.category === 'expansion' ? 'bg-green-900/50 text-green-300' :
+                        suggestion.category === 'alternative' ? 'bg-purple-900/50 text-purple-300' :
+                        'bg-gray-900/50 text-gray-300'
+                      }`}>
+                        {suggestion.category === 'follow-up' ? (currentLanguage === 'fr' ? 'Suivi' : 'Follow-up') :
+                         suggestion.category === 'clarification' ? (currentLanguage === 'fr' ? 'Clarification' : 'Clarify') :
+                         suggestion.category === 'expansion' ? (currentLanguage === 'fr' ? 'Expansion' : 'Expand') :
+                         suggestion.category === 'alternative' ? (currentLanguage === 'fr' ? 'Alternative' : 'Alternative') :
+                         (currentLanguage === 'fr' ? 'Affinement' : 'Refine')}
+                      </span>
+                      {isGhostTracker && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-purple-900/30 text-purple-300 border border-purple-500/30">
+                          👻 GT
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-500">
+                        {(suggestion.relevance * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Helper Text */}
+          <div className="mt-2 text-xs text-gray-500 text-center">
+            {currentLanguage === 'fr'
+              ? 'Ces suggestions s\'adaptent à votre conversation et langue'
+              : 'These suggestions adapt to your conversation and language'
+            }
+          </div>
+        </div>
+      )}
+
       {/* Input Area */}
-      <div 
+      <div
         className="p-4 bg-gray-800 border-t border-gray-700"
         role="form"
         aria-label="Message input"
       >
+        {/* Button Row - Advanced Prompt Tools */}
+        <div className="flex justify-end gap-1 mb-2 flex-wrap">
+          {/* Model Optimization Button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => handleOptimizeForModel()}
+            className="text-orange-400 hover:text-orange-300 hover:bg-orange-900/20 text-xs px-2 py-1 h-7"
+            title={currentLanguage === 'fr'
+              ? 'Optimiser pour le modèle actuel'
+              : 'Optimize for current model'
+            }
+            aria-label={currentLanguage === 'fr' ? 'Optimiser pour le modèle' : 'Optimize for model'}
+          >
+            🎯 {currentLanguage === 'fr' ? 'Opt.' : 'Opt'}
+          </Button>
+
+          {/* Add System Instructions Button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => handleAddSystemInstructions()}
+            className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/20 text-xs px-2 py-1 h-7"
+            title={currentLanguage === 'fr'
+              ? 'Ajouter des instructions système'
+              : 'Add system instructions'
+            }
+            aria-label={currentLanguage === 'fr' ? 'Ajouter instructions système' : 'Add system instructions'}
+          >
+            ⚙️ {currentLanguage === 'fr' ? 'Sys' : 'Sys'}
+          </Button>
+
+          {/* Clean Prompt Button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCleanPrompt()}
+            className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/20 text-xs px-2 py-1 h-7"
+            title={currentLanguage === 'fr'
+              ? 'Nettoyer et réduire le prompt'
+              : 'Clean and reduce prompt'
+            }
+            aria-label={currentLanguage === 'fr' ? 'Nettoyer le prompt' : 'Clean prompt'}
+          >
+            🧹 {currentLanguage === 'fr' ? 'Clean' : 'Clean'}
+          </Button>
+
+          {/* Prompt Repetition Toggle */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setPromptRepetitionEnabled(!promptRepetitionEnabled)}
+            className={`text-xs px-2 py-1 h-7 ${
+              promptRepetitionEnabled
+                ? 'text-green-400 bg-green-900/20 border border-green-500/30'
+                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/50'
+            }`}
+            title={currentLanguage === 'fr'
+              ? 'Répéter le prompt pour certains modèles (<prompt> <prompt>)'
+              : 'Repeat prompt for some models (<prompt> <prompt>)'
+            }
+            aria-label={currentLanguage === 'fr' ? 'Activer répétition du prompt' : 'Enable prompt repetition'}
+          >
+            🔄 {currentLanguage === 'fr' ? 'Rép.' : 'Rep'}
+          </Button>
+
+          {/* Prompt Revision Button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => handleRevisePrompt()}
+            className="text-blue-400 hover:text-blue-300 hover:bg-blue-900/20 text-xs px-2 py-1 h-7"
+            title={currentLanguage === 'fr'
+              ? 'Réviser le prompt : contexte en premier, question après'
+              : 'Revise prompt: context first, question after'
+            }
+            aria-label={currentLanguage === 'fr' ? 'Réviser le prompt' : 'Revise prompt'}
+          >
+            📝 {currentLanguage === 'fr' ? 'Rév.' : 'Rev'}
+          </Button>
+
+          {/* Enhance Button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleUseUserTextAsPrompt}
+            className="text-purple-400 hover:text-purple-300 hover:bg-purple-900/20 text-xs px-2 py-1 h-7"
+            title={currentLanguage === 'fr' ? 'Utiliser mon texte pour générer des suggestions' : 'Use my text to generate suggestions'}
+            aria-label={currentLanguage === 'fr' ? 'Améliorer avec IA' : 'Enhance with AI'}
+          >
+            <Zap className="w-4 h-4 mr-1" aria-hidden="true" />
+            {currentLanguage === 'fr' ? 'Amél.' : 'Enh'}
+          </Button>
+        </div>
+
         <div className="flex items-end gap-2">
           {/* File Attachment Button */}
           <input
@@ -1032,8 +1395,8 @@ export function LandingChatBox({
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="flex-1 min-h-[40px] max-h-[120px] bg-gray-700 border-gray-600 text-white placeholder:text-gray-500 resize-none"
-            rows={1}
+            className="flex-1 min-h-[80px] max-h-[240px] bg-gray-700 border-gray-600 text-white placeholder:text-gray-500 resize-none"
+            rows={2}
             aria-label="Message input"
             aria-describedby="input-help-text"
           />
@@ -1085,13 +1448,81 @@ function generateAssistantResponse(input: string): string {
     return "Pour ouvrir un projet existant, cliquez sur le bouton 'Open Project' ci-dessus, ou sélectionnez un projet dans la liste des projets récents. Je serai là pour vous assister dès que votre projet sera ouvert!";
   }
 
+  // Wizard launch requests - detect specific wizard requests
+  const wizardPatterns = {
+    'world': ['world', 'building', 'monde', 'univers', 'world-building'],
+    'character': ['character', 'personnage', 'perso', 'character-creation'],
+    'scene': ['scene', 'scène', 'scene-generator'],
+    'dialogue': ['dialogue', 'dialogues', 'dialogue-writer'],
+    'storyboard': ['storyboard', 'story', 'storyboard-creator'],
+    'style': ['style', 'transfer', 'style-transfer'],
+    'comic': ['comic', 'bd', 'bande', 'comic-to-sequence'],
+    'audio': ['audio', 'son', 'music', 'audio-production'],
+    'transition': ['transition', 'transitions'],
+    'sequence': ['sequence', 'plan', 'plan-sequences']
+  };
+
+  // Check for specific wizard requests
+  for (const [wizardType, keywords] of Object.entries(wizardPatterns)) {
+    if (keywords.some(keyword => input.toLowerCase().includes(keyword))) {
+      // Extract context and auto-fill suggestions
+      const autoFillResult = formAutoFill.autoFillForm(wizardType, input);
+
+      // Dispatch custom event to launch wizard with pre-filled data
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('launch-wizard', {
+          detail: {
+            wizardType,
+            context: input,
+            keywords: keywords.filter(k => input.toLowerCase().includes(k)),
+            autoFillData: autoFillResult.data,
+            suggestions: autoFillResult.suggestions
+          }
+        }));
+      }, 500);
+
+      // Build intelligent response with pre-fill information
+      let response = `🎯 **Lancement du wizard ${wizardType === 'world' ? 'World Building' :
+        wizardType === 'character' ? 'Character Creation' :
+        wizardType === 'scene' ? 'Scene Generator' :
+        wizardType === 'dialogue' ? 'Dialogue Writer' :
+        wizardType === 'storyboard' ? 'Storyboard Creator' :
+        wizardType === 'style' ? 'Style Transfer' :
+        wizardType === 'comic' ? 'Comic to Sequence' :
+        wizardType === 'audio' ? 'Audio Production' :
+        wizardType === 'transition' ? 'Transitions' :
+        'Plan Sequences'}...**\n\n`;
+
+      if (autoFillResult.success && autoFillResult.filledFields.length > 0) {
+        response += `✨ **Pré-remplissage intelligent détecté !**\n`;
+        response += `Champs remplis automatiquement : ${autoFillResult.filledFields.join(', ')}\n\n`;
+
+        if (autoFillResult.suggestions.length > 0) {
+          response += `💡 **Suggestions d'amélioration :**\n`;
+          autoFillResult.suggestions.slice(0, 2).forEach(suggestion => {
+            response += `• ${suggestion}\n`;
+          });
+          response += '\n';
+        }
+      } else {
+        response += `Le wizard s'ouvre automatiquement. Utilisez les informations de votre demande pour pré-remplir les champs !\n\n`;
+      }
+
+      response += `🔧 **Astuce** : Vous pouvez modifier tous les champs pré-remplis selon vos besoins.`;
+
+      return response;
+    }
+  }
+
   // Help/capabilities requests
   if (
-    input.includes('aide') || input.includes('help') || 
+    input.includes('aide') || input.includes('help') ||
     input.includes('comment') || input.includes('how') ||
-    input.includes('que peux') || input.includes('what can')
+    input.includes('que peux') || input.includes('what can') ||
+    input.includes('wizard') || input.includes('assistant') ||
+    input.includes('quel') || input.includes('which')
   ) {
-    return "Je peux vous aider avec:\n\n• Créer et organiser des shots\n• Ajouter des transitions entre les scènes\n• Configurer l'audio et les effets sonores\n• Suggérer des effets visuels\n• Optimiser votre workflow de production\n\nCommencez par créer ou ouvrir un projet, puis je pourrai vous assister dans votre création!";
+    return "Voici tous les **Wizards** et outils disponibles dans StoryCore :\n\n🎭 **Creative Wizards** (cliquez sur les cartes dans le dashboard) :\n\n• **🏰 World Building** : Créez des mondes complets avec des univers, des lieux et de la lore détaillée\n• **👥 Character Creation** : Concevez des personnages avec personnalités, apparences et arcs narratifs\n• **🎬 Scene Generator** : Générez automatiquement des scènes complètes avec descriptions et dialogues\n• **💬 Dialogue Writer** : Écrivez des dialogues naturels alignés sur les personnalités des personnages\n• **📖 Storyboard Creator** : Transformez vos scripts en storyboards visuels professionnels\n• **🎨 Style Transfer** : Appliquez des styles artistiques à vos projets (impressionnisme, manga, etc.)\n\n🎯 **Outils Spécialisés** :\n• **📚 Comic to Sequence** : Transformez des bandes dessinées en séquences cinématiques\n• **🎵 Audio Production** : Configurez musique, effets sonores et voix-off\n• **🔄 Transitions** : Ajoutez des effets de transition professionnels\n• **📋 Plan Sequences** : Gérez et organisez vos séquences vidéo\n\n💡 **Astuce** : Dites simplement le nom du wizard (ex: \"world building\", \"character creation\") pour le lancer automatiquement !";
   }
 
   // Shots/scenes requests
@@ -1131,4 +1562,3 @@ function generateAssistantResponse(input: string): string {
   // Default response
   return "Je suis là pour vous aider avec StoryCore! Pour commencer, créez un nouveau projet ou ouvrez un projet existant en utilisant les boutons ci-dessus. Ensuite, je pourrai vous assister dans la création de votre storyboard, l'ajout d'effets, et bien plus encore.";
 }
-

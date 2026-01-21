@@ -24,7 +24,7 @@ class ComfyUIIntegrationManager:
     
     def __init__(self, base_url: str = "http://127.0.0.1:8188", workflow_path: str = None):
         self.client = ComfyUIClient(base_url)
-        self.workflow_path = workflow_path or "workflows/storycore_flux2.json"
+        self.workflow_path = workflow_path or "assets/workflows/storycore_flux2.json"
         self.base_workflow = None
         self.available_vram = 8.0  # Default conservative estimate
         

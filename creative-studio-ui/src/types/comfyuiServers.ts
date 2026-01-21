@@ -4,7 +4,7 @@
  * Defines types for managing multiple ComfyUI servers
  */
 
-import type { ComfyUIConfig, ComfyUIServerInfo, AuthenticationType } from '@/services/comfyuiService';
+import type { ComfyUIServerInfo, AuthenticationType } from '@/services/comfyuiService';
 
 /**
  * ComfyUI Server Configuration

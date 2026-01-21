@@ -40,11 +40,11 @@ export const ToolbarWithExportImportExample: React.FC = () => {
  */
 export const FullExportImportPanelExample: React.FC = () => {
   const handleExportSuccess = (filename: string) => {
-    console.log('Export successful:', filename);
+    ;
   };
 
   const handleImportSuccess = (config: GridConfiguration) => {
-    console.log('Import successful:', config);
+    ;
   };
 
   const handleError = (error: string) => {
@@ -159,7 +159,7 @@ export const ProgrammaticExportImportExample: React.FC = () => {
 
     if (result.success && result.data) {
       loadConfiguration(result.data);
-      console.log('Configuration loaded successfully');
+      ;
     } else {
       console.error('Import failed:', result.error, result.validationErrors);
     }

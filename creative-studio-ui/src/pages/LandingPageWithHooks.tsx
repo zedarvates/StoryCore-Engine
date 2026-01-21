@@ -78,8 +78,8 @@ export function LandingPageWithHooks() {
         {/* Sera réactivé une fois l'intégration LLM complète et testée */}
         {/* <LandingChatBox
           onSendMessage={(message, attachments) => {
-            console.log('Message envoyé:', message);
-            console.log('Fichiers joints:', attachments);
+            ;
+            ;
             // TODO: Implémenter l'intégration avec l'assistant IA
             // TODO: Gérer les annotations sonores du dossier "sound"
           }}

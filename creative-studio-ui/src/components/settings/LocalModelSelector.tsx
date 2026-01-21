@@ -136,13 +136,13 @@ export function LocalModelSelector({
         return newStates;
       });
 
-      console.log(`Starting download for model: ${modelId}`);
+      ;
 
       // Start download
       const success = await modelService.downloadModel(
         modelId,
         (progress: ModelDownloadProgress) => {
-          console.log(`Download progress for ${modelId}:`, progress);
+          ;
           
           setModelStates(prev => {
             const newStates = new Map(prev);
@@ -158,7 +158,7 @@ export function LocalModelSelector({
       );
 
       if (success) {
-        console.log(`Model ${modelId} downloaded successfully`);
+        ;
         // Automatically select the downloaded model
         onModelSelect(modelId);
       } else {

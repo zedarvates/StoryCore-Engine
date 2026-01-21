@@ -83,24 +83,7 @@ packages = ["src", "src.cli", "src.cli.handlers", "src.cli.utils", "src.engines"
 [tool.setuptools.package-data]
 "*" = ["*.md", "*.txt"]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = [
-    "-v",
-    "--strict-markers",
-    "--cov=src/cli",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-]
-markers = [
-    "unit: Unit tests",
-    "integration: Integration tests",
-    "property: Property-based tests",
-    "e2e: End-to-end tests",
-]
+
 
 [tool.black]
 line-length = 100

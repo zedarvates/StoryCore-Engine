@@ -301,7 +301,7 @@ const ProjectDashboardContent: React.FC = () => {
 
           {/* Progress Bar */}
           {promptStatus.total > 0 && (
-            <div className="mt-3" role="progressbar" aria-valuenow={completionPercentage} aria-valuemin={0} aria-valuemax={100} aria-label="Prompt completion progress">
+            <div className="mt-3" role="progressbar" aria-valuenow={completionPercentage.toString()} aria-valuemin="0" aria-valuemax="100" aria-label="Prompt completion progress">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-muted-foreground">
                   Prompt Completion

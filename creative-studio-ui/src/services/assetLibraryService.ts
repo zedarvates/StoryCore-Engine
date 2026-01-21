@@ -320,7 +320,43 @@ export class AssetLibraryService {
       description: 'Built-in assets available to all projects',
     });
     
-    // 3. Load templates
+    // 3. Load characters
+    const characterAssets = await this.loadAssetsFromFolder('/assets/characters', 'characters', 'Character assets');
+    if (characterAssets.length > 0) {
+      sources.push({
+        id: 'characters',
+        name: 'Characters',
+        type: 'library',
+        assets: characterAssets,
+        description: 'Character-related assets',
+      });
+    }
+
+    // 4. Load sound assets
+    const soundAssets = await this.loadAssetsFromFolder('/assets/sound', 'sound', 'Sound assets');
+    if (soundAssets.length > 0) {
+      sources.push({
+        id: 'sound',
+        name: 'Sound Library',
+        type: 'library',
+        assets: soundAssets,
+        description: 'Audio and sound effect assets',
+      });
+    }
+
+    // 5. Load workflows
+    const workflowAssets = await this.loadAssetsFromFolder('/assets/workflows', 'workflows', 'Workflow templates');
+    if (workflowAssets.length > 0) {
+      sources.push({
+        id: 'workflows',
+        name: 'Workflows',
+        type: 'template',
+        assets: workflowAssets,
+        description: 'Workflow and pipeline templates',
+      });
+    }
+
+    // 6. Load templates
     const templateAssets = await this.loadTemplateAssets();
     if (templateAssets.length > 0) {
       sources.push({
@@ -370,18 +406,46 @@ export class AssetLibraryService {
    * Load assets from StoryCore base library
    */
   private async loadLibraryAssets(): Promise<Asset[]> {
-    // Return base library assets
-    // In production, this could load from a remote CDN or local assets folder
-    return [...BASE_LIBRARY_ASSETS];
+    const assets: Asset[] = [...BASE_LIBRARY_ASSETS];
+
+    // Try to load from local assets folder
+    try {
+      if (window.electronAPI?.assets?.scanFolder) {
+        const libraryAssets = await window.electronAPI.assets.scanFolder('/assets/library');
+        assets.push(...libraryAssets);
+      }
+    } catch (error) {
+      console.warn('Failed to load library assets from folder:', error);
+    }
+
+    return assets;
   }
   
+  /**
+   * Load assets from a specific folder
+   */
+  private async loadAssetsFromFolder(
+    folderPath: string,
+    sourceName: string,
+    description: string
+  ): Promise<Asset[]> {
+    try {
+      if (window.electronAPI?.assets?.scanFolder) {
+        const assets = await window.electronAPI.assets.scanFolder(folderPath);
+        return assets;
+      }
+    } catch (error) {
+      console.warn(`Failed to load ${sourceName} assets from folder ${folderPath}:`, error);
+    }
+
+    return [];
+  }
+
   /**
    * Load template assets
    */
   private async loadTemplateAssets(): Promise<Asset[]> {
-    // TODO: Load from templates folder or API
-    // For now, return empty array
-    return [];
+    return this.loadAssetsFromFolder('/assets/templates', 'templates', 'Template assets');
   }
   
   /**

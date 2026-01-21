@@ -1,0 +1,92 @@
+{
+  "template_name": "Critique de TikTokers",
+  "context": "Un youtubeur analysant et critiquant le contenu des créateurs TikTok.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_46_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Dissection TikTok !",
+      "subtitle": "Analyse approfondie des tendances courtes."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "quick_analysis",
+        "duration": 0.8
+      },
+      {
+        "type": "viral_meter",
+        "duration": 1.0
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "trending_effect",
+        "duration": 1.5
+      }
+    ],
+    "tiktok_effects": [
+      {
+        "type": "sound_wave",
+        "visualize_audio": true
+      },
+      {
+        "type": "engagement_overlay",
+        "likes_comments": true
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Présentation du TikToker",
+      "content": {
+        "title": "Le Créateur",
+        "subtitle": "Profil et style du TikToker analysé.",
+        "background": "assets/jpg_files/file_46_2.jpg"
+      }
+    },
+    {
+      "name": "Analyse des Tendances",
+      "content": {
+        "title": "Tendances Suivies",
+        "subtitle": "Comment il surfe sur les vagues virales.",
+        "background": "assets/jpg_files/file_47_1.jpg"
+      }
+    },
+    {
+      "name": "Critique du Style",
+      "content": {
+        "title": "Style et Présentation",
+        "subtitle": "Qualité de l'édition et de la créativité.",
+        "background": "assets/jpg_files/file_47_2.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Viral",
+      "content": {
+        "title": "Placement Produit",
+        "subtitle": "Les outils de création de contenu court qu'il utilise.",
+        "background": "assets/jpg_files/file_48_1.jpg",
+        "animation": "trending_effect"
+      }
+    },
+    {
+      "name": "Stratégie d'Engagement",
+      "content": {
+        "title": "Engagement",
+        "subtitle": "Comment il interagit avec son audience.",
+        "background": "assets/jpg_files/file_48_2.jpg"
+      }
+    },
+    {
+      "name": "Potentiel Viral",
+      "content": {
+        "title": "Potentiel",
+        "subtitle": "Évaluation du potentiel de croissance.",
+        "background": "assets/jpg_files/file_49_1.jpg",
+        "cta": "Abonnez-vous pour plus de critiques TikTok !"
+      }
+    }
+  ]
+}

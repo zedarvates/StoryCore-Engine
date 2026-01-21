@@ -101,7 +101,7 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
         // Try to copy path to clipboard
         try {
           await navigator.clipboard.writeText(downloadZonePath);
-          console.log('Path copied to clipboard');
+          ;
         } catch (clipboardError) {
           console.warn('Could not copy to clipboard:', clipboardError);
         }
@@ -218,7 +218,7 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
       
       // Optionally update backend configuration
       // This would depend on your application's configuration system
-      console.log('Application configuration updated:', config);
+      ;
       
       return true;
     } catch (error) {

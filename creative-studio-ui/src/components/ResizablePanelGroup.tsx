@@ -147,9 +147,9 @@ export const ResizablePanelGroup: React.FC<ResizablePanelGroupProps> = ({
               onMouseDown={(e) => handleMouseDown(e, index)}
               role="separator"
               aria-orientation={direction}
-              aria-valuenow={panelSizes[panel.id]}
-              aria-valuemin={panel.minSize}
-              aria-valuemax={panel.maxSize}
+              aria-valuenow={panelSizes[panel.id].toString()}
+              aria-valuemin={panel.minSize.toString()}
+              aria-valuemax={panel.maxSize.toString()}
             />
           )}
         </React.Fragment>

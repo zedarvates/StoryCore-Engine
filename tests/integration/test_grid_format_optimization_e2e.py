@@ -285,7 +285,11 @@ class TestGridFormatOptimizationE2E:
     def test_quality_threshold_enforcement(self):
         """Test d'application des seuils de qualité."""
         project_data = self.project_scenarios["action_project"]
-        
+        project_file = self.project_path / "project.json"
+
+        with open(project_file, 'w') as f:
+            json.dump(project_data, f, indent=2)
+
         # Test avec seuil de qualité élevé
         high_threshold_result = optimize_project_format(
             str(self.project_path),
@@ -312,7 +316,11 @@ class TestGridFormatOptimizationE2E:
     def test_performance_constraint_handling(self):
         """Test de gestion des contraintes de performance."""
         project_data = self.project_scenarios["action_project"]
-        
+        project_file = self.project_path / "project.json"
+
+        with open(project_file, 'w') as f:
+            json.dump(project_data, f, indent=2)
+
         # Test avec contrainte de temps stricte
         fast_result = optimize_project_format(
             str(self.project_path),

@@ -129,7 +129,7 @@ export const VideoSequencePlayer: React.FC<VideoSequencePlayerProps> = ({
       // 2. Sync their playback with video currentTime
       // 3. Handle volume, pan, and effects
       // 4. Ensure smooth transitions between shots
-      console.log(`Synchronizing audio track: ${track.name}`);
+      ;
     });
   }, [currentShot]);
 

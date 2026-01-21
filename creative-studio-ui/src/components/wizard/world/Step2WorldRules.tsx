@@ -80,7 +80,7 @@ export function Step2WorldRules() {
       tone: formData.tone || [],
     };
 
-    console.log('🔍 WORLD RULES GENERATION CONTEXT:', context);
+    ;
 
     const systemPrompt = 'You are a creative world-building assistant. Generate coherent, genre-appropriate world rules that are internally consistent and narratively interesting.';
 
@@ -105,8 +105,8 @@ Example format:
   }
 ]`;
 
-    console.log('📤 WORLD RULES PROMPT:', prompt);
-    console.log('📤 WORLD RULES SYSTEM PROMPT:', systemPrompt);
+    ;
+    ;
 
     try {
       await generate({
@@ -122,27 +122,23 @@ Example format:
   };
 
   const parseLLMRules = (response: string): WorldRule[] => {
-    console.log('🎯 PARSING WORLD RULES RESPONSE');
-    console.log('📊 Response metadata:');
-    console.log('   - Length:', response.length);
-    console.log('   - Type:', typeof response);
-    console.log('   - Is empty?', response.trim().length === 0);
-    console.log('   - First 200 chars:', response.substring(0, 200));
-    console.log('   - Last 200 chars:', response.substring(Math.max(0, response.length - 200)));
+    if (!response || response.trim().length === 0) {
+      return [];
+    }
 
     try {
-      console.log('=== LLM RESPONSE START ===');
-      console.log(response);
-      console.log('=== LLM RESPONSE END ===');
+      ;
+      ;
+      ;
 
       // Try to extract JSON from response - more flexible pattern
       const jsonMatch = response.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
-      console.log('🔍 JSON match found:', !!jsonMatch);
+      ;
       if (jsonMatch) {
-        console.log('📋 Extracted JSON string:', jsonMatch[0]);
+        ;
         try {
           const parsed = JSON.parse(jsonMatch[0]);
-          console.log('📋 Parsed JSON object:', parsed);
+          ;
 
           // Handle both single object and array
           let items = [];
@@ -161,9 +157,9 @@ Example format:
               implications: item.implications || item.description || item.effect || '',
             }));
 
-            console.log('🔧 Processed rules:', rules);
+            ;
             const filtered = rules.filter(r => r.rule.trim()); // Only return rules with content
-            console.log('✅ Filtered rules with content:', filtered);
+            ;
             return filtered;
           } else {
             console.warn('⚠️ No items found in parsed JSON');
@@ -177,7 +173,7 @@ Example format:
       }
       
       // Fallback: Parse as structured text
-      console.log('Attempting text-based parsing');
+      ;
       const rules: WorldRule[] = [];
       const lines = response.split('\n');
       
@@ -252,7 +248,7 @@ Example format:
       }
       
       if (rules.length > 0) {
-        console.log('Successfully parsed rules from text:', rules);
+        ;
         return rules;
       }
       

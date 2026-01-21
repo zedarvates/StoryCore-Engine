@@ -166,7 +166,7 @@ const BasicExample: React.FC = () => {
   const [results, setResults] = useState<GenerationResults | null>(null);
 
   const handleComplete = (generationResults: GenerationResults) => {
-    console.log('Generation completed:', generationResults);
+    ;
     setResults(generationResults);
   };
 
@@ -414,11 +414,11 @@ import type { GenerationResults } from './types/projectDashboard';
 
 function App() {
   const handleComplete = (results: GenerationResults) => {
-    console.log('Generated:', results.generatedShots.length, 'shots');
+    ;
   };
 
   const handleCancel = () => {
-    console.log('Generation cancelled');
+    ;
   };
 
   return (

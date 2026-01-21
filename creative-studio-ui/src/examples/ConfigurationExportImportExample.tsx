@@ -38,7 +38,7 @@ export const ConfigurationExportImportExample: React.FC = () => {
 
   const handleImport = (newConfig: GridEditorConfiguration) => {
     setConfiguration(newConfig);
-    console.log('Configuration imported:', newConfig);
+    ;
   };
 
   return (

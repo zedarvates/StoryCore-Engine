@@ -52,12 +52,31 @@ export interface LLMRequest {
  */
 export interface LLMResponse {
   content: string;
-  finishReason: 'stop' | 'length' | 'content_filter' | 'error';
   usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
   };
+  finish_reason?: string;
+}
+
+export interface ImageGenerationOptions {
+  prompt: string;
+  size?: '256x256' | '512x512' | '1024x1024' | '1792x1024' | '1024x1792';
+  quality?: 'standard' | 'hd';
+  style?: 'vivid' | 'natural';
+  model?: 'dall-e-2' | 'dall-e-3';
+}
+
+export interface GeneratedImage {
+  id: string;
+  url: string;
+  prompt: string;
+  size: string;
+  model: string;
+  createdAt: Date;
+  revisedPrompt?: string;
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -472,6 +491,54 @@ class OpenAIProvider extends LLMProviderBase {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Generate image using DALL-E
+   */
+  async generateImage(options: ImageGenerationOptions): Promise<GeneratedImage> {
+    const response = await fetch(`${this.baseUrl}/images/generations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.config.apiKey}`,
+      },
+      body: JSON.stringify({
+        prompt: options.prompt,
+        model: options.model || 'dall-e-3',
+        n: 1,
+        size: options.size || '1024x1024',
+        quality: options.quality || 'standard',
+        style: options.style || 'vivid',
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new LLMError(
+        error.error?.message || 'DALL-E API request failed',
+        error.error?.code || 'image_generation_error',
+        response.status === 429 || response.status >= 500,
+        error
+      );
+    }
+
+    const data = await response.json();
+    const image = data.data[0];
+
+    return {
+      id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      url: image.url,
+      prompt: options.prompt,
+      size: options.size || '1024x1024',
+      model: options.model || 'dall-e-3',
+      createdAt: new Date(),
+      revisedPrompt: image.revised_prompt,
+      metadata: {
+        quality: options.quality,
+        style: options.style,
+      }
+    };
   }
 }
 
@@ -1150,6 +1217,44 @@ export class LLMService {
    */
   getProviderName(): string {
     return this.provider.getProviderName();
+  }
+
+  /**
+   * Generate image using the current provider (if supported)
+   */
+  async generateImage(options: ImageGenerationOptions, requestId?: string): Promise<ApiResponse<GeneratedImage>> {
+    const id = requestId || this.generateRequestId();
+    const abortController = new AbortController();
+    this.abortControllers.set(id, abortController);
+
+    try {
+      // Only OpenAI provider supports image generation currently
+      if (!(this.provider instanceof OpenAIProvider)) {
+        return {
+          success: false,
+          error: 'Image generation is only supported with OpenAI provider',
+          code: 'unsupported_provider',
+        };
+      }
+
+      return await this.withRetry(async () => {
+        if (abortController.signal.aborted) {
+          throw new LLMError('Image generation cancelled', 'cancelled', false, undefined, LLMErrorCategory.UNKNOWN);
+        }
+
+        const image = await this.withTimeout(
+          this.provider.generateImage(options),
+          this.config.timeout * 2, // Double timeout for image generation
+          abortController.signal
+        );
+        return {
+          success: true,
+          data: image,
+        };
+      });
+    } finally {
+      this.abortControllers.delete(id);
+    }
   }
 
   /**

@@ -198,7 +198,7 @@ describe('chatboxTranslations', () => {
     it('should end with question mark or equivalent in all languages', () => {
       const messages = getAllWelcomeMessages();
       
-      Object.entries(messages).forEach(([lang, message]) => {
+      Object.entries(messages).forEach(([_lang, message]) => {
         // Most languages use ? but some Asian languages may use different punctuation
         const hasQuestionMark = message.includes('?') || message.includes('？');
         expect(hasQuestionMark).toBe(true);

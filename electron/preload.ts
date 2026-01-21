@@ -144,6 +144,59 @@ const electronAPI: ElectronAPI = {
       ipcRenderer.send('app:show-devtools');
     },
   },
+
+  // ComfyUI integration
+  comfyui: {
+    executeWorkflow: async (workflowData: any) => {
+      const result = await ipcRenderer.invoke('comfyui:execute-workflow', workflowData);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to execute ComfyUI workflow');
+      }
+      return result;
+    },
+    getQueueStatus: async () => {
+      const result = await ipcRenderer.invoke('comfyui:get-queue-status');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get ComfyUI queue status');
+      }
+      return result.queue;
+    },
+    uploadMedia: async (mediaPath: string) => {
+      const result = await ipcRenderer.invoke('comfyui:upload-media', mediaPath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to upload media to ComfyUI');
+      }
+      return result;
+    },
+    downloadOutput: async (outputId: string) => {
+      const result = await ipcRenderer.invoke('comfyui:download-output', outputId);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to download ComfyUI output');
+      }
+      return result;
+    },
+    getServiceStatus: async () => {
+      const result = await ipcRenderer.invoke('comfyui:get-service-status');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get ComfyUI service status');
+      }
+      return result.status;
+    },
+    startService: async () => {
+      const result = await ipcRenderer.invoke('comfyui:start-service');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to start ComfyUI service');
+      }
+      return result;
+    },
+    stopService: async () => {
+      const result = await ipcRenderer.invoke('comfyui:stop-service');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to stop ComfyUI service');
+      }
+      return result;
+    },
+  },
 };
 
 // Expose the API to the renderer process

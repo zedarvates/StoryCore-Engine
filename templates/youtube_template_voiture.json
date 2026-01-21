@@ -1,0 +1,73 @@
+{
+  "template_name": "Voiture",
+  "context": "Un youtubeur parlant dans une voiture.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_5.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "En route pour une nouvelle aventure !",
+      "subtitle": "Découvrez nos conseils en mouvement."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "fade",
+        "duration": 1.5
+      },
+      {
+        "type": "slide",
+        "direction": "right",
+        "duration": 1.0
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "bounce",
+        "duration": 2.0
+      }
+    ],
+    "movement_effects": [
+      {
+        "type": "road_lines",
+        "speed": "medium"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Présentation du sujet en mouvement.",
+        "background": "assets/jpg_files/file_6_1.jpg"
+      }
+    },
+    {
+      "name": "Contenu Principal",
+      "content": {
+        "title": "Contenu Principal",
+        "subtitle": "Développement du sujet.",
+        "background": "assets/jpg_files/file_6_2.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit",
+      "content": {
+        "title": "Placement de Produit",
+        "subtitle": "Découvrez notre produit en mouvement.",
+        "background": "assets/jpg_files/file_7.jpg",
+        "animation": "bounce"
+      }
+    },
+    {
+      "name": "Conclusion",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "Merci de nous avoir suivis !",
+        "background": "assets/jpg_files/file_8_1.jpg",
+        "cta": "Abonnez-vous pour plus d'aventures !"
+      }
+    }
+  ]
+}

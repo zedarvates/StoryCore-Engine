@@ -86,7 +86,7 @@ class WanVideoGenerationMixin:
                     }
 
                     workflow_result = await self._execute_comfyui_workflow(
-                        "workflows/workflow_wan_video_inpainting.json",
+                        "assets/workflows/workflow_wan_video_inpainting.json",
                         workflow_inputs,
                         "inpainting_workflow",
                         timeout
@@ -199,7 +199,7 @@ class WanVideoGenerationMixin:
                     }
 
                     workflow_result = await self._execute_comfyui_workflow(
-                        "workflows/workflow_wan_video_alpha_inpainting.json",
+                        "assets/workflows/workflow_wan_video_alpha_inpainting.json",
                         workflow_inputs,
                         "alpha_inpainting_workflow",
                         timeout
@@ -307,7 +307,7 @@ class WanVideoGenerationMixin:
                     }
 
                     workflow_result = await self._execute_comfyui_workflow(
-                        "workflows/workflow_wan_video_dual_guidance.json",
+                        "assets/workflows/workflow_wan_video_dual_guidance.json",
                         workflow_inputs,
                         "dual_guidance_workflow",
                         timeout

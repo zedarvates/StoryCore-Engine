@@ -70,7 +70,7 @@ export const UndoRedoExample: React.FC = () => {
     onUndo: undo,
     onRedo: redo,
     onShortcutTriggered: (action) => {
-      console.log(`Keyboard shortcut triggered: ${action}`);
+      ;
     }
   });
 
@@ -84,7 +84,7 @@ export const UndoRedoExample: React.FC = () => {
       maxAgeDays: 30
     }).then(() => {
       setPersistenceReady(true);
-      console.log('Persistence initialized');
+      ;
     }).catch(error => {
       console.error('Failed to initialize persistence:', error);
     });
@@ -152,7 +152,7 @@ export const UndoRedoExample: React.FC = () => {
 
   const handleSave = () => {
     // Simulate save operation
-    console.log('Saving state:', state);
+    ;
     markAsSaved();
     alert('State saved!');
   };

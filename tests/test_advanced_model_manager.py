@@ -19,10 +19,7 @@ from unittest.mock import Mock, patch, AsyncMock
 import sys
 import os
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from advanced_model_manager import (
+from src.advanced_model_manager import (
     AdvancedModelManager,
     ModelManagerConfig,
     ModelInfo,

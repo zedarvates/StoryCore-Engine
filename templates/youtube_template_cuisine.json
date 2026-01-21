@@ -1,0 +1,84 @@
+{
+  "template_name": "Cuisine et Recettes",
+  "context": "Un youtubeur cuisinant et partageant des recettes savoureuses.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_26_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Régalez-vous !",
+      "subtitle": "Recettes simples et délicieuses."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "food_transition",
+        "duration": 1.2
+      },
+      {
+        "type": "steam_effect",
+        "duration": 1.5
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "yum_effect",
+        "duration": 2.0
+      }
+    ],
+    "cooking_effects": [
+      {
+        "type": "ingredient_fly_in",
+        "ingredients": ["tomatoes", "herbs", "spices"]
+      },
+      {
+        "type": "cooking_timer",
+        "display": true
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction Gourmande",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Découvrez cette recette exceptionnelle !",
+        "background": "assets/jpg_files/file_26_2.jpg"
+      }
+    },
+    {
+      "name": "Ingrédients",
+      "content": {
+        "title": "Ingrédients",
+        "subtitle": "Liste des ingrédients nécessaires.",
+        "background": "assets/jpg_files/file_27_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Culinaire",
+      "content": {
+        "title": "Placement Produit",
+        "subtitle": "Découvrez ces ustensiles de cuisine essentiels.",
+        "background": "assets/jpg_files/file_27_2.jpg",
+        "animation": "yum_effect"
+      }
+    },
+    {
+      "name": "Préparation",
+      "content": {
+        "title": "Préparation",
+        "subtitle": "Étapes détaillées de la recette.",
+        "background": "assets/jpg_files/file_28_1.jpg"
+      }
+    },
+    {
+      "name": "Conclusion Délicieuse",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "Bon appétit !",
+        "background": "assets/jpg_files/file_28_2.jpg",
+        "cta": "Abonnez-vous pour plus de recettes savoureuses !"
+      }
+    }
+  ]
+}

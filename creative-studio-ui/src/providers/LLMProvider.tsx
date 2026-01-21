@@ -49,7 +49,7 @@ export function LLMProvider({ children }: LLMProviderProps) {
   // Initialize LLM service on mount
   useEffect(() => {
     async function initialize() {
-      console.log('[LLMProvider] Initializing LLM service...');
+      ;
       
       try {
         // Initialize the LLM configuration service
@@ -63,7 +63,7 @@ export function LLMProvider({ children }: LLMProviderProps) {
         if (config && (config.provider === 'local' || config.provider === 'ollama')) {
           const endpoint = config.apiEndpoint || 'http://localhost:11434';
           try {
-            console.log('[LLMProvider] Checking Ollama availability at', endpoint);
+            ;
             const response = await fetch(`${endpoint}/api/tags`, {
               method: 'GET',
               signal: AbortSignal.timeout(3000), // 3 second timeout
@@ -73,7 +73,7 @@ export function LLMProvider({ children }: LLMProviderProps) {
               console.warn('[LLMProvider] Ollama is not responding correctly');
               // Don't fail initialization, just warn
             } else {
-              console.log('[LLMProvider] Ollama is available');
+              ;
             }
           } catch (ollamaError) {
             console.warn('[LLMProvider] Ollama is not running or not accessible:', ollamaError);
@@ -116,7 +116,7 @@ export function LLMProvider({ children }: LLMProviderProps) {
       return;
     }
 
-    console.log('[LLMProvider] Subscribing to configuration changes...');
+    ;
     
     const unsubscribe = llmConfigService.subscribe((config) => {
       const service = llmConfigService.getService();
@@ -136,14 +136,14 @@ export function LLMProvider({ children }: LLMProviderProps) {
     });
 
     return () => {
-      console.log('[LLMProvider] Unsubscribing from configuration changes');
+      ;
       unsubscribe();
     };
   }, [state.isInitialized]);
 
   // Reinitialize function for manual reinitialization
   const reinitialize = async () => {
-    console.log('[LLMProvider] Manual reinitialization requested');
+    ;
     
     setState(prev => ({
       ...prev,
@@ -157,7 +157,7 @@ export function LLMProvider({ children }: LLMProviderProps) {
       const service = llmConfigService.getService();
       const config = llmConfigService.getConfig();
       
-      console.log('[LLMProvider] Reinitialization successful');
+      ;
       
       setState({
         service,

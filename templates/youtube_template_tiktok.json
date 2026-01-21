@@ -1,0 +1,76 @@
+{
+  "template_name": "Style TikTok",
+  "context": "Un youtubeur créant du contenu court et viral dans le style TikTok.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_23_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Contenu Viral !",
+      "subtitle": "Court, punchy et engageant."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "quick_cut",
+        "duration": 0.3
+      },
+      {
+        "type": "text_pop",
+        "duration": 0.5
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "flash",
+        "duration": 1.0
+      }
+    ],
+    "viral_effects": [
+      {
+        "type": "trend_overlay",
+        "hashtags": true
+      },
+      {
+        "type": "like_heart_burst",
+        "intensity": "high"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Hook Viral",
+      "content": {
+        "title": "Hook",
+        "subtitle": "Attention captée en 3 secondes !",
+        "background": "assets/jpg_files/file_23_2.jpg"
+      }
+    },
+    {
+      "name": "Contenu Principal",
+      "content": {
+        "title": "Contenu",
+        "subtitle": "Message principal condensé.",
+        "background": "assets/jpg_files/file_24_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Rapide",
+      "content": {
+        "title": "Placement Produit",
+        "subtitle": "Découvre ce produit essentiel !",
+        "background": "assets/jpg_files/file_24_2.jpg",
+        "animation": "flash"
+      }
+    },
+    {
+      "name": "Call to Action Viral",
+      "content": {
+        "title": "CTA",
+        "subtitle": "Like, partage, suis-moi !",
+        "background": "assets/jpg_files/file_25_1.jpg",
+        "cta": "Like 👍 Comment 💬 Share 🔗 Subscribe 🔔"
+      }
+    }
+  ]
+}

@@ -146,6 +146,7 @@ export function NotificationBanner({
         <button
           onClick={onDismiss}
           className="text-muted-foreground hover:text-foreground"
+          aria-label="Dismiss notification"
         >
           <XCircle className="w-4 h-4" />
         </button>

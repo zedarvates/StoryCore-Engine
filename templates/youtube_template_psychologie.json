@@ -1,0 +1,73 @@
+{
+  "template_name": "Savoir Psychologique",
+  "context": "Un youtubeur partageant des connaissances psychologiques et des insights mentaux.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_17_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Explorez les mystères de l'esprit !",
+      "subtitle": "Psychologie et compréhension mentale."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "slide",
+        "direction": "right",
+        "duration": 1.5
+      },
+      {
+        "type": "zoom",
+        "duration": 1.0
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "pulse",
+        "duration": 1.8
+      }
+    ],
+    "psychological_effects": [
+      {
+        "type": "brain_wave",
+        "pattern": "alpha"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction Psychologique",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Plongée dans les mécanismes mentaux.",
+        "background": "assets/jpg_files/file_17_2.jpg"
+      }
+    },
+    {
+      "name": "Concepts Psychologiques",
+      "content": {
+        "title": "Concepts Psychologiques",
+        "subtitle": "Explication des théories et mécanismes.",
+        "background": "assets/jpg_files/file_18_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Éducatif",
+      "content": {
+        "title": "Placement de Produit",
+        "subtitle": "Découvrez des ressources pour votre développement personnel.",
+        "background": "assets/jpg_files/file_18_2.jpg",
+        "animation": "pulse"
+      }
+    },
+    {
+      "name": "Conclusion Intellectuelle",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "Continuez à explorer votre esprit !",
+        "background": "assets/jpg_files/file_19_1.jpg",
+        "cta": "Abonnez-vous pour plus de connaissances psychologiques !"
+      }
+    }
+  ]
+}

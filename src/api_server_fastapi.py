@@ -156,6 +156,31 @@ async def system_health():
     """Get system health status."""
     return {"status": "healthy", "timestamp": datetime.datetime.utcnow().isoformat()}
 
+# Video Plan model
+class VideoPlanEntry(BaseModel):
+    shot_id: str
+    shot_number: int
+    source_image: str
+    camera_movement: str
+    duration: float
+    style_anchor: Dict[str, Any] = {}
+    transition: str
+    description: str
+    title: str
+
+class VideoPlan(BaseModel):
+    video_plan_id: str
+    project_id: str
+    storyboard_id: str = ""
+    created_at: str
+    total_shots: int
+    total_duration: float
+    video_entries: List[VideoPlanEntry]
+    metadata: Dict[str, Any]
+
+# In-memory database for video plans
+video_plans_db: Dict[str, VideoPlan] = {}
+
 # Projects endpoints
 @projects_router.get("/", response_model=List[Project])
 async def get_projects(skip: int = 0, limit: int = 10, current_user: User = Depends(get_current_user)):
@@ -312,6 +337,129 @@ async def delete_qa_report(qa_report_id: str, current_user: User = Depends(get_c
         raise HTTPException(status_code=403, detail="Not authorized")
     del qa_reports_db[qa_report_id]
     return {"message": "QA Report deleted"}
+
+# Video Plans endpoints
+@projects_router.get("/{project_id}/video-plan", response_model=VideoPlan)
+async def get_video_plan(project_id: str, current_user: User = Depends(get_current_user)):
+    """Get video plan for a project."""
+    # Check if user has access to project
+    project = projects_db.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if current_user.role != "admin" and project.user_id != current_user.username:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Return video plan or create empty one
+    video_plan = video_plans_db.get(project_id)
+    if not video_plan:
+        # Create empty video plan
+        video_plan = VideoPlan(
+            video_plan_id=f"vp_{project_id}_{int(time.time())}",
+            project_id=project_id,
+            storyboard_id="",
+            created_at=datetime.datetime.utcnow().isoformat(),
+            total_shots=0,
+            total_duration=0.0,
+            video_entries=[],
+            metadata={
+                "global_style_applied": False,
+                "camera_movements": {},
+                "transitions": {}
+            }
+        )
+        video_plans_db[project_id] = video_plan
+
+    return video_plan
+
+@projects_router.put("/{project_id}/video-plan", response_model=VideoPlan)
+async def update_video_plan(project_id: str, video_plan_update: VideoPlan, current_user: User = Depends(get_current_user)):
+    """Update video plan for a project."""
+    # Check if user has access to project
+    project = projects_db.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if current_user.role != "admin" and project.user_id != current_user.username:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Update video plan
+    video_plan_update.project_id = project_id
+    video_plans_db[project_id] = video_plan_update
+
+    # Save to JSON file for persistence
+    try:
+        from .video_plan_engine import VideoPlanEngine
+        engine = VideoPlanEngine()
+
+        # Find project directory
+        import os
+        project_path = None
+        for root, dirs, files in os.walk("."):
+            if f"{project_id}.json" in files:
+                project_path = Path(root)
+                break
+
+        if project_path:
+            # Save video plan to file using the engine method
+            engine.save_video_plan_to_file(project_path, video_plan_update.dict())
+        else:
+            # Fallback: create a simple projects directory
+            project_path = Path(f"./projects/{project_id}")
+            project_path.mkdir(parents=True, exist_ok=True)
+            video_plan_file = project_path / "video_plan.json"
+            with open(video_plan_file, 'w') as f:
+                import json
+                json.dump(video_plan_update.dict(), f, indent=2, default=str)
+
+    except Exception as e:
+        # Log but don't fail the API call
+        print(f"Warning: Could not save video plan to file: {e}")
+
+    return video_plan_update
+
+@projects_router.post("/{project_id}/video-plan/generate")
+async def generate_video_plan(project_id: str, current_user: User = Depends(get_current_user)):
+    """Generate video plan from storyboard."""
+    # Check if user has access to project
+    project = projects_db.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if current_user.role != "admin" and project.user_id != current_user.username:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        from .video_plan_engine import VideoPlanEngine
+        engine = VideoPlanEngine()
+
+        # Find project directory
+        import os
+        project_path = None
+        for root, dirs, files in os.walk("."):
+            if f"{project_id}.json" in files:
+                project_path = Path(root)
+                break
+
+        if not project_path:
+            raise HTTPException(status_code=404, detail="Project files not found")
+
+        result = engine.generate_video_plan(project_path)
+
+        # Load and return the generated plan
+        video_plan_file = project_path / "video_plan.json"
+        if video_plan_file.exists():
+            import json
+            with open(video_plan_file, 'r') as f:
+                plan_data = json.load(f)
+
+            # Convert to VideoPlan model
+            video_plan = VideoPlan(**plan_data)
+            video_plans_db[project_id] = video_plan
+
+            return result
+        else:
+            raise HTTPException(status_code=500, detail="Failed to generate video plan")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Video plan generation failed: {str(e)}")
 
 # API Keys endpoints (admin only)
 class APIKeyCreate(BaseModel):

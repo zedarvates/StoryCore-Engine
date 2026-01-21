@@ -106,11 +106,17 @@ export const AudioAutomationPanel: React.FC<AudioAutomationPanelProps> = ({
 
       {/* Parameter Selector */}
       <div>
-        <label className="text-xs text-gray-600 block mb-1">Parameter</label>
+        <label htmlFor="parameter-select" className="text-xs text-gray-600 block mb-1">Parameter</label>
         <select
+          id="parameter-select"
           value={selectedParameter || ''}
-          onChange={(e) => setSelectedParameter(e.target.value || null)}
+          onChange={(e) => {
+            console.log('Select element accessed with label association');
+            setSelectedParameter(e.target.value || null);
+          }}
           className="w-full px-2 py-1 text-sm border rounded"
+          aria-label="Select parameter for automation"
+          title="Select parameter for automation"
         >
           <option value="">Select parameter...</option>
           {automatableParams.map((param) => (

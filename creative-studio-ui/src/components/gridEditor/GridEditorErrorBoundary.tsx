@@ -113,7 +113,7 @@ export class GridEditorErrorBoundary extends Component<Props, State> {
       // Also save as latest backup
       localStorage.setItem('grid-editor-emergency-backup-latest', JSON.stringify(backup));
 
-      console.log('Emergency backup saved:', backupKey);
+      ;
       return true;
     } catch (e) {
       console.error('Failed to save emergency backup:', e);
@@ -136,7 +136,7 @@ export class GridEditorErrorBoundary extends Component<Props, State> {
       url: window.location.href,
     };
 
-    console.log('Error Report:', errorReport);
+    ;
 
     // In production, send to monitoring service:
     // fetch('/api/errors', {

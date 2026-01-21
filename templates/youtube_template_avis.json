@@ -1,0 +1,84 @@
+{
+  "template_name": "Avis et Tests",
+  "context": "Un youtubeur donnant son avis honnête sur des produits et services.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_29_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Mon Avis !",
+      "subtitle": "Test complet et honnête."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "rating_stars",
+        "duration": 1.0
+      },
+      {
+        "type": "pros_cons_split",
+        "duration": 1.3
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "thumbs_up",
+        "duration": 1.8
+      }
+    ],
+    "review_effects": [
+      {
+        "type": "rating_meter",
+        "scale": "1-5"
+      },
+      {
+        "type": "comparison_overlay",
+        "show_difference": true
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction du Test",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Présentation du produit testé.",
+        "background": "assets/jpg_files/file_29_2.jpg"
+      }
+    },
+    {
+      "name": "Unboxing",
+      "content": {
+        "title": "Unboxing",
+        "subtitle": "Premières impressions.",
+        "background": "assets/jpg_files/file_30_1.jpg"
+      }
+    },
+    {
+      "name": "Test et Utilisation",
+      "content": {
+        "title": "Test Complet",
+        "subtitle": "Utilisation en conditions réelles.",
+        "background": "assets/jpg_files/file_30_2.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Testé",
+      "content": {
+        "title": "Placement Produit",
+        "subtitle": "Le produit que j'ai testé pour vous.",
+        "background": "assets/jpg_files/file_31_1.jpg",
+        "animation": "thumbs_up"
+      }
+    },
+    {
+      "name": "Conclusion et Note",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "Mon verdict final !",
+        "background": "assets/jpg_files/file_31_2.jpg",
+        "cta": "Abonnez-vous pour plus d'avis et de tests !"
+      }
+    }
+  ]
+}

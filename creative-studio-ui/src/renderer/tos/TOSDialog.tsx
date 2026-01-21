@@ -144,7 +144,7 @@ export const TOSDialog: React.FC<TOSDialogProps> = () => {
     
     try {
       // Send acceptance to main process via IPC
-      console.log('Sending TOS acceptance to main process');
+      ;
       window.tosAPI.sendAcceptance();
     } catch (error) {
       const errorMsg = 'Communication error. Please restart the application.';
@@ -178,7 +178,7 @@ export const TOSDialog: React.FC<TOSDialogProps> = () => {
     
     try {
       // Send exit to main process via IPC
-      console.log('Sending TOS rejection to main process');
+      ;
       window.tosAPI.sendExit();
     } catch (error) {
       const errorMsg = 'Communication error. Please restart the application.';

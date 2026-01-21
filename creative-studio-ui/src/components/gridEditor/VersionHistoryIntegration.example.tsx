@@ -36,7 +36,7 @@ export const BasicVersionHistoryExample: React.FC = () => {
             projectId={projectId}
             onClose={() => setShowVersionHistory(false)}
             onRestore={(version) => {
-              console.log('Version restored:', version);
+              ;
               setShowVersionHistory(false);
             }}
           />
@@ -169,7 +169,7 @@ export const VersionComparisonExample: React.FC = () => {
     );
 
     if (comparison) {
-      console.log('Comparison result:', comparison);
+      ;
       // Display comparison in UI
     }
   };
@@ -308,7 +308,7 @@ export const CompleteVersionControlExample: React.FC = () => {
             projectId={projectId}
             onClose={() => setShowVersionHistory(false)}
             onRestore={(version) => {
-              console.log('Restored version:', version.metadata.id);
+              ;
               setShowVersionHistory(false);
             }}
           />
@@ -338,7 +338,7 @@ export const VersionControlWithUndoRedoExample: React.FC = () => {
     );
 
     // Perform the operation
-    console.log(`Performing ${operationName}...`);
+    ;
 
     // Save state after the operation
     versionControlService.saveVersion(

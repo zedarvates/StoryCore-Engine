@@ -153,7 +153,7 @@ export function AssetDropZone({
         projectPath,
         (current, total, filename) => {
           // Progress tracking could be shown in a toast or progress indicator
-          console.log(`Importing ${current}/${total}: ${filename}`);
+          ;
         }
       );
 

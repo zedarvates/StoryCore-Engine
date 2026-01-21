@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Search,
   FolderOpen,
@@ -18,9 +18,51 @@ import {
   X,
   Send,
   Sparkles,
+  Save,
+  Edit,
+  Copy,
+  Trash2,
 } from 'lucide-react';
 import { TimelineTracks } from './TimelineTracks';
+import { gridGenerationService, GridGenerationProgress, GridGenerationResult } from '../../services/gridGenerationService';
 import './VideoEditorPage.css';
+
+// Context menu for shot actions
+const ShotContextMenu = ({ shot, position, onClose, onEdit, onDelete, onDuplicate }: {
+  shot: Shot;
+  position: { x: number; y: number };
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onDuplicate: () => void;
+}) => {
+  return (
+    <div
+      className="context-menu"
+      style={{
+        position: 'fixed',
+        left: position.x,
+        top: position.y,
+        zIndex: 1000
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="context-menu-item" onClick={onEdit}>
+        <Edit size={16} />
+        Edit Shot
+      </div>
+      <div className="context-menu-item" onClick={onDuplicate}>
+        <Copy size={16} />
+        Duplicate Shot
+      </div>
+      <div className="context-menu-separator" />
+      <div className="context-menu-item danger" onClick={onDelete}>
+        <Trash2 size={16} />
+        Delete Shot
+      </div>
+    </div>
+  );
+};
 
 interface Shot {
   id: number;
@@ -67,6 +109,21 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
   const [sequenceName, setSequenceName] = useState(propSequenceName || 'Plan sequence 1');
 
+  // Auto-save state
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Grid generation state
+  const [isGeneratingGrid, setIsGeneratingGrid] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState<GridGenerationProgress | null>(null);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    shot: Shot;
+    position: { x: number; y: number };
+  } | null>(null);
+
   // Initialize shots from props or use default
   const [shots, setShots] = useState<Shot[]>(() => {
     if (initialShots && initialShots.length > 0) {
@@ -107,6 +164,50 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     }
   }, [propSequenceName]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Debounced save function
+  const debouncedSave = useCallback(async (shotId: number, updates: Partial<Shot>) => {
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Set saving state
+    setIsSaving(true);
+
+    // Debounce the save operation (1 second delay)
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        // Simulate API call to save the shot data
+        // In a real implementation, this would call an API endpoint
+        console.log(`Auto-saving shot ${shotId} with updates:`, updates);
+
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Update last saved timestamp
+        setLastSavedAt(new Date().toISOString());
+
+        // Show success feedback (could be replaced with toast notification)
+        console.log(`✓ Shot ${shotId} saved successfully`);
+
+      } catch (error) {
+        console.error(`Failed to save shot ${shotId}:`, error);
+        // Could show error toast here
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000);
+  }, []);
+
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
 
@@ -142,13 +243,66 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     setShots([...shots, newShot]);
   };
 
-  const handleGenerateSequence = () => {
-    console.log('Génération de la séquence...');
-    // Logic for sequence generation
+  const handleGenerateSequence = async () => {
+    if (isGeneratingGrid) {
+      // Cancel generation if already running
+      gridGenerationService.abortGeneration();
+      setIsGeneratingGrid(false);
+      setGenerationProgress(null);
+      return;
+    }
+
+    setIsGeneratingGrid(true);
+    setGenerationProgress({ progress: 0, status: 'Preparing grid generation...' });
+
+    try {
+      const result: GridGenerationResult = await gridGenerationService.generateGridForSequence(
+        shots,
+        {
+          quality: 'standard',
+          width: 1024,
+          height: 576,
+          enhancePrompt: true,
+        },
+        (progress: GridGenerationProgress) => {
+          setGenerationProgress(progress);
+        }
+      );
+
+      // Update shots with generated thumbnails
+      setShots(prevShots =>
+        prevShots.map(shot => {
+          const generatedImage = result.images.get(shot.id);
+          return generatedImage ? { ...shot, thumbnail: generatedImage } : shot;
+        })
+      );
+
+      console.log('Grid generation completed:', result.stats);
+
+      // Show completion message
+      setGenerationProgress({
+        progress: 100,
+        status: `Completed: ${result.stats.successfulGenerations}/${result.stats.totalShots} images generated`
+      });
+
+      // Clear progress after a delay
+      setTimeout(() => {
+        setGenerationProgress(null);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Grid generation failed:', error);
+      setGenerationProgress({
+        progress: 0,
+        status: `Failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+    } finally {
+      setIsGeneratingGrid(false);
+    }
   };
 
   const handleDropMedia = (trackType: 'video' | 'image' | 'audio' | 'text', file: File) => {
-    console.log(`Dropped ${file.name} on ${trackType} track`);
+    ;
     // Logic for handling dropped media files
     // In a real implementation, this would:
     // 1. Upload/process the file
@@ -163,13 +317,64 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
         shot.id === shotId ? { ...shot, prompt: newPrompt } : shot
       )
     );
-    
-    // In a real implementation, this would also:
-    // 1. Debounce the save operation
-    // 2. Call an API to persist the change
-    // 3. Show a toast notification on success
-    console.log(`Updated prompt for shot ${shotId}:`, newPrompt);
+
+    // Auto-save with debouncing (will be implemented)
+    debouncedSave(shotId, { prompt: newPrompt });
   };
+
+  // Context menu handlers
+  const handleShotContextMenu = (e: React.MouseEvent, shot: Shot) => {
+    e.preventDefault();
+    setContextMenu({
+      shot,
+      position: { x: e.clientX, y: e.clientY }
+    });
+  };
+
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  const handleEditShot = () => {
+    if (contextMenu) {
+      setSelectedShot(contextMenu.shot.id);
+      setContextMenu(null);
+    }
+  };
+
+  const handleDuplicateShot = () => {
+    if (contextMenu) {
+      const newShot: Shot = {
+        ...contextMenu.shot,
+        id: shots.length + 1,
+        title: `${contextMenu.shot.title} (Copy)`
+      };
+      setShots([...shots, newShot]);
+      setContextMenu(null);
+    }
+  };
+
+  const handleDeleteShot = () => {
+    if (contextMenu) {
+      setShots(shots.filter(shot => shot.id !== contextMenu.shot.id));
+      if (selectedShot === contextMenu.shot.id) {
+        setSelectedShot(null);
+      }
+      setContextMenu(null);
+    }
+  };
+
+  // Close context menu on click outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu) {
+        setContextMenu(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [contextMenu]);
 
   return (
     <div className="video-editor-container">
@@ -182,6 +387,27 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
         )}
         <span className="project-name">{projectName}</span>
         <span className="sequence-name">{sequenceName}</span>
+
+        {/* Auto-save status indicator */}
+        <div className="save-status">
+          {isSaving ? (
+            <div className="saving-indicator">
+              <Save size={16} className="saving-icon" />
+              <span>Saving...</span>
+            </div>
+          ) : lastSavedAt ? (
+            <div className="saved-indicator">
+              <span>✓ Saved</span>
+              <span className="save-time">
+                {new Date(lastSavedAt).toLocaleTimeString()}
+              </span>
+            </div>
+          ) : (
+            <div className="unsaved-indicator">
+              <span>Not saved</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="editor-main">
@@ -357,18 +583,59 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
         <aside className="sidebar-right">
           <div className="panel-header">
             <h2>{sequenceName}</h2>
-            <button className="btn-generate" onClick={handleGenerateSequence}>
+            <button
+              className={`btn-generate ${isGeneratingGrid ? 'generating' : ''}`}
+              onClick={handleGenerateSequence}
+              disabled={shots.length === 0}
+            >
               <Sparkles size={18} />
-              Générer Séquence
+              {isGeneratingGrid ? 'Générer Grille' : 'Générer Séquence'}
             </button>
+
+            {/* Grid Generation Progress */}
+            {generationProgress && (
+              <div className="generation-progress">
+                <div className="progress-bar">
+                  <div
+                    className="progress-fill"
+                    style={{ width: `${generationProgress.progress}%` }}
+                  />
+                </div>
+                <div className="progress-text">
+                  {generationProgress.status}
+                </div>
+                {generationProgress.estimatedTimeRemaining && (
+                  <div className="progress-time">
+                    ~{Math.ceil(generationProgress.estimatedTimeRemaining / 60)} min remaining
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="shots-grid">
             {shots.map((shot) => (
-              <div key={shot.id} className="shot-card">
+              <div
+                key={shot.id}
+                className="shot-card"
+                onContextMenu={(e) => handleShotContextMenu(e, shot)}
+              >
                 <div className="shot-number">{shot.id}</div>
                 <div className="shot-thumbnail">
-                  <ImageIcon size={32} />
+                  {shot.thumbnail ? (
+                    <img
+                      src={shot.thumbnail}
+                      alt={`${shot.title} thumbnail`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '4px'
+                      }}
+                    />
+                  ) : (
+                    <ImageIcon size={32} />
+                  )}
                 </div>
                 <div className="shot-info">
                   <h4>{shot.title}</h4>
@@ -453,6 +720,18 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
           {isChatOpen ? <X size={24} /> : <MessageCircle size={24} />}
         </button>
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <ShotContextMenu
+          shot={contextMenu.shot}
+          position={contextMenu.position}
+          onClose={handleCloseContextMenu}
+          onEdit={handleEditShot}
+          onDelete={handleDeleteShot}
+          onDuplicate={handleDuplicateShot}
+        />
+      )}
     </div>
   );
 };

@@ -43,7 +43,7 @@ export const Container: StoryObj = {
     <ProductionWizardContainer
       title="Sequence Plan Wizard"
       steps={sampleSteps}
-      onCancel={() => console.log('Cancel clicked')}
+      onCancel={() => }
     >
       <div className="space-y-6">
         <h2 className="text-xl font-semibold">Wizard Step Content</h2>
@@ -64,9 +64,9 @@ export const Navigation: StoryObj = {
       <ProductionWizardNavigation
         currentStep={2}
         totalSteps={6}
-        onPrevious={() => console.log('Previous clicked')}
-        onNext={() => console.log('Next clicked')}
-        onCancel={() => console.log('Cancel clicked')}
+        onPrevious={() => }
+        onNext={() => }
+        onCancel={() => }
         canGoNext={true}
         canGoPrevious={true}
       />
@@ -84,7 +84,7 @@ export const StepIndicator: StoryObj = {
         steps={sampleSteps.slice(0, 4)}
         currentStep={1}
         allowJumpToStep={true}
-        onStepClick={(step) => console.log('Step clicked:', step)}
+        onStepClick={(step) => }
       />
     </div>
   ),

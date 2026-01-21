@@ -1,0 +1,84 @@
+{
+  "template_name": "Vlog Quotidien",
+  "context": "Un youtubeur partageant sa vie quotidienne et ses aventures.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_39_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Ma Vie, Mes Aventures !",
+      "subtitle": "Vlog authentique et spontané."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "location_jump",
+        "duration": 1.5
+      },
+      {
+        "type": "time_lapse",
+        "duration": 2.0
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "heart_warm",
+        "duration": 2.2
+      }
+    ],
+    "vlog_effects": [
+      {
+        "type": "date_stamp",
+        "display": true
+      },
+      {
+        "type": "location_pin",
+        "show_map": true
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction du Jour",
+      "content": {
+        "title": "Bonjour !",
+        "subtitle": "Comment s'est passée ma journée.",
+        "background": "assets/jpg_files/file_39_2.jpg"
+      }
+    },
+    {
+      "name": "Activités Quotidiennes",
+      "content": {
+        "title": "Ma Journée",
+        "subtitle": "Ce que j'ai fait aujourd'hui.",
+        "background": "assets/jpg_files/file_40_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Lifestyle",
+      "content": {
+        "title": "Placement Produit",
+        "subtitle": "Les produits que j'utilise au quotidien.",
+        "background": "assets/jpg_files/file_40_2.jpg",
+        "animation": "heart_warm"
+      }
+    },
+    {
+      "name": "Moments Spéciaux",
+      "content": {
+        "title": "Highlights",
+        "subtitle": "Les meilleurs moments de la journée.",
+        "background": "assets/jpg_files/file_41_1.jpg"
+      }
+    },
+    {
+      "name": "Conclusion de la Journée",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "À demain pour de nouvelles aventures !",
+        "background": "assets/jpg_files/file_41_2.jpg",
+        "cta": "Abonnez-vous pour suivre ma vie au quotidien !"
+      }
+    }
+  ]
+}

@@ -91,12 +91,12 @@ beforeEach(() => {
     alg: 'A256GCM',
   } as any);
 
-  mockCrypto.subtle.encrypt.mockImplementation(async (algorithm, key, data) => {
+  mockCrypto.subtle.encrypt.mockImplementation(async (_algorithm, _key, data) => {
     // Simple mock encryption: just return the data
     return data.buffer;
   });
 
-  mockCrypto.subtle.decrypt.mockImplementation(async (algorithm, key, data) => {
+  mockCrypto.subtle.decrypt.mockImplementation(async (_algorithm, _key, data) => {
     // Simple mock decryption: just return the data
     return data;
   });

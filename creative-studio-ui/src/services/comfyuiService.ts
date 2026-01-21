@@ -201,6 +201,44 @@ const mockModels: ModelInfo[] = [
 ];
 
 // ============================================================================
+// ComfyUI Service Class
+// ============================================================================
+
+export class ComfyUIService {
+  private static instance: ComfyUIService;
+  
+  private constructor() {}
+  
+  public static getInstance(): ComfyUIService {
+    if (!ComfyUIService.instance) {
+      ComfyUIService.instance = new ComfyUIService();
+    }
+    return ComfyUIService.instance;
+  }
+  
+  /**
+   * Generate image using ComfyUI
+   */
+  public async generateImage(params: {
+    prompt: string;
+    negativePrompt?: string;
+    width: number;
+    height: number;
+    steps: number;
+    cfgScale: number;
+    seed?: number;
+    model: string;
+    sampler: string;
+    scheduler: string;
+  }): Promise<string> {
+    // In a real implementation, this would call the ComfyUI API
+    // For now, return a mock image URL
+    console.log('Generating image with params:', params);
+    return `data:image/png;base64,mock-image-data-for-${params.prompt.substring(0, 10)}`;
+  }
+}
+
+// ============================================================================
 // Service Functions
 // ============================================================================
 
@@ -616,3 +654,6 @@ export function formatVRAM(mb: number): string {
   }
   return `${mb} MB`;
 }
+
+// Export singleton instance
+export const comfyuiService = ComfyUIService.getInstance();

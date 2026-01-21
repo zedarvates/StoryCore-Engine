@@ -8,10 +8,10 @@ import time
 from typing import Any, Dict, Optional
 
 try:
-    from .advanced_workflow_config import WanVideoConfig
-    from .advanced_model_manager import AdvancedModelManager
-    from .comfyui_integration_manager import ComfyUIIntegrationManager
-    from .comfy_client import ComfyUIClient
+    from ..advanced_workflow_config import WanVideoConfig
+    from ..advanced_model_manager import AdvancedModelManager
+    from ..comfyui_integration_manager import ComfyUIIntegrationManager
+    from ..comfy_client import ComfyUIClient
 except ImportError:
     from advanced_workflow_config import WanVideoConfig
     from advanced_model_manager import AdvancedModelManager

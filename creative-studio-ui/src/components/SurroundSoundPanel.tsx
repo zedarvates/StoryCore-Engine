@@ -210,13 +210,16 @@ interface ChannelSliderProps {
 }
 
 const ChannelSlider: React.FC<ChannelSliderProps> = ({ label, value, onChange }) => {
+  const inputId = `channel-${label.replace(/\s+/g, '-').toLowerCase()}`;
+
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center">
-        <label className="text-sm text-gray-600">{label}</label>
+        <label htmlFor={inputId} className="text-sm text-gray-600">{label}</label>
         <span className="text-sm font-medium text-gray-900">{value}%</span>
       </div>
       <input
+        id={inputId}
         type="range"
         min="0"
         max="100"

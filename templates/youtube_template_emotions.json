@@ -1,0 +1,72 @@
+{
+  "template_name": "Émotions et Ressentis",
+  "context": "Un youtubeur explorant le monde des émotions et des ressentis humains.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_14_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Plongez dans l'univers des émotions !",
+      "subtitle": "Comprendre et gérer nos ressentis."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "fade",
+        "duration": 1.8
+      },
+      {
+        "type": "morph",
+        "duration": 1.2
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "heartbeat",
+        "duration": 2.0
+      }
+    ],
+    "emotional_effects": [
+      {
+        "type": "color_shift",
+        "colors": ["warm", "cool"]
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction Émotionnelle",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Exploration des émotions humaines.",
+        "background": "assets/jpg_files/file_14_2.jpg"
+      }
+    },
+    {
+      "name": "Analyse des Émotions",
+      "content": {
+        "title": "Analyse des Émotions",
+        "subtitle": "Comprendre nos ressentis profonds.",
+        "background": "assets/jpg_files/file_15_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Émotionnel",
+      "content": {
+        "title": "Placement de Produit",
+        "subtitle": "Découvrez des outils pour gérer vos émotions.",
+        "background": "assets/jpg_files/file_15_2.jpg",
+        "animation": "heartbeat"
+      }
+    },
+    {
+      "name": "Conclusion Apaisante",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "Prenez soin de votre bien-être émotionnel !",
+        "background": "assets/jpg_files/file_16_1.jpg",
+        "cta": "Abonnez-vous pour plus de conseils sur les émotions !"
+      }
+    }
+  ]
+}

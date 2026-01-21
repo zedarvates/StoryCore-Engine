@@ -115,7 +115,7 @@ Example:
 
   const parseLLMLocations = (response: string): Location[] => {
     try {
-      console.log('Parsing LLM locations response:', response);
+      ;
       
       // Try JSON parsing first
       const jsonMatch = response.match(/\[[\s\S]*\]/);
@@ -132,7 +132,7 @@ Example:
             })).filter(loc => loc.name); // Only keep locations with names
             
             if (locations.length > 0) {
-              console.log('Successfully parsed locations from JSON:', locations);
+              ;
               return locations;
             }
           }
@@ -142,7 +142,7 @@ Example:
       }
       
       // Fallback: Parse as structured text
-      console.log('Attempting text-based parsing');
+      ;
       const locations: Location[] = [];
       const lines = response.split('\n');
       
@@ -205,7 +205,7 @@ Example:
       }
       
       if (locations.length > 0) {
-        console.log('Successfully parsed locations from text:', locations);
+        ;
         return locations;
       }
       

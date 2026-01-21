@@ -240,7 +240,7 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
 
       {/* Time */}
       <div>
-        <label className="text-xs text-gray-600">Time (seconds)</label>
+        <label id={`time-label-${keyframe.id}`} className="text-xs text-gray-600">Time (seconds)</label>
         <input
           type="number"
           min={0}
@@ -249,6 +249,7 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
           value={keyframe.time}
           onChange={(e) => onUpdate({ time: parseFloat(e.target.value) })}
           className="w-full px-2 py-1 text-sm border rounded"
+          aria-labelledby={`time-label-${keyframe.id}`}
         />
       </div>
 
@@ -256,7 +257,7 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
       {isPositionProperty ? (
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs text-gray-600">X</label>
+            <label id={`x-label-${keyframe.id}`} className="text-xs text-gray-600">X</label>
             <input
               type="number"
               step={1}
@@ -265,10 +266,11 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
                 onUpdate({ value: { ...value, x: parseFloat(e.target.value) } })
               }
               className="w-full px-2 py-1 text-sm border rounded"
+              aria-labelledby={`x-label-${keyframe.id}`}
             />
           </div>
           <div>
-            <label className="text-xs text-gray-600">Y</label>
+            <label id={`y-label-${keyframe.id}`} className="text-xs text-gray-600">Y</label>
             <input
               type="number"
               step={1}
@@ -277,12 +279,13 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
                 onUpdate({ value: { ...value, y: parseFloat(e.target.value) } })
               }
               className="w-full px-2 py-1 text-sm border rounded"
+              aria-labelledby={`y-label-${keyframe.id}`}
             />
           </div>
         </div>
       ) : (
         <div>
-          <label className="text-xs text-gray-600">
+          <label id={`value-label-${keyframe.id}`} className="text-xs text-gray-600">
             {property === 'scale' && 'Scale'}
             {property === 'rotation' && 'Rotation (degrees)'}
             {property === 'opacity' && 'Opacity (0-1)'}
@@ -295,13 +298,14 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
             value={value}
             onChange={(e) => onUpdate({ value: parseFloat(e.target.value) })}
             className="w-full px-2 py-1 text-sm border rounded"
+            aria-labelledby={`value-label-${keyframe.id}`}
           />
         </div>
       )}
 
       {/* Easing */}
       <div>
-        <label className="text-xs text-gray-600">Easing</label>
+        <label id={`easing-label-${keyframe.id}`} className="text-xs text-gray-600">Easing</label>
         <select
           value={keyframe.easing}
           onChange={(e) =>
@@ -310,6 +314,7 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
             })
           }
           className="w-full px-2 py-1 text-sm border rounded"
+          aria-labelledby={`easing-label-${keyframe.id}`}
         >
           <option value="linear">Linear</option>
           <option value="ease-in">Ease In</option>

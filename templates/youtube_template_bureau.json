@@ -1,0 +1,67 @@
+{
+  "template_name": "Bureau",
+  "context": "Un youtubeur parlant derrière un bureau.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_1_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Bienvenue dans notre vidéo !",
+      "subtitle": "Découvrez nos conseils professionnels."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "fade",
+        "duration": 1.5
+      },
+      {
+        "type": "slide",
+        "direction": "left",
+        "duration": 1.0
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "pulse",
+        "duration": 2.0
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Présentation du sujet.",
+        "background": "assets/jpg_files/file_1_2.jpg"
+      }
+    },
+    {
+      "name": "Contenu Principal",
+      "content": {
+        "title": "Contenu Principal",
+        "subtitle": "Développement du sujet.",
+        "background": "assets/jpg_files/file_2_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit",
+      "content": {
+        "title": "Placement de Produit",
+        "subtitle": "Découvrez notre produit.",
+        "background": "assets/jpg_files/file_3_1.jpg",
+        "animation": "pulse"
+      }
+    },
+    {
+      "name": "Conclusion",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "Merci de votre attention !",
+        "background": "assets/jpg_files/file_4_1.jpg",
+        "cta": "Abonnez-vous pour plus de contenu !"
+      }
+    }
+  ]
+}

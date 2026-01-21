@@ -20,7 +20,7 @@ All functionality is preserved through imports.
 try:
     from .wan_integration import *
 except ImportError:
-    from wan_integration import *
+    from src.wan_integration import *
 
 
 # Example usage (preserved from original)

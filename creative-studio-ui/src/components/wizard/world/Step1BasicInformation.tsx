@@ -112,7 +112,7 @@ Format as JSON:
 
   const parseLLMSuggestions = (response: string): { name?: string; description?: string } => {
     try {
-      console.log('Parsing LLM suggestions response:', response);
+      ;
       
       // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -125,7 +125,7 @@ Format as JSON:
           };
           
           if (result.name) {
-            console.log('Successfully parsed suggestions from JSON:', result);
+            ;
             return result;
           }
         } catch (jsonError) {
@@ -134,7 +134,7 @@ Format as JSON:
       }
       
       // Fallback: Parse as structured text
-      console.log('Attempting text-based parsing');
+      ;
       const result: { name?: string; description?: string } = {};
       const lines = response.split('\n');
       
@@ -167,7 +167,7 @@ Format as JSON:
       }
       
       if (result.name) {
-        console.log('Successfully parsed suggestions from text:', result);
+        ;
         return result;
       }
       

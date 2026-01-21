@@ -168,7 +168,7 @@ export const AudioTrackManager: React.FC<AudioTrackManagerProps> = ({
         generatedAudioUrl: `mock://audio/${selectedPhraseId}`,
       });
 
-      console.log('Voice generated for phrase:', selectedPhraseId, voiceParams);
+      ;
     } catch (error) {
       console.error('Voice generation failed:', error);
       throw error;
@@ -182,7 +182,7 @@ export const AudioTrackManager: React.FC<AudioTrackManagerProps> = ({
    * Requirements: 5.4
    */
   const handleVoicePreview = useCallback((audioUrl: string) => {
-    console.log('Preview audio:', audioUrl);
+    ;
     // Audio preview is handled internally by VoiceGenerationPanel
   }, []);
 

@@ -1,0 +1,100 @@
+{
+  "template_name": "Critique d'Influenceurs",
+  "context": "Un youtubeur analysant et critiquant les stratégies des influenceurs sur les réseaux sociaux.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_50_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Anatomie d'un Influenceur !",
+      "subtitle": "Analyse des stratégies marketing et de branding."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "strategy_flow",
+        "duration": 1.8
+      },
+      {
+        "type": "brand_analysis",
+        "duration": 1.5
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "influence_meter",
+        "duration": 2.2
+      }
+    ],
+    "influencer_effects": [
+      {
+        "type": "follower_count",
+        "animate_numbers": true
+      },
+      {
+        "type": "partnership_glow",
+        "brands_highlighted": true
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Profil de l'Influenceur",
+      "content": {
+        "title": "L'Influenceur",
+        "subtitle": "Présentation et historique du compte.",
+        "background": "assets/jpg_files/file_50_2.jpg"
+      }
+    },
+    {
+      "name": "Analyse de Branding",
+      "content": {
+        "title": "Image de Marque",
+        "subtitle": "Comment il construit et maintient son image.",
+        "background": "assets/jpg_files/file_51_1.jpg"
+      }
+    },
+    {
+      "name": "Stratégie de Contenu",
+      "content": {
+        "title": "Stratégie de Contenu",
+        "subtitle": "Analyse des choix éditoriaux et de planning.",
+        "background": "assets/jpg_files/file_51_2.jpg"
+      }
+    },
+    {
+      "name": "Critique des Partenariats",
+      "content": {
+        "title": "Partenariats Commerciaux",
+        "subtitle": "Évaluation des collaborations et placements de produits.",
+        "background": "assets/jpg_files/file_52_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Marketing",
+      "content": {
+        "title": "Placement Produit",
+        "subtitle": "Les outils marketing et analytics qu'il utilise.",
+        "background": "assets/jpg_files/file_52_2.jpg",
+        "animation": "influence_meter"
+      }
+    },
+    {
+      "name": "Audience et Engagement",
+      "content": {
+        "title": "Audience",
+        "subtitle": "Analyse de la communauté et de l'engagement.",
+        "background": "assets/jpg_files/file_53_1.jpg"
+      }
+    },
+    {
+      "name": "Évaluation Globale",
+      "content": {
+        "title": "Bilan Global",
+        "subtitle": "Succès, potentiel et recommandations.",
+        "background": "assets/jpg_files/file_53_2.jpg",
+        "cta": "Abonnez-vous pour plus d'analyses d'influenceurs !"
+      }
+    }
+  ]
+}

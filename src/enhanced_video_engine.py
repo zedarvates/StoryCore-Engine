@@ -33,16 +33,12 @@ try:
     from .video_config import VideoEngineConfig
     from .advanced_workflow_manager import AdvancedWorkflowManager
     from .advanced_workflow_base import WorkflowType, WorkflowCapability
-    from .hunyuan_video_integration import HunyuanVideoWorkflow, HunyuanVideoRequest
-    from .wan_video_integration import WanVideoWorkflow, WanVideoRequest, WanWorkflowType
 except ImportError:
     # Fallback for standalone usage
-    from video_engine import VideoEngine, VideoGenerationResult, VideoConfig
-    from video_config import VideoEngineConfig
-    from advanced_workflow_manager import AdvancedWorkflowManager
-    from advanced_workflow_base import WorkflowType, WorkflowCapability
-    from hunyuan_video_integration import HunyuanVideoWorkflow, HunyuanVideoRequest
-    from wan_video_integration import WanVideoWorkflow, WanVideoRequest, WanWorkflowType
+    from src.video_engine import VideoEngine, VideoGenerationResult, VideoConfig
+    from src.video_config import VideoEngineConfig
+    from src.advanced_workflow_manager import AdvancedWorkflowManager
+    from src.advanced_workflow_base import WorkflowType, WorkflowCapability
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

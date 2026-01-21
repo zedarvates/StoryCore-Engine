@@ -237,6 +237,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || isProcessing}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="Send message"
           >
             <Send className="w-5 h-5" />
           </button>

@@ -5,7 +5,7 @@
  * error handling, retry logic, and rollback preparation.
  */
 
-import { BrowserWindow, dialog, Notification, app } from 'electron';
+import { BrowserWindow, dialog, app, Notification } from 'electron';
 import { UpdateChecker } from './UpdateChecker';
 import { UpdateDownloader } from './UpdateDownloader';
 import { UpdateInstaller } from './UpdateInstaller';

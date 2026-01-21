@@ -1,0 +1,92 @@
+{
+  "template_name": "Critique de YouTubeurs",
+  "context": "Un youtubeur analysant et critiquant le contenu d'autres créateurs YouTube.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_42_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Analyse de YouTubeurs !",
+      "subtitle": "Critique constructive et honnête."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "analysis_transition",
+        "duration": 1.5
+      },
+      {
+        "type": "rating_scale",
+        "duration": 1.2
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "debate_style",
+        "duration": 2.0
+      }
+    ],
+    "critique_effects": [
+      {
+        "type": "comparison_split",
+        "before_after": true
+      },
+      {
+        "type": "highlight_circles",
+        "colors": ["green", "red", "yellow"]
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Présentation du YouTubeur",
+      "content": {
+        "title": "Qui est-il ?",
+        "subtitle": "Contexte et présentation du créateur.",
+        "background": "assets/jpg_files/file_42_2.jpg"
+      }
+    },
+    {
+      "name": "Analyse du Contenu",
+      "content": {
+        "title": "Analyse du Contenu",
+        "subtitle": "Qu'est-ce qui fonctionne et ne fonctionne pas.",
+        "background": "assets/jpg_files/file_43_1.jpg"
+      }
+    },
+    {
+      "name": "Critique des Choix",
+      "content": {
+        "title": "Critique des Choix",
+        "subtitle": "Analyse des décisions de contenu et de stratégie.",
+        "background": "assets/jpg_files/file_43_2.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Créateur",
+      "content": {
+        "title": "Placement Produit",
+        "subtitle": "Les outils que ce YouTubeur utilise (ou devrait utiliser).",
+        "background": "assets/jpg_files/file_44_1.jpg",
+        "animation": "debate_style"
+      }
+    },
+    {
+      "name": "Recommandations",
+      "content": {
+        "title": "Conseils",
+        "subtitle": "Comment améliorer son contenu.",
+        "background": "assets/jpg_files/file_44_2.jpg"
+      }
+    },
+    {
+      "name": "Note Finale",
+      "content": {
+        "title": "Verdict Final",
+        "subtitle": "Note globale et appréciation.",
+        "background": "assets/jpg_files/file_45_1.jpg",
+        "cta": "Abonnez-vous pour plus d'analyses de YouTubeurs !"
+      }
+    }
+  ]
+}

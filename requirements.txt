@@ -26,6 +26,10 @@ pytest-mock>=3.12.0
 # Roadmap system dependencies
 PyYAML>=6.0.0
 
+# Additional dependencies for reporting and file monitoring
+matplotlib>=3.5.0
+watchdog>=3.0.0
+
 # Built-in libraries used:
 # - argparse (CLI parsing)
 # - json (JSON handling)

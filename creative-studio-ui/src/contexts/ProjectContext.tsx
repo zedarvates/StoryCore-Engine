@@ -199,7 +199,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 
         // Log success for debugging in development only
         if (process.env.NODE_ENV === 'development') {
-          console.log('Project saved:', project.id);
+          ;
         }
       } else {
         // Save failed
@@ -308,7 +308,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         
         // Log for debugging in development only
         if (process.env.NODE_ENV === 'development') {
-          console.log(`Deleted shot ${shotId} and ${prev.audioPhrases.length - updatedPhrases.length} associated phrases`);
+          ;
         }
       } else {
         // Unlink phrases by setting shotId to empty string
@@ -321,7 +321,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         
         // Log for debugging in development only
         if (process.env.NODE_ENV === 'development') {
-          console.log(`Deleted shot ${shotId} and unlinked associated phrases`);
+          ;
         }
       }
 
@@ -512,7 +512,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         onStageComplete: (stage, result) => {
           // Log stage completion for debugging in development only
           if (process.env.NODE_ENV === 'development') {
-            console.log(`Stage ${stage} completed:`, result);
+            ;
           }
         },
         onError: (error) => {
@@ -633,7 +633,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
           
           // Log restoration for debugging in development only
           if (process.env.NODE_ENV === 'development') {
-            console.log(`Restored generation state for project ${project.id}:`, state.status);
+            ;
           }
         }
       }).catch(error => {

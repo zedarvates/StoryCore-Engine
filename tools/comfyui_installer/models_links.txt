@@ -1,14 +1,61 @@
 # ComfyUI Easy Install - Model Download Links
 # Based on FLUX.2 requirements for StoryCore-Engine
 
-# VAE (335MB)
+# =============================================================================
+# CORE FLUX.2 MODELS (Required for basic functionality)
+# =============================================================================
+
+# VAE (335MB) - Essential for image decoding
 https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors
 
-# LoRA - Artistic Style (Optional, ~100MB)
-https://huggingface.co/ostris/flux2_berthe_morisot/resolve/main/flux2_berthe_morisot.safetensors
-
-# Diffusion Model (3.5GB)
+# Diffusion Model (3.5GB) - Main FLUX.2 model
 https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/diffusion_models/flux2_dev_fp8mixed.safetensors
 
-# Text Encoder (7.2GB)
+# Text Encoder (7.2GB) - Mistral-based text encoder
 https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_bf16.safetensors
+
+# =============================================================================
+# NEW FLUX.2-klein MODELS (Lightweight alternatives)
+# =============================================================================
+
+# FLUX.2-klein (9.3GB) - Lightweight version from Black Forest Labs
+https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/resolve/main/flux2-klein.safetensors
+
+# Alternative VAE from FLUX.2-klein
+https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/resolve/main/ae.safetensors
+
+# =============================================================================
+# ENHANCED TEXT ENCODERS (Optional improvements)
+# =============================================================================
+
+# T5-XXL Text Encoder (9.5GB) - Enhanced text understanding
+https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/t5xxl_fp16.safetensors
+
+# =============================================================================
+# LoRA MODELS (Style enhancements)
+# =============================================================================
+
+# Artistic Style LoRA (Optional, ~100MB)
+https://huggingface.co/ostris/flux2_berthe_morisot/resolve/main/flux2_berthe_morisot.safetensors
+
+# =============================================================================
+# LTX-2 VIDEO GENERATION MODELS (Optional - Video Generation)
+# =============================================================================
+
+# LTX-2 Checkpoints
+# Main model (37GB) - High quality video generation
+https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-dev.safetensors
+# Optimized FP8 version (9.3GB) - Better performance
+https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-dev-fp8.safetensors
+
+# LTX-2 Text Encoder (24GB) - Gemma-based text understanding
+https://huggingface.co/Comfy-Org/ltx-2/resolve/main/split_files/text_encoders/gemma_3_12B_it.safetensors
+
+# LTX-2 LoRAs (Camera Control & Optimization)
+# Distilled LoRA for faster inference
+https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-distilled-lora-384.safetensors
+# Camera control - Dolly left movement
+https://huggingface.co/Lightricks/LTX-2-19b-LoRA-Camera-Control-Dolly-Left/resolve/main/ltx-2-19b-lora-camera-control-dolly-left.safetensors
+
+# LTX-2 Spatial Upscaler (500MB) - Video upscaling
+https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-spatial-upscaler-x2-1.0.safetensors

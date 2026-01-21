@@ -1,0 +1,76 @@
+{
+  "template_name": "Quiz Interactif",
+  "context": "Un youtubeur animant un quiz interactif pour engager l'audience.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_20_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Testez vos connaissances !",
+      "subtitle": "Quiz interactif et divertissant."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "bounce",
+        "duration": 1.0
+      },
+      {
+        "type": "spin",
+        "duration": 0.8
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "shake",
+        "duration": 1.5
+      }
+    ],
+    "quiz_effects": [
+      {
+        "type": "confetti",
+        "trigger": "correct_answer"
+      },
+      {
+        "type": "wrong_answer_flash",
+        "color": "red"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction du Quiz",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Préparez-vous pour le quiz !",
+        "background": "assets/jpg_files/file_20_2.jpg"
+      }
+    },
+    {
+      "name": "Questions du Quiz",
+      "content": {
+        "title": "Questions",
+        "subtitle": "Répondez aux questions interactives.",
+        "background": "assets/jpg_files/file_21_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Ludique",
+      "content": {
+        "title": "Placement de Produit",
+        "subtitle": "Découvrez des jeux et outils éducatifs.",
+        "background": "assets/jpg_files/file_21_2.jpg",
+        "animation": "shake"
+      }
+    },
+    {
+      "name": "Conclusion du Quiz",
+      "content": {
+        "title": "Résultats",
+        "subtitle": "Découvrez votre score final !",
+        "background": "assets/jpg_files/file_22_1.jpg",
+        "cta": "Abonnez-vous pour plus de quiz passionnants !"
+      }
+    }
+  ]
+}

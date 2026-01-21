@@ -148,8 +148,8 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
             return asset.metadata?.subcategory === category.subcategory;
           }
           // For 'templates' category, show only templates without specific subcategories
-          if (category.id === 'templates') {
-            return asset.type === 'template' && 
+          if (activeCategory === 'templates') {
+            return asset.type === 'template' &&
                    !['transition', 'effect', 'text-template'].includes(asset.metadata?.subcategory);
           }
           return true;
@@ -186,8 +186,9 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
       if ('subcategory' in category && category.subcategory !== undefined) {
         return asset.metadata?.subcategory === category.subcategory;
       }
-      if (category.id === 'templates') {
-        return asset.type === 'template' && 
+      // Handle templates category specifically
+      if (categoryId === 'templates') {
+        return asset.type === 'template' &&
                !['transition', 'effect', 'text-template'].includes(asset.metadata?.subcategory);
       }
       return true;
@@ -232,6 +233,8 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
             accept="image/*,audio/*,.json"
             onChange={handleFileUpload}
             className="hidden"
+            aria-label="Upload assets"
+            title="Upload assets"
           />
         </div>
         

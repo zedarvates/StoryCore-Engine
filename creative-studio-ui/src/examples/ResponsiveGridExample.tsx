@@ -85,7 +85,7 @@ export const ResponsiveGridExample: React.FC = () => {
 
   const handleLayoutChange = (newItems: GridPanel[]) => {
     setItems(newItems);
-    console.log('Layout changed:', newItems);
+    ;
   };
 
   const handleFullscreen = () => {

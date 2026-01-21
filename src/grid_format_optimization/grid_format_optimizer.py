@@ -3,7 +3,7 @@ Module principal d'optimisation des formats de grille.
 Coordonne la sélection et l'optimisation des formats pour améliorer la qualité.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from pathlib import Path
 import json
 from datetime import datetime
@@ -329,11 +329,3 @@ class GridFormatOptimizer:
         """Vérifie la compatibilité avec le moteur QA."""
         # Le moteur QA supporte déjà tous les formats
         return ValidationResult(is_valid=True, error_message=None, supported_formats=None)
-
-
-@dataclass
-class ValidationResult:
-    """Résultat de validation de compatibilité."""
-    is_valid: bool
-    error_message: Optional[str]
-    supported_formats: Optional[list]

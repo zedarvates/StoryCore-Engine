@@ -1,0 +1,43 @@
+{
+  "video_plan_id": "vp_demo-project_test",
+  "project_id": "demo-project",
+  "storyboard_id": "",
+  "created_at": "2024-01-21T21:45:00Z",
+  "total_shots": 2,
+  "total_duration": 6.0,
+  "video_entries": [
+    {
+      "shot_id": "shot_01",
+      "shot_number": 1,
+      "source_image": "assets/images/promoted/panel_01_promoted.png",
+      "camera_movement": "static",
+      "duration": 3.0,
+      "style_anchor": {},
+      "transition": "fade",
+      "description": "Opening scene with character introduction",
+      "title": "Scene 1: Introduction"
+    },
+    {
+      "shot_id": "shot_02",
+      "shot_number": 2,
+      "source_image": "assets/images/promoted/panel_02_promoted.png",
+      "camera_movement": "pan",
+      "duration": 3.0,
+      "style_anchor": {},
+      "transition": "cut",
+      "description": "Character walks through the environment",
+      "title": "Scene 2: Exploration"
+    }
+  ],
+  "metadata": {
+    "global_style_applied": false,
+    "camera_movements": {
+      "static": 1,
+      "pan": 1
+    },
+    "transitions": {
+      "fade": 1,
+      "cut": 1
+    }
+  }
+}

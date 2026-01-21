@@ -41,7 +41,7 @@ export const ShotFrameViewerExample: React.FC = () => {
 
   const handleUpdate = (updatedShot: ShotMetadata) => {
     setShot(updatedShot);
-    console.log('Shot updated:', updatedShot);
+    ;
   };
 
   return (

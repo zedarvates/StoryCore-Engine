@@ -35,7 +35,7 @@ class GridGenerator:
         # Calculate cell dimensions based on grid type
         if grid_spec == "3x3":
             cell_width = cell_height = cell_size
-        elif grid_spec in ["1x2", "1x4"]:
+        elif grid_spec in ["1x2", "1x3", "1x4"]:
             cell_height = cell_size
             cell_width = round(cell_size * 16 / 9)
         else:

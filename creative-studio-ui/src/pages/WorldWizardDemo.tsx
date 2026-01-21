@@ -13,7 +13,7 @@ export function WorldWizardDemo() {
   const [createdWorld, setCreatedWorld] = useState<World | null>(null);
 
   const handleComplete = (world: World) => {
-    console.log('World created:', world);
+    ;
     setCreatedWorld(world);
     setShowWizard(false);
   };

@@ -201,6 +201,9 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
               updateAudioTrack(shotId, track.id, { name: e.target.value })
             }
             className="font-medium bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+            aria-label="Track name"
+            title="Track name"
+            placeholder="Enter track name"
           />
         </div>
         <button
@@ -231,8 +234,11 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
 
       {/* Audio File */}
       <div>
-        <label className="text-xs text-gray-600">Audio File</label>
+        <label htmlFor={`audio-file-${track.id}`} className="text-xs text-gray-600">
+          Audio File
+        </label>
         <input
+          id={`audio-file-${track.id}`}
           type="text"
           value={track.url}
           onChange={(e) =>
@@ -240,6 +246,7 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
           }
           placeholder="Enter audio file URL or path"
           className="w-full px-2 py-1 text-sm border rounded"
+          aria-label="Audio file URL"
         />
       </div>
 
@@ -267,8 +274,11 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
       {/* Timing Controls */}
       <div className="grid grid-cols-3 gap-2">
         <div>
-          <label className="text-xs text-gray-600">Start (s)</label>
+          <label htmlFor={`start-time-${track.id}`} className="text-xs text-gray-600">
+            Start (s)
+          </label>
           <input
+            id={`start-time-${track.id}`}
             type="number"
             min={0}
             step={0.1}
@@ -279,11 +289,16 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
               })
             }
             className="w-full px-2 py-1 text-sm border rounded"
+            aria-label="Start time in seconds"
+            placeholder="0.0"
           />
         </div>
         <div>
-          <label className="text-xs text-gray-600">Duration (s)</label>
+          <label htmlFor={`duration-${track.id}`} className="text-xs text-gray-600">
+            Duration (s)
+          </label>
           <input
+            id={`duration-${track.id}`}
             type="number"
             min={0.1}
             step={0.1}
@@ -294,11 +309,16 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
               })
             }
             className="w-full px-2 py-1 text-sm border rounded"
+            aria-label="Duration in seconds"
+            placeholder="1.0"
           />
         </div>
         <div>
-          <label className="text-xs text-gray-600">Offset (s)</label>
+          <label htmlFor={`offset-${track.id}`} className="text-xs text-gray-600">
+            Offset (s)
+          </label>
           <input
+            id={`offset-${track.id}`}
             type="number"
             min={0}
             step={0.1}
@@ -309,6 +329,8 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
               })
             }
             className="w-full px-2 py-1 text-sm border rounded"
+            aria-label="Offset in seconds"
+            placeholder="0.0"
           />
         </div>
       </div>
@@ -316,10 +338,13 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
       {/* Volume Control */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="text-xs text-gray-600">Volume</label>
+          <label htmlFor={`volume-${track.id}`} className="text-xs text-gray-600">
+            Volume
+          </label>
           <span className="text-xs text-gray-500">{track.volume}%</span>
         </div>
         <input
+          id={`volume-${track.id}`}
           type="range"
           min={0}
           max={100}
@@ -330,13 +355,16 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
             })
           }
           className="w-full"
+          aria-label="Volume level"
         />
       </div>
 
       {/* Pan Control */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="text-xs text-gray-600">Pan (L/R)</label>
+          <label htmlFor={`pan-${track.id}`} className="text-xs text-gray-600">
+            Pan (L/R)
+          </label>
           <span className="text-xs text-gray-500">
             {track.pan === 0
               ? 'Center'
@@ -346,6 +374,7 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
           </span>
         </div>
         <input
+          id={`pan-${track.id}`}
           type="range"
           min={-100}
           max={100}
@@ -356,14 +385,18 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
             })
           }
           className="w-full"
+          aria-label="Pan position"
         />
       </div>
 
       {/* Fade Controls */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-gray-600">Fade In (s)</label>
+          <label htmlFor={`fade-in-${track.id}`} className="text-xs text-gray-600">
+            Fade In (s)
+          </label>
           <input
+            id={`fade-in-${track.id}`}
             type="number"
             min={0}
             step={0.1}
@@ -374,11 +407,16 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
               })
             }
             className="w-full px-2 py-1 text-sm border rounded"
+            aria-label="Fade in duration"
+            placeholder="0.0"
           />
         </div>
         <div>
-          <label className="text-xs text-gray-600">Fade Out (s)</label>
+          <label htmlFor={`fade-out-${track.id}`} className="text-xs text-gray-600">
+            Fade Out (s)
+          </label>
           <input
+            id={`fade-out-${track.id}`}
             type="number"
             min={0}
             step={0.1}
@@ -389,6 +427,8 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
               })
             }
             className="w-full px-2 py-1 text-sm border rounded"
+            aria-label="Fade out duration"
+            placeholder="0.0"
           />
         </div>
       </div>
@@ -397,21 +437,23 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
       <div className="flex gap-2">
         <button
           onClick={onToggleMute}
-          className={`flex-1 px-3 py-2 text-sm rounded border ${
-            track.muted
+          className={`flex-1 px-3 py-2 text-sm rounded border $
+            ${track.muted
               ? 'bg-gray-600 text-white border-gray-700'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-          }`}
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}
+          `}
+          aria-label={track.muted ? 'Unmute track' : 'Mute track'}
         >
           {track.muted ? <VolumeX className="w-4 h-4 mx-auto" /> : 'Mute'}
         </button>
         <button
           onClick={onToggleSolo}
-          className={`flex-1 px-3 py-2 text-sm rounded border ${
-            track.solo
+          className={`flex-1 px-3 py-2 text-sm rounded border $
+            ${track.solo
               ? 'bg-yellow-500 text-white border-yellow-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-          }`}
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}
+          `}
+          aria-label={track.solo ? 'Disable solo' : 'Enable solo'}
         >
           Solo
         </button>
@@ -427,6 +469,7 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
           <button
             onClick={() => setShowEffects(!showEffects)}
             className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+            aria-label={showEffects ? 'Hide effects panel' : 'Show effects panel'}
           >
             <Settings className="w-3 h-3 inline mr-1" />
             {showEffects ? 'Hide' : 'Show'} Effects
@@ -438,6 +481,7 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
         <button
           onClick={() => setShowEffects(!showEffects)}
           className="w-full text-xs px-2 py-1 border border-dashed rounded text-gray-600 hover:border-blue-500 hover:text-blue-600"
+          aria-label="Add audio effects"
         >
           <Settings className="w-3 h-3 inline mr-1" />
           Add Audio Effects

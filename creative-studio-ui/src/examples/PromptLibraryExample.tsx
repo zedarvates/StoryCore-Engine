@@ -23,7 +23,7 @@ export function PromptLibraryExample() {
   // Handle prompt selection from library
   const handlePromptSelect = (prompt: string) => {
     setSelectedPrompt(prompt);
-    console.log('Selected prompt:', prompt);
+    ;
   };
 
   // Generate Master Coherence Sheet
@@ -37,7 +37,7 @@ export function PromptLibraryExample() {
       });
       
       setGeneratedPrompts(prev => ({ ...prev, masterCoherence: prompt }));
-      console.log('Master Coherence Prompt:', prompt);
+      ;
     } catch (err) {
       console.error('Error generating master coherence:', err);
     }
@@ -55,7 +55,7 @@ export function PromptLibraryExample() {
       });
       
       setGeneratedPrompts(prev => ({ ...prev, character: prompt }));
-      console.log('Character Prompt:', prompt);
+      ;
     } catch (err) {
       console.error('Error generating character:', err);
     }
@@ -73,7 +73,7 @@ export function PromptLibraryExample() {
       });
       
       setGeneratedPrompts(prev => ({ ...prev, environment: prompt }));
-      console.log('Environment Prompt:', prompt);
+      ;
     } catch (err) {
       console.error('Error generating environment:', err);
     }

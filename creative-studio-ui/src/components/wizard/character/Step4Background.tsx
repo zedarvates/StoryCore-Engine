@@ -113,7 +113,7 @@ Example:
 
   const parseLLMBackground = (response: string): Partial<Character['background']> | null => {
     try {
-      console.log('Parsing LLM background response:', response);
+      ;
       
       // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -136,7 +136,7 @@ Example:
           
           // Check if we got any data
           if (Object.keys(result).length > 0) {
-            console.log('Successfully parsed background from JSON:', result);
+            ;
             return result;
           }
         } catch (jsonError) {
@@ -145,7 +145,7 @@ Example:
       }
       
       // Fallback: Parse as structured text
-      console.log('Attempting text-based parsing');
+      ;
       const result: Partial<Character['background']> = {};
       const lines = response.split('\n');
       
@@ -224,7 +224,7 @@ Example:
       
       // Check if we got any data
       if (Object.keys(result).length > 0) {
-        console.log('Successfully parsed background from text:', result);
+        ;
         return result;
       }
       

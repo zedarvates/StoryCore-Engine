@@ -61,7 +61,7 @@ export const BackendIntegrationExample: React.FC = () => {
 
     // The PanelGenerationControls component handles the actual generation
     // This is just to demonstrate the workflow
-    console.log('Generate triggered for panel:', panelId);
+    ;
   };
 
   /**
@@ -119,7 +119,7 @@ export const BackendIntegrationExample: React.FC = () => {
         },
       });
 
-      console.log('Batch generation complete:', response.data);
+      ;
     } catch (error) {
       console.error('Batch generation error:', error);
     } finally {
@@ -138,11 +138,11 @@ export const BackendIntegrationExample: React.FC = () => {
    * Handle generation complete
    */
   const handleGenerationComplete = (panelId: string, imageUrl: string) => {
-    console.log('Generation complete:', panelId, imageUrl);
+    ;
     
     // Preload image with mipmaps for better performance
     imageLoader.loadImageWithMipmaps(imageUrl).then((mipmaps) => {
-      console.log('Mipmaps loaded:', mipmaps.length, 'levels');
+      ;
     });
   };
 

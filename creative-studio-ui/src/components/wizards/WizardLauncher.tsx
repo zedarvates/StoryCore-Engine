@@ -15,6 +15,8 @@ import { useProjectConfig } from '../../hooks/useConfigurationHooks';
 import { checkWizardRequirements } from '../../data/wizardDefinitions';
 import { WizardService } from '../../services/wizard/WizardService';
 import { useAppStore } from '../../stores/useAppStore';
+import { useEditorStore } from '../../stores/editorStore';
+import { WizardOptionsModal } from './WizardOptionsModal';
 import './WizardLauncher.css';
 
 interface ConnectionStatus {
@@ -42,12 +44,12 @@ export function WizardLauncher({
       
       const wizardService = new WizardService();
       
-      console.log('[WizardLauncher] Checking service connections...');
+      ;
       
       // Silently check connections - errors are expected when services aren't running
       const [ollamaStatus, comfyuiStatus] = await Promise.all([
         wizardService.checkOllamaConnection().catch((error) => {
-          console.log('[WizardLauncher] Ollama check failed:', error);
+          ;
           return { 
             connected: false,
             service: 'ollama' as const,
@@ -56,7 +58,7 @@ export function WizardLauncher({
           };
         }),
         wizardService.checkComfyUIConnection().catch((error) => {
-          console.log('[WizardLauncher] ComfyUI check failed:', error);
+          ;
           return { 
             connected: false,
             service: 'comfyui' as const,
@@ -213,12 +215,43 @@ export function WizardLauncher({
   };
 
   // Handle wizard launch
-  const handleLaunchWizard = (wizard: WizardDefinition) => {
+  const handleLaunchWizard = async (wizard: WizardDefinition) => {
     if (!canLaunchWizard(wizard)) {
       return;
     }
-    
-    onLaunchWizard(wizard.id);
+
+    try {
+      // Get project path from editor store
+      const projectPath = useEditorStore?.getState?.()?.projectPath;
+
+      // Create wizard service instance
+      const wizardService = new WizardService();
+
+      // Show loading state
+      console.log(`Launching wizard: ${wizard.id}`);
+
+      // Launch the wizard
+      const result = await wizardService.launchWizard(wizard.id, projectPath);
+
+      if (result.success) {
+        console.log(`Wizard ${wizard.id} launched successfully`);
+        // Show success notification
+        alert(`✅ ${wizard.name} launched successfully!\n\n${result.output || ''}`);
+
+        // For wizards that generate content, trigger a refresh
+        if (wizard.id === 'shot-reference-wizard' || wizard.id === 'dialogue-wizard') {
+          // Refresh project data if needed
+          window.location.reload();
+        }
+      } else {
+        console.error(`Wizard ${wizard.id} failed:`, result.error);
+        alert(`❌ Failed to launch ${wizard.name}:\n\n${result.error || result.message}`);
+      }
+
+    } catch (error) {
+      console.error(`Error launching wizard ${wizard.id}:`, error);
+      alert(`❌ Error launching ${wizard.name}:\n\n${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   return (

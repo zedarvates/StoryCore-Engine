@@ -53,7 +53,7 @@ const ShotListWithDeletion: React.FC = () => {
       deletePhrases,
     });
 
-    console.log('Deleting shot:', summary);
+    ;
 
     // Delete the shot
     deleteShot(shotToDelete.id, deletePhrases);
@@ -65,7 +65,7 @@ const ShotListWithDeletion: React.FC = () => {
         if (!integrity.isValid) {
           console.error('Shot-phrase integrity validation failed:', integrity.errors);
         } else {
-          console.log('Shot-phrase integrity validated successfully');
+          ;
         }
       }
     }, 100);

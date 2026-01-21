@@ -56,17 +56,17 @@ export function Step1TemplateSelection({
       {/* Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-gray-900">Choose a Template</h2>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Start with a proven structure or create your sequence plan from scratch.
-          Templates provide a solid foundation with suggested act structures and timing.
-        </p>
+       <p className="text-gray-800 max-w-2xl mx-auto">
+         Start with a proven structure or create your sequence plan from scratch.
+         Templates provide a solid foundation with suggested act structures and timing.
+       </p>
       </div>
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex gap-2 flex-1 max-w-md">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" />
             <Input
               placeholder="Search templates..."
               value={searchQuery}
@@ -95,6 +95,7 @@ export function Step1TemplateSelection({
             variant={viewMode === 'grid' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('grid')}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             Grid
           </Button>
@@ -102,6 +103,7 @@ export function Step1TemplateSelection({
             variant={viewMode === 'list' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('list')}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             List
           </Button>
@@ -125,8 +127,8 @@ export function Step1TemplateSelection({
           onClick={handleStartFromScratch}
         >
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Plus className="h-6 w-6 text-gray-600" />
+            <div className="mx-auto w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+            <Plus className="h-6 w-6 text-gray-800" />
             </div>
             <CardTitle className="text-lg">Start from Scratch</CardTitle>
             <CardDescription>
@@ -134,8 +136,8 @@ export function Step1TemplateSelection({
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <Badge variant="secondary" className="mb-2">Recommended for Experts</Badge>
-            <p className="text-sm text-gray-600">Complete creative control</p>
+            <Badge variant="secondary" className="mb-2 bg-blue-600 text-white">Recommended for Experts</Badge>
+            <p className="text-sm text-gray-800">Complete creative control</p>
           </CardContent>
         </Card>
 
@@ -154,18 +156,18 @@ export function Step1TemplateSelection({
       {/* No Results */}
       {filteredTemplates.length === 0 && searchQuery && (
         <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
+          <div className="text-gray-500 mb-4">
             <Search className="h-12 w-12 mx-auto" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No templates found</h3>
-          <p className="text-gray-600">
+          <p className="text-gray-800">
             Try adjusting your search or filter criteria
           </p>
         </div>
       )}
 
       {/* Results Summary */}
-      <div className="text-center text-sm text-gray-600">
+      <div className="text-center text-sm text-gray-800">
         {filteredTemplates.length === availableTemplates.length
           ? `Showing all ${availableTemplates.length} templates`
           : `Showing ${filteredTemplates.length} of ${availableTemplates.length} templates`
@@ -202,7 +204,7 @@ function TemplateCard({ template, isSelected, onSelect, viewMode }: TemplateCard
             <CardTitle className="text-lg flex items-center gap-2">
               {template.name}
               {template.isBuiltIn && (
-                <Badge variant="outline" className="text-xs">Built-in</Badge>
+                <Badge variant="outline" className="text-xs bg-blue-600 text-white">Built-in</Badge>
               )}
             </CardTitle>
             <CardDescription className="mt-1">
@@ -213,11 +215,11 @@ function TemplateCard({ template, isSelected, onSelect, viewMode }: TemplateCard
         </div>
 
         <div className="flex items-center gap-2 mt-3">
-          <Badge variant="secondary">{template.category.replace('-', ' ')}</Badge>
-          <Badge variant="outline">
+          <Badge variant="secondary" className="bg-blue-600 text-white">{template.category.replace('-', ' ')}</Badge>
+          <Badge variant="outline" className="bg-blue-600 text-white">
             {template.structure.acts.length} acts
           </Badge>
-          <Badge variant="outline">
+          <Badge variant="outline" className="bg-blue-600 text-white">
             ~{template.defaults.targetDuration}s
           </Badge>
         </div>
@@ -228,16 +230,16 @@ function TemplateCard({ template, isSelected, onSelect, viewMode }: TemplateCard
           <div className="space-y-3">
             {/* Act Structure Preview */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Act Structure:</h4>
+              <h4 className="text-sm font-medium text-gray-800 mb-2">Act Structure:</h4>
               <div className="space-y-1">
                 {template.structure.acts.slice(0, 3).map((act, index) => (
-                  <div key={index} className="flex justify-between text-xs text-gray-600">
+                  <div key={index} className="flex justify-between text-xs text-gray-800">
                     <span>{act.title}</span>
                     <span>{act.targetDuration}s</span>
                   </div>
                 ))}
                 {template.structure.acts.length > 3 && (
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-600">
                     +{template.structure.acts.length - 3} more acts
                   </div>
                 )}
@@ -248,12 +250,12 @@ function TemplateCard({ template, isSelected, onSelect, viewMode }: TemplateCard
             <div>
               <div className="flex flex-wrap gap-1">
                 {template.tags.slice(0, 3).map(tag => (
-                  <Badge key={tag} variant="outline" className="text-xs">
+                  <Badge key={tag} variant="outline" className="text-xs bg-blue-600 text-white">
                     {tag}
                   </Badge>
                 ))}
                 {template.tags.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs bg-blue-600 text-white">
                     +{template.tags.length - 3}
                   </Badge>
                 )}
@@ -281,7 +283,7 @@ function TemplateDetailsDialog({ template }: { template: SequenceTemplate }) {
           <DialogTitle className="flex items-center gap-2">
             {template.name}
             {template.isBuiltIn && (
-              <Badge variant="outline">Built-in</Badge>
+              <Badge variant="outline" className="bg-blue-600 text-white">Built-in</Badge>
             )}
           </DialogTitle>
           <DialogDescription>
@@ -293,19 +295,19 @@ function TemplateDetailsDialog({ template }: { template: SequenceTemplate }) {
           {/* Template Overview */}
           <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
             <div>
-              <h4 className="font-medium text-sm text-gray-700">Category</h4>
+              <h4 className="font-medium text-sm text-gray-800">Category</h4>
               <p className="text-sm">{template.category.replace('-', ' ')}</p>
             </div>
             <div>
-              <h4 className="font-medium text-sm text-gray-700">Target Duration</h4>
+              <h4 className="font-medium text-sm text-gray-800">Target Duration</h4>
               <p className="text-sm">{template.defaults.targetDuration} seconds</p>
             </div>
             <div>
-              <h4 className="font-medium text-sm text-gray-700">Frame Rate</h4>
+              <h4 className="font-medium text-sm text-gray-800">Frame Rate</h4>
               <p className="text-sm">{template.defaults.frameRate} fps</p>
             </div>
             <div>
-              <h4 className="font-medium text-sm text-gray-700">Resolution</h4>
+              <h4 className="font-medium text-sm text-gray-800">Resolution</h4>
               <p className="text-sm">
                 {template.defaults.resolution.width}x{template.defaults.resolution.height}
               </p>
@@ -320,11 +322,11 @@ function TemplateDetailsDialog({ template }: { template: SequenceTemplate }) {
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                   <div>
                     <h5 className="font-medium text-sm">{act.title}</h5>
-                    <p className="text-xs text-gray-600">{act.narrativePurpose}</p>
+                    <p className="text-xs text-gray-800">{act.narrativePurpose}</p>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium">{act.targetDuration}s</div>
-                    <div className="text-xs text-gray-600">Act {act.number}</div>
+                    <div className="text-xs text-gray-800">Act {act.number}</div>
                   </div>
                 </div>
               ))}
@@ -336,7 +338,7 @@ function TemplateDetailsDialog({ template }: { template: SequenceTemplate }) {
             <h4 className="font-medium text-gray-900 mb-2">Tags</h4>
             <div className="flex flex-wrap gap-2">
               {template.tags.map(tag => (
-                <Badge key={tag} variant="secondary">{tag}</Badge>
+                <Badge key={tag} variant="secondary" className="bg-blue-600 text-white">{tag}</Badge>
               ))}
             </div>
           </div>
@@ -344,7 +346,7 @@ function TemplateDetailsDialog({ template }: { template: SequenceTemplate }) {
           {/* Usage Stats */}
           <div className="p-4 bg-blue-50 rounded-lg">
             <h4 className="font-medium text-blue-900 mb-2">Recommended For:</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
+            <ul className="text-sm text-blue-900 space-y-1">
               <li>• {template.structure.acts.length} act structure</li>
               <li>• {template.structure.defaultSceneCount} suggested scenes per act</li>
               <li>• {template.structure.defaultShotCount} estimated shots total</li>

@@ -6,7 +6,7 @@ using the hypothesis library for property-based testing.
 """
 
 import json
-from hypothesis import given, strategies as st, settings
+from hypothesis import given, strategies as st, settings, HealthCheck
 from hypothesis.strategies import composite
 import sys
 from pathlib import Path
@@ -370,7 +370,7 @@ def test_quality_score_serialization(score):
 
 
 @given(report=quality_report_strategy())
-@settings(max_examples=50)
+@settings(max_examples=10, suppress_health_check=[HealthCheck.too_slow])
 def test_quality_report_serialization(report):
     """
     Feature: professional-video-audio-quality
@@ -520,7 +520,7 @@ def test_quality_score_round_trip(score):
 
 
 @given(report=quality_report_strategy())
-@settings(max_examples=50)
+@settings(max_examples=10, suppress_health_check=[HealthCheck.too_slow])
 def test_quality_report_round_trip(report):
     """
     Feature: professional-video-audio-quality

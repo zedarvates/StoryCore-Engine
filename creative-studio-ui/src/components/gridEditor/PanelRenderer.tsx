@@ -271,7 +271,7 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
     // Placeholder for effect rendering
     // Effects could include filters, adjustments, etc.
     // For now, this is a no-op
-    console.log('Effect layer rendering not yet implemented', ctx, content, bounds);
+    ;
   }, []);
 
   /**

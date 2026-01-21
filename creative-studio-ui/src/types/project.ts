@@ -4,8 +4,6 @@
 
 import type { Shot } from './index';
 import type { AssetMetadata } from './asset';
-import type { Character } from './character';
-import type { World } from './world';
 
 export interface ProjectData {
   schema_version: string;

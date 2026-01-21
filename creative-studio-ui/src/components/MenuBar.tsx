@@ -22,6 +22,7 @@ import {
   ScaleIcon,
   GlobeIcon,
   UserIcon,
+  PuzzleIcon,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -57,6 +58,12 @@ export function MenuBar({ onNewProject, onOpenProject, onSaveProject, onExportPr
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
   const setShowComfyUISettings = useAppStore((state) => state.setShowComfyUISettings);
   const setShowInstallationWizard = useAppStore((state) => state.setShowInstallationWizard);
+  const setShowAddonsModal = useAppStore((state) => state.setShowAddonsModal);
+  const setShowCharactersModal = useAppStore((state) => state.setShowCharactersModal);
+  const setShowWorldModal = useAppStore((state) => state.setShowWorldModal);
+  const setShowLocationsModal = useAppStore((state) => state.setShowLocationsModal);
+  const setShowObjectsModal = useAppStore((state) => state.setShowObjectsModal);
+  const setShowImageGalleryModal = useAppStore((state) => state.setShowImageGalleryModal);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -121,17 +128,17 @@ export function MenuBar({ onNewProject, onOpenProject, onSaveProject, onExportPr
   // Edit operations
   const handleCut = () => {
     // TODO: Implement cut functionality
-    console.log('Cut');
+    ;
   };
 
   const handleCopy = () => {
     // TODO: Implement copy functionality
-    console.log('Copy');
+    ;
   };
 
   const handlePaste = () => {
     // TODO: Implement paste functionality
-    console.log('Paste');
+    ;
   };
 
   // View operations
@@ -145,32 +152,32 @@ export function MenuBar({ onNewProject, onOpenProject, onSaveProject, onExportPr
 
   const handleToggleAssetLibrary = () => {
     // TODO: Implement asset library toggle
-    console.log('Toggle Asset Library');
+    ;
   };
 
   const handleToggleTimeline = () => {
     // TODO: Implement timeline toggle
-    console.log('Toggle Timeline');
+    ;
   };
 
   const handleZoomIn = () => {
     // TODO: Implement zoom in
-    console.log('Zoom In');
+    ;
   };
 
   const handleZoomOut = () => {
     // TODO: Implement zoom out
-    console.log('Zoom Out');
+    ;
   };
 
   const handleResetZoom = () => {
     // TODO: Implement reset zoom
-    console.log('Reset Zoom');
+    ;
   };
 
   const handleToggleGrid = () => {
     // TODO: Implement grid toggle
-    console.log('Toggle Grid');
+    ;
   };
 
   // Help operations
@@ -232,6 +239,10 @@ All rights reserved.`;
     } else {
       alert('No project to export');
     }
+  };
+
+  const handleOpenAddonsPanel = () => {
+    setShowAddonsModal(true);
   };
 
   return (
@@ -317,6 +328,23 @@ All rights reserved.`;
             <ClipboardIcon className="mr-2 h-4 w-4" />
             Paste
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => setShowCharactersModal(true)} disabled={!project}>
+            <UserIcon className="mr-2 h-4 w-4" />
+            Personnages
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setShowWorldModal(true)} disabled={!project}>
+            <GlobeIcon className="mr-2 h-4 w-4" />
+            Monde
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setShowLocationsModal(true)} disabled={!project}>
+            <FileTextIcon className="mr-2 h-4 w-4" />
+            Lieux
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setShowObjectsModal(true)} disabled={!project}>
+            <BookOpenIcon className="mr-2 h-4 w-4" />
+            Objets
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -362,6 +390,11 @@ All rights reserved.`;
             <GridIcon className="mr-2 h-4 w-4" />
             Toggle Grid
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => setShowImageGalleryModal(true)} disabled={!project}>
+            <BookOpenIcon className="mr-2 h-4 w-4" />
+            Image Gallery
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -389,6 +422,10 @@ All rights reserved.`;
             ComfyUI Configuration
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={handleOpenAddonsPanel}>
+            <PuzzleIcon className="mr-2 h-4 w-4" />
+            Add-ons
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={handleAPISettings}>
             <SettingsIcon className="mr-2 h-4 w-4" />
             General Settings

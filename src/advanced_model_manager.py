@@ -32,7 +32,7 @@ import torch
 from torch.nn import Module
 
 # Import secure downloader
-from .security_validation_system import SecureModelDownloader
+from src.security_validation_system import SecureModelDownloader
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

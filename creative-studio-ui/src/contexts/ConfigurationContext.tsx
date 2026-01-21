@@ -68,7 +68,7 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
         status: 'active',
       });
 
-      console.log(`Configuration loaded for project: ${projectId}`);
+      ;
     } catch (error) {
       console.error('Failed to load configuration:', error);
       throw error;
@@ -116,7 +116,7 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
           });
         }
 
-        console.log('Project configuration saved successfully');
+        ;
       } catch (error) {
         console.error('Failed to save project configuration:', error);
         throw error;
@@ -150,7 +150,7 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
         // Update state
         setGlobalConfig(updatedConfig);
 
-        console.log('Global configuration saved successfully');
+        ;
       } catch (error) {
         console.error('Failed to save global configuration:', error);
         throw error;
@@ -182,7 +182,7 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
           // Reload configuration (will load defaults)
           await loadConfiguration(activeProject.id);
           
-          console.log('Project configuration reset to defaults');
+          ;
         } else if (scope === 'global') {
           // Clear global configuration from storage
           localStorage.removeItem('storycore_global_config');
@@ -191,7 +191,7 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
           const defaultGlobalConfig = await ConfigurationStore.loadGlobalConfig();
           setGlobalConfig(defaultGlobalConfig);
           
-          console.log('Global configuration reset to defaults');
+          ;
         }
       } catch (error) {
         console.error('Failed to reset configuration:', error);
@@ -213,7 +213,7 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
 
     try {
       const exportData = await ConfigurationStore.exportConfiguration(activeProject.id);
-      console.log('Configuration exported successfully');
+      ;
       return exportData;
     } catch (error) {
       console.error('Failed to export configuration:', error);
@@ -237,7 +237,7 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
         // Reload configuration
         await loadConfiguration(activeProject.id);
         
-        console.log('Configuration imported successfully');
+        ;
       } catch (error) {
         console.error('Failed to import configuration:', error);
         throw error;

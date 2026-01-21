@@ -194,29 +194,36 @@ export const useSequencePlanStore = create<SequencePlanState>()(
 
       // Update current plan
       updateCurrentPlan: async (updates: Partial<SequencePlanData>) => {
-        console.log('sequencePlanStore updateCurrentPlan called with updates:', Object.keys(updates));
+        console.log('[DEBUG] sequencePlanStore updateCurrentPlan called with updates:', Object.keys(updates));
         const { currentPlanId, currentPlanData } = get();
         if (!currentPlanId || !currentPlanData) {
+          console.error('[DEBUG] No plan selected in updateCurrentPlan');
           throw new Error('No plan selected');
         }
-
+    
         set({ isLoading: true, error: null });
         try {
+          console.log('[DEBUG] Calling sequencePlanService.updateSequencePlan');
           const updatedPlan = await sequencePlanService.updateSequencePlan(
             currentPlanId,
             updates
           );
-
+          console.log('[DEBUG] sequencePlanService.updateSequencePlan returned:', updatedPlan.id);
+    
           // Reload plans list to update summary
+          console.log('[DEBUG] Reloading plans list');
           const plans = await sequencePlanService.listSequencePlans();
-
-          console.log('sequencePlanStore setting state after updateCurrentPlan');
+          console.log('[DEBUG] Found', plans.length, 'plans after reload');
+    
+          console.log('[DEBUG] sequencePlanStore setting state after updateCurrentPlan');
           set({
             plans,
             currentPlanData: updatedPlan,
             isLoading: false,
           });
+          console.log('[DEBUG] State updated successfully');
         } catch (error) {
+          console.error('[DEBUG] Error in updateCurrentPlan:', error);
           set({
             error: error instanceof Error ? error.message : 'Failed to update plan',
             isLoading: false,

@@ -1,0 +1,84 @@
+{
+  "template_name": "Comédie et Sketches",
+  "context": "Un youtubeur créant du contenu humoristique et divertissant.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_36_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Riez avec moi !",
+      "subtitle": "Humour et bonne humeur garantie."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "funny_transition",
+        "duration": 0.8
+      },
+      {
+        "type": "laugh_effect",
+        "duration": 1.0
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "laughing_emoji",
+        "duration": 1.5
+      }
+    ],
+    "comedy_effects": [
+      {
+        "type": "face_swap",
+        "characters": ["funny", "serious"]
+      },
+      {
+        "type": "sound_effects",
+        "comedy_sounds": true
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction Drôle",
+      "content": {
+        "title": "Introduction",
+        "subtitle": "Préparez-vous à rire !",
+        "background": "assets/jpg_files/file_36_2.jpg"
+      }
+    },
+    {
+      "name": "Setup Humoristique",
+      "content": {
+        "title": "Setup",
+        "subtitle": "Mise en place de la situation drôle.",
+        "background": "assets/jpg_files/file_37_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Fun",
+      "content": {
+        "title": "Placement Produit",
+        "subtitle": "Découvrez ces produits qui me font rire !",
+        "background": "assets/jpg_files/file_37_2.jpg",
+        "animation": "laughing_emoji"
+      }
+    },
+    {
+      "name": "Punchline",
+      "content": {
+        "title": "Punchline",
+        "subtitle": "Le moment le plus drôle !",
+        "background": "assets/jpg_files/file_38_1.jpg"
+      }
+    },
+    {
+      "name": "Conclusion Hilarante",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "J'espère vous avoir fait rire !",
+        "background": "assets/jpg_files/file_38_2.jpg",
+        "cta": "Abonnez-vous pour plus de sketches drôles !"
+      }
+    }
+  ]
+}

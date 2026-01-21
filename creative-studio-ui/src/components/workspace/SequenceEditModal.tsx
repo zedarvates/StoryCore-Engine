@@ -72,7 +72,7 @@ export function SequenceEditModal({
       <div className="sequence-edit-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Éditer Séquence: {sequence.name}</h2>
-          <button className="btn-close" onClick={onClose}>
+          <button className="btn-close" onClick={onClose} aria-label="Fermer">
             <X className="w-5 h-5" />
           </button>
         </div>

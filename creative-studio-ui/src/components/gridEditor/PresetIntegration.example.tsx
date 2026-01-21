@@ -54,7 +54,7 @@ export const ProgrammaticPresetExample: React.FC = () => {
     const preset = getPresetById('preset-default');
     if (preset) {
       applyPreset(preset);
-      console.log('Applied default preset');
+      ;
     }
   };
 
@@ -62,7 +62,7 @@ export const ProgrammaticPresetExample: React.FC = () => {
     const preset = getPresetById('preset-cinematic');
     if (preset) {
       applyPreset(preset);
-      console.log('Applied cinematic preset');
+      ;
     }
   };
 
@@ -70,7 +70,7 @@ export const ProgrammaticPresetExample: React.FC = () => {
     const preset = getPresetById('preset-comic');
     if (preset) {
       applyPreset(preset);
-      console.log('Applied comic preset');
+      ;
     }
   };
 
@@ -109,7 +109,7 @@ export const CustomPresetCreationExample: React.FC = () => {
     );
 
     const presetId = addCustomPreset(presetData);
-    console.log('Created custom preset:', presetId);
+    ;
     setPresetName('');
   };
 
@@ -270,7 +270,7 @@ export const PresetBackendIntegrationExample: React.FC = () => {
       });
 
       const result = await response.json();
-      console.log('Generation complete:', result);
+      ;
     } catch (error) {
       console.error('Generation failed:', error);
     } finally {
@@ -381,4 +381,4 @@ button:disabled {
 }
 `;
 
-console.log('Example styles:', exampleStyles);
+;

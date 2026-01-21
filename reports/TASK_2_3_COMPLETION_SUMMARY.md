@@ -176,7 +176,7 @@ enhanced-video last-result
 ### Immediate Integration:
 1. **CLI Registration**: Add enhanced video commands to main StoryCore CLI
 2. **Workflow Manager**: Connect to actual AdvancedWorkflowManager instance
-3. **ComfyUI Backend**: Integrate with real ComfyUI workflow execution
+3. **ComfyUI Backend**: ✅ **OPERATIONAL** - Real ComfyUI server running on port 8188 with CORS enabled
 4. **Quality Metrics**: Connect to actual quality validation systems
 
 ### Future Enhancements:

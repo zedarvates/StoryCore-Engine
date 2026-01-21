@@ -149,7 +149,7 @@ export function Step4CulturalElements() {
       tone: formData.tone || [],
     };
 
-    console.log('🔍 CULTURAL ELEMENTS GENERATION CONTEXT:', context);
+    ;
 
     const systemPrompt = 'You are a creative world-building assistant. Generate rich, coherent cultural elements that fit the world\'s genre, time period, and tone.';
 
@@ -176,8 +176,8 @@ Example format:
   "culturalConflicts": ["Tension between magic users and non-magical citizens", "Religious divide between old and new faiths"]
 }`;
 
-    console.log('📤 CULTURAL ELEMENTS PROMPT:', prompt);
-    console.log('📤 CULTURAL ELEMENTS SYSTEM PROMPT:', systemPrompt);
+    ;
+    ;
 
     try {
       await generate({
@@ -193,28 +193,30 @@ Example format:
   };
 
   const parseLLMCulturalElements = (response: string): CulturalElements => {
-    console.log('🎯 PARSING CULTURAL ELEMENTS RESPONSE');
-    console.log('📊 Response metadata:');
-    console.log('   - Length:', response.length);
-    console.log('   - Type:', typeof response);
-    console.log('   - Is empty?', response.trim().length === 0);
-    console.log('   - First 200 chars:', response.substring(0, 200));
-    console.log('   - Last 200 chars:', response.substring(Math.max(0, response.length - 200)));
+    if (!response || response.trim().length === 0) {
+      return {
+        languages: [],
+        religions: [],
+        traditions: [],
+        historicalEvents: [],
+        culturalConflicts: [],
+      };
+    }
 
     try {
       // Log the FULL response for debugging
-      console.log('=== LLM RESPONSE START ===');
-      console.log(response);
-      console.log('=== LLM RESPONSE END ===');
+      ;
+      ;
+      ;
 
       // Try JSON parsing first - more flexible pattern
       const jsonMatch = response.match(/(\{[\s\S]*\})/);
-      console.log('🔍 JSON match found:', !!jsonMatch);
+      ;
       if (jsonMatch) {
-        console.log('📋 Extracted JSON string:', jsonMatch[0]);
+        ;
         try {
           const parsed = JSON.parse(jsonMatch[0]);
-          console.log('📋 Parsed JSON object:', parsed);
+          ;
 
           const elements = {
             languages: Array.isArray(parsed.languages) ? parsed.languages : [],
@@ -224,13 +226,13 @@ Example format:
             culturalConflicts: Array.isArray(parsed.culturalConflicts) ? parsed.culturalConflicts : [],
           };
 
-          console.log('🔧 Processed elements:', elements);
+          ;
 
           // Check if we got any data
           const hasData = Object.values(elements).some(arr => arr.length > 0);
-          console.log('✅ Has data?', hasData);
+          ;
           if (hasData) {
-            console.log('✅ Successfully parsed cultural elements from JSON:', elements);
+            ;
             return elements;
           } else {
             console.warn('⚠️ JSON parsed successfully but no data arrays found');
@@ -244,7 +246,7 @@ Example format:
       }
       
       // Try alternative JSON patterns (in case of extra text)
-      console.log('🔄 Trying alternative JSON patterns...');
+      ;
       const alternativePatterns = [
         /"languages"\s*:\s*\[([^\]]*)\]/i,
         /languages\s*:\s*\[([^\]]*)\]/i,
@@ -253,7 +255,7 @@ Example format:
       for (const pattern of alternativePatterns) {
         const match = response.match(pattern);
         if (match) {
-          console.log('📋 Found alternative pattern match');
+          ;
           // Try to extract and parse individual arrays
           try {
             const languagesMatch = response.match(/"languages"\s*:\s*\[([^\]]*)\]/i);
@@ -272,7 +274,7 @@ Example format:
 
             const hasData = Object.values(elements).some(arr => arr.length > 0);
             if (hasData) {
-              console.log('✅ Successfully parsed from alternative patterns:', elements);
+              ;
               return elements;
             }
           } catch (altError) {
@@ -282,7 +284,7 @@ Example format:
       }
 
       // Fallback: Parse as structured text
-      console.log('🔄 Attempting text-based parsing');
+      ;
       const elements: CulturalElements = {
         languages: [],
         religions: [],
@@ -301,27 +303,27 @@ Example format:
         // Detect section headers
         if (/languages?:/i.test(trimmed)) {
           currentSection = 'languages';
-          console.log('📍 Found Languages section');
+          ;
           continue;
         }
         if (/religions?|beliefs?:/i.test(trimmed)) {
           currentSection = 'religions';
-          console.log('📍 Found Religions section');
+          ;
           continue;
         }
         if (/traditions?|customs?:/i.test(trimmed)) {
           currentSection = 'traditions';
-          console.log('📍 Found Traditions section');
+          ;
           continue;
         }
         if (/historical\s*events?|history:/i.test(trimmed)) {
           currentSection = 'historicalEvents';
-          console.log('📍 Found Historical Events section');
+          ;
           continue;
         }
         if (/conflicts?|tensions?:/i.test(trimmed)) {
           currentSection = 'culturalConflicts';
-          console.log('📍 Found Conflicts section');
+          ;
           continue;
         }
         
@@ -333,7 +335,7 @@ Example format:
           // Skip if it's too short or looks like a header
           if (cleaned.length > 5 && !cleaned.endsWith(':')) {
             elements[currentSection].push(cleaned);
-            console.log(`  ➕ Added to ${currentSection}:`, cleaned);
+            ;
           }
         }
       }
@@ -341,7 +343,7 @@ Example format:
       // Check if we got any data
       const hasData = Object.values(elements).some(arr => arr.length > 0);
       if (hasData) {
-        console.log('✅ Successfully parsed cultural elements from text:', elements);
+        ;
         return elements;
       }
       

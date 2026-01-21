@@ -187,7 +187,7 @@ export function Step3NarrativeStructure({
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No acts defined yet</h3>
             <p className="text-gray-600 mb-4">Start building your narrative structure by adding acts.</p>
-            <Button onClick={handleAddAct}>
+            <Button onClick={handleAddAct} className="bg-blue-600 hover:bg-blue-700 text-white">
               <Plus className="h-4 w-4 mr-2" />
               Add First Act
             </Button>
@@ -210,7 +210,7 @@ export function Step3NarrativeStructure({
 
             {/* Add Act Button */}
             <div className="flex justify-center pt-4">
-              <Button variant="outline" onClick={handleAddAct}>
+              <Button variant="outline" onClick={handleAddAct} className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Act
               </Button>
@@ -302,10 +302,10 @@ function ActCard({
                 <Clock className="h-3 w-3" />
                 {formatDuration(act.targetDuration)}
               </Badge>
-              <Button variant="ghost" size="sm" onClick={onEdit}>
+              <Button variant="ghost" size="sm" onClick={onEdit} className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Edit className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={onDelete}>
+              <Button variant="ghost" size="sm" onClick={onDelete} className="bg-red-600 hover:bg-red-700 text-white">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -475,10 +475,10 @@ function ActEditorDialog({
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} className="bg-gray-600 hover:bg-gray-700 text-white">
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!formData.title.trim()}>
+          <Button onClick={handleSave} disabled={!formData.title.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
             {act.id ? 'Update Act' : 'Add Act'}
           </Button>
         </div>

@@ -1,0 +1,1 @@
+console.log('electron:', require('electron'));

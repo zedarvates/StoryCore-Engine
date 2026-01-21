@@ -237,7 +237,7 @@ class CharacterIntegrationManager:
                 "character_id": profile.character_id,
                 "name": profile.name,
                 "puppet_category": profile.puppet_category.value,
-                "library_path": f"characters/{profile.character_id}.json"
+                "library_path": f"assets/characters/{profile.character_id}.json"
             }
             
             # Check if character already exists in project

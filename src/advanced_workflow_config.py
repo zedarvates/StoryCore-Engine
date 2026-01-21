@@ -728,13 +728,83 @@ def load_config_from_file(config_path: Path) -> AdvancedWorkflowConfig:
 def save_config_to_file(config: AdvancedWorkflowConfig, config_path: Path) -> bool:
     """
     Save configuration to file (convenience function)
-    
+
     Args:
         config: Configuration to save
         config_path: Path to save configuration
-    
+
     Returns:
         True if successful, False otherwise
     """
     manager = ConfigurationManager()
     return manager.save_config(config, config_path)
+
+
+# ============================================================================
+# Global Configuration Manager
+# ============================================================================
+
+class AdvancedWorkflowConfigManager:
+    """Manager for advanced workflow configuration"""
+
+    def __init__(self, config_path: Optional[str] = None):
+        """
+        Initialize configuration manager
+
+        Args:
+            config_path: Optional path to configuration file
+        """
+        self.config_path = config_path
+        self._config: Optional[AdvancedWorkflowConfig] = None
+        self.configuration_manager = ConfigurationManager()
+
+    def get_config(self) -> AdvancedWorkflowConfig:
+        """Get the current configuration"""
+        if self._config is None:
+            if self.config_path:
+                self._config = self.configuration_manager.load_config(Path(self.config_path))
+            else:
+                self._config = self.configuration_manager.load_config()
+        return self._config
+
+    def save_config(self, config: Optional[AdvancedWorkflowConfig] = None) -> bool:
+        """Save the configuration"""
+        if config is None:
+            config = self._config
+        if config is None:
+            return False
+        return self.configuration_manager.save_config(config)
+
+    def validate_config(self) -> Dict[str, Any]:
+        """Validate the current configuration"""
+        config = self.get_config()
+        errors = config.validate()
+        return {
+            "is_valid": len(errors) == 0,
+            "issues": errors
+        }
+
+    def get_workflow_config(self, workflow_name: str) -> Optional[Dict[str, Any]]:
+        """Get configuration for a specific workflow"""
+        config = self.get_config()
+        if workflow_name == "hunyuan":
+            return asdict(config.hunyuan_config)
+        elif workflow_name == "wan":
+            return asdict(config.wan_config)
+        elif workflow_name == "newbie":
+            return asdict(config.newbie_config)
+        elif workflow_name == "qwen":
+            return asdict(config.qwen_config)
+        return None
+
+
+# Global instance
+_global_config_manager: Optional[AdvancedWorkflowConfigManager] = None
+
+
+def get_global_config() -> AdvancedWorkflowConfigManager:
+    """Get the global configuration manager instance"""
+    global _global_config_manager
+    if _global_config_manager is None:
+        _global_config_manager = AdvancedWorkflowConfigManager()
+    return _global_config_manager

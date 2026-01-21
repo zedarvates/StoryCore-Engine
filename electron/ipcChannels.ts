@@ -58,6 +58,15 @@ export const IPC_CHANNELS = {
   DRAFT_LOAD: 'draft:load',
   DRAFT_LIST: 'draft:list',
   DRAFT_DELETE: 'draft:delete',
+
+  // ComfyUI integration
+  COMFYUI_EXECUTE_WORKFLOW: 'comfyui:execute-workflow',
+  COMFYUI_GET_QUEUE_STATUS: 'comfyui:get-queue-status',
+  COMFYUI_UPLOAD_MEDIA: 'comfyui:upload-media',
+  COMFYUI_DOWNLOAD_OUTPUT: 'comfyui:download-output',
+  COMFYUI_GET_SERVICE_STATUS: 'comfyui:get-service-status',
+  COMFYUI_START_SERVICE: 'comfyui:start-service',
+  COMFYUI_STOP_SERVICE: 'comfyui:stop-service',
 } as const;
 
 /**
@@ -92,6 +101,7 @@ export class IPCHandlers {
     this.registerUpdateHandlers();
     this.registerAppHandlers();
     this.registerDraftHandlers();
+    this.registerComfyUIHandlers();
   }
 
   /**
@@ -125,6 +135,15 @@ export class IPCHandlers {
     ipcMain.removeHandler(IPC_CHANNELS.DRAFT_LOAD);
     ipcMain.removeHandler(IPC_CHANNELS.DRAFT_LIST);
     ipcMain.removeHandler(IPC_CHANNELS.DRAFT_DELETE);
+
+    // ComfyUI handlers
+    ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_EXECUTE_WORKFLOW);
+    ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_GET_QUEUE_STATUS);
+    ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_UPLOAD_MEDIA);
+    ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_DOWNLOAD_OUTPUT);
+    ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_GET_SERVICE_STATUS);
+    ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_START_SERVICE);
+    ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_STOP_SERVICE);
 
     // App handlers
     ipcMain.removeAllListeners(IPC_CHANNELS.APP_QUIT);
@@ -949,6 +968,141 @@ export class IPCHandlers {
       }
     });
   }
+
+  /**
+   * Register ComfyUI integration handlers
+   */
+  private registerComfyUIHandlers(): void {
+    // Execute workflow
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_EXECUTE_WORKFLOW, async (_event, workflowData: any) => {
+      try {
+        // TODO: Implement ComfyUI workflow execution via Python backend
+        console.log('ComfyUI workflow execution requested:', workflowData);
+        return {
+          success: false,
+          error: 'ComfyUI integration not yet implemented',
+        };
+      } catch (error) {
+        console.error('Failed to execute ComfyUI workflow:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Get queue status
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_GET_QUEUE_STATUS, async () => {
+      try {
+        // TODO: Implement queue status retrieval
+        return {
+          success: true,
+          queue: {
+            running: [],
+            pending: [],
+          },
+        };
+      } catch (error) {
+        console.error('Failed to get ComfyUI queue status:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Upload media
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_UPLOAD_MEDIA, async (_event, mediaPath: string) => {
+      try {
+        // TODO: Implement media upload to ComfyUI
+        console.log('Media upload requested:', mediaPath);
+        return {
+          success: false,
+          error: 'Media upload not yet implemented',
+        };
+      } catch (error) {
+        console.error('Failed to upload media to ComfyUI:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Download output
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_DOWNLOAD_OUTPUT, async (_event, outputId: string) => {
+      try {
+        // TODO: Implement output download from ComfyUI
+        console.log('Output download requested:', outputId);
+        return {
+          success: false,
+          error: 'Output download not yet implemented',
+        };
+      } catch (error) {
+        console.error('Failed to download ComfyUI output:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Get service status
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_GET_SERVICE_STATUS, async () => {
+      try {
+        // TODO: Implement service status check
+        return {
+          success: true,
+          status: {
+            running: false,
+            healthy: false,
+            url: null,
+            version: null,
+          },
+        };
+      } catch (error) {
+        console.error('Failed to get ComfyUI service status:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Start service
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_START_SERVICE, async () => {
+      try {
+        // TODO: Implement service start
+        console.log('ComfyUI service start requested');
+        return {
+          success: false,
+          error: 'Service start not yet implemented',
+        };
+      } catch (error) {
+        console.error('Failed to start ComfyUI service:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Stop service
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_STOP_SERVICE, async () => {
+      try {
+        // TODO: Implement service stop
+        console.log('ComfyUI service stop requested');
+        return {
+          success: false,
+          error: 'Service stop not yet implemented',
+        };
+      } catch (error) {
+        console.error('Failed to stop ComfyUI service:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+  }
 }
-
-

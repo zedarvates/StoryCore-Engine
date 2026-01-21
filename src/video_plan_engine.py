@@ -160,24 +160,24 @@ class VideoPlanEngine:
         """Update project.json with video plan metadata."""
         if not project_file.exists():
             return
-        
+
         try:
             with open(project_file, 'r') as f:
                 project_data = json.load(f)
-            
+
             # Ensure schema compliance
             from project_manager import ProjectManager
             pm = ProjectManager()
             project_data = pm.ensure_schema_compliance(project_data)
-            
+
             # Update data contract v1 fields
             project_data["capabilities"]["video_plan"] = True
             project_data["generation_status"]["video_plan"] = "done"
-            
+
             # Update metadata
             if "asset_manifest" not in project_data:
                 project_data["asset_manifest"] = {}
-            
+
             project_data["asset_manifest"]["video_plan_metadata"] = {
                 "video_plan_generated": True,
                 "total_shots": video_plan["total_shots"],
@@ -185,11 +185,25 @@ class VideoPlanEngine:
                 "camera_movements": video_plan["metadata"]["camera_movements"],
                 "generated_at": video_plan["created_at"]
             }
-            
+
             project_data["updated_at"] = datetime.utcnow().isoformat() + "Z"
-            
+
             with open(project_file, 'w') as f:
                 json.dump(project_data, f, indent=2)
-                
+
         except (json.JSONDecodeError, KeyError) as e:
             print(f"Warning: Could not update project metadata: {e}")
+
+    def save_video_plan_to_file(self, project_path: Path, video_plan: Dict[str, Any]) -> str:
+        """Save video plan to JSON file and update project manifest."""
+        video_plan_file = project_path / "video_plan.json"
+
+        # Save the video plan
+        with open(video_plan_file, 'w') as f:
+            json.dump(video_plan, f, indent=2)
+
+        # Update project manifest
+        project_file = project_path / "project.json"
+        self._update_project_manifest(project_file, video_plan)
+
+        return str(video_plan_file)

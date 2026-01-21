@@ -17,7 +17,7 @@ export function SettingsDemo() {
   const llmService = getLLMService();
 
   const handleLLMSave = async (config: LLMConfig) => {
-    console.log('Saving LLM config:', config);
+    ;
     
     // Update the LLM service
     llmService.updateConfig(config);
@@ -29,7 +29,7 @@ export function SettingsDemo() {
   };
 
   const handleComfyUISave = async (config: ComfyUIConfig) => {
-    console.log('Saving ComfyUI config:', config);
+    ;
     
     // Save to state
     setSavedComfyUIConfig(config);
@@ -38,7 +38,7 @@ export function SettingsDemo() {
   };
 
   const handleTestConnection = async (config: Partial<LLMConfig>): Promise<boolean> => {
-    console.log('Testing LLM connection with config:', config);
+    ;
     
     // Create a temporary service with the test config
     const testService = getLLMService();

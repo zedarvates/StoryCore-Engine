@@ -358,6 +358,46 @@
   /* LandingChatBox has its own styling */
   border-radius: 8px;
   overflow: hidden;
+  position: relative;
+  min-height: 200px;
+  transition: height 0.1s ease-out;
+}
+
+.chatterbox-container.resizable {
+  /* Container becomes resizable */
+}
+
+.chatterbox-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(34, 34, 34, 0.8), transparent);
+  border-bottom: 1px solid #444;
+  z-index: 10;
+  cursor: ns-resize;
+}
+
+.resize-grip {
+  color: #666;
+  font-size: 12px;
+  line-height: 1;
+  cursor: ns-resize;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.resize-grip:hover {
+  color: #4a9eff;
+}
+
+.chatterbox-container .chat-container {
+  /* Adjust the chat container to account for the resize handle */
+  padding-top: 20px;
 }
 
 /* Plan Sequences */

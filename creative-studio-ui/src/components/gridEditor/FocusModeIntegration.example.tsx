@@ -195,7 +195,7 @@ const styles: Record<string, React.CSSProperties> = {
  * ```tsx
  * const handleCustomFocus = useCallback((panelId: string) => {
  *   // Custom logic before entering focus mode
- *   console.log('Entering focus mode for panel:', panelId);
+ *   ;
  *   
  *   // Calculate custom panel bounds
  *   const customBounds = calculateCustomBounds(panelId);

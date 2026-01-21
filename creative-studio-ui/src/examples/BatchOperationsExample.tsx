@@ -58,7 +58,7 @@ export const BatchOperationsExample: React.FC = () => {
    * Gère la complétion d'une opération
    */
   const handleOperationComplete = (result: BatchOperationResult) => {
-    console.log('Opération terminée:', result);
+    ;
     
     // Mettre à jour les plans avec les résultats
     setShots(prev => {

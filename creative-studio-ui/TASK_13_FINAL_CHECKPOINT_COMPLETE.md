@@ -65,6 +65,7 @@ From `.kiro/specs/ui-configuration-wizards/tasks.md`:
 - ✅ Streaming response support
 
 **ComfyUI Backend**:
+- ✅ **OPERATIONAL** - Real ComfyUI server running on port 8188 with CORS enabled
 - ✅ Connection testing implemented
 - ✅ Workflow discovery functional
 - ✅ Model listing operational

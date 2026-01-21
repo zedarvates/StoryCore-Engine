@@ -1,0 +1,72 @@
+{
+  "template_name": "Foi et Spiritualité",
+  "context": "Un youtubeur partageant des messages inspirants sur la foi et la spiritualité.",
+  "visual_elements": {
+    "background": "assets/jpg_files/file_11_1.jpg",
+    "logo": "assets/library/StorycoreIcone.png",
+    "animated_text": {
+      "title": "Découvrez la puissance de la foi !",
+      "subtitle": "Un voyage spirituel enrichissant."
+    }
+  },
+  "animations": {
+    "transitions": [
+      {
+        "type": "fade",
+        "duration": 2.0
+      },
+      {
+        "type": "dissolve",
+        "duration": 1.5
+      }
+    ],
+    "cta_animations": [
+      {
+        "type": "glow",
+        "duration": 2.5
+      }
+    ],
+    "spiritual_effects": [
+      {
+        "type": "light_rays",
+        "intensity": "soft"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "Introduction",
+      "content": {
+        "title": "Introduction Spirituelle",
+        "subtitle": "Un moment de réflexion et d'inspiration.",
+        "background": "assets/jpg_files/file_11_2.jpg"
+      }
+    },
+    {
+      "name": "Témoignage de Foi",
+      "content": {
+        "title": "Témoignage de Foi",
+        "subtitle": "Partage d'expériences personnelles.",
+        "background": "assets/jpg_files/file_12_1.jpg"
+      }
+    },
+    {
+      "name": "Placement de Produit Spirituel",
+      "content": {
+        "title": "Placement de Produit",
+        "subtitle": "Découvrez des outils pour nourrir votre foi.",
+        "background": "assets/jpg_files/file_12_2.jpg",
+        "animation": "glow"
+      }
+    },
+    {
+      "name": "Conclusion Inspirante",
+      "content": {
+        "title": "Conclusion",
+        "subtitle": "Que la paix soit avec vous !",
+        "background": "assets/jpg_files/file_13_1.jpg",
+        "cta": "Abonnez-vous pour plus d'inspiration spirituelle !"
+      }
+    }
+  ]
+}

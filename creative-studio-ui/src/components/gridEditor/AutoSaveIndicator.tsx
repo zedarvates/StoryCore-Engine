@@ -84,7 +84,7 @@ export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
       enabled: defaultEnabled,
       author,
       onAutoSave: (timestamp) => {
-        console.log('Auto-saved at:', timestamp);
+        ;
       },
       onError: (error) => {
         console.error('Auto-save error:', error);

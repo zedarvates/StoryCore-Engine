@@ -82,7 +82,7 @@ async def test_comfyui_integration():
                         assert len(result) == len(input_frames), "Wrong number of output frames"
                         mock_execute.assert_called_once()
                         args = mock_execute.call_args[0]
-                        assert "workflows/workflow_wan_video_inpainting.json" in args[0], "Wrong workflow path"
+                        assert "assets/workflows/workflow_wan_video_inpainting.json" in args[0], "Wrong workflow path"
 
                 # Test 3: Generate video with alpha
                 print("✓ Testing alpha workflow...")
@@ -132,7 +132,7 @@ async def test_comfyui_integration():
                         assert len(result) == 16, "Wrong number of output frames"
                         mock_execute.assert_called_once()
                         args = mock_execute.call_args[0]
-                        assert "workflows/workflow_wan_video_dual_guidance.json" in args[0], "Wrong workflow path"
+                        assert "assets/workflows/workflow_wan_video_dual_guidance.json" in args[0], "Wrong workflow path"
 
         print("✓ All ComfyUI integration tests passed!")
 

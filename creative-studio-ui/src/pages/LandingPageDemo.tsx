@@ -45,17 +45,17 @@ export function LandingPageDemo() {
   ]);
 
   const handleCreateProject = () => {
-    console.log('Create new project clicked');
+    ;
     setShowCreateDialog(true);
   };
 
   const handleOpenProject = () => {
-    console.log('Open project clicked');
+    ;
     setShowOpenDialog(true);
   };
 
   const handleCreateProjectSubmit = async (projectName: string, projectPath: string, format: SerializableProjectFormat) => {
-    console.log('Creating project:', { projectName, projectPath, format });
+    ;
     
     // Generate project template
     const template = generateProjectTemplate(format);
@@ -84,7 +84,7 @@ export function LandingPageDemo() {
   };
 
   const handleOpenProjectSubmit = async (projectPath: string) => {
-    console.log('Opening project:', projectPath);
+    ;
     
     // Simulate project opening
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -93,7 +93,7 @@ export function LandingPageDemo() {
   };
 
   const handleRecentProjectClick = (project: RecentProject) => {
-    console.log('Recent project clicked:', project);
+    ;
     if (project.exists === false) {
       alert(`Project "${project.name}" not found at ${project.path}`);
     } else {
@@ -102,7 +102,7 @@ export function LandingPageDemo() {
   };
 
   const handleRemoveRecentProject = (projectPath: string) => {
-    console.log('Remove project:', projectPath);
+    ;
     setRecentProjects((prev) => prev.filter((p) => p.path !== projectPath));
   };
 
