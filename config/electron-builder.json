@@ -14,7 +14,7 @@
   },
   "win": {
     "target": "nsis",
-    "icon": "build/icon.png",
+    "icon": "StorycoreIconeV2.png",
     "artifactName": "${productName}-Setup-${version}.${ext}"
   },
   "nsis": {
@@ -23,7 +23,7 @@
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
     "shortcutName": "StoryCore Creative Studio",
-    "installerIcon": "build/icon.png",
-    "uninstallerIcon": "build/icon.png"
+    "installerIcon": "StorycoreIconeV2.png",
+    "uninstallerIcon": "StorycoreIconeV2.png"
   }
 }

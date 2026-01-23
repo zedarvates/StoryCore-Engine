@@ -47,7 +47,6 @@ export class ProductionWizardErrorBoundary extends Component<Props, State> {
     console.error('Production Wizard Error:', error);
     console.error('Error Info:', errorInfo);
 
-    // TODO: Send error to logging service
     // logError('ProductionWizard', { error: error.message, stack: error.stack, componentStack: errorInfo.componentStack });
   }
 

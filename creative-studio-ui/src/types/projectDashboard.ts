@@ -27,6 +27,45 @@ export interface Shot {
     lighting?: string;
     mood?: string;
   };
+  position: number; // Position in the sequence
+  status?: string; // Status of the shot (e.g., "Draft", "In Progress", "Completed")
+  progress?: number; // Progress percentage (0-100)
+  image?: string; // Image URL or base64 data
+  audioTracks?: AudioTrack[]; // Audio tracks associated with the shot
+  effects?: Effect[]; // Effects applied to the shot
+  textLayers?: TextLayer[]; // Text layers on the shot
+  transitionOut?: Transition; // Transition to the next shot
+}
+
+export interface AudioTrack {
+  id: string;
+  name: string;
+  url: string;
+  volume: number;
+}
+
+export interface Effect {
+  id: string;
+  name: string;
+  type: string;
+  parameters: Record<string, unknown>;
+}
+
+export interface TextLayer {
+  id: string;
+  text: string;
+  position: { x: number; y: number };
+  style: {
+    fontSize: number;
+    fontFamily: string;
+    color: string;
+  };
+}
+
+export interface Transition {
+  id: string;
+  type: string;
+  duration: number;
 }
 
 /**

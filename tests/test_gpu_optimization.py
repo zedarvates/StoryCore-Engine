@@ -1,229 +1,290 @@
 #!/usr/bin/env python3
 """
-Tests pour l'optimisation de l'utilisation du GPU et le traitement par lots intelligent.
+Test suite for GPU optimization and monitoring features.
+
+This test validates GPU memory optimization, monitoring, and fallback mechanisms.
 """
 
-import unittest
+import pytest
 import asyncio
-import time
-from unittest.mock import Mock, patch
-from src.gpu_scheduler import GPUScheduler, GPUJobRequest, JobPriority
-from src.batch_processing_system import BatchProcessingSystem, JobDefinition, JobPriority as BatchJobPriority
+import tempfile
+from unittest.mock import patch, MagicMock
+
+from src.model_manager import ModelManager, GPUMemoryManager
+from src.ai_enhancement_engine import ModelConfig, ModelType
 
 
-class TestGPUScheduler(unittest.TestCase):
-    """Tests pour le planificateur GPU."""
-
-    def setUp(self):
-        """Configuration initiale pour les tests."""
-        self.scheduler = GPUScheduler()
-        self.test_job = GPUJobRequest(
-            job_id="test_job_1",
-            job_type="image_processing",
-            priority=JobPriority.NORMAL,
-            gpu_memory_required=1024,
-            estimated_duration=10.0,
-            timeout=30.0,
-            callback=lambda **kwargs: asyncio.sleep(0.1)
+class TestGPUOptimization:
+    """Test suite for GPU optimization features."""
+    
+    def setup_method(self):
+        """Set up test environment."""
+        self.temp_dir = tempfile.mkdtemp()
+        self.config = ModelConfig(
+            model_registry_path=self.temp_dir,
+            model_cache_size=3,
+            gpu_memory_limit_mb=4096,
+            cpu_fallback_enabled=True,
+            model_download_enabled=True
         )
-
-    def test_job_submission(self):
-        """Teste la soumission d'un travail au planificateur GPU."""
-        job_id = asyncio.run(self.scheduler.submit_job(self.test_job))
-        self.assertIsNotNone(job_id)
-        self.assertEqual(len(self.scheduler.job_queue), 1)
-
-    def test_job_priority(self):
-        """Teste la priorité des travaux."""
-        high_priority_job = GPUJobRequest(
-            job_id="high_priority_job",
-            job_type="real_time_preview",
-            priority=JobPriority.CRITICAL,
-            gpu_memory_required=2048,
-            estimated_duration=5.0,
-            timeout=15.0,
-            callback=lambda **kwargs: asyncio.sleep(0.1)
-        )
+        self.model_manager = ModelManager(self.config)
+    
+    def test_gpu_memory_usage_report(self):
+        """Test GPU memory usage reporting."""
+        gpu_manager = self.model_manager.gpu_memory_manager
         
-        low_priority_job = GPUJobRequest(
-            job_id="low_priority_job",
-            job_type="background_processing",
-            priority=JobPriority.BATCH,
-            gpu_memory_required=512,
-            estimated_duration=60.0,
-            timeout=300.0,
-            callback=lambda **kwargs: asyncio.sleep(0.1)
-        )
+        # Get initial report
+        report = gpu_manager.get_memory_usage_report()
         
-        asyncio.run(self.scheduler.submit_job(high_priority_job))
-        asyncio.run(self.scheduler.submit_job(low_priority_job))
+        # Verify report structure
+        assert "gpu_available" in report
+        assert "total_memory_mb" in report
+        assert "available_memory_mb" in report
+        assert "allocated_memory_mb" in report
+        assert "utilization_percent" in report
+        assert "active_allocations" in report
+        assert "largest_allocation_mb" in report
+        assert "allocations" in report
+        assert "temperature" in report
+        assert "device_name" in report
         
-        # Le travail à haute priorité devrait être traité en premier
-        self.assertEqual(len(self.scheduler.job_queue), 2)
-
-    def test_gpu_device_selection(self):
-        """Teste la sélection du meilleur appareil GPU."""
-        # Simuler un travail nécessitant beaucoup de mémoire
-        heavy_job = GPUJobRequest(
-            job_id="heavy_job",
-            job_type="video_processing",
-            priority=JobPriority.HIGH,
-            gpu_memory_required=4096,
-            estimated_duration=30.0,
-            timeout=60.0,
-            callback=lambda **kwargs: asyncio.sleep(0.1)
-        )
+        # Verify initial state
+        assert report["allocated_memory_mb"] == 0
+        assert report["active_allocations"] == 0
+        assert report["utilization_percent"] == 0
+    
+    def test_gpu_optimization_scoring(self):
+        """Test GPU optimization score calculation."""
+        gpu_manager = self.model_manager.gpu_memory_manager
         
-        device = self.scheduler._select_optimal_device(heavy_job)
-        self.assertIsNotNone(device)
-        self.assertGreaterEqual(device.available_memory, heavy_job.gpu_memory_required)
-
-    def test_job_execution(self):
-        """Teste l'exécution d'un travail."""
-        async def test_execution():
-            await self.scheduler.start()
-            job_id = await self.scheduler.submit_job(self.test_job)
+        # Test with different utilization levels
+        test_reports = [
+            {"gpu_available": True, "utilization_percent": 30, "active_allocations": 2, "temperature": 60},
+            {"gpu_available": True, "utilization_percent": 75, "active_allocations": 3, "temperature": 70},
+            {"gpu_available": True, "utilization_percent": 95, "active_allocations": 8, "temperature": 85},
+            {"gpu_available": False, "utilization_percent": 0, "active_allocations": 0, "temperature": 0}
+        ]
+        
+        scores = []
+        for report in test_reports:
+            score = gpu_manager._calculate_optimization_score(report)
+            scores.append(score)
+            assert 0 <= score <= 1
+        
+        # GPU unavailable should have lowest score
+        assert scores[3] == 0.0
+        
+        # Optimal utilization should have higher score than extreme values
+        assert scores[1] > scores[0]  # 75% better than 30%
+        assert scores[1] > scores[2]  # 75% better than 95%
+    
+    @pytest.mark.asyncio
+    async def test_gpu_memory_optimization(self):
+        """Test GPU memory optimization with model unloading."""
+        # Load multiple models to fill cache
+        model_ids = ["style_transfer_v1", "super_resolution_v2", "interpolation_v1"]
+        
+        for model_id in model_ids:
+            result = await self.model_manager.load_model(model_id)
+            assert result.success is True
+        
+        # Verify models are cached
+        assert len(self.model_manager.get_cached_models()) == 3
+        
+        # Run GPU optimization
+        optimization_result = await self.model_manager.optimize_gpu_memory()
+        
+        # Verify optimization report structure
+        assert "gpu_optimization" in optimization_result
+        assert "actions_taken" in optimization_result
+        assert "final_gpu_status" in optimization_result
+        assert "cache_status" in optimization_result
+        
+        # Verify GPU optimization contains expected fields
+        gpu_opt = optimization_result["gpu_optimization"]
+        assert "current_status" in gpu_opt
+        assert "recommendations" in gpu_opt
+        assert "actions_taken" in gpu_opt
+        assert "optimization_score" in gpu_opt
+    
+    @pytest.mark.asyncio
+    async def test_cpu_fallback_mechanism(self):
+        """Test CPU fallback when GPU memory is insufficient."""
+        # Mock GPU memory manager to simulate insufficient memory
+        with patch.object(self.model_manager.gpu_memory_manager, 'can_allocate', return_value=False):
+            with patch.object(self.model_manager.gpu_memory_manager, 'allocate_memory', return_value=False):
+                
+                # Load model with GPU request - should fallback to CPU
+                result = await self.model_manager.load_model("style_transfer_v1", device="cuda")
+                
+                assert result.success is True
+                assert result.device == "cpu"  # Should fallback to CPU
+                assert "fallback_used" in result.model
+                assert result.model["fallback_used"] is True
+    
+    @pytest.mark.asyncio
+    async def test_performance_metrics_collection(self):
+        """Test comprehensive performance metrics collection."""
+        # Load some models to generate metrics
+        await self.model_manager.load_model("style_transfer_v1")
+        await self.model_manager.load_model("style_transfer_v1")  # Cache hit
+        await self.model_manager.load_model("super_resolution_v2")
+        
+        # Get performance metrics
+        metrics = self.model_manager.get_performance_metrics()
+        
+        # Verify metrics structure
+        assert "timestamp" in metrics
+        assert "cache_metrics" in metrics
+        assert "gpu_metrics" in metrics
+        assert "performance_metrics" in metrics
+        assert "load_statistics" in metrics
+        
+        # Verify cache metrics
+        cache_metrics = metrics["cache_metrics"]
+        assert "hit_rate" in cache_metrics
+        assert "cached_models" in cache_metrics
+        assert "total_cache_memory_mb" in cache_metrics
+        assert "cache_utilization" in cache_metrics
+        
+        # Verify GPU metrics
+        gpu_metrics = metrics["gpu_metrics"]
+        assert "available" in gpu_metrics
+        assert "utilization_percent" in gpu_metrics
+        assert "memory_usage_mb" in gpu_metrics
+        assert "temperature" in gpu_metrics
+        assert "optimization_score" in gpu_metrics
+        
+        # Verify performance metrics
+        perf_metrics = metrics["performance_metrics"]
+        assert "success_rate" in perf_metrics
+        assert "average_load_time_ms" in perf_metrics
+        assert "total_loads" in perf_metrics
+        assert "gpu_load_ratio" in perf_metrics
+        
+        # Verify reasonable values
+        assert 0 <= cache_metrics["hit_rate"] <= 1
+        assert cache_metrics["cached_models"] >= 0
+        assert 0 <= perf_metrics["success_rate"] <= 1
+        assert perf_metrics["average_load_time_ms"] >= 0
+    
+    @pytest.mark.asyncio
+    async def test_model_loading_optimization(self):
+        """Test model loading optimization analysis."""
+        # Load models with different patterns
+        await self.model_manager.load_model("style_transfer_v1")
+        await self.model_manager.load_model("style_transfer_v1")  # Cache hit
+        await self.model_manager.load_model("super_resolution_v2")
+        
+        # Get optimization analysis
+        optimization = self.model_manager.optimize_model_loading()
+        
+        # Verify optimization report
+        assert "cache_hit_rate" in optimization
+        assert "gpu_utilization_rate" in optimization
+        assert "average_load_time_ms" in optimization
+        assert "recommendations" in optimization
+        assert "gpu_status" in optimization
+        
+        # Verify metrics are reasonable
+        assert 0 <= optimization["cache_hit_rate"] <= 1
+        assert 0 <= optimization["gpu_utilization_rate"] <= 1
+        assert optimization["average_load_time_ms"] >= 0
+        assert isinstance(optimization["recommendations"], list)
+    
+    def test_gpu_memory_allocation_tracking(self):
+        """Test GPU memory allocation and tracking."""
+        gpu_manager = self.model_manager.gpu_memory_manager
+        
+        if not gpu_manager.gpu_available:
+            pytest.skip("GPU not available for testing")
+        
+        # Test memory allocation
+        allocation_id = "test_allocation"
+        memory_mb = 256.0
+        
+        # Get initial status
+        initial_report = gpu_manager.get_memory_usage_report()
+        initial_allocated = initial_report["allocated_memory_mb"]
+        
+        # Allocate memory
+        success = gpu_manager.allocate_memory(allocation_id, memory_mb)
+        
+        if success:
+            # Verify allocation is tracked
+            updated_report = gpu_manager.get_memory_usage_report()
+            assert updated_report["allocated_memory_mb"] == initial_allocated + memory_mb
+            assert updated_report["active_allocations"] == initial_report["active_allocations"] + 1
+            assert allocation_id in updated_report["allocations"]
             
-            # Attendre que le travail soit terminé
-            await asyncio.sleep(0.5)
+            # Deallocate memory
+            gpu_manager.deallocate_memory(allocation_id)
             
-            result = self.scheduler.get_job_result(job_id)
-            self.assertIsNotNone(result)
-            self.assertEqual(result.status.value, "completed")
-            
-            await self.scheduler.stop()
+            # Verify deallocation
+            final_report = gpu_manager.get_memory_usage_report()
+            assert final_report["allocated_memory_mb"] == initial_allocated
+            assert allocation_id not in final_report["allocations"]
+    
+    @pytest.mark.asyncio
+    async def test_device_placement_optimization(self):
+        """Test intelligent device placement optimization."""
+        # Load models on different devices
+        result_gpu = await self.model_manager.load_model("style_transfer_v1", device="cuda")
+        result_cpu = await self.model_manager.load_model("super_resolution_v2", device="cpu")
         
-        asyncio.run(test_execution())
-
-    def test_resource_monitoring(self):
-        """Teste la surveillance des ressources."""
-        metrics = self.scheduler.get_performance_metrics()
-        self.assertIn("gpu_metrics", metrics)
-        self.assertIn("queue_metrics", metrics)
-        self.assertIn("performance_metrics", metrics)
-
-
-class TestBatchProcessingSystem(unittest.TestCase):
-    """Tests pour le système de traitement par lots."""
-
-    def setUp(self):
-        """Configuration initiale pour les tests."""
-        self.batch_system = BatchProcessingSystem(max_workers=2)
+        # Both should succeed (with potential fallback)
+        assert result_gpu.success is True
+        assert result_cpu.success is True
+        assert result_cpu.device == "cpu"
         
-        # Enregistrer un processeur de travail factice
-        def dummy_processor(parameters):
-            time.sleep(0.1)
-            return {"status": "success", "data": parameters}
+        # Run optimization which includes device placement analysis
+        optimization_result = await self.model_manager.optimize_gpu_memory()
         
-        self.batch_system.register_job_processor("test_job", dummy_processor)
-
-    def test_job_submission(self):
-        """Teste la soumission d'un travail au système de traitement par lots."""
-        job = JobDefinition(
-            job_id="test_job_1",
-            job_type="test_job",
-            priority=BatchJobPriority.NORMAL,
-            parameters={"test": "data"}
+        # Verify optimization completed without errors
+        assert "gpu_optimization" in optimization_result
+        assert "final_gpu_status" in optimization_result
+    
+    @pytest.mark.asyncio
+    async def test_model_download_with_progress(self):
+        """Test model download with progress tracking."""
+        # Create a model that needs to be downloaded
+        from src.ai_enhancement_engine import ModelInfo
+        
+        download_model = ModelInfo(
+            model_id="download_test_model",
+            model_type=ModelType.STYLE_TRANSFER,
+            version="1.0.0",
+            size_mb=100.0,
+            gpu_memory_required=256,
+            supported_operations=["style_transfer"],
+            performance_characteristics={"speed": 0.8},
+            file_path=f"{self.temp_dir}/models/download_test.pth",
+            download_url="https://example.com/download_test.pth",
+            checksum="sha256:test123"
         )
         
-        job_id = self.batch_system.submit_job(job)
-        self.assertIsNotNone(job_id)
-        self.assertEqual(len(self.batch_system.job_queue.jobs), 1)
-
-    def test_batch_processing(self):
-        """Teste le traitement par lots."""
-        jobs = []
-        for i in range(5):
-            job = JobDefinition(
-                job_id=f"test_job_{i}",
-                job_type="test_job",
-                priority=BatchJobPriority.NORMAL,
-                parameters={"item": i}
-            )
-            jobs.append(self.batch_system.submit_job(job))
+        # Register the model
+        self.model_manager.model_registry.register_model(download_model)
         
-        # Démarrer le traitement
-        self.batch_system.start_processing()
+        # Load the model (should trigger download)
+        result = await self.model_manager.load_model("download_test_model")
         
-        # Attendre que les travaux soient terminés
-        time.sleep(2)
+        # Verify download and loading succeeded
+        assert result.success is True
+        assert result.model is not None
         
-        # Vérifier les résultats
-        for job_id in jobs:
-            result = self.batch_system.get_job_status(job_id)
-            self.assertIsNotNone(result)
-            self.assertEqual(result.status.value, "completed")
+        # Verify file was created
+        from pathlib import Path
+        model_path = Path(download_model.file_path)
+        assert model_path.exists()
         
-        self.batch_system.stop_processing()
-
-    def test_priority_scheduling(self):
-        """Teste la planification par priorité."""
-        high_priority_job = JobDefinition(
-            job_id="high_priority_job",
-            job_type="test_job",
-            priority=BatchJobPriority.HIGH,
-            parameters={"priority": "high"}
-        )
-        
-        low_priority_job = JobDefinition(
-            job_id="low_priority_job",
-            job_type="test_job",
-            priority=BatchJobPriority.LOW,
-            parameters={"priority": "low"}
-        )
-        
-        self.batch_system.submit_job(high_priority_job)
-        self.batch_system.submit_job(low_priority_job)
-        
-        # Le travail à haute priorité devrait être traité en premier
-        self.assertEqual(len(self.batch_system.job_queue.jobs), 2)
-
-    def test_resource_optimization(self):
-        """Teste l'optimisation des ressources."""
-        # Soumettre plusieurs travaux pour tester l'optimisation des ressources
-        for i in range(10):
-            job = JobDefinition(
-                job_id=f"resource_test_job_{i}",
-                job_type="test_job",
-                priority=BatchJobPriority.NORMAL,
-                parameters={"item": i}
-            )
-            self.batch_system.submit_job(job)
-        
-        stats = self.batch_system.get_system_stats()
-        self.assertIn("queue_size", stats)
-        self.assertIn("active_workers", stats)
-        self.assertGreater(stats["queue_size"], 0)
-
-    def test_fault_tolerance(self):
-        """Teste la tolérance aux pannes."""
-        # Enregistrer un processeur qui échoue
-        def failing_processor(parameters):
-            raise Exception("Simulated failure")
-        
-        self.batch_system.register_job_processor("failing_job", failing_processor)
-        
-        job = JobDefinition(
-            job_id="failing_job_1",
-            job_type="failing_job",
-            priority=BatchJobPriority.NORMAL,
-            parameters={"test": "data"},
-            max_retries=2
-        )
-        
-        job_id = self.batch_system.submit_job(job)
-        self.batch_system.start_processing()
-        
-        # Attendre que le travail échoue et soit réessayé
-        time.sleep(2)
-        
-        result = self.batch_system.get_job_status(job_id)
-        self.assertIsNotNone(result)
-        self.assertEqual(result.status.value, "failed")
-        self.assertGreater(result.retry_count, 0)
-        
-        self.batch_system.stop_processing()
+        # Verify file content
+        with open(model_path, 'r') as f:
+            content = f.read()
+            assert "download_test_model" in content
+            assert "1.0.0" in content
 
 
 if __name__ == "__main__":
-    unittest.main()
+    # Run tests
+    pytest.main([__file__, "-v"])

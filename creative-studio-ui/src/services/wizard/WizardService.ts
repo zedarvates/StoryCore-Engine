@@ -149,7 +149,6 @@ export class WizardService {
         ? `cd "${projectPath}" && ${command}`
         : command;
 
-      console.log(`Executing wizard command: ${fullCommand}`);
 
       const result = await window.electronAPI.executeCommand({
         command: fullCommand,
@@ -303,7 +302,6 @@ export class WizardService {
   async saveWizardOutput(output: any, projectPath: string): Promise<void> {
     // Implementation would save wizard output to files
     // For now, this is a placeholder
-    console.log('Saving wizard output:', output, 'to', projectPath);
   }
 
   /**
@@ -312,7 +310,6 @@ export class WizardService {
   async updateProjectData(projectPath: string, output: any): Promise<void> {
     // Implementation would update project.json with new references
     // For now, this is a placeholder
-    console.log('Updating project data:', output, 'in', projectPath);
   }
 }
 

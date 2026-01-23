@@ -73,12 +73,10 @@ export const castingPlugin: CastingPlugin = {
 
   initialize: async () => {
     castingManagerInstance = new CastingManagerImpl();
-    console.log('Character Casting System initialized');
   },
 
   destroy: async () => {
     castingManagerInstance = null;
-    console.log('Character Casting System destroyed');
   },
 
   getCastingManager: () => {
@@ -89,24 +87,19 @@ export const castingPlugin: CastingPlugin = {
   },
 
   onCharacterCreated: (characterId: string) => {
-    console.log(`Character created: ${characterId}`);
   },
 
   onCharacterUpdated: (characterId: string) => {
-    console.log(`Character updated: ${characterId}`);
   },
 
   onCharacterDeleted: (characterId: string) => {
-    console.log(`Character deleted: ${characterId}`);
   },
 
   getActorForCharacter: (characterId: string) => {
-    console.log(`Getting actor for character: ${characterId}`);
     return null;
   },
 
   getActorsForCharacters: (characterIds: string[]) => {
-    console.log(`Getting actors for characters: ${characterIds.join(', ')}`);
     return {};
   },
 };

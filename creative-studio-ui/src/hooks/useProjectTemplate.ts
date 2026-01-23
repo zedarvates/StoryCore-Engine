@@ -69,7 +69,6 @@ export function useProjectTemplate(initialPath?: string): UseProjectTemplateRetu
   // Subscribe to template updates
   useEffect(() => {
     const unsubscribe = templateService.subscribeToTemplateUpdates((path, updatedTemplate) => {
-      console.log('[useProjectTemplate] Template updated:', path);
       
       // Update if it's the current template
       if (currentPath && path === currentPath) {
@@ -176,7 +175,6 @@ export function useTemplateCache(): UseTemplateCacheReturn {
   // Subscribe to cache updates
   useEffect(() => {
     const unsubscribe = templateService.subscribeToCacheUpdates((cleared) => {
-      console.log('[useTemplateCache] Cache update:', cleared);
       setCacheCleared(cleared);
       
       // Reset flag after 3 seconds
@@ -282,7 +280,6 @@ export interface UseTemplateMetadataReturn {
  * function MetadataEditor({ template }: { template: ProjectTemplate }) {
  *   const { metadata, updateMetadata } = useTemplateMetadata(
  *     template,
- *     (updated) => console.log('Metadata updated:', updated)
  *   );
  *   
  *   return (

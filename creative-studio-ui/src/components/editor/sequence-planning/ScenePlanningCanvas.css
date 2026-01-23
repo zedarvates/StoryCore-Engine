@@ -1,0 +1,365 @@
+/* ScenePlanningCanvas.css - Interactive Scene Planning Canvas */
+
+.scene-planning-canvas {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary);
+}
+
+/* Canvas Toolbar */
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  gap: 16px;
+}
+
+.transform-tools,
+.view-tools,
+.element-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tool-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--accent-color);
+}
+
+.tool-btn.active {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+.tool-btn.danger:hover {
+  background: var(--error-color, #ef4444);
+  border-color: var(--error-color, #ef4444);
+  color: white;
+}
+
+/* Main Canvas Area */
+.canvas-area {
+  flex: 1;
+  position: relative;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.canvas-area.show-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.canvas-area.3d {
+  perspective: 1000px;
+}
+
+/* Grid */
+.canvas-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.grid-line {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.grid-line.horizontal {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.grid-line.vertical {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+/* Canvas Elements */
+.canvas-element {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.canvas-element:hover {
+  z-index: 10;
+}
+
+.canvas-element.selected {
+  z-index: 20;
+}
+
+.canvas-element.selected .element-content {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.3);
+}
+
+.canvas-element.hidden {
+  opacity: 0.3;
+}
+
+.element-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.element-label {
+  margin-top: 4px;
+  padding: 2px 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.canvas-element:hover .element-label,
+.canvas-element.selected .element-label {
+  opacity: 1;
+}
+
+/* Element Types */
+.canvas-element.puppet .element-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.canvas-element.prop .element-content {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.canvas-element.decoration .element-content {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.canvas-element.camera .element-content {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+}
+
+.canvas-element.light .element-content {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: white;
+}
+
+/* Transform Gizmos */
+.element-gizmo {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+}
+
+.gizmo-handle {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: var(--accent-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gizmo-handle:hover {
+  transform: scale(1.2);
+}
+
+.gizmo-handle.move {
+  background: #10b981;
+}
+
+.gizmo-handle.rotate {
+  background: #f59e0b;
+}
+
+.gizmo-handle.scale {
+  background: #ef4444;
+}
+
+/* Drop Zone */
+.drop-zone {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.canvas-area:hover .drop-zone {
+  opacity: 0.7;
+}
+
+.drop-message {
+  padding: 16px 24px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Canvas Info */
+.canvas-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  font-size: 12px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.info-item .label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.info-item .value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .canvas-toolbar {
+    padding: 6px 12px;
+    gap: 8px;
+  }
+
+  .transform-tools,
+  .view-tools,
+  .element-tools {
+    gap: 2px;
+  }
+
+  .tool-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .element-content {
+    width: 40px;
+    height: 40px;
+  }
+
+  .canvas-info {
+    padding: 6px 12px;
+    gap: 12px;
+    font-size: 11px;
+  }
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.canvas-element.dragging {
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+/* Audio Spatialization Indicators */
+.audio-indicator {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.speaker-icon {
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--accent-primary);
+  background: var(--bg-primary);
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--accent-primary);
+  white-space: nowrap;
+}
+
+.volume-indicator {
+  width: 20px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--success-color), var(--warning-color), var(--error-color));
+  border-radius: 2px;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.audio-indicator .volume-indicator {
+  opacity: 0.6;
+}
+
+.canvas-element.selected .audio-indicator .volume-indicator {
+  opacity: 1;
+}

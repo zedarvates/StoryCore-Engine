@@ -24,9 +24,15 @@ export interface ProgressTrackingOptions {
   onError?: (taskId: string, error: string) => void;
 }
 
+export interface ProgressTracker {
+  update: (progress: number, message?: string) => void;
+  complete: () => void;
+}
+
 export class ProgressTrackingService {
   private pollingIntervals: Map<string, ReturnType<typeof setInterval>> = new Map();
   private baseUrl: string;
+  private trackers: Map<string, ProgressTracker> = new Map();
 
   constructor(baseUrl: string = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000') {
     this.baseUrl = baseUrl;
@@ -94,6 +100,31 @@ export class ProgressTrackingService {
   }
 
   /**
+   * Create a progress tracker for local progress tracking
+   */
+  createTracker(taskId: string, options: { total: number; description?: string }): ProgressTracker {
+    // Stop any existing tracker for this task
+    if (this.trackers.has(taskId)) {
+      this.trackers.delete(taskId);
+    }
+
+    let currentProgress = 0;
+    const tracker: ProgressTracker = {
+      update: (progress: number, message?: string) => {
+        currentProgress = progress;
+      },
+      complete: () => {
+        currentProgress = options.total;
+        this.trackers.delete(taskId);
+      }
+    };
+
+    this.trackers.set(taskId, tracker);
+    
+    return tracker;
+  }
+
+  /**
    * Fetch current progress for a task
    */
   async fetchProgress(taskId: string): Promise<ProgressUpdate> {
@@ -145,6 +176,7 @@ export class ProgressTrackingService {
 export class MockProgressTrackingService extends ProgressTrackingService {
   private mockProgress: Map<string, ProgressUpdate> = new Map();
   private mockDelay: number = 1000;
+  private mockTrackers: Map<string, ProgressTracker> = new Map();
 
   setMockProgress(taskId: string, update: ProgressUpdate): void {
     this.mockProgress.set(taskId, update);
@@ -152,6 +184,23 @@ export class MockProgressTrackingService extends ProgressTrackingService {
 
   setMockDelay(delay: number): void {
     this.mockDelay = delay;
+  }
+
+  createTracker(taskId: string, options: { total: number; description?: string }): ProgressTracker {
+    let currentProgress = 0;
+    const tracker: ProgressTracker = {
+      update: (progress: number, message?: string) => {
+        currentProgress = progress;
+      },
+      complete: () => {
+        currentProgress = options.total;
+        this.mockTrackers.delete(taskId);
+      }
+    };
+
+    this.mockTrackers.set(taskId, tracker);
+    
+    return tracker;
   }
 
   async fetchProgress(taskId: string): Promise<ProgressUpdate> {

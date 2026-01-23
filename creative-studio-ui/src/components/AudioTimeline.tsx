@@ -78,7 +78,6 @@ export const AudioTimeline: React.FC<AudioTimelineProps> = ({
   // ============================================================================
 
   const [zoom, setZoom] = useState(DEFAULT_ZOOM); // seconds visible
-  const [scrollOffset] = useState(0); // pixels - TODO: implement horizontal scrolling
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [hoveredPhrase, setHoveredPhrase] = useState<string | null>(null);
 

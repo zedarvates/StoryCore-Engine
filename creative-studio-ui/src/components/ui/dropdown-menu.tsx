@@ -170,3 +170,110 @@ interface DropdownMenuLabelProps {
 export function DropdownMenuLabel({ children, className }: DropdownMenuLabelProps) {
   return <div className={cn('px-2 py-1.5 text-sm font-semibold', className)}>{children}</div>;
 }
+
+// ============================================================================
+// Submenu Components
+// ============================================================================
+
+interface DropdownMenuSubProps {
+  children: ReactNode;
+}
+
+interface DropdownMenuSubContextValue {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}
+
+const DropdownMenuSubContext = createContext<DropdownMenuSubContextValue | undefined>(undefined);
+
+export function DropdownMenuSub({ children }: DropdownMenuSubProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <DropdownMenuSubContext.Provider value={{ open, setOpen }}>
+      <div className="relative">{children}</div>
+    </DropdownMenuSubContext.Provider>
+  );
+}
+
+interface DropdownMenuSubTriggerProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function DropdownMenuSubTrigger({ children, className }: DropdownMenuSubTriggerProps) {
+  const context = useContext(DropdownMenuSubContext);
+  if (!context) throw new Error('DropdownMenuSubTrigger must be used within DropdownMenuSub');
+
+  const { open, setOpen } = context;
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setOpen(!open);
+  };
+
+  return (
+    <div
+      className={cn(
+        'flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+        className
+      )}
+      onClick={handleClick}
+    >
+      <span className="flex-1">{children}</span>
+      <div className="ml-auto">
+        <svg
+          className={cn('h-4 w-4 transition-transform', open && 'rotate-90')}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+interface DropdownMenuSubContentProps {
+  children: ReactNode;
+  className?: string;
+  alignOffset?: number;
+}
+
+export function DropdownMenuSubContent({ children, className, alignOffset = 0 }: DropdownMenuSubContentProps) {
+  const context = useContext(DropdownMenuSubContext);
+  if (!context) throw new Error('DropdownMenuSubContent must be used within DropdownMenuSub');
+
+  const { open } = context;
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contentRef.current && !contentRef.current.contains(event.target as Node)) {
+        // Close submenu when clicking outside
+        // This will be handled by the parent context
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      ref={contentRef}
+      className={cn(
+        'absolute left-full top-0 z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
+        className
+      )}
+      style={{ marginLeft: alignOffset }}
+    >
+      {children}
+    </div>
+  );
+}

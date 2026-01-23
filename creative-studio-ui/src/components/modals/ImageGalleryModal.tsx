@@ -542,14 +542,10 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
   const [selectedCollection, setSelectedCollection] = useState('');
 
   const handleSaveNotes = () => {
-    // TODO: Sauvegarder les notes via imageGalleryService
-    console.log('Saving notes:', notes);
   };
 
   const handleRateImage = (newRating: number) => {
     setRating(newRating);
-    // TODO: Sauvegarder la note via imageGalleryService
-    console.log('Rating image:', newRating);
   };
 
   const handleAddToCollection = () => {

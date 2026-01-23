@@ -292,6 +292,11 @@ export const Timeline: React.FC<TimelineProps> = ({
     shotId?: string;
     insertPosition?: number;
   } | null>(null);
+
+  // Trimming state
+  const [trimMode, setTrimMode] = useState(false);
+  const [inPoint, setInPoint] = useState<number | null>(null);
+  const [outPoint, setOutPoint] = useState<number | null>(null);
   
   // Calculate total duration - memoized to avoid recalculation on every render
   const totalDuration = useMemo(() => {
@@ -331,20 +336,27 @@ export const Timeline: React.FC<TimelineProps> = ({
     let currentPosition = 0;
     return shots.map((shot) => {
       const startX = currentPosition;
-      const width = shot.duration * PIXELS_PER_SECOND;
-      currentPosition += shot.duration;
-      
+
+      // Account for trimming: if trimStart/trimEnd are set, use the trimmed duration
+      const effectiveDuration = shot.timing.trimStart !== undefined && shot.timing.trimEnd !== undefined
+        ? shot.timing.trimEnd - shot.timing.trimStart
+        : shot.timing.duration;
+
+      const width = effectiveDuration * PIXELS_PER_SECOND;
+      currentPosition += effectiveDuration;
+
       let transitionWidth = 0;
       if (shot.transitionOut) {
         transitionWidth = shot.transitionOut.duration * PIXELS_PER_SECOND;
         currentPosition += shot.transitionOut.duration;
       }
-      
+
       return {
         shot,
         startX,
         width,
         transitionWidth,
+        effectiveDuration,
       };
     });
   }, [shots]);
@@ -873,6 +885,27 @@ export const Timeline: React.FC<TimelineProps> = ({
             }
           }
           break;
+
+        case 'i': // I - Set in point
+        case 'I':
+          e.preventDefault();
+          setInPoint(currentTime);
+          break;
+
+        case 'o': // O - Set out point
+        case 'O':
+          e.preventDefault();
+          setOutPoint(currentTime);
+          break;
+
+        case 'x': // X - Split clip at current time
+        case 'X':
+          e.preventDefault();
+          if (selectedShotId && currentPlanData) {
+            // Find the selected shot and split it
+            handleSplitShot();
+          }
+          break;
       }
     };
     
@@ -947,6 +980,11 @@ export const Timeline: React.FC<TimelineProps> = ({
           <span className="hidden lg:inline" title="Navigation">
             <kbd className="px-1.5 py-0.5 bg-gray-700 rounded border border-gray-600">←</kbd>
             <kbd className="px-1.5 py-0.5 bg-gray-700 rounded border border-gray-600">→</kbd> Navigate
+          </span>
+          <span className="hidden xl:inline" title="Edition">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded border border-gray-600">I</kbd>
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded border border-gray-600">O</kbd>
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded border border-gray-600">X</kbd> Trim/Split
           </span>
           <span className="hidden xl:inline" title="Sélection de shot">
             <kbd className="px-1.5 py-0.5 bg-gray-700 rounded border border-gray-600">Shift</kbd>+

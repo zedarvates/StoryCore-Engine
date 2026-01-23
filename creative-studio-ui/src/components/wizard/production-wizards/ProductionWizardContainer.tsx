@@ -94,25 +94,25 @@ export function ProductionWizardContainer({
   return (
     <div
       ref={containerRef}
-      className={cn('flex flex-col h-full bg-white', className)}
+      className={cn('flex flex-col h-full cyber-card text-foreground', className)}
       role="main"
       aria-label={title}
     >
       {/* Header */}
-      <div className="border-b bg-gray-50 px-6 py-4">
+      <div className="border-b border-primary/30 bg-card/95 px-6 py-4 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+          <h1 className="text-2xl font-bold neon-text text-primary">{title}</h1>
 
           {/* Auto-save Indicator */}
           {showAutoSaveIndicator && wizard.lastSaved > 0 && (
-            <div className="flex items-center gap-2 text-sm text-gray-600" role="status" aria-live="polite">
-              <Clock className="h-4 w-4" aria-hidden="true" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
+              <Clock className="h-4 w-4 text-accent" aria-hidden="true" />
               <span>Last saved {formatLastSaved(wizard.lastSaved)}</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleManualSave}
-                className="gap-2 h-8 px-2"
+                className="gap-2 h-8 px-2 hover:bg-accent/20 text-accent hover:text-accent-foreground"
                 aria-label="Save progress now"
               >
                 <Save className="h-3 w-3" aria-hidden="true" />
@@ -132,14 +132,14 @@ export function ProductionWizardContainer({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0" style={{ scrollBehavior: 'smooth' }}>
+      <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0 bg-background/50" style={{ scrollBehavior: 'smooth' }}>
         <div className="max-w-4xl mx-auto">
           {children}
         </div>
       </div>
 
       {/* Footer Navigation */}
-      <div className="border-t bg-gray-50 px-6 py-4">
+      <div className="border-t border-primary/30 bg-card/95 px-6 py-4 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto">
           <ProductionWizardNavigation
             currentStep={wizard.currentStep}

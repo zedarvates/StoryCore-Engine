@@ -4,6 +4,7 @@ import { useEditorStore } from '@/stores/editorStore';
 import { GridEditorCanvas } from '@/components/gridEditor';
 import { Timeline } from '@/components/Timeline';
 import { DialogueWriterWizard } from '@/components/wizard';
+import { EffectPreviewRenderer } from '@/components/editor/effects';
 import {
   Plus,
   Image as ImageIcon,
@@ -16,6 +17,7 @@ import {
   Edit,
   Zap,
   Film,
+  Layers,
 } from 'lucide-react';
 
 interface CanvasAreaProps {
@@ -35,8 +37,12 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
   } = useEditorStore();
 
   // Canvas state
-  const [activeView, setActiveView] = useState<'storyboard' | 'timeline' | 'grid'>('storyboard');
+  const [activeView, setActiveView] = useState<'storyboard' | 'timeline' | 'grid' | 'effects'>('storyboard');
   const [isCreatingShot, setIsCreatingShot] = useState(false);
+
+  // Effects state
+  const [appliedEffects, setAppliedEffects] = useState<Record<string, any[]>>({});
+  const [selectedEffectId, setSelectedEffectId] = useState<string | undefined>();
 
   // Wizard actions from useAppStore
   const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
@@ -175,6 +181,17 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
             <Grid3x3 className="w-4 h-4" />
             Grid Editor
           </button>
+          <button
+            onClick={() => setActiveView('effects')}
+            className={`px-3 py-1.5 text-sm rounded-md flex items-center gap-1 ${
+              activeView === 'effects'
+                ? 'bg-primary text-primary-foreground'
+                : 'hover:bg-muted'
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            Effects
+          </button>
 
           {/* Divider */}
           <div className="h-6 w-px bg-border mx-2" />
@@ -235,19 +252,125 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
             projectId={project?.project_name || 'default'}
             onSave={async () => {
               try {
-                // TODO: Implement save logic
               } catch (error) {
                 console.error('Failed to save grid configuration:', error);
               }
             }}
             onExport={async () => {
               try {
-                // TODO: Implement export logic
               } catch (error) {
                 console.error('Failed to export grid configuration:', error);
               }
             }}
           />
+        </div>
+      ) : activeView === 'effects' ? (
+        /* Effects Editor View */
+        <div className="flex-1 flex overflow-hidden">
+          {/* Effects Library - Left Panel */}
+          <div className="w-80 border-r border-border bg-card">
+            <EffectLibrary
+              onEffectApply={(effect) => {
+                const currentEffects = appliedEffects[selectedShotId || ''] || [];
+                const newEffect = {
+                  ...effect,
+                  id: `${effect.id}_${Date.now()}`,
+                  enabled: true,
+                  order: currentEffects.length,
+                };
+                setAppliedEffects(prev => ({
+                  ...prev,
+                  [selectedShotId || '']: [...currentEffects, newEffect]
+                }));
+              }}
+            />
+          </div>
+
+          {/* Effects Preview & Stack - Center Panel */}
+          <div className="flex-1 flex flex-col border-r border-border bg-card">
+            {/* GPU-Accelerated Preview */}
+            <div className="flex-1">
+              <EffectPreviewRenderer
+                videoSrc={selectedShotId ? undefined : undefined} // TODO: Get video source from selected shot
+                effects={appliedEffects[selectedShotId || ''] || []}
+                width={640}
+                height={360}
+                onPerformanceMetrics={(metrics) => {
+                  // Log performance metrics for monitoring
+                  console.log('GPU Performance:', metrics);
+                }}
+              />
+            </div>
+
+            {/* Effect Stack */}
+            <div className="h-64 border-t border-border">
+              <EffectStack
+                effects={appliedEffects[selectedShotId || ''] || []}
+                onEffectsChange={(effects) => {
+                  setAppliedEffects(prev => ({
+                    ...prev,
+                    [selectedShotId || '']: effects
+                  }));
+                }}
+                onEffectSelect={(effect) => setSelectedEffectId(effect.id)}
+                selectedEffectId={selectedEffectId}
+              />
+            </div>
+          </div>
+
+          {/* Effect Controls - Right Panel */}
+          <div className="w-80 bg-card">
+            <EffectControls
+              selectedEffect={appliedEffects[selectedShotId || '']?.find(e => e.id === selectedEffectId)}
+              onEffectChange={(effect) => {
+                const currentEffects = appliedEffects[selectedShotId || ''] || [];
+                const updatedEffects = currentEffects.map(e =>
+                  e.id === effect.id ? effect : e
+                );
+                setAppliedEffects(prev => ({
+                  ...prev,
+                  [selectedShotId || '']: updatedEffects
+                }));
+              }}
+              onEffectDelete={(effectId) => {
+                const currentEffects = appliedEffects[selectedShotId || ''] || [];
+                const updatedEffects = currentEffects.filter(e => e.id !== effectId);
+                setAppliedEffects(prev => ({
+                  ...prev,
+                  [selectedShotId || '']: updatedEffects
+                }));
+                if (selectedEffectId === effectId) {
+                  setSelectedEffectId(undefined);
+                }
+              }}
+              onEffectDuplicate={(effectId) => {
+                const currentEffects = appliedEffects[selectedShotId || ''] || [];
+                const effectToDuplicate = currentEffects.find(e => e.id === effectId);
+                if (effectToDuplicate) {
+                  const duplicatedEffect = {
+                    ...effectToDuplicate,
+                    id: `${effectToDuplicate.id}_${Date.now()}`,
+                    name: `${effectToDuplicate.name} (Copie)`,
+                    order: currentEffects.length,
+                  };
+                  setAppliedEffects(prev => ({
+                    ...prev,
+                    [selectedShotId || '']: [...currentEffects, duplicatedEffect]
+                  }));
+                }
+              }}
+              onEffectToggle={(effectId) => {
+                const currentEffects = appliedEffects[selectedShotId || ''] || [];
+                const updatedEffects = currentEffects.map(e =>
+                  e.id === effectId ? { ...e, enabled: !e.enabled } : e
+                );
+                setAppliedEffects(prev => ({
+                  ...prev,
+                  [selectedShotId || '']: updatedEffects
+                }));
+              }}
+            />
+          </div>
         </div>
       ) : (
         /* Storyboard/Timeline View */

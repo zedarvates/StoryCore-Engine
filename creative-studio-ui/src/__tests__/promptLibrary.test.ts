@@ -441,18 +441,181 @@ describe('Prompt Library Accessibility', () => {
     });
   });
 
+  describe('Load Index and Specific Categories Tests', () => {
+    describe('loadIndex method', () => {
+      it('should successfully load the library index without throwing errors', async () => {
+        const index = await promptLibrary.loadIndex();
+
+        expect(index).toBeDefined();
+        expect(typeof index).toBe('object');
+        expect(index.version).toBeDefined();
+        expect(index.lastUpdated).toBeDefined();
+        expect(index.totalPrompts).toBeGreaterThan(0);
+        expect(index.categories).toBeDefined();
+        expect(typeof index.categories).toBe('object');
+      });
+
+      it('should return the same index instance on multiple calls (caching)', async () => {
+        const index1 = await promptLibrary.loadIndex();
+        const index2 = await promptLibrary.loadIndex();
+
+        expect(index1).toBe(index2);
+      });
+
+      it('should contain categories object with expected structure', async () => {
+        const index = await promptLibrary.loadIndex();
+
+        expect(Object.keys(index.categories).length).toBeGreaterThan(0);
+
+        // Check that each category has the required properties
+        Object.values(index.categories).forEach(category => {
+          expect(category).toHaveProperty('name');
+          expect(category).toHaveProperty('description');
+          expect(category).toHaveProperty('prompts');
+          expect(Array.isArray(category.prompts)).toBe(true);
+        });
+      });
+    });
+
+    describe('getPromptsByCategory method', () => {
+      describe('02-genres category (genres)', () => {
+        it('should load genres category prompts without errors', async () => {
+          const prompts = await promptLibrary.getPromptsByCategory('genres');
+
+          expect(Array.isArray(prompts)).toBe(true);
+          expect(prompts.length).toBeGreaterThan(0);
+
+          // Verify each prompt has required properties
+          prompts.forEach(prompt => {
+            expect(prompt).toHaveProperty('id');
+            expect(prompt).toHaveProperty('name');
+            expect(prompt).toHaveProperty('description');
+            expect(prompt).toHaveProperty('category');
+            expect(prompt).toHaveProperty('tags');
+            expect(prompt).toHaveProperty('prompt');
+            expect(prompt).toHaveProperty('variables');
+            expect(Array.isArray(prompt.tags)).toBe(true);
+            expect(typeof prompt.variables).toBe('object');
+          });
+        });
+
+        it('should return prompts with genre-related content', async () => {
+          const prompts = await promptLibrary.getPromptsByCategory('genres');
+
+          // At least one prompt should contain genre-related keywords
+          const hasGenreContent = prompts.some(prompt =>
+            prompt.name.toLowerCase().includes('genre') ||
+            prompt.description.toLowerCase().includes('genre') ||
+            prompt.tags.some(tag => tag.toLowerCase().includes('genre'))
+          );
+
+          expect(hasGenreContent).toBe(true);
+        });
+      });
+
+      describe('06-visual-styles category (visual-styles)', () => {
+        it('should load visual styles category prompts without errors', async () => {
+          const prompts = await promptLibrary.getPromptsByCategory('visual-styles');
+
+          expect(Array.isArray(prompts)).toBe(true);
+          expect(prompts.length).toBeGreaterThan(0);
+
+          // Verify each prompt has required properties
+          prompts.forEach(prompt => {
+            expect(prompt).toHaveProperty('id');
+            expect(prompt).toHaveProperty('name');
+            expect(prompt).toHaveProperty('description');
+            expect(prompt).toHaveProperty('category');
+            expect(prompt).toHaveProperty('tags');
+            expect(prompt).toHaveProperty('prompt');
+            expect(prompt).toHaveProperty('variables');
+            expect(Array.isArray(prompt.tags)).toBe(true);
+            expect(typeof prompt.variables).toBe('object');
+          });
+        });
+
+        it('should return prompts with visual style content', async () => {
+          const prompts = await promptLibrary.getPromptsByCategory('visual-styles');
+
+          // At least one prompt should contain visual style keywords
+          const hasVisualStyleContent = prompts.some(prompt =>
+            prompt.name.toLowerCase().includes('style') ||
+            prompt.name.toLowerCase().includes('visual') ||
+            prompt.description.toLowerCase().includes('style') ||
+            prompt.description.toLowerCase().includes('visual') ||
+            prompt.tags.some(tag =>
+              tag.toLowerCase().includes('style') ||
+              tag.toLowerCase().includes('visual') ||
+              tag.toLowerCase().includes('cinematic') ||
+              tag.toLowerCase().includes('anime')
+            )
+          );
+
+          expect(hasVisualStyleContent).toBe(true);
+        });
+      });
+
+      describe('12-color-palettes category (color-palettes)', () => {
+        it('should load color palettes category prompts without errors', async () => {
+          const prompts = await promptLibrary.getPromptsByCategory('color-palettes');
+
+          expect(Array.isArray(prompts)).toBe(true);
+          expect(prompts.length).toBeGreaterThan(0);
+
+          // Verify each prompt has required properties
+          prompts.forEach(prompt => {
+            expect(prompt).toHaveProperty('id');
+            expect(prompt).toHaveProperty('name');
+            expect(prompt).toHaveProperty('description');
+            expect(prompt).toHaveProperty('category');
+            expect(prompt).toHaveProperty('tags');
+            expect(prompt).toHaveProperty('prompt');
+            expect(prompt).toHaveProperty('variables');
+            expect(Array.isArray(prompt.tags)).toBe(true);
+            expect(typeof prompt.variables).toBe('object');
+          });
+        });
+
+        it('should return prompts with color-related content', async () => {
+          const prompts = await promptLibrary.getPromptsByCategory('color-palettes');
+
+          // At least one prompt should contain color-related keywords
+          const hasColorContent = prompts.some(prompt =>
+            prompt.name.toLowerCase().includes('color') ||
+            prompt.name.toLowerCase().includes('palette') ||
+            prompt.description.toLowerCase().includes('color') ||
+            prompt.description.toLowerCase().includes('palette') ||
+            prompt.tags.some(tag =>
+              tag.toLowerCase().includes('color') ||
+              tag.toLowerCase().includes('palette')
+            )
+          );
+
+          expect(hasColorContent).toBe(true);
+        });
+      });
+
+      it('should return empty array for non-existent category', async () => {
+        const prompts = await promptLibrary.getPromptsByCategory('non-existent-category');
+
+        expect(Array.isArray(prompts)).toBe(true);
+        expect(prompts.length).toBe(0);
+      });
+    });
+  });
+
   describe('Filtering Methods', () => {
     describe('filterByGenre', () => {
       it('should filter prompts by genre', async () => {
         const allPrompts = await promptLibrary.getGenrePrompts();
         const sciFiPrompts = promptLibrary.filterByGenre(allPrompts, 'sci-fi');
-        
+
         expect(sciFiPrompts.length).toBeGreaterThan(0);
         expect(sciFiPrompts.length).toBeLessThanOrEqual(allPrompts.length);
-        
+
         // Verify filtered prompts contain the genre
         sciFiPrompts.forEach(prompt => {
-          const hasGenre = 
+          const hasGenre =
             prompt.tags.some(tag => tag.toLowerCase().includes('sci-fi')) ||
             prompt.description.toLowerCase().includes('sci-fi') ||
             prompt.category.toLowerCase().includes('sci-fi');
@@ -471,7 +634,7 @@ describe('Prompt Library Accessibility', () => {
         const lower = promptLibrary.filterByGenre(allPrompts, 'fantasy');
         const upper = promptLibrary.filterByGenre(allPrompts, 'FANTASY');
         const mixed = promptLibrary.filterByGenre(allPrompts, 'FaNtAsY');
-        
+
         expect(lower.length).toBe(upper.length);
         expect(lower.length).toBe(mixed.length);
       });

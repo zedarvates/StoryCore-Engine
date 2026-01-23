@@ -96,8 +96,6 @@ export function getWelcomeMessage(language: LanguageCode): string {
  * @example
  * ```typescript
  * const messages = getAllWelcomeMessages();
- * console.log(messages.fr); // "Bonjour ! Je suis votre assistant..."
- * console.log(Object.keys(messages)); // ['fr', 'en', 'es', ...]
  * ```
  */
 export function getAllWelcomeMessages(): Record<LanguageCode, string> {

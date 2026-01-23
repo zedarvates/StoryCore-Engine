@@ -251,17 +251,25 @@ class ModelManager:
             return model
     
     async def _load_model_impl(self, model_id: str, model_type: str, size_mb: int) -> Any:
-        """Mock model loading implementation"""
+        """Mock model loading implementation with caching"""
+        # Check if model is already cached
+        if model_id in self.model_cache:
+            return self.model_cache[model_id]
+        
         # Simulate model loading time
         await asyncio.sleep(0.1 + size_mb / 10000.0)  # Simulate loading based on size
-        
+         
         # Return mock model
-        return {
+        model = {
             'id': model_id,
             'type': model_type,
             'size_mb': size_mb,
             'loaded_at': time.time()
         }
+        
+        # Cache the model
+        self.model_cache[model_id] = model
+        return model
     
     def _check_memory_availability(self, required_mb: int) -> bool:
         """Check if enough memory is available"""
@@ -599,35 +607,68 @@ class BatchProcessor:
                 del self.active_jobs[job.job_id]
     
     def _calculate_optimal_batch_size(self, job: BatchJob) -> int:
-        """Calculate optimal batch size based on system resources"""
+        """Calculate optimal batch size based on system resources with improved logic"""
         base_batch_size = self.config.max_batch_size
+        total_items = len(job.items)
         
         # Get actual system load instead of mock values
         try:
             cpu_load = psutil.cpu_percent(interval=1) / 100.0
             memory_load = psutil.virtual_memory().percent / 100.0
+            gpu_load = 0.0
+            
+            # Add GPU load monitoring if available
+            if GPU_AVAILABLE:
+                try:
+                    gpus = GPUtil.getGPUs()
+                    if gpus:
+                        gpu_load = gpus[0].load
+                except:
+                    gpu_load = 0.3  # Default GPU load if monitoring fails
         except:
             cpu_load = 0.5  # Fallback to mock values if psutil fails
             memory_load = 0.6
-        
-        load_factor = max(cpu_load, memory_load)
+            gpu_load = 0.3
+         
+        # Calculate overall system load
+        load_factor = max(cpu_load, memory_load, gpu_load)
         
         # Add job priority factor - higher priority jobs get larger batches
         priority_factor = 1.0 + (1.0 - job.priority / self.config.batch_priority_levels)
         
-        if load_factor > 0.8:
+        # Improved batch size calculation with more granular thresholds
+        if load_factor > 0.9:
+            # System is heavily loaded, reduce batch size significantly
+            return max(1, int(base_batch_size // 4 * priority_factor))
+        elif load_factor > 0.8:
+            # System is loaded, reduce batch size
             return max(1, int(base_batch_size // 2 * priority_factor))
-        elif load_factor < 0.4:
-            return min(base_batch_size * 2, len(job.items))
+        elif load_factor > 0.6:
+            # System is moderately loaded, use slightly smaller batches
+            return max(1, int(base_batch_size * 0.75 * priority_factor))
+        elif load_factor < 0.3:
+            # System has plenty of capacity, increase batch size
+            return min(base_batch_size * 3, total_items)
+        elif load_factor < 0.5:
+            # System has good capacity, increase batch size moderately
+            return min(base_batch_size * 2, total_items)
         
-        return int(base_batch_size * priority_factor)
+        # System is at normal load, use base batch size with priority adjustment
+        return max(1, min(base_batch_size * priority_factor, total_items))
     
     async def _process_batch_items(self, workflow_type: str, items: List[Dict[str, Any]]) -> List[Any]:
-        """Process batch items (mock implementation)"""
-        # Simulate batch processing
-        await asyncio.sleep(0.1 * len(items))
+        """Process batch items with parallel processing"""
+        # Process items in parallel for better performance
+        async def process_item(item):
+            # Simulate processing time
+            await asyncio.sleep(0.05)  # Reduced processing time
+            return {'processed': True, 'item': item}
         
-        return [{'processed': True, 'item': item} for item in items]
+        # Use asyncio.gather to process items concurrently
+        tasks = [process_item(item) for item in items]
+        results = await asyncio.gather(*tasks)
+        
+        return results
     
     def get_job_status(self, job_id: str) -> Optional[Dict[str, Any]]:
         """Get batch job status"""

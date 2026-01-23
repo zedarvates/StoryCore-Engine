@@ -219,7 +219,6 @@ export interface EventSubscription {
  * const subscription = eventEmitter.on(
  *   WizardEventType.WORLD_CREATED,
  *   (payload) => {
- *     console.log('World created:', payload.world.name);
  *   }
  * );
  * 
@@ -320,7 +319,6 @@ class EventEmitter {
 
     // Log event in development
     if (import.meta.env.DEV) {
-      console.log(`[Event] ${eventType}`, payload);
     }
   }
 
@@ -411,7 +409,6 @@ export const eventEmitter = new EventEmitter();
  * @example
  * ```typescript
  * useEventListener(WizardEventType.WORLD_CREATED, (payload) => {
- *   console.log('World created:', payload.world.name);
  * });
  * ```
  */

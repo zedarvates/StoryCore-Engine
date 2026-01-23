@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "TalkToFigma": {
+      "command": "npx",
+      "args": [
+        "@sethdouglasford/mcp-figma@latest"
+      ]
+    }
+  }
+}

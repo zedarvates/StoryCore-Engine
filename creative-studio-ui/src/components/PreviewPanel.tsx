@@ -127,7 +127,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({ className }) => {
     const newTime = value[0];
     setCurrentTime(newTime);
     
-    // TODO: Sync audio playback when scrubbing
     // This would involve updating audio tracks to play from the new time
   };
 

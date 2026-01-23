@@ -57,7 +57,6 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
     // Subscribe to config changes
     const unsubscribe = llmConfigService.subscribe(() => {
       const newService = llmConfigService.getService();
-      console.log('[useLLMGeneration] LLM service updated');
       setLLMService(newService);
     });
 
@@ -105,8 +104,6 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
         const response = await llmService.generateCompletion(request, state.requestId || undefined);
 
         if (response.success && response.data) {
-          console.log('✅ LLM GENERATION SUCCESS - Content length:', response.data.content.length);
-          console.log('✅ LLM GENERATION SUCCESS - Content preview:', response.data.content.substring(0, 300));
           setState((prev) => ({
             ...prev,
             isLoading: false,

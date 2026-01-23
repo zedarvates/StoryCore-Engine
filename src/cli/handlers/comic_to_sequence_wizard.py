@@ -67,7 +67,7 @@ class ComicToSequenceWizardHandler(BaseHandler):
         try:
             # Import Comic to Sequence wizard
             try:
-                from wizard.comic_to_sequence_wizard import (
+                from src.wizard.comic_to_sequence_wizard import (
                     create_comic_to_sequence_wizard,
                     get_transformation_preview,
                     ComicStyle
@@ -151,13 +151,12 @@ class ComicToSequenceWizardHandler(BaseHandler):
         print(f"🎭 Estimated panels: {preview['estimated_panels']}")
         print(f"⏱️ Processing time: {preview['estimated_processing_time']}")
 
-        print("
-🎨 Supported Comic Styles:"        supported_styles = preview.get('supported_styles', [])
+        print(f"\n🎨 Supported Comic Styles:")
+        supported_styles = preview.get('supported_styles', [])
         for style in supported_styles:
             print(f"   • {style.replace('_', ' ').title()}")
 
-        print("
-💡 Preview Recommendations:"
+        print(f"\n💡 Preview Recommendations:")
         print(f"   • Use high-contrast images for better panel detection")
         print(f"   • Ensure text is clearly readable in panels")
         print(f"   • Try different styles if results seem inaccurate")

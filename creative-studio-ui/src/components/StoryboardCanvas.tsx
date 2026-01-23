@@ -330,6 +330,13 @@ const ShotCard: React.FC<ShotCardProps> = ({ shot, index, isSelected, onClick, o
         <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded">
           #{shot.position + 1}
         </div>
+        
+        {/* Status indicator */}
+        {shot.status && (
+          <div className="absolute top-2 right-12 bg-yellow-600 text-white text-xs font-semibold px-2 py-1 rounded">
+            {shot.status}
+          </div>
+        )}
 
         {/* Drag indicator */}
         {isDragging && (
@@ -409,6 +416,21 @@ const ShotCard: React.FC<ShotCardProps> = ({ shot, index, isSelected, onClick, o
                   d="M13 5l7 7-7 7M5 5l7 7-7 7"
                 />
               </svg>
+            </div>
+          )}
+          
+          {/* Progress indicator */}
+          {shot.progress && shot.progress < 100 && (
+            <div className="flex items-center gap-1" title={`Progress: ${shot.progress}%`}>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>{shot.progress}%</span>
             </div>
           )}
         </div>

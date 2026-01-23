@@ -80,8 +80,6 @@ export function LandingPageWithHooks() {
           onSendMessage={(message, attachments) => {
             ;
             ;
-            // TODO: Implémenter l'intégration avec l'assistant IA
-            // TODO: Gérer les annotations sonores du dossier "sound"
           }}
         /> */}
       </LandingPage>

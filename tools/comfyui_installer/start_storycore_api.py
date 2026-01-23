@@ -14,6 +14,11 @@ from pathlib import Path
 import time
 import aiohttp
 
+# Add src to path to import our modules
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+from network_utils import NetworkUtils
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -92,10 +97,14 @@ class StoryCoreLauncher:
         # Change to ComfyUI directory
         os.chdir(comfyui_path)
 
+        # Configure host based on environment or default
+        comfyui_host = os.environ.get('COMFYUI_HOST', '0.0.0.0')
+        logger.info(f"🌐 Using ComfyUI host: {comfyui_host}")
+
         # Start ComfyUI with proper arguments
         cmd = [
             sys.executable, "main.py",
-            "--listen", "0.0.0.0",
+            "--listen", comfyui_host,
             "--port", "8188",
             "--enable-cors-header", "http://localhost:3000",
             "--cpu"  # Use CPU mode for compatibility
@@ -122,11 +131,19 @@ class StoryCoreLauncher:
         # Change back to project root
         os.chdir(self.project_root)
 
+        # Configure API server host based on environment or default
+        api_host = os.environ.get('STORYCORE_API_HOST', 'localhost')
+        logger.info(f"🌐 Using API server host: {api_host}")
+
+        # Configure ComfyUI URL based on environment or default
+        comfyui_url = os.environ.get('COMFYUI_URL', 'http://127.0.0.1:8188')
+        logger.info(f"🔗 Using ComfyUI URL: {comfyui_url}")
+
         cmd = [
             sys.executable, str(api_script),
-            "--host", "localhost",
+            "--host", api_host,
             "--port", "8000",
-            "--comfyui-url", "http://127.0.0.1:8188"
+            "--comfyui-url", comfyui_url
         ]
 
         logger.info(f"Running command: {' '.join(cmd)}")
@@ -194,8 +211,8 @@ class StoryCoreLauncher:
             logger.info("🎉 StoryCore is fully operational!")
             logger.info("")
             logger.info("📊 Services Status:")
-            logger.info("  ✅ ComfyUI:        http://127.0.0.1:8188")
-            logger.info("  ✅ API Server:     http://localhost:8000")
+            logger.info(f"  ✅ ComfyUI:        {comfyui_url}")
+            logger.info(f"  ✅ API Server:     http://{api_host}:8000")
             logger.info("  ✅ Health Check:   http://localhost:8000/health")
             logger.info("")
             logger.info("🎨 Available Endpoints:")

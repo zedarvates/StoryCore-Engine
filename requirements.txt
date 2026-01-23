@@ -55,3 +55,7 @@ redis>=4.5.0
 # - jsonschema (for proper JSON Schema validation)
 # - click or typer (for richer CLI features)
 # - pydantic (for type-safe data validation)
+
+# 3D rendering dependencies
+panda3d>=1.10.10
+PyOpenGL>=3.1.6

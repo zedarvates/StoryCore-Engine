@@ -383,11 +383,9 @@ export class VersionControlService {
       // Only save if configuration has changed
       if (this.hasConfigurationChanged(config)) {
         this.saveVersionAuto(config, author);
-        console.log('Auto-saved version at', new Date().toISOString());
       }
     }, this.config.autoSaveInterval);
 
-    console.log(`Auto-save started with interval: ${this.config.autoSaveInterval}ms`);
   }
 
   /**
@@ -397,7 +395,6 @@ export class VersionControlService {
     if (this.autoSaveTimer !== null) {
       clearInterval(this.autoSaveTimer);
       this.autoSaveTimer = null;
-      console.log('Auto-save stopped');
     }
   }
 

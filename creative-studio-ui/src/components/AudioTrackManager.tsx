@@ -158,7 +158,6 @@ export const AudioTrackManager: React.FC<AudioTrackManagerProps> = ({
     try {
       setIsGeneratingVoice(true);
 
-      // TODO: Integrate with actual voice generation service
       // For now, simulate generation with a delay
       await new Promise(resolve => setTimeout(resolve, 2000));
 

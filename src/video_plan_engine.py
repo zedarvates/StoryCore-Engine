@@ -196,11 +196,17 @@ class VideoPlanEngine:
 
     def save_video_plan_to_file(self, project_path: Path, video_plan: Dict[str, Any]) -> str:
         """Save video plan to JSON file and update project manifest."""
+        print(f"DEBUG: save_video_plan_to_file called with project_path={project_path}, has {len(video_plan.get('video_entries', []))} entries")
+        for i, entry in enumerate(video_plan.get('video_entries', [])):
+            print(f"DEBUG: Saving entry {i}: description='{entry.get('description', 'N/A')}', title='{entry.get('title', 'N/A')}'")
+
         video_plan_file = project_path / "video_plan.json"
+        print(f"DEBUG: Saving to {video_plan_file}")
 
         # Save the video plan
         with open(video_plan_file, 'w') as f:
             json.dump(video_plan, f, indent=2)
+        print(f"DEBUG: Video plan saved successfully to {video_plan_file}")
 
         # Update project manifest
         project_file = project_path / "project.json"

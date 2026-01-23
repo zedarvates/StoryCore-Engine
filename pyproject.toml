@@ -78,7 +78,7 @@ Repository = "https://github.com/storycore/storycore-engine"
 Issues = "https://github.com/storycore/storycore-engine/issues"
 
 [tool.setuptools]
-packages = ["src", "src.cli", "src.cli.handlers", "src.cli.utils", "src.engines"]
+packages = ["src", "src.cli", "src.cli.handlers", "src.cli.utils"]
 
 [tool.setuptools.package-data]
 "*" = ["*.md", "*.txt"]

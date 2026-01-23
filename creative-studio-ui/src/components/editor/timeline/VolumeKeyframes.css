@@ -1,0 +1,194 @@
+.volume-keyframes {
+  background: #1a1a1a;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 4px;
+  border: 1px solid #333;
+}
+
+.keyframes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.keyframes-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #e5e7eb;
+}
+
+.add-keyframe-btn {
+  background: #3b82f6;
+  border: none;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.add-keyframe-btn:hover {
+  background: #2563eb;
+}
+
+.keyframes-container {
+  position: relative;
+  background: #111;
+  border-radius: 4px;
+  cursor: crosshair;
+  overflow: hidden;
+}
+
+.volume-curve {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.curve-segment {
+  position: absolute;
+  pointer-events: none;
+}
+
+.keyframe-point {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  cursor: grab;
+  z-index: 10;
+}
+
+.keyframe-point.dragging {
+  cursor: grabbing;
+}
+
+.keyframe-point::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #3b82f6;
+  border: 2px solid #1e40af;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.keyframe-point:hover::before {
+  background: #60a5fa;
+  border-color: #3b82f6;
+  transform: scale(1.2);
+}
+
+.keyframe-handle {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.keyframe-delete {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  border: none;
+  color: white;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  z-index: 20;
+}
+
+.keyframe-point:hover .keyframe-delete {
+  display: flex;
+}
+
+.keyframe-delete:hover {
+  background: #dc2626;
+}
+
+.current-time-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ef4444;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.current-time-indicator::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+}
+
+.volume-display {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.current-volume {
+  font-size: 10px;
+  color: #9ca3af;
+  background: #374151;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Grid lines for better alignment */
+.keyframes-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(to right, #333 1px, transparent 1px),
+    linear-gradient(to bottom, #333 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Hover effects */
+.keyframes-container:hover {
+  background: #1a1a1a;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .keyframes-header {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .add-keyframe-btn {
+    align-self: flex-end;
+  }
+}

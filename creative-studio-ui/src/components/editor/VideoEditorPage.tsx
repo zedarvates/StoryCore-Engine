@@ -23,9 +23,36 @@ import {
   Copy,
   Trash2,
 } from 'lucide-react';
+import { useStore } from '../../store';
 import { TimelineTracks } from './TimelineTracks';
+import { TransitionLibrary } from './tools/TransitionLibrary';
+import { TransitionEditor } from './tools/TransitionEditor';
+import { ClipTrimmer } from './tools/ClipTrimmer';
+import { ClipSplitter } from './tools/ClipSplitter';
+import { TimelineScrubber } from './timeline/TimelineScrubber';
+import { TimelineRuler } from './timeline/TimelineRuler';
+import { AudioWaveform } from './timeline/AudioWaveform';
+import { VolumeKeyframes } from './timeline/VolumeKeyframes';
+import { KeyframeEditor } from './tools/KeyframeEditor';
+import { TextClip } from './clips/TextClip';
+import { EffectPanel } from './effects/EffectPanel';
+import { FilterLibrary } from './effects/FilterLibrary';
+import { LayerPanel } from './layers/LayerPanel';
+import { MediaLibrary } from './media/MediaLibrary';
 import { gridGenerationService, GridGenerationProgress, GridGenerationResult } from '../../services/gridGenerationService';
+import { EffectPreviewRenderer } from './effects/EffectPreviewRenderer';
+import { EffectsLibrary } from './effects/EffectsLibrary';
+import { EffectStack } from './effects/EffectStack';
+import { EffectControls } from './effects/EffectControls';
+import { CharacterCreatorWizard } from './sequence-planning/CharacterCreatorWizard';
+import { StorytellerWizard } from './sequence-planning/StorytellerWizard';
+import { useCharacterPersistence } from '../../hooks/useCharacterPersistence';
 import './VideoEditorPage.css';
+import './TimelineTransitions.css';
+import './timeline/TimelineScrubber.css';
+import './timeline/TimelineRuler.css';
+import './timeline/AudioWaveform.css';
+import './timeline/VolumeKeyframes.css';
 
 // Context menu for shot actions
 const ShotContextMenu = ({ shot, position, onClose, onEdit, onDelete, onDuplicate }: {
@@ -112,7 +139,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   // Auto-save state
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Grid generation state
   const [isGeneratingGrid, setIsGeneratingGrid] = useState(false);
@@ -123,6 +150,16 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     shot: Shot;
     position: { x: number; y: number };
   } | null>(null);
+
+  // Character creator wizard state
+  const [isCharacterWizardOpen, setIsCharacterWizardOpen] = useState(false);
+
+  // Storyteller wizard state
+  const [isStorytellerWizardOpen, setIsStorytellerWizardOpen] = useState(false);
+
+  // Character persistence hook
+  const { saveCharacter } = useCharacterPersistence();
+  const characters = useStore((state) => state.characters);
 
   // Initialize shots from props or use default
   const [shots, setShots] = useState<Shot[]>(() => {
@@ -172,6 +209,48 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
       }
     };
   }, []);
+
+  // Timeline controls state
+  const [zoom, setZoom] = useState(1);
+  const [loopEnabled, setLoopEnabled] = useState(false);
+
+  // Audio state
+  const [audioVolume, setAudioVolume] = useState(1);
+  const [audioMuted, setAudioMuted] = useState(false);
+  const [volumeKeyframes, setVolumeKeyframes] = useState([]);
+
+  // Effects state for preview
+  const [appliedEffects, setAppliedEffects] = useState([]);
+
+  // Professional video editing state
+  const [selectedTool, setSelectedTool] = useState<'select' | 'trim' | 'split' | 'transition' | 'text' | 'keyframe'>('select');
+  const [showTransitionEditor, setShowTransitionEditor] = useState(false);
+  const [showKeyframeEditor, setShowKeyframeEditor] = useState(false);
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+  const [showLayerPanel, setShowLayerPanel] = useState(false);
+
+  // Text clips state
+  const [textClips, setTextClips] = useState([]);
+  const [selectedTextClip, setSelectedTextClip] = useState(null);
+
+  // Layer management state
+  const [layers, setLayers] = useState([]);
+  const [selectedLayerIds, setSelectedLayerIds] = useState([]);
+
+  // Media library state
+  const [mediaAssets, setMediaAssets] = useState([]);
+  const [mediaFolders, setMediaFolders] = useState([]);
+
+  // Store state
+  const currentTime = useStore((state) => state.currentTime);
+  const setCurrentTime = useStore((state) => state.setCurrentTime);
+  const isPlaying = useStore((state) => state.isPlaying);
+  const play = useStore((state) => state.play);
+  const pause = useStore((state) => state.pause);
+  const storeShots = useStore((state) => state.shots);
+
+  // Calculate total duration from local shots
+  const totalDuration = shots.reduce((acc, shot) => acc + shot.duration, 0);
 
   // Debounced save function
   const debouncedSave = useCallback(async (shotId: number, updates: Partial<Shot>) => {
@@ -310,6 +389,54 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     // 3. Add it to the appropriate track
   };
 
+  const handleSaveCharacter = async (character: any) => {
+    try {
+      // Map wizard data to Character type
+      const characterData = {
+        name: character.name,
+        visual_identity: {
+          age_range: `${character.age} ans`,
+          build: character.appearance,
+        },
+        personality: {
+          traits: character.personality,
+          temperament: character.personality.join(', '),
+        },
+        background: {
+          origin: character.backstory,
+          current_situation: character.worldRelation,
+        },
+        role: {
+          archetype: character.abilities.join(', '),
+        },
+      };
+
+      await saveCharacter(characterData);
+      console.log('Character saved successfully:', character.name);
+    } catch (error) {
+      console.error('Error saving character:', error);
+    }
+  };
+
+  const handleSaveStory = async (storySummary: any) => {
+    try {
+      // Save story summary to project
+      console.log('Story summary saved successfully:', storySummary.title);
+
+      // Here you would typically save to a story service or store
+      // For now, we'll just log it
+      console.log('Story details:', {
+        title: storySummary.title,
+        type: storySummary.videoType,
+        duration: storySummary.duration,
+        genres: storySummary.genre,
+        summary: storySummary.mainConflict
+      });
+    } catch (error) {
+      console.error('Error saving story:', error);
+    }
+  };
+
   const handlePromptChange = (shotId: number, newPrompt: string) => {
     // Update the shot's prompt in local state
     setShots(prevShots =>
@@ -376,6 +503,25 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [contextMenu]);
 
+  // Timeline control functions
+  const handleTimeChange = useCallback((newTime: number) => {
+    setCurrentTime(Math.max(0, Math.min(totalDuration, newTime)));
+  }, [totalDuration]);
+
+  const handleZoomChange = useCallback((newZoom: number) => {
+    setZoom(Math.max(0.1, Math.min(5, newZoom)));
+  }, []);
+
+  const handleFrameStep = useCallback((direction: 'forward' | 'backward') => {
+    const frameDuration = 1 / 30; // Assuming 30fps
+    const step = direction === 'forward' ? frameDuration : -frameDuration;
+    handleTimeChange(currentTime + step);
+  }, [currentTime, handleTimeChange]);
+
+  const handleLoopToggle = useCallback(() => {
+    setLoopEnabled(!loopEnabled);
+  }, [loopEnabled]);
+
   return (
     <div className="video-editor-container">
       {/* Toolbar - Simplified header without duplicate menu */}
@@ -433,12 +579,26 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
                 <div className="asset-category">
                   <Users size={16} className="category-icon" />
                   <span>Personnages</span>
-                  <span className="count">3</span>
+                  <span className="count">{characters.length}</span>
+                  <button
+                    className="add-button"
+                    onClick={() => setIsCharacterWizardOpen(true)}
+                    title="Créer un nouveau personnage"
+                  >
+                    <Plus size={14} />
+                  </button>
                 </div>
                 <div className="asset-list">
-                  <div className="asset-item">Protagoniste_A</div>
-                  <div className="asset-item">Antagoniste_B</div>
-                  <div className="asset-item">Support_C</div>
+                  {characters.map(character => (
+                    <div key={character.character_id} className="asset-item">
+                      {character.name}
+                    </div>
+                  ))}
+                  {characters.length === 0 && (
+                    <div className="asset-item empty">
+                      Aucun personnage - Cliquez + pour créer
+                    </div>
+                  )}
                 </div>
 
                 <div className="asset-category">
@@ -517,6 +677,13 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
               Nouvel Asset IA
             </button>
             <div className="action-grid">
+              <button
+                className="action-btn storyteller"
+                onClick={() => setIsStorytellerWizardOpen(true)}
+              >
+                <BookOpen size={20} />
+                <span>Storyteller</span>
+              </button>
               <button className="action-btn dreamina">
                 <ImageIcon size={20} />
                 <span>Dreamina</span>
@@ -532,50 +699,230 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
         {/* Center Area - Player & Timeline */}
         <main className="center-area">
           <div className="video-player">
-            <div className="player-content">
-              <ImageIcon size={48} className="player-icon" />
-              <p>Fais glisser les ressources ici...</p>
+            {selectedShot ? (
+              <EffectPreviewRenderer
+                videoSrc={shots.find(shot => shot.id === selectedShot)?.thumbnail || ''}
+                effects={appliedEffects}
+                width={640}
+                height={360}
+                onPerformanceMetrics={(metrics) => {
+                  console.log('GPU Performance:', metrics);
+                }}
+              />
+            ) : (
+              <div className="player-content">
+                <ImageIcon size={48} className="player-icon" />
+                <p>Sélectionnez un shot pour voir l'aperçu avec effets</p>
+              </div>
+            )}
+          </div>
+
+          {/* Professional Video Editing Tools */}
+          <div className="video-editing-tools">
+            <div className="tool-toolbar">
+              <button
+                className={`tool-btn ${selectedTool === 'select' ? 'active' : ''}`}
+                onClick={() => setSelectedTool('select')}
+                title="Selection Tool"
+              >
+                <Edit size={16} />
+                Select
+              </button>
+
+              <button
+                className={`tool-btn ${selectedTool === 'trim' ? 'active' : ''}`}
+                onClick={() => setSelectedTool('trim')}
+                title="Trim Tool"
+              >
+                <ScissorsIcon size={16} />
+                Trim
+              </button>
+
+              <button
+                className={`tool-btn ${selectedTool === 'split' ? 'active' : ''}`}
+                onClick={() => setSelectedTool('split')}
+                title="Split Tool"
+              >
+                <SplitIcon size={16} />
+                Split
+              </button>
+
+              <button
+                className={`tool-btn ${selectedTool === 'transition' ? 'active' : ''}`}
+                onClick={() => setSelectedTool('transition')}
+                title="Transition Tool"
+              >
+                <Sparkles size={16} />
+                Transition
+              </button>
+
+              <button
+                className={`tool-btn ${selectedTool === 'text' ? 'active' : ''}`}
+                onClick={() => setSelectedTool('text')}
+                title="Text Tool"
+              >
+                <Type size={16} />
+                Text
+              </button>
+
+              <button
+                className={`tool-btn ${selectedTool === 'keyframe' ? 'active' : ''}`}
+                onClick={() => setSelectedTool('keyframe')}
+                title="Keyframe Tool"
+              >
+                <Move size={16} />
+                Keyframe
+              </button>
+
+              <div className="tool-separator" />
+
+              <button
+                className="tool-btn"
+                onClick={() => setShowMediaLibrary(true)}
+                title="Media Library"
+              >
+                <ImageIcon size={16} />
+                Media
+              </button>
+
+              <button
+                className="tool-btn"
+                onClick={() => setShowLayerPanel(true)}
+                title="Layer Panel"
+              >
+                <LayersIcon size={16} />
+                Layers
+              </button>
             </div>
+
+            {/* Tool Panels */}
+            {selectedTool === 'transition' && (
+              <div className="tool-panel">
+                <TransitionLibrary
+                  onTransitionSelect={(transition) => {
+                    setShowTransitionEditor(true);
+                    // Store selected transition for editor
+                  }}
+                />
+              </div>
+            )}
+
+            {selectedTool === 'text' && (
+              <div className="tool-panel">
+                <button
+                  className="add-text-btn"
+                  onClick={() => {
+                    const newTextClip = {
+                      id: `text-${Date.now()}`,
+                      text: 'New Text',
+                      style: {
+                        fontFamily: 'Arial',
+                        fontSize: 48,
+                        fontWeight: 'bold' as const,
+                        fontStyle: 'normal' as const,
+                        textDecoration: 'none' as const,
+                        textAlign: 'center' as const,
+                        color: '#ffffff',
+                        backgroundColor: 'transparent',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                        letterSpacing: 0,
+                        lineHeight: 1.2,
+                        textTransform: 'none' as const,
+                      },
+                      position: { x: 100, y: 100 },
+                      size: { width: 400, height: 100 },
+                      isSelected: true,
+                    };
+                    setTextClips([...textClips, newTextClip]);
+                    setSelectedTextClip(newTextClip.id);
+                  }}
+                >
+                  <Plus size={16} />
+                  Add Text
+                </button>
+              </div>
+            )}
+
+            {selectedTool === 'keyframe' && (
+              <div className="tool-panel">
+                <button
+                  className="keyframe-btn"
+                  onClick={() => setShowKeyframeEditor(true)}
+                >
+                  <Move size={16} />
+                  Open Keyframe Editor
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Timeline */}
           <div className="timeline-container">
-            <div className="timeline-controls">
-              <button className="control-btn">
-                <SkipBack size={20} />
-              </button>
-              <button className="control-btn play">
-                <Play size={20} />
-              </button>
-              <button className="control-btn">
-                <SkipForward size={20} />
-              </button>
-            </div>
+            <>
+              {/* Professional Timeline Controls */}
+              <TimelineScrubber
+                currentTime={currentTime}
+                duration={totalDuration}
+                zoom={zoom}
+                isPlaying={isPlaying}
+                onTimeChange={handleTimeChange}
+                onPlayPause={() => setIsPlaying(!isPlaying)}
+                onZoomChange={handleZoomChange}
+                onFrameStep={handleFrameStep}
+                loopEnabled={loopEnabled}
+                onLoopToggle={handleLoopToggle}
+              />
 
-            <div className="timeline-track">
+              {/* Timeline Ruler */}
+                  <TimelineRuler
+                    duration={totalDuration}
+                    zoom={zoom}
+                    currentTime={currentTime}
+                  />
+
+                  <div className="timeline-track">
               {shots.map((shot, index) => (
                 <div
                   key={shot.id}
                   className={`timeline-shot ${selectedShot === shot.id ? 'selected' : ''}`}
-                  style={{ width: `${(shot.duration / 20) * 100}%` }}
+                  style={{ width: `${(shot.duration / totalDuration) * 100}%` }}
                   onClick={() => setSelectedShot(shot.id)}
                 >
                   <span className="shot-label">
                     {shot.title} : Durée {shot.duration} secondes
                   </span>
                 </div>
-              ))}
-              <button className="timeline-add-btn" onClick={handleAddShot}>
-                <Plus size={16} />
-              </button>
-            </div>
+                    ))}
+                    <button className="timeline-add-btn" onClick={handleAddShot}>
+                      <Plus size={16} />
+                    </button>
+                  </div>
 
-            <p className="timeline-hint">
-              Fais glisser les ressources ici et commence à créer
-            </p>
+                  <p className="timeline-hint">
+                    Fais glisser les ressources ici et commence à créer
+                  </p>
 
-            {/* Timeline Tracks for Media */}
-            <TimelineTracks onDropMedia={handleDropMedia} />
+                  {/* Audio Waveform and Volume Controls */}
+                  <AudioWaveform
+                    duration={totalDuration}
+                    currentTime={currentTime}
+                    volume={audioVolume}
+                    isMuted={audioMuted}
+                    onVolumeChange={setAudioVolume}
+                    onMuteToggle={() => setAudioMuted(!audioMuted)}
+                  />
+
+                  <VolumeKeyframes
+                    duration={totalDuration}
+                    currentTime={currentTime}
+                    keyframes={volumeKeyframes}
+                    onKeyframesChange={setVolumeKeyframes}
+                  />
+
+                  {/* Timeline Tracks for Media */}
+                  <TimelineTracks onDropMedia={handleDropMedia} />
+                </>
+              );
           </div>
         </main>
 
@@ -650,6 +997,47 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
               </div>
             ))}
           </div>
+
+          {/* Effects Panel */}
+          {selectedShot && (
+            <div className="effects-panel">
+              <div className="panel-section">
+                <h3>Effets Visuels</h3>
+                <EffectsLibrary
+                  onEffectSelect={(effect) => {
+                    setAppliedEffects([...appliedEffects, { ...effect, id: Date.now().toString() }]);
+                  }}
+                />
+              </div>
+
+              <div className="panel-section">
+                <h3>Pile d'Effets</h3>
+                <EffectStack
+                  effects={appliedEffects}
+                  onReorder={(effects) => setAppliedEffects(effects)}
+                  onRemove={(effectId) => {
+                    setAppliedEffects(appliedEffects.filter(e => e.id !== effectId));
+                  }}
+                />
+              </div>
+
+              {appliedEffects.length > 0 && (
+                <div className="panel-section">
+                  <h3>Contrôles d'Effets</h3>
+                  <EffectControls
+                    effects={appliedEffects}
+                    onEffectUpdate={(effectId, updates) => {
+                      setAppliedEffects(appliedEffects.map(e =>
+                        e.id === effectId ? { ...e, ...updates } : e
+                      ));
+                    }}
+                    currentTime={currentTime}
+                    duration={totalDuration}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="panel-footer">
             <div className="project-details">
@@ -732,6 +1120,202 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
           onDuplicate={handleDuplicateShot}
         />
       )}
+
+      {/* Character Creator Wizard */}
+      <CharacterCreatorWizard
+        isOpen={isCharacterWizardOpen}
+        onClose={() => setIsCharacterWizardOpen(false)}
+        onSave={handleSaveCharacter}
+        worldContext={{ genre: 'fantasy', description: 'Monde médiéval avec magie' }} // Mock world context
+      />
+
+      {/* Storyteller Wizard */}
+      <StorytellerWizard
+        isOpen={isStorytellerWizardOpen}
+        onClose={() => setIsStorytellerWizardOpen(false)}
+        onSave={handleSaveStory}
+        projectContext={{
+          characters: characters,
+          world: world,
+          locations: [], // TODO: Add locations from store
+          previousStories: [] // TODO: Add previous stories from store
+        }}
+      />
+
+      {/* Professional Video Editing Modals */}
+      {showTransitionEditor && (
+        <div className="modal-overlay">
+          <TransitionEditor
+            transition={{
+              id: 'fade-transition',
+              name: 'Fade Transition',
+              type: 'fade',
+              duration: 1.0,
+              easing: 'ease-in-out',
+              intensity: 1
+            }}
+            onTransitionChange={(transition) => {
+              console.log('Transition updated:', transition);
+            }}
+            onClose={() => setShowTransitionEditor(false)}
+            clipA={{ src: '', thumbnail: shots[0]?.thumbnail }}
+            clipB={{ src: '', thumbnail: shots[1]?.thumbnail }}
+          />
+        </div>
+      )}
+
+      {showKeyframeEditor && (
+        <div className="modal-overlay">
+          <KeyframeEditor
+            properties={[]} // TODO: Pass actual properties
+            duration={totalDuration}
+            currentTime={currentTime}
+            onPropertyUpdate={() => {}}
+            onKeyframeAdd={() => {}}
+            onKeyframeUpdate={() => {}}
+            onKeyframeRemove={() => {}}
+            onPlayPause={() => setIsPlaying(!isPlaying)}
+            onSeek={handleTimeChange}
+          />
+        </div>
+      )}
+
+      {showMediaLibrary && (
+        <div className="modal-overlay">
+          <div className="media-library-modal">
+            <div className="modal-header">
+              <h3>Media Library</h3>
+              <button onClick={() => setShowMediaLibrary(false)}>×</button>
+            </div>
+            <MediaLibrary
+              assets={mediaAssets}
+              folders={mediaFolders}
+              selectedAssetIds={[]}
+              onAssetSelect={() => {}}
+              onAssetImport={(files) => {
+                console.log('Importing files:', files);
+                setShowMediaLibrary(false);
+              }}
+              onAssetDelete={() => {}}
+              onAssetDownload={() => {}}
+              onAssetFavorite={() => {}}
+              onFolderCreate={() => {}}
+              onFolderDelete={() => {}}
+              onAssetMove={() => {}}
+            />
+          </div>
+        </div>
+      )}
+
+      {showLayerPanel && (
+        <div className="modal-overlay">
+          <div className="layer-panel-modal">
+            <div className="modal-header">
+              <h3>Layer Management</h3>
+              <button onClick={() => setShowLayerPanel(false)}>×</button>
+            </div>
+            <LayerPanel
+              layers={layers}
+              selectedLayerIds={selectedLayerIds}
+              onLayerSelect={(layerId, multiSelect) => {
+                if (multiSelect) {
+                  setSelectedLayerIds(prev =>
+                    prev.includes(layerId)
+                      ? prev.filter(id => id !== layerId)
+                      : [...prev, layerId]
+                  );
+                } else {
+                  setSelectedLayerIds([layerId]);
+                }
+              }}
+              onLayerUpdate={(layerId, updates) => {
+                setLayers(prev => prev.map(layer =>
+                  layer.id === layerId ? { ...layer, ...updates } : layer
+                ));
+              }}
+              onLayerAdd={(type, name) => {
+                const newLayer = {
+                  id: `layer-${Date.now()}`,
+                  name: name || `New ${type} Layer`,
+                  type,
+                  visible: true,
+                  locked: false,
+                  opacity: 1,
+                  blendMode: 'normal' as const,
+                  position: { x: 0, y: 0, z: layers.length },
+                };
+                setLayers(prev => [...prev, newLayer]);
+              }}
+              onLayerRemove={(layerId) => {
+                setLayers(prev => prev.filter(layer => layer.id !== layerId));
+                setSelectedLayerIds(prev => prev.filter(id => id !== layerId));
+              }}
+              onLayerDuplicate={(layerId) => {
+                const layer = layers.find(l => l.id === layerId);
+                if (layer) {
+                  const duplicatedLayer = {
+                    ...layer,
+                    id: `layer-${Date.now()}`,
+                    name: `${layer.name} (Copy)`,
+                    position: { ...layer.position, z: layers.length }
+                  };
+                  setLayers(prev => [...prev, duplicatedLayer]);
+                }
+              }}
+              onLayerReorder={(layerId, newIndex) => {
+                // TODO: Implement reordering logic
+                console.log('Reorder layer:', layerId, 'to index:', newIndex);
+              }}
+              onLayerGroup={(layerIds, groupName) => {
+                console.log('Group layers:', layerIds, 'with name:', groupName);
+              }}
+              onLayerUngroup={(groupId) => {
+                console.log('Ungroup layer:', groupId);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Render Text Clips on Canvas */}
+      {textClips.map((textClip) => (
+        <TextClip
+          key={textClip.id}
+          text={textClip.text}
+          style={textClip.style}
+          position={textClip.position}
+          size={textClip.size}
+          isSelected={selectedTextClip === textClip.id}
+          isPlaying={isPlaying}
+          currentTime={currentTime}
+          onTextChange={(text) => {
+            setTextClips(prev => prev.map(clip =>
+              clip.id === textClip.id ? { ...clip, text } : clip
+            ));
+          }}
+          onStyleChange={(style) => {
+            setTextClips(prev => prev.map(clip =>
+              clip.id === textClip.id ? { ...clip, style: { ...clip.style, ...style } } : clip
+            ));
+          }}
+          onAnimationChange={(animation) => {
+            setTextClips(prev => prev.map(clip =>
+              clip.id === textClip.id ? { ...clip, animation } : clip
+            ));
+          }}
+          onPositionChange={(position) => {
+            setTextClips(prev => prev.map(clip =>
+              clip.id === textClip.id ? { ...clip, position } : clip
+            ));
+          }}
+          onSizeChange={(size) => {
+            setTextClips(prev => prev.map(clip =>
+              clip.id === textClip.id ? { ...clip, size } : clip
+            ));
+          }}
+          onSelect={() => setSelectedTextClip(textClip.id)}
+        />
+      ))}
     </div>
   );
 };

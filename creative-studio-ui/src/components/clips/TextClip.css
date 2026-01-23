@@ -1,0 +1,296 @@
+/* Text Clip Styles */
+.text-clip {
+  border-radius: 4px;
+  transition: border-color 0.2s ease;
+  min-width: 50px;
+  min-height: 30px;
+}
+
+.text-clip:hover {
+  border-color: rgba(124, 58, 237, 0.5) !important;
+}
+
+.text-clip-controls {
+  position: absolute;
+  top: -50px;
+  left: 0;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  min-width: 300px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.control-group select {
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 4px 8px;
+  outline: none;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.control-group select:focus {
+  border-color: #7c3aed;
+}
+
+.control-group input[type="number"] {
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 4px;
+  width: 50px;
+  outline: none;
+  text-align: center;
+}
+
+.control-group input[type="number"]:focus {
+  border-color: #7c3aed;
+}
+
+.control-group input[type="color"] {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+}
+
+.control-group button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  background: #2a2a2a;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.control-group button:hover {
+  background: #3a3a3a;
+  color: #e5e5e5;
+}
+
+.control-group button.active {
+  background: #7c3aed;
+  border-color: #8b5cf6;
+  color: #ffffff;
+}
+
+.control-group button.active:hover {
+  background: #8b5cf6;
+}
+
+/* Animation styles */
+.text-clip[style*="opacity"] {
+  transition: opacity 0.1s ease;
+}
+
+.text-clip[style*="transform"] {
+  transition: transform 0.1s ease;
+}
+
+.text-clip[style*="text-shadow"] {
+  transition: text-shadow 0.1s ease;
+}
+
+/* Editing mode styles */
+.text-clip textarea {
+  font-family: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+/* Placeholder text styling */
+.text-clip div:empty:before,
+.text-clip div:has-text("Double-click to edit text"):before {
+  content: "Double-click to edit text";
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Resize handle styles */
+.text-clip ~ div[style*="cursor: nw-resize"] {
+  transition: all 0.2s ease;
+}
+
+.text-clip ~ div[style*="cursor: nw-resize"]:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Control panel positioning adjustments */
+.text-clip-controls {
+  transform: translateY(-8px);
+}
+
+/* Ensure controls don't go off-screen */
+@media (max-width: 768px) {
+  .text-clip-controls {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    min-width: auto;
+    max-width: calc(100vw - 40px);
+    flex-wrap: wrap;
+  }
+
+  .control-group {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .control-group select {
+    min-width: 60px;
+  }
+
+  .control-group input[type="number"] {
+    width: 45px;
+  }
+}
+
+/* Animation keyframes for text effects */
+@keyframes text-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes text-slide-left {
+  from { transform: translateX(-100px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes text-slide-right {
+  from { transform: translateX(100px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes text-slide-up {
+  from { transform: translateY(50px); }
+  to { transform: translateY(0); }
+}
+
+@keyframes text-slide-down {
+  from { transform: translateY(-50px); }
+  to { transform: translateY(0); }
+}
+
+@keyframes text-scale-in {
+  from { transform: scale(0.8); }
+  to { transform: scale(1); }
+}
+
+@keyframes text-bounce-in {
+  0% { transform: scale(0.3); }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes text-rotate-in {
+  from { transform: rotate(-180deg) scale(0.5); }
+  to { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes text-glow-pulse {
+  0%, 100% { text-shadow: 0 0 5px currentColor; }
+  50% { text-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
+}
+
+/* Apply animations when specified */
+.text-clip[data-animation="fade-in"] {
+  animation: text-fade-in 1s ease-in-out;
+}
+
+.text-clip[data-animation="slide-left"] {
+  animation: text-slide-left 0.8s ease-out;
+}
+
+.text-clip[data-animation="slide-right"] {
+  animation: text-slide-right 0.8s ease-out;
+}
+
+.text-clip[data-animation="slide-up"] {
+  animation: text-slide-up 0.8s ease-out;
+}
+
+.text-clip[data-animation="slide-down"] {
+  animation: text-slide-down 0.8s ease-out;
+}
+
+.text-clip[data-animation="scale-in"] {
+  animation: text-scale-in 0.7s ease-out;
+}
+
+.text-clip[data-animation="bounce-in"] {
+  animation: text-bounce-in 0.8s ease-out;
+}
+
+.text-clip[data-animation="rotate-in"] {
+  animation: text-rotate-in 1.2s ease-out;
+}
+
+.text-clip[data-animation="glow"] {
+  animation: text-glow-pulse 2s ease-in-out infinite;
+}
+
+/* Typewriter effect cursor */
+.text-clip[data-animation="typewriter"]::after {
+  content: '|';
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Selection and focus styles */
+.text-clip:focus {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}
+
+/* Ensure proper text rendering */
+.text-clip {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .text-clip {
+    border-width: 2px;
+  }
+
+  .text-clip-controls {
+    border-width: 2px;
+  }
+
+  .control-group button {
+    border-width: 2px;
+  }
+}

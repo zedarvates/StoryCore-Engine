@@ -71,7 +71,6 @@ export function useTimeline(initialPath?: string): UseTimelineReturn {
   // Subscribe to timeline updates
   useEffect(() => {
     const unsubscribe = timelineService.subscribeToTimelineUpdates((path, updatedTimeline) => {
-      console.log('[useTimeline] Timeline updated:', path);
       
       // Update if it's the current timeline
       if (currentPath && path === currentPath) {
@@ -179,7 +178,6 @@ export function useTimelineCache(): UseTimelineCacheReturn {
   // Subscribe to cache updates
   useEffect(() => {
     const unsubscribe = timelineService.subscribeToCacheUpdates((cleared) => {
-      console.log('[useTimelineCache] Cache update:', cleared);
       setCacheCleared(cleared);
       
       // Reset flag after 3 seconds

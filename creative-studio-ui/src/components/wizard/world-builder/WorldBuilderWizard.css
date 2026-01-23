@@ -1,0 +1,80 @@
+/* World Builder Wizard Styles */
+.world-builder-wizard {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f5f5f5;
+}
+
+.wizard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.wizard-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.wizard-sidebar {
+  width: 250px;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.wizard-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.wizard-preview {
+  width: 300px;
+  background: white;
+  border-left: 1px solid #e0e0e0;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.step-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.error-banner {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Additional styles would go here */

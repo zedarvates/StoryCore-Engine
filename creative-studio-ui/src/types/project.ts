@@ -15,6 +15,7 @@ export interface ProjectData {
   characters: CharacterReference[];
   scenes: SceneReference[];
   world?: WorldDefinition;
+  global_resume?: string;
 }
 
 export interface ProjectCapabilities {

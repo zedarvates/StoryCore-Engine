@@ -104,8 +104,6 @@ export function buildSystemPrompt(language: LanguageCode): string {
  * @example
  * ```typescript
  * const languages = getSupportedLanguages();
- * console.log(languages.fr); // "Respond in French (Français)..."
- * console.log(Object.keys(languages)); // ['fr', 'en', 'es', ...]
  * ```
  */
 export function getSupportedLanguages(): Record<LanguageCode, string> {

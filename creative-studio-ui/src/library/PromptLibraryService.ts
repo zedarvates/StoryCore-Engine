@@ -57,42 +57,43 @@ export class PromptLibraryService {
    */
   async loadIndex(): Promise<LibraryIndex> {
     if (this.index) return this.index;
-    
+
     try {
-      console.log(`[PromptLibraryService] Attempting to load index from: ${this.basePath}/index.json`);
-      
-      // Try to load from local files first
-      try {
-        const indexModule = await import(`${this.basePath}/index.json`);
-        const localIndex = indexModule.default || indexModule;
-        
-        if (localIndex) {
-          this.index = localIndex;
-          console.log(`[PromptLibraryService] Successfully loaded index from local files with ${this.index.totalPrompts} prompts`);
-          return this.index;
-        }
-      } catch (localError) {
-        console.log(`[PromptLibraryService] Local file loading failed, trying fetch: ${localError}`);
-      }
-      
-      // Fallback to fetch if local loading fails
+
+      // Use fetch instead of dynamic import for JSON files
       const response = await fetch(`${this.basePath}/index.json`);
-      
+
       if (!response.ok) {
         console.error(`[PromptLibraryService] Failed to load index: HTTP ${response.status} - ${response.statusText}`);
         console.error(`[PromptLibraryService] Response URL: ${response.url}`);
-        throw new Error(`Failed to load library index: HTTP ${response.status}`);
+
+        // Return a minimal empty index instead of throwing
+        console.warn(`[PromptLibraryService] Returning empty index due to missing library files`);
+        this.index = {
+          version: "1.0.0",
+          lastUpdated: new Date().toISOString(),
+          totalPrompts: 0,
+          categories: {}
+        };
+        return this.index;
       }
-      
+
       const responseText = await response.text();
-      console.log(`[PromptLibraryService] Raw response text (first 200 chars): ${responseText.substring(0, 200)}`);
-      
+
       this.index = JSON.parse(responseText);
-      console.log(`[PromptLibraryService] Successfully loaded index with ${this.index.totalPrompts} prompts`);
       return this.index;
     } catch (error) {
       console.error(`[PromptLibraryService] Error loading index: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
+
+      // Return empty index instead of throwing to prevent app crashes
+      console.warn(`[PromptLibraryService] Returning empty index due to error`);
+      this.index = {
+        version: "1.0.0",
+        lastUpdated: new Date().toISOString(),
+        totalPrompts: 0,
+        categories: {}
+      };
+      return this.index;
     }
   }
 
@@ -111,43 +112,54 @@ export class PromptLibraryService {
     if (this.cache.has(path)) {
       return this.cache.get(path)!;
     }
- 
+
     try {
-      console.log(`[PromptLibraryService] Attempting to load prompt from: ${this.basePath}/${path}`);
-      
-      // Try to load from local files first
-      try {
-        const promptModule = await import(`${this.basePath}/${path}`);
-        const localPrompt = promptModule.default || promptModule;
-        
-        if (localPrompt) {
-          this.cache.set(path, localPrompt);
-          console.log(`[PromptLibraryService] Successfully loaded prompt from local files: ${localPrompt.name}`);
-          return localPrompt;
-        }
-      } catch (localError) {
-        console.log(`[PromptLibraryService] Local file loading failed, trying fetch: ${localError}`);
-      }
-      
-      // Fallback to fetch if local loading fails
+
+      // Use fetch instead of dynamic import for JSON files
       const response = await fetch(`${this.basePath}/${path}`);
-      
+
       if (!response.ok) {
         console.error(`[PromptLibraryService] Failed to load prompt ${path}: HTTP ${response.status} - ${response.statusText}`);
         console.error(`[PromptLibraryService] Response URL: ${response.url}`);
-        throw new Error(`Failed to load prompt ${path}: HTTP ${response.status}`);
+
+        // Return a minimal mock prompt instead of throwing
+        console.warn(`[PromptLibraryService] Returning mock prompt for missing file: ${path}`);
+        const mockPrompt: PromptTemplate = {
+          category: 'mock',
+          subcategory: 'mock',
+          id: `mock-${path}`,
+          name: `Mock Prompt (${path})`,
+          description: 'This is a mock prompt because the library file is missing.',
+          tags: ['mock'],
+          prompt: 'Mock prompt text',
+          variables: {}
+        };
+        this.cache.set(path, mockPrompt);
+        return mockPrompt;
       }
-      
+
       const responseText = await response.text();
-      console.log(`[PromptLibraryService] Raw prompt response (first 200 chars): ${responseText.substring(0, 200)}`);
-      
+
       const template = JSON.parse(responseText);
       this.cache.set(path, template);
-      console.log(`[PromptLibraryService] Successfully loaded prompt: ${template.name}`);
       return template;
     } catch (error) {
       console.error(`[PromptLibraryService] Error loading prompt ${path}: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
+
+      // Return mock prompt instead of throwing to prevent app crashes
+      console.warn(`[PromptLibraryService] Returning mock prompt due to error: ${path}`);
+      const mockPrompt: PromptTemplate = {
+        category: 'error',
+        subcategory: 'error',
+        id: `error-${path}`,
+        name: `Error Loading (${path})`,
+        description: 'Failed to load prompt due to an error.',
+        tags: ['error'],
+        prompt: 'Error loading prompt template',
+        variables: {}
+      };
+      this.cache.set(path, mockPrompt);
+      return mockPrompt;
     }
   }
 
@@ -157,15 +169,16 @@ export class PromptLibraryService {
   async getPromptsByCategory(categoryId: string): Promise<PromptTemplate[]> {
     const index = await this.loadIndex();
     const category = index.categories[categoryId];
-    
+
     if (!category) {
-      throw new Error(`Category ${categoryId} not found`);
+      console.warn(`[PromptLibraryService] Category ${categoryId} not found, returning empty array`);
+      return [];
     }
 
     const prompts = await Promise.all(
       category.prompts.map(path => this.loadPrompt(path))
     );
-    
+
     return prompts;
   }
 

@@ -68,7 +68,6 @@ export function WizardLauncher({
         }),
       ]);
       
-      console.log('[WizardLauncher] Connection status:', {
         ollama: ollamaStatus.connected,
         comfyui: comfyuiStatus.connected,
         ollamaEndpoint: ollamaStatus.endpoint,
@@ -228,13 +227,11 @@ export function WizardLauncher({
       const wizardService = new WizardService();
 
       // Show loading state
-      console.log(`Launching wizard: ${wizard.id}`);
 
       // Launch the wizard
       const result = await wizardService.launchWizard(wizard.id, projectPath);
 
       if (result.success) {
-        console.log(`Wizard ${wizard.id} launched successfully`);
         // Show success notification
         alert(`✅ ${wizard.name} launched successfully!\n\n${result.output || ''}`);
 

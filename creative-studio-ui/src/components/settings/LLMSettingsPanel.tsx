@@ -175,6 +175,15 @@ export function LLMSettingsPanel({
   const [timeout, setTimeout] = useState(currentConfig?.timeout ?? 30000);
   const [retryAttempts, setRetryAttempts] = useState(currentConfig?.retryAttempts ?? 3);
   const [streamingEnabled, setStreamingEnabled] = useState(currentConfig?.streamingEnabled ?? true);
+
+  // New creativity and vectorial enhancement parameters
+  const [creativityMode, setCreativityMode] = useState(currentConfig?.parameters?.creativityMode || 'balanced');
+  const [jokesEnabled, setJokesEnabled] = useState(currentConfig?.parameters?.jokesEnabled || false);
+  const [wordGamesEnabled, setWordGamesEnabled] = useState(currentConfig?.parameters?.wordGamesEnabled || false);
+  const [probabilityFramingEnabled, setProbabilityFramingEnabled] = useState(currentConfig?.parameters?.probabilityFramingEnabled || false);
+  const [vectorialOptimization, setVectorialOptimization] = useState(currentConfig?.parameters?.vectorialOptimization || 'standard');
+  const [embeddingModel, setEmbeddingModel] = useState(currentConfig?.parameters?.embeddingModel || 'default');
+  const [similarityThreshold, setSimilarityThreshold] = useState(currentConfig?.parameters?.similarityThreshold || 0.7);
   
   const defaultPrompts = getDefaultSystemPrompts();
   const [worldPrompt, setWorldPrompt] = useState(
@@ -430,6 +439,13 @@ export function LLMSettingsPanel({
           topP,
           frequencyPenalty,
           presencePenalty,
+          creativityMode,
+          jokesEnabled,
+          wordGamesEnabled,
+          probabilityFramingEnabled,
+          vectorialOptimization,
+          embeddingModel,
+          similarityThreshold,
         },
         systemPrompts: {
           worldGeneration: worldPrompt,
@@ -969,6 +985,148 @@ export function LLMSettingsPanel({
               value={[presencePenalty]}
               onValueChange={([value]) => setPresencePenalty(value)}
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Creativity Enhancement */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="text-2xl">🎨</span>
+            Creativity Enhancement
+          </CardTitle>
+          <CardDescription>
+            Configure creativity settings and linguistic enhancements
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Creativity Mode */}
+          <div className="space-y-2">
+            <Label htmlFor="creativityMode">Creativity Mode</Label>
+            <Select value={creativityMode} onValueChange={setCreativityMode}>
+              <SelectTrigger id="creativityMode">
+                <SelectValue placeholder="Select creativity mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="conservative">Conservative - Focused and precise</SelectItem>
+                <SelectItem value="balanced">Balanced - Standard creativity</SelectItem>
+                <SelectItem value="creative">Creative - Highly imaginative</SelectItem>
+                <SelectItem value="experimental">Experimental - Maximum creativity</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Jokes & Word Games */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="jokesEnabled">Enable Jokes & Humor</Label>
+                <p className="text-xs text-muted-foreground">
+                  Allow AI to include jokes and wordplay in responses
+                </p>
+              </div>
+              <Switch
+                id="jokesEnabled"
+                checked={jokesEnabled}
+                onCheckedChange={setJokesEnabled}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="wordGamesEnabled">Enable Word Games</Label>
+                <p className="text-xs text-muted-foreground">
+                  Allow puns, rhymes, and linguistic creativity
+                </p>
+              </div>
+              <Switch
+                id="wordGamesEnabled"
+                checked={wordGamesEnabled}
+                onCheckedChange={setWordGamesEnabled}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="probabilityFramingEnabled">Probability Framing</Label>
+                <p className="text-xs text-muted-foreground">
+                  Frame responses with confidence levels and alternatives
+                </p>
+              </div>
+              <Switch
+                id="probabilityFramingEnabled"
+                checked={probabilityFramingEnabled}
+                onCheckedChange={setProbabilityFramingEnabled}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Vectorial Space Optimization */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="text-2xl">🧠</span>
+            Vectorial Space Optimization
+          </CardTitle>
+          <CardDescription>
+            Configure vectorial distribution and embedding settings
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Vectorial Optimization Mode */}
+          <div className="space-y-2">
+            <Label htmlFor="vectorialOptimization">Vectorial Distribution Law</Label>
+            <Select value={vectorialOptimization} onValueChange={setVectorialOptimization}>
+              <SelectTrigger id="vectorialOptimization">
+                <SelectValue placeholder="Select optimization mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="standard">Standard - Default distribution</SelectItem>
+                <SelectItem value="gaussian">Gaussian - Bell curve optimization</SelectItem>
+                <SelectItem value="exponential">Exponential - Rapid decay optimization</SelectItem>
+                <SelectItem value="pareto">Pareto - Power-law distribution (80/20 rule)</SelectItem>
+                <SelectItem value="adaptive">Adaptive - Dynamic optimization</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Embedding Model */}
+          <div className="space-y-2">
+            <Label htmlFor="embeddingModel">Embedding Model</Label>
+            <Select value={embeddingModel} onValueChange={setEmbeddingModel}>
+              <SelectTrigger id="embeddingModel">
+                <SelectValue placeholder="Select embedding model" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default - Model's built-in embeddings</SelectItem>
+                <SelectItem value="text-embedding-ada-002">OpenAI Ada-002 - High quality embeddings</SelectItem>
+                <SelectItem value="text-embedding-3-small">OpenAI Embedding-3-Small - Fast and efficient</SelectItem>
+                <SelectItem value="text-embedding-3-large">OpenAI Embedding-3-Large - Maximum quality</SelectItem>
+                <SelectItem value="local-sentence-transformer">Local Sentence Transformer - Privacy-focused</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Similarity Threshold */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="similarityThreshold">Similarity Threshold</Label>
+              <span className="text-sm text-muted-foreground">{similarityThreshold.toFixed(2)}</span>
+            </div>
+            <Slider
+              id="similarityThreshold"
+              min={0.1}
+              max={0.95}
+              step={0.05}
+              value={[similarityThreshold]}
+              onValueChange={([value]) => setSimilarityThreshold(value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Minimum similarity score for vector matching (0.1-0.95)
+            </p>
           </div>
         </CardContent>
       </Card>

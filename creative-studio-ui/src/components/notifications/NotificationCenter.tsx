@@ -254,8 +254,6 @@ export function NotificationCenter({ className = '' }: NotificationCenterProps) 
               size="sm"
               className="w-full text-xs text-gray-400 hover:text-white justify-start"
               onClick={() => {
-                // TODO: Ouvrir les paramètres de notifications
-                console.log('Open notification settings');
               }}
             >
               <Settings className="w-4 h-4 mr-2" />

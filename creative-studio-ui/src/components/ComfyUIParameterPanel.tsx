@@ -108,7 +108,6 @@ export function ComfyUIParameterPanel({
 
   // Save as preset
   const saveAsPreset = () => {
-    // TODO: Implement preset saving
     toast({
       title: 'Preset Saved',
       description: 'Parameter preset saved (not implemented yet)',

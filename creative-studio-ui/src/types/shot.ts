@@ -34,11 +34,34 @@ export interface CameraMovement {
   easing?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
 }
 
-export interface CharacterPosition {
+export interface DialogueLine {
+  id: string;
   characterId: string;
-  position: 'left' | 'center' | 'right' | 'foreground' | 'background';
-  pose?: string;
-  expression?: string;
+  text: string;
+  timing: {
+    startTime: number; // seconds from shot start
+    duration: number; // seconds
+    emotionalTone: 'neutral' | 'happy' | 'sad' | 'angry' | 'excited' | 'calm' | 'surprised';
+  };
+  audio: {
+    voiceId: string;
+    pitch: number; // 0-2, 1 = normal
+    speed: number; // 0.5-2, 1 = normal
+    volume: number; // 0-1
+    spatialization: {
+      enabled: boolean;
+      speakerAssignment: 'auto' | 'front-left' | 'front-center' | 'front-right' | 'surround-left' | 'surround-right' | 'back-left' | 'back-right' | 'lfe';
+      reverb: number; // 0-1
+      delay: number; // ms
+    };
+  };
+  sapiGenerated: boolean;
+  sapiParameters?: {
+    voice: string;
+    rate: number;
+    volume: number;
+    emphasis: string[];
+  };
 }
 
 export interface Shot {
@@ -51,6 +74,9 @@ export interface Shot {
     outPoint: number;
     transition: TransitionType;
     transitionDuration: number;
+    // Trimming support for video editing
+    trimStart?: number; // Start point within the source media (seconds)
+    trimEnd?: number;   // End point within the source media (seconds)
   };
   thumbnailUrl?: string;
   status: string;
@@ -107,13 +133,16 @@ export interface ProductionShot {
     seed?: number;
   };
 
-  // Metadata
-  status: 'planned' | 'generating' | 'generated' | 'approved' | 'rejected';
-  thumbnailUrl?: string;
-  generatedAssetUrl?: string;
-  notes: string;
-  tags: string[];
-  templates: string[]; // IDs of AssetTemplate
+  // Dialogue and audio
+  dialogues: DialogueLine[];
+  backgroundAudio?: {
+    type: 'music' | 'ambience' | 'sound-effect';
+    assetId: string;
+    volume: number;
+    fadeIn: number;
+    fadeOut: number;
+    loop: boolean;
+  };
 }
 
 // ============================================================================

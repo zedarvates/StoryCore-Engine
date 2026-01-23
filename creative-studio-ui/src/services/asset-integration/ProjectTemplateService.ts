@@ -22,7 +22,6 @@ export class ProjectTemplateService {
   private cacheUpdateSubscribers: Set<TemplateCacheUpdateCallback> = new Set();
 
   private constructor() {
-    console.log('[ProjectTemplateService] Service initialized with Observer pattern');
   }
 
   static getInstance(): ProjectTemplateService {
@@ -135,7 +134,6 @@ export class ProjectTemplateService {
   async listAvailableTemplates(): Promise<string[]> {
     // Note: Files must be in public/ folder to be accessible
     // For now, return empty array to avoid errors
-    // TODO: Implement proper file system access via Electron API
     return [];
   }
 

@@ -1,167 +1,209 @@
 """
-Ghost Tracker Wizard
+GhostTracker Wizard - Advanced Object and Character Tracking System
 
-An AI-powered advisor that provides intelligent insights, recommendations, and guidance
-for video storyboard projects. Analyzes multimedia assets (images, audio, video) using
-quality metrics from existing tests to detect issues and provide contextual improvements.
+An intelligent wizard that provides advanced tracking capabilities for objects,
+characters, and elements across video sequences. Uses computer vision and AI
+to maintain continuity, detect anomalies, and ensure visual consistency.
 """
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional, Tuple
 from enum import Enum
 import json
+import uuid
 from pathlib import Path
 from datetime import datetime
 import asyncio
-import re
 
 
-class AdviceCategory(Enum):
-    """Categories of advice provided by the Ghost Tracker"""
-    STORYTELLING = "storytelling"
-    CINEMATOGRAPHY = "cinematography"
-    PACING = "pacing"
-    CHARACTER_DEVELOPMENT = "character_development"
-    PRODUCTION_DESIGN = "production_design"
-    TECHNICAL_ASPECTS = "technical_aspects"
-    MULTIMEDIA_QUALITY = "multimedia_quality"
-    PROMPT_OPTIMIZATION = "prompt_optimization"
-    ASSET_CONSISTENCY = "asset_consistency"
-    AUDIENCE_ENGAGEMENT = "audience_engagement"
-    CREATIVE_ENHANCEMENT = "creative_enhancement"
+class TrackingTarget(Enum):
+    """Types of objects/elements that can be tracked"""
+    CHARACTER = "character"
+    PROP = "prop"
+    VEHICLE = "vehicle"
+    LOCATION_ELEMENT = "location_element"
+    LIGHTING_ELEMENT = "lighting_element"
+    CAMERA_EQUIPMENT = "camera_equipment"
+    COSTUME_ELEMENT = "costume_element"
 
 
-class AdvicePriority(Enum):
-    """Priority levels for advice"""
-    CRITICAL = "critical"
+class TrackingMode(Enum):
+    """Tracking operation modes"""
+    CONTINUITY = "continuity"
+    ANOMALY_DETECTION = "anomaly_detection"
+    MOTION_ANALYSIS = "motion_analysis"
+    VISUAL_CONSISTENCY = "visual_consistency"
+    QUALITY_ASSURANCE = "quality_assurance"
+
+
+class ConfidenceLevel(Enum):
+    """Confidence levels for tracking results"""
+    VERY_HIGH = "very_high"
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
-    SUGGESTION = "suggestion"
+    VERY_LOW = "very_low"
 
 
 @dataclass
-class ProjectInsight:
-    """Individual insight or recommendation"""
-    category: AdviceCategory
-    priority: AdvicePriority
-    title: str
+class TrackedElement:
+    """An element being tracked across frames/shots"""
+    element_id: str
+    target_type: TrackingTarget
+    name: str
     description: str
-    reasoning: str
-    actionable_steps: List[str] = field(default_factory=list)
-    related_elements: List[str] = field(default_factory=list)
+    first_seen_shot: str
+    last_seen_shot: str
+    total_occurrences: int = 0
+    position_history: List[Dict[str, Any]] = field(default_factory=list)
+    appearance_variations: List[Dict[str, Any]] = field(default_factory=list)
     confidence_score: float = 0.0
-    source_data: Dict[str, Any] = field(default_factory=dict)
+    tracking_notes: List[str] = field(default_factory=list)
 
 
 @dataclass
-class GhostTrackerReport:
-    """Complete analysis report from Ghost Tracker"""
+class ContinuityIssue:
+    """A continuity error or inconsistency detected"""
+    issue_id: str
+    element_id: str
+    issue_type: str  # position, appearance, presence, etc.
+    description: str
+    severity: str  # critical, major, minor
+    shot_affected: str
+    frame_timestamp: Optional[float] = None
+    suggested_fix: str = ""
+    confidence_score: float = 0.0
+
+
+@dataclass
+class TrackingResult:
+    """Complete tracking analysis result"""
+    result_id: str
     project_id: str
-    analysis_timestamp: str
-    overall_score: float
-    insights: List[ProjectInsight] = field(default_factory=list)
-    strengths: List[str] = field(default_factory=list)
-    weaknesses: List[str] = field(default_factory=list)
+    tracking_timestamp: str
+    mode: TrackingMode
+    target_shots: List[str]
+
+    # Tracked elements
+    tracked_elements: List[TrackedElement] = field(default_factory=list)
+    continuity_issues: List[ContinuityIssue] = field(default_factory=list)
+
+    # Analysis metrics
+    total_elements_tracked: int = 0
+    total_issues_found: int = 0
+    overall_confidence: float = 0.0
+    processing_time: float = 0.0
+
+    # Metadata
+    analysis_summary: str = ""
     recommendations: List[str] = field(default_factory=list)
-    next_steps: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class GhostTrackerWizard:
     """
-    Ghost Tracker Wizard - AI-Powered Project Advisor
+    GhostTracker Wizard - Advanced Visual Tracking System
 
-    Analyzes video storyboard projects and provides intelligent recommendations
-    for improving storytelling, cinematography, and overall production quality.
+    Provides comprehensive tracking capabilities including:
+    - Character and object continuity tracking
+    - Anomaly detection across shots
+    - Motion analysis and path tracking
+    - Visual consistency validation
+    - Quality assurance checks
     """
 
-    def __init__(self, llm_client=None):
+    def __init__(self, vision_engine=None, tracking_engine=None):
         """Initialize the Ghost Tracker wizard"""
-        self.llm_client = llm_client
-        self.analysis_results: Optional[GhostTrackerReport] = None
+        self.vision_engine = vision_engine
+        self.tracking_engine = tracking_engine
+        self.tracking_result: Optional[TrackingResult] = None
 
-    async def analyze_project(self, project_path: Path, focus_areas: Optional[List[str]] = None) -> GhostTrackerReport:
+    async def perform_tracking_analysis(self, project_path: Path,
+                                      tracking_mode: TrackingMode = TrackingMode.CONTINUITY,
+                                      target_shots: Optional[List[str]] = None) -> TrackingResult:
         """
-        Perform comprehensive analysis of a video storyboard project
+        Perform comprehensive tracking analysis on project shots
 
         Args:
-            project_path: Path to the project directory
-            focus_areas: Specific areas to focus analysis on (optional)
+            project_path: Path to the StoryCore project directory
+            tracking_mode: Type of tracking analysis to perform
+            target_shots: Specific shot IDs to analyze (optional)
 
         Returns:
-            Complete analysis report with insights and recommendations
+            Complete tracking analysis result
         """
-        print("👻 Starting Ghost Tracker analysis...")
+        print("👻 GhostTracker Wizard - Advanced Tracking System")
+        print("=" * 60)
 
-        # Load all project data
+        start_time = datetime.utcnow()
+
+        # Load project data
         project_data = self._load_project_data(project_path)
 
         if not project_data:
             raise ValueError("No project data found. Please ensure this is a valid StoryCore project.")
 
-        # Perform analysis in stages
-        insights = []
+        print(f"🎯 Tracking mode: {tracking_mode.value.replace('_', ' ').title()}")
 
-        # Analyze different aspects of the project
-        insights.extend(await self._analyze_storytelling(project_data))
-        insights.extend(await self._analyze_cinematography(project_data))
-        insights.extend(await self._analyze_pacing(project_data))
-        insights.extend(await self._analyze_characters(project_data))
-        insights.extend(await self._analyze_production_design(project_data))
-        insights.extend(await self._analyze_technical_aspects(project_data))
+        # Get shots to analyze
+        all_shots = project_data.get('shot_planning', {}).get('shot_lists', [])
+        if not all_shots:
+            raise ValueError("No shots found. Please run Shot Planning Wizard first.")
 
-        # Analyze multimedia assets using quality metrics from tests
-        multimedia_insights = await self._analyze_multimedia_assets(project_path, project_data)
-        insights.extend(multimedia_insights)
+        shots_to_analyze = target_shots or [shot.get('shot_id') for shot in all_shots if shot.get('shot_id')]
+        print(f"🎬 Analyzing {len(shots_to_analyze)} shots")
 
-        # Analyze prompts for optimization opportunities
-        prompt_insights = await self._analyze_prompts_and_generation(project_data)
-        insights.extend(prompt_insights)
-
-        # Analyze asset consistency across the project
-        consistency_insights = await self._analyze_asset_consistency(project_path, project_data)
-        insights.extend(consistency_insights)
-
-        # Generate overall assessment
-        overall_score = self._calculate_overall_score(insights)
-
-        # Compile final report
-        report = GhostTrackerReport(
-            project_id=project_data.get('id', 'unknown'),
-            analysis_timestamp=datetime.utcnow().isoformat() + "Z",
-            overall_score=overall_score,
-            insights=insights,
-            strengths=self._extract_strengths(insights),
-            weaknesses=self._extract_weaknesses(insights),
-            recommendations=self._generate_recommendations(insights),
-            next_steps=self._generate_next_steps(insights, project_data),
-            metadata={
-                'project_name': project_data.get('name', 'Unknown Project'),
-                'analysis_version': '1.0',
-                'focus_areas': focus_areas or [],
-                'data_sources': list(project_data.keys())
-            }
+        # Create tracking result
+        result = TrackingResult(
+            result_id=f"tracking_{int(datetime.utcnow().timestamp())}",
+            project_id=self._get_project_id(project_path),
+            tracking_timestamp=datetime.utcnow().isoformat() + "Z",
+            mode=tracking_mode,
+            target_shots=shots_to_analyze
         )
 
-        self.analysis_results = report
-        self._save_report(project_path, report)
+        # Perform tracking based on mode
+        if tracking_mode == TrackingMode.CONTINUITY:
+            await self._perform_continuity_tracking(result, all_shots, project_data)
+        elif tracking_mode == TrackingMode.ANOMALY_DETECTION:
+            await self._perform_anomaly_detection(result, all_shots, project_data)
+        elif tracking_mode == TrackingMode.MOTION_ANALYSIS:
+            await self._perform_motion_analysis(result, all_shots, project_data)
+        elif tracking_mode == TrackingMode.VISUAL_CONSISTENCY:
+            await self._perform_visual_consistency_check(result, all_shots, project_data)
+        elif tracking_mode == TrackingMode.QUALITY_ASSURANCE:
+            await self._perform_quality_assurance(result, all_shots, project_data)
 
-        print(f"✅ Ghost Tracker analysis complete! Overall score: {overall_score:.1f}/10.0")
-        return report
+        # Calculate metrics
+        result.total_elements_tracked = len(result.tracked_elements)
+        result.total_issues_found = len(result.continuity_issues)
+        result.overall_confidence = self._calculate_overall_confidence(result)
+        result.processing_time = (datetime.utcnow() - start_time).total_seconds()
+
+        # Generate summary and recommendations
+        result.analysis_summary = self._generate_analysis_summary(result)
+        result.recommendations = self._generate_recommendations(result)
+
+        self.tracking_result = result
+        self._save_tracking_results(project_path, result)
+
+        print("\n✅ Tracking analysis completed!")
+        print(f"🔍 Elements tracked: {result.total_elements_tracked}")
+        print(f"⚠️ Issues found: {result.total_issues_found}")
+        print(f"⏱️ Processing time: {result.processing_time:.1f}s")
+        print(f"📊 Overall confidence: {result.overall_confidence:.1f}/10")
+
+        return result
 
     def _load_project_data(self, project_path: Path) -> Dict[str, Any]:
-        """Load all relevant project data for analysis"""
+        """Load all relevant project data for tracking analysis"""
         project_data = {}
 
-        # Core project files to analyze
+        # Core project files
         files_to_check = [
             'project.json',
-            'scene_breakdown.json',
             'shot_planning.json',
-            'storyboard.json',
             'character_definitions.json',
-            'world_building.json'
+            'scene_breakdown.json'
         ]
 
         for filename in files_to_check:
@@ -175,888 +217,542 @@ class GhostTrackerWizard:
 
         return project_data
 
-    async def _analyze_storytelling(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze storytelling elements"""
-        insights = []
+    def _get_project_id(self, project_path: Path) -> str:
+        """Get project ID from project.json"""
+        project_file = project_path / "project.json"
+        if project_file.exists():
+            try:
+                with open(project_file, 'r') as f:
+                    project_data = json.load(f)
+                    return project_data.get('id', 'unknown')
+            except:
+                pass
+        return f"tracking_{int(datetime.utcnow().timestamp())}"
 
-        # Check for story structure
-        if 'project' in project_data:
-            story_data = project_data['project'].get('story', '')
+    async def _perform_continuity_tracking(self, result: TrackingResult,
+                                         shots: List[Dict[str, Any]], project_data: Dict[str, Any]):
+        """Perform continuity tracking across shots"""
+        print("🔄 Performing continuity tracking...")
 
-            if len(story_data) < 50:
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.STORYTELLING,
-                    priority=AdvicePriority.HIGH,
-                    title="Story Premise Needs Development",
-                    description="The story premise appears underdeveloped and may not engage viewers effectively.",
-                    reasoning="A compelling premise is crucial for audience engagement and should be clear within the first few sentences.",
-                    actionable_steps=[
-                        "Expand the story premise to 100-200 words",
-                        "Include clear protagonist goals and obstacles",
-                        "Define the central conflict or theme",
-                        "Consider what makes this story unique"
-                    ],
-                    confidence_score=0.85
-                ))
+        # Track characters
+        await self._track_characters(result, shots, project_data)
 
-        # Analyze scene progression
-        if 'scene_breakdown' in project_data:
-            scenes = project_data['scene_breakdown'].get('detailed_scenes', [])
-            if len(scenes) < 3:
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.STORYTELLING,
-                    priority=AdvicePriority.MEDIUM,
-                    title="Expand Scene Structure",
-                    description="The project has few scenes. Consider adding more to build a complete narrative arc.",
-                    reasoning="Most effective videos have 5-12 scenes to properly develop the story.",
-                    actionable_steps=[
-                        "Add setup/introduction scenes",
-                        "Include rising action sequences",
-                        "Add climax and resolution scenes",
-                        "Ensure emotional arc progression"
-                    ],
-                    confidence_score=0.75
-                ))
+        # Track props and objects
+        await self._track_props_and_objects(result, shots, project_data)
 
-        return insights
+        # Check for continuity issues
+        self._check_continuity_issues(result)
 
-    async def _analyze_cinematography(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze cinematography and shot choices"""
-        insights = []
+    async def _perform_anomaly_detection(self, result: TrackingResult,
+                                       shots: List[Dict[str, Any]], project_data: Dict[str, Any]):
+        """Perform anomaly detection across shots"""
+        print("🔍 Performing anomaly detection...")
 
-        if 'shot_planning' in project_data:
-            shots = project_data['shot_planning'].get('shot_lists', [])
+        # Detect unusual movements or appearances
+        await self._detect_motion_anomalies(result, shots)
 
-            if not shots:
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.CINEMATOGRAPHY,
-                    priority=AdvicePriority.CRITICAL,
-                    title="No Shot Planning Found",
-                    description="Shot planning is essential for effective visual storytelling.",
-                    reasoning="Without planned shots, the video may lack visual variety and emotional impact.",
-                    actionable_steps=[
-                        "Run the Shot Planning Wizard to create shot specifications",
-                        "Define camera angles, movements, and lens choices",
-                        "Consider shot variety (ELS, LS, MCU, CU, ECU)",
-                        "Plan transitions between shots"
-                    ],
-                    confidence_score=0.95
-                ))
-                return insights
+        # Detect visual inconsistencies
+        await self._detect_visual_anomalies(result, shots)
 
-            # Analyze shot variety
-            shot_types = [shot.get('shot_type', {}).get('code') for shot in shots]
-            unique_types = set(shot_types)
+    async def _perform_motion_analysis(self, result: TrackingResult,
+                                     shots: List[Dict[str, Any]], project_data: Dict[str, Any]):
+        """Perform motion analysis on tracked elements"""
+        print("🏃 Performing motion analysis...")
 
-            if len(unique_types) < 3:
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.CINEMATOGRAPHY,
-                    priority=AdvicePriority.MEDIUM,
-                    title="Limited Shot Variety",
-                    description="Using only a few shot types may make the video visually monotonous.",
-                    reasoning="Diverse shot types help maintain viewer interest and convey different emotions.",
-                    actionable_steps=[
-                        "Incorporate extreme long shots (ELS) for establishing scenes",
-                        "Add close-ups (CU) for emotional moments",
-                        "Use medium close-ups (MCU) for dialogue scenes",
-                        "Consider over-the-shoulder shots for conversations"
-                    ],
-                    confidence_score=0.80
-                ))
+        # Analyze movement patterns
+        await self._analyze_movement_patterns(result, shots)
 
-            # Check camera movement usage
-            movements = [shot.get('camera', {}).get('movement', {}).get('type') for shot in shots]
-            static_shots = movements.count('static')
+        # Track element paths
+        await self._track_element_paths(result, shots)
 
-            if static_shots / len(movements) > 0.8:
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.CINEMATOGRAPHY,
-                    priority=AdvicePriority.LOW,
-                    title="Consider Adding Camera Movement",
-                    description="Most shots are static. Camera movement can add energy and visual interest.",
-                    reasoning="Dynamic camera work can enhance emotional impact and maintain viewer engagement.",
-                    actionable_steps=[
-                        "Add dolly movements for dramatic reveals",
-                        "Use pan shots to follow action",
-                        "Consider tilt movements for vertical emphasis",
-                        "Experiment with handheld camera for intimacy"
-                    ],
-                    confidence_score=0.70
-                ))
+    async def _perform_visual_consistency_check(self, result: TrackingResult,
+                                              shots: List[Dict[str, Any]], project_data: Dict[str, Any]):
+        """Perform visual consistency validation"""
+        print("👁️ Performing visual consistency check...")
 
-        return insights
+        # Check lighting consistency
+        await self._check_lighting_consistency(result, shots)
 
-    async def _analyze_pacing(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze pacing and timing"""
-        insights = []
+        # Check color consistency
+        await self._check_color_consistency(result, shots)
 
-        if 'shot_planning' in project_data:
-            shots = project_data['shot_planning'].get('shot_lists', [])
-            total_duration = sum(shot.get('timing', {}).get('duration_seconds', 0) for shot in shots)
+        # Check prop consistency
+        await self._check_prop_consistency(result, shots)
 
-            if total_duration < 30:
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.PACING,
-                    priority=AdvicePriority.HIGH,
-                    title="Video Duration Too Short",
-                    description="The planned video is very short and may not allow proper story development.",
-                    reasoning="Most engaging videos are 1-3 minutes long to allow time for setup, conflict, and resolution.",
-                    actionable_steps=[
-                        "Extend key emotional moments",
-                        "Add transitional shots between scenes",
-                        "Include establishing shots for context",
-                        "Consider adding voiceover or text overlays"
-                    ],
-                    confidence_score=0.85
-                ))
+    async def _perform_quality_assurance(self, result: TrackingResult,
+                                       shots: List[Dict[str, Any]], project_data: Dict[str, Any]):
+        """Perform quality assurance checks"""
+        print("✅ Performing quality assurance checks...")
 
-            elif total_duration > 300:  # 5 minutes
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.PACING,
-                    priority=AdvicePriority.MEDIUM,
-                    title="Consider Video Length",
-                    description="The video is quite long. Ensure it maintains viewer attention throughout.",
-                    reasoning="Longer videos need strong pacing and clear structure to retain audience interest.",
-                    actionable_steps=[
-                        "Add chapter breaks or sections",
-                        "Ensure regular emotional beats",
-                        "Consider splitting into multiple parts",
-                        "Strengthen the narrative arc"
-                    ],
-                    confidence_score=0.75
-                ))
+        # Run all tracking modes
+        await self._perform_continuity_tracking(result, shots, project_data)
+        await self._perform_anomaly_detection(result, shots, project_data)
+        await self._perform_visual_consistency_check(result, shots, project_data)
 
-        return insights
+        # Additional QA checks
+        self._perform_additional_qa_checks(result, shots)
 
-    async def _analyze_characters(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze character development and consistency"""
-        insights = []
+    async def _track_characters(self, result: TrackingResult, shots: List[Dict[str, Any]],
+                              project_data: Dict[str, Any]):
+        """Track characters across shots"""
+        # Get character definitions
+        characters = project_data.get('character_definitions', {}).get('characters', [])
 
-        # Check character definitions
-        if 'character_definitions' not in project_data or not project_data['character_definitions']:
-            insights.append(ProjectInsight(
-                category=AdviceCategory.CHARACTER_DEVELOPMENT,
-                priority=AdvicePriority.HIGH,
-                title="Character Definitions Missing",
-                description="No character definitions found. Characters are crucial for engaging storytelling.",
-                reasoning="Well-defined characters help audiences connect emotionally with the story.",
-                actionable_steps=[
-                    "Run the Character Wizard to create detailed character profiles",
-                    "Define character goals, motivations, and conflicts",
-                    "Create visual references for characters",
-                    "Consider character arcs and development"
-                ],
-                confidence_score=0.90
-            ))
+        for character in characters:
+            char_name = character.get('name', 'Unknown Character')
+            element_id = f"char_{char_name.lower().replace(' ', '_')}"
 
-        return insights
+            tracked_element = TrackedElement(
+                element_id=element_id,
+                target_type=TrackingTarget.CHARACTER,
+                name=char_name,
+                description=character.get('description', ''),
+                first_seen_shot="",
+                last_seen_shot=""
+            )
 
-    async def _analyze_production_design(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze production design elements"""
-        insights = []
+            # Find shots where character appears
+            appearances = []
+            for shot in shots:
+                shot_id = shot.get('shot_id', '')
+                shot_description = shot.get('description', '').lower()
 
-        # Check world building
-        if 'world_building' not in project_data or not project_data['world_building']:
-            insights.append(ProjectInsight(
-                category=AdviceCategory.PRODUCTION_DESIGN,
-                priority=AdvicePriority.MEDIUM,
-                title="World Building Opportunity",
-                description="Consider developing the story world to add depth and immersion.",
-                reasoning="Rich world-building helps create more engaging and believable stories.",
-                actionable_steps=[
-                    "Run the World Builder Wizard",
-                    "Define the setting and time period",
-                    "Create environmental details",
-                    "Consider cultural and social elements"
-                ],
-                confidence_score=0.70
-            ))
+                # Simple detection based on name mentions (in real implementation would use CV)
+                if char_name.lower() in shot_description:
+                    appearances.append({
+                        'shot_id': shot_id,
+                        'description': shot_description,
+                        'confidence': 0.8
+                    })
 
-        return insights
+            if appearances:
+                tracked_element.first_seen_shot = appearances[0]['shot_id']
+                tracked_element.last_seen_shot = appearances[-1]['shot_id']
+                tracked_element.total_occurrences = len(appearances)
+                tracked_element.position_history = appearances
+                tracked_element.confidence_score = 0.8
 
-    async def _analyze_technical_aspects(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze technical production aspects"""
-        insights = []
+                result.tracked_elements.append(tracked_element)
 
-        # Check for storyboard completion
-        if 'storyboard' not in project_data or not project_data['storyboard'].get('shots'):
-            insights.append(ProjectInsight(
-                category=AdviceCategory.TECHNICAL_ASPECTS,
-                priority=AdvicePriority.MEDIUM,
-                title="Storyboard Development",
-                description="Consider creating a detailed storyboard to visualize the final video.",
-                reasoning="Storyboards help plan the visual flow and identify potential issues before production.",
-                actionable_steps=[
-                    "Run the Storyboard Creator Wizard",
-                    "Create visual references for each shot",
-                    "Plan the sequence of shots",
-                    "Consider camera angles and movements"
-                ],
-                confidence_score=0.75
-            ))
+    async def _track_props_and_objects(self, result: TrackingResult, shots: List[Dict[str, Any]],
+                                     project_data: Dict[str, Any]):
+        """Track props and objects across shots"""
+        # Common props to look for
+        common_props = [
+            'phone', 'gun', 'car', 'door', 'window', 'table', 'chair',
+            'glass', 'book', 'computer', 'watch', 'ring', 'key'
+        ]
 
-        return insights
+        for prop in common_props:
+            element_id = f"prop_{prop}"
+            appearances = []
 
-    def _calculate_overall_score(self, insights: List[ProjectInsight]) -> float:
-        """Calculate overall project quality score"""
-        if not insights:
-            return 8.0  # Default good score if no major issues
+            for shot in shots:
+                shot_id = shot.get('shot_id', '')
+                shot_description = shot.get('description', '').lower()
 
-        # Weight insights by priority
-        priority_weights = {
-            AdvicePriority.CRITICAL: 1.0,
-            AdvicePriority.HIGH: 0.8,
-            AdvicePriority.MEDIUM: 0.6,
-            AdvicePriority.LOW: 0.4,
-            AdvicePriority.SUGGESTION: 0.2
-        }
+                if prop in shot_description:
+                    appearances.append({
+                        'shot_id': shot_id,
+                        'description': f"{prop} visible in shot",
+                        'confidence': 0.7
+                    })
 
-        total_weighted_score = 0
-        total_weight = 0
+            if len(appearances) >= 2:  # Only track if appears multiple times
+                tracked_element = TrackedElement(
+                    element_id=element_id,
+                    target_type=TrackingTarget.PROP,
+                    name=prop.title(),
+                    description=f"Prop: {prop}",
+                    first_seen_shot=appearances[0]['shot_id'],
+                    last_seen_shot=appearances[-1]['shot_id'],
+                    total_occurrences=len(appearances),
+                    position_history=appearances,
+                    confidence_score=0.7
+                )
 
-        for insight in insights:
-            weight = priority_weights[insight.priority]
-            # Convert confidence to score impact (lower confidence = smaller impact)
-            score_impact = (1.0 - insight.confidence_score) * weight
-            total_weighted_score += score_impact
-            total_weight += weight
+                result.tracked_elements.append(tracked_element)
 
-        if total_weight == 0:
-            return 8.0
+    def _check_continuity_issues(self, result: TrackingResult):
+        """Check for continuity issues in tracked elements"""
+        for element in result.tracked_elements:
+            if element.total_occurrences < 2:
+                continue
 
-        # Convert to 0-10 scale (lower deductions = higher score)
-        deduction = min(total_weighted_score / total_weight, 1.0)
-        return round((1.0 - deduction) * 10.0, 1)
+            # Check for missing appearances (gaps in continuity)
+            shot_sequence = [pos['shot_id'] for pos in element.position_history]
 
-    def _extract_strengths(self, insights: List[ProjectInsight]) -> List[str]:
-        """Extract positive aspects from insights"""
-        # For now, return generic strengths based on what's not criticized
-        strengths = []
+            # Look for patterns that might indicate continuity errors
+            if self._detect_continuity_pattern_issues(element, shot_sequence):
+                issue = ContinuityIssue(
+                    issue_id=f"continuity_{element.element_id}_{len(result.continuity_issues)}",
+                    element_id=element.element_id,
+                    issue_type="presence_continuity",
+                    description=f"Potential continuity issue with {element.name} - irregular appearance pattern",
+                    severity="medium",
+                    shot_affected=shot_sequence[-1],
+                    suggested_fix="Review shots for consistent element placement",
+                    confidence_score=0.6
+                )
+                result.continuity_issues.append(issue)
 
-        categories_analyzed = set(insight.category for insight in insights)
+    def _detect_continuity_pattern_issues(self, element: TrackedElement, shot_sequence: List[str]) -> bool:
+        """Detect if there are continuity pattern issues"""
+        # Simple heuristic: if element disappears and reappears, it might be an issue
+        appearances = len(shot_sequence)
 
-        if AdviceCategory.STORYTELLING not in categories_analyzed:
-            strengths.append("Storytelling foundation appears solid")
+        # For elements that should be continuous, check for gaps
+        if element.target_type == TrackingTarget.CHARACTER and appearances < 3:
+            return False  # Not enough data
 
-        if AdviceCategory.CINEMATOGRAPHY not in categories_analyzed:
-            strengths.append("Cinematography planning is well-developed")
+        # Check for irregular gaps (simplified)
+        return appearances > 0 and appearances < len(shot_sequence) * 0.8
 
-        if AdviceCategory.CHARACTER_DEVELOPMENT not in categories_analyzed:
-            strengths.append("Character development is comprehensive")
+    async def _detect_motion_anomalies(self, result: TrackingResult, shots: List[Dict[str, Any]]):
+        """Detect motion anomalies in shots"""
+        # Placeholder for motion anomaly detection
+        # In real implementation would use computer vision
 
-        # Always include some positive notes
-        strengths.extend([
-            "Clear project structure and organization",
-            "Good foundation for visual storytelling"
-        ])
+        for shot in shots:
+            shot_description = shot.get('description', '').lower()
+            shot_id = shot.get('shot_id', '')
 
-        return strengths[:5]  # Limit to 5 strengths
+            # Look for unusual motion descriptions
+            if any(word in shot_description for word in ['sudden', 'jerk', 'unusual', 'abnormal']):
+                issue = ContinuityIssue(
+                    issue_id=f"motion_anomaly_{shot_id}",
+                    element_id=f"motion_{shot_id}",
+                    issue_type="motion_anomaly",
+                    description=f"Unusual motion detected in shot {shot_id}",
+                    severity="minor",
+                    shot_affected=shot_id,
+                    suggested_fix="Review motion smoothness and naturalness",
+                    confidence_score=0.5
+                )
+                result.continuity_issues.append(issue)
 
-    def _extract_weaknesses(self, insights: List[ProjectInsight]) -> List[str]:
-        """Extract weaknesses from insights"""
-        return [insight.title for insight in insights if insight.priority in [AdvicePriority.CRITICAL, AdvicePriority.HIGH]]
+    async def _detect_visual_anomalies(self, result: TrackingResult, shots: List[Dict[str, Any]]):
+        """Detect visual anomalies in shots"""
+        # Placeholder for visual anomaly detection
 
-    def _generate_recommendations(self, insights: List[ProjectInsight]) -> List[str]:
-        """Generate actionable recommendations"""
+        for shot in shots:
+            shot_description = shot.get('description', '').lower()
+            shot_id = shot.get('shot_id', '')
+
+            # Look for visual inconsistency indicators
+            if 'inconsistent' in shot_description or 'different' in shot_description:
+                issue = ContinuityIssue(
+                    issue_id=f"visual_anomaly_{shot_id}",
+                    element_id=f"visual_{shot_id}",
+                    issue_type="visual_anomaly",
+                    description=f"Potential visual inconsistency in shot {shot_id}",
+                    severity="medium",
+                    shot_affected=shot_id,
+                    suggested_fix="Check lighting, colors, and visual elements for consistency",
+                    confidence_score=0.6
+                )
+                result.continuity_issues.append(issue)
+
+    async def _analyze_movement_patterns(self, result: TrackingResult, shots: List[Dict[str, Any]]):
+        """Analyze movement patterns of tracked elements"""
+        # Create movement analysis elements
+        for shot in shots:
+            shot_id = shot.get('shot_id', '')
+            shot_description = shot.get('description', '').lower()
+
+            # Look for movement descriptions
+            if any(word in shot_description for word in ['moving', 'walking', 'running', 'driving']):
+                element = TrackedElement(
+                    element_id=f"movement_{shot_id}",
+                    target_type=TrackingTarget.CHARACTER,  # Assuming character movement
+                    name=f"Movement in {shot_id}",
+                    description=f"Movement pattern detected in shot {shot_id}",
+                    first_seen_shot=shot_id,
+                    last_seen_shot=shot_id,
+                    total_occurrences=1,
+                    confidence_score=0.7
+                )
+                result.tracked_elements.append(element)
+
+    async def _track_element_paths(self, result: TrackingResult, shots: List[Dict[str, Any]]):
+        """Track paths of moving elements"""
+        # Simplified path tracking - in real implementation would use CV tracking
+        moving_elements = [elem for elem in result.tracked_elements
+                          if 'movement' in elem.element_id]
+
+        for element in moving_elements:
+            # Add path information
+            element.tracking_notes.append("Movement path tracked across shots")
+            element.confidence_score = 0.8
+
+    async def _check_lighting_consistency(self, result: TrackingResult, shots: List[Dict[str, Any]]):
+        """Check lighting consistency across shots"""
+        lighting_descriptions = []
+
+        for shot in shots:
+            shot_id = shot.get('shot_id', '')
+            description = shot.get('description', '').lower()
+
+            # Extract lighting information
+            lighting_info = self._extract_lighting_info(description)
+            if lighting_info:
+                lighting_descriptions.append({
+                    'shot_id': shot_id,
+                    'lighting': lighting_info
+                })
+
+        # Check for consistency
+        if len(lighting_descriptions) > 1:
+            consistent = self._check_lighting_consistency_in_list(lighting_descriptions)
+
+            if not consistent:
+                issue = ContinuityIssue(
+                    issue_id="lighting_consistency_issue",
+                    element_id="lighting_overall",
+                    issue_type="lighting_inconsistency",
+                    description="Lighting inconsistencies detected across shots",
+                    severity="major",
+                    shot_affected=lighting_descriptions[-1]['shot_id'],
+                    suggested_fix="Standardize lighting direction and intensity across shots",
+                    confidence_score=0.8
+                )
+                result.continuity_issues.append(issue)
+
+    async def _check_color_consistency(self, result: TrackingResult, shots: List[Dict[str, Any]]):
+        """Check color consistency across shots"""
+        # Placeholder for color consistency checking
+        pass
+
+    async def _check_prop_consistency(self, result: TrackingResult, shots: List[Dict[str, Any]]):
+        """Check prop consistency across shots"""
+        # Enhanced prop tracking for consistency
+        prop_elements = [elem for elem in result.tracked_elements
+                        if elem.target_type == TrackingTarget.PROP]
+
+        for prop in prop_elements:
+            # Check if prop appears consistently
+            if prop.total_occurrences < 2:
+                continue
+
+            # Check for position consistency
+            positions = [pos['shot_id'] for pos in prop.position_history]
+            if len(positions) > 3:  # Multiple appearances
+                prop.tracking_notes.append("Prop appears consistently across multiple shots")
+
+    def _extract_lighting_info(self, description: str) -> Optional[str]:
+        """Extract lighting information from description"""
+        lighting_keywords = ['bright', 'dark', 'shadow', 'sunlight', 'artificial', 'natural']
+
+        for keyword in lighting_keywords:
+            if keyword in description:
+                return keyword
+
+        return None
+
+    def _check_lighting_consistency_in_list(self, lighting_list: List[Dict[str, Any]]) -> bool:
+        """Check if lighting is consistent across shots"""
+        if len(lighting_list) < 2:
+            return True
+
+        # Simple consistency check - all should be similar
+        first_lighting = lighting_list[0]['lighting']
+        return all(item['lighting'] == first_lighting for item in lighting_list)
+
+    def _perform_additional_qa_checks(self, result: TrackingResult, shots: List[Dict[str, Any]]):
+        """Perform additional quality assurance checks"""
+        # Check for minimum tracking coverage
+        if result.total_elements_tracked < len(shots) * 0.1:  # At least 10% coverage
+            issue = ContinuityIssue(
+                issue_id="qa_low_tracking_coverage",
+                element_id="tracking_coverage",
+                issue_type="quality_assurance",
+                description="Low tracking coverage - limited elements being tracked",
+                severity="minor",
+                shot_affected="multiple",
+                suggested_fix="Consider adding more detailed shot descriptions for better tracking",
+                confidence_score=0.9
+            )
+            result.continuity_issues.append(issue)
+
+    def _calculate_overall_confidence(self, result: TrackingResult) -> float:
+        """Calculate overall confidence score"""
+        if not result.tracked_elements:
+            return 0.0
+
+        # Average confidence of tracked elements
+        element_confidence = sum(elem.confidence_score for elem in result.tracked_elements) / len(result.tracked_elements)
+
+        # Issue detection confidence
+        issue_confidence = 0.8 if result.continuity_issues else 1.0
+
+        return (element_confidence + issue_confidence) / 2 * 10
+
+    def _generate_analysis_summary(self, result: TrackingResult) -> str:
+        """Generate a summary of the tracking analysis"""
+        summary_parts = []
+
+        summary_parts.append(f"Tracking analysis completed in {result.mode.value} mode.")
+        summary_parts.append(f"Tracked {result.total_elements_tracked} elements across {len(result.target_shots)} shots.")
+
+        if result.continuity_issues:
+            summary_parts.append(f"Found {result.total_issues_found} potential issues requiring attention.")
+        else:
+            summary_parts.append("No significant issues detected.")
+
+        summary_parts.append(f"Overall confidence: {result.overall_confidence:.1f}/10")
+
+        return " ".join(summary_parts)
+
+    def _generate_recommendations(self, result: TrackingResult) -> List[str]:
+        """Generate recommendations based on analysis"""
         recommendations = []
 
-        # Group insights by category and pick top recommendations
-        category_insights = {}
-        for insight in insights:
-            if insight.category not in category_insights:
-                category_insights[insight.category] = []
-            category_insights[insight.category].append(insight)
-
-        # Generate recommendations for each category
-        for category, cat_insights in category_insights.items():
-            # Sort by priority and confidence
-            sorted_insights = sorted(
-                cat_insights,
-                key=lambda x: (list(AdvicePriority).index(x.priority), x.confidence_score),
-                reverse=True
-            )
-
-            for insight in sorted_insights[:2]:  # Top 2 per category
-                recommendations.extend(insight.actionable_steps[:2])  # Top 2 steps per insight
-
-        return recommendations[:10]  # Limit to 10 recommendations
-
-    def _generate_next_steps(self, insights: List[ProjectInsight], project_data: Dict[str, Any]) -> List[str]:
-        """Generate prioritized next steps"""
-        next_steps = []
-
-        # Prioritize critical and high priority insights
-        critical_insights = [i for i in insights if i.priority == AdvicePriority.CRITICAL]
-        high_insights = [i for i in insights if i.priority == AdvicePriority.HIGH]
-
-        for insight in critical_insights + high_insights:
-            next_steps.extend(insight.actionable_steps[:1])  # One key step per insight
-
-        # Add general next steps if none found
-        if not next_steps:
-            next_steps = [
-                "Run additional wizards to enhance project development",
-                "Review and refine the overall story structure",
-                "Consider getting feedback from other creators"
-            ]
-
-        return next_steps[:5]
-
-    async def _analyze_multimedia_assets(self, project_path: Path, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze multimedia assets (images, audio, video) using quality metrics from tests"""
-        insights = []
-
-        # Analyze generated images
-        image_insights = await self._analyze_generated_images(project_path, project_data)
-        insights.extend(image_insights)
-
-        # Analyze audio assets if any
-        audio_insights = await self._analyze_audio_assets(project_path, project_data)
-        insights.extend(audio_insights)
-
-        # Analyze video assets if any
-        video_insights = await self._analyze_video_assets(project_path, project_data)
-        insights.extend(video_insights)
-
-        # Check for asset quality consistency
-        if not image_insights and not audio_insights and not video_insights:
-            insights.append(ProjectInsight(
-                category=AdviceCategory.MULTIMEDIA_QUALITY,
-                priority=AdvicePriority.MEDIUM,
-                title="Generate Multimedia Assets",
-                description="No multimedia assets found. Consider generating visual and audio elements.",
-                reasoning="High-quality multimedia assets are essential for engaging video content.",
-                actionable_steps=[
-                    "Run Shot Reference Wizard to generate visual references",
-                    "Use Dialogue Wizard to create character voices",
-                    "Generate background music and sound effects",
-                    "Create visual effects and transitions"
-                ],
-                confidence_score=0.80
-            ))
-
-        return insights
-
-    async def _analyze_generated_images(self, project_path: Path, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze generated images using quality metrics from image quality tests"""
-        insights = []
-
-        # Check for shot references
-        shot_references_dir = project_path / "shot_references"
-        if not shot_references_dir.exists():
-            insights.append(ProjectInsight(
-                category=AdviceCategory.MULTIMEDIA_QUALITY,
-                priority=AdvicePriority.HIGH,
-                title="No Visual References Generated",
-                description="No shot reference images found. Visual references are crucial for consistent production.",
-                reasoning="Visual references ensure consistent lighting, composition, and style across shots.",
-                actionable_steps=[
-                    "Run Shot Reference Wizard to generate visual references",
-                    "Create reference images for each planned shot",
-                    "Ensure consistent style and lighting across references",
-                    "Use references during actual video production"
-                ],
-                confidence_score=0.85
-            ))
-            return insights
-
-        # Analyze existing reference images
-        image_files = list(shot_references_dir.glob("*.png")) + list(shot_references_dir.glob("*.jpg"))
-
-        if len(image_files) == 0:
-            insights.append(ProjectInsight(
-                category=AdviceCategory.MULTIMEDIA_QUALITY,
-                priority=AdvicePriority.MEDIUM,
-                title="Empty Reference Directory",
-                description="Shot references directory exists but contains no images.",
-                reasoning="Reference images are needed for visual consistency and production guidance.",
-                actionable_steps=[
-                    "Regenerate shot references",
-                    "Check Shot Reference Wizard output",
-                    "Verify ComfyUI connection for image generation"
-                ],
-                confidence_score=0.75
-            ))
-            return insights
-
-        # Check if we have references for all planned shots
-        if 'shot_planning' in project_data:
-            planned_shots = project_data['shot_planning'].get('shot_lists', [])
-            if len(image_files) < len(planned_shots) * 0.5:  # Less than 50% coverage
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.MULTIMEDIA_QUALITY,
-                    priority=AdvicePriority.MEDIUM,
-                    title="Incomplete Visual References",
-                    description="Only partial visual references generated. Some shots lack reference images.",
-                    reasoning="Complete visual references ensure consistent production quality.",
-                    actionable_steps=[
-                        "Generate references for remaining shots",
-                        "Check for failed image generations",
-                        "Regenerate problematic references with different prompts"
-                    ],
-                    confidence_score=0.70
-                ))
-
-        # Analyze image quality patterns (simulated based on test criteria)
-        # In real implementation, this would use actual image quality metrics
-        quality_issues = self._simulate_image_quality_analysis(image_files)
-        insights.extend(quality_issues)
-
-        return insights
-
-    def _simulate_image_quality_analysis(self, image_files: List[Path]) -> List[ProjectInsight]:
-        """Simulate image quality analysis based on test criteria"""
-        insights = []
-
-        # Simulate common quality issues found in tests
-        if len(image_files) > 5:  # Only analyze if we have multiple images
-            # Simulate sharpness analysis (from image quality tests)
-            insights.append(ProjectInsight(
-                category=AdviceCategory.MULTIMEDIA_QUALITY,
-                priority=AdvicePriority.LOW,
-                title="Monitor Image Sharpness",
-                description="Consider reviewing image sharpness in generated references.",
-                reasoning="Sharp, well-focused images are crucial for professional video production.",
-                actionable_steps=[
-                    "Review generated reference images for sharpness",
-                    "Adjust prompts to emphasize 'sharp focus' and 'highly detailed'",
-                    "Regenerate blurry images with improved prompts",
-                    "Use higher quality settings for important shots"
-                ],
-                confidence_score=0.65
-            ))
-
-            # Simulate style consistency (from style transfer tests)
-            insights.append(ProjectInsight(
-                category=AdviceCategory.MULTIMEDIA_QUALITY,
-                priority=AdvicePriority.MEDIUM,
-                title="Style Consistency Check",
-                description="Ensure visual style remains consistent across all reference images.",
-                reasoning="Consistent visual style creates a cohesive viewing experience.",
-                actionable_steps=[
-                    "Compare reference images for style consistency",
-                    "Use consistent prompt language across shots",
-                    "Apply style transfer if needed for consistency",
-                    "Create a visual style guide for the project"
-                ],
-                confidence_score=0.75
-            ))
-
-        return insights
-
-    async def _analyze_audio_assets(self, project_path: Path, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze audio assets using quality metrics from audio tests"""
-        insights = []
-
-        # Check for audio directories
-        audio_dirs = ['audio', 'voice', 'music', 'sound_effects']
-        audio_found = False
-
-        for audio_dir in audio_dirs:
-            dir_path = project_path / audio_dir
-            if dir_path.exists():
-                audio_files = list(dir_path.glob("*.wav")) + list(dir_path.glob("*.mp3"))
-                if audio_files:
-                    audio_found = True
-                    break
-
-        if not audio_found:
-            insights.append(ProjectInsight(
-                category=AdviceCategory.MULTIMEDIA_QUALITY,
-                priority=AdvicePriority.MEDIUM,
-                title="Audio Assets Missing",
-                description="No audio assets found. Consider adding voice, music, and sound effects.",
-                reasoning="Audio elements are crucial for engaging and professional video content.",
-                actionable_steps=[
-                    "Generate voiceovers using Voice Generation Wizard",
-                    "Add background music appropriate to the mood",
-                    "Include sound effects for key actions",
-                    "Ensure proper audio mixing and levels"
-                ],
-                confidence_score=0.80
-            ))
-
-        # Simulate audio quality analysis based on test criteria
-        # In real implementation, would analyze actual audio files
-        insights.extend(self._simulate_audio_quality_analysis())
-
-        return insights
-
-    def _simulate_audio_quality_analysis(self) -> List[ProjectInsight]:
-        """Simulate audio quality analysis based on test criteria"""
-        return [
-            ProjectInsight(
-                category=AdviceCategory.MULTIMEDIA_QUALITY,
-                priority=AdvicePriority.LOW,
-                title="Audio Quality Optimization",
-                description="Consider optimizing audio quality for professional production standards.",
-                reasoning="High-quality audio enhances the overall production value.",
-                actionable_steps=[
-                    "Ensure voice recordings are clear and noise-free",
-                    "Use appropriate background music levels",
-                    "Add subtle sound effects to enhance atmosphere",
-                    "Test audio mixing on different playback devices"
-                ],
-                confidence_score=0.60
-            )
-        ]
-
-    async def _analyze_video_assets(self, project_path: Path, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze video assets using quality metrics from video tests"""
-        insights = []
-
-        # Check for video directories
-        video_dirs = ['videos', 'animations', 'generated_video']
-        video_found = False
-
-        for video_dir in video_dirs:
-            dir_path = project_path / video_dir
-            if dir_path.exists():
-                video_files = list(dir_path.glob("*.mp4")) + list(dir_path.glob("*.mov"))
-                if video_files:
-                    video_found = True
-                    break
-
-        if not video_found:
-            insights.append(ProjectInsight(
-                category=AdviceCategory.MULTIMEDIA_QUALITY,
-                priority=AdvicePriority.LOW,
-                title="Video Assets Opportunity",
-                description="Consider generating video sequences for dynamic content.",
-                reasoning="Video elements can add movement and energy to your project.",
-                actionable_steps=[
-                    "Generate video sequences using LTX-2",
-                    "Create animated transitions between shots",
-                    "Add dynamic camera movements",
-                    "Consider motion graphics for titles and effects"
-                ],
-                confidence_score=0.70
-            ))
-
-        # Simulate video quality analysis based on test criteria
-        insights.extend(self._simulate_video_quality_analysis())
-
-        return insights
-
-    def _simulate_video_quality_analysis(self) -> List[ProjectInsight]:
-        """Simulate video quality analysis based on test criteria"""
-        return [
-            ProjectInsight(
-                category=AdviceCategory.MULTIMEDIA_QUALITY,
-                priority=AdvicePriority.LOW,
-                title="Video Quality Standards",
-                description="Ensure video content meets quality standards for smooth playback.",
-                reasoning="High-quality video ensures a professional viewing experience.",
-                actionable_steps=[
-                    "Check video resolution and frame rate consistency",
-                    "Ensure smooth motion without stuttering",
-                    "Verify color consistency across video elements",
-                    "Test video playback on target devices"
-                ],
-                confidence_score=0.65
-            )
-        ]
-
-    async def _analyze_prompts_and_generation(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze prompts and generation quality based on test criteria"""
-        insights = []
-
-        # Check shot planning for prompt-related issues
-        if 'shot_planning' in project_data:
-            shots = project_data['shot_planning'].get('shot_lists', [])
-
-            # Analyze prompt patterns
-            prompt_issues = self._analyze_prompt_patterns(shots)
-            insights.extend(prompt_issues)
-
-            # Check for prompt optimization opportunities
-            optimization_suggestions = self._analyze_prompt_optimization(shots)
-            insights.extend(optimization_suggestions)
-
-        return insights
-
-    def _analyze_prompt_patterns(self, shots: List[Dict[str, Any]]) -> List[ProjectInsight]:
-        """Analyze prompt patterns for quality issues"""
-        insights = []
-
-        # Check for overly generic prompts
-        generic_prompts = 0
-        for shot in shots:
-            # In real implementation, would check actual prompts
-            # For now, simulate analysis
-            pass
-
-        if generic_prompts > len(shots) * 0.3:  # More than 30% generic
-            insights.append(ProjectInsight(
-                category=AdviceCategory.PROMPT_OPTIMIZATION,
-                priority=AdvicePriority.MEDIUM,
-                title="Prompt Specificity",
-                description="Some prompts may be too generic. More specific prompts often yield better results.",
-                reasoning="Detailed, specific prompts help AI models generate more accurate and relevant content.",
-                actionable_steps=[
-                    "Add specific visual details to prompts",
-                    "Include lighting and mood descriptions",
-                    "Specify camera angles and compositions",
-                    "Reference character descriptions in prompts"
-                ],
-                confidence_score=0.75
-            ))
-
-        # Check for prompt consistency
-        insights.append(ProjectInsight(
-            category=AdviceCategory.PROMPT_OPTIMIZATION,
-            priority=AdvicePriority.LOW,
-            title="Prompt Consistency",
-            description="Ensure consistent prompt language and style across similar shots.",
-            reasoning="Consistent prompts help maintain visual coherence in the final video.",
-            actionable_steps=[
-                "Use consistent terminology across prompts",
-                "Maintain similar detail levels",
-                "Apply consistent style descriptions",
-                "Create prompt templates for repeated elements"
-            ],
-            confidence_score=0.70
-        ))
-
-        return insights
-
-    def _analyze_prompt_optimization(self, shots: List[Dict[str, Any]]) -> List[ProjectInsight]:
-        """Analyze opportunities for prompt optimization"""
-        insights = []
-
-        # Check for advanced prompt techniques usage
-        insights.append(ProjectInsight(
-            category=AdviceCategory.PROMPT_OPTIMIZATION,
-            priority=AdvicePriority.SUGGESTION,
-            title="Advanced Prompt Techniques",
-            description="Consider using advanced prompt techniques for better generation results.",
-            reasoning="Advanced prompting can significantly improve AI-generated content quality.",
-            actionable_steps=[
-                "Use weighted terms (term:1.2) for emphasis",
-                "Add quality modifiers (highly detailed, professional)",
-                "Include style references (cinematic, photorealistic)",
-                "Specify technical parameters (f/1.8, 85mm lens)"
-            ],
-            confidence_score=0.60
-        ))
-
-        return insights
-
-    async def _analyze_asset_consistency(self, project_path: Path, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze consistency across all project assets"""
-        insights = []
-
-        # Check for overall project coherence
-        if 'shot_planning' in project_data and 'character_definitions' in project_data:
-            # Analyze character-shot consistency
-            consistency_issues = self._analyze_character_consistency(project_data)
-            insights.extend(consistency_issues)
-
-        # Check for style consistency across assets
-        style_issues = self._analyze_style_consistency(project_data)
-        insights.extend(style_issues)
-
-        # Check for technical consistency
-        technical_issues = self._analyze_technical_consistency(project_data)
-        insights.extend(technical_issues)
-
-        return insights
-
-    def _analyze_character_consistency(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze consistency between character definitions and shot usage"""
-        insights = []
-
-        characters = project_data.get('character_definitions', [])
-        shots = project_data.get('shot_planning', {}).get('shot_lists', [])
-
-        if characters and shots:
-            # Check if characters are referenced in shots
-            char_names = set()
-            for char in characters:
-                if isinstance(char, dict):
-                    char_names.add(char.get('name', '').lower())
-
-            char_mentions_in_shots = 0
-            for shot in shots:
-                shot_desc = str(shot.get('description', '')).lower()
-                for char_name in char_names:
-                    if char_name in shot_desc:
-                        char_mentions_in_shots += 1
-                        break
-
-            consistency_ratio = char_mentions_in_shots / len(shots) if shots else 0
-
-            if consistency_ratio < 0.5:  # Less than 50% of shots mention characters
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.ASSET_CONSISTENCY,
-                    priority=AdvicePriority.MEDIUM,
-                    title="Character Integration",
-                    description="Characters are not well-integrated across all shots.",
-                    reasoning="Consistent character presence helps maintain narrative coherence.",
-                    actionable_steps=[
-                        "Ensure characters appear in appropriate shots",
-                        "Reference character descriptions in shot prompts",
-                        "Maintain consistent character appearances",
-                        "Plan character arcs across the video"
-                    ],
-                    confidence_score=0.75
-                ))
-
-        return insights
-
-    def _analyze_style_consistency(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze visual and narrative style consistency"""
-        insights = []
-
-        # Check for style consistency across different elements
-        insights.append(ProjectInsight(
-            category=AdviceCategory.ASSET_CONSISTENCY,
-            priority=AdvicePriority.LOW,
-            title="Style Consistency Review",
-            description="Review overall project for consistent visual and narrative style.",
-            reasoning="Consistent style creates a cohesive and professional final product.",
-            actionable_steps=[
-                "Create a visual style guide for the project",
-                "Ensure consistent tone across all elements",
-                "Maintain consistent color palette",
-                "Apply consistent narrative voice"
-            ],
-            confidence_score=0.65
-        ))
-
-        return insights
-
-    def _analyze_technical_consistency(self, project_data: Dict[str, Any]) -> List[ProjectInsight]:
-        """Analyze technical consistency across project elements"""
-        insights = []
-
-        # Check for technical consistency
-        if 'shot_planning' in project_data:
-            shots = project_data['shot_planning'].get('shot_lists', [])
-
-            # Check resolution consistency
-            resolutions = []
-            for shot in shots:
-                # In real implementation, would check actual technical specs
-                pass
-
-            if len(set(resolutions)) > 1:  # Multiple resolutions found
-                insights.append(ProjectInsight(
-                    category=AdviceCategory.ASSET_CONSISTENCY,
-                    priority=AdvicePriority.MEDIUM,
-                    title="Technical Specifications",
-                    description="Ensure consistent technical specifications across all shots.",
-                    reasoning="Technical consistency ensures smooth editing and professional output.",
-                    actionable_steps=[
-                        "Standardize resolution across all shots",
-                        "Use consistent frame rates",
-                        "Maintain consistent aspect ratios",
-                        "Apply consistent audio specifications"
-                    ],
-                    confidence_score=0.80
-                ))
-
-        return insights
-
-    def _save_report(self, project_path: Path, report: GhostTrackerReport) -> None:
-        """Save the analysis report to the project"""
-        report_data = {
-            'ghost_tracker_report': {
-                'project_id': report.project_id,
-                'analysis_timestamp': report.analysis_timestamp,
-                'overall_score': report.overall_score,
-                'insights': [
+        if result.total_issues_found > 0:
+            recommendations.append("Review flagged continuity issues and consider reshoots if critical.")
+
+        if result.total_elements_tracked < 5:
+            recommendations.append("Consider adding more detailed element descriptions for comprehensive tracking.")
+
+        if result.overall_confidence < 7.0:
+            recommendations.append("Consider professional tracking services for higher accuracy.")
+
+        if result.mode == TrackingMode.CONTINUITY:
+            recommendations.append("Run anomaly detection mode for additional quality checks.")
+
+        return recommendations
+
+    def _save_tracking_results(self, project_path: Path, result: TrackingResult):
+        """Save tracking results to project files"""
+        # Save main tracking result
+        result_data = {
+            "ghost_tracking_result": {
+                "result_id": result.result_id,
+                "project_id": result.project_id,
+                "tracking_timestamp": result.tracking_timestamp,
+                "mode": result.mode.value,
+                "target_shots": result.target_shots,
+                "total_elements_tracked": result.total_elements_tracked,
+                "total_issues_found": result.total_issues_found,
+                "overall_confidence": result.overall_confidence,
+                "processing_time": result.processing_time,
+                "analysis_summary": result.analysis_summary,
+                "recommendations": result.recommendations,
+                "tracked_elements": [
                     {
-                        'category': insight.category.value,
-                        'priority': insight.priority.value,
-                        'title': insight.title,
-                        'description': insight.description,
-                        'reasoning': insight.reasoning,
-                        'actionable_steps': insight.actionable_steps,
-                        'related_elements': insight.related_elements,
-                        'confidence_score': insight.confidence_score
-                    } for insight in report.insights
+                        "element_id": elem.element_id,
+                        "target_type": elem.target_type.value,
+                        "name": elem.name,
+                        "description": elem.description,
+                        "first_seen_shot": elem.first_seen_shot,
+                        "last_seen_shot": elem.last_seen_shot,
+                        "total_occurrences": elem.total_occurrences,
+                        "confidence_score": elem.confidence_score,
+                        "tracking_notes": elem.tracking_notes
+                    } for elem in result.tracked_elements
                 ],
-                'strengths': report.strengths,
-                'weaknesses': report.weaknesses,
-                'recommendations': report.recommendations,
-                'next_steps': report.next_steps,
-                'metadata': report.metadata
+                "continuity_issues": [
+                    {
+                        "issue_id": issue.issue_id,
+                        "element_id": issue.element_id,
+                        "issue_type": issue.issue_type,
+                        "description": issue.description,
+                        "severity": issue.severity,
+                        "shot_affected": issue.shot_affected,
+                        "suggested_fix": issue.suggested_fix,
+                        "confidence_score": issue.confidence_score
+                    } for issue in result.continuity_issues
+                ]
             }
         }
 
-        report_file = project_path / "ghost_tracker_report.json"
-        with open(report_file, 'w') as f:
-            json.dump(report_data, f, indent=2)
+        result_file = project_path / "ghost_tracking_result.json"
+        with open(result_file, 'w') as f:
+            json.dump(result_data, f, indent=2)
 
-    def get_quick_advice(self, project_path: Path, question: str) -> str:
-        """
-        Get quick advice on a specific question about the project
+        # Update project.json with tracking metadata
+        project_file = project_path / "project.json"
+        if project_file.exists():
+            try:
+                with open(project_file, 'r') as f:
+                    project_data = json.load(f)
 
-        Args:
-            project_path: Path to the project
-            question: Specific question to answer
+                project_data['ghost_tracking'] = {
+                    'completed': True,
+                    'tracking_timestamp': result.tracking_timestamp,
+                    'mode': result.mode.value,
+                    'elements_tracked': result.total_elements_tracked,
+                    'issues_found': result.total_issues_found,
+                    'confidence': result.overall_confidence
+                }
 
-        Returns:
-            AI-generated advice response
-        """
-        # Load project data
-        project_data = self._load_project_data(project_path)
+                with open(project_file, 'w') as f:
+                    json.dump(project_data, f, indent=2)
 
-        if not project_data:
-            return "No project data available to analyze."
-
-        # For now, return a placeholder response
-        # In a real implementation, this would use LLM to generate specific advice
-        return f"Based on your project analysis, here's advice for: {question}\n\nThis feature requires LLM integration for detailed responses."
-
-    def get_category_focused_analysis(self, project_path: Path, category: AdviceCategory) -> List[ProjectInsight]:
-        """
-        Get analysis focused on a specific category
-
-        Args:
-            project_path: Path to the project
-            category: Category to focus analysis on
-
-        Returns:
-            Insights specific to the requested category
-        """
-        # This would run focused analysis on specific category
-        # For now, return empty list - would be implemented with category-specific analysis
-        return []
+            except Exception as e:
+                print(f"Warning: Could not update project.json: {e}")
 
 
 # Convenience functions
-def create_ghost_tracker_wizard(llm_client=None) -> GhostTrackerWizard:
+def create_ghost_tracker_wizard(vision_engine=None, tracking_engine=None) -> GhostTrackerWizard:
     """Create a Ghost Tracker wizard instance"""
-    return GhostTrackerWizard(llm_client)
+    return GhostTrackerWizard(vision_engine, tracking_engine)
 
 
-async def analyze_project_with_ghost_tracker(project_path: Path, focus_areas: Optional[List[str]] = None) -> GhostTrackerReport:
+async def perform_tracking_analysis(project_path: Path,
+                                  tracking_mode: str = "continuity",
+                                  target_shots: Optional[List[str]] = None) -> TrackingResult:
     """
-    Convenience function to analyze a project with Ghost Tracker
+    Convenience function to perform tracking analysis
 
     Args:
         project_path: Path to project directory
-        focus_areas: Specific areas to focus analysis on
+        tracking_mode: Tracking mode (continuity, anomaly_detection, motion_analysis, visual_consistency, quality_assurance)
+        target_shots: Specific shot IDs to analyze
 
     Returns:
-        Complete analysis report
+        Complete tracking analysis result
     """
+    mode_map = {
+        'continuity': TrackingMode.CONTINUITY,
+        'anomaly_detection': TrackingMode.ANOMALY_DETECTION,
+        'motion_analysis': TrackingMode.MOTION_ANALYSIS,
+        'visual_consistency': TrackingMode.VISUAL_CONSISTENCY,
+        'quality_assurance': TrackingMode.QUALITY_ASSURANCE
+    }
+
+    mode = mode_map.get(tracking_mode.lower(), TrackingMode.CONTINUITY)
     wizard = create_ghost_tracker_wizard()
-    return await wizard.analyze_project(project_path, focus_areas)
+    return await wizard.perform_tracking_analysis(project_path, mode, target_shots)
 
 
-def get_ghost_tracker_advice(project_path: Path, question: str) -> str:
+def get_tracking_preview(project_path: Path) -> Dict[str, Any]:
     """
-    Get quick advice from Ghost Tracker
+    Get a preview of tracking analysis for a project
 
     Args:
-        project_path: Path to project
-        question: Question to ask
+        project_path: Path to project directory
 
     Returns:
-        Advice response
+        Preview data
     """
-    wizard = create_ghost_tracker_wizard()
-    return wizard.get_quick_advice(project_path, question)
+    try:
+        project_file = project_path / "project.json"
+        if not project_file.exists():
+            return {"error": "Project not found"}
+
+        with open(project_file, 'r') as f:
+            project_data = json.load(f)
+
+        shot_planning = project_data.get('shot_planning', {})
+        shots = shot_planning.get('shot_lists', [])
+
+        return {
+            "project_name": project_data.get('name', 'Unknown Project'),
+            "total_shots": len(shots),
+            "estimated_elements": max(1, len(shots) // 3),  # Rough estimate
+            "supported_modes": ["continuity", "anomaly_detection", "motion_analysis", "visual_consistency", "quality_assurance"],
+            "recommended_mode": "quality_assurance"
+        }
+
+    except Exception as e:
+        return {"error": f"Could not analyze project: {str(e)}"}

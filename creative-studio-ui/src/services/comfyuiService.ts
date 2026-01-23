@@ -233,7 +233,6 @@ export class ComfyUIService {
   }): Promise<string> {
     // In a real implementation, this would call the ComfyUI API
     // For now, return a mock image URL
-    console.log('Generating image with params:', params);
     return `data:image/png;base64,mock-image-data-for-${params.prompt.substring(0, 10)}`;
   }
 }

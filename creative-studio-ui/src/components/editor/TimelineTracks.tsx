@@ -61,15 +61,14 @@ export function TimelineTracks({ clips = [], onDropMedia, onClipClick }: Timelin
   const renderTrack = (
     trackType: 'video' | 'image' | 'audio' | 'text',
     icon: React.ReactNode,
-    label: string,
-    color: string
+    label: string
   ) => {
     const trackClips = getClipsForTrack(trackType);
     const isDragOver = dragOverTrack === trackType;
 
     return (
       <div className={`timeline-track-row ${isDragOver ? 'drag-over' : ''}`}>
-        <div className="track-header" style={{ borderLeftColor: color }}>
+        <div className={`track-header track-${trackType}`}>
           {icon}
           <span className="track-label">{label}</span>
           <span className="track-count">{trackClips.length}</span>
@@ -89,11 +88,8 @@ export function TimelineTracks({ clips = [], onDropMedia, onClipClick }: Timelin
               {trackClips.map(clip => (
                 <div
                   key={clip.id}
-                  className="track-clip"
-                  style={{
-                    width: `${clip.duration * 20}px`,
-                    backgroundColor: color,
-                  }}
+                  className={`track-clip track-clip-${trackType}`}
+                  style={{ width: `${clip.duration * 20}px` }}
                   onClick={() => onClipClick?.(clip)}
                   title={clip.name}
                 >
@@ -109,10 +105,10 @@ export function TimelineTracks({ clips = [], onDropMedia, onClipClick }: Timelin
 
   return (
     <div className="timeline-tracks-container">
-      {renderTrack('video', <Video size={16} />, 'VIDEO TRACK', '#7c3aed')}
-      {renderTrack('image', <Image size={16} />, 'IMAGE TRACK', '#06b6d4')}
-      {renderTrack('audio', <Music size={16} />, 'AUDIO TRACK', '#10b981')}
-      {renderTrack('text', <Type size={16} />, 'TEXT TRACK', '#f59e0b')}
+      {renderTrack('video', <Video size={16} />, 'VIDEO TRACK')}
+      {renderTrack('image', <Image size={16} />, 'IMAGE TRACK')}
+      {renderTrack('audio', <Music size={16} />, 'AUDIO TRACK')}
+      {renderTrack('text', <Type size={16} />, 'TEXT TRACK')}
     </div>
   );
 }

@@ -199,7 +199,6 @@ function exportAsURL(data: ExportedGridConfiguration): void {
   
   // Copy to clipboard
   navigator.clipboard.writeText(url).then(() => {
-    console.log('Configuration URL copied to clipboard:', url);
     // Show notification to user
     showNotification('Configuration URL copied to clipboard!', 'success');
   }).catch(err => {
@@ -700,7 +699,6 @@ function setNestedValue(obj: any, path: string, value: any): void {
  */
 function showNotification(message: string, type: 'success' | 'error' | 'info'): void {
   // This should integrate with your notification system
-  console.log(`[${type.toUpperCase()}] ${message}`);
   
   // For now, use a simple alert (replace with proper notification UI)
   if (typeof window !== 'undefined') {

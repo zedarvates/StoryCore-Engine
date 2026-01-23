@@ -71,7 +71,6 @@ export function useNarrative(initialPath?: string): UseNarrativeReturn {
   // Subscribe to narrative updates
   useEffect(() => {
     const unsubscribe = narrativeService.subscribeToNarrativeUpdates((path, updatedNarrative) => {
-      console.log('[useNarrative] Narrative updated:', path);
       
       // Update if it's the current narrative
       if (currentPath && path === currentPath) {
@@ -178,7 +177,6 @@ export function useNarrativeCache(): UseNarrativeCacheReturn {
   // Subscribe to cache updates
   useEffect(() => {
     const unsubscribe = narrativeService.subscribeToCacheUpdates((cleared) => {
-      console.log('[useNarrativeCache] Cache update:', cleared);
       setCacheCleared(cleared);
       
       // Reset flag after 3 seconds

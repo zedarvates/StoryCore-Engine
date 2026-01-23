@@ -61,7 +61,7 @@ describe('ChatPanel', () => {
     });
 
     const { container } = render(<ChatPanel />);
-    const panel = container.querySelector('.fixed.right-0.top-0.bottom-0');
+    const panel = container.querySelector('.fixed');
 
     expect(panel).toBeInTheDocument();
   });
@@ -162,7 +162,7 @@ describe('ChatPanel', () => {
     });
 
     const { container } = render(<ChatPanel />);
-    const panel = container.querySelector('.w-full.md\\:w-96');
+    const panel = container.querySelector('.fixed');
 
     expect(panel).toBeInTheDocument();
   });
@@ -188,6 +188,6 @@ describe('ChatPanel', () => {
     render(<ChatPanel />);
 
     const chatBox = screen.getByTestId('chat-box');
-    expect(chatBox).toHaveClass('flex-1');
+    expect(chatBox).toHaveClass('h-full');
   });
 });

@@ -17,6 +17,9 @@ import type { Shot } from '@/types';
 import { sequencePlanService } from '@/services/sequencePlanService';
 import { migrationService } from '@/services/MigrationService';
 import { syncManager } from '@/services/SyncManager';
+import { useLLMConfig } from '@/services/llmConfigService';
+import { buildSystemPrompt } from '@/utils/systemPromptBuilder';
+import { projectService } from '@/services/project/ProjectService';
 import {
   Film,
   Users,
@@ -61,7 +64,11 @@ export function ProjectDashboardNew({
   const openWizard = useAppStore((state) => state.openWizard);
   const setShowWorldWizard = useAppStore((state) => state.setShowWorldWizard);
   const setShowCharacterWizard = useAppStore((state) => state.setShowCharacterWizard);
-  
+  const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
+
+  // LLM Configuration
+  const { config: llmConfig, service: llmService, isConfigured: isLLMConfigured } = useLLMConfig();
+
   const [globalResume, setGlobalResume] = useState(
     project?.metadata?.globalResume ||
     "Vidéo d'aventure dans le monde actuel avec une pointe de mystérisme..."
@@ -76,12 +83,11 @@ export function ProjectDashboardNew({
     const saved = localStorage.getItem('chatterboxHeight');
     return saved ? parseInt(saved, 10) : 400;
   });
+  const showChat = useAppStore((state) => state.showChat);
 
   // Generate sequences from project shots
   const sequences = useMemo<SequenceData[]>(() => {
-    console.log('[DEBUG] ProjectDashboardNew sequences useMemo called, shots:', shots?.length || 0, 'forceUpdate:', forceUpdate);
     if (!shots || shots.length === 0) {
-      console.log('[DEBUG] No shots found, returning empty sequences');
       return [];
     }
 
@@ -95,7 +101,6 @@ export function ProjectDashboardNew({
       sequenceMap.get(seqId)!.push(shot);
     });
 
-    console.log('[DEBUG] Found', sequenceMap.size, 'sequence groups');
 
     // Convert to sequence data array
     const sequenceArray: SequenceData[] = [];
@@ -110,7 +115,7 @@ export function ProjectDashboardNew({
       
       // Get description from first shot or use default
       const firstShot = seqShots[0];
-      const resume = firstShot?.description || `Séquence ${order} avec ${seqShots.length} plan(s)`;
+      const resume = firstShot?.description || `Sequence ${order} with ${seqShots.length} shot(s)`;
       
       sequenceArray.push({
         id: sequenceId,
@@ -126,35 +131,55 @@ export function ProjectDashboardNew({
 
     // Sort by order
     const sortedSequences = sequenceArray.sort((a, b) => a.order - b.order);
-    console.log('[DEBUG] Generated', sortedSequences.length, 'sequences');
     return sortedSequences;
   }, [shots, forceUpdate]);
 
   // Update global resume when project changes
   useEffect(() => {
-    if (project?.metadata?.globalResume) {
-      setGlobalResume(project.metadata.globalResume);
-    }
+    const loadGlobalResume = async () => {
+      console.log('[ProjectDashboardNew] Loading global resume...', {
+        projectPath: project?.metadata?.path,
+        hasGlobalResume: !!project?.metadata?.globalResume
+      });
+      
+      if (project?.metadata?.path) {
+        try {
+          console.log('[ProjectDashboardNew] Calling projectService.getGlobalResume...');
+          const resume = await projectService.getGlobalResume(project.metadata.path);
+          console.log('[ProjectDashboardNew] Resume loaded:', resume);
+          if (resume) {
+            setGlobalResume(resume);
+          } else if (project.metadata.globalResume) {
+            setGlobalResume(project.metadata.globalResume);
+          }
+        } catch (error) {
+          console.error('[ProjectDashboardNew] Failed to load global resume:', error);
+          if (project.metadata.globalResume) {
+            setGlobalResume(project.metadata.globalResume);
+          }
+        }
+      } else if (project?.metadata?.globalResume) {
+        setGlobalResume(project.metadata.globalResume);
+      }
+    };
+
+    loadGlobalResume();
   }, [project]);
 
   // Subscribe to sequence plan updates
   useEffect(() => {
-    console.log('[DEBUG] Subscribing to sequence plan updates');
     
     const planUpdateUnsubscribe = sequencePlanService.subscribeToPlanUpdates((planId, plan) => {
-      console.log('[DEBUG] Received plan update for planId:', planId);
       // Force re-render by updating state
       setForceUpdate(prev => prev + 1);
     });
 
     const planListUnsubscribe = sequencePlanService.subscribeToPlanList((plans) => {
-      console.log('[DEBUG] Received plan list update, plans:', plans.length);
       // Force re-render by updating state
       setForceUpdate(prev => prev + 1);
     });
 
     return () => {
-      console.log('[DEBUG] Unsubscribing from sequence plan updates');
       planUpdateUnsubscribe();
       planListUnsubscribe();
     };
@@ -245,7 +270,6 @@ export function ProjectDashboardNew({
   useEffect(() => {
     const handleLaunchWizard = (event: CustomEvent) => {
       const { wizardType } = event.detail;
-      console.log('[ProjectDashboard] Launching wizard from chat:', wizardType);
       handleLaunchWizard(wizardType);
     };
 
@@ -264,12 +288,10 @@ export function ProjectDashboardNew({
       }
 
       try {
-        console.log('[ProjectDashboard] Checking if migration is needed...');
 
         const migrationNeeded = await migrationService.isMigrationNeeded(project.metadata.path);
 
         if (migrationNeeded) {
-          console.log('[ProjectDashboard] Migration needed, starting automatic migration...');
 
           // Afficher une notification de migration en cours
           const migrationNotification = {
@@ -283,13 +305,12 @@ export function ProjectDashboardNew({
           const migrationResult = await migrationService.migrateAllData(project.metadata.path);
 
           if (migrationResult.success) {
-            console.log(`[ProjectDashboard] Migration completed successfully: ${migrationResult.migrated} entities migrated`);
 
             // Notification de succès
             const successNotification = {
               id: 'migration-success',
               type: 'system',
-              content: `✅ Migration terminée avec succès ! ${migrationResult.migrated} entités migrées.`,
+              content: `Migration completed successfully! ${migrationResult.migrated} entities migrated.`,
               timestamp: new Date(),
             };
 
@@ -303,7 +324,7 @@ export function ProjectDashboardNew({
             const errorNotification = {
               id: 'migration-error',
               type: 'error',
-              content: `❌ Migration échouée: ${migrationResult.errors.length} erreurs. Vérifiez la console pour plus de détails.`,
+              content: `Migration failed: ${migrationResult.errors.length} errors. Check console for more details.`,
               timestamp: new Date(),
               error: {
                 message: `Migration failed with ${migrationResult.errors.length} errors`,
@@ -315,14 +336,12 @@ export function ProjectDashboardNew({
                     label: 'Retry Migration',
                     action: async () => {
                       // Retry logic would go here
-                      console.log('Retry migration requested');
                     },
                     primary: true,
                   },
                   {
                     label: 'View Details',
                     action: () => {
-                      console.log('Migration errors:', migrationResult.errors);
                     },
                     primary: false,
                   },
@@ -331,7 +350,6 @@ export function ProjectDashboardNew({
             };
           }
         } else {
-          console.log('[ProjectDashboard] No migration needed');
         }
       } catch (error) {
         console.error('[ProjectDashboard] Auto-migration error:', error);
@@ -410,6 +428,61 @@ export function ProjectDashboardNew({
       case 'style-transfer':
         openWizard('style-transfer');
         break;
+    }
+  };
+
+  // Handle force update sequences from JSON files
+  const handleForceUpdateSequences = async () => {
+    try {
+      if (!project?.metadata?.path) {
+        alert('Project path not found. Please ensure the project is properly loaded.');
+        return;
+      }
+
+      const projectPath = project.metadata.path;
+      const sequencesDir = `${projectPath}/sequences`;
+
+      // Load sequences from JSON files
+      const loadedSequences = await loadSequencesFromFiles(sequencesDir);
+
+      if (loadedSequences.length === 0) {
+        alert('Aucune séquence trouvée dans les fichiers JSON.');
+        return;
+      }
+
+      // Update shots with sequence information
+      const updatedShots = [...shots];
+      for (const sequence of loadedSequences) {
+        // Update shots that belong to this sequence
+        if (sequence.shot_ids && Array.isArray(sequence.shot_ids)) {
+          const sequenceShots = updatedShots.filter((shot: any) => sequence.shot_ids && sequence.shot_ids.includes(shot.id));
+          sequenceShots.forEach((shot: any) => {
+            shot.sequence_id = sequence.id;
+            // Update sequence metadata in shot
+            shot.metadata = {
+              ...shot.metadata,
+              sequence_order: sequence.order,
+              sequence_duration: sequence.duration,
+              sequence_shots_count: sequence.shots_count,
+              sequence_resume: sequence.resume,
+            };
+          });
+        } else {
+          console.warn(`Sequence ${sequence.id} has no shot_ids array`);
+        }
+      }
+
+      // Update shots in store
+      setShots(updatedShots);
+
+      // Force re-render
+      setForceUpdate(prev => prev + 1);
+
+      alert(`✅ ${loadedSequences.length} séquence(s) mise(s) à jour depuis les fichiers JSON.`);
+
+    } catch (error) {
+      console.error('Failed to force update sequences:', error);
+      alert(`Erreur lors de la mise à jour forcée : ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
     }
   };
 
@@ -676,6 +749,56 @@ export function ProjectDashboardNew({
     }
   };
 
+  // Helper function to load sequences from JSON files
+  const loadSequencesFromFiles = async (sequencesDir: string): Promise<any[]> => {
+    try {
+      // Read directory contents
+      if (!window.electronAPI?.fs?.readdir) {
+        throw new Error('File system API not available');
+      }
+
+      const files = await window.electronAPI.fs.readdir(sequencesDir);
+
+      // Filter sequence JSON files
+      const sequenceFiles = files.filter((file: string) => file.startsWith('sequence_') && file.endsWith('.json'));
+
+      const loadedSequences: any[] = [];
+
+      for (const fileName of sequenceFiles) {
+        try {
+          const filePath = `${sequencesDir}/${fileName}`;
+
+          if (!window.electronAPI?.fs?.readFile) {
+            continue;
+          }
+
+          // Read file content
+          const buffer = await window.electronAPI.fs.readFile(filePath);
+          const decoder = new TextDecoder();
+          const jsonString = decoder.decode(buffer);
+          const sequenceData = JSON.parse(jsonString);
+
+          // Ensure shot_ids is an array
+          if (!sequenceData.shot_ids || !Array.isArray(sequenceData.shot_ids)) {
+            sequenceData.shot_ids = [];
+          }
+
+          loadedSequences.push(sequenceData);
+        } catch (fileError) {
+          console.error(`Failed to load sequence file ${fileName}:`, fileError);
+        }
+      }
+
+      // Sort by order
+      loadedSequences.sort((a, b) => a.order - b.order);
+
+      return loadedSequences;
+    } catch (error) {
+      console.error('Failed to load sequences from files:', error);
+      throw error;
+    }
+  };
+
   // Helper function to save sequence to file
   const saveSequenceToFile = async (sequence: SequenceData, sequencesDir: string) => {
     const fileName = `sequence_${sequence.id.padStart(3, '0')}.json`;
@@ -707,10 +830,50 @@ export function ProjectDashboardNew({
     }
   };
 
+  // Helper function to save shot to file
+  const saveShotToFile = async (shot: Shot & { sequence_id: string }, shotsDir: string) => {
+    const fileName = `shot_${shot.id}.json`;
+    const filePath = `${shotsDir}/${fileName}`;
+
+    const shotData = {
+      id: shot.id,
+      title: shot.title,
+      description: shot.description,
+      duration: shot.duration,
+      position: shot.position,
+      sequence_id: shot.sequence_id,
+      audioTracks: shot.audioTracks || [],
+      effects: shot.effects || [],
+      textLayers: shot.textLayers || [],
+      animations: shot.animations || [],
+      metadata: {
+        ...shot.metadata,
+        updated_at: new Date().toISOString(),
+      },
+    };
+
+    const jsonString = JSON.stringify(shotData, null, 2);
+
+    if (window.electronAPI?.fs?.writeFile) {
+      // Convert string to Buffer for Electron API
+      const encoder = new TextEncoder();
+      const dataBuffer = Buffer.from(encoder.encode(jsonString));
+      await window.electronAPI.fs.writeFile(filePath, dataBuffer);
+    }
+  };
+
   // Handle sequence click
   const handleSequenceClick = (sequenceId: string) => {
     ;
     onOpenEditor(sequenceId);
+  };
+
+  // Handle new plan creation - opens Sequence Plan Wizard
+  const handleNewPlan = () => {
+    openSequencePlanWizard({
+      mode: 'create',
+      sequenceId: sequences.length > 0 ? sequences[0].id : undefined
+    });
   };
 
   // Handle LLM create/improve resume
@@ -754,16 +917,10 @@ Générez un nouveau résumé global de 300-400 caractères maximum qui :
 
 Le résumé doit être en français et commencer par une accroche forte.`;
 
-      // Use the same LLM system as LandingChatBox
-      const { useLLMConfig } = await import('@/services/llmConfigService');
-      const { llmConfig, service: llmService } = useLLMConfig();
-
       if (!llmService || !llmConfig) {
         throw new Error('Service LLM non configuré');
       }
 
-      // Import system prompt builder
-      const { buildSystemPrompt } = await import('@/utils/systemPromptBuilder');
       const systemPrompt = buildSystemPrompt('fr');
 
       // Create LLM request
@@ -781,7 +938,7 @@ Le résumé doit être en français et commencer par une accroche forte.`;
         let generatedResume = response.data.content.trim();
 
         // Remove any markdown formatting or extra text
-        generatedResume = generatedResume.replace(/^["""]|["""]$/g, ''); // Remove quotes
+        generatedResume = generatedResume.replace(/^[""]|[""]$/g, ''); // Remove quotes
         generatedResume = generatedResume.replace(/^\*\*.*?\*\*\s*/g, ''); // Remove bold markdown
         generatedResume = generatedResume.replace(/^#+\s*/gm, ''); // Remove headers
 
@@ -827,20 +984,15 @@ Le résumé doit être en français et commencer par une accroche forte.`;
 
       setProject(updatedProject);
 
-      // Save to file system via Electron API
-      if (window.electronAPI?.project?.updateMetadata) {
-        try {
-          await window.electronAPI.project.updateMetadata(
-            project.metadata?.path || '',
-            { globalResume: globalResume }
-          );
+      // Save to file system via ProjectService
+      try {
+        if (project.metadata?.path) {
+          await projectService.updateGlobalResume(project.metadata.path, globalResume);
           ;
-        } catch (error) {
-          console.error('Failed to save resume to file:', error);
-          alert('Erreur lors de la sauvegarde du résumé. Vérifiez la console pour plus de détails.');
         }
-      } else {
-        console.log('Resume saved successfully');
+      } catch (error) {
+        console.error('Failed to save resume to file:', error);
+        alert('Erreur lors de la sauvegarde du résumé. Vérifiez la console pour plus de détails.');
       }
     }
   };
@@ -853,59 +1005,64 @@ Le résumé doit être en français et commencer par une accroche forte.`;
 
   return (
     <div className="project-dashboard-new">
-      {/* Top Section: Quick Access (Compact) */}
-      <div className="dashboard-header">
+        {/* Top Section: Quick Access (Compact) */}
+        <div className="dashboard-header">
         <div className="quick-access-compact">
           <button className="quick-btn" title="Scenes">
-            <Film className="w-4 h-4" />
             <span>Scenes ({shots?.length || 0})</span>
+            <Film className="w-4 h-4" />
           </button>
           <button className="quick-btn" title="Characters">
-            <Users className="w-4 h-4" />
             <span>Characters ({project?.characters?.length || 0})</span>
+            <Users className="w-4 h-4" />
           </button>
           <button className="quick-btn" title="Assets">
-            <FileText className="w-4 h-4" />
             <span>Assets ({project?.assets?.length || 0})</span>
+            <FileText className="w-4 h-4" />
           </button>
           <button className="quick-btn" title="Settings">
-            <Wand2 className="w-4 h-4" />
             <span>Settings</span>
+            <Wand2 className="w-4 h-4" />
           </button>
         </div>
 
         {/* Pipeline Status (Compact) */}
-        <div className="pipeline-status-compact">
-          <div className="status-item">
-            <Film className="w-4 h-4" />
-            <span>Sequences: {sequences.length}</span>
-          </div>
-          <div className="status-item">
-            <FileText className="w-4 h-4" />
-            <span>Shots: {shots?.length || 0}</span>
-          </div>
-          <div className="status-item status-ready">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Ready</span>
-          </div>
-          
-          {/* Service Status Indicators */}
-          <div className="status-divider"></div>
-          <div 
-            className="status-item status-service"
-            title={`Ollama: ${ollamaStatus === 'connected' ? 'Connecté' : ollamaStatus === 'checking' ? 'Vérification...' : 'Déconnecté'}`}
-          >
-            <div className={`status-indicator status-ollama ${ollamaStatus === 'connected' ? 'connected' : 'disconnected'}`}></div>
-            <span>Ollama</span>
-          </div>
-          <div 
-            className="status-item status-service"
-            title={`ComfyUI: ${comfyuiStatus === 'connected' ? 'Connecté' : comfyuiStatus === 'checking' ? 'Vérification...' : 'Déconnecté (optionnel)'}`}
-          >
-            <div className={`status-indicator status-comfyui ${comfyuiStatus === 'connected' ? 'connected' : 'disconnected'}`}></div>
-            <span>ComfyUI</span>
-          </div>
-        </div>
+       <div className="pipeline-status-compact">
+         <div className="status-item">
+           <Film className="w-4 h-4" />
+           <span>Sequences: {sequences.length}</span>
+         </div>
+         <div className="status-item">
+           <FileText className="w-4 h-4" />
+           <span>Shots: {shots?.length || 0}</span>
+         </div>
+         <div className="status-item status-ready">
+           <CheckCircle2 className="w-4 h-4" />
+           <span>Ready</span>
+         </div>
+         
+         {/* Board Name Display */}
+         <div className="status-item board-name">
+           <span>Board: {project?.metadata?.name || 'My First Story'}</span>
+         </div>
+         
+         {/* Service Status Indicators */}
+         <div className="status-divider"></div>
+         <div
+           className="status-item status-service"
+           title={`Ollama: ${ollamaStatus === 'connected' ? 'Connecté' : ollamaStatus === 'checking' ? 'Vérification...' : 'Déconnecté'}`}
+         >
+           <div className={`status-indicator status-ollama ${ollamaStatus === 'connected' ? 'connected' : 'disconnected'}`}></div>
+           <span>Ollama</span>
+         </div>
+         <div
+           className="status-item status-service"
+           title={`ComfyUI: ${comfyuiStatus === 'connected' ? 'Connecté' : comfyuiStatus === 'checking' ? 'Vérification...' : 'Déconnecté (optionnel)'}`}
+         >
+           <div className={`status-indicator status-comfyui ${comfyuiStatus === 'connected' ? 'connected' : 'disconnected'}`}></div>
+           <span>ComfyUI</span>
+         </div>
+       </div>
       </div>
 
       {/* Main Content Area */}
@@ -944,15 +1101,6 @@ Le résumé doit être en français et commencer par une accroche forte.`;
                     onClick={handleSaveResume}
                   >
                     Save
-                  </button>
-                  <button 
-                    className="btn-cancel"
-                    onClick={() => {
-                      setGlobalResume(project?.metadata?.globalResume || globalResume);
-                      setIsEditingResume(false);
-                    }}
-                  >
-                    Cancel
                   </button>
                 </div>
               </div>
@@ -1034,6 +1182,22 @@ Le résumé doit être en français et commencer par une accroche forte.`;
               <h3>Plan Sequences</h3>
               <div className="sequence-controls">
                 <button
+                  className="btn-sequence-control refresh"
+                  onClick={handleForceUpdateSequences}
+                  title="Forcer la mise à jour des séquences depuis les fichiers JSON"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Actualiser</span>
+                </button>
+                <button
+                  className="btn-sequence-control new-plan"
+                  onClick={handleNewPlan}
+                  title="Nouveau plan"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Nouveau plan</span>
+                </button>
+                <button
                   className="btn-sequence-control add"
                   onClick={handleAddSequence}
                   title="Ajouter une séquence"
@@ -1089,27 +1253,66 @@ Le résumé doit être en français et commencer par une accroche forte.`;
           </div>
 
           {/* Chatterbox Assistant LLM - Reusing LandingChatBox */}
+          {showChat && (
+            <div className="chatterbox-section">
+              <div className="chatterbox-header">
+                <h3>Chatterbox Assistant LLM</h3>
+                <p className="chatterbox-subtitle">
+                  Ask questions about your project, request modifications, or get help
+                </p>
+                <p className="chatterbox-subtitle text-xs text-gray-400 mt-1">
+                  Available wizards: World Building, Character Creation, Scene Generator
+                </p>
+              </div>
+              <div className="chatterboxcontainer resizable">
+                <LandingChatBox
+                  placeholder="Ask for modifications, ask questions about your project..."
+                  height={chatterboxHeight}
+                />
+                <div className="chatterboxresizehandle">
+                  <div className="resizegrip"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      const startY = e.clientY;
+                      const startHeight = chatterboxHeight;
+
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        const newHeight = Math.max(200, startHeight + (moveEvent.clientY - startY));
+                        handleChatterboxResize(newHeight);
+                      };
+
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
+                    }}
+                    title="Resize Chatterbox"
+                  >
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="chatterbox-section">
             <div className="chatterbox-header">
               <h3>Chatterbox Assistant LLM</h3>
               <p className="chatterbox-subtitle">
-                Posez des questions sur votre projet, demandez des modifications, ou obtenez de l'aide
+                Ask questions about your project, request modifications, or get help
               </p>
               <p className="chatterbox-subtitle text-xs text-gray-400 mt-1">
-                Available wizards: World Building, Character Creation, Scene Generator, Dialogue Writer, Storyboard Creator, Style Transfer, Comic to Sequence, Audio Production, Transitions, Plan Sequences
+                Available wizards: World Building, Character Creation, Scene Generator
               </p>
             </div>
-            <div
-              className="chatterbox-container resizable"
-              style={{ height: `${chatterboxHeight}px` }}
-            >
+            <div className="chatterboxcontainer resizable">
               <LandingChatBox
-                placeholder="Demandez des modifications, posez des questions sur votre projet..."
+                placeholder="Ask for modifications, ask questions about your project..."
                 height={chatterboxHeight}
               />
-              <div className="chatterbox-resize-handle">
-                <div
-                  className="resize-grip"
+              <div className="chatterboxresizehandle">
+                <div className="resizegrip"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     const startY = e.clientY;
@@ -1128,9 +1331,8 @@ Le résumé doit être en français et commencer par une accroche forte.`;
                     document.addEventListener('mousemove', handleMouseMove);
                     document.addEventListener('mouseup', handleMouseUp);
                   }}
-                  title="Redimensionner le Chatterbox"
+                  title="Resize Chatterbox"
                 >
-                  ⋮⋮
                 </div>
               </div>
             </div>

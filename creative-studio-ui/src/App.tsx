@@ -15,12 +15,14 @@ import { ShotWizardModal } from '@/components/wizard/ShotWizardModal';
 import { GenericWizardModal } from '@/components/wizard/GenericWizardModal';
 import { LLMSettingsModal } from '@/components/settings/LLMSettingsModal';
 import { ComfyUISettingsModal } from '@/components/settings/ComfyUISettingsModal';
+import { GeneralSettingsWindow } from '@/components/configuration/GeneralSettingsWindow';
 import { AddonsModal } from '@/components/settings/AddonsModal';
 import { CharactersModal } from '@/components/modals/CharactersModal';
 import { WorldModal } from '@/components/modals/WorldModal';
 import { LocationsModal } from '@/components/modals/LocationsModal';
 import { ObjectsModal } from '@/components/modals/ObjectsModal';
 import { ImageGalleryModal } from '@/components/modals/ImageGalleryModal';
+import DialogueEditor from '@/ui/DialogueEditor';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { useOllamaInit } from '@/hooks/useOllamaInit';
@@ -54,6 +56,8 @@ function AppContent() {
     setShowLLMSettings,
     showComfyUISettings,
     setShowComfyUISettings,
+    showGeneralSettings,
+    setShowGeneralSettings,
     showAddonsModal,
     setShowAddonsModal,
     showCharactersModal,
@@ -66,6 +70,8 @@ function AppContent() {
     setShowObjectsModal,
     showImageGalleryModal,
     setShowImageGalleryModal,
+    showDialogueEditor,
+    setShowDialogueEditor,
     // Generic wizard state (simple forms in GenericWizardModal)
     showDialogueWriter,
     showSceneGenerator,
@@ -107,7 +113,6 @@ function AppContent() {
   useEffect(() => {
     if (ollamaState.isInitialized && ollamaState.recommendation) {
       if (ollamaState.isOllamaAvailable) {
-        console.log('Ollama available:', ollamaState.recommendation);
       } else {
         console.warn('Ollama not available:', ollamaState.recommendation);
       }
@@ -376,6 +381,10 @@ function AppContent() {
           isOpen={showComfyUISettings}
           onClose={() => setShowComfyUISettings(false)}
         />
+        <GeneralSettingsWindow
+          isOpen={showGeneralSettings}
+          onClose={() => setShowGeneralSettings(false)}
+        />
         <AddonsModal
           isOpen={showAddonsModal}
           onClose={() => setShowAddonsModal(false)}
@@ -460,6 +469,10 @@ function AppContent() {
         <ComfyUISettingsModal
           isOpen={showComfyUISettings}
           onClose={() => setShowComfyUISettings(false)}
+        />
+        <GeneralSettingsWindow
+          isOpen={showGeneralSettings}
+          onClose={() => setShowGeneralSettings(false)}
         />
         <AddonsModal
           isOpen={showAddonsModal}
@@ -562,6 +575,12 @@ function AppContent() {
         onClose={() => setShowComfyUISettings(false)}
       />
 
+      {/* General Settings Window */}
+      <GeneralSettingsWindow
+        isOpen={showGeneralSettings}
+        onClose={() => setShowGeneralSettings(false)}
+      />
+
       {/* Add-ons Modal */}
       <AddonsModal
         isOpen={showAddonsModal}
@@ -608,6 +627,11 @@ function AppContent() {
         wizardType={activeWizardType}
         onClose={closeActiveWizard}
         onComplete={handleWizardComplete}
+      />
+
+      <DialogueEditor
+        isOpen={showDialogueEditor}
+        onClose={() => setShowDialogueEditor(false)}
       />
 
       {/* Toast Notifications */}

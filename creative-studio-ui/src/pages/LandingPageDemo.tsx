@@ -60,13 +60,7 @@ export function LandingPageDemo() {
     // Generate project template
     const template = generateProjectTemplate(format);
     const initialShots = sequencesToShots(template.sequences);
-    
-    console.log('Generated template:', {
-      sequences: template.sequences.length,
-      shots: template.totalShots,
-      duration: template.totalDuration,
-    });
-    
+
     // Simulate project creation
     await new Promise((resolve) => setTimeout(resolve, 1000));
     

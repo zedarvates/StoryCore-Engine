@@ -97,7 +97,6 @@ export class NotificationService {
       currentPage: window.location.pathname,
       pendingTasks: 0,
       lastInteraction: new Date(),
-      language: 'fr' // TODO: récupérer depuis les settings utilisateur
     };
   }
 
@@ -359,8 +358,6 @@ export class NotificationService {
           {
             label: this.context.language === 'fr' ? 'Voir les tâches' : 'View Tasks',
             action: () => {
-              // TODO: naviguer vers la liste des tâches
-              console.log('Navigate to tasks');
             },
             primary: true
           }

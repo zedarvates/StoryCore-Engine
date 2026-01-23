@@ -87,6 +87,15 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
   const [temperature, setTemperature] = useState(config.parameters.temperature);
   const [maxTokens, setMaxTokens] = useState(config.parameters.maxTokens);
   const [streamingEnabled, setStreamingEnabled] = useState(config.streamingEnabled);
+
+  // New creativity and vectorial enhancement parameters
+  const [creativityMode, setCreativityMode] = useState(config.parameters?.creativityMode || 'balanced');
+  const [jokesEnabled, setJokesEnabled] = useState(config.parameters?.jokesEnabled || false);
+  const [wordGamesEnabled, setWordGamesEnabled] = useState(config.parameters?.wordGamesEnabled || false);
+  const [probabilityFramingEnabled, setProbabilityFramingEnabled] = useState(config.parameters?.probabilityFramingEnabled || false);
+  const [vectorialOptimization, setVectorialOptimization] = useState(config.parameters?.vectorialOptimization || 'standard');
+  const [embeddingModel, setEmbeddingModel] = useState(config.parameters?.embeddingModel || 'default');
+  const [similarityThreshold, setSimilarityThreshold] = useState(config.parameters?.similarityThreshold || 0.7);
   
   // Validation state
   const [validation, setValidation] = useState<ValidationState>({
@@ -230,6 +239,13 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
           ...currentConfig.parameters,
           temperature,
           maxTokens,
+          creativityMode,
+          jokesEnabled,
+          wordGamesEnabled,
+          probabilityFramingEnabled,
+          vectorialOptimization,
+          embeddingModel,
+          similarityThreshold,
         },
         streamingEnabled,
       };
@@ -458,6 +474,203 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
               aria-label="Enable streaming"
               aria-describedby="streaming-help"
             />
+          </div>
+
+          {/* Creativity Enhancement Section */}
+          <div className="border-t border-gray-700 pt-4">
+            <h3 className="text-lg font-semibold text-gray-200 mb-4 flex items-center gap-2">
+              <span className="text-2xl">🎨</span>
+              Creativity Enhancement
+            </h3>
+
+            {/* Creativity Mode */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="creativityMode" className="text-gray-200">
+                Creativity Mode
+              </Label>
+              <Select value={creativityMode} onValueChange={setCreativityMode}>
+                <SelectTrigger
+                  id="creativityMode"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  aria-label="Select creativity mode"
+                >
+                  <SelectValue placeholder="Select creativity mode" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                  <SelectItem value="conservative" className="text-white">
+                    Conservative - Focused and precise
+                  </SelectItem>
+                  <SelectItem value="balanced" className="text-white">
+                    Balanced - Standard creativity
+                  </SelectItem>
+                  <SelectItem value="creative" className="text-white">
+                    Creative - Highly imaginative
+                  </SelectItem>
+                  <SelectItem value="experimental" className="text-white">
+                    Experimental - Maximum creativity
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Jokes and Word Games */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="jokesEnabled" className="text-gray-200">
+                    Enable Jokes & Humor
+                  </Label>
+                  <p className="text-xs text-gray-500" id="jokes-help">
+                    Allow AI to include jokes and wordplay in responses
+                  </p>
+                </div>
+                <Switch
+                  id="jokesEnabled"
+                  checked={jokesEnabled}
+                  onCheckedChange={setJokesEnabled}
+                  aria-label="Enable jokes and humor"
+                  aria-describedby="jokes-help"
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="wordGamesEnabled" className="text-gray-200">
+                    Enable Word Games
+                  </Label>
+                  <p className="text-xs text-gray-500" id="wordgames-help">
+                    Allow puns, rhymes, and linguistic creativity
+                  </p>
+                </div>
+                <Switch
+                  id="wordGamesEnabled"
+                  checked={wordGamesEnabled}
+                  onCheckedChange={setWordGamesEnabled}
+                  aria-label="Enable word games"
+                  aria-describedby="wordgames-help"
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="probabilityFramingEnabled" className="text-gray-200">
+                    Probability Framing
+                  </Label>
+                  <p className="text-xs text-gray-500" id="probability-help">
+                    Frame responses with confidence levels and alternatives
+                  </p>
+                </div>
+                <Switch
+                  id="probabilityFramingEnabled"
+                  checked={probabilityFramingEnabled}
+                  onCheckedChange={setProbabilityFramingEnabled}
+                  aria-label="Enable probability framing"
+                  aria-describedby="probability-help"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Vectorial Space Optimization Section */}
+          <div className="border-t border-gray-700 pt-4">
+            <h3 className="text-lg font-semibold text-gray-200 mb-4 flex items-center gap-2">
+              <span className="text-2xl">🧠</span>
+              Vectorial Space Optimization
+            </h3>
+
+            {/* Vectorial Optimization Mode */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="vectorialOptimization" className="text-gray-200">
+                Vectorial Distribution Law
+              </Label>
+              <Select value={vectorialOptimization} onValueChange={setVectorialOptimization}>
+                <SelectTrigger
+                  id="vectorialOptimization"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  aria-label="Select vectorial optimization"
+                >
+                  <SelectValue placeholder="Select optimization mode" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                  <SelectItem value="standard" className="text-white">
+                    Standard - Default distribution
+                  </SelectItem>
+                  <SelectItem value="gaussian" className="text-white">
+                    Gaussian - Bell curve optimization
+                  </SelectItem>
+                  <SelectItem value="exponential" className="text-white">
+                    Exponential - Rapid decay optimization
+                  </SelectItem>
+                  <SelectItem value="pareto" className="text-white">
+                    Pareto - Power-law distribution (80/20 rule)
+                  </SelectItem>
+                  <SelectItem value="adaptive" className="text-white">
+                    Adaptive - Dynamic optimization
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Embedding Model */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="embeddingModel" className="text-gray-200">
+                Embedding Model
+              </Label>
+              <Select value={embeddingModel} onValueChange={setEmbeddingModel}>
+                <SelectTrigger
+                  id="embeddingModel"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  aria-label="Select embedding model"
+                >
+                  <SelectValue placeholder="Select embedding model" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                  <SelectItem value="default" className="text-white">
+                    Default - Model's built-in embeddings
+                  </SelectItem>
+                  <SelectItem value="text-embedding-ada-002" className="text-white">
+                    OpenAI Ada-002 - High quality embeddings
+                  </SelectItem>
+                  <SelectItem value="text-embedding-3-small" className="text-white">
+                    OpenAI Embedding-3-Small - Fast and efficient
+                  </SelectItem>
+                  <SelectItem value="text-embedding-3-large" className="text-white">
+                    OpenAI Embedding-3-Large - Maximum quality
+                  </SelectItem>
+                  <SelectItem value="local-sentence-transformer" className="text-white">
+                    Local Sentence Transformer - Privacy-focused
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Similarity Threshold */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="similarityThreshold" className="text-gray-200">
+                  Similarity Threshold
+                </Label>
+                <span className="text-sm text-gray-400" aria-live="polite">{similarityThreshold.toFixed(2)}</span>
+              </div>
+              <Slider
+                id="similarityThreshold"
+                min={0.1}
+                max={0.95}
+                step={0.05}
+                value={[similarityThreshold]}
+                onValueChange={(values) => setSimilarityThreshold(values[0])}
+                className="w-full"
+                aria-label="Similarity threshold slider"
+                aria-valuemin={0.1}
+                aria-valuemax={0.95}
+                aria-valuenow={similarityThreshold}
+                aria-valuetext={`${similarityThreshold.toFixed(2)}`}
+                aria-describedby="similarity-help"
+              />
+              <p id="similarity-help" className="text-xs text-gray-500">
+                Minimum similarity score for vector matching (0.1-0.95)
+              </p>
+            </div>
           </div>
 
           {/* Validation Status */}

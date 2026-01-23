@@ -400,4 +400,46 @@ describe('ProjectService', () => {
       expect(result).toEqual(mockProjectData.generation_status);
     });
   });
+
+  describe('updateGlobalResume', () => {
+    it('should update global resume', async () => {
+      mockElectronAPI.fs.readFile.mockResolvedValue(createBufferMock(mockProjectData));
+      mockElectronAPI.fs.writeFile.mockResolvedValue(undefined);
+
+      await service.updateGlobalResume('/test/project', 'This is a test resume');
+
+      expect(mockElectronAPI.fs.writeFile).toHaveBeenCalled();
+    });
+
+    it('should handle empty resume', async () => {
+      mockElectronAPI.fs.readFile.mockResolvedValue(createBufferMock(mockProjectData));
+      mockElectronAPI.fs.writeFile.mockResolvedValue(undefined);
+
+      await service.updateGlobalResume('/test/project', '');
+
+      expect(mockElectronAPI.fs.writeFile).toHaveBeenCalled();
+    });
+  });
+
+  describe('getGlobalResume', () => {
+    it('should return global resume', async () => {
+      const projectDataWithResume = {
+        ...mockProjectData,
+        global_resume: 'Test resume content',
+      };
+      mockElectronAPI.fs.readFile.mockResolvedValue(createBufferMock(projectDataWithResume));
+
+      const result = await service.getGlobalResume('/test/project');
+
+      expect(result).toBe('Test resume content');
+    });
+
+    it('should return undefined if no global resume exists', async () => {
+      mockElectronAPI.fs.readFile.mockResolvedValue(createBufferMock(mockProjectData));
+
+      const result = await service.getGlobalResume('/test/project');
+
+      expect(result).toBeUndefined();
+    });
+  });
 });

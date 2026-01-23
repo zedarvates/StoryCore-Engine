@@ -1,0 +1,206 @@
+/* Timeline Transition Styles */
+
+.timeline-transition {
+  position: relative;
+  width: 24px;
+  height: 60px;
+  background: #2a2a2a;
+  border: 2px solid #404040;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.timeline-transition:hover {
+  border-color: #7c3aed;
+  background: #3a3a3a;
+}
+
+.timeline-transition.has-transition {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  border-color: #7c3aed;
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.3);
+}
+
+.timeline-transition.can-apply {
+  background: rgba(124, 58, 237, 0.2);
+  border-color: #7c3aed;
+  border-style: dashed;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.transition-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1;
+  position: relative;
+}
+
+.transition-remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s;
+  z-index: 20;
+}
+
+.timeline-transition:hover .transition-remove-btn {
+  opacity: 1;
+}
+
+.transition-remove-btn:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.transition-name {
+  font-size: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 20px;
+}
+
+.transition-duration {
+  font-size: 8px;
+  color: #e0e0e0;
+  opacity: 0.8;
+}
+
+.transition-placeholder {
+  color: #9ca3af;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timeline-transition.has-transition .transition-placeholder {
+  display: none;
+}
+
+/* Transition preview on hover */
+.timeline-transition.has-transition:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  border: 1px solid #404040;
+  margin-bottom: 4px;
+}
+
+.timeline-transition.can-apply:hover::after {
+  content: "Cliquer pour appliquer la transition";
+  background: #7c3aed;
+}
+
+/* Transition removal on right-click */
+.timeline-transition.has-transition {
+  position: relative;
+}
+
+.timeline-transition.has-transition::before {
+  content: "×";
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 20;
+}
+
+.timeline-transition.has-transition:hover::before {
+  display: flex;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .timeline-transition {
+    width: 20px;
+    height: 50px;
+  }
+
+  .transition-icon {
+    font-size: 9px;
+  }
+
+  .transition-name {
+    font-size: 8px;
+    max-width: 16px;
+  }
+
+  .transition-duration {
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 768px) {
+  .timeline-transition {
+    width: 16px;
+    height: 40px;
+  }
+
+  .transition-icon {
+    font-size: 8px;
+  }
+
+  .transition-name {
+    font-size: 7px;
+    max-width: 12px;
+  }
+
+  .transition-duration {
+    display: none;
+  }
+}

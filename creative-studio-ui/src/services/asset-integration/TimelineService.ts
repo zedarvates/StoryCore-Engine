@@ -22,7 +22,6 @@ export class TimelineService {
   private cacheUpdateSubscribers: Set<TimelineCacheUpdateCallback> = new Set();
 
   private constructor() {
-    console.log('[TimelineService] Service initialized with Observer pattern');
   }
 
   static getInstance(): TimelineService {
@@ -131,7 +130,6 @@ export class TimelineService {
   async listAvailableTimelines(): Promise<string[]> {
     // Note: Files must be in public/ folder to be accessible
     // For now, return empty array to avoid errors
-    // TODO: Implement proper file system access via Electron API
     return [];
   }
 

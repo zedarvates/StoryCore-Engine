@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FileIcon,
   FolderOpenIcon,
@@ -23,6 +23,20 @@ import {
   GlobeIcon,
   UserIcon,
   PuzzleIcon,
+  WrenchIcon,
+  SparklesIcon,
+  MonitorIcon,
+  PaletteIcon,
+  MusicIcon,
+  CpuIcon,
+  ZapIcon,
+  RotateCcwIcon,
+  MaximizeIcon,
+  SplitIcon,
+  LayersIcon,
+  KeyboardIcon,
+  SunIcon,
+  ClockIcon,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -30,10 +44,13 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAppStore } from '@/stores/useAppStore';
 import { undo, redo, canUndo, canRedo } from '@/store/undoRedo';
-import { downloadProject } from '@/utils/projectManager';
+import { downloadProject, getRecentProjects, RecentProject } from '@/utils/projectManager';
 
 // ============================================================================
 // MenuBar Component
@@ -48,6 +65,8 @@ interface MenuBarProps {
 }
 
 export function MenuBar({ onNewProject, onOpenProject, onSaveProject, onExportProject, onCloseProject }: MenuBarProps) {
+  const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
+
   const project = useAppStore((state) => state.project);
   const showChat = useAppStore((state) => state.showChat);
   const setShowChat = useAppStore((state) => state.setShowChat);
@@ -57,6 +76,7 @@ export function MenuBar({ onNewProject, onOpenProject, onSaveProject, onExportPr
   const setShowCharacterWizard = useAppStore((state) => state.setShowCharacterWizard);
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
   const setShowComfyUISettings = useAppStore((state) => state.setShowComfyUISettings);
+  const setShowGeneralSettings = useAppStore((state) => state.setShowGeneralSettings);
   const setShowInstallationWizard = useAppStore((state) => state.setShowInstallationWizard);
   const setShowAddonsModal = useAppStore((state) => state.setShowAddonsModal);
   const setShowCharactersModal = useAppStore((state) => state.setShowCharactersModal);
@@ -64,6 +84,12 @@ export function MenuBar({ onNewProject, onOpenProject, onSaveProject, onExportPr
   const setShowLocationsModal = useAppStore((state) => state.setShowLocationsModal);
   const setShowObjectsModal = useAppStore((state) => state.setShowObjectsModal);
   const setShowImageGalleryModal = useAppStore((state) => state.setShowImageGalleryModal);
+  const setShowDialogueEditor = useAppStore((state) => state.setShowDialogueEditor);
+
+  // Load recent projects on mount
+  useEffect(() => {
+    setRecentProjects(getRecentProjects());
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -119,6 +145,35 @@ export function MenuBar({ onNewProject, onOpenProject, onSaveProject, onExportPr
         event.preventDefault();
         handlePaste();
       }
+
+      // View operations - Window toggles (Ctrl+1-5)
+      if (isCtrlOrCmd && event.key === '1') {
+        event.preventDefault();
+        handleToggleAssetLibrary();
+      }
+
+      if (isCtrlOrCmd && event.key === '2') {
+        event.preventDefault();
+        handleToggleTimeline();
+      }
+
+      if (isCtrlOrCmd && event.key === '3') {
+        event.preventDefault();
+        handleToggleChat();
+      }
+
+      if (isCtrlOrCmd && event.key === '4') {
+        event.preventDefault();
+        handleToggleTaskQueue();
+      }
+
+      // Ctrl+5 reserved for Properties Panel (not implemented yet)
+
+      // Grid toggle
+      if (isCtrlOrCmd && event.key === 'g') {
+        event.preventDefault();
+        handleToggleGrid();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -127,17 +182,14 @@ export function MenuBar({ onNewProject, onOpenProject, onSaveProject, onExportPr
 
   // Edit operations
   const handleCut = () => {
-    // TODO: Implement cut functionality
     ;
   };
 
   const handleCopy = () => {
-    // TODO: Implement copy functionality
     ;
   };
 
   const handlePaste = () => {
-    // TODO: Implement paste functionality
     ;
   };
 
@@ -151,32 +203,26 @@ export function MenuBar({ onNewProject, onOpenProject, onSaveProject, onExportPr
   };
 
   const handleToggleAssetLibrary = () => {
-    // TODO: Implement asset library toggle
     ;
   };
 
   const handleToggleTimeline = () => {
-    // TODO: Implement timeline toggle
     ;
   };
 
   const handleZoomIn = () => {
-    // TODO: Implement zoom in
     ;
   };
 
   const handleZoomOut = () => {
-    // TODO: Implement zoom out
     ;
   };
 
   const handleResetZoom = () => {
-    // TODO: Implement reset zoom
     ;
   };
 
   const handleToggleGrid = () => {
-    // TODO: Implement grid toggle
     ;
   };
 
@@ -215,10 +261,9 @@ All rights reserved.`;
     }
   };
 
-  // API Settings
-  const handleAPISettings = () => {
-    // TODO: Open API settings dialog
-    alert('API Settings\n\nConfigure connections to:\n- LLM (OpenAI, Claude, etc.)\n- ComfyUI Server\n\nThis feature will be implemented soon.');
+  // General Settings
+  const handleGeneralSettings = () => {
+    setShowGeneralSettings(true);
   };
 
   const handleLLMSettings = () => {
@@ -245,6 +290,13 @@ All rights reserved.`;
     setShowAddonsModal(true);
   };
 
+  // Handle opening recent project
+  const handleOpenRecentProject = (recentProject: RecentProject) => {
+    // This would need to be passed from parent component
+    // For now, just log the action
+    console.log('Opening recent project:', recentProject);
+  };
+
   return (
     <div className="flex h-10 items-center border-b bg-background px-2">
       {/* File Menu */}
@@ -263,6 +315,31 @@ All rights reserved.`;
             <FolderOpenIcon className="mr-2 h-4 w-4" />
             Open Project
           </DropdownMenuItem>
+          {/* Recent Projects Submenu */}
+          {recentProjects.length > 0 && (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <ClockIcon className="mr-2 h-4 w-4" />
+                Recent Projects
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {recentProjects.slice(0, 5).map((recent, index) => (
+                  <DropdownMenuItem
+                    key={recent.id}
+                    onSelect={() => handleOpenRecentProject(recent)}
+                  >
+                    <FileIcon className="mr-2 h-4 w-4" />
+                    <div className="flex flex-col">
+                      <span>{recent.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {recent.lastAccessed.toLocaleDateString()}
+                      </span>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={onSaveProject} shortcut="Ctrl+S" disabled={!project}>
             <SaveIcon className="mr-2 h-4 w-4" />
@@ -280,21 +357,149 @@ All rights reserved.`;
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Create Menu */}
+      {/* Wizards Menu */}
       <DropdownMenu>
         <DropdownMenuTrigger>
           <span className="px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground rounded">
-            Create
+            Wizards
           </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem onSelect={() => setShowWorldWizard(true)}>
             <GlobeIcon className="mr-2 h-4 w-4" />
-            Create World
+            World Building Wizard
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setShowCharacterWizard(true)}>
             <UserIcon className="mr-2 h-4 w-4" />
-            Create Character
+            Character Creation Wizard
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setShowDialogueEditor(true)} disabled={!project}>
+            <FileTextIcon className="mr-2 h-4 w-4" />
+            Dialogue Generation Wizard
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled>
+            <SparklesIcon className="mr-2 h-4 w-4" />
+            Scene Generator Wizard
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <BookOpenIcon className="mr-2 h-4 w-4" />
+            Storyboard Creator
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <ZapIcon className="mr-2 h-4 w-4" />
+            Sequence Planner
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Tools Menu */}
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <span className="px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground rounded">
+            Tools
+          </span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <PaletteIcon className="mr-2 h-4 w-4" />
+              Creative Tools
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem disabled>
+                <GlobeIcon className="mr-2 h-4 w-4" />
+                World Builder
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <UserIcon className="mr-2 h-4 w-4" />
+                Character Creator
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <SparklesIcon className="mr-2 h-4 w-4" />
+                Scene Generator
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <FileTextIcon className="mr-2 h-4 w-4" />
+                Dialogue Writer
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <WrenchIcon className="mr-2 h-4 w-4" />
+              Media Tools
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem disabled>
+                <MusicIcon className="mr-2 h-4 w-4" />
+                Audio Editor
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <MonitorIcon className="mr-2 h-4 w-4" />
+                Video Editor
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <LayersIcon className="mr-2 h-4 w-4" />
+                Effects Browser
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <CpuIcon className="mr-2 h-4 w-4" />
+              AI Tools
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem disabled>
+                <FileTextIcon className="mr-2 h-4 w-4" />
+                Prompt Generator
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <PaletteIcon className="mr-2 h-4 w-4" />
+                Style Transfer
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <ZapIcon className="mr-2 h-4 w-4" />
+                Batch Processor
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Window Menu */}
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <span className="px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground rounded">
+            Window
+          </span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem disabled>
+            <MaximizeIcon className="mr-2 h-4 w-4" />
+            Full Screen
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <SplitIcon className="mr-2 h-4 w-4" />
+            Split View
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <MonitorIcon className="mr-2 h-4 w-4" />
+            New Window
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled>
+            <RotateCcwIcon className="mr-2 h-4 w-4" />
+            Reset Layout
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <SaveIcon className="mr-2 h-4 w-4" />
+            Save Layout
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <FolderOpenIcon className="mr-2 h-4 w-4" />
+            Load Layout
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -356,23 +561,29 @@ All rights reserved.`;
           </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem onSelect={handleToggleAssetLibrary}>
+          {/* Window Toggles */}
+          <DropdownMenuItem onSelect={handleToggleAssetLibrary} shortcut="Ctrl+1">
             <EyeIcon className="mr-2 h-4 w-4" />
-            Toggle Asset Library
+            Asset Library
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleToggleTimeline}>
+          <DropdownMenuItem onSelect={handleToggleTimeline} shortcut="Ctrl+2">
             <EyeIcon className="mr-2 h-4 w-4" />
-            Toggle Timeline
+            Timeline
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleToggleChat}>
+          <DropdownMenuItem onSelect={handleToggleChat} shortcut="Ctrl+3">
             <EyeIcon className="mr-2 h-4 w-4" />
-            {showChat ? 'Hide' : 'Show'} Chat Assistant
+            Chat Assistant
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleToggleTaskQueue}>
+          <DropdownMenuItem onSelect={handleToggleTaskQueue} shortcut="Ctrl+4">
             <EyeIcon className="mr-2 h-4 w-4" />
-            {showTaskQueue ? 'Hide' : 'Show'} Task Queue
+            Task Queue
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled shortcut="Ctrl+5">
+            <EyeIcon className="mr-2 h-4 w-4" />
+            Properties Panel
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          {/* Zoom & Display */}
           <DropdownMenuItem onSelect={handleZoomIn} shortcut="Ctrl++">
             <ZoomInIcon className="mr-2 h-4 w-4" />
             Zoom In
@@ -386,14 +597,23 @@ All rights reserved.`;
             Reset Zoom
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={handleToggleGrid}>
+          <DropdownMenuItem onSelect={handleToggleGrid} shortcut="Ctrl+G">
             <GridIcon className="mr-2 h-4 w-4" />
             Toggle Grid
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          {/* Galleries */}
           <DropdownMenuItem onSelect={() => setShowImageGalleryModal(true)} disabled={!project}>
             <BookOpenIcon className="mr-2 h-4 w-4" />
             Image Gallery
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <MusicIcon className="mr-2 h-4 w-4" />
+            Audio Library
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <SparklesIcon className="mr-2 h-4 w-4" />
+            Template Browser
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -406,13 +626,7 @@ All rights reserved.`;
           </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          {/* COMMENTED OUT: ComfyUI Portable installation feature not ready for release
-          <DropdownMenuItem onSelect={handleInstallComfyUI}>
-            <DownloadIcon className="mr-2 h-4 w-4" />
-            Install ComfyUI Portable
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          */}
+          {/* Direct access to main settings (legacy options) */}
           <DropdownMenuItem onSelect={handleLLMSettings}>
             <PlugIcon className="mr-2 h-4 w-4" />
             LLM Configuration
@@ -426,10 +640,72 @@ All rights reserved.`;
             <PuzzleIcon className="mr-2 h-4 w-4" />
             Add-ons
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleAPISettings}>
+          <DropdownMenuItem onSelect={handleGeneralSettings}>
             <SettingsIcon className="mr-2 h-4 w-4" />
             General Settings
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          {/* AI Configuration */}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <CpuIcon className="mr-2 h-4 w-4" />
+              AI Configuration
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onSelect={handleLLMSettings}>
+                <PlugIcon className="mr-2 h-4 w-4" />
+                LLM Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleComfyUISettings}>
+                <PlugIcon className="mr-2 h-4 w-4" />
+                ComfyUI Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleInstallComfyUI}>
+                <DownloadIcon className="mr-2 h-4 w-4" />
+                Install ComfyUI
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSeparator />
+          {/* Application */}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <SettingsIcon className="mr-2 h-4 w-4" />
+              Application
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onSelect={handleGeneralSettings}>
+                <SettingsIcon className="mr-2 h-4 w-4" />
+                General Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <KeyboardIcon className="mr-2 h-4 w-4" />
+                Keyboard Shortcuts
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <SunIcon className="mr-2 h-4 w-4" />
+                Appearance
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSeparator />
+          {/* Extensions */}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <PuzzleIcon className="mr-2 h-4 w-4" />
+              Extensions
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onSelect={handleOpenAddonsPanel}>
+                <PuzzleIcon className="mr-2 h-4 w-4" />
+                Add-ons Manager
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <WrenchIcon className="mr-2 h-4 w-4" />
+                Plugin Settings
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
         </DropdownMenuContent>
       </DropdownMenu>
 

@@ -183,8 +183,8 @@ class MarketingWizard:
         self.campaign = campaign
         self._save_marketing_campaign(project_path, campaign)
 
-        print("
-✅ Marketing campaign created successfully!"        print(f"🎯 Viral potential: {campaign.viral_potential_score:.1f}/10")
+        print("\n✅ Marketing campaign created successfully!")
+        print(f"🎯 Viral potential: {campaign.viral_potential_score:.1f}/10")
         print(f"🎬 Content assets: {len(campaign.thumbnails) + len(campaign.descriptions) + len(campaign.social_posts) + len(campaign.trailers)}")
         print(f"📈 Estimated reach: {campaign.estimated_reach:,} people")
         print(f"🏷️ Hashtags generated: {len(campaign.hashtags)}")

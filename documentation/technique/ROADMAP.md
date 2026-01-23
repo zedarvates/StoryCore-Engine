@@ -119,7 +119,7 @@ For detailed technical specifications, follow the links to individual feature do
 
 ### Testing
 
-- 🚧 **Document des Exigences - Optimisation des Formats de Grille** 🔴 `Testing`
+- 🚧 **Requirements Document - Grid Format Optimization** 🔴 `Testing`
   [📋 View in Public Roadmap](../../ROADMAP.md#grid-format-optimization)
   [View Spec](.kiro/specs/grid-format-optimization)
 
@@ -142,7 +142,7 @@ For detailed technical specifications, follow the links to individual feature do
 
 ### Tooling
 
-- 🚧 **Document des Exigences - Améliorations Avancées de l'Éditeur de Grille** 🔴 `Tooling`
+- 🚧 **Requirements Document - Advanced Grid Editor Improvements** 🔴 `Tooling`
   [📋 View in Public Roadmap](../../ROADMAP.md#advanced-grid-editor-improvements)
   [View Spec](.kiro/specs/advanced-grid-editor-improvements)
 

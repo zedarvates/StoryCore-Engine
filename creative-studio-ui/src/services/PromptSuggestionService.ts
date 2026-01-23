@@ -787,6 +787,78 @@ export class PromptSuggestionService {
       }
     ];
   }
+
+  /**
+   * Génère des suggestions rafraîchies avec de nouvelles idées (pour le bouton "improve")
+   */
+  getRefreshedSuggestions(language: LanguageCode = 'fr'): PromptSuggestion[] {
+    const templates = this.suggestionTemplates[language] || this.suggestionTemplates.fr;
+    const timestamp = Date.now();
+
+    return [
+      // Suggestions rafraîchies avec des approches créatives différentes
+      {
+        id: `refreshed-creative-${timestamp}-1`,
+        text: language === 'fr'
+          ? 'Explorer des approches non-conventionnelles et innovantes'
+          : 'Explore unconventional and innovative approaches',
+        icon: '💡',
+        category: 'alternative',
+        relevance: 0.95,
+        language
+      },
+      {
+        id: `refreshed-vector-${timestamp}-2`,
+        text: language === 'fr'
+          ? 'Utiliser des associations vectorielles inattendues pour plus de créativité'
+          : 'Use unexpected vectorial associations for enhanced creativity',
+        icon: '🧠',
+        category: 'expansion',
+        relevance: 0.90,
+        language
+      },
+      {
+        id: `refreshed-probability-${timestamp}-3`,
+        text: language === 'fr'
+          ? 'Incorporer des éléments de surprise et d\'imprévisibilité'
+          : 'Incorporate surprise elements and unpredictability',
+        icon: '🎲',
+        category: 'refinement',
+        relevance: 0.85,
+        language
+      },
+      {
+        id: `refreshed-jokes-${timestamp}-4`,
+        text: language === 'fr'
+          ? 'Ajouter une touche d\'humour et de légèreté créative'
+          : 'Add a touch of humor and creative lightness',
+        icon: '😄',
+        category: 'alternative',
+        relevance: 0.80,
+        language
+      },
+      {
+        id: `refreshed-distribution-${timestamp}-5`,
+        text: language === 'fr'
+          ? 'Optimiser la distribution des éléments selon des lois vectorielles'
+          : 'Optimize element distribution according to vectorial laws',
+        icon: '📊',
+        category: 'refinement',
+        relevance: 0.75,
+        language
+      },
+      {
+        id: `refreshed-cultural-${timestamp}-6`,
+        text: language === 'fr'
+          ? 'Enrichir avec des références culturelles diverses et précises'
+          : 'Enrich with diverse and precise cultural references',
+        icon: '🌍',
+        category: 'expansion',
+        relevance: 0.70,
+        language
+      }
+    ];
+  }
 }
 
 // Export de l'instance singleton

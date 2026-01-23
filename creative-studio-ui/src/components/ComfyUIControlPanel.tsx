@@ -153,7 +153,6 @@ export function ComfyUIControlPanel({ className }: ComfyUIControlPanelProps) {
           workflow = execution.client.getStoryboardFrameTemplate();
           break;
         case 'video':
-          workflow = execution.client.getStoryboardFrameTemplate(); // TODO: Implement video template
           break;
         default:
           workflow = execution.client.getStoryboardFrameTemplate();

@@ -441,7 +441,6 @@ export class LocalModelService {
         const { done, value } = await reader.read();
         
         if (done) {
-          console.log('Download stream completed');
           break;
         }
 
@@ -458,7 +457,6 @@ export class LocalModelService {
           try {
             const data = JSON.parse(line);
             
-            console.log('Download progress data:', data);
 
             // Update totals
             if (data.total) {
@@ -491,7 +489,6 @@ export class LocalModelService {
 
             // Check for completion
             if (data.status === 'success') {
-              console.log('Model download completed successfully');
               if (onProgress) {
                 onProgress({
                   modelId,
@@ -519,7 +516,6 @@ export class LocalModelService {
       }
 
       // If we exit the loop without explicit success, consider it complete
-      console.log('Download stream ended, assuming success');
       if (onProgress) {
         onProgress({
           modelId,

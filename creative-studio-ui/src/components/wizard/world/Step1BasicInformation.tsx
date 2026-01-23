@@ -112,8 +112,7 @@ Format as JSON:
 
   const parseLLMSuggestions = (response: string): { name?: string; description?: string } => {
     try {
-      ;
-      
+
       // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -123,39 +122,37 @@ Format as JSON:
             name: parsed.name || '',
             description: parsed.description || parsed.atmosphere || '',
           };
-          
+
           if (result.name) {
-            ;
             return result;
           }
         } catch (jsonError) {
           console.warn('JSON parsing failed, trying text parsing');
         }
       }
-      
+
       // Fallback: Parse as structured text
-      ;
       const result: { name?: string; description?: string } = {};
       const lines = response.split('\n');
-      
+
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
-        
+
         // Look for name
         const nameMatch = trimmed.match(/(?:name|world):\s*(.+)/i);
         if (nameMatch && !result.name) {
           result.name = nameMatch[1].trim().replace(/['"]/g, '');
           continue;
         }
-        
+
         // Look for description
         const descMatch = trimmed.match(/(?:description|atmosphere):\s*(.+)/i);
         if (descMatch && !result.description) {
           result.description = descMatch[1].trim().replace(/['"]/g, '');
           continue;
         }
-        
+
         // If we don't have a name yet and this looks like a title (short, capitalized)
         if (!result.name && trimmed.length > 3 && trimmed.length < 40 && /^[A-Z]/.test(trimmed)) {
           result.name = trimmed.replace(/['"]/g, '');
@@ -165,17 +162,16 @@ Format as JSON:
           result.description = trimmed.replace(/['"]/g, '');
         }
       }
-      
+
       if (result.name) {
-        ;
         return result;
       }
-      
+
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
       console.error('Response was:', response);
     }
-    
+
     console.warn('Could not parse any suggestions from response');
     return {};
   };

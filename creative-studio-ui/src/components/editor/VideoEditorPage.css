@@ -223,6 +223,24 @@
   font-weight: 500;
 }
 
+.add-button {
+  margin-left: auto;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.add-button:hover {
+  background: #6d28d9;
+}
+
 .category-icon {
   color: #7c3aed;
   flex-shrink: 0;
@@ -288,7 +306,7 @@
 
 .action-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
 }
 
@@ -317,6 +335,12 @@
   border-color: #7c3aed;
   background: rgba(124, 58, 237, 0.1);
   color: #7c3aed;
+}
+
+.action-btn.dialogue-editor:hover {
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
 }
 
 /* Center Area - Player & Timeline */
@@ -416,8 +440,21 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease-in-out;
   min-width: 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-shot::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
 }
 
 .timeline-shot:hover {
@@ -428,6 +465,45 @@
 .timeline-shot.selected {
   border-color: #c4b5fd;
   box-shadow: 0 0 16px rgba(124, 58, 237, 0.6);
+}
+
+.timeline-shot.dragging {
+  opacity: 0.7;
+  transform: rotate(2deg) scale(1.05);
+  z-index: 1000;
+  cursor: grabbing;
+  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.8);
+  transition: all 0.1s ease-out;
+}
+
+.timeline-shot.dragging .shot-label {
+  font-weight: 600;
+}
+
+.timeline-track {
+  cursor: grab;
+}
+
+.timeline-track.dragging {
+  cursor: grabbing;
+}
+
+.timeline-drop-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #00d4ff;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+  z-index: 999;
+  pointer-events: none;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .shot-label {
@@ -535,6 +611,19 @@
   animation: pulse 2s infinite;
 }
 
+/* Generation Buttons Container */
+.generation-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.generation-buttons .btn-generate {
+  width: 100%;
+  justify-content: center;
+}
+
 /* Generation Progress */
 .generation-progress {
   margin-top: 12px;
@@ -569,6 +658,12 @@
 .progress-time {
   font-size: 11px;
   color: #9ca3af;
+}
+
+.progress-count {
+  font-size: 11px;
+  color: #7c3aed;
+  font-weight: 500;
 }
 
 /* Shots Grid */
@@ -893,6 +988,33 @@
   z-index: 1000;
 }
 
+/* Inline style replacements */
+.context-menu-position {
+  position: fixed;
+  left: var(--left);
+  top: var(--top);
+  z-index: 1000;
+}
+
+.timeline-shot-width {
+  width: var(--width);
+}
+
+.timeline-drop-indicator-left {
+  left: var(--left);
+}
+
+.progress-fill-width {
+  width: var(--width);
+}
+
+.shot-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
 .context-menu-item {
   display: flex;
   align-items: center;
@@ -934,6 +1056,26 @@
   .shots-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Effects Panel */
+.effects-panel {
+  margin: 20px 0;
+  border-top: 1px solid #2a2a2a;
+  padding-top: 20px;
+}
+
+.panel-section {
+  margin-bottom: 24px;
+}
+
+.panel-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 @media (max-width: 1200px) {

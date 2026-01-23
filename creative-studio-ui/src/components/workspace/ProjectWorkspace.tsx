@@ -10,6 +10,8 @@ import { WizardLauncher } from '../wizards/WizardLauncher';
 import { WIZARD_DEFINITIONS } from '../../data/wizardDefinitions';
 import { useAppStore } from '../../stores/useAppStore';
 import { useEditorStore } from '../../stores/editorStore';
+import { useSequencePlanStore } from '../../stores/sequencePlanStore';
+import { useToast } from '../../hooks/use-toast';
 import './ProjectWorkspace.css';
 
 export function ProjectWorkspace({
@@ -23,6 +25,13 @@ export function ProjectWorkspace({
   const setShowCharacterWizard = useAppStore((state) => state.setShowCharacterWizard);
   const projectPath = useEditorStore((state) => state.projectPath);
   const currentProject = useEditorStore((state) => state.currentProject);
+
+  // Sequence plan data
+  const sequences = useSequencePlanStore((state) => state.plans);
+  const shots = useSequencePlanStore((state) => state.currentPlanData?.shots || []);
+
+  // Toast hook
+  const { toast } = useToast();
 
   // Handle wizard launch
   const handleLaunchWizard = (wizardId: string) => {
@@ -86,7 +95,6 @@ export function ProjectWorkspace({
   // Handle analytics dashboard
   const handleOpenAnalytics = () => {
     ;
-    // TODO: Implement analytics dashboard navigation
     alert('Analytics dashboard will be available in a future update.');
   };
 
@@ -98,22 +106,68 @@ export function ProjectWorkspace({
         return;
       }
 
-      ;
-      
       // Check if there's content to export
       const hasShots = currentProject.storyboard && currentProject.storyboard.length > 0;
       const hasAssets = currentProject.assets && currentProject.assets.length > 0;
+      const hasSequences = shots && shots.length > 0;
 
-      if (!hasShots && !hasAssets) {
-        alert('Project has no content to export. Please generate some shots or add assets first.');
+      if (!hasShots && !hasAssets && !hasSequences) {
+        alert('Project has no content to export. Please generate some shots, add assets, or create sequences first.');
         return;
       }
 
-      // TODO: Implement actual export functionality
-      alert(`Export functionality will be available soon.\n\nProject: ${projectName}\nShots: ${currentProject.storyboard?.length || 0}\nAssets: ${currentProject.assets?.length || 0}`);
+      // Create comprehensive export data
+      const exportData = {
+        project: {
+          id: projectId,
+          name: projectName,
+          exportedAt: new Date().toISOString(),
+          version: '1.0.0',
+          format: 'StoryCore Project Export',
+        },
+        metadata: {
+          totalShots: currentProject.storyboard?.length || 0,
+          totalAssets: currentProject.assets?.length || 0,
+          totalSequences: sequences?.length || 0,
+          totalSequenceShots: shots?.length || 0,
+        },
+        content: {
+          shots: currentProject.storyboard || [],
+          assets: currentProject.assets || [],
+          sequences: sequences || [],
+          sequenceShots: shots || [],
+        },
+        settings: {
+          theme: 'dark', // Could be made dynamic
+          neonEffects: true,
+          exportTimestamp: Date.now(),
+        }
+      };
+
+      // Create downloadable JSON file
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(dataBlob);
+      link.download = `${projectName.replace(/[^a-zA-Z0-9]/g, '_')}_export_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      toast({
+        title: 'Project Exported Successfully',
+        description: `Exported ${exportData.metadata.totalShots} shots, ${exportData.metadata.totalAssets} assets, and ${exportData.metadata.totalSequences} sequences.`,
+      });
+
     } catch (error) {
       console.error('Failed to export project:', error);
-      alert('Failed to export project. Please try again.');
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export project. Please check the console for details.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -154,7 +208,14 @@ export function ProjectWorkspace({
           >
             🔌 API
           </button>
-          {/* 
+          <button
+            className="settings-button general"
+            onClick={() => onOpenSettings('general')}
+            title="General Settings"
+          >
+            ⚙️ General
+          </button>
+          {/*
             LLM and ComfyUI configuration removed to avoid conflicts.
             Use Settings menu (top bar) > LLM Configuration / ComfyUI Configuration
           */}

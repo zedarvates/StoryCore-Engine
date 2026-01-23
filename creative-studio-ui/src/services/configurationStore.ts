@@ -79,7 +79,6 @@ export class ConfigurationStore {
       const key = `${PROJECT_CONFIG_PREFIX}${projectId}`;
       localStorage.setItem(key, JSON.stringify(configToSave));
       
-      console.log(`Project configuration saved for project: ${projectId}`);
     } catch (error) {
       console.error('Failed to save project configuration:', error);
       throw new Error(`Failed to save project configuration: ${error}`);
@@ -122,7 +121,6 @@ export class ConfigurationStore {
   static async saveGlobalConfig(config: GlobalConfiguration): Promise<void> {
     try {
       localStorage.setItem(GLOBAL_CONFIG_KEY, JSON.stringify(config));
-      console.log('Global configuration saved');
     } catch (error) {
       console.error('Failed to save global configuration:', error);
       throw new Error(`Failed to save global configuration: ${error}`);
@@ -155,7 +153,6 @@ export class ConfigurationStore {
     try {
       const key = `${PROJECT_CONFIG_PREFIX}${projectId}`;
       localStorage.removeItem(key);
-      console.log(`Project configuration deleted for project: ${projectId}`);
     } catch (error) {
       console.error('Failed to delete project configuration:', error);
       throw new Error(`Failed to delete project configuration: ${error}`);
@@ -205,7 +202,6 @@ export class ConfigurationStore {
         await this.saveGlobalConfig(importData.globalConfig);
       }
       
-      console.log('Configuration imported successfully');
     } catch (error) {
       console.error('Failed to import configuration:', error);
       throw new Error(`Failed to import configuration: ${error}`);
@@ -370,7 +366,6 @@ export class ConfigurationStore {
         workflowAssignments: legacyComfyUI.defaultWorkflows || {},
       };
 
-      console.log('Migrated legacy ComfyUI configuration to multi-server format');
     }
 
     return migrated;

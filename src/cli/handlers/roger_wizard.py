@@ -62,7 +62,7 @@ class RogerWizardHandler(BaseHandler):
         try:
             # Import Roger wizard
             try:
-                from wizard.roger_wizard import (
+                from src.wizard.roger_wizard import (
                     create_roger_wizard,
                     get_extraction_preview,
                     RogerExtractionResult

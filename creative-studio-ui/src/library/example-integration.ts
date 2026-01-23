@@ -29,7 +29,6 @@ export class SceneGenerator {
       LIGHTING_TYPE: this.projectConfig.lighting
     });
 
-    console.log('Master Coherence Prompt:', prompt);
     return prompt;
   }
 
@@ -102,46 +101,37 @@ export class SceneGenerator {
    * Complete pipeline example
    */
   async generateCompleteScene() {
-    console.log('=== Starting Scene Generation Pipeline ===\n');
 
     // Step 1: Master Coherence
-    console.log('Step 1: Generating Master Coherence Sheet...');
     const masterPrompt = await this.generateMasterCoherence();
-    console.log('✓ Master coherence prompt ready\n');
 
     // Step 2: Character Design
-    console.log('Step 2: Generating Character Design...');
     const characterPrompt = await this.generateCharacterSheet({
       description: 'cyberpunk hacker',
       age: '25',
       gender: 'female',
       features: 'neon tattoos, augmented eyes, leather jacket'
     });
-    console.log('✓ Character design prompt ready\n');
 
     // Step 3: Scene Shots
-    console.log('Step 3: Generating Scene Shots...');
     
     const establishingShot = await this.generateSceneShot(
       'neon city skyline',
       'wide',
       'blue-hour'
     );
-    console.log('✓ Establishing shot ready');
 
     const characterShot = await this.generateSceneShot(
       'hacker at terminal',
       'medium',
       'night-moonlight'
     );
-    console.log('✓ Character shot ready');
 
     const detailShot = await this.generateSceneShot(
       'glowing holographic interface',
       'close-up',
       'night-moonlight'
     );
-    console.log('✓ Detail shot ready\n');
 
     return {
       masterCoherence: masterPrompt,
@@ -229,7 +219,6 @@ export class BatchGenerator {
 
     for (let i = 0; i < scenes.length; i++) {
       const scene = scenes[i];
-      console.log(`Generating scene ${i + 1}/${scenes.length}...`);
 
       // Load templates
       const shotTemplate = await promptLibrary.loadPrompt(
@@ -259,17 +248,14 @@ export class BatchGenerator {
 
 // Usage examples
 async function main() {
-  console.log('=== Prompt Library Integration Examples ===\n');
 
   // Example 1: Complete scene generation
   const generator = new SceneGenerator();
   const scene = await generator.generateCompleteScene();
-  console.log('\nGenerated Scene:', scene);
 
   // Example 2: Discover prompts
   const discovery = new PromptDiscovery();
   const scifiPrompts = await discovery.findGenrePrompts('sci-fi');
-  console.log('\nFound', scifiPrompts.length, 'sci-fi prompts');
 
   // Example 3: Batch generation
   const batch = new BatchGenerator();
@@ -279,7 +265,6 @@ async function main() {
     { SPECIFIC_ELEMENT: 'space station', AESTHETIC: 'clean minimalist future' },
     { SPECIFIC_ELEMENT: 'robot factory', AESTHETIC: 'dystopian industrial' }
   ]);
-  console.log('\nGenerated', variations.length, 'variations');
 }
 
 // Run if executed directly

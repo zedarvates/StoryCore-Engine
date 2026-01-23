@@ -64,7 +64,7 @@ export function ProductionWizardNavigation({
           variant="ghost"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="gap-2 text-gray-600 hover:text-gray-800"
+          className="gap-2 text-muted-foreground hover:text-foreground"
           aria-label="Cancel wizard and return to previous screen"
         >
           <X className="h-4 w-4" aria-hidden="true" />
@@ -74,7 +74,7 @@ export function ProductionWizardNavigation({
 
       {/* Center - Progress Indicator */}
       <div className="flex-1 flex justify-center">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground neon-text">
           Step {currentStep + 1} of {totalSteps}
         </div>
       </div>

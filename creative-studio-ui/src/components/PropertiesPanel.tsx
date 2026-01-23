@@ -212,11 +212,116 @@ export function PropertiesPanel({ className }: PropertiesPanelProps) {
             <SequencePlanManager
               plans={plans}
               currentPlanId={currentPlanId}
-              onSelectPlan={() => {}} // TODO: Implement plan selection
-              onCreatePlan={() => {}} // TODO: Implement plan creation
-              onDuplicatePlan={() => {}} // TODO: Implement plan duplication
-              onDeletePlan={() => {}} // TODO: Implement plan deletion
-              onExportPlan={() => {}} // TODO: Implement plan export
+              onSelectPlan={(planId: string) => {
+                useSequencePlanStore.getState().setCurrentPlan(planId);
+                toast({
+                  title: 'Plan Selected',
+                  description: `Plan ${planId} is now active`,
+                });
+              }}
+              onCreatePlan={() => {
+                // Ouvrir le wizard de création de plan
+                const openSequencePlanWizard = useAppStore?.getState?.()?.openSequencePlanWizard;
+                if (openSequencePlanWizard) {
+                  openSequencePlanWizard({
+                    mode: 'create',
+                    sequenceId: undefined // Sera déterminé automatiquement
+                  });
+                  toast({
+                    title: 'Create Plan Wizard',
+                    description: 'Opening sequence plan creation wizard',
+                  });
+                }
+              }}
+              onDuplicatePlan={async (planId: string) => {
+                try {
+                  const plan = plans.find(p => p.id === planId);
+                  if (!plan) return;
+
+                  const duplicatedPlan = {
+                    ...plan,
+                    id: `duplicate-${Date.now()}`,
+                    name: `${plan.name} (Copy)`,
+                    createdAt: Date.now(),
+                    modifiedAt: Date.now(),
+                  };
+
+                  await useSequencePlanStore.getState().createPlan(duplicatedPlan);
+                  toast({
+                    title: 'Plan Duplicated',
+                    description: `Duplicated "${plan.name}" as "${duplicatedPlan.name}"`,
+                  });
+                } catch (error) {
+                  console.error('Failed to duplicate plan:', error);
+                  toast({
+                    title: 'Duplicate Failed',
+                    description: error instanceof Error ? error.message : 'Unknown error',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              onDeletePlan={async (planId: string) => {
+                const plan = plans.find(p => p.id === planId);
+                if (!plan) return;
+
+                const confirmed = window.confirm(
+                  `Are you sure you want to delete plan "${plan.name}"? This action cannot be undone.`
+                );
+
+                if (!confirmed) return;
+
+                try {
+                  await useSequencePlanStore.getState().deletePlan(planId);
+                  toast({
+                    title: 'Plan Deleted',
+                    description: `Successfully deleted "${plan.name}"`,
+                  });
+                } catch (error) {
+                  console.error('Failed to delete plan:', error);
+                  toast({
+                    title: 'Delete Failed',
+                    description: error instanceof Error ? error.message : 'Unknown error',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              onExportPlan={async (planId: string) => {
+                try {
+                  const plan = plans.find(p => p.id === planId);
+                  if (!plan) return;
+
+                  // Créer un objet exportable
+                  const exportData = {
+                    plan: plan,
+                    exportedAt: new Date().toISOString(),
+                    version: '1.0.0',
+                    exportedBy: 'StoryCore',
+                  };
+
+                  // Télécharger en JSON
+                  const dataStr = JSON.stringify(exportData, null, 2);
+                  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(dataBlob);
+                  link.download = `plan-${plan.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+
+                  toast({
+                    title: 'Plan Exported',
+                    description: `Successfully exported "${plan.name}"`,
+                  });
+                } catch (error) {
+                  console.error('Failed to export plan:', error);
+                  toast({
+                    title: 'Export Failed',
+                    description: error instanceof Error ? error.message : 'Unknown error',
+                    variant: 'destructive',
+                  });
+                }
+              }}
               className="h-full"
             />
           </div>

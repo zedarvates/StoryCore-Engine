@@ -123,7 +123,6 @@ export function useCharacterPersistence() {
           localStorage.setItem('character-ids', JSON.stringify(allCharacterIds));
         }
 
-        console.log('Character saved successfully:', character_id);
         return character;
       } catch (error) {
         console.error('Error saving character:', error);
@@ -207,7 +206,6 @@ export function useCharacterPersistence() {
         const updatedIds = characterIds.filter((id) => id !== character_id);
         localStorage.setItem('character-ids', JSON.stringify(updatedIds));
 
-        console.log('Character deleted successfully:', character_id);
       } catch (error) {
         console.error('Error deleting character:', error);
         throw new Error('Failed to delete character');

@@ -90,7 +90,6 @@ export function detectBrowserLanguage(): LanguageCode {
  * 
  * if (!isSupportedLanguage('sv')) {
  *   // Swedish is not supported
- *   console.log('Language not supported');
  * }
  * ```
  */

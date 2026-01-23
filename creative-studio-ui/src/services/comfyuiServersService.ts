@@ -351,7 +351,6 @@ export class ComfyUIServersService {
       // Save migrated config
       localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
       
-      console.log('Migrated old ComfyUI config to multi-server format');
       return config;
     } catch (error) {
       console.error('Failed to migrate old ComfyUI config:', error);

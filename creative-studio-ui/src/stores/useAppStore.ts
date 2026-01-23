@@ -44,12 +44,14 @@ interface AppState {
   showCharacterWizard: boolean;
   showLLMSettings: boolean;
   showComfyUISettings: boolean;
+  showGeneralSettings: boolean;
   showAddonsModal: boolean;
   showCharactersModal: boolean;
   showWorldModal: boolean;
   showLocationsModal: boolean;
   showObjectsModal: boolean;
   showImageGalleryModal: boolean;
+  showDialogueEditor: boolean;
 
   // Production wizards state
   showSequencePlanWizard: boolean;
@@ -94,12 +96,14 @@ interface AppState {
   setShowCharacterWizard: (show: boolean) => void;
   setShowLLMSettings: (show: boolean) => void;
   setShowComfyUISettings: (show: boolean) => void;
+  setShowGeneralSettings: (show: boolean) => void;
   setShowAddonsModal: (show: boolean) => void;
   setShowCharactersModal: (show: boolean) => void;
   setShowWorldModal: (show: boolean) => void;
   setShowLocationsModal: (show: boolean) => void;
   setShowObjectsModal: (show: boolean) => void;
   setShowImageGalleryModal: (show: boolean) => void;
+  setShowDialogueEditor: (show: boolean) => void;
   openSequencePlanWizard: (context?: SequencePlanWizardContext) => void;
   closeSequencePlanWizard: () => void;
   openShotWizard: (context?: ShotWizardContext) => void;
@@ -140,12 +144,14 @@ export const useAppStore = create<AppState>((set) => ({
   showCharacterWizard: false,
   showLLMSettings: false,
   showComfyUISettings: false,
+  showGeneralSettings: false,
   showAddonsModal: false,
   showCharactersModal: false,
   showWorldModal: false,
   showLocationsModal: false,
   showObjectsModal: false,
   showImageGalleryModal: false,
+  showDialogueEditor: false,
   showSequencePlanWizard: false,
   sequencePlanWizardContext: null,
   showShotWizard: false,
@@ -194,17 +200,20 @@ export const useAppStore = create<AppState>((set) => ({
   setShowCharacterWizard: (show) => set({ showCharacterWizard: show }),
   setShowLLMSettings: (show) => set({ showLLMSettings: show }),
   setShowComfyUISettings: (show) => set({ showComfyUISettings: show }),
+  setShowGeneralSettings: (show) => set({ showGeneralSettings: show }),
   setShowAddonsModal: (show) => set({ showAddonsModal: show }),
   setShowCharactersModal: (show) => set({ showCharactersModal: show }),
   setShowWorldModal: (show) => set({ showWorldModal: show }),
   setShowLocationsModal: (show) => set({ showLocationsModal: show }),
   setShowObjectsModal: (show) => set({ showObjectsModal: show }),
   setShowImageGalleryModal: (show) => set({ showImageGalleryModal: show }),
-  openSequencePlanWizard: (context) =>
+  setShowDialogueEditor: (show) => set({ showDialogueEditor: show }),
+  openSequencePlanWizard: (context) => {
     set({
       showSequencePlanWizard: true,
       sequencePlanWizardContext: context || { mode: 'create' },
-    }),
+    });
+  },
   closeSequencePlanWizard: () =>
     set({
       showSequencePlanWizard: false,

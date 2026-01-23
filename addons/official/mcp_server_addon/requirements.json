@@ -1,0 +1,55 @@
+{
+  "dependencies": {
+    "asyncio": {
+      "version": ">=3.4.3",
+      "description": "Support for asynchronous programming in Python",
+      "required": true
+    },
+    "json-rpc": {
+      "version": ">=4.0.0",
+      "description": "JSON-RPC 2.0 implementation for Python",
+      "required": true
+    },
+    "websockets": {
+      "version": ">=10.0",
+      "description": "WebSocket library for Python",
+      "required": false,
+      "optional": true
+    },
+    "aiohttp": {
+      "version": ">=3.8.0",
+      "description": "Async HTTP client/server framework",
+      "required": false,
+      "optional": true
+    },
+    "cryptography": {
+      "version": ">=41.0.0",
+      "description": "Cryptography library for security features",
+      "required": false,
+      "optional": true
+    },
+    "pydantic": {
+      "version": ">=2.0.0",
+      "description": "Data validation using Python type annotations",
+      "required": false,
+      "optional": true
+    }
+  },
+  "python_version": ">=3.8",
+  "platforms": [
+    "windows",
+    "linux",
+    "darwin"
+  ],
+  "install_command": "pip install -r requirements.json",
+  "test_dependencies": {
+    "pytest": ">=7.0.0",
+    "pytest-asyncio": ">=0.21.0",
+    "pytest-cov": ">=4.0.0"
+  },
+  "development_dependencies": {
+    "black": ">=23.0.0",
+    "flake8": ">=6.0.0",
+    "mypy": ">=1.0.0"
+  }
+}

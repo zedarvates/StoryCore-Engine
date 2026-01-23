@@ -2,7 +2,7 @@
  * Tests for useBackendIntegration Hook
  */
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { useBackendIntegration } from '../useBackendIntegration';
 import { BackendApiService, MockBackendApiService } from '../../services/backendApiService';
 

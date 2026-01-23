@@ -209,7 +209,6 @@ export class AssetLibraryService {
   private cacheUpdateSubscribers: Set<CacheUpdateCallback> = new Set();
   
   private constructor() {
-    console.log('[AssetLibraryService] Service initialized with Observer pattern');
   }
   
   /**

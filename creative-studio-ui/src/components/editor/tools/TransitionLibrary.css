@@ -1,0 +1,344 @@
+/* Transition Library Styles - CapCut Inspired */
+
+.transition-library {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  border: 1px solid #2a2a2a;
+  min-height: 400px;
+}
+
+.transition-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.transition-header h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 4px;
+  background: #0f0f0f;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.category-tabs .tab {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.category-tabs .tab:hover {
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+.category-tabs .tab.active {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+.transition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  flex: 1;
+}
+
+.transition-item {
+  background: #0f0f0f;
+  border: 2px solid #2a2a2a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.transition-item:hover {
+  border-color: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.transition-item.selected {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
+}
+
+.transition-item.selected::after {
+  content: "✓";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background: #7c3aed;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  border: 2px solid #1a1a1a;
+}
+
+.transition-preview {
+  position: relative;
+  height: 80px;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.transition-item:hover .preview-overlay {
+  opacity: 1;
+}
+
+.transition-info {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.transition-name {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.transition-duration {
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.transition-preview-panel {
+  margin-top: 20px;
+  padding: 16px;
+  background: #0f0f0f;
+  border-radius: 8px;
+  border: 1px solid #2a2a2a;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.preview-header h4 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.preview-play-btn {
+  background: #7c3aed;
+  border: none;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.preview-play-btn:hover {
+  background: #6d28d9;
+  transform: translateY(-1px);
+}
+
+.preview-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.preview-canvas {
+  border-radius: 8px;
+  border: 2px solid #2a2a2a;
+  position: relative;
+}
+
+.preview-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.control-group label {
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.control-group input[type="range"] {
+  flex: 1;
+  max-width: 200px;
+  height: 6px;
+  background: #2a2a2a;
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.control-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #7c3aed;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.control-group input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #7c3aed;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.control-group span {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Transition Animations */
+@keyframes transition-fade {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+@keyframes transition-wipe-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes transition-wipe-right {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes transition-push-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes transition-zoom-in {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.2); }
+}
+
+@keyframes transition-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.preview-canvas .clip-a {
+  animation-fill-mode: forwards;
+}
+
+.preview-canvas .clip-b {
+  animation-fill-mode: forwards;
+}
+
+.transition-help {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #0f0f0f;
+  border-radius: 6px;
+  border: 1px solid #2a2a2a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.help-default {
+  color: #9ca3af;
+}
+
+.help-selected {
+  color: #7c3aed;
+  font-weight: 600;
+}
+  .transition-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .transition-preview {
+    height: 70px;
+    font-size: 20px;
+  }
+
+  .preview-canvas {
+    width: 280px;
+    height: 157px;
+  }
+
+  .control-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .control-group input[type="range"] {
+    max-width: none;
+    width: 100%;
+  }

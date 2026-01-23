@@ -155,7 +155,6 @@ interface AppState {
    * @example
    * ```typescript
    * await saveProject();
-   * console.log('Project saved successfully');
    * ```
    */
   saveProject: () => Promise<void>;
@@ -281,7 +280,6 @@ interface AppState {
    * @example
    * ```typescript
    * const assetId = await uploadAsset(file);
-   * console.log('Asset uploaded:', assetId);
    * ```
    */
   uploadAsset: (file: File) => Promise<string>;
@@ -310,7 +308,6 @@ interface AppState {
    * @example
    * ```typescript
    * const results = searchAssets('music');
-   * console.log(`Found ${results.length} assets`);
    * ```
    */
   searchAssets: (query: string) => Asset[];
@@ -576,7 +573,6 @@ export const useStore = create<AppState>()(
         saveProject: async () => {
           const state = get();
           // Implementation would save to backend or localStorage
-          console.log('Saving project:', state.project);
         },
         
         exportProject: async (format) => {

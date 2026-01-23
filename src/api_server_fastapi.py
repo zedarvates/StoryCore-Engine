@@ -10,9 +10,11 @@ from fastapi import FastAPI, APIRouter, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import time
 import secrets
+import logging
+from pathlib import Path
 
 from .auth import (
     settings,
@@ -61,6 +63,9 @@ api_keys_router = APIRouter()
 
 # Import installation router
 from .installation_api import installation_router
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Include routers in v1
 v1_router.include_router(auth_router, prefix="/auth", tags=["auth"])
@@ -180,6 +185,18 @@ class VideoPlan(BaseModel):
 
 # In-memory database for video plans
 video_plans_db: Dict[str, VideoPlan] = {}
+
+def find_project_path(project_id: str) -> Optional[Path]:
+    """
+    Recherche le répertoire du projet en cherchant des fichiers JSON contenant le project_id.
+    Gère les noms non standard comme demo-project.json.
+    """
+    import os
+    for root, dirs, files in os.walk("."):
+        for file in files:
+            if file.endswith('.json') and project_id in file:
+                return Path(root)
+    return None
 
 # Projects endpoints
 @projects_router.get("/", response_model=List[Project])
@@ -349,7 +366,23 @@ async def get_video_plan(project_id: str, current_user: User = Depends(get_curre
     if current_user.role != "admin" and project.user_id != current_user.username:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    # Return video plan or create empty one
+    # Try to load from file first for persistence
+    project_path = find_project_path(project_id)
+    if project_path:
+        video_plan_file = project_path / "video_plan.json"
+        if video_plan_file.exists():
+            try:
+                import json
+                with open(video_plan_file, 'r', encoding='utf-8') as f:
+                    plan_data = json.load(f)
+                video_plan = VideoPlan(**plan_data)
+                video_plans_db[project_id] = video_plan
+                logging.info(f"Chargé video plan depuis fichier pour projet {project_id}")
+                return video_plan
+            except Exception as e:
+                logging.warning(f"Échec chargement video plan depuis fichier pour {project_id}: {e}")
+
+    # Fallback to memory or create empty one
     video_plan = video_plans_db.get(project_id)
     if not video_plan:
         # Create empty video plan
@@ -368,12 +401,17 @@ async def get_video_plan(project_id: str, current_user: User = Depends(get_curre
             }
         )
         video_plans_db[project_id] = video_plan
+        logging.info(f"Créé nouveau video plan vide pour projet {project_id}")
 
     return video_plan
 
 @projects_router.put("/{project_id}/video-plan", response_model=VideoPlan)
 async def update_video_plan(project_id: str, video_plan_update: VideoPlan, current_user: User = Depends(get_current_user)):
     """Update video plan for a project."""
+    logging.debug(f"PUT /projects/{project_id}/video-plan called with {len(video_plan_update.video_entries)} entries")
+    for i, entry in enumerate(video_plan_update.video_entries):
+        logging.debug(f"Entry {i}: description='{entry.description}', title='{entry.title}'")
+
     # Check if user has access to project
     project = projects_db.get(project_id)
     if not project:
@@ -390,29 +428,30 @@ async def update_video_plan(project_id: str, video_plan_update: VideoPlan, curre
         from .video_plan_engine import VideoPlanEngine
         engine = VideoPlanEngine()
 
-        # Find project directory
-        import os
-        project_path = None
-        for root, dirs, files in os.walk("."):
-            if f"{project_id}.json" in files:
-                project_path = Path(root)
-                break
+        # Find project directory using improved logic
+        project_path = find_project_path(project_id)
 
         if project_path:
+            logging.debug(f"Using engine.save_video_plan_to_file with path {project_path}")
             # Save video plan to file using the engine method
             engine.save_video_plan_to_file(project_path, video_plan_update.dict())
+            logging.info(f"Sauvegardé video plan pour projet {project_id} via engine")
         else:
+            logging.warning(f"Project file not found for {project_id}, using fallback path ./projects/{project_id}")
             # Fallback: create a simple projects directory
             project_path = Path(f"./projects/{project_id}")
             project_path.mkdir(parents=True, exist_ok=True)
             video_plan_file = project_path / "video_plan.json"
-            with open(video_plan_file, 'w') as f:
+            with open(video_plan_file, 'w', encoding='utf-8') as f:
                 import json
                 json.dump(video_plan_update.dict(), f, indent=2, default=str)
+            logging.info(f"Sauvegardé video plan pour projet {project_id} via fallback")
 
     except Exception as e:
         # Log but don't fail the API call
-        print(f"Warning: Could not save video plan to file: {e}")
+        logging.error(f"Could not save video plan to file for {project_id}: {e}")
+        import traceback
+        logging.error(traceback.format_exc())
 
     return video_plan_update
 
@@ -430,13 +469,8 @@ async def generate_video_plan(project_id: str, current_user: User = Depends(get_
         from .video_plan_engine import VideoPlanEngine
         engine = VideoPlanEngine()
 
-        # Find project directory
-        import os
-        project_path = None
-        for root, dirs, files in os.walk("."):
-            if f"{project_id}.json" in files:
-                project_path = Path(root)
-                break
+        # Find project directory using improved logic
+        project_path = find_project_path(project_id)
 
         if not project_path:
             raise HTTPException(status_code=404, detail="Project files not found")
@@ -447,18 +481,20 @@ async def generate_video_plan(project_id: str, current_user: User = Depends(get_
         video_plan_file = project_path / "video_plan.json"
         if video_plan_file.exists():
             import json
-            with open(video_plan_file, 'r') as f:
+            with open(video_plan_file, 'r', encoding='utf-8') as f:
                 plan_data = json.load(f)
 
             # Convert to VideoPlan model
             video_plan = VideoPlan(**plan_data)
             video_plans_db[project_id] = video_plan
+            logging.info(f"Généré et chargé video plan pour projet {project_id}")
 
             return result
         else:
             raise HTTPException(status_code=500, detail="Failed to generate video plan")
 
     except Exception as e:
+        logging.error(f"Video plan generation failed for {project_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Video plan generation failed: {str(e)}")
 
 # API Keys endpoints (admin only)

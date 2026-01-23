@@ -76,3 +76,17 @@ vi.mock('lucide-react', async (importOriginal) => {
   });
   return mockedIcons;
 });
+
+// Mock document.createElement for file input tests
+const originalCreateElement = document.createElement.bind(document);
+vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
+  if (tagName === 'input') {
+    const input = originalCreateElement('input') as HTMLInputElement;
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = 'image/*,audio/*,video/*';
+    input.click = vi.fn();
+    return input;
+  }
+  return originalCreateElement(tagName);
+});

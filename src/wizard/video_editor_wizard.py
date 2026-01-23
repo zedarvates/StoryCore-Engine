@@ -197,8 +197,8 @@ class VideoEditorWizard:
         self.montage = montage
         self._save_montage_plan(project_path, montage)
 
-        print("
-✅ Montage created successfully!"        print(f"🎬 Total duration: {montage.total_duration:.1f} seconds")
+        print("\n✅ Montage created successfully!")
+        print(f"🎬 Total duration: {montage.total_duration:.1f} seconds")
         print(f"📹 Video clips: {len(montage.video_clips)}")
         print(f"🎵 Audio tracks: {len(montage.audio_tracks)}")
         print(f"🔄 Transitions: {len(montage.transitions)}")

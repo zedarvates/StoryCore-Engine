@@ -207,8 +207,8 @@ class RogerWizard:
         self.extraction_result = extraction_result
         self._save_extraction_results(project_path, extraction_result)
 
-        print("
-✅ Extraction complete!"        print(f"📝 Summary: {len(extraction_result.summary_500_chars)} characters")
+        print("\n✅ Extraction complete!")
+        print(f"📝 Summary: {len(extraction_result.summary_500_chars)} characters")
         print(f"👥 Characters: {len(extraction_result.characters)}")
         print(f"🏰 Locations: {len(extraction_result.locations)}")
         print(f"🌍 World Elements: {len(extraction_result.world_elements)}")

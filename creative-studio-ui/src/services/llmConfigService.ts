@@ -51,14 +51,12 @@ class LLMConfigService {
       return;
     }
 
-    console.log('[LLMConfigService] Initializing...');
 
     // Load configuration from storage
     let config = await loadLLMSettings();
     
     // If no configuration exists, create a default one with auto-detected model
     if (!config) {
-      console.log('[LLMConfigService] No configuration found, detecting available models...');
       
       // Try to detect available Ollama models
       let detectedModel = 'llama3.2:1b'; // Fallback default
@@ -68,10 +66,7 @@ class LLMConfigService {
         
         if (suggestion) {
           detectedModel = suggestion.model;
-          console.log(`[LLMConfigService] Auto-detected model: ${detectedModel}`);
-          console.log(`[LLMConfigService] Reason: ${suggestion.reason}`);
           if (suggestion.alternatives.length > 0) {
-            console.log(`[LLMConfigService] Alternatives: ${suggestion.alternatives.join(', ')}`);
           }
         } else {
           console.warn('[LLMConfigService] No models detected, using fallback:', detectedModel);
@@ -102,7 +97,6 @@ class LLMConfigService {
 
     // Listen for settings updates from other sources
     eventEmitter.on(WizardEventType.LLM_SETTINGS_UPDATED, async () => {
-      console.log('[LLMConfigService] Settings updated event received');
       const updatedConfig = await loadLLMSettings();
       if (updatedConfig) {
         await this.setConfig(updatedConfig, false);
@@ -110,7 +104,6 @@ class LLMConfigService {
     });
 
     this.initialized = true;
-    console.log('[LLMConfigService] Initialized successfully');
   }
 
   /**
@@ -131,16 +124,13 @@ class LLMConfigService {
     // Create or update LLM service
     if (!this.llmService) {
       this.llmService = new LLMService(config);
-      console.log('[LLMConfigService] LLM service created');
     } else {
       this.llmService.updateConfig(config);
-      console.log('[LLMConfigService] LLM service updated');
     }
 
     // Save to storage if requested
     if (save) {
       await saveLLMSettings(config);
-      console.log('[LLMConfigService] Configuration saved to storage');
     }
 
     // Notify all listeners

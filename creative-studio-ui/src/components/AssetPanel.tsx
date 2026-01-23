@@ -40,7 +40,6 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
         const allAssets = sources.flatMap(s => s.assets);
         setFilteredAssets(allAssets);
 
-        console.log(`Loaded ${allAssets.length} assets from ${sources.length} sources`);
       } catch (error) {
         console.error('Failed to load assets:', error);
         toast({
@@ -180,7 +179,27 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
           {/* Category Buttons */}
-          
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => handleCategoryChange('all')}
+              className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                selectedCategory === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'
+              }`}
+            >
+              All
+            </button>
+            {ASSET_CATEGORIES.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => handleCategoryChange(category.id)}
+                className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                  selectedCategory === category.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Asset Grid by Source */}

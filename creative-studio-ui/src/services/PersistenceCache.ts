@@ -388,7 +388,6 @@ export class PersistenceCache {
     }
 
     if (expiredKeys.length > 0) {
-      console.log(`[PersistenceCache] Cleaned up ${expiredKeys.length} expired entries`);
     }
   }
 
@@ -412,14 +411,12 @@ export class PersistenceCache {
     // Si le taux de succès est faible, augmenter TTL
     if (stats.hitRate < 50) {
       this.defaultTTL *= 1.5;
-      console.log('[PersistenceCache] Increased default TTL due to low hit rate');
     }
 
     // Si la taille est proche de la limite, changer de stratégie
     if (this.currentSize > this.maxSize * 0.8) {
       if (this.strategy === CacheStrategy.LRU) {
         this.strategy = CacheStrategy.SIZE;
-        console.log('[PersistenceCache] Switched to size-based eviction due to high memory usage');
       }
     }
   }

@@ -11,6 +11,7 @@ import { WizardService } from '../../services/wizard/WizardService';
 import { WIZARD_DEFINITIONS } from '../../data/wizardDefinitions';
 import { useAppStore } from '../../stores/useAppStore';
 import { useEditorStore } from '../../stores/editorStore';
+import { LandingChatBox } from '../launcher/LandingChatBox';
 import './StoryCoreAssistant.css';
 
 interface AssistantMessage {
@@ -895,6 +896,14 @@ export function StoryCoreAssistant() {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Chatterbox Integration */}
+      <div className="chatterbox-integration">
+        <LandingChatBox
+          placeholder="Ask for modifications, ask questions about your project..."
+          height={300}
+        />
+      </div>
+
       <div className="assistant-input">
         <div className="input-with-upload">
           <textarea
@@ -910,11 +919,14 @@ export function StoryCoreAssistant() {
             accept=".txt,.md,.story,.novel,.doc,.docx"
             onChange={handleFileUpload}
             style={{ display: 'none' }}
+            title="Upload text file for Roger extraction"
+            aria-label="Upload text file for Roger extraction"
           />
           <button
             className="upload-button"
             onClick={() => fileInputRef.current?.click()}
             title="Upload text file for Roger extraction"
+            aria-label="Upload text file for Roger extraction"
           >
             📄
           </button>

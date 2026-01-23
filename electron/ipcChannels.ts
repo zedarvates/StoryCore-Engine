@@ -67,6 +67,15 @@ export const IPC_CHANNELS = {
   COMFYUI_GET_SERVICE_STATUS: 'comfyui:get-service-status',
   COMFYUI_START_SERVICE: 'comfyui:start-service',
   COMFYUI_STOP_SERVICE: 'comfyui:stop-service',
+
+  // File system operations
+  FS_READDIR: 'fs:readdir',
+  FS_READFILE: 'fs:readFile',
+  FS_WRITEFILE: 'fs:writeFile',
+  FS_EXISTS: 'fs:exists',
+  FS_STAT: 'fs:stat',
+  FS_MKDIR: 'fs:mkdir',
+  FS_UNLINK: 'fs:unlink',
 } as const;
 
 /**
@@ -102,6 +111,7 @@ export class IPCHandlers {
     this.registerAppHandlers();
     this.registerDraftHandlers();
     this.registerComfyUIHandlers();
+    this.registerFSHandlers();
   }
 
   /**
@@ -144,6 +154,15 @@ export class IPCHandlers {
     ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_GET_SERVICE_STATUS);
     ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_START_SERVICE);
     ipcMain.removeHandler(IPC_CHANNELS.COMFYUI_STOP_SERVICE);
+
+    // FS handlers
+    ipcMain.removeHandler(IPC_CHANNELS.FS_READDIR);
+    ipcMain.removeHandler(IPC_CHANNELS.FS_READFILE);
+    ipcMain.removeHandler(IPC_CHANNELS.FS_WRITEFILE);
+    ipcMain.removeHandler(IPC_CHANNELS.FS_EXISTS);
+    ipcMain.removeHandler(IPC_CHANNELS.FS_STAT);
+    ipcMain.removeHandler(IPC_CHANNELS.FS_MKDIR);
+    ipcMain.removeHandler(IPC_CHANNELS.FS_UNLINK);
 
     // App handlers
     ipcMain.removeAllListeners(IPC_CHANNELS.APP_QUIT);
@@ -1098,6 +1117,133 @@ export class IPCHandlers {
         };
       } catch (error) {
         console.error('Failed to stop ComfyUI service:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+  }
+
+  /**
+   * Register file system handlers
+   */
+  private registerFSHandlers(): void {
+    // Read directory
+    ipcMain.handle(IPC_CHANNELS.FS_READDIR, async (_event, dirPath: string) => {
+      try {
+        const items = fs.readdirSync(dirPath);
+        return {
+          success: true,
+          items,
+        };
+      } catch (error) {
+        console.error('Failed to read directory:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Read file
+    ipcMain.handle(IPC_CHANNELS.FS_READFILE, async (_event, filePath: string) => {
+      try {
+        const buffer = fs.readFileSync(filePath);
+        return {
+          success: true,
+          data: buffer,
+        };
+      } catch (error) {
+        console.error('Failed to read file:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Write file
+    ipcMain.handle(IPC_CHANNELS.FS_WRITEFILE, async (_event, filePath: string, data: string | Buffer) => {
+      try {
+        fs.writeFileSync(filePath, data);
+        return {
+          success: true,
+        };
+      } catch (error) {
+        console.error('Failed to write file:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Check if path exists
+    ipcMain.handle(IPC_CHANNELS.FS_EXISTS, async (_event, filePath: string) => {
+      try {
+        const exists = fs.existsSync(filePath);
+        return {
+          success: true,
+          exists,
+        };
+      } catch (error) {
+        console.error('Failed to check if path exists:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Get file stats
+    ipcMain.handle(IPC_CHANNELS.FS_STAT, async (_event, filePath: string) => {
+      try {
+        const stats = fs.statSync(filePath);
+        return {
+          success: true,
+          stats: {
+            isFile: stats.isFile(),
+            isDirectory: stats.isDirectory(),
+            size: stats.size,
+            mtime: stats.mtime,
+            birthtime: stats.birthtime,
+          },
+        };
+      } catch (error) {
+        console.error('Failed to get file stats:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Create directory
+    ipcMain.handle(IPC_CHANNELS.FS_MKDIR, async (_event, dirPath: string, options?: { recursive?: boolean }) => {
+      try {
+        fs.mkdirSync(dirPath, options);
+        return {
+          success: true,
+        };
+      } catch (error) {
+        console.error('Failed to create directory:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    // Delete file
+    ipcMain.handle(IPC_CHANNELS.FS_UNLINK, async (_event, filePath: string) => {
+      try {
+        fs.unlinkSync(filePath);
+        return {
+          success: true,
+        };
+      } catch (error) {
+        console.error('Failed to delete file:', error);
         return {
           success: false,
           error: error instanceof Error ? error.message : String(error),

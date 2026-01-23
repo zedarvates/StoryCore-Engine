@@ -16,11 +16,13 @@ export function SequencePlanWizardModal() {
   const closeSequencePlanWizard = useAppStore(state => state.closeSequencePlanWizard);
 
   const createPlan = useSequencePlanStore(state => state.createPlan);
+  const setCurrentPlan = useSequencePlanStore(state => state.selectPlan);
   // updatePlan is defined in the store as a standalone function
   const { toast } = useToast();
 
   const handleComplete = async (sequencePlan: SequencePlan) => {
     try {
+      
       if (sequencePlanWizardContext?.mode === 'edit') {
         await updatePlan(sequencePlan.id, sequencePlan);
         toast({
@@ -28,15 +30,37 @@ export function SequencePlanWizardModal() {
           description: `"${sequencePlan.name}" has been updated successfully.`,
         });
       } else {
+        // Create empty plan first
         await createPlan(sequencePlan.name, sequencePlan.description);
+
+        // Get the newly created plan ID from the store
+        const state = useSequencePlanStore.getState();
+        const newPlanId = state.currentPlanId;
+        
+        if (!newPlanId) {
+          throw new Error('Failed to get newly created plan ID');
+        }
+
+
+        // Then update it with all the wizard data
+        const completePlan: SequencePlan = {
+          ...sequencePlan,
+          id: newPlanId, // Use the ID from the created plan
+        };
+
+        await updatePlan(newPlanId, completePlan);
+
+        // Set as current plan (already done by createPlan, but ensure it)
+        await setCurrentPlan(newPlanId);
+
         toast({
           title: 'Sequence Plan Created',
-          description: `"${sequencePlan.name}" has been created successfully.`,
+          description: `"${sequencePlan.name}" has been created and added to your project successfully.`,
         });
       }
       closeSequencePlanWizard();
     } catch (error) {
-      console.error('Failed to save sequence plan:', error);
+      console.error('SequencePlanWizardModal: Failed to save sequence plan:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to save sequence plan',

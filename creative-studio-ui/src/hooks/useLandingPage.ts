@@ -115,33 +115,15 @@ export function useLandingPage(): UseLandingPageReturn {
         const template = generateProjectTemplate(format);
         const initialShots = sequencesToShots(template.sequences);
 
-        console.log('Generated project template:', {
-          sequences: template.sequences.length,
-          shots: template.totalShots,
-          duration: template.totalDuration,
-          initialShots: initialShots.length,
-        });
-        
-        console.log('First shot sample:', initialShots[0]);
-        console.log('Format data:', format);
-
         if (window.electronAPI) {
           // Create project via Electron API with format (returns Project directly, throws on error)
-          console.log('Calling Electron API with:', {
-            name: projectName,
-            location: projectPath,
-            format: format,
-            initialShotsCount: initialShots.length,
-          });
-          
-          const electronProject = await window.electronAPI.project.create({ 
+          const electronProject = await window.electronAPI.project.create({
             name: projectName, 
             location: projectPath,
             format: format,
             initialShots: initialShots,
           });
 
-          console.log('Electron API returned:', electronProject);
 
           // Convert Electron project to Store project format
           const storeProject = convertElectronProjectToStore(electronProject);
@@ -156,7 +138,6 @@ export function useLandingPage(): UseLandingPageReturn {
           // Close dialog
           setShowCreateDialog(false);
 
-          console.log('Project created and loaded successfully:', storeProject);
         } else {
           // Demo mode - simulate creation
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -205,8 +186,6 @@ export function useLandingPage(): UseLandingPageReturn {
           setRecentProjects((prev) => [newProject, ...prev].slice(0, 10));
           setShowCreateDialog(false);
 
-          console.log('Project created (demo mode) with format:', format.name, demoProject);
-          console.log('Initial shots created:', initialShots.length);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to create project';
@@ -243,7 +222,6 @@ export function useLandingPage(): UseLandingPageReturn {
           // Close dialog
           setShowOpenDialog(false);
 
-          console.log('Project opened and loaded successfully:', storeProject);
         } else {
           // Demo mode - simulate opening
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -277,7 +255,6 @@ export function useLandingPage(): UseLandingPageReturn {
           setShots([]);
 
           setShowOpenDialog(false);
-          console.log('Project opened (demo mode):', demoProject);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to open project';
@@ -386,7 +363,6 @@ export function useLandingPage(): UseLandingPageReturn {
           // Reload recent projects to update last accessed time
           await loadRecentProjects();
 
-          console.log('Recent project opened and loaded:', storeProject);
         } else {
           // Demo mode - simulate opening
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -426,7 +402,6 @@ export function useLandingPage(): UseLandingPageReturn {
             )
           );
 
-          console.log('Recent project opened (demo mode):', demoProject);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to open project';

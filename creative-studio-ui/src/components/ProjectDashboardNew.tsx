@@ -26,6 +26,7 @@ import { Badge } from './ui/badge';
 import { Alert, AlertDescription } from './ui/alert';
 import { Loader2, AlertCircle, CheckCircle, Save, FileText, Music, Sparkles, TrendingUp } from 'lucide-react';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { ChatToggleButton } from './ChatToggleButton';
 import type { Project, GenerationResults } from '../types/projectDashboard';
 
 // ============================================================================
@@ -65,7 +66,7 @@ const ProjectDashboardContent: React.FC = () => {
   // Local State
   // ============================================================================
 
-  const [activeTab, setActiveTab] = useState<string>('prompts');
+  const [activeTab, setActiveTab] = useState<string>('overview');
 
   // ============================================================================
   // Keyboard Shortcuts
@@ -296,6 +297,9 @@ const ProjectDashboardContent: React.FC = () => {
 
               {/* Save Status */}
               {renderSaveStatus()}
+
+              {/* Chat Toggle Button */}
+              <ChatToggleButton className="relative inline-flex items-center justify-center w-8 h-8 ml-2" dashboardContext="project-dashboard" />
             </div>
           </div>
 

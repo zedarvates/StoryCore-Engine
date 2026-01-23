@@ -430,9 +430,9 @@ export function SequencePlanWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCancel}>
-      <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Create Sequence Plan</DialogTitle>
+      <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col cyber-card border-primary/30 bg-card/95 backdrop-blur-sm">
+        <DialogHeader className="border-b border-primary/30 bg-card/95 backdrop-blur-sm">
+          <DialogTitle className="neon-text text-primary text-xl font-bold">Create Sequence Plan</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto min-h-0">
@@ -455,17 +455,17 @@ export function SequencePlanWizard({
             {isLoading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading...</p>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground neon-text-blue">Loading...</p>
                 </div>
               </div>
             ) : error ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-center text-red-600">
-                  <p className="mb-4">{error}</p>
+                <div className="text-center">
+                  <p className="mb-4 text-destructive neon-text-pink">{error}</p>
                   <button
                     onClick={initializeWizard}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 btn-neon rounded neon-border"
                   >
                     Retry
                   </button>

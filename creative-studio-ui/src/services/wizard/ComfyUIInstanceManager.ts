@@ -666,7 +666,6 @@ export class ComfyUIInstanceManager {
           status: 'stopped',
           health: this.createInitialHealth(),
           stats: this.createInitialStats(),
-          createdAt: new Date(), // TODO: Store creation date in config
           lastUsedAt: new Date(),
         };
 

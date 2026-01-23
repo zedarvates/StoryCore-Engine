@@ -55,7 +55,7 @@ class GhostTrackerWizardHandler(BaseHandler):
         try:
             # Import Ghost Tracker wizard
             try:
-                from wizard.ghost_tracker_wizard import (
+                from src.wizard.ghost_tracker_wizard import (
                     create_ghost_tracker_wizard,
                     get_ghost_tracker_advice,
                     AdviceCategory
@@ -225,7 +225,8 @@ class GhostTrackerWizardHandler(BaseHandler):
                 insights_by_category[category] = []
             insights_by_category[category].append(insight)
 
-        print("\n🔍 Detailed Analysis:"        for category, insights in insights_by_category.items():
+        print(f"\n🔍 Detailed Analysis:")
+        for category, insights in insights_by_category.items():
             print(f"\n📋 {category.replace('_', ' ').title()}:")
             for insight in insights:
                 priority_icon = {
@@ -239,23 +240,24 @@ class GhostTrackerWizardHandler(BaseHandler):
                 print(f"   {priority_icon} {insight.title}")
                 print(f"      {insight.description}")
                 if insight.actionable_steps:
-                    print("      💡 Actions:"                    for step in insight.actionable_steps[:2]:
+                    print("      💡 Actions:")
+                    for step in insight.actionable_steps[:2]:
                         print(f"         • {step}")
 
         # Recommendations
         if report.recommendations:
-            print("
-📝 Key Recommendations:"            for i, rec in enumerate(report.recommendations[:5], 1):
+            print(f"\n📝 Key Recommendations:")
+            for i, rec in enumerate(report.recommendations[:5], 1):
                 print(f"   {i}. {rec}")
 
         # Next steps
         if report.next_steps:
-            print("
-🚀 Immediate Next Steps:"            for i, step in enumerate(report.next_steps, 1):
+            print(f"\n🚀 Immediate Next Steps:")
+            for i, step in enumerate(report.next_steps, 1):
                 print(f"   {i}. {step}")
 
         # Report location
-        print("
-📄 Complete analysis saved to: ghost_tracker_report.json"        print("   Use this file to review all insights and track improvements")
+        print(f"\n📄 Complete analysis saved to: ghost_tracker_report.json")
+        print("   Use this file to review all insights and track improvements")
 
         return 0

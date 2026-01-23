@@ -141,6 +141,7 @@ export const ShotEditModal: React.FC<ShotEditModalProps> = ({ shot, isOpen, onCl
               onChange={(e) => setDuration(parseFloat(e.target.value) || 0)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-xs text-gray-500 mt-1">Format: {Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')}</p>
           </div>
 
           {/* Image */}

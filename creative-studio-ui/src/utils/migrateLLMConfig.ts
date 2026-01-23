@@ -21,12 +21,10 @@ import type { LLMConfig } from '@/services/llmService';
  */
 export async function migrateLLMConfig(): Promise<boolean> {
   try {
-    console.log('[Migration] Checking for LLM config migration...');
 
     // Check if new system already has configuration
     const newConfig = await loadLLMSettings();
     if (newConfig) {
-      console.log('[Migration] LLM config already exists in new system');
       return false;
     }
 
@@ -34,17 +32,14 @@ export async function migrateLLMConfig(): Promise<boolean> {
     const migratedConfig = await findLegacyConfig();
     
     if (!migratedConfig) {
-      console.log('[Migration] No legacy LLM config found');
       return false;
     }
 
     // Save to new system
     await saveLLMSettings(migratedConfig);
-    console.log('[Migration] LLM config migrated successfully');
 
     // Clean up legacy storage
     cleanupLegacyStorage();
-    console.log('[Migration] Legacy storage cleaned up');
 
     return true;
   } catch (error) {
@@ -61,14 +56,12 @@ async function findLegacyConfig(): Promise<LLMConfig | null> {
   // Try llmConfigStorage (System 1)
   const config1 = await loadFromLLMConfigStorage();
   if (config1) {
-    console.log('[Migration] Found config in llmConfigStorage');
     return config1;
   }
 
   // Try settingsPropagation (System 3)
   const config3 = loadFromSettingsPropagation();
   if (config3) {
-    console.log('[Migration] Found config in settingsPropagation');
     return config3;
   }
 
@@ -214,7 +207,6 @@ function cleanupLegacyStorage(): void {
   // System 3: settingsPropagation
   localStorage.removeItem('llm-config');
 
-  console.log('[Migration] Legacy storage keys removed');
 }
 
 /**
@@ -222,12 +214,10 @@ function cleanupLegacyStorage(): void {
  * Call this once during application startup
  */
 export async function initializeLLMConfig(): Promise<void> {
-  console.log('[Migration] Initializing LLM configuration...');
 
   const migrated = await migrateLLMConfig();
   
   if (migrated) {
-    console.log('✅ [Migration] LLM configuration migrated successfully');
     
     // Show notification to user (optional)
     if (typeof window !== 'undefined') {
@@ -235,7 +225,6 @@ export async function initializeLLMConfig(): Promise<void> {
       console.info('Your LLM configuration has been migrated to the new system');
     }
   } else {
-    console.log('[Migration] No migration needed');
   }
 }
 

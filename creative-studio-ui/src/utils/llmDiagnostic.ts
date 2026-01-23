@@ -380,7 +380,6 @@ function determineOverallStatus(checks: DiagnosticResult['checks']): 'healthy' |
  * Run comprehensive LLM diagnostic
  */
 export async function runLLMDiagnostic(): Promise<DiagnosticResult> {
-  console.log('🔍 Running LLM diagnostic...');
 
   // Run all checks
   const storage = checkStorage();
@@ -427,7 +426,6 @@ export async function runLLMDiagnostic(): Promise<DiagnosticResult> {
     config,
   };
 
-  console.log('✅ Diagnostic complete:', result);
 
   return result;
 }
@@ -436,35 +434,20 @@ export async function runLLMDiagnostic(): Promise<DiagnosticResult> {
  * Print diagnostic results to console in a readable format
  */
 export function printDiagnostic(result: DiagnosticResult): void {
-  console.log('\n=== LLM DIAGNOSTIC REPORT ===');
-  console.log(`Timestamp: ${result.timestamp}`);
-  console.log(`Overall Status: ${result.overall.toUpperCase()}`);
-  console.log('\n--- Checks ---');
 
   Object.entries(result.checks).forEach(([name, check]) => {
     const icon = check.status === 'pass' ? '✓' : check.status === 'warning' ? '⚠' : '✗';
-    console.log(`${icon} ${name}: ${check.message}`);
     if (check.details) {
-      console.log(`  Details:`, check.details);
     }
   });
 
-  console.log('\n--- Configuration ---');
   if (result.config) {
-    console.log(`Provider: ${result.config.provider}`);
-    console.log(`Model: ${result.config.model}`);
-    console.log(`Has API Key: ${result.config.hasApiKey}`);
-    console.log(`Streaming: ${result.config.streamingEnabled}`);
   } else {
-    console.log('No configuration found');
   }
 
-  console.log('\n--- Recommendations ---');
   result.recommendations.forEach((rec, i) => {
-    console.log(`${i + 1}. ${rec}`);
   });
 
-  console.log('\n=============================\n');
 }
 
 /**

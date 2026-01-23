@@ -2,7 +2,7 @@
  * Tests for useProgressTracking Hook
  */
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { useProgressTracking } from '../useProgressTracking';
 import { ProgressTrackingService, MockProgressTrackingService } from '../../services/progressTrackingService';
 

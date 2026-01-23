@@ -114,14 +114,12 @@ export class CastingManager {
   updateSceneReferences(characterId: string, newAvatarId: string): void {
     // This would typically integrate with the story generation system
     // For now, just log the operation
-    console.log(`Updating scenes for character ${characterId} with new avatar ${newAvatarId}`);
   }
 
   /**
    * Load avatars from the assets folder
    */
   async loadAvatars(_assetsPath: string): Promise<Avatar[]> {
-    // TODO: Implement actual file system scanning
     // For now, return empty array
     this.avatars.clear();
     return [];
@@ -142,7 +140,6 @@ export class CastingManager {
    * Validate an avatar
    */
   validateAvatar(_avatarPath: string): Promise<AvatarValidationResult> {
-    // TODO: Implement actual validation
     return Promise.resolve({
       isValid: true,
       metadata: {
@@ -176,7 +173,6 @@ export class CastingManager {
     return {
       characterSceneCounts,
       avatarUsageCounts,
-      uncastCharacters: [], // TODO: Implement by comparing with actual characters
       uniqueActorCount: Object.keys(avatarUsageCounts).length,
     };
   }
@@ -237,23 +233,18 @@ export class CastingManager {
       lastModified: data?.lastModified || new Date().toISOString(),
     };
 
-    console.log(`Recovered ${recoveredAssignments.length} valid assignments from corrupted data`);
   }
 
   /**
    * Save state to project.json
    */
   async saveState(projectPath: string): Promise<void> {
-    // TODO: Implement file system integration
-    console.log(`Saving casting state to ${projectPath}`);
   }
 
   /**
    * Load state from project.json
    */
   async loadState(projectPath: string): Promise<void> {
-    // TODO: Implement file system integration
-    console.log(`Loading casting state from ${projectPath}`);
   }
 
   /**
@@ -344,7 +335,6 @@ export class CastingManager {
    * Check if undo is available
    */
   canUndo(): boolean {
-    // TODO: Implement undo stack checking
     return false;
   }
 

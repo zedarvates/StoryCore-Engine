@@ -1037,6 +1037,27 @@ export class LLMService {
   }
 
   /**
+   * Generate text using the LLM service
+   */
+  async generateText(prompt: string, options: {
+    temperature?: number;
+    maxTokens?: number;
+  } = {}): Promise<string> {
+    const request: LLMRequest = {
+      prompt: prompt,
+      temperature: options.temperature,
+      maxTokens: options.maxTokens,
+    };
+
+    const response = await this.generateCompletion(request);
+    if (!response.success || !response.data) {
+      throw new Error(response.error || 'Failed to generate text');
+    }
+
+    return response.data.content;
+  }
+
+  /**
    * Generate streaming completion with retry logic
    */
   async generateStreamingCompletion(

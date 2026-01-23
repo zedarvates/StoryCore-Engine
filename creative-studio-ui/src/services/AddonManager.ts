@@ -80,7 +80,6 @@ export class AddonManager {
     await this.loadExternalAddons();
 
     this.initialized = true;
-    console.log(`[AddonManager] Initialized with ${this.addons.size} add-ons`);
   }
 
   /**
@@ -151,7 +150,6 @@ export class AddonManager {
       // Sauvegarder la configuration
       await this.saveConfig();
 
-      console.log(`[AddonManager] Activated addon: ${addon.name} (${addonId})`);
       return true;
 
     } catch (error) {
@@ -187,7 +185,6 @@ export class AddonManager {
       // Sauvegarder la configuration
       await this.saveConfig();
 
-      console.log(`[AddonManager] Deactivated addon: ${addon.name} (${addonId})`);
       return true;
 
     } catch (error) {
@@ -351,7 +348,6 @@ export class AddonManager {
       }
     } else {
       // Pour les add-ons externes, charger depuis un système de plugins
-      // TODO: Implémenter le système de plugins externes
       throw new Error('External add-ons not yet supported');
     }
   }
@@ -361,8 +357,6 @@ export class AddonManager {
    */
   private async unloadAddon(addon: AddonInfo): Promise<void> {
     // Nettoyer les ressources de l'add-on
-    // TODO: Implémenter le nettoyage selon le type d'add-on
-    console.log(`[AddonManager] Unloading addon: ${addon.name}`);
   }
 
   /**
@@ -434,7 +428,6 @@ export class AddonManager {
    * Charge les add-ons externes
    */
   private async loadExternalAddons(): Promise<void> {
-    // TODO: Implémenter le chargement des add-ons externes
     // Cela pourrait inclure :
     // - Scan d'un dossier d'add-ons
     // - Chargement de manifests JSON

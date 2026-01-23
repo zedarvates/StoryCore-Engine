@@ -4,7 +4,7 @@ Audio Production Wizard command handler - Sound design and audio generation.
 
 import argparse
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Any
 import json
 
 from ..base import BaseHandler

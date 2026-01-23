@@ -69,9 +69,6 @@ export function useOllamaInit() {
           // Set as default service
           setDefaultLLMService(llmService);
 
-          console.log(`✅ Ollama initialized with ${recommendation.model.name}`);
-          console.log(`📍 Endpoint: ${ollamaConfig.apiEndpoint}`);
-          console.log(`🤖 Model: ${ollamaConfig.model}`);
         } else {
           console.warn('⚠️ Ollama is not running. LLM features will be limited.');
         }

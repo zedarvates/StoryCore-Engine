@@ -42,7 +42,6 @@ export interface UseAssetLibraryReturn {
  *   
  *   const handleSearch = async () => {
  *     const results = await searchAssets({ query: 'background', type: 'image' });
- *     console.log(results);
  *   };
  *   
  *   return (
@@ -84,7 +83,6 @@ export function useAssetLibrary(projectPath?: string): UseAssetLibraryReturn {
   // Subscribe to source updates
   useEffect(() => {
     const unsubscribe = assetLibraryService.subscribeToSourceUpdates((updatedSources) => {
-      console.log('[useAssetLibrary] Sources updated:', updatedSources.length);
       setSources(updatedSources);
     });
 
@@ -234,7 +232,6 @@ export interface UseAssetCategoriesReturn {
  *   
  *   const handleCategoryClick = async (categoryId: string) => {
  *     const assets = await getAssetsByCategory(categoryId);
- *     console.log(assets);
  *   };
  *   
  *   return (

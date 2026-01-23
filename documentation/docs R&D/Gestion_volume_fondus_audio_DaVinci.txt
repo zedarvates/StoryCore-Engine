@@ -1,0 +1,22 @@
+1. Guide complet pour la gestion du volume et les fondus audio dans DaVinci
+Ce document présente un tutoriel détaillé sur les bases du montage audio dans DaVinci, en particulier la gestion du volume, la création de fondus audio, et la gestion avancée des pistes audio pour mixer proprement une voix et une musique.
+1. Gestion basique du volume
+- Le volume d'un clip audio peut être modifié via l'inspecteur dans l'onglet Audio ou directement dans la timeline en agrandissant la piste audio.
+- La waveform (forme d'onde) apparaît lorsque la piste est agrandie, facilitant la visualisation du son.
+- Une barre grise horizontale sur la waveform contrôle le volume général du clip, ajustable de +30 à -100 dB.
+2. Création de fondus audio
+- Des outils de fondu automatique sont disponibles aux extrémités des clips audio (et vidéo) pour créer des fondus d'entrée et de sortie.
+- Ces fondus peuvent être personnalisés en modifiant la courbe via un point blanc au milieu du fondu, permettant des transitions exponentielles ou linéaires.
+- Pour créer un fondu enchaîné entre deux clips audio, il faut utiliser la transition audio 'fondu enchaîné 0 dB' dans la bibliothèque de transitions.
+- La durée du fondu enchaîné est ajustable en étirant ou rétrécissant la transition.
+3. Montage audio avancé avec images clés
+- Pour mixer proprement une voix off et une musique, il faut faire varier le volume de la musique au moment où la voix commence.
+- Agrandir la piste audio, puis avec Alt (PC) ou Option (Mac), cliquer sur la barre de volume pour créer un point clé.
+- Créer plusieurs points clés pour baisser puis remonter le volume de la musique en fonction de la voix off.
+- Cette technique permet un mixage fluide où la musique baisse pendant la voix et remonte ensuite.
+4. Gestion indépendante de l'audio et de la vidéo
+- Par défaut, l'audio et la vidéo d'un clip sont liés lors des coupes.
+- Pour modifier uniquement l'audio ou la vidéo, approcher le curseur du bord du clip, puis avec Alt (PC) ou Option (Mac), saisir et ajuster indépendamment.
+- Cette fonctionnalité permet de prolonger ou réduire l'audio sans impacter la vidéo, et vice versa.
+Conclusion
+Ce tutoriel couvre les bases essentielles pour gérer le volume et les fondus audio dans DaVinci, ainsi que des techniques avancées pour un mixage propre entre voix et musique. Ces compétences sont fondamentales pour améliorer la qualité sonore de vos montages vidéo.

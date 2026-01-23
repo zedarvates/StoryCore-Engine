@@ -235,7 +235,6 @@ function cleanupLegacyStorage(): void {
       localStorage.removeItem(key);
     });
     
-    console.log('Legacy Ollama storage cleaned up');
   } catch (error) {
     console.error('Failed to cleanup legacy storage:', error);
   }
@@ -303,7 +302,6 @@ export async function migrateOllamaConfiguration(): Promise<MigrationResult> {
 
     result.notification = notificationParts.join('\n');
 
-    console.log('Ollama migration completed:', result);
 
     return result;
   } catch (error) {
@@ -387,7 +385,6 @@ export async function autoMigrate(): Promise<MigrationResult | null> {
       return null;
     }
 
-    console.log('Automatic Ollama migration triggered');
     const result = await migrateOllamaConfiguration();
 
     // Store notification for display

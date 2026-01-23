@@ -119,4 +119,13 @@
   text-overflow: ellipsis;
 }
 
-/* Track-specific colors are applied inline via style prop */
+/* Track-specific colors */
+.track-video { border-left-color: #7c3aed; }
+.track-image { border-left-color: #06b6d4; }
+.track-audio { border-left-color: #10b981; }
+.track-text { border-left-color: #f59e0b; }
+
+.track-clip-video { background-color: #7c3aed; }
+.track-clip-image { background-color: #06b6d4; }
+.track-clip-audio { background-color: #10b981; }
+.track-clip-text { background-color: #f59e0b; }

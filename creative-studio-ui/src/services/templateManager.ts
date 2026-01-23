@@ -660,7 +660,6 @@ export class TemplateManager {
       }
     }
 
-    // TODO: Add Zod schema validation when schemas are properly exported
 
     return result;
   }
@@ -696,7 +695,6 @@ export class TemplateManager {
       result.isValid = false;
     }
 
-    // TODO: Add Zod schema validation when schemas are properly exported
 
     return result;
   }
@@ -732,7 +730,6 @@ export class TemplateManager {
       result.isValid = false;
     }
 
-    // TODO: Add Zod schema validation when schemas are properly exported
 
     return result;
   }
@@ -798,7 +795,6 @@ export class TemplateManager {
       result.isValid = false;
     }
 
-    // TODO: Add Zod schema validation when schemas are properly exported
 
     return result;
   }
@@ -836,16 +832,14 @@ export class TemplateManager {
 
     // Use draftStorage for persistence
     // This will be implemented when we integrate with the draft storage service
-    console.log('Saving custom templates:', data);
   }
 
   private async loadCustomTemplates(): Promise<void> {
     try {
       // Load from draftStorage
       // This will be implemented when we integrate with the draft storage service
-      console.log('Loading custom templates...');
     } catch (error) {
-      console.warn('Failed to load custom templates:', error);
+      // Failed to load custom templates
     }
   }
 }

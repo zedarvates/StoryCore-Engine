@@ -69,7 +69,6 @@ export class SequencePlanService {
   private autoSaveStatusSubscribers: Set<AutoSaveStatusCallback> = new Set();
 
   private constructor() {
-    console.log('[SequencePlanService] Service initialized with Observer pattern');
   }
 
   /**
@@ -119,10 +118,8 @@ export class SequencePlanService {
    * Notify subscribers of plan update
    */
   private notifyPlanUpdate(planId: string, plan: SequencePlanData): void {
-    console.log('[DEBUG] notifyPlanUpdate called with planId:', planId, 'subscribers:', this.planUpdateSubscribers.size);
     this.planUpdateSubscribers.forEach(callback => {
       try {
-        console.log('[DEBUG] Calling plan update subscriber');
         callback(planId, plan);
       } catch (error) {
         console.error('[DEBUG] Error in plan update subscriber:', error);
@@ -134,12 +131,9 @@ export class SequencePlanService {
    * Notify subscribers of plan list update
    */
   private async notifyPlanListUpdate(): Promise<void> {
-    console.log('[DEBUG] notifyPlanListUpdate called, subscribers:', this.planListSubscribers.size);
     const plans = await this.listSequencePlans();
-    console.log('[DEBUG] Found', plans.length, 'plans to notify');
     this.planListSubscribers.forEach(callback => {
       try {
-        console.log('[DEBUG] Calling plan list subscriber');
         callback(plans);
       } catch (error) {
         console.error('[DEBUG] Error in plan list subscriber:', error);

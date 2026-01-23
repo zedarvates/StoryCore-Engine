@@ -28,31 +28,33 @@
 
   /* Dark theme with neon/cyberpunk accents */
   .dark {
-    --background: 240 10% 3.9%; /* Very dark blue-black #0a0a0f */
-    --foreground: 210 40% 98%;
-    --card: 240 10% 6%; /* Slightly lighter than background */
-    --card-foreground: 210 40% 98%;
-    --popover: 240 10% 6%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 280 100% 70%; /* Neon purple #b366ff */
-    --primary-foreground: 240 10% 3.9%;
-    --secondary: 240 10% 12%; /* Dark gray with blue tint */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 240 10% 12%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 280 100% 70%; /* Neon purple accent */
-    --accent-foreground: 240 10% 3.9%;
-    --destructive: 0 62.8% 50%; /* Brighter red for dark theme */
-    --destructive-foreground: 210 40% 98%;
-    --border: 240 10% 15%; /* Subtle border */
-    --input: 240 10% 12%;
+    --background: 240 20% 2%; /* Deep black with subtle blue tint */
+    --foreground: 180 100% 95%; /* Bright cyan-white text */
+    --card: 240 15% 4%; /* Slightly lighter black */
+    --card-foreground: 180 100% 95%;
+    --popover: 240 15% 4%;
+    --popover-foreground: 180 100% 95%;
+    --primary: 280 100% 70%; /* Electric purple #b366ff */
+    --primary-foreground: 240 20% 2%;
+    --secondary: 240 20% 8%; /* Dark blue-gray */
+    --secondary-foreground: 180 100% 95%;
+    --muted: 240 20% 8%;
+    --muted-foreground: 180 50% 70%; /* Muted cyan */
+    --accent: 200 100% 60%; /* Electric blue #0099ff */
+    --accent-foreground: 240 20% 2%;
+    --destructive: 0 100% 60%; /* Bright red #ff0000 */
+    --destructive-foreground: 180 100% 95%;
+    --border: 240 20% 15%; /* Subtle dark border */
+    --input: 240 20% 8%;
     --ring: 280 100% 70%; /* Neon purple ring */
-    
-    /* Neon colors */
+
+    /* Enhanced neon color palette */
     --neon-purple: 280 100% 70%;
     --neon-blue: 200 100% 60%;
     --neon-pink: 320 100% 70%;
     --neon-cyan: 180 100% 60%;
+    --neon-green: 120 100% 60%;
+    --neon-orange: 30 100% 60%;
   }
 }
 
@@ -64,46 +66,160 @@
     @apply bg-background text-foreground;
   }
   
-  /* Neon glow effects for dark theme */
+  /* Enhanced neon glow effects for dark theme */
   .dark {
-    /* Subtle glow on interactive elements */
+    /* Intense glow on interactive elements */
     button:hover,
-    a:hover {
-      text-shadow: 0 0 8px rgba(179, 102, 255, 0.5);
+    a:hover,
+    .btn:hover,
+    [role="button"]:hover {
+      text-shadow: 0 0 12px rgba(179, 102, 255, 0.8), 0 0 24px rgba(179, 102, 255, 0.4);
+      box-shadow: 0 0 20px rgba(179, 102, 255, 0.3);
+      transition: all 0.3s ease;
     }
-    
-    /* Neon border glow */
+
+    /* Neon border glow with animation */
     .neon-border {
-      border-color: hsl(var(--primary));
-      box-shadow: 0 0 10px rgba(179, 102, 255, 0.3);
+      border: 2px solid hsl(var(--primary));
+      box-shadow:
+        0 0 10px rgba(179, 102, 255, 0.5),
+        0 0 20px rgba(179, 102, 255, 0.3),
+        inset 0 0 10px rgba(179, 102, 255, 0.1);
+      animation: neon-pulse 2s ease-in-out infinite alternate;
     }
-    
-    /* Neon text glow */
+
+    /* Neon text glow with multiple colors */
     .neon-text {
       color: hsl(var(--primary));
-      text-shadow: 0 0 10px rgba(179, 102, 255, 0.6);
+      text-shadow:
+        0 0 5px hsl(var(--primary)),
+        0 0 10px hsl(var(--primary)),
+        0 0 15px hsl(var(--primary)),
+        0 0 20px hsl(var(--neon-blue));
+    }
+
+    .neon-text-blue {
+      color: hsl(var(--neon-blue));
+      text-shadow:
+        0 0 5px hsl(var(--neon-blue)),
+        0 0 10px hsl(var(--neon-blue)),
+        0 0 15px hsl(var(--neon-cyan));
+    }
+
+    .neon-text-pink {
+      color: hsl(var(--neon-pink));
+      text-shadow:
+        0 0 5px hsl(var(--neon-pink)),
+        0 0 10px hsl(var(--neon-pink)),
+        0 0 15px hsl(var(--neon-purple));
+    }
+
+    /* Cyberpunk card effects */
+    .cyber-card {
+      background: linear-gradient(135deg,
+        hsl(var(--card)) 0%,
+        hsl(var(--secondary)) 100%);
+      border: 1px solid hsl(var(--border));
+      box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        0 0 20px rgba(179, 102, 255, 0.1);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .cyber-card:hover {
+      box-shadow:
+        0 8px 12px rgba(0, 0, 0, 0.2),
+        0 0 30px rgba(179, 102, 255, 0.2),
+        0 0 40px rgba(0, 153, 255, 0.1);
+    }
+
+    /* Neon input focus */
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: hsl(var(--primary));
+      box-shadow:
+        0 0 0 2px rgba(179, 102, 255, 0.3),
+        0 0 10px rgba(179, 102, 255, 0.2);
+      outline: none;
+    }
+
+    /* Neon button variants */
+    .btn-neon {
+      background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--neon-blue)));
+      color: hsl(var(--primary-foreground));
+      border: none;
+      box-shadow: 0 0 20px rgba(179, 102, 255, 0.4);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .btn-neon:hover {
+      box-shadow:
+        0 0 30px rgba(179, 102, 255, 0.6),
+        0 0 40px rgba(0, 153, 255, 0.3);
+    }
+
+    /* Status indicators with neon effects */
+    .status-connected {
+      color: hsl(var(--neon-green));
+      text-shadow: 0 0 8px rgba(0, 255, 128, 0.6);
+    }
+
+    .status-disconnected {
+      color: hsl(var(--destructive));
+      text-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+    }
+  }
+
+  /* Neon pulse animation */
+  @keyframes neon-pulse {
+    from {
+      box-shadow:
+        0 0 10px rgba(179, 102, 255, 0.5),
+        0 0 20px rgba(179, 102, 255, 0.3),
+        inset 0 0 10px rgba(179, 102, 255, 0.1);
+    }
+    to {
+      box-shadow:
+        0 0 15px rgba(179, 102, 255, 0.7),
+        0 0 30px rgba(179, 102, 255, 0.5),
+        inset 0 0 15px rgba(179, 102, 255, 0.2);
     }
   }
 }
 
-/* Scrollbar styling for dark theme */
+/* Enhanced scrollbar styling for dark neon theme */
 .dark ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
 }
 
 .dark ::-webkit-scrollbar-track {
   background: hsl(var(--background));
+  border-radius: 6px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted));
-  border-radius: 5px;
+  background: linear-gradient(135deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--neon-blue)) 100%);
+  border-radius: 6px;
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 0 8px rgba(179, 102, 255, 0.4);
+  transition: all 0.3s ease;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.5);
-  box-shadow: 0 0 10px rgba(179, 102, 255, 0.5);
+  background: linear-gradient(135deg,
+    hsl(var(--neon-pink)) 0%,
+    hsl(var(--primary)) 100%);
+  box-shadow:
+    0 0 12px rgba(179, 102, 255, 0.6),
+    0 0 20px rgba(255, 0, 128, 0.4);
+}
+
+.dark ::-webkit-scrollbar-corner {
+  background: hsl(var(--background));
 }
 
 /* Selection color */

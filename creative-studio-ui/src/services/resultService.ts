@@ -277,7 +277,6 @@ export class MockResultService extends ResultService {
     // Simulate download delay
     await new Promise((resolve) => setTimeout(resolve, this.mockDelay));
     
-    console.log(`Mock download: ${filename || asset.name}`);
     
     // In a real implementation, this would trigger a download
     // For mock, we just log it

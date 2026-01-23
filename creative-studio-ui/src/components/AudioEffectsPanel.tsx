@@ -1,628 +1,541 @@
-import React, { useState } from 'react';
-import { useStore } from '../store';
-import type { AudioEffect, AudioEffectParameters } from '../types';
-import { Plus, Trash2, Settings, ChevronDown, ChevronUp, Sparkles, TrendingUp } from 'lucide-react';
-import { AudioPresetsPanel } from './AudioPresetsPanel';
-import { AudioAutomationPanel } from './AudioAutomationPanel';
+import React, { useState, useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Slider } from './ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Switch } from './ui/switch';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
+import {
+  Volume2,
+  Filter,
+  Waves,
+  Zap,
+  Music,
+  RotateCcw,
+  Play,
+  Pause,
+  Download,
+  Upload,
+  Settings,
+  X,
+  Plus,
+  Trash2
+} from 'lucide-react';
+
+interface AudioEffect {
+  id: string;
+  type: string;
+  name: string;
+  parameters: Record<string, any>;
+  enabled: boolean;
+}
 
 interface AudioEffectsPanelProps {
-  shotId: string;
-  trackId: string;
+  onApplyEffects?: (effects: AudioEffect[]) => void;
+  onPreviewEffect?: (effect: AudioEffect) => void;
+  className?: string;
 }
 
-export const AudioEffectsPanel: React.FC<AudioEffectsPanelProps> = ({ shotId, trackId }) => {
-  const shot = useStore((state) => state.shots.find((s) => s.id === shotId));
-  const updateAudioTrack = useStore((state) => state.updateAudioTrack);
-  const [showAddEffect, setShowAddEffect] = useState(false);
-  const [showPresets, setShowPresets] = useState(false);
-  const [expandedEffects, setExpandedEffects] = useState<Set<string>>(new Set());
-
-  const track = shot?.audioTracks.find((t) => t.id === trackId);
-
-  if (!track) {
-    return (
-      <div className="p-4 text-gray-500">
-        No track selected. Select a track to manage audio effects.
-      </div>
-    );
+const effectCategories = {
+  basic: {
+    name: 'Basic',
+    icon: Volume2,
+    effects: [
+      { type: 'gain', name: 'Gain', params: { gain_db: 0 } },
+      { type: 'normalize', name: 'Normalize', params: { target_peak: 0.95 } },
+      { type: 'amplification', name: 'Amplify', params: { amplification: 1.0 } },
+      { type: 'invert', name: 'Invert Phase', params: {} },
+      { type: 'fade_in', name: 'Fade In', params: { duration_seconds: 1.0, curve: 'exponential' } },
+      { type: 'fade_out', name: 'Fade Out', params: { duration_seconds: 1.0, curve: 'exponential' } }
+    ]
+  },
+  filters: {
+    name: 'Filters',
+    icon: Filter,
+    effects: [
+      { type: 'low_pass', name: 'Low Pass', params: { cutoff_freq: 1000, order: 4 } },
+      { type: 'high_pass', name: 'High Pass', params: { cutoff_freq: 100, order: 4 } },
+      { type: 'band_pass', name: 'Band Pass', params: { low_freq: 300, high_freq: 3000, order: 4 } },
+      { type: 'equalization', name: '3-Band EQ', params: { low_gain: 0, mid_gain: 0, high_gain: 0, low_freq: 100, mid_freq: 1000, high_freq: 5000, mid_q: 1.0 } }
+    ]
+  },
+  dynamics: {
+    name: 'Dynamics',
+    icon: Waves,
+    effects: [
+      { type: 'compression', name: 'Compressor', params: { threshold_db: -20, ratio: 4, attack_time: 0.01, release_time: 0.1, knee_db: 2, makeup_gain_db: 0 } },
+      { type: 'limiter', name: 'Limiter', params: { threshold_db: -6, release_time: 0.05 } }
+    ]
+  },
+  timeBased: {
+    name: 'Time-Based',
+    icon: Music,
+    effects: [
+      { type: 'reverb', name: 'Reverb', params: { room_size: 0.5, damping: 0.5, wet_level: 0.3, dry_level: 0.7, width: 1.0, pre_delay: 0.01 } },
+      { type: 'delay', name: 'Delay', params: { delay_time: 0.3, feedback: 0.4, wet_level: 0.3, dry_level: 0.7, high_cut: 8000 } },
+      { type: 'phaser', name: 'Phaser', params: { rate: 0.5, depth: 0.7, feedback: 0.7, wet_level: 0.5, dry_level: 0.5 } }
+    ]
+  },
+  pitch: {
+    name: 'Pitch/Voice',
+    icon: Zap,
+    effects: [
+      { type: 'pitch_shift', name: 'Pitch Shift', params: { semitones: 0, formant_preserve: true, quality: 'high' } },
+      { type: 'auto_tune', name: 'Auto-Tune', params: { key: 'C', scale: 'major', correction_speed: 0.5, retune_amount: 1.0 } },
+      { type: 'voice_modification', name: 'Voice Modify', params: { pitch_shift: 0, formant_shift: 0, gender_change: false } }
+    ]
+  },
+  modulation: {
+    name: 'Modulation',
+    icon: Settings,
+    effects: [
+      { type: 'wah_wah', name: 'Wah-Wah', params: { rate: 2.0, depth: 0.7, resonance: 2.0, wet_level: 0.5, dry_level: 0.5 } },
+      { type: 'vibrato', name: 'Vibrato', params: { rate: 5.0, depth: 0.5, wet_level: 0.5, dry_level: 0.5 } },
+      { type: 'tremolo', name: 'Tremolo', params: { rate: 5.0, depth: 0.5, shape: 'sine', wet_level: 0.5, dry_level: 0.5 } }
+    ]
+  },
+  creative: {
+    name: 'Creative',
+    icon: Plus,
+    effects: [
+      { type: 'distortion', name: 'Distortion', params: { drive: 5.0, tone: 0.5, wet_level: 0.5, dry_level: 0.5 } },
+      { type: 'chorus', name: 'Chorus', params: { rate: 0.25, depth: 0.5, delay_time: 0.025, wet_level: 0.3, dry_level: 0.7 } },
+      { type: 'doppler', name: 'Doppler', params: { speed: 10.0, direction: 'approaching' } }
+    ]
+  },
+  utility: {
+    name: 'Utility',
+    icon: Settings,
+    effects: [
+      { type: 'dc_correction', name: 'DC Correction', params: {} },
+      { type: 'swap_channels', name: 'Swap Channels', params: {} },
+      { type: 'invert_channels', name: 'Invert Channels', params: {} },
+      { type: 'noise_reduction', name: 'Noise Reduction', params: { reduction_db: -20, smoothing_factor: 0.8 } },
+      { type: 'remove_clicks_pops', name: 'Remove Clicks', params: { threshold: 0.8, window_size: 512 } },
+      { type: 'change_speed', name: 'Change Speed', params: { speed_ratio: 1.0 } }
+    ]
   }
+};
 
-  const handleAddEffect = (type: AudioEffect['type']) => {
+export function AudioEffectsPanel({
+  onApplyEffects,
+  onPreviewEffect,
+  className = ''
+}: AudioEffectsPanelProps) {
+  const [activeCategory, setActiveCategory] = useState('basic');
+  const [effectChain, setEffectChain] = useState<AudioEffect[]>([]);
+  const [selectedEffect, setSelectedEffect] = useState<AudioEffect | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const addEffectToChain = useCallback((effectType: string, name: string, params: Record<string, any>) => {
     const newEffect: AudioEffect = {
-      id: `effect-${Date.now()}`,
-      type,
-      enabled: true,
-      parameters: getDefaultParameters(type),
+      id: `${effectType}_${Date.now()}`,
+      type: effectType,
+      name,
+      parameters: { ...params },
+      enabled: true
     };
 
-    const updatedEffects = [...track.effects, newEffect];
-    updateAudioTrack(shotId, trackId, { effects: updatedEffects });
-    setShowAddEffect(false);
-  };
+    setEffectChain(prev => [...prev, newEffect]);
+    setSelectedEffect(newEffect);
+  }, []);
 
-  const handleDeleteEffect = (effectId: string) => {
-    if (confirm('Are you sure you want to delete this effect?')) {
-      const updatedEffects = track.effects.filter((e) => e.id !== effectId);
-      updateAudioTrack(shotId, trackId, { effects: updatedEffects });
+  const removeEffectFromChain = useCallback((effectId: string) => {
+    setEffectChain(prev => prev.filter(effect => effect.id !== effectId));
+    if (selectedEffect?.id === effectId) {
+      setSelectedEffect(null);
+    }
+  }, [selectedEffect]);
+
+  const updateEffectParameter = useCallback((effectId: string, paramName: string, value: any) => {
+    setEffectChain(prev => prev.map(effect =>
+      effect.id === effectId
+        ? { ...effect, parameters: { ...effect.parameters, [paramName]: value } }
+        : effect
+    ));
+
+    if (selectedEffect?.id === effectId) {
+      setSelectedEffect(prev => prev ? {
+        ...prev,
+        parameters: { ...prev.parameters, [paramName]: value }
+      } : null);
+    }
+  }, [selectedEffect]);
+
+  const toggleEffect = useCallback((effectId: string) => {
+    setEffectChain(prev => prev.map(effect =>
+      effect.id === effectId
+        ? { ...effect, enabled: !effect.enabled }
+        : effect
+    ));
+
+    if (selectedEffect?.id === effectId) {
+      setSelectedEffect(prev => prev ? { ...prev, enabled: !prev.enabled } : null);
+    }
+  }, [selectedEffect]);
+
+  const renderParameterControl = (paramName: string, paramValue: any, paramType: string = 'number') => {
+    const commonProps = {
+      className: "flex-1"
+    };
+
+    switch (paramType) {
+      case 'range':
+        const { min = 0, max = 100, step = 1 } = paramValue as any;
+        return (
+          <Slider
+            {...commonProps}
+            value={[paramValue]}
+            onValueChange={([value]) => updateEffectParameter(selectedEffect!.id, paramName, value)}
+            min={min}
+            max={max}
+            step={step}
+            className="flex-1"
+          />
+        );
+
+      case 'select':
+        const options = paramValue as string[];
+        return (
+          <Select
+            value={paramValue}
+            onValueChange={(value) => updateEffectParameter(selectedEffect!.id, paramName, value)}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map(option => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case 'boolean':
+        return (
+          <Switch
+            checked={paramValue}
+            onCheckedChange={(checked) => updateEffectParameter(selectedEffect!.id, paramName, checked)}
+          />
+        );
+
+      default:
+        return (
+          <input
+            type="number"
+            value={paramValue}
+            onChange={(e) => updateEffectParameter(selectedEffect!.id, paramName, parseFloat(e.target.value))}
+            className="flex-1 px-2 py-1 border rounded text-sm"
+            step="0.1"
+          />
+        );
     }
   };
 
-  const handleToggleEffect = (effectId: string) => {
-    const updatedEffects = track.effects.map((e) =>
-      e.id === effectId ? { ...e, enabled: !e.enabled } : e
-    );
-    updateAudioTrack(shotId, trackId, { effects: updatedEffects });
-  };
+  const getParameterConfig = (effectType: string, paramName: string) => {
+    const configs: Record<string, Record<string, any>> = {
+      gain: {
+        gain_db: { type: 'range', min: -20, max: 20, step: 0.1 }
+      },
+      normalize: {
+        target_peak: { type: 'range', min: 0.1, max: 1.0, step: 0.01 }
+      },
+      amplification: {
+        amplification: { type: 'range', min: 0.1, max: 10.0, step: 0.1 }
+      },
+      fade_in: {
+        duration_seconds: { type: 'range', min: 0.1, max: 10.0, step: 0.1 },
+        curve: { type: 'select', options: ['linear', 'exponential', 'logarithmic'] }
+      },
+      fade_out: {
+        duration_seconds: { type: 'range', min: 0.1, max: 10.0, step: 0.1 },
+        curve: { type: 'select', options: ['linear', 'exponential', 'logarithmic'] }
+      },
+      low_pass: {
+        cutoff_freq: { type: 'range', min: 20, max: 20000, step: 10 },
+        order: { type: 'select', options: [2, 4, 6, 8] }
+      },
+      high_pass: {
+        cutoff_freq: { type: 'range', min: 20, max: 20000, step: 10 },
+        order: { type: 'select', options: [2, 4, 6, 8] }
+      },
+      band_pass: {
+        low_freq: { type: 'range', min: 20, max: 20000, step: 10 },
+        high_freq: { type: 'range', min: 20, max: 20000, step: 10 },
+        order: { type: 'select', options: [2, 4, 6, 8] }
+      },
+      equalization: {
+        low_gain: { type: 'range', min: -20, max: 20, step: 0.1 },
+        mid_gain: { type: 'range', min: -20, max: 20, step: 0.1 },
+        high_gain: { type: 'range', min: -20, max: 20, step: 0.1 },
+        mid_q: { type: 'range', min: 0.1, max: 10.0, step: 0.1 }
+      },
+      compression: {
+        threshold_db: { type: 'range', min: -60, max: 0, step: 0.1 },
+        ratio: { type: 'range', min: 1, max: 20, step: 0.1 },
+        attack_time: { type: 'range', min: 0.001, max: 1.0, step: 0.001 },
+        release_time: { type: 'range', min: 0.01, max: 5.0, step: 0.01 },
+        knee_db: { type: 'range', min: 0, max: 20, step: 0.1 },
+        makeup_gain_db: { type: 'range', min: -20, max: 20, step: 0.1 }
+      },
+      limiter: {
+        threshold_db: { type: 'range', min: -20, max: 0, step: 0.1 },
+        release_time: { type: 'range', min: 0.01, max: 1.0, step: 0.01 }
+      },
+      reverb: {
+        room_size: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        damping: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        wet_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        dry_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        width: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        pre_delay: { type: 'range', min: 0.0, max: 0.1, step: 0.001 }
+      },
+      delay: {
+        delay_time: { type: 'range', min: 0.01, max: 5.0, step: 0.01 },
+        feedback: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        wet_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        dry_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        high_cut: { type: 'range', min: 1000, max: 20000, step: 100 }
+      },
+      phaser: {
+        rate: { type: 'range', min: 0.1, max: 10.0, step: 0.1 },
+        depth: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        feedback: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        wet_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        dry_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 }
+      },
+      pitch_shift: {
+        semitones: { type: 'range', min: -24, max: 24, step: 0.1 },
+        quality: { type: 'select', options: ['low', 'medium', 'high'] }
+      },
+      auto_tune: {
+        key: { type: 'select', options: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] },
+        scale: { type: 'select', options: ['major', 'minor', 'chromatic'] },
+        correction_speed: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        retune_amount: { type: 'range', min: 0.0, max: 1.0, step: 0.01 }
+      },
+      voice_modification: {
+        pitch_shift: { type: 'range', min: -12, max: 12, step: 0.1 },
+        formant_shift: { type: 'range', min: 0.5, max: 2.0, step: 0.01 },
+        gender_change: { type: 'boolean' }
+      },
+      wah_wah: {
+        rate: { type: 'range', min: 0.1, max: 10.0, step: 0.1 },
+        depth: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        resonance: { type: 'range', min: 0.1, max: 10.0, step: 0.1 },
+        wet_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        dry_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 }
+      },
+      vibrato: {
+        rate: { type: 'range', min: 0.1, max: 10.0, step: 0.1 },
+        depth: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        wet_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        dry_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 }
+      },
+      tremolo: {
+        rate: { type: 'range', min: 0.1, max: 20.0, step: 0.1 },
+        depth: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        shape: { type: 'select', options: ['sine', 'square', 'triangle'] },
+        wet_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        dry_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 }
+      },
+      distortion: {
+        drive: { type: 'range', min: 1.0, max: 20.0, step: 0.1 },
+        tone: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        wet_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        dry_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 }
+      },
+      chorus: {
+        rate: { type: 'range', min: 0.01, max: 5.0, step: 0.01 },
+        depth: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        delay_time: { type: 'range', min: 0.005, max: 0.05, step: 0.001 },
+        wet_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 },
+        dry_level: { type: 'range', min: 0.0, max: 1.0, step: 0.01 }
+      },
+      doppler: {
+        speed: { type: 'range', min: 1.0, max: 50.0, step: 0.1 },
+        direction: { type: 'select', options: ['approaching', 'receding'] }
+      },
+      noise_reduction: {
+        reduction_db: { type: 'range', min: -40, max: 0, step: 0.1 },
+        smoothing_factor: { type: 'range', min: 0.0, max: 1.0, step: 0.01 }
+      },
+      remove_clicks_pops: {
+        threshold: { type: 'range', min: 0.1, max: 5.0, step: 0.1 },
+        window_size: { type: 'range', min: 128, max: 2048, step: 64 }
+      },
+      change_speed: {
+        speed_ratio: { type: 'range', min: 0.25, max: 4.0, step: 0.01 }
+      }
+    };
 
-  const handleUpdateEffect = (effectId: string, updates: Partial<AudioEffect>) => {
-    const updatedEffects = track.effects.map((e) =>
-      e.id === effectId ? { ...e, ...updates } : e
-    );
-    updateAudioTrack(shotId, trackId, { effects: updatedEffects });
-  };
-
-  const toggleExpanded = (effectId: string) => {
-    const newExpanded = new Set(expandedEffects);
-    if (newExpanded.has(effectId)) {
-      newExpanded.delete(effectId);
-    } else {
-      newExpanded.add(effectId);
-    }
-    setExpandedEffects(newExpanded);
+    return configs[effectType]?.[paramName] || { type: 'number' };
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Audio Effects</h3>
-          <p className="text-sm text-gray-600">
-            Apply and configure audio effects for this track
-          </p>
-        </div>
-        <button
-          onClick={() => setShowPresets(!showPresets)}
-          className="px-3 py-2 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 flex items-center gap-2"
-        >
-          <Sparkles className="w-4 h-4" />
-          Presets
-        </button>
-      </div>
+    <div className={`audio-effects-panel ${className}`}>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Volume2 className="w-5 h-5" />
+            Audio Effects
+          </CardTitle>
+          <CardDescription>
+            Apply professional audio effects to your project
+          </CardDescription>
+        </CardHeader>
 
-      {/* Presets Panel */}
-      {showPresets && (
-        <div className="border rounded-lg bg-purple-50">
-          <AudioPresetsPanel shotId={shotId} trackId={trackId} />
-        </div>
-      )}
-
-      {/* Effects List */}
-      <div className="space-y-2">
-        {track.effects.length === 0 ? (
-          <div className="text-center py-8 border border-dashed rounded">
-            <Settings className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-            <p className="text-gray-500 mb-4">No effects applied</p>
-            <button
-              onClick={() => setShowAddEffect(true)}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Add Effect
-            </button>
-          </div>
-        ) : (
-          <>
-            {track.effects.map((effect) => (
-              <AudioEffectCard
-                key={effect.id}
-                effect={effect}
-                isExpanded={expandedEffects.has(effect.id)}
-                shotId={shotId}
-                trackId={trackId}
-                onToggle={() => handleToggleEffect(effect.id)}
-                onDelete={() => handleDeleteEffect(effect.id)}
-                onUpdate={(updates) => handleUpdateEffect(effect.id, updates)}
-                onToggleExpanded={() => toggleExpanded(effect.id)}
-              />
+        <CardContent className="space-y-6">
+          {/* Category Tabs */}
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(effectCategories).map(([key, category]) => (
+              <Button
+                key={key}
+                variant={activeCategory === key ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveCategory(key)}
+                className="flex items-center gap-1"
+              >
+                <category.icon className="w-4 h-4" />
+                {category.name}
+              </Button>
             ))}
+          </div>
 
-            <button
-              onClick={() => setShowAddEffect(true)}
-              className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded text-gray-600 hover:border-blue-500 hover:text-blue-600"
-            >
-              <Plus className="w-4 h-4 inline mr-2" />
-              Add Effect
-            </button>
-          </>
-        )}
-      </div>
+          {/* Effects Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {effectCategories[activeCategory as keyof typeof effectCategories].effects.map((effect) => (
+              <Button
+                key={effect.type}
+                variant="outline"
+                className="h-auto p-3 flex flex-col items-center gap-2 hover:bg-accent"
+                onClick={() => addEffectToChain(effect.type, effect.name, effect.params)}
+              >
+                <span className="text-sm font-medium">{effect.name}</span>
+                <Plus className="w-4 h-4" />
+              </Button>
+            ))}
+          </div>
 
-      {/* Add Effect Modal */}
-      {showAddEffect && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Add Audio Effect</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Select an effect to add to this track:
-            </p>
+          <Separator />
 
+          {/* Effect Chain */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Effect Chain ({effectChain.length})</h3>
             <div className="space-y-2">
-              {EFFECT_TYPES.map((effectType) => (
-                <button
-                  key={effectType.type}
-                  onClick={() => handleAddEffect(effectType.type)}
-                  className="w-full text-left px-4 py-3 border rounded hover:bg-gray-50 hover:border-blue-500"
+              {effectChain.map((effect, index) => (
+                <div
+                  key={effect.id}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    selectedEffect?.id === effect.id ? 'bg-accent border-primary' : 'hover:bg-muted'
+                  }`}
+                  onClick={() => setSelectedEffect(effect)}
                 >
-                  <div className="font-medium">{effectType.name}</div>
-                  <div className="text-xs text-gray-600">{effectType.description}</div>
-                </button>
+                  <span className="text-sm font-medium w-8">{index + 1}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{effect.name}</span>
+                      <Badge variant={effect.enabled ? "default" : "secondary"}>
+                        {effect.enabled ? "On" : "Off"}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleEffect(effect.id);
+                      }}
+                      className="w-8 h-8 p-0"
+                    >
+                      {effect.enabled ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPreviewEffect?.(effect);
+                      }}
+                      className="w-8 h-8 p-0"
+                    >
+                      <Play className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeEffectFromChain(effect.id);
+                      }}
+                      className="w-8 h-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
-
-            <button
-              onClick={() => setShowAddEffect(false)}
-              className="w-full mt-4 px-4 py-2 border rounded hover:bg-gray-50"
-            >
-              Cancel
-            </button>
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
-// Audio Effect Card Component
-interface AudioEffectCardProps {
-  effect: AudioEffect;
-  isExpanded: boolean;
-  shotId: string;
-  trackId: string;
-  onToggle: () => void;
-  onDelete: () => void;
-  onUpdate: (updates: Partial<AudioEffect>) => void;
-  onToggleExpanded: () => void;
-}
-
-const AudioEffectCard: React.FC<AudioEffectCardProps> = ({
-  effect,
-  isExpanded,
-  shotId,
-  trackId,
-  onToggle,
-  onDelete,
-  onUpdate,
-  onToggleExpanded,
-}) => {
-  const effectInfo = EFFECT_TYPES.find((e) => e.type === effect.type);
-  const [showAutomation, setShowAutomation] = useState(false);
-
-  console.log('AudioEffectCard: Checking checkbox accessibility - effect:', effect.id, 'enabled:', effect.enabled);
-  
-  return (
-    <div className="border rounded bg-gray-50">
-      {/* Header */}
-      <div className="flex items-center justify-between p-3">
-        <div className="flex items-center gap-3 flex-1">
-          <input
-            type="checkbox"
-            id={`effect-enabled-${effect.id}`}
-            checked={effect.enabled}
-            onChange={onToggle}
-            className="w-4 h-4"
-            aria-label={`Enable ${effectInfo?.name || effect.type} effect`}
-          />
-          <div className="flex-1">
-            <div className="font-medium">{effectInfo?.name || effect.type}</div>
-            <div className="text-xs text-gray-600">{effectInfo?.description}</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onToggleExpanded}
-            className="p-1 hover:bg-gray-200 rounded"
-            title={isExpanded ? 'Collapse' : 'Expand'}
-          >
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-1 hover:bg-red-100 rounded text-red-600"
-            title="Delete effect"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Parameters */}
-      {isExpanded && (
-        <div className="border-t p-3 space-y-3">
-          <EffectParameters
-            effect={effect}
-            onUpdate={(parameters) => onUpdate({ parameters })}
-          />
-
-          {/* Automation Button */}
-          <button
-            onClick={() => setShowAutomation(!showAutomation)}
-            className={`w-full px-3 py-2 text-sm rounded border flex items-center justify-center gap-2 ${
-              effect.automationCurve
-                ? 'bg-purple-100 text-purple-700 border-purple-300'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            {showAutomation ? 'Hide' : 'Show'} Automation
-            {effect.automationCurve && ' ✓'}
-          </button>
-
-          {/* Automation Panel */}
-          {showAutomation && (
-            <AudioAutomationPanel
-              shotId={shotId}
-              trackId={trackId}
-              effectId={effect.id}
-            />
+          {/* Effect Parameters */}
+          {selectedEffect && (
+            <div>
+              <Separator className="mb-4" />
+              <h3 className="text-lg font-semibold mb-3">
+                {selectedEffect.name} Parameters
+              </h3>
+              <div className="space-y-4">
+                {Object.entries(selectedEffect.parameters).map(([paramName, paramValue]) => {
+                  const config = getParameterConfig(selectedEffect.type, paramName);
+                  return (
+                    <div key={paramName} className="flex items-center gap-4">
+                      <label className="text-sm font-medium w-32 capitalize">
+                        {paramName.replace(/_/g, ' ')}:
+                      </label>
+                      <div className="flex-1">
+                        {renderParameterControl(paramName, paramValue, config.type)}
+                      </div>
+                      <span className="text-sm text-muted-foreground w-16 text-right">
+                        {typeof paramValue === 'number' ? paramValue.toFixed(2) : String(paramValue)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
-        </div>
-      )}
-    </div>
-  );
-};
 
-// Effect Parameters Component
-interface EffectParametersProps {
-  effect: AudioEffect;
-  onUpdate: (parameters: AudioEffectParameters) => void;
-}
-
-const EffectParameters: React.FC<EffectParametersProps> = ({ effect, onUpdate }) => {
-  console.log('EffectParameters: Rendering for effect:', effect.type, 'with parameters:', effect.parameters);
-  
-  const updateParameter = (key: keyof AudioEffectParameters, value: any) => {
-    console.log('EffectParameters: Updating parameter', key, 'to value:', value);
-    onUpdate({ ...effect.parameters, [key]: value });
-  };
-
-  switch (effect.type) {
-    case 'limiter':
-      return (
-        <>
-          <ParameterSlider
-            label="Threshold (dB)"
-            value={effect.parameters.threshold ?? -10}
-            min={-60}
-            max={0}
-            step={1}
-            onChange={(v) => updateParameter('threshold', v)}
-          />
-          <ParameterSlider
-            label="Ceiling (dB)"
-            value={effect.parameters.ceiling ?? -1}
-            min={-20}
-            max={0}
-            step={0.1}
-            onChange={(v) => updateParameter('ceiling', v)}
-          />
-          <ParameterSlider
-            label="Release (ms)"
-            value={effect.parameters.release ?? 250}
-            min={10}
-            max={1000}
-            step={10}
-            onChange={(v) => updateParameter('release', v)}
-          />
-        </>
-      );
-
-    case 'gain':
-      return (
-        <ParameterSlider
-          label="Gain (dB)"
-          value={effect.parameters.gain ?? 0}
-          min={-60}
-          max={60}
-          step={0.5}
-          onChange={(v) => updateParameter('gain', v)}
-        />
-      );
-
-    case 'distortion':
-      return (
-        <>
-          <div>
-            <label htmlFor="distortion-type-select" className="text-xs text-gray-600 block mb-1">Type</label>
-            <select
-              id="distortion-type-select"
-              value={effect.parameters.distortionType ?? 'soft'}
-              onChange={(e) => updateParameter('distortionType', e.target.value)}
-              className="w-full px-2 py-1 text-sm border rounded"
-              title="Select distortion type"
-              aria-label="Distortion type selector"
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-4">
+            <Button
+              onClick={() => onApplyEffects?.(effectChain)}
+              disabled={effectChain.length === 0}
+              className="flex-1"
             >
-              <option value="soft">Soft</option>
-              <option value="hard">Hard</option>
-              <option value="tube">Tube</option>
-              <option value="fuzz">Fuzz</option>
-            </select>
+              <Zap className="w-4 h-4 mr-2" />
+              Apply Effects ({effectChain.filter(e => e.enabled).length})
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEffectChain([]);
+                setSelectedEffect(null);
+              }}
+              disabled={effectChain.length === 0}
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Clear All
+            </Button>
           </div>
-          <ParameterSlider
-            label="Amount"
-            value={effect.parameters.distortion ?? 50}
-            min={0}
-            max={100}
-            step={1}
-            onChange={(v) => updateParameter('distortion', v)}
-          />
-        </>
-      );
-
-    case 'bass-boost':
-      return (
-        <>
-          <ParameterSlider
-            label="Frequency (Hz)"
-            value={effect.parameters.bassFrequency ?? 100}
-            min={20}
-            max={500}
-            step={10}
-            onChange={(v) => updateParameter('bassFrequency', v)}
-          />
-          <ParameterSlider
-            label="Gain (dB)"
-            value={effect.parameters.bassGain ?? 6}
-            min={-12}
-            max={12}
-            step={0.5}
-            onChange={(v) => updateParameter('bassGain', v)}
-          />
-          <ParameterSlider
-            label="Q Factor"
-            value={effect.parameters.bassQ ?? 1}
-            min={0.1}
-            max={10}
-            step={0.1}
-            onChange={(v) => updateParameter('bassQ', v)}
-          />
-        </>
-      );
-
-    case 'treble-boost':
-      return (
-        <>
-          <ParameterSlider
-            label="Frequency (Hz)"
-            value={effect.parameters.trebleFrequency ?? 8000}
-            min={2000}
-            max={16000}
-            step={100}
-            onChange={(v) => updateParameter('trebleFrequency', v)}
-          />
-          <ParameterSlider
-            label="Gain (dB)"
-            value={effect.parameters.trebleGain ?? 6}
-            min={-12}
-            max={12}
-            step={0.5}
-            onChange={(v) => updateParameter('trebleGain', v)}
-          />
-          <ParameterSlider
-            label="Q Factor"
-            value={effect.parameters.trebleQ ?? 1}
-            min={0.1}
-            max={10}
-            step={0.1}
-            onChange={(v) => updateParameter('trebleQ', v)}
-          />
-        </>
-      );
-
-    case 'voice-clarity':
-      return (
-        <ParameterSlider
-          label="Intensity"
-          value={effect.parameters.intensity ?? 70}
-          min={0}
-          max={100}
-          step={1}
-          onChange={(v) => updateParameter('intensity', v)}
-        />
-      );
-
-    case 'eq':
-      return (
-        <>
-          <ParameterSlider
-            label="Low Gain (dB)"
-            value={effect.parameters.lowGain ?? 0}
-            min={-12}
-            max={12}
-            step={0.5}
-            onChange={(v) => updateParameter('lowGain', v)}
-          />
-          <ParameterSlider
-            label="Mid Gain (dB)"
-            value={effect.parameters.midGain ?? 0}
-            min={-12}
-            max={12}
-            step={0.5}
-            onChange={(v) => updateParameter('midGain', v)}
-          />
-          <ParameterSlider
-            label="High Gain (dB)"
-            value={effect.parameters.highGain ?? 0}
-            min={-12}
-            max={12}
-            step={0.5}
-            onChange={(v) => updateParameter('highGain', v)}
-          />
-        </>
-      );
-
-    case 'compressor':
-      return (
-        <>
-          <ParameterSlider
-            label="Ratio"
-            value={effect.parameters.ratio ?? 4}
-            min={1}
-            max={20}
-            step={0.5}
-            onChange={(v) => updateParameter('ratio', v)}
-          />
-          <ParameterSlider
-            label="Attack (ms)"
-            value={effect.parameters.attack ?? 10}
-            min={0}
-            max={100}
-            step={1}
-            onChange={(v) => updateParameter('attack', v)}
-          />
-        </>
-      );
-
-    case 'noise-reduction':
-      return (
-        <ParameterSlider
-          label="Noise Floor (dB)"
-          value={effect.parameters.noiseFloor ?? -40}
-          min={-60}
-          max={-20}
-          step={1}
-          onChange={(v) => updateParameter('noiseFloor', v)}
-        />
-      );
-
-    default:
-      return <div className="text-xs text-gray-500">No parameters available</div>;
-  }
-};
-
-// Parameter Slider Component
-interface ParameterSliderProps {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (value: number) => void;
-}
-
-const ParameterSlider: React.FC<ParameterSliderProps> = ({
-  label,
-  value,
-  min,
-  max,
-  step,
-  onChange,
-}) => {
-  console.log('ParameterSlider: Rendering slider with label:', label, 'value:', value);
-  
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <label htmlFor={label.replace(/\s+/g, '-').toLowerCase()} className="text-xs text-gray-600">{label}</label>
-        <span className="text-xs text-gray-500">{value.toFixed(1)}</span>
-      </div>
-      <input
-        type="range"
-        id={label.replace(/\s+/g, '-').toLowerCase()}
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full"
-        aria-labelledby={label.replace(/\s+/g, '-').toLowerCase()}
-      />
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-// Effect Types Configuration
-const EFFECT_TYPES: Array<{
-  type: AudioEffect['type'];
-  name: string;
-  description: string;
-}> = [
-  {
-    type: 'limiter',
-    name: 'Limiter',
-    description: 'Prevent audio clipping and maintain consistent volume',
-  },
-  {
-    type: 'gain',
-    name: 'Gain',
-    description: 'Adjust overall volume level (-60dB to +60dB)',
-  },
-  {
-    type: 'distortion',
-    name: 'Distortion',
-    description: 'Add harmonic distortion (soft, hard, tube, fuzz)',
-  },
-  {
-    type: 'bass-boost',
-    name: 'Bass Boost',
-    description: 'Enhance low frequencies',
-  },
-  {
-    type: 'treble-boost',
-    name: 'Treble Boost',
-    description: 'Enhance high frequencies',
-  },
-  {
-    type: 'voice-clarity',
-    name: 'Voice Clarity',
-    description: 'Automatic voice enhancement with EQ and compression',
-  },
-  {
-    type: 'eq',
-    name: 'Equalizer',
-    description: '3-band EQ (low, mid, high)',
-  },
-  {
-    type: 'compressor',
-    name: 'Compressor',
-    description: 'Dynamic range compression',
-  },
-  {
-    type: 'noise-reduction',
-    name: 'Noise Reduction',
-    description: 'Reduce background noise',
-  },
-  {
-    type: 'reverb',
-    name: 'Reverb',
-    description: 'Add spatial ambience',
-  },
-];
-
-// Helper function to get default parameters for each effect type
-function getDefaultParameters(type: AudioEffect['type']): AudioEffectParameters {
-  switch (type) {
-    case 'limiter':
-      return { threshold: -10, ceiling: -1, release: 250 };
-    case 'gain':
-      return { gain: 0 };
-    case 'distortion':
-      return { distortion: 50, distortionType: 'soft' };
-    case 'bass-boost':
-      return { bassFrequency: 100, bassGain: 6, bassQ: 1 };
-    case 'treble-boost':
-      return { trebleFrequency: 8000, trebleGain: 6, trebleQ: 1 };
-    case 'voice-clarity':
-      return { intensity: 70 };
-    case 'eq':
-      return { lowGain: 0, midGain: 0, highGain: 0 };
-    case 'compressor':
-      return { ratio: 4, attack: 10 };
-    case 'noise-reduction':
-      return { noiseFloor: -40 };
-    default:
-      return {};
-  }
 }

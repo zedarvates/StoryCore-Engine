@@ -381,7 +381,6 @@ export class DraftPersistence {
         // Only auto-save if there's meaningful data
         if (state.currentStep && state.currentStep > 1) {
           await this.saveDraft(state);
-          console.log('Auto-save completed');
         }
       } catch (error) {
         console.error('Auto-save failed:', error);

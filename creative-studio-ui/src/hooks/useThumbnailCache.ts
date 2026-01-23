@@ -68,7 +68,6 @@ export function useThumbnailCache(config?: ThumbnailCacheConfig): UseThumbnailCa
   // Subscribe to cache stats updates
   useEffect(() => {
     const unsubscribe = cache.subscribeToCacheStats((updatedStats) => {
-      console.log('[useThumbnailCache] Stats updated:', updatedStats);
       setStats(updatedStats);
     });
 
@@ -175,7 +174,6 @@ export function useThumbnailCacheStats(): UseThumbnailCacheStatsReturn {
   // Subscribe to cache stats updates
   useEffect(() => {
     const unsubscribe = cache.subscribeToCacheStats((updatedStats) => {
-      console.log('[useThumbnailCacheStats] Stats updated:', updatedStats);
       setStats(updatedStats);
     });
 
@@ -312,7 +310,6 @@ export function useThumbnailCacheClear(): UseThumbnailCacheClearReturn {
   // Subscribe to cache clear events
   useEffect(() => {
     const unsubscribe = cache.subscribeToCacheClear((cleared) => {
-      console.log('[useThumbnailCacheClear] Cache cleared:', cleared);
       setCacheCleared(cleared);
       
       // Reset flag after 3 seconds

@@ -66,7 +66,6 @@ class SettingsPropagationManager {
     this.initialized = true;
 
     if (import.meta.env.DEV) {
-      console.log('[SettingsPropagation] Initialized settings propagation system');
     }
   }
 
@@ -100,7 +99,6 @@ class SettingsPropagationManager {
         llmService.updateConfig(storedConfig);
 
         if (import.meta.env.DEV) {
-          console.log('[SettingsPropagation] LLM service updated with new config');
         }
       }
 
@@ -111,7 +109,6 @@ class SettingsPropagationManager {
           await updateOllamaClientFromSettings();
           
           if (import.meta.env.DEV) {
-            console.log('[SettingsPropagation] OllamaClient updated with new config');
           }
         } catch (error) {
           console.error('[SettingsPropagation] Failed to update OllamaClient:', error);
@@ -123,7 +120,6 @@ class SettingsPropagationManager {
 
       // Emit success notification
       if (import.meta.env.DEV) {
-        console.log('[SettingsPropagation] LLM settings propagated successfully');
       }
     } catch (error) {
       console.error('[SettingsPropagation] Failed to propagate LLM settings:', error);
@@ -156,7 +152,6 @@ class SettingsPropagationManager {
         backendApi.updateComfyUIConfig(storedConfig);
 
         if (import.meta.env.DEV) {
-          console.log('[SettingsPropagation] Backend API updated with new ComfyUI config');
         }
       }
 
@@ -165,7 +160,6 @@ class SettingsPropagationManager {
 
       // Emit success notification
       if (import.meta.env.DEV) {
-        console.log('[SettingsPropagation] ComfyUI settings propagated successfully');
       }
     } catch (error) {
       console.error('[SettingsPropagation] Failed to propagate ComfyUI settings:', error);
@@ -383,7 +377,6 @@ export function initializeSettingsPropagation(): void {
  * @example
  * ```typescript
  * const unsubscribe = onLLMSettingsChange((config) => {
- *   console.log('LLM settings changed:', config);
  *   // Update UI, refresh data, etc.
  * });
  * 
@@ -404,7 +397,6 @@ export function onLLMSettingsChange(listener: SettingsChangeListener): () => voi
  * @example
  * ```typescript
  * const unsubscribe = onComfyUISettingsChange((config) => {
- *   console.log('ComfyUI settings changed:', config);
  *   // Update UI, refresh workflows, etc.
  * });
  * 
@@ -449,7 +441,6 @@ import React from 'react';
  * @example
  * ```typescript
  * useLLMSettingsChange((config) => {
- *   console.log('LLM settings changed:', config);
  *   // Update component state, refresh data, etc.
  * });
  * ```
@@ -473,7 +464,6 @@ export function useLLMSettingsChange(
  * @example
  * ```typescript
  * useComfyUISettingsChange((config) => {
- *   console.log('ComfyUI settings changed:', config);
  *   // Update component state, refresh workflows, etc.
  * });
  * ```

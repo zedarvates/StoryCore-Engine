@@ -65,7 +65,6 @@ export function useSequencePlan(): UseSequencePlanReturn {
   // Subscribe to plan list updates
   useEffect(() => {
     const unsubscribe = sequencePlanService.subscribeToPlanList((updatedPlans) => {
-      console.log('[useSequencePlan] Plan list updated:', updatedPlans.length);
       setPlans(updatedPlans);
     });
 
@@ -75,7 +74,6 @@ export function useSequencePlan(): UseSequencePlanReturn {
   // Subscribe to plan updates
   useEffect(() => {
     const unsubscribe = sequencePlanService.subscribeToPlanUpdates((planId, updatedPlan) => {
-      console.log('[useSequencePlan] Plan updated:', planId);
       
       // Update current plan if it's the one that changed
       if (currentPlan && currentPlan.id === planId) {
@@ -89,7 +87,6 @@ export function useSequencePlan(): UseSequencePlanReturn {
   // Subscribe to auto-save status
   useEffect(() => {
     const unsubscribe = sequencePlanService.subscribeToAutoSaveStatus((enabled, lastSave) => {
-      console.log('[useSequencePlan] Auto-save status:', enabled, lastSave);
       setIsAutoSaveEnabled(enabled);
       setLastSaveTime(lastSave);
     });

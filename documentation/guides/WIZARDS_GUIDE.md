@@ -136,31 +136,473 @@ ALICE
 Tu n'as aucune idée de ce que tu fais.
 ```
 
-### 🌍 Wizard de Monde (`storycore world-wizard`)
+### 🌍 Wizard World Builder (`storycore world-wizard`)
 
-Assistant pour la création d'univers cohérents et immersifs.
+Assistant révolutionnaire pour la création d'univers narratifs cohérents et immersifs. Combine génération automatique avec extraction intelligente depuis du texte source, intégration LLM pour l'augmentation créative, et persistance robuste multi-couches.
 
-#### Fonctionnalités
-- **Construction de monde** systématique
-- **Génération de règles** et contraintes
-- **Éléments culturels** détaillés
-- **Localisations** interconnectées
+#### Fonctionnalités Principales
 
-#### Utilisation
+- **Génération Automatique de Monde** : Création systématique d'univers avec géographie, culture, technologie, et atmosphère cohérente
+- **Extraction Intelligente** : Analyse de texte (romans, scénarios, discussions LLM) pour extraire éléments de monde existants
+- **Augmentation LLM** : Enrichissement créatif avec modèles de langage pour détails immersifs et cohérence narrative
+- **Persistance Multi-Couches** : Sauvegarde robuste avec fallbacks (store Zustand, localStorage, fichiers JSON, IndexedDB)
+- **Validation temps réel** : Règles de cohérence pour garantir l'intégrité du monde
+- **Intégration Écosystème** : Connexion transparente avec character wizard, dialogue wizard, et shot planning
+
+#### Architecture Technique
+
+Le World Builder repose sur trois services backend principaux :
+
+1. **WorldBuilderService** (Backend Python)
+   - Moteur de génération de monde (`WorldGenerationEngine`)
+   - Logique de création systématique d'univers
+   - Gestion des templates par genre et type de monde
+
+2. **LLMAugmentationService** (UI TypeScript)
+   - Enrichissement créatif avec `LLMService`
+   - Streaming et retry logic pour génération de contenu
+   - Support multi-providers (OpenAI, Anthropic, Local/Ollama)
+
+3. **PersistenceService** (UI TypeScript)
+   - Sauvegarde multi-couches avec validation
+   - Synchronisation automatique entre layers
+   - Gestion d'erreurs et recovery
+
+#### Utilisation CLI
 
 ```bash
-# Création de monde interactive
+# Génération interactive complète
 storycore world-wizard
+
+# Génération avec paramètres spécifiques
+storycore world-wizard --genre fantasy --world-type high_fantasy --scale large
+
+# Extraction depuis fichier texte
+storycore world-wizard --extract-from my_story.txt --genre sci_fi
+
+# Mode validation seulement
+storycore world-wizard --validate world.json
+
+# Export avec métadonnées complètes
+storycore world-wizard --export --format detailed --include-visual-identity
+```
+
+#### Utilisation Interface Graphique
+
+1. **Via StoryCore Assistant** : "Create a new world" ou "Extract world from text"
+2. **Via Wizard Launcher** : Sélection "World Building" avec options pré-configurées
+3. **Via Roger Wizard** : Upload de document texte avec extraction automatique
+
+#### Schéma de Données JSON
+
+##### Structure Principale du Monde
+
+```json
+{
+  "world_id": "world_fantasy_epic_001",
+  "name": "Elyndor Realm",
+  "type": "high_fantasy",
+  "genre": "fantasy",
+  "time_period": "medieval_fantasy",
+
+  "geography": {
+    "terrain": ["forests", "mountains", "rivers"],
+    "climate": "temperate_continental",
+    "key_features": ["Crystal Mountains", "Eternal Forest", "Silver River"],
+    "scale": "continental"
+  },
+
+  "culture": {
+    "societies": ["Elven Kingdoms", "Human Realms", "Dwarven Clans"],
+    "technology_level": "medieval_magic",
+    "customs": ["Crystal Bonding Ceremony", "Forest Spirit Rituals"],
+    "values": ["Harmony with Nature", "Magical Balance", "Ancestral Wisdom"]
+  },
+
+  "atmosphere": {
+    "mood": "mysterious_epic",
+    "sensory_details": ["Ancient magic hums", "Crystal light filtering", "Forest whispers"],
+    "environmental_mood": "awe_inspiring"
+  },
+
+  "visual_identity": {
+    "color_palette": {
+      "primary": ["#4A90E2", "#7ED321", "#F5A623"],
+      "secondary": ["#BD10E0", "#50E3C2", "#D0021B"]
+    },
+    "architectural_style": "gothic_fantasy",
+    "lighting_characteristics": "golden_hour_crystal",
+    "visual_motifs": ["Crystal formations", "Ancient runes", "Natural magic flows"]
+  },
+
+  "world_features": {
+    "magic_system": "Crystal-based elemental magic",
+    "power_sources": ["Ancient crystals", "Natural ley lines"],
+    "conflicts": ["Magic depletion", "Technological intrusion"]
+  }
+}
+```
+
+##### Métadonnées du Projet
+
+```json
+{
+  "metadata": {
+    "created_at": "2026-01-22T21:53:52.582Z",
+    "updated_at": "2026-01-22T21:53:52.582Z",
+    "created_by": "world_builder_wizard",
+    "version": "2.1.0",
+    "confidence_score": 0.87
+  },
+
+  "extraction_source": {
+    "type": "text_file",
+    "filename": "world_lore.txt",
+    "extraction_method": "roger_wizard",
+    "confidence_metrics": {
+      "overall": 0.85,
+      "locations": 0.92,
+      "world_elements": 0.78,
+      "cultural_elements": 0.89
+    }
+  },
+
+  "validation_status": {
+    "is_valid": true,
+    "errors": [],
+    "warnings": ["Consider adding more specific technological constraints"],
+    "last_validated": "2026-01-22T21:53:52.582Z"
+  }
+}
+```
+
+#### Types de Monde Supportés
+
+| Type | Genres | Caractéristiques | Exemples |
+|------|--------|------------------|----------|
+| `high_fantasy` | Fantasy | Magie omniprésente, races multiples | Terre du Milieu, Forgotten Realms |
+| `dark_fantasy` | Fantasy/Horreur | Magie dangereuse, tons sombres | Warhammer, Dark Souls universe |
+| `urban_fantasy` | Fantasy/Moderne | Magie dans monde moderne | Dresden Files, American Gods |
+| `hard_sci_fi` | Sci-Fi | Science rigoureuse, pas de magie | Dune (partiellement), Foundation |
+| `space_opera` | Sci-Fi | Échelle galactique, space battles | Star Wars, Mass Effect |
+| `cyberpunk` | Sci-Fi | Haute technologie, basse vie | Blade Runner, Cyberpunk 2077 |
+| `post_apocalyptic` | Sci-Fi/Action | Monde détruit, survie | The Last of Us, Mad Max |
+| `historical_fantasy` | Fantasy/Historique | Magie dans période historique | Outlander, His Dark Materials |
+| `superhero` | Action/Fantasy | Super pouvoirs, métropolis | Marvel Universe, DC Comics |
+| `horror_modern` | Horreur | Terreur psychologique | The Shining, Hereditary |
+
+#### Pipeline de Génération
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Input Analysis │ -> │ LLM Augmentation │ -> │ Validation      │
+│  - Genre/Type   │    │ - Creative        │    │ - Consistency   │
+│  - Constraints  │    │   Enhancement     │    │ - Completeness  │
+│  - Source Text  │    │ - Detail Addition │    │ - Requirements  │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                                        │
+┌─────────────────┐    ┌──────────────────┐             │
+│ World Building  │ <- │ Persistence      │ <───────────┘
+│ - Geography     │    │ Multi-layer      │
+│ - Culture       │    │ Fallback System  │
+│ - Atmosphere    │    │ Auto-sync        │
+│ - Visual ID     │    └──────────────────┘
+└─────────────────┘
 ```
 
 #### Règles de Validation
 
-| Champ | Règle | Message d'erreur |
-|-------|-------|------------------|
-| Nom du monde | Requis | "World name is required" |
-| Période temporelle | Requis | "Time period is required" |
-| Genre | Au moins 1 sélection | "At least one genre must be selected" |
-| Ton | Au moins 1 sélection | "At least one tone must be selected" |
+| Champ | Règle | Sévérité | Message d'erreur | Correction suggérée |
+|-------|-------|----------|------------------|-------------------|
+| `world_id` | Format UUID ou pattern spécifique | Error | "World ID must follow format: world_{type}_{seed}" | Générer automatiquement |
+| `name` | 3-50 caractères, pas de caractères spéciaux | Error | "World name must be 3-50 characters, letters/numbers/spaces only" | "Use only letters, numbers, spaces, hyphens, and underscores" |
+| `time_period` | Requis pour cohérence historique | Warning | "Time period recommended for historical consistency" | Sélectionner depuis liste prédéfinie |
+| `genre` | Au moins 1, max 3 genres compatibles | Error | "At least one genre required, max 3 compatible genres" | Montrer matrice de compatibilité genres |
+| `geography.terrain` | Au moins 1 type de terrain | Warning | "At least one terrain type recommended" | "Add primary terrain (forest, desert, urban, etc.)" |
+| `culture.societies` | Cohérence avec technologie | Warning | "Societal structure should align with technology level" | Suggérer ajustements technologiques |
+| `visual_identity.color_palette` | Format hexadécimal valide | Error | "Color values must be valid hex codes (#RRGGBB)" | Convertir automatiquement ou corriger |
+| `atmosphere.mood` | Compatible avec genre | Warning | "Atmospheric mood should match genre conventions" | Montrer moods recommandés par genre |
+
+#### Exemples d'Utilisation Avancée
+
+##### 1. Génération de Monde Fantasy Épique
+
+```bash
+# Création de monde high fantasy avec extraction
+storycore world-wizard \
+  --genre fantasy \
+  --world-type high_fantasy \
+  --scale large \
+  --extract-from world_lore.txt \
+  --llm-enhance \
+  --export-visual-identity
+```
+
+##### 2. Monde Cyberpunk Urbain
+
+```bash
+# Cyberpunk avec focus technologique
+storycore world-wizard \
+  --genre sci_fi \
+  --world-type cyberpunk \
+  --technology-level high_tech \
+  --atmosphere-neon_dystopian \
+  --cultural-elements corporate_dystopia
+```
+
+##### 3. Extraction et Fusion de Mondes
+
+```bash
+# Combiner plusieurs sources
+storycore world-wizard \
+  --extract-from novel_chapter1.txt novel_chapter2.txt \
+  --merge-with existing_world.json \
+  --resolve-conflicts interactive \
+  --validate-consistency
+```
+
+#### Intégration avec l'Écosystème
+
+##### Avec Character Wizard
+```typescript
+// Création de personnages cohérents avec le monde
+const worldContext = await worldBuilderService.getWorldContext(worldId);
+const characters = await characterWizard.generateCharacters({
+  count: 5,
+  worldContext: worldContext,
+  roles: ['protagonist', 'antagonist', 'mentor', 'sidekick']
+});
+```
+
+##### Avec Shot Planning
+```typescript
+// Génération de plans adaptée au monde
+const worldVisuals = await worldBuilderService.getVisualIdentity(worldId);
+const shots = await shotPlanner.generateShots({
+  scene: sceneDescription,
+  visualStyle: worldVisuals,
+  atmosphericConditions: world.atmosphere
+});
+```
+
+##### Avec Dialogue Wizard
+```typescript
+// Dialogues culturellement adaptés
+const culturalContext = await worldBuilderService.getCulturalElements(worldId);
+const dialogue = await dialogueWizard.generateDialogue({
+  characters: characterList,
+  context: sceneContext,
+  culturalAdaptation: culturalContext,
+  tone: world.atmosphere.mood
+});
+```
+
+#### Métriques de Qualité
+
+- **Cohérence Interne** : Validation que tous les éléments du monde sont logiquement compatibles
+- **Cohérence Visuelle** : Palette couleur et motifs visuels harmonieux
+- **Cohérence Culturelle** : Société, technologie, et valeurs alignées
+- **Complétude** : Couverture de tous les aspects importants du monde
+- **Originalité** : Équilibre entre conventions du genre et éléments uniques
+- **Immersion** : Capacité à créer un sentiment d'immersion pour l'audience
+
+#### Dépannage Courant
+
+| Problème | Cause | Solution |
+|----------|-------|----------|
+| "World validation failed: incompatible genres" | Genres sélectionnés incompatibles | Consulter matrice de compatibilité ou réduire à 1-2 genres |
+| "LLM service timeout during enhancement" | Modèle trop lent ou surcharge | Changer de modèle, réduire température, ou désactiver enhancement |
+| "Persistence layer failure: all fallbacks failed" | Problèmes de permissions fichiers | Vérifier droits d'écriture ou utiliser localStorage uniquement |
+| "Extraction confidence too low" | Texte source ambigu ou court | Fournir texte plus détaillé ou genre plus spécifique |
+| "Visual identity colors invalid" | Format couleur incorrect | Utiliser sélecteur couleur UI ou format hex standard |
+
+#### FAQ
+
+**Q: Quelle est la différence entre extraction et génération ?**
+**R:** L'extraction analyse du texte existant pour identifier éléments de monde, tandis que la génération crée de nouveaux éléments à partir de contraintes et de modèles.
+
+**Q: Puis-je modifier un monde existant ?**
+**R:** Oui, chargez le monde JSON et utilisez `--merge-with` pour fusionner avec nouvelles données, ou éditez directement le fichier.
+
+**Q: Le wizard supporte-t-il plusieurs langues ?**
+**R:** Actuellement anglais uniquement pour génération LLM, mais l'interface UI supporte le français et l'extraction fonctionne avec texte multilingue.
+
+**Q: Comment assurer la cohérence avec une série de mondes ?**
+**R:** Utilisez le même `world_type` et `genre`, et validez avec `--validate-consistency` entre générations.
+
+**Q: Puis-je utiliser des images comme source ?**
+**R:** Pas directement, mais vous pouvez décrire l'image dans un fichier texte pour extraction, ou utiliser le Vision LLM si configuré.
+
+---
+
+## Diagrammes et Schémas
+
+### Architecture Générale du World Builder
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    World Builder Wizard                      │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐    ┌──────────────────┐    ┌─────────────┐ │
+│  │  Interface  │    │   Processing     │    │  Services   │ │
+│  │   Layer     │    │     Engine       │    │   Layer     │ │
+│  │             │    │                  │    │             │ │
+│  │ • StoryCore │    │ • World Gen      │    │ • Persistence│ │
+│  │   Assistant │    │   Engine         │    │   Service   │ │
+│  │             │    │ • LLM Service    │    │ • LLM        │ │
+│  │ • Wizard    │    │ • Validation     │    │   Service   │ │
+│  │   Launcher  │    │   Engine         │    │ • Roger      │ │
+│  │             │    │ • Roger Wizard   │    │   Wizard     │ │
+│  │ • CLI       │    │                  │    │             │ │
+│  │   Commands  │    └──────────────────┘    └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                                   │
+                    ┌─────────────────────────────┐
+                    │       Data Layer            │
+                    │                             │
+                    │ • JSON World Files          │
+                    │ • Project Metadata          │
+                    │ • Visual Assets             │
+                    │ • Validation Reports        │
+                    └─────────────────────────────┘
+```
+
+### Pipeline de Génération Détaillé
+
+```
+Input Parameters
+      ↓
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Validation    │────▶│ Template        │────▶│   Geography     │
+│   & Sanitize    │     │   Selection     │     │   Generation    │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+┌─────────────────┐     ┌─────────────────┐             │
+│   Cultural      │◀────│   LLM           │             │
+│   Development   │     │   Enhancement   │             │
+└─────────────────┘     └─────────────────┘             │
+          │                                             │
+          ▼                                             ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Atmosphere    │────▶│   Visual        │────▶│   Consistency   │
+│   Creation      │     │   Identity      │     │   Validation    │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+┌─────────────────┐     ┌─────────────────┐             │
+│   Persistence   │◀────│   Error         │             │
+│   Multi-layer   │     │   Handling      │             │
+└─────────────────┘     └─────────────────┘             │
+                                                        ▼
+                                               World Complete
+```
+
+### Flux de Données d'Extraction
+
+```
+Text Source Files
+(.txt, .md, .story, .novel)
+      ↓
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Preprocessing │────▶│   Entity        │────▶│   Context       │
+│   & Cleaning    │     │   Recognition   │     │   Analysis      │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+┌─────────────────┐     ┌─────────────────┐             │
+│   Pattern       │◀────│   LLM           │             │
+│   Matching      │     │   Assistance    │             │
+└─────────────────┘     └─────────────────┘             │
+          │                                             │
+          ▼                                             ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Data          │────▶│   Confidence    │────▶│   Structured    │
+│   Structuring   │     │   Scoring       │     │   Output        │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+┌─────────────────┐     ┌─────────────────┐             │
+│   Validation    │◀────│   Quality       │             │
+│   & Review      │     │   Assessment    │             │
+└─────────────────┘     └─────────────────┘             │
+                                                        ▼
+                                             Extraction Complete
+```
+
+### Couches de Persistance
+
+```
+Application Memory
+(Zustand Store)
+      ↓ (fallback)
+┌─────────────────┐
+│   localStorage  │ ← Browser Storage
+│   (per project) │
+└─────────────────┘
+      ↓ (fallback)
+┌─────────────────┐
+│   File System   │ ← Project Directory
+│   (JSON files)  │
+└─────────────────┘
+      ↓ (fallback)
+┌─────────────────┐
+│   IndexedDB     │ ← Browser Database
+│   (structured)  │
+└─────────────────┘
+```
+
+### Intégration Écosystème
+
+```
+World Builder
+      ↓
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│ Character      │     │ Shot Planning   │     │ Dialogue        │
+│ Wizard         │     │                 │     │ Wizard          │
+├─────────────────┤     ├─────────────────┤     ├─────────────────┤
+│ • Cultural     │     │ • Visual Style  │     │ • Cultural      │
+│   adaptation   │     │ • Atmosphere    │     │   adaptation    │
+│ • World-aware  │     │ • World lighting│     │ • World tone    │
+│   traits       │     │ • Location      │     │ • Language      │
+│ • Background   │     │   consistency   │     │   patterns      │
+│   consistency  │     └─────────────────┘     └─────────────────┘
+└─────────────────┘
+      ↓
+┌─────────────────┐     ┌─────────────────┐
+│ Audio/Sonic     │     │ Marketing/     │
+│ Crafter         │     │ ViralForge     │
+├─────────────────┤     ├─────────────────┤
+│ • Atmospheric   │     │ • World theme  │
+│   audio         │     │ • Cultural     │
+│ • Cultural      │     │   aesthetics   │
+│   music         │     │ • Genre        │
+│ • Location      │     │   conventions  │
+│   sounds        │     └─────────────────┘
+└─────────────────┘
+```
+
+### Métriques et Qualité
+
+```
+World Generation Quality Assessment
+├── Structural Quality (40%)
+│   ├── Schema Compliance (15%)
+│   ├── Data Completeness (15%)
+│   └── Internal Consistency (10%)
+├── Content Quality (35%)
+│   ├── Originality Score (10%)
+│   ├── Genre Appropriateness (15%)
+│   └── Immersion Potential (10%)
+├── Technical Quality (25%)
+│   ├── Performance Metrics (10%)
+│   ├── Persistence Reliability (10%)
+│   └── Error Resilience (5%)
+└── User Experience (100% total)
+    ├── Ease of Use (weighted)
+    ├── Result Predictability
+    └── Integration Smoothness
+```
+
+---
+
+*Diagrammes générés automatiquement. Mise à jour avec chaque version majeure.*
 
 ### 🎬 EditForge (`storycore video-editor-wizard`) - NOUVEAU
 

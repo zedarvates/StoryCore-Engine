@@ -1,0 +1,316 @@
+/* EffectPreviewRenderer.css - GPU-Accelerated Effect Preview */
+
+.effect-preview-renderer {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.preview-container {
+  position: relative;
+  flex: 1;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.preview-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.fallback-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 20px;
+}
+
+.fallback-message svg {
+  opacity: 0.5;
+}
+
+.fallback-message p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.preview-controls {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover:not(:disabled) {
+  background: var(--accent-color);
+  color: white;
+}
+
+.control-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.timeline-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline-slider {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.timeline-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-slider:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.time-display {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.performance-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.performance-info span {
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+/* GPU Performance Indicator */
+.gpu-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #10b981;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gpu-indicator::before {
+  content: '🖥️';
+  font-size: 12px;
+}
+
+/* Low Performance Warning */
+.low-performance {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.low-performance::before {
+  content: '⚠️';
+  font-size: 12px;
+}
+
+/* Loading State */
+.preview-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+}
+
+.preview-loading::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .preview-controls {
+    padding: 8px 12px;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .performance-info {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .performance-info span {
+    font-size: 10px;
+  }
+}
+
+/* Dark Theme */
+@media (prefers-color-scheme: dark) {
+  .effect-preview-renderer {
+    --bg-primary: #1f2937;
+    --bg-secondary: #111827;
+    --bg-tertiary: #374151;
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --border-color: #374151;
+    --accent-color: #3b82f6;
+  }
+}
+
+/* GPU Memory Warning */
+.memory-warning {
+  background: rgba(245, 158, 11, 0.9) !important;
+  color: #92400e !important;
+}
+
+.memory-warning::before {
+  content: '💾';
+}
+
+/* High FPS Indicator */
+.high-fps {
+  color: #10b981;
+}
+
+.high-fps::before {
+  content: '🚀';
+}
+
+/* Medium FPS Indicator */
+.medium-fps {
+  color: #f59e0b;
+}
+
+.medium-fps::before {
+  content: '⚡';
+}
+
+/* Low FPS Indicator */
+.low-fps {
+  color: #ef4444;
+}
+
+.low-fps::before {
+  content: '🐌';
+}
+
+/* Accessibility */
+.control-btn:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.timeline-slider:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .preview-loading::after {
+    animation: none;
+  }
+
+  .control-btn {
+    transition: none;
+  }
+}

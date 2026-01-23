@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings, Lightbulb, Globe, Users, Film, MessageSquare as MessageIcon, FileText, Wand2, Music, Zap, List } from 'lucide-react';
+import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings, Lightbulb, Globe, Users, Film, MessageSquare as MessageIcon, FileText, Wand2, Music, Zap, List, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
@@ -245,8 +245,9 @@ export function LandingChatBox({
     updateDynamicSuggestions();
   }, [updateDynamicSuggestions]);
 
-  // Fonction pour utiliser le texte de l'utilisateur comme base pour les suggestions
+  // Fonction pour utiliser le texte de l'utilisateur comme base pour les suggestions et rafraîchir les prompts
   const handleUseUserTextAsPrompt = () => {
+    // Rafraîchir les suggestions avec de nouvelles idées basées sur le texte actuel
     if (inputValue.trim()) {
       const enhancedSuggestions = promptSuggestionService.generateInputBasedSuggestions(
         inputValue,
@@ -262,7 +263,15 @@ export function LandingChatBox({
         }
       );
       setDynamicSuggestions(enhancedSuggestions);
+    } else {
+      // Si pas de texte, rafraîchir avec de nouvelles suggestions générales
+      const refreshedSuggestions = promptSuggestionService.getRefreshedSuggestions(currentLanguage);
+      setDynamicSuggestions(refreshedSuggestions);
     }
+
+    // Forcer le rafraîchissement des suggestions en les masquant brièvement puis réaffichant
+    setShowSuggestions(false);
+    setTimeout(() => setShowSuggestions(true), 100);
   };
 
   // Fonction pour réviser le prompt : contexte en premier, question après
@@ -945,6 +954,52 @@ export function LandingChatBox({
           currentLanguage={currentLanguage}
           onLanguageChange={handleLanguageChange}
         />
+
+        {/* Conversation Erase Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            const confirmed = window.confirm(
+              currentLanguage === 'fr'
+                ? 'Êtes-vous sûr de vouloir effacer toute la conversation ? Cette action est irréversible.'
+                : 'Are you sure you want to erase the entire conversation? This action cannot be undone.'
+            );
+            if (confirmed) {
+              // Keep only the welcome message
+              const welcomeMessage: Message = {
+                id: '1',
+                type: 'assistant',
+                content: getWelcomeMessage(currentLanguage),
+                timestamp: new Date(),
+              };
+              setMessages([welcomeMessage]);
+
+              // Add system message about conversation erase
+              const systemMessage: Message = {
+                id: Date.now().toString(),
+                type: 'system',
+                content: currentLanguage === 'fr'
+                  ? '🗑️ Conversation effacée. Nouvelle session commencée pour éviter la surcharge du modèle LLM.'
+                  : '🗑️ Conversation erased. New session started to prevent LLM model overload.',
+                timestamp: new Date(),
+              };
+              setMessages([welcomeMessage, systemMessage]);
+
+              // Clear streaming state
+              setIsStreaming(false);
+              setStreamingMessageId(null);
+              setCurrentStreamRequestId(null);
+              setLastUserMessage('');
+            }
+          }}
+          className="text-gray-400 hover:text-red-400 hover:bg-red-900/20 ml-2"
+          title={currentLanguage === 'fr' ? 'Effacer la conversation' : 'Erase conversation'}
+          aria-label={currentLanguage === 'fr' ? 'Effacer la conversation' : 'Erase conversation'}
+        >
+          <Trash2 className="w-5 h-5" aria-hidden="true" />
+          <span className="sr-only">{currentLanguage === 'fr' ? 'Effacer la conversation' : 'Erase conversation'}</span>
+        </Button>
       </div>
 
       {/* Messages Area */}

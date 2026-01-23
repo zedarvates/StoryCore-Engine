@@ -123,7 +123,17 @@ workflows/
 # Large test files
 creative-studio-ui/test-baseline-results.txt
 creative-studio-ui/test-baseline.txt
+creative-studio-ui/test-output.txt
 tailwindcss
 
 # ComfyUI downloads
 comfyui_download_zone/
+
+# Ollama and large binaries
+ollama.zip
+ollama.exe
+vc_redist.x64.exe
+lib/ollama/
+
+# Large PPM image files
+*.ppm

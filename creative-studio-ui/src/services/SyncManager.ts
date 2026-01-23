@@ -59,7 +59,6 @@ export class SyncManager {
     this.syncInProgress = true;
 
     try {
-      console.log('[SyncManager] Starting full bidirectional sync...');
 
       const results = await Promise.allSettled([
         this.syncWorlds(projectPath),
@@ -86,7 +85,6 @@ export class SyncManager {
 
       const duration = Date.now() - startTime;
 
-      console.log(`[SyncManager] Sync completed in ${duration}ms: ${synced} entities synced, ${allConflicts.length} conflicts, ${errors.length} errors`);
 
       this.lastSyncTime = new Date();
       this.conflicts.push(...allConflicts);
@@ -125,7 +123,6 @@ export class SyncManager {
             // Monde existe dans store mais pas dans fichier - sauvegarder
             await persistenceService.saveWorld(world, projectPath);
             synced++;
-            console.log(`[SyncManager] Saved world ${world.id} to file`);
           } else {
             // Les deux existent - vérifier les conflits
             const conflict = this.detectConflict(world, fileWorld, 'world');
@@ -133,7 +130,6 @@ export class SyncManager {
               conflicts.push(conflict);
               // Résoudre automatiquement : store wins (plus récent)
               await persistenceService.saveWorld(world, projectPath);
-              console.log(`[SyncManager] Resolved conflict for world ${world.id}: store wins`);
             }
           }
         } catch (error) {
@@ -269,7 +265,6 @@ export class SyncManager {
       // Marquer le conflit comme résolu
       this.conflicts = this.conflicts.filter(c => c !== conflict);
 
-      console.log(`[SyncManager] Conflict resolved for ${conflict.entityType} ${conflict.entityId}: ${resolution}`);
     } catch (error) {
       console.error(`[SyncManager] Error resolving conflict:`, error);
       throw error;
@@ -347,7 +342,6 @@ export class SyncManager {
       const backupKey = `backup_${backupId}`;
       localStorage.setItem(backupKey, JSON.stringify(backupData));
 
-      console.log(`[SyncManager] Backup created: ${backupId}`);
       return backupId;
     } catch (error) {
       console.error('[SyncManager] Error creating backup:', error);
@@ -383,7 +377,6 @@ export class SyncManager {
         await store.addCharacter(character);
       }
 
-      console.log(`[SyncManager] Restored from backup: ${backupId}`);
     } catch (error) {
       console.error(`[SyncManager] Error restoring backup ${backupId}:`, error);
       throw error;

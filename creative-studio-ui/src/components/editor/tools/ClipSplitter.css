@@ -1,0 +1,357 @@
+/* Clip Splitter Styles - CapCut Inspired */
+
+.clip-splitter-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.clip-splitter-modal {
+  background: #1a1a1a;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  border: 1px solid #2a2a2a;
+}
+
+.splitter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #2a2a2a;
+  background: #0f0f0f;
+}
+
+.splitter-header h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+.splitter-content {
+  padding: 24px;
+}
+
+.video-preview {
+  margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid #2a2a2a;
+}
+
+.video-preview video {
+  display: block;
+  width: 100%;
+  height: 300px;
+  object-fit: contain;
+}
+
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #0f0f0f;
+  border-radius: 8px;
+  border: 1px solid #2a2a2a;
+}
+
+.playback-controls button {
+  background: #2a2a2a;
+  border: none;
+  color: #ffffff;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.playback-controls button:hover {
+  background: #3a3a3a;
+  transform: scale(1.05);
+}
+
+.time-display {
+  margin-left: auto;
+  color: #9ca3af;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.timeline-container {
+  margin-bottom: 24px;
+}
+
+.timeline-ruler {
+  margin-bottom: 8px;
+}
+
+.time-markers {
+  display: flex;
+  justify-content: space-between;
+  color: #6b7280;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+}
+
+.timeline-track {
+  position: relative;
+  height: 60px;
+  background: #0f0f0f;
+  border-radius: 6px;
+  border: 1px solid #2a2a2a;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.split-indicator {
+  position: absolute;
+  top: 0;
+  left: var(--left);
+  width: 20px;
+  height: 100%;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.split-line {
+  width: 2px;
+  height: 100%;
+  background: #ef4444;
+  position: relative;
+}
+
+.split-line::before,
+.split-line::after {
+  content: '';
+  position: absolute;
+  left: -4px;
+  width: 10px;
+  height: 2px;
+  background: #ef4444;
+}
+
+.split-line::before {
+  top: 20px;
+}
+
+.split-line::after {
+  bottom: 20px;
+}
+
+.split-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.split-label {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.split-label::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #ef4444;
+}
+
+.current-time-indicator {
+  position: absolute;
+  top: 0;
+  left: var(--left);
+  width: 2px;
+  height: 100%;
+  background: #3b82f6;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.current-time-indicator::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  background: #3b82f6;
+  border-radius: 50%;
+  border: 2px solid #1a1a1a;
+}
+
+.split-info {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #0f0f0f;
+  border-radius: 8px;
+  border: 1px solid #2a2a2a;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item label {
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item span {
+  color: #ffffff;
+  font-size: 14px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-weight: 600;
+}
+
+.splitter-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #2a2a2a;
+  background: #0f0f0f;
+}
+
+.cancel-btn {
+  background: #2a2a2a;
+  border: none;
+  color: #9ca3af;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #3a3a3a;
+  color: #ffffff;
+}
+
+.apply-btn {
+  background: #ef4444;
+  border: none;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.apply-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .clip-splitter-modal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .splitter-content {
+    padding: 16px;
+  }
+
+  .video-preview video {
+    height: 200px;
+  }
+
+  .playback-controls {
+    padding: 12px;
+    flex-wrap: wrap;
+  }
+
+  .split-info {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .splitter-footer {
+    padding: 16px;
+  }
+
+  .split-label {
+    display: none; /* Hide label on mobile to save space */
+  }
+}

@@ -137,7 +137,6 @@ export function Step6ReviewFinalize({
       linkElement.setAttribute('download', exportFileDefaultName);
       linkElement.click();
     }
-    // TODO: Implement project format export when project service is available
   };
 
   const renderValidationSummary = () => {

@@ -67,7 +67,7 @@ class DialogueWizardHandler(BaseHandler):
         try:
             # Import dialogue wizard
             try:
-                from wizard.dialogue_wizard import (
+                from src.wizard.dialogue_wizard import (
                     create_dialogue_wizard,
                     generate_quick_dialogue,
                     DialoguePurpose,

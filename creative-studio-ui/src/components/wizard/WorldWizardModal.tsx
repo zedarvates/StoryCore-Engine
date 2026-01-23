@@ -38,7 +38,7 @@ export function WorldWizardModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6 cyber-card border-primary/30 bg-card/95 backdrop-blur-sm">
         <DialogHeader className="sr-only">
           <DialogTitle>Create World</DialogTitle>
           <DialogDescription>

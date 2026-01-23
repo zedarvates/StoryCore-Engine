@@ -116,8 +116,8 @@ export function LiveRegion({
   return (
     <div
       role="status"
-      aria-live={politeness}
-      aria-atomic={atomic}
+      aria-live="polite"
+      aria-atomic={atomic ? 'true' : 'false'}
       className={cn('sr-only', className)}
     >
       {message}
@@ -163,9 +163,9 @@ interface AnnouncementProviderProps {
 }
 
 export function AnnouncementProvider({ children }: AnnouncementProviderProps) {
-  const [announcement, setAnnouncement] = React.useState('');
+  const [announcement, setAnnouncement] = React.useState<string>('');
 
-  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
+  const announce = React.useCallback((message: string, _priority: 'polite' | 'assertive' = 'polite') => {
     setAnnouncement('');
     // Timeout pour s'assurer que le message est annoncé
     setTimeout(() => setAnnouncement(message), 100);
@@ -404,9 +404,9 @@ export function AccessibleTabs({
             key={tab.id}
             role="tab"
             id={`tab-${tab.id}`}
-            aria-selected={activeTab === tab.id}
+            aria-selected={activeTab === tab.id ? 'true' : 'false'}
             aria-controls={`panel-${tab.id}`}
-            aria-disabled={tab.disabled}
+            aria-disabled={tab.disabled ? 'true' : 'false'}
             tabIndex={activeTab === tab.id ? 0 : -1}
             onClick={() => {
               if (!tab.disabled) {

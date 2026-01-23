@@ -197,6 +197,56 @@ const electronAPI: ElectronAPI = {
       return result;
     },
   },
+
+  // File system operations
+  fs: {
+    readdir: async (dirPath: string) => {
+      const result = await ipcRenderer.invoke('fs:readdir', dirPath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to read directory');
+      }
+      return result.items;
+    },
+    readFile: async (filePath: string) => {
+      const result = await ipcRenderer.invoke('fs:readFile', filePath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to read file');
+      }
+      return result.data;
+    },
+    writeFile: async (filePath: string, data: string | Buffer) => {
+      const result = await ipcRenderer.invoke('fs:writeFile', filePath, data);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to write file');
+      }
+    },
+    exists: async (filePath: string) => {
+      const result = await ipcRenderer.invoke('fs:exists', filePath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to check if path exists');
+      }
+      return result.exists;
+    },
+    stat: async (filePath: string) => {
+      const result = await ipcRenderer.invoke('fs:stat', filePath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get file stats');
+      }
+      return result.stats;
+    },
+    mkdir: async (dirPath: string, options?: { recursive?: boolean }) => {
+      const result = await ipcRenderer.invoke('fs:mkdir', dirPath, options);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create directory');
+      }
+    },
+    unlink: async (filePath: string) => {
+      const result = await ipcRenderer.invoke('fs:unlink', filePath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete file');
+      }
+    },
+  },
 };
 
 // Expose the API to the renderer process

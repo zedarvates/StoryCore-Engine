@@ -388,7 +388,6 @@ export class PersistenceService {
           try {
             await operation();
             this.retryQueue.delete(id);
-            console.log(`[PersistenceService] Queued operation ${id} succeeded`);
           } catch (error) {
             this.retryQueue.set(id, { operation, retries: retries + 1 });
             console.warn(`[PersistenceService] Queued operation ${id} failed again (${retries + 1}/3)`);

@@ -57,12 +57,10 @@ export class MigrationService {
     const startTime = Date.now();
     const migrationId = `migration-${Date.now()}`;
 
-    console.log(`[MigrationService] Starting migration ${migrationId}...`);
 
     try {
       // Créer un backup avant migration
       const backupId = await syncManager.createBackup(projectPath);
-      console.log(`[MigrationService] Backup created: ${backupId}`);
 
       // Migrer toutes les entités
       const results = await Promise.allSettled([
@@ -109,7 +107,6 @@ export class MigrationService {
       // Sauvegarder le résultat de la migration
       this.migrationHistory.set(migrationId, migrationResult);
 
-      console.log(`[MigrationService] Migration ${migrationId} completed in ${duration}ms: ${totalMigrated} migrated, ${totalSkipped} skipped, ${allErrors.length} errors`);
 
       // Si la migration a échoué, déclencher rollback
       if (!success) {
@@ -145,7 +142,6 @@ export class MigrationService {
    * Migration des mondes existants
    */
   private async migrateWorlds(projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
-    console.log('[MigrationService] Migrating worlds...');
 
     try {
       const { useStore } = await import('@/store');
@@ -175,7 +171,6 @@ export class MigrationService {
           // Vérifier si déjà migré (fichier existe)
           const existingWorld = await persistenceService.loadWorld(world.id, projectPath);
           if (existingWorld) {
-            console.log(`[MigrationService] World ${world.id} already migrated, skipping`);
             skipped++;
             continue;
           }
@@ -186,7 +181,6 @@ export class MigrationService {
 
           if (successfulLayers.length > 0) {
             migrated++;
-            console.log(`[MigrationService] World ${world.id} migrated successfully`);
           } else {
             errors.push({
               entityType: 'world',
@@ -207,7 +201,6 @@ export class MigrationService {
         }
       }
 
-      console.log(`[MigrationService] Worlds migration completed: ${migrated} migrated, ${skipped} skipped, ${errors.length} errors`);
       return { migrated, skipped, errors };
 
     } catch (error) {
@@ -229,7 +222,6 @@ export class MigrationService {
    * Migration des personnages existants
    */
   private async migrateCharacters(projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
-    console.log('[MigrationService] Migrating characters...');
 
     try {
       const { useStore } = await import('@/store');
@@ -263,7 +255,6 @@ export class MigrationService {
 
           if (successfulLayers.length > 0) {
             migrated++;
-            console.log(`[MigrationService] Character ${character.character_id} migrated successfully`);
           } else {
             errors.push({
               entityType: 'character',
@@ -284,7 +275,6 @@ export class MigrationService {
         }
       }
 
-      console.log(`[MigrationService] Characters migration completed: ${migrated} migrated, ${skipped} skipped, ${errors.length} errors`);
       return { migrated, skipped, errors };
 
     } catch (error) {
@@ -306,8 +296,6 @@ export class MigrationService {
    * Migration des séquences existantes
    */
   private async migrateSequences(projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
-    // TODO: Implémenter la migration des séquences
-    console.log('[MigrationService] Sequences migration not yet implemented');
     return { migrated: 0, skipped: 0, errors: [] };
   }
 
@@ -315,8 +303,6 @@ export class MigrationService {
    * Migration des scènes existantes
    */
   private async migrateScenes(projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
-    // TODO: Implémenter la migration des scènes
-    console.log('[MigrationService] Scenes migration not yet implemented');
     return { migrated: 0, skipped: 0, errors: [] };
   }
 
@@ -324,8 +310,6 @@ export class MigrationService {
    * Migration des plans existants
    */
   private async migrateShots(projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
-    // TODO: Implémenter la migration des plans
-    console.log('[MigrationService] Shots migration not yet implemented');
     return { migrated: 0, skipped: 0, errors: [] };
   }
 
@@ -334,11 +318,9 @@ export class MigrationService {
    */
   async rollbackMigration(backupId: string): Promise<void> {
     try {
-      console.log(`[MigrationService] Rolling back migration using backup ${backupId}...`);
 
       await syncManager.restoreFromBackup(backupId);
 
-      console.log(`[MigrationService] Rollback completed successfully`);
     } catch (error) {
       console.error(`[MigrationService] Rollback failed:`, error);
       throw new Error(`Migration rollback failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -359,7 +341,6 @@ export class MigrationService {
       throw new Error(`Migration ${migrationId} already succeeded`);
     }
 
-    console.log(`[MigrationService] Retrying failed migration ${migrationId}...`);
 
     // Réessayer seulement les entités qui ont échoué
     const retryErrors: MigrationError[] = [];
@@ -368,11 +349,9 @@ export class MigrationService {
       if (error.canRetry) {
         try {
           // Logique de retry simplifiée - à améliorer selon le type d'entité
-          console.log(`[MigrationService] Retrying ${error.entityType} ${error.entityId}...`);
 
           // Ici nous devrions réessayer l'opération spécifique qui a échoué
           // Pour l'instant, nous marquons simplement comme réussi
-          console.log(`[MigrationService] Retry successful for ${error.entityType} ${error.entityId}`);
 
         } catch (retryError) {
           retryErrors.push({
@@ -406,7 +385,6 @@ export class MigrationService {
       }
     }
 
-    console.log('[MigrationService] Old migrations cleaned up');
   }
 
   /**

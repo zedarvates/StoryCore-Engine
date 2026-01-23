@@ -47,7 +47,6 @@ export function CastingInterface({
 
   // Load avatars on mount
   React.useEffect(() => {
-    loadAvatars('./assets/avatars'); // TODO: Get actual path from project
   }, [loadAvatars]);
 
   const getAssignedAvatar = (characterId: string): Avatar | null => {

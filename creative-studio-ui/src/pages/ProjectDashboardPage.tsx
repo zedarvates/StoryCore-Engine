@@ -6,6 +6,8 @@
  */
 
 import { ProjectDashboardNew } from '@/components/workspace/ProjectDashboardNew';
+import { ChatPanel } from '@/components/ChatPanel';
+import { ChatToggleButton } from '@/components/ChatToggleButton';
 import { useAppStore } from '@/stores/useAppStore';
 import { Film } from 'lucide-react';
 
@@ -55,6 +57,7 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
             🎬 Open Editor
           </button>
           */}
+
         </div>
       </div>
 
@@ -66,6 +69,12 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
           onOpenEditor={onOpenEditor}
         />
       </div>
+
+      {/* Chat Toggle Button */}
+      <ChatToggleButton />
+
+      {/* Chat Panel */}
+      <ChatPanel />
     </div>
   );
 }

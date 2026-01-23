@@ -164,7 +164,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         assets: project.assets || [],
       });
 
-      console.log('Project loaded successfully:', path);
     } catch (error) {
       console.error('Failed to load project:', error);
       throw error;
@@ -180,7 +179,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       }
 
       await projectService.saveProject(projectPath, currentProject);
-      console.log('Project saved successfully');
     } catch (error) {
       console.error('Failed to save project:', error);
       throw error;
@@ -219,7 +217,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       });
     }
 
-    console.log('Wizard opened:', wizardId);
   },
 
   closeWizard: () => {
@@ -235,7 +232,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         activeWizard: null,
       }));
 
-      console.log('Wizard closed:', activeWizard.wizardId);
     }
   },
 
@@ -374,7 +370,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       // Close wizard
       get().closeWizard();
 
-      console.log('Wizard completed successfully:', output.type);
     } catch (error) {
       console.error('Failed to complete wizard:', error);
       throw error;
@@ -394,7 +389,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       const storageKey = `wizard_session_${activeWizard.wizardId}`;
       localStorage.setItem(storageKey, JSON.stringify(preservedData));
 
-      console.log('Wizard session preserved:', activeWizard.wizardId);
     }
   },
 
@@ -438,7 +432,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         },
       });
 
-      console.log('Wizard session restored:', wizardId);
       return true;
     } catch (error) {
       console.error('Failed to restore wizard session:', error);
@@ -574,7 +567,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           selectedShotId: shot.id,
         });
         
-        console.log('Shot created in memory:', shot.id);
         return shot;
       }
     } catch (error) {
@@ -604,7 +596,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           if (window.electronAPI?.sequence) {
             try {
               await window.electronAPI.sequence.updateShot(projectPath, sequenceId, shotId, updates);
-              console.log(`Shot ${shotId} updated in sequence ${sequenceId}`);
             } catch (error) {
               console.warn('Failed to update shot in sequence file, falling back to project service:', error);
               await projectService.updateShot(projectPath, shotId, updates);
@@ -636,7 +627,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           shots: updatedStoryboard,
         });
         
-        console.log('Shot updated in memory:', shotId);
       }
     } catch (error) {
       console.error('Failed to update shot:', error);
@@ -675,7 +665,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           selectedShotId: selectedShotId === shotId ? null : selectedShotId,
         });
         
-        console.log('Shot deleted from memory:', shotId);
       }
     } catch (error) {
       console.error('Failed to delete shot:', error);
@@ -718,7 +707,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           shots: reorderedStoryboard,
         });
         
-        console.log('Shots reordered in memory');
       }
     } catch (error) {
       console.error('Failed to reorder shots:', error);

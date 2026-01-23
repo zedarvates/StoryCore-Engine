@@ -154,7 +154,6 @@ export const transformShots = (
   onTransform: (shots: Shot[]) => void
 ): void => {
   // This would delegate to the appropriate transformation handler
-  console.log(`Transforming ${shots.length} shots with type: ${transformType}`);
   onTransform(shots);
 };
 

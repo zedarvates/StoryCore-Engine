@@ -127,8 +127,14 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
           if (!data.name || data.name.trim() === '') {
             errors.name = ['World name is required'];
           }
+          if (!data.timePeriod || data.timePeriod.trim() === '') {
+            errors.timePeriod = ['Time period is required'];
+          }
           if (!data.genre || data.genre.length === 0) {
             errors.genre = ['At least one genre must be selected'];
+          }
+          if (!data.tone || data.tone.length === 0) {
+            errors.tone = ['At least one tone must be selected'];
           }
           break;
       }
@@ -222,4 +228,4 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
       />
     </WizardProvider>
   );
-}
+}

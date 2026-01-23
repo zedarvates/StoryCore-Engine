@@ -286,6 +286,70 @@ export interface ElectronAPI {
      */
     stopService: () => Promise<any>;
   };
+
+  // File system operations
+  fs: {
+    /**
+     * Read directory contents
+     * @param dirPath Path to directory
+     * @returns Array of file/directory names
+     * @throws Error if read fails
+     */
+    readdir: (dirPath: string) => Promise<string[]>;
+
+    /**
+     * Read file contents
+     * @param filePath Path to file
+     * @returns File buffer
+     * @throws Error if read fails
+     */
+    readFile: (filePath: string) => Promise<Buffer>;
+
+    /**
+     * Write data to file
+     * @param filePath Path to file
+     * @param data Data to write
+     * @throws Error if write fails
+     */
+    writeFile: (filePath: string, data: string | Buffer) => Promise<void>;
+
+    /**
+     * Check if path exists
+     * @param filePath Path to check
+     * @returns True if exists
+     * @throws Error if check fails
+     */
+    exists: (filePath: string) => Promise<boolean>;
+
+    /**
+     * Get file/directory stats
+     * @param filePath Path to file/directory
+     * @returns Stats object
+     * @throws Error if stat fails
+     */
+    stat: (filePath: string) => Promise<{
+      isFile: boolean;
+      isDirectory: boolean;
+      size: number;
+      mtime: Date;
+      birthtime: Date;
+    }>;
+
+    /**
+     * Create directory
+     * @param dirPath Path to directory
+     * @param options Options for mkdir
+     * @throws Error if creation fails
+     */
+    mkdir: (dirPath: string, options?: { recursive?: boolean }) => Promise<void>;
+
+    /**
+     * Delete file
+     * @param filePath Path to file
+     * @throws Error if deletion fails
+     */
+    unlink: (filePath: string) => Promise<void>;
+  };
 }
 
 /**

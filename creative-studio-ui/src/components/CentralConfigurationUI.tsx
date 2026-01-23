@@ -12,6 +12,7 @@ import { ProjectWorkspace } from './workspace/ProjectWorkspace';
 import { APISettingsWindow } from './configuration/APISettingsWindow';
 import { LLMConfigurationWindow } from './configuration/LLMConfigurationWindow';
 import { ComfyUIConfigurationWindow } from './configuration/ComfyUIConfigurationWindow';
+import { GeneralSettingsWindow } from './configuration/GeneralSettingsWindow';
 import './CentralConfigurationUI.css';
 
 // Internal component that uses the configuration context
@@ -27,7 +28,7 @@ function CentralConfigurationUIContent({
   } = useConfiguration();
 
   // State for active window
-  const [activeWindow, setActiveWindow] = useState<'workspace' | 'api' | 'llm' | 'comfyui'>('workspace');
+  const [activeWindow, setActiveWindow] = useState<'workspace' | 'api' | 'llm' | 'comfyui' | 'general'>('workspace');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Load configuration on mount
@@ -39,7 +40,7 @@ function CentralConfigurationUIContent({
     const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
-    console.log('Browser Detection:', {
+    console.log({
       userAgent,
       isSafari,
       isIOS,
@@ -51,7 +52,7 @@ function CentralConfigurationUIContent({
     const supportsBackdropFilter = 'backdropFilter' in style || '-webkit-backdrop-filter' in style;
     const supportsWebkitBackdropFilter = '-webkit-backdrop-filter' in style;
     
-    console.log('CSS Backdrop Filter Support:', {
+    console.log({
       supportsBackdropFilter,
       supportsWebkitBackdropFilter,
       needsWebkitPrefix: isSafari || isIOS
@@ -59,7 +60,7 @@ function CentralConfigurationUIContent({
   }, [projectId, loadConfiguration]);
 
   // Handle opening settings windows
-  const handleOpenSettings = (settingsWindow: 'api' | 'llm' | 'comfyui') => {
+  const handleOpenSettings = (settingsWindow: 'api' | 'llm' | 'comfyui' | 'general') => {
     if (hasUnsavedChanges) {
       const confirmed = window.confirm(
         'You have unsaved changes. Do you want to discard them?'
@@ -162,6 +163,11 @@ function CentralConfigurationUIContent({
         isOpen={activeWindow === 'comfyui'}
         onClose={handleCloseSettings}
         onSave={handleSaveComfyUISettings}
+      />
+
+      <GeneralSettingsWindow
+        isOpen={activeWindow === 'general'}
+        onClose={handleCloseSettings}
       />
 
       {/* Close Button (if onClose provided) */}

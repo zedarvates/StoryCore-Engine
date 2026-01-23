@@ -45,9 +45,9 @@ export function ProductionWizardStepIndicator({
                     size="sm"
                     className={cn(
                       'relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-200',
-                      isCompleted && 'bg-green-500 border-green-500 text-white hover:bg-green-600',
-                      isCurrent && 'bg-blue-500 border-blue-500 text-white',
-                      isUpcoming && 'border-gray-300 text-gray-400 hover:border-gray-400'
+                      isCompleted && 'bg-green-500 border-green-500 text-white hover:bg-green-600 neon-text-green',
+                      isCurrent && 'bg-primary border-primary text-primary-foreground neon-border',
+                      isUpcoming && 'border-muted text-muted-foreground hover:border-accent'
                     )}
                     onClick={() => onStepClick(index)}
                     disabled={isUpcoming && !allowJumpToStep}
@@ -66,9 +66,9 @@ export function ProductionWizardStepIndicator({
                   <div
                     className={cn(
                       'relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-200',
-                      isCompleted && 'bg-green-500 border-green-500 text-white',
-                      isCurrent && 'bg-blue-500 border-blue-500 text-white',
-                      isUpcoming && 'border-gray-300 text-gray-400'
+                      isCompleted && 'bg-green-500 border-green-500 text-white neon-text-green',
+                      isCurrent && 'bg-primary border-primary text-primary-foreground neon-border',
+                      isUpcoming && 'border-muted text-muted-foreground'
                     )}
                     role="tab"
                     aria-selected={isCurrent}
@@ -87,15 +87,15 @@ export function ProductionWizardStepIndicator({
                   <div
                     className={cn(
                       'text-sm font-medium max-w-24 truncate',
-                      isCurrent && 'text-blue-600',
-                      isCompleted && 'text-green-600',
-                      isUpcoming && 'text-gray-400'
+                      isCurrent && 'text-primary neon-text',
+                      isCompleted && 'text-green-500 neon-text-green',
+                      isUpcoming && 'text-muted-foreground'
                     )}
                   >
                     {step.title}
                   </div>
                   {step.description && (
-                    <div className="text-xs text-gray-500 mt-1 max-w-24 truncate">
+                    <div className="text-xs text-muted-foreground mt-1 max-w-24 truncate">
                       {step.description}
                     </div>
                   )}
@@ -107,7 +107,7 @@ export function ProductionWizardStepIndicator({
                 <div
                   className={cn(
                     'h-0.5 w-12 transition-colors duration-200',
-                    index < currentStep ? 'bg-green-500' : 'bg-gray-300'
+                    index < currentStep ? 'bg-green-500 neon-text-green' : 'bg-muted'
                   )}
                   aria-hidden="true"
                 />

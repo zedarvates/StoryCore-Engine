@@ -22,7 +22,6 @@ export class NarrativeService {
   private cacheUpdateSubscribers: Set<NarrativeCacheUpdateCallback> = new Set();
 
   private constructor() {
-    console.log('[NarrativeService] Service initialized with Observer pattern');
   }
 
   static getInstance(): NarrativeService {

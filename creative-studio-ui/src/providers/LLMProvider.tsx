@@ -49,8 +49,6 @@ export function LLMProvider({ children }: LLMProviderProps) {
   // Initialize LLM service on mount
   useEffect(() => {
     async function initialize() {
-      ;
-      
       try {
         // Initialize the LLM configuration service
         await initializeLLMConfigService();
@@ -63,31 +61,21 @@ export function LLMProvider({ children }: LLMProviderProps) {
         if (config && (config.provider === 'local' || config.provider === 'ollama')) {
           const endpoint = config.apiEndpoint || 'http://localhost:11434';
           try {
-            ;
             const response = await fetch(`${endpoint}/api/tags`, {
               method: 'GET',
               signal: AbortSignal.timeout(3000), // 3 second timeout
             });
-            
+
             if (!response.ok) {
               console.warn('[LLMProvider] Ollama is not responding correctly');
               // Don't fail initialization, just warn
-            } else {
-              ;
             }
           } catch (ollamaError) {
             console.warn('[LLMProvider] Ollama is not running or not accessible:', ollamaError);
             // Don't fail initialization, the banner will show the user they need to configure
           }
         }
-        
-        console.log('[LLMProvider] LLM service initialized successfully', {
-          hasService: service !== null,
-          hasConfig: config !== null,
-          provider: config?.provider,
-          model: config?.model,
-        });
-        
+
         setState({
           service,
           config,
@@ -116,18 +104,9 @@ export function LLMProvider({ children }: LLMProviderProps) {
       return;
     }
 
-    ;
-    
     const unsubscribe = llmConfigService.subscribe((config) => {
       const service = llmConfigService.getService();
-      
-      console.log('[LLMProvider] Configuration updated', {
-        hasService: service !== null,
-        hasConfig: config !== null,
-        provider: config?.provider,
-        model: config?.model,
-      });
-      
+
       setState(prev => ({
         ...prev,
         service,
@@ -143,8 +122,6 @@ export function LLMProvider({ children }: LLMProviderProps) {
 
   // Reinitialize function for manual reinitialization
   const reinitialize = async () => {
-    ;
-    
     setState(prev => ({
       ...prev,
       isLoading: true,
@@ -153,12 +130,10 @@ export function LLMProvider({ children }: LLMProviderProps) {
 
     try {
       await initializeLLMConfigService();
-      
+
       const service = llmConfigService.getService();
       const config = llmConfigService.getConfig();
-      
-      ;
-      
+
       setState({
         service,
         config,

@@ -2,7 +2,7 @@
  * Tests for useResultDisplay Hook
  */
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { useResultDisplay } from '../useResultDisplay';
 import { ResultService, MockResultService } from '../../services/resultService';
 

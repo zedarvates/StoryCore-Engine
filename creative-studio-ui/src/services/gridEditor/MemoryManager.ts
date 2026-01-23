@@ -245,7 +245,6 @@ export class MemoryManager {
       this.textures.delete(texture.url);
     }
 
-    console.log(
       `MemoryManager: Freed ${(freedBytes / (1024 * 1024)).toFixed(2)}MB by unloading ${unloadedUrls.length} textures`
     );
 
@@ -271,7 +270,6 @@ export class MemoryManager {
     });
 
     if (unloadedUrls.length > 0) {
-      console.log(`MemoryManager: Garbage collected ${unloadedUrls.length} stale textures`);
     }
 
     return unloadedUrls;

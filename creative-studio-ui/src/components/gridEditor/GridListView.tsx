@@ -10,6 +10,7 @@
 import React, { useCallback } from 'react';
 import { motion } from 'framer-motion';
 import type { GridPanel } from '../../types/gridEditorAdvanced';
+import './GridListView.css';
 
 export interface GridListViewProps {
   items: GridPanel[];
@@ -39,16 +40,7 @@ export const GridListView: React.FC<GridListViewProps> = ({
   }, [items, onLayoutChange]);
 
   return (
-    <div
-      className="grid-list-view"
-      style={{
-        width: '100%',
-        height: '100%',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        padding: '8px'
-      }}
-    >
+    <div className="grid-list-view">
       {items.map((item, index) => (
         <GridListItem
           key={item.id}
@@ -61,16 +53,7 @@ export const GridListView: React.FC<GridListViewProps> = ({
       ))}
 
       {items.length === 0 && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            color: '#999',
-            fontSize: '14px'
-          }}
-        >
+        <div className="grid-list-view-empty">
           No items to display
         </div>
       )}
@@ -97,16 +80,7 @@ const GridListItem: React.FC<GridListItemProps> = ({
 }) => {
   return (
     <motion.div
-      className="grid-list-item"
-      style={{
-        marginBottom: '8px',
-        padding: '12px',
-        background: isSelected ? '#e3f2fd' : 'white',
-        border: `2px solid ${isSelected ? '#2196f3' : '#e0e0e0'}`,
-        borderRadius: '8px',
-        cursor: 'pointer',
-        userSelect: 'none'
-      }}
+      className={`grid-list-item ${isSelected ? 'selected' : ''}`}
       onClick={onClick}
       whileHover={{
         scale: 1.02,
@@ -123,48 +97,25 @@ const GridListItem: React.FC<GridListItemProps> = ({
         delay: index * 0.05
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div className="grid-list-item-content">
         {/* Drag handle */}
-        <div
-          style={{
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#999',
-            cursor: 'grab'
-          }}
-        >
-          ⋮⋮
+        <div className="grid-list-item-drag-handle">
+          &#8942;&#8942;
         </div>
 
         {/* Item content */}
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 500, marginBottom: '4px' }}>
-            {item.content?.name || `Item ${index + 1}`}
+        <div className="grid-list-item-info">
+          <div className="grid-list-item-title">
+            {item.content?.notes || `Shot ${item.content?.number || index + 1}`}
           </div>
-          <div style={{ fontSize: '12px', color: '#666' }}>
-            Position: ({item.position.x}, {item.position.y}) • 
+          <div className="grid-list-item-details">
+            Position: ({item.position.x}, {item.position.y}) •
             Size: {item.size.width}x{item.size.height}
           </div>
         </div>
 
         {/* Status indicator */}
-        {item.locked && (
-          <div
-            style={{
-              width: '20px',
-              height: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#f44336'
-            }}
-          >
-            🔒
-          </div>
-        )}
+        {/* item.locked removed as GridPanel doesn't have locked property */}
       </div>
     </motion.div>
   );

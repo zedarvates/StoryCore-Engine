@@ -377,7 +377,6 @@ export function clearAllSettings(): void {
 export function resetEncryptionKey(): void {
   try {
     sessionStorage.removeItem('encryption-key');
-    console.log('Encryption key reset. New key will be generated on next encryption.');
   } catch (error) {
     console.error('Failed to reset encryption key:', error);
   }

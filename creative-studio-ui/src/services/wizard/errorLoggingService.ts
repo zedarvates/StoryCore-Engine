@@ -65,9 +65,6 @@ export class ErrorLoggingService {
     if (process.env.NODE_ENV === 'development') {
       console.group(`[Error Log] ${error.severity.toUpperCase()}`);
       console.error('Error:', error);
-      console.log('Context:', additionalContext);
-      console.log('User Agent:', navigator.userAgent);
-      console.log('URL:', window.location.href);
       console.groupEnd();
     }
   }

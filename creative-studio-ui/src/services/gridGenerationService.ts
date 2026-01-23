@@ -53,6 +53,14 @@ export interface GridGenerationOptions {
    * Additional prompt enhancement
    */
   enhancePrompt?: boolean;
+
+  /**
+   * Grid layout configuration
+   */
+  gridLayout?: {
+    rows: number;
+    cols: number;
+  };
 }
 
 export interface GridGenerationResult {

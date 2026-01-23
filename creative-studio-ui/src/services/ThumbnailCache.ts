@@ -64,7 +64,6 @@ export class ThumbnailCache {
     this.memoryCache = new Map();
     this.config = config;
     this.currentMemorySize = 0;
-    console.log('[ThumbnailCache] Service initialized with Observer pattern');
   }
 
   /**
