@@ -642,22 +642,26 @@ describe('MockBackendApiService - ComfyUI Integration', () => {
     expect(result.data?.status).toBe('queued');
   });
 
-  it('should provide real-time updates via subscription', (done) => {
+  it('should provide real-time updates via subscription', async () => {
     const updates: number[] = [];
     
-    const cleanup = mockService.subscribeToComfyUIUpdates(
-      'prompt-123',
-      (update) => {
-        updates.push(update.progress);
-        
-        if (update.status === 'completed') {
-          expect(update.progress).toBe(100);
-          expect(update.outputs).toBeDefined();
-          expect(update.outputs).toHaveLength(1);
-          cleanup();
-          done();
+    const updatePromise = new Promise<void>((resolve) => {
+      const cleanup = mockService.subscribeToComfyUIUpdates(
+        'prompt-123',
+        (update) => {
+          updates.push(update.progress);
+          
+          if (update.status === 'completed') {
+            expect(update.progress).toBe(100);
+            expect(update.outputs).toBeDefined();
+            expect(update.outputs).toHaveLength(1);
+            cleanup();
+            resolve();
+          }
         }
-      }
-    );
+      );
+    });
+
+    await updatePromise;
   });
 });

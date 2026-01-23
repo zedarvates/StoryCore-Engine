@@ -85,11 +85,11 @@ describe('WorldBuilderWizard End-to-End Flow', () => {
   beforeEach(() => {
     // Reset store before each test
     useWorldBuilderStore.getState().resetWorld();
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe('Complete world building flow', () => {

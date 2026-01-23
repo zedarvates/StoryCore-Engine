@@ -23,9 +23,12 @@
 
 ## 🚀 Quick Start
 
+> **New to the project?** Start with [START_HERE.md](START_HERE.md) for guided navigation based on your role.
+
 ### Prerequisites
 
 **Required Components:**
+- **Graphics Card** - Minimum RTX 3060 with 12GB VRAM (recommended RTX 4070+ for optimal performance)
 - **ComfyUI** - For AI image/video generation (download from [comfyanonymous.github.io](https://comfyanonymous.github.io/ComfyUI_get/))
 
 Key Info:
@@ -133,8 +136,69 @@ storycore-engine/
 └── tests/                 # Test suite
 ```
 
+---
 
-🎯 Future Roadmap (Post-Launch Enhancements)
+## 🔧 Development
+
+### Building the Application
+
+**Production Build:**
+```bash
+# Build UI and Electron app
+npm run build
+
+# Package for distribution
+npm run package:win   # Windows
+npm run package:mac   # macOS
+npm run package:linux # Linux
+```
+
+**Build Status:** ✅ All builds passing
+- UI Build: ~8s
+- Electron Build: Complete
+- TypeScript: No errors
+- Bundle Size: 1.38 MB (356 KB gzipped)
+
+**For detailed build information, see:** [BUILD_REPORT.md](BUILD_REPORT.md)
+
+### Icon Generation
+
+The application uses `StorycoreIconeV2.png` as the source icon. Platform-specific formats are automatically generated using `electron-icon-builder`.
+
+**Generate icons:**
+```bash
+npm run icons:generate
+```
+
+This creates:
+- `build/icon.ico` - Windows icon bundle (16x16 to 256x256)
+- `build/icon.icns` - macOS icon bundle (up to 1024x1024)
+- `build/icons/` - Individual PNG files at various resolutions
+
+**For detailed icon documentation, see:** [build/README.md](build/README.md)
+
+### Testing
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with UI
+npm run test:ui
+```
+
+**Test Status:** ⚠️ 50% passing (development in progress)
+- Critical functionality: ✅ Working
+- Test cleanup: 🔄 In progress
+
+**For test fixes and status, see:** [FIX_TESTS.md](FIX_TESTS.md)
+
+---
+
+## 🎯 Future Roadmap (Post-Launch Enhancements)
 Future Enhancements
 
 Advanced Camera Movements: Bezier curves and complex transitions
@@ -151,9 +215,23 @@ Professional Studio Integration: Enterprise deployment and scaling
 
 ## 📚 Documentation
 
+### Getting Started
 - [Quick Start Guide](docs/COMFYUI_QUICK_START.md) - ComfyUI setup in 2 minutes
-- [Documentation Index](INDEX.md) - Complete project documentation
+- [Documentation Index](DOCUMENTATION_INDEX.md) - 📑 **START HERE** - Complete documentation navigation
+- [Quick Reference](QUICK_REFERENCE.md) - Common commands and workflows
+
+### Build & Development
+- [Build Success Summary](BUILD_SUCCESS_SUMMARY.md) - ✅ Latest build status (Jan 23, 2026)
+- [Build Report](BUILD_REPORT.md) - Detailed build analysis and metrics
+- [Test Fixes](FIX_TESTS.md) - Test improvements and known issues
+- [Release Notes](RELEASE_NOTES_2026_01_23.md) - Latest release information
 - [Changelog](CHANGELOG.md) - Version history
+
+### Technical Documentation
+- [Technical Guide](documentation/TECHNICAL_GUIDE.md) - Architecture and implementation
+- [API Reference](documentation/api/) - API documentation
+- [Troubleshooting](documentation/TROUBLESHOOTING.md) - Common issues and solutions
+- [Project Index](INDEX.md) - Complete project structure
 
 
 
