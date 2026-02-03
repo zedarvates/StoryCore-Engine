@@ -1,0 +1,386 @@
+/**
+ * Chatbox Animations
+ * 
+ * Smooth animations for the floating AI Assistant panel
+ * Includes open/close, minimize/restore, and hover effects
+ */
+
+/* ============================================================================
+   Panel Open/Close Animations
+   ============================================================================ */
+
+/* Panel opening animation - fade in + slide up */
+@keyframes chatPanelOpen {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Panel closing animation - fade out + slide down */
+@keyframes chatPanelClose {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}
+
+/* Backdrop fade in */
+@keyframes backdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Backdrop fade out */
+@keyframes backdropFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ============================================================================
+   Panel Base Classes
+   ============================================================================ */
+
+.chat-panel {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Opening state */
+.chat-panel-opening {
+  animation: chatPanelOpen 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Closing state */
+.chat-panel-closing {
+  animation: chatPanelClose 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Backdrop */
+.chat-backdrop {
+  transition: opacity 0.2s ease;
+}
+
+.chat-backdrop-opening {
+  animation: backdropFadeIn 0.2s ease forwards;
+}
+
+.chat-backdrop-closing {
+  animation: backdropFadeOut 0.2s ease forwards;
+}
+
+/* ============================================================================
+   Minimize/Restore Animations
+   ============================================================================ */
+
+/* Smooth height transition for minimize/restore */
+.chat-panel-minimizing {
+  transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease 0.1s;
+  overflow: hidden;
+}
+
+.chat-panel-restoring {
+  transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease;
+}
+
+/* Content fade for minimize */
+.chat-content-minimizing {
+  animation: contentFadeOut 0.2s ease forwards;
+}
+
+.chat-content-restoring {
+  animation: contentFadeIn 0.2s ease forwards;
+}
+
+@keyframes contentFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes contentFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   Maximize/Restore Animations
+   ============================================================================ */
+
+.chat-panel-maximizing {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-panel-restoring-size {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================================
+   Dragging Animation
+   ============================================================================ */
+
+.chat-panel-dragging {
+  transition: none;
+  cursor: grabbing !important;
+}
+
+.chat-panel-drag-preview {
+  opacity: 0.9;
+  transform: scale(1.02);
+  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   Resize Animation
+   ============================================================================ */
+
+.chat-panel-resizing {
+  transition: none;
+}
+
+.chat-panel-resize-handle {
+  transition: background-color 0.2s ease;
+}
+
+.chat-panel-resize-handle:hover,
+.chat-panel-resize-handle:active {
+  background-color: #3b82f6;
+}
+
+/* ============================================================================
+   Hover Effects
+   ============================================================================ */
+
+/* Toggle button hover with scale */
+.chat-toggle-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-toggle-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+}
+
+.chat-toggle-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Icon rotation on hover */
+.chat-toggle-icon {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-toggle-btn:hover .chat-toggle-icon {
+  transform: rotate(15deg);
+}
+
+/* Header hover effect */
+.chat-header {
+  transition: background-color 0.2s ease;
+}
+
+.chat-header:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark .chat-header:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Button hover transitions */
+.chat-btn {
+  transition: all 0.15s ease;
+}
+
+.chat-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.chat-btn:active {
+  transform: translateY(0);
+}
+
+.dark .chat-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================================================
+   Message Animations
+   ============================================================================ */
+
+/* Message slide in */
+@keyframes messageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-message-enter {
+  animation: messageSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Typing indicator pulse */
+@keyframes typingPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.chat-typing-dot {
+  animation: typingPulse 1.4s ease-in-out infinite;
+}
+
+.chat-typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.chat-typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* ============================================================================
+   Focus & Accessibility
+   ============================================================================ */
+
+.chat-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+}
+
+.chat-toggle-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.4);
+}
+
+/* ============================================================================
+   Reduced Motion (Accessibility)
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-panel-opening,
+  .chat-panel-closing,
+  .chat-backdrop-opening,
+  .chat-backdrop-closing,
+  .chat-panel-minimizing,
+  .chat-panel-restoring,
+  .chat-panel-maximizing,
+  .chat-panel-restoring-size,
+  .chat-message-enter,
+  .chat-typing-dot {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .chat-toggle-btn:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .chat-toggle-btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  .chat-toggle-btn:hover .chat-toggle-icon {
+    transform: none;
+  }
+
+  .chat-btn:hover {
+    transform: none;
+  }
+
+  .chat-btn:active {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Adjustments
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .chat-header:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .chat-panel-drag-preview {
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ============================================================================
+   Pulse Animation for Unread Messages
+   ============================================================================ */
+
+@keyframes chatPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(139, 92, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+  }
+}
+
+.chat-unread-indicator {
+  animation: chatPulse 2s ease-in-out infinite;
+}
+
+/* ============================================================================
+   Success/Error Toast Animations
+   ============================================================================ */
+
+@keyframes toastSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.chat-toast-enter {
+  animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+

@@ -10,6 +10,7 @@ Bienvenue dans la documentation de StoryCore Creative Studio UI. Cette documenta
 
 - **[Guide Utilisateur de l'Éditeur de Grille](./GRID_EDITOR_USER_GUIDE.md)** - Guide complet pour utiliser l'éditeur de grille avancé
 - **[Référence Rapide](./GRID_EDITOR_QUICK_REFERENCE.md)** - Raccourcis et actions rapides
+- **[Raccourcis Clavier](./KEYBOARD_SHORTCUTS.md)** - Référence complète des raccourcis clavier de la barre de menu
 - **[Guide Utilisateur Général](./USER_GUIDE.md)** - Guide d'utilisation de l'application complète
 
 ### Guides Spécialisés
@@ -77,7 +78,8 @@ Bienvenue dans la documentation de StoryCore Creative Studio UI. Cette documenta
 1. [Guide Utilisateur Général](./USER_GUIDE.md)
 2. [Guide de l'Éditeur de Grille](./GRID_EDITOR_USER_GUIDE.md)
 3. [Référence Rapide](./GRID_EDITOR_QUICK_REFERENCE.md)
-4. [Guide des Wizards](./WIZARD_USER_GUIDE.md)
+4. [Raccourcis Clavier](./KEYBOARD_SHORTCUTS.md)
+5. [Guide des Wizards](./WIZARD_USER_GUIDE.md)
 
 ### Pour les Développeurs
 
@@ -140,7 +142,7 @@ docs/
 ### Je veux...
 
 - **Apprendre à utiliser l'éditeur** → [Guide Utilisateur](./GRID_EDITOR_USER_GUIDE.md)
-- **Voir les raccourcis clavier** → [Référence Rapide](./GRID_EDITOR_QUICK_REFERENCE.md)
+- **Voir les raccourcis clavier** → [Raccourcis Clavier](./KEYBOARD_SHORTCUTS.md) ou [Référence Rapide](./GRID_EDITOR_QUICK_REFERENCE.md)
 - **Comprendre l'architecture** → [Architecture](./GRID_EDITOR_ARCHITECTURE.md)
 - **Développer une nouvelle fonctionnalité** → [Guide Développeur](./GRID_EDITOR_DEVELOPER_GUIDE.md)
 - **Optimiser les performances** → [Optimisation](./PERFORMANCE_OPTIMIZATION.md)

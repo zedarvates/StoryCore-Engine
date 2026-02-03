@@ -79,7 +79,7 @@ export function Step1TemplateSelection({
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[9999]">
               <SelectItem value="all">All Categories</SelectItem>
               {categories.filter(cat => cat !== 'all').map(category => (
                 <SelectItem key={category} value={category}>

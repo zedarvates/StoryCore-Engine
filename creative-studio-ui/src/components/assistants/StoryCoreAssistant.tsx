@@ -12,6 +12,7 @@ import { WIZARD_DEFINITIONS } from '../../data/wizardDefinitions';
 import { useAppStore } from '../../stores/useAppStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { LandingChatBox } from '../launcher/LandingChatBox';
+import { ollamaClient } from '../../services/llm/OllamaClient';
 import './StoryCoreAssistant.css';
 
 interface AssistantMessage {
@@ -142,7 +143,30 @@ export function StoryCoreAssistant() {
     } else if (lowerMessage.includes('storyboard')) {
       await handleWizardLaunch('storyboard-creator');
     } else {
-      // Generic response
+      // Use Ollama for real AI chat if connected
+      const ollamaStatus = useAppStore.getState().ollamaStatus;
+
+      if (ollamaStatus === 'connected') {
+        try {
+          const models = await ollamaClient.listModels();
+          const model = models.find(m => m.category === 'storytelling' || m.name.includes('llama'))?.name || models[0]?.name;
+
+          if (model) {
+            const systemPrompt = `You are the StoryCore Assistant, a helpful AI expert in cinematic storytelling, scriptwriting, and visual design.
+            You help users with their creative projects, giving advice on character development, world-building, and shot planning.
+            The current project is called "${project?.project_name || 'Untitled'}".
+            Keep your responses concise, helpful, and creative.`;
+
+            const response = await ollamaClient.generate(model, `${systemPrompt}\n\nUser: ${message}`);
+            addAssistantMessage(response);
+            return;
+          }
+        } catch (error) {
+          console.error('❌ [StoryCoreAssistant] Ollama chat failed:', error);
+        }
+      }
+
+      // Fallback to generic response
       const response = generateGenericResponse(message);
       addAssistantMessage(response.content, response.suggestions);
     }
@@ -254,7 +278,7 @@ export function StoryCoreAssistant() {
     if (!wizard) return;
 
     // Enhanced announcements with wizard-specific expertise
-    const announcements = {
+    const announcements: Record<string, string> = {
       'ghost-tracker-wizard': `👻 I'm using the Ghost Tracker AI Advisor to analyze your project with deep insights and quality metrics from our test suite. This wizard uses advanced AI to provide comprehensive project analysis, identify improvement opportunities, and suggest optimization strategies.`,
       'roger-wizard': `🤖 I'm using the Roger Data Extractor to intelligently parse your text files and populate your StoryCore project. Roger specializes in natural language processing to extract characters, locations, plot points, and world-building elements from your source materials.`,
       'audio-production-wizard': `🎵 I'm using the SonicCrafter Audio Production Wizard to craft a complete sound design for your video sequences. SonicCrafter analyzes your storyboard to create voice overs, sound effects, music cues, and ambient audio that perfectly match your narrative.`,
@@ -277,7 +301,7 @@ export function StoryCoreAssistant() {
     try {
       const wizardService = new WizardService();
 
-      const result = await wizardService.launchWizard(wizardId, projectPath);
+      const result = await wizardService.launchWizard(wizardId, projectPath || undefined);
 
       if (result.success) {
         let response = `✅ ${wizard.name} completed successfully!\n\n`;
@@ -290,7 +314,7 @@ export function StoryCoreAssistant() {
         const suggestions: AssistantSuggestion[] = [];
 
         // Add "How To" guides for every wizard
-        const howToGuides = {
+        const howToGuides: Record<string, { title: string; description: string }> = {
           'audio-production-wizard': {
             title: '🎵 Master Audio Production',
             description: 'Learn professional sound design techniques'
@@ -372,7 +396,7 @@ export function StoryCoreAssistant() {
     const suggestions: AssistantSuggestion[] = [];
 
     // Intelligent workflow chains based on creative process
-    const workflows = {
+    const workflows: Record<string, { id: string; title: string; desc: string }[]> = {
       'character-creation': [
         { id: 'dialogue-wizard', title: 'Create Dialogue', desc: 'Bring your characters to life with conversations' },
         { id: 'shot-planning', title: 'Plan Shots', desc: 'Visualize your characters in cinematic shots' },
@@ -418,7 +442,7 @@ export function StoryCoreAssistant() {
     };
 
     const workflow = workflows[completedWizardId] || [];
-    return workflow.slice(0, 2).map(item => ({
+    return workflow.slice(0, 2).map((item: any) => ({
       type: 'wizard' as const,
       title: item.title,
       description: item.desc,
@@ -764,8 +788,8 @@ export function StoryCoreAssistant() {
       // For now, we'll simulate the Roger wizard launch with file path
       // In a real implementation, the file would be saved temporarily and processed
 
-      const result = await wizardService.launchWizard('roger-wizard', projectPath, {
-        file: file.path || file.name, // Use file.path if available (Electron), otherwise filename
+      const result = await wizardService.launchWizard('roger-wizard', projectPath || undefined, {
+        file: (file as any).path || file.name, // Use file.path if available (Electron), otherwise filename
         format: 'summary'
       });
 

@@ -42,7 +42,7 @@ export const ComfyUIConfigurationWindow: React.FC<ComfyUIConfigurationWindowProp
 }) => {
   const { saveProjectConfig } = useConfiguration();
   const [config, setConfig] = useState<ComfyUIConfiguration>(initialConfig || {
-    serverUrl: 'http://localhost:8188',
+    serverUrl: 'http://localhost:8000',
     defaultWorkflows: {},
     timeout: 30000,
     enableQueueMonitoring: true

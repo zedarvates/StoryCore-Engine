@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { AlertTriangle, Info, CheckCircle, XCircle } from 'lucide-react';
 import type { AppError, ErrorRecoveryAction } from '../services/errorHandlingService';
 
 export interface ErrorNotificationProps {
@@ -64,17 +65,18 @@ export const ErrorNotification: React.FC<ErrorNotificationProps> = ({
     }
   };
 
-  const getSeverityIcon = (severity: AppError['severity']): string => {
+  const getSeverityIcon = (severity: AppError['severity']): React.ReactNode => {
+    const iconProps = { className: 'w-6 h-6 flex-shrink-0' };
     switch (severity) {
       case 'critical':
       case 'error':
-        return '❌';
+        return <XCircle {...iconProps} aria-label="Error" />;
       case 'warning':
-        return '⚠️';
+        return <AlertTriangle {...iconProps} aria-label="Warning" />;
       case 'info':
-        return 'ℹ️';
+        return <Info {...iconProps} aria-label="Info" />;
       default:
-        return '📋';
+        return <CheckCircle {...iconProps} aria-label="Status" />;
     }
   };
 

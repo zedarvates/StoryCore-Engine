@@ -29,6 +29,7 @@ class BaseHandler(ABC):
         self.start_time = time.time()
         self._pre_hooks: List[Callable[[argparse.Namespace], None]] = []
         self._post_hooks: List[Callable[[argparse.Namespace, int], None]] = []
+        self._memory_hooks: List[Callable[[argparse.Namespace, int], None]] = []
     
     @abstractmethod
     def setup_parser(self, parser: argparse.ArgumentParser) -> None:
@@ -89,6 +90,13 @@ class BaseHandler(ABC):
             except Exception as e:
                 self.logger.warning(f"Post-execution hook failed: {e}")
         
+        # Run memory hooks
+        for hook in self._memory_hooks:
+            try:
+                hook(args, exit_code)
+            except Exception as e:
+                self.logger.warning(f"Memory hook failed: {e}")
+        
         return exit_code
     
     def add_pre_hook(self, hook: Callable[[argparse.Namespace], None]) -> None:
@@ -110,6 +118,16 @@ class BaseHandler(ABC):
         """
         self._post_hooks.append(hook)
         self.logger.debug(f"Added post-execution hook: {hook.__name__}")
+
+    def add_memory_hook(self, hook: Callable[[argparse.Namespace, int], None]) -> None:
+        """
+        Add a memory system hook.
+        
+        Args:
+            hook: Callable that takes args and exit_code, returns None
+        """
+        self._memory_hooks.append(hook)
+        self.logger.debug(f"Added memory hook: {hook.__name__}")
     
     def remove_pre_hook(self, hook: Callable[[argparse.Namespace], None]) -> bool:
         """

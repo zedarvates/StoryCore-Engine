@@ -1,0 +1,27 @@
+{
+  "menu": {
+    "main": "Menu Principal",
+    "view": "Affichage",
+    "settings": "Paramètres",
+    "backToDashboard": "Retour au Tableau de Bord",
+    "llmConfig": "Configuration de l'Assistant LLM StoryCore",
+    "comfyUIConfig": "Configuration du Serveur ComfyUI",
+    "userPreferences": "Préférences Utilisateur"
+  },
+  "preferences": {
+    "title": "Préférences Utilisateur",
+    "language": "Langue",
+    "selectLanguage": "Sélectionner la langue",
+    "languageDescription": "Sélectionnez votre langue préférée pour l'interface"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "ok": "OK",
+    "yes": "Oui",
+    "no": "Non",
+    "apply": "Appliquer",
+    "reset": "Réinitialiser"
+  }
+}

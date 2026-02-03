@@ -1,0 +1,14 @@
+# Requirements for Scientific Fact-Checking & Multimedia Anti-Fake System
+
+# Core dependencies
+jsonschema>=4.17.0  # JSON Schema validation
+
+# Testing dependencies
+pytest>=7.4.0  # Testing framework
+hypothesis>=6.82.0  # Property-based testing
+pytest-cov>=4.1.0  # Coverage reporting (optional)
+
+# Development dependencies (optional)
+black>=23.0.0  # Code formatting
+flake8>=6.0.0  # Linting
+mypy>=1.4.0  # Type checking

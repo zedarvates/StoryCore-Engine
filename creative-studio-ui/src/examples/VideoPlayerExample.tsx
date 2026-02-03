@@ -89,8 +89,8 @@ export const VideoPlayerExample: React.FC = () => {
               controls={true}
               playbackRate={playbackRate}
               onPlaybackRateChange={setPlaybackRate}
-              onTimeUpdate={(time) => }
-              onEnded={() => }
+              onTimeUpdate={(time) => console.log('Time update:', time)}
+              onEnded={() => console.log('Video ended')}
             />
           </div>
           <div className="mt-4 text-sm text-gray-400">

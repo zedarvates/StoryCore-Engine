@@ -51,11 +51,13 @@ dependencies = [
     "structlog>=23.2.0",
     "httpx>=0.25.0",
     "python-dotenv>=1.0.0",
+    "ffmpeg-python>=0.2.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
     "hypothesis>=6.100.0",
     "pytest-cov>=4.1.0",
     "black>=23.0.0",
@@ -64,6 +66,7 @@ dev = [
 ]
 test = [
     "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
     "hypothesis>=6.100.0",
     "pytest-cov>=4.1.0",
 ]
@@ -78,7 +81,7 @@ Repository = "https://github.com/storycore/storycore-engine"
 Issues = "https://github.com/storycore/storycore-engine/issues"
 
 [tool.setuptools]
-packages = ["src", "src.cli", "src.cli.handlers", "src.cli.utils"]
+packages = ["src", "src.cli", "src.cli.handlers", "src.cli.utils", "src.comfyui_test_framework"]
 
 [tool.setuptools.package-data]
 "*" = ["*.md", "*.txt"]
@@ -145,3 +148,24 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@abstractmethod",
 ]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--disable-warnings",
+]
+markers = [
+    "unit: Unit tests for individual components",
+    "integration: Integration tests for component interactions",
+    "property: Property-based tests using hypothesis",
+    "slow: Tests that take significant time to run",
+    "comfyui: ComfyUI integration tests requiring a running ComfyUI instance",
+]
+asyncio_mode = "auto"

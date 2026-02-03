@@ -1,0 +1,4072 @@
+{
+  "generated_at": "2026-01-24T10:08:20.817987",
+  "total_tests": 235,
+  "obsolete_tests": [
+    "tests\\integration\\test_cli_backward_compatibility.py",
+    "tests\\integration\\test_cli_command_workflows.py",
+    "tests\\property\\test_character_data_contract_compliance.py",
+    "tests\\property\\test_quality_models_properties.py",
+    "tests\\test_advanced_image_quality_monitor.py",
+    "tests\\test_advanced_performance_optimizer.py",
+    "tests\\test_advanced_video_quality_simple.py",
+    "tests\\test_advanced_workflow_config.py",
+    "tests\\test_advanced_workflow_config_extended.py",
+    "tests\\test_ai_enhancement_integration.py",
+    "tests\\test_ai_error_handling_simple.py",
+    "tests\\test_analytics_ai_integration_simple.py",
+    "tests\\test_analytics_dashboard.py",
+    "tests\\test_batch_ai_integration_simple.py",
+    "tests\\test_batch_processing_system.py",
+    "tests\\test_camera_movement_properties.py",
+    "tests\\test_checkpoint_validation.py",
+    "tests\\test_circuit_breaker_integration.py",
+    "tests\\test_cli_comfyui_integration.py",
+    "tests\\test_cli_mix_audio_properties.py",
+    "tests\\test_cli_service_management.py",
+    "tests\\test_cli_service_management_simple.py",
+    "tests\\test_cli_validation_properties.py",
+    "tests\\test_cli_video_integration.py",
+    "tests\\test_comfyui_audio_integration.py",
+    "tests\\test_config_system_simple.py",
+    "tests\\test_corrections_tasks_7_8.py",
+    "tests\\test_cross_platform_compatibility.py",
+    "tests\\test_cross_platform_integration.py",
+    "tests\\test_cross_platform_properties.py",
+    "tests\\test_cross_platform_simple.py",
+    "tests\\test_enhanced_image_engine.py",
+    "tests\\test_enhanced_image_simple.py",
+    "tests\\test_enhanced_video_engine.py",
+    "tests\\test_enhanced_video_simple.py",
+    "tests\\test_export_manager_properties.py",
+    "tests\\test_hunyuan_integration_simple.py",
+    "tests\\test_hunyuan_simple.py",
+    "tests\\test_hunyuan_video_integration.py",
+    "tests\\test_image_quality_simple.py",
+    "tests\\test_integration_wan_video_task_2_2.py",
+    "tests\\test_interpolation_quality_properties.py",
+    "tests\\test_metadata_compliance_simple.py",
+    "tests\\test_metadata_integrity_properties.py",
+    "tests\\test_model_compatibility_versioning.py",
+    "tests\\test_motion_coherence_properties.py",
+    "tests\\test_newbie_simple.py",
+    "tests\\test_performance_optimizer_simple.py",
+    "tests\\test_personality_generation.py",
+    "tests\\test_pipeline_integration_properties.py",
+    "tests\\test_pipeline_quality_integration.py",
+    "tests\\test_quality_feedback_properties.py",
+    "tests\\test_quality_threshold_validation_properties.py",
+    "tests\\test_quality_validator_audio_properties.py",
+    "tests\\test_quality_validator_properties.py",
+    "tests\\test_quality_validator_visual_properties.py",
+    "tests\\test_qwen_image_suite_integration.py",
+    "tests\\test_real_time_preview_system.py",
+    "tests\\test_report_generator_properties.py",
+    "tests\\test_resilient_integrations_simple.py",
+    "tests\\test_security_validation_simple.py",
+    "tests\\test_timeline_manager_properties.py",
+    "tests\\test_video_config_properties.py",
+    "tests\\test_video_engine_end_to_end.py",
+    "tests\\test_video_engine_end_to_end_properties.py",
+    "tests\\test_video_engine_system_validation.py",
+    "tests\\test_video_error_handling_properties.py",
+    "tests\\test_video_performance_properties.py",
+    "tests\\test_video_pipeline_integration.py",
+    "tests\\test_video_pipeline_properties.py",
+    "tests\\test_video_quality_core.py",
+    "tests\\test_wan_simple.py",
+    "tests\\test_wan_video_integration.py",
+    "tests\\unit\\test_audio_mixing_engine.py",
+    "tests\\unit\\test_character_wizard_handler.py",
+    "tests\\unit\\test_cli_core.py",
+    "tests\\unit\\test_cli_errors.py",
+    "tests\\unit\\test_comfyui_handler.py",
+    "tests\\unit\\test_completion_handler.py",
+    "tests\\unit\\test_config_utils.py",
+    "tests\\unit\\test_continuity_validator.py",
+    "tests\\unit\\test_dashboard_handler.py",
+    "tests\\unit\\test_export_handler.py",
+    "tests\\unit\\test_generate_audio_handler.py",
+    "tests\\unit\\test_generate_images_handler.py",
+    "tests\\unit\\test_generate_video_handler.py",
+    "tests\\unit\\test_grid_format_optimizer_data_contract.py",
+    "tests\\unit\\test_grid_handler.py",
+    "tests\\unit\\test_help_handler.py",
+    "tests\\unit\\test_init_handler.py",
+    "tests\\unit\\test_narrative_handler.py",
+    "tests\\unit\\test_output_utils.py",
+    "tests\\unit\\test_project_utils.py",
+    "tests\\unit\\test_promote_handler.py",
+    "tests\\unit\\test_puppet_layer_handler.py",
+    "tests\\unit\\test_qa_handler.py",
+    "tests\\unit\\test_quality_models.py",
+    "tests\\unit\\test_scene_breakdown_handler.py",
+    "tests\\unit\\test_script_handler.py",
+    "tests\\unit\\test_shot_planning_handler.py",
+    "tests\\unit\\test_storyboard_handler.py",
+    "tests\\unit\\test_validate_handler.py",
+    "tests\\unit\\test_validation_utils.py",
+    "tests\\unit\\test_video_plan_handler.py",
+    "tests\\unit\\test_world_generate_handler.py"
+  ],
+  "fragile_tests": [],
+  "duplicate_groups": [
+    {
+      "tests": [
+        "tests\\integration\\test_cli_backward_compatibility.py::test_init_command_interface",
+        "tests\\integration\\test_cli_backward_compatibility.py::test_grid_command_interface",
+        "tests\\integration\\test_cli_backward_compatibility.py::test_promote_command_interface",
+        "tests\\integration\\test_cli_backward_compatibility.py::test_qa_command_interface",
+        "tests\\integration\\test_cli_backward_compatibility.py::test_export_command_interface",
+        "tests\\integration\\test_cli_backward_compatibility.py::test_validate_command_interface",
+        "tests\\integration\\test_cli_backward_compatibility.py::test_global_flags_compatibility",
+        "tests\\integration\\test_cli_backward_compatibility.py::test_help_output_format",
+        "tests\\integration\\test_cli_backward_compatibility.py::test_init_then_validate_workflow",
+        "tests\\integration\\test_cli_command_workflows.py::test_help_command_workflow",
+        "tests\\integration\\test_cli_command_workflows.py::test_help_specific_command_workflow",
+        "tests\\integration\\test_cli_command_workflows.py::test_validate_command_workflow",
+        "tests\\integration\\test_cli_command_workflows.py::test_global_verbose_flag",
+        "tests\\integration\\test_cli_command_workflows.py::test_global_quiet_flag",
+        "tests\\integration\\test_cli_command_workflows.py::test_global_log_level_flag",
+        "tests\\integration\\test_cli_command_workflows.py::test_help_system_completeness",
+        "tests\\unit\\test_character_wizard_handler.py::test_execute_success",
+        "tests\\unit\\test_cli_core.py::test_execute_command_success",
+        "tests\\unit\\test_completion_handler.py::test_execute_bash_completion",
+        "tests\\unit\\test_completion_handler.py::test_execute_zsh_completion",
+        "tests\\unit\\test_completion_handler.py::test_execute_fish_completion",
+        "tests\\unit\\test_export_handler.py::test_execute_success",
+        "tests\\unit\\test_export_handler.py::test_execute_with_custom_output",
+        "tests\\unit\\test_export_handler.py::test_execute_different_formats",
+        "tests\\unit\\test_export_handler.py::test_execute_with_source_files",
+        "tests\\unit\\test_export_handler.py::test_execute_empty_export_directory",
+        "tests\\unit\\test_generate_audio_handler.py::test_execute_success",
+        "tests\\unit\\test_generate_images_handler.py::test_execute_success",
+        "tests\\unit\\test_generate_video_handler.py::test_execute_success",
+        "tests\\unit\\test_grid_handler.py::test_execute_success",
+        "tests\\unit\\test_grid_handler.py::test_execute_with_custom_output",
+        "tests\\unit\\test_help_handler.py::test_execute_general_help",
+        "tests\\unit\\test_help_handler.py::test_execute_command_help",
+        "tests\\unit\\test_init_handler.py::test_execute_legacy_mode_success",
+        "tests\\unit\\test_init_handler.py::test_execute_legacy_mode_missing_project_name",
+        "tests\\unit\\test_init_handler.py::test_execute_wizard_mode_success",
+        "tests\\unit\\test_init_handler.py::test_execute_wizard_mode_cancelled",
+        "tests\\unit\\test_narrative_handler.py::test_execute_success",
+        "tests\\unit\\test_promote_handler.py::test_execute_success",
+        "tests\\unit\\test_promote_handler.py::test_execute_different_methods",
+        "tests\\unit\\test_puppet_layer_handler.py::test_execute_success",
+        "tests\\unit\\test_qa_handler.py::test_execute_success_passed",
+        "tests\\unit\\test_qa_handler.py::test_execute_detailed_mode",
+        "tests\\unit\\test_scene_breakdown_handler.py::test_execute_success",
+        "tests\\unit\\test_script_handler.py::test_execute_success",
+        "tests\\unit\\test_shot_planning_handler.py::test_execute_success",
+        "tests\\unit\\test_storyboard_handler.py::test_execute_success",
+        "tests\\unit\\test_video_plan_handler.py::test_execute_success",
+        "tests\\unit\\test_world_generate_handler.py::test_execute_success"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert exit_code == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\integration\\test_cli_backward_compatibility.py::test_error_exit_codes",
+        "tests\\integration\\test_cli_command_workflows.py::test_invalid_command_workflow",
+        "tests\\integration\\test_cli_command_workflows.py::test_error_handling_workflow",
+        "tests\\unit\\test_character_wizard_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_cli_core.py::test_execute_command_no_command",
+        "tests\\unit\\test_cli_core.py::test_execute_command_with_error",
+        "tests\\unit\\test_export_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_export_handler.py::test_execute_import_error",
+        "tests\\unit\\test_generate_audio_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_generate_images_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_generate_video_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_grid_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_grid_handler.py::test_execute_invalid_grid_spec",
+        "tests\\unit\\test_grid_handler.py::test_execute_invalid_cell_size",
+        "tests\\unit\\test_grid_handler.py::test_execute_import_error",
+        "tests\\unit\\test_init_handler.py::test_execute_wizard_mode_file_creation_failed",
+        "tests\\unit\\test_init_handler.py::test_execute_wizard_import_error",
+        "tests\\unit\\test_init_handler.py::test_execute_legacy_import_error",
+        "tests\\unit\\test_narrative_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_promote_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_promote_handler.py::test_execute_invalid_scale",
+        "tests\\unit\\test_promote_handler.py::test_execute_import_error",
+        "tests\\unit\\test_puppet_layer_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_qa_handler.py::test_execute_success_failed",
+        "tests\\unit\\test_qa_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_qa_handler.py::test_execute_invalid_threshold_low",
+        "tests\\unit\\test_qa_handler.py::test_execute_invalid_threshold_high",
+        "tests\\unit\\test_qa_handler.py::test_execute_import_error",
+        "tests\\unit\\test_scene_breakdown_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_script_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_shot_planning_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_storyboard_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_video_plan_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_world_generate_handler.py::test_execute_project_not_found"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\integration\\test_cli_backward_compatibility.py::test_multiple_commands_same_project",
+        "tests\\integration\\test_cli_command_workflows.py::test_command_with_missing_required_args"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert exit_code in [0, 1, 2]"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\integration\\test_extensibility_integration.py::test_complete_plugin_workflow",
+        "tests\\integration\\test_extensibility_integration.py::test_hooks_with_real_execution",
+        "tests\\integration\\test_extensibility_integration.py::test_enhanced_help_integration",
+        "tests\\integration\\test_extensibility_integration.py::test_command_info_retrieval",
+        "tests\\integration\\test_extensibility_integration.py::test_multiple_plugins_coexist",
+        "tests\\test_advanced_video_quality_monitor.py::test_monitor_initialization",
+        "tests\\test_advanced_video_quality_monitor.py::test_factory_function",
+        "tests\\test_advanced_video_quality_monitor.py::test_synthetic_frame_generation",
+        "tests\\test_advanced_video_quality_monitor.py::test_video_analysis_synthetic",
+        "tests\\test_advanced_video_quality_monitor.py::test_temporal_consistency_analysis",
+        "tests\\test_advanced_video_quality_monitor.py::test_motion_smoothness_analysis",
+        "tests\\test_advanced_video_quality_monitor.py::test_visual_quality_analysis",
+        "tests\\test_advanced_video_quality_monitor.py::test_artifact_detection",
+        "tests\\test_advanced_video_quality_monitor.py::test_alpha_channel_analysis",
+        "tests\\test_advanced_video_quality_monitor.py::test_frame_stability_analysis",
+        "tests\\test_advanced_video_quality_monitor.py::test_color_consistency_analysis",
+        "tests\\test_advanced_video_quality_monitor.py::test_edge_coherence_analysis",
+        "tests\\test_advanced_video_quality_monitor.py::test_texture_preservation_analysis",
+        "tests\\test_advanced_video_quality_monitor.py::test_overall_score_calculation",
+        "tests\\test_advanced_video_quality_monitor.py::test_quality_issue_detection",
+        "tests\\test_advanced_video_quality_monitor.py::test_improvement_suggestions",
+        "tests\\test_advanced_video_quality_monitor.py::test_quality_dashboard_data",
+        "tests\\test_advanced_video_quality_monitor.py::test_score_to_grade_conversion",
+        "tests\\test_advanced_video_quality_monitor.py::test_quality_report_export",
+        "tests\\test_advanced_video_quality_monitor.py::test_analysis_caching",
+        "tests\\test_advanced_video_quality_monitor.py::test_error_handling",
+        "tests\\test_advanced_video_quality_monitor.py::test_configuration_validation",
+        "tests\\test_advanced_video_quality_monitor.py::test_quality_issue_creation",
+        "tests\\test_advanced_video_quality_monitor.py::test_quality_config_defaults",
+        "tests\\test_advanced_video_quality_monitor.py::test_quality_thresholds_defaults",
+        "tests\\test_advanced_video_quality_simple.py::test_basic_functionality",
+        "tests\\test_advanced_video_quality_simple.py::test_quality_thresholds",
+        "tests\\test_advanced_video_quality_simple.py::test_workflow_specific_analysis",
+        "tests\\test_advanced_video_quality_simple.py::test_real_time_monitoring",
+        "tests\\test_ai_operations_monitoring.py::test_resource_monitoring",
+        "tests\\test_ai_operations_monitoring.py::test_alert_thresholds",
+        "tests\\test_ai_operations_monitoring.py::test_model_performance_check",
+        "tests\\test_ai_operations_monitoring.py::test_alert_sending",
+        "tests\\test_ai_operations_monitoring.py::test_email_alert",
+        "tests\\test_ai_operations_monitoring.py::test_slack_alert",
+        "tests\\test_ai_operations_monitoring.py::test_alert_state_management",
+        "tests\\test_ai_operations_monitoring.py::test_monitoring_loop",
+        "tests\\test_ai_operations_monitoring.py::test_config_loading",
+        "tests\\test_ai_operations_monitoring.py::test_alert_configuration",
+        "tests\\test_ai_operations_monitoring.py::test_monitoring_configuration",
+        "tests\\test_ai_operations_monitoring.py::test_alert_with_disabled_channels",
+        "tests\\test_analytics_dashboard.py::test_database_initialization",
+        "tests\\test_analytics_dashboard.py::test_store_and_retrieve_metrics",
+        "tests\\test_analytics_dashboard.py::test_time_range_filtering",
+        "tests\\test_analytics_dashboard.py::test_dashboard_initialization",
+        "tests\\test_analytics_dashboard.py::test_record_performance_metrics",
+        "tests\\test_analytics_dashboard.py::test_record_quality_metrics",
+        "tests\\test_analytics_dashboard.py::test_record_resource_metrics",
+        "tests\\test_analytics_dashboard.py::test_record_system_health",
+        "tests\\test_analytics_dashboard.py::test_performance_summary",
+        "tests\\test_analytics_dashboard.py::test_quality_trends",
+        "tests\\test_analytics_dashboard.py::test_system_health_status",
+        "tests\\test_analytics_dashboard.py::test_dashboard_data_generation",
+        "tests\\test_analytics_dashboard.py::test_export_analytics_report",
+        "tests\\test_analytics_dashboard.py::test_circuit_breaker_integration",
+        "tests\\test_analytics_dashboard.py::test_metric_data_creation",
+        "tests\\test_analytics_dashboard.py::test_performance_metrics_structure",
+        "tests\\test_analytics_dashboard.py::test_quality_metrics_structure",
+        "tests\\test_analytics_dashboard.py::test_resource_metrics_structure",
+        "tests\\test_analytics_dashboard.py::test_system_health_metrics_structure",
+        "tests\\test_api_security.py::test_user",
+        "tests\\test_audio_cli.py::test_audio_generation",
+        "tests\\test_audio_effects.py::test_inversion",
+        "tests\\test_audio_effects.py::test_amplification",
+        "tests\\test_audio_features.py::test_lfo",
+        "tests\\test_audio_features.py::test_autotune",
+        "tests\\test_audio_features.py::test_noise_reduction",
+        "tests\\test_audio_features.py::test_cleaner",
+        "tests\\test_audio_features.py::test_phaser",
+        "tests\\test_audio_features.py::test_speed_changer",
+        "tests\\test_audio_features.py::test_amplifier",
+        "tests\\test_audio_features.py::test_wah_wah",
+        "tests\\test_audio_features.py::test_vibrato",
+        "tests\\test_audio_features.py::test_tremolo",
+        "tests\\test_audio_features.py::test_distortion",
+        "tests\\test_audio_features.py::test_chorus",
+        "tests\\test_audio_features.py::test_doppler_effect",
+        "tests\\test_audio_features.py::test_inverter",
+        "tests\\test_audio_features.py::test_vocal_reduction",
+        "tests\\test_audio_features.py::test_voice_isolation",
+        "tests\\test_audio_features.py::test_click_pop_reduction",
+        "tests\\test_audio_features.py::test_noise_suppression",
+        "tests\\test_audio_features.py::test_voice_modification",
+        "tests\\test_audio_features.py::test_high_pass_filter",
+        "tests\\test_audio_features.py::test_low_pass_filter",
+        "tests\\test_audio_features.py::test_dc_offset_correction",
+        "tests\\test_audio_features.py::test_channel_swapper",
+        "tests\\test_audio_features.py::test_channel_inverter",
+        "tests\\test_audio_features.py::test_dynamic_range_compressor",
+        "tests\\test_batch_processing_system.py::test_queue_initialization",
+        "tests\\test_batch_processing_system.py::test_add_and_get_job_fifo",
+        "tests\\test_batch_processing_system.py::test_add_and_get_job_priority",
+        "tests\\test_batch_processing_system.py::test_shortest_job_first",
+        "tests\\test_batch_processing_system.py::test_queue_size_tracking",
+        "tests\\test_batch_processing_system.py::test_priority_distribution",
+        "tests\\test_batch_processing_system.py::test_worker_initialization",
+        "tests\\test_batch_processing_system.py::test_successful_job_processing",
+        "tests\\test_batch_processing_system.py::test_failed_job_processing",
+        "tests\\test_batch_processing_system.py::test_unknown_job_type",
+        "tests\\test_batch_processing_system.py::test_worker_stats_calculation",
+        "tests\\test_batch_processing_system.py::test_system_initialization",
+        "tests\\test_batch_processing_system.py::test_job_submission",
+        "tests\\test_batch_processing_system.py::test_job_processing_lifecycle",
+        "tests\\test_batch_processing_system.py::test_priority_scheduling",
+        "tests\\test_batch_processing_system.py::test_job_retry_mechanism",
+        "tests\\test_batch_processing_system.py::test_system_statistics",
+        "tests\\test_batch_processing_system.py::test_database_persistence",
+        "tests\\test_batch_processing_system.py::test_worker_management",
+        "tests\\test_batch_processing_system.py::test_video_processing_job",
+        "tests\\test_batch_processing_system.py::test_image_enhancement_job",
+        "tests\\test_batch_processing_system.py::test_resource_usage_retrieval",
+        "tests\\test_batch_processing_system.py::test_worker_scaling_decision",
+        "tests\\test_batch_processing_system.py::test_processor",
+        "tests\\test_batch_processing_system.py::test_processor",
+        "tests\\test_checkpoint_validation.py::test_export_system_integration",
+        "tests\\test_checkpoint_validation.py::test_performance_optimization_under_load",
+        "tests\\test_checkpoint_validation.py::test_error_handling_and_recovery",
+        "tests\\test_checkpoint_validation.py::test_full_integration",
+        "tests\\test_circuit_breaker_integration.py::test_video_engine_circuit_breaker_integration",
+        "tests\\test_circuit_breaker_integration.py::test_performance_monitor_circuit_breaker_integration",
+        "tests\\test_circuit_breaker_integration.py::test_error_handler_circuit_breaker_integration",
+        "tests\\test_circuit_breaker_integration.py::test_circuit_breaker_under_load",
+        "tests\\test_circuit_breaker_integration.py::test_timeout_protection",
+        "tests\\test_comfyui_audio_integration.py::test_workflow_customization",
+        "tests\\test_comfyui_audio_integration.py::test_audio_generation_integration",
+        "tests\\test_comfyui_audio_integration.py::test_prompt_generation",
+        "tests\\test_comfyui_audio_integration.py::test_export_with_comfyui_metadata",
+        "tests\\test_comfyui_integration.py::test_connection_success",
+        "tests\\test_comfyui_integration.py::test_connection_failure",
+        "tests\\test_comfyui_integration.py::test_queue_workflow_success",
+        "tests\\test_comfyui_integration.py::test_queue_workflow_retry_logic",
+        "tests\\test_comfyui_integration.py::test_vram_error_detection",
+        "tests\\test_comfyui_integration.py::test_parameter_injection",
+        "tests\\test_comfyui_integration.py::test_output_validation_success",
+        "tests\\test_comfyui_integration.py::test_output_validation_failure",
+        "tests\\test_comfyui_integration.py::test_parameter_injection",
+        "tests\\test_comfyui_integration.py::test_panel_seed_generation",
+        "tests\\test_comfyui_integration.py::test_panel_workflow_creation",
+        "tests\\test_comfyui_integration.py::test_workflow_structure_validation",
+        "tests\\test_comfyui_integration.py::test_workflow_loading",
+        "tests\\test_comfyui_integration.py::test_vram_overflow_exception",
+        "tests\\test_comfyui_integration.py::test_execution_error_exception",
+        "tests\\test_comfyui_integration.py::test_validation_error_exception",
+        "tests\\test_comfyui_integration.py::test_complete_workflow_execution",
+        "tests\\test_comfyui_integration.py::test_deterministic_seeding",
+        "tests\\test_compare.py::test_compare_command",
+        "tests\\test_compilation_simple.py::test_compilation",
+        "tests\\test_complete_pipeline.py::test_complete_pipeline",
+        "tests\\test_corrections_tasks_7_8.py::test_imports_no_conflict",
+        "tests\\test_corrections_tasks_7_8.py::test_class_instantiation",
+        "tests\\test_cross_platform_compatibility.py::test_main_function",
+        "tests\\test_cross_platform_compatibility.py::test_configuration_serialization",
+        "tests\\test_cross_platform_integration.py::test_cross_platform_integration",
+        "tests\\test_cross_platform_integration.py::test_cross_platform_manager_directly",
+        "tests\\test_dynamic_quality_adjustment.py::test_quality_adjustment_speed_strategy",
+        "tests\\test_dynamic_quality_adjustment.py::test_quality_adjustment_quality_strategy",
+        "tests\\test_dynamic_quality_adjustment.py::test_quality_adjustment_balanced_strategy",
+        "tests\\test_dynamic_quality_adjustment.py::test_quality_adjustment_adaptive_strategy",
+        "tests\\test_dynamic_quality_adjustment.py::test_quality_adjustment_with_metrics",
+        "tests\\test_dynamic_quality_adjustment.py::test_performance_level_assessment",
+        "tests\\test_dynamic_quality_adjustment.py::test_optimization_recommendations",
+        "tests\\test_dynamic_quality_adjustment.py::test_batch_size_optimization",
+        "tests\\test_dynamic_quality_adjustment.py::test_adaptive_batch_creation",
+        "tests\\test_error_handler_properties.py::test_callback",
+        "tests\\test_error_handler_simple.py::test_callback",
+        "tests\\test_error_handling_resilience.py::test_calculate_delay",
+        "tests\\test_error_handling_resilience.py::test_is_retryable",
+        "tests\\test_error_handling_resilience.py::test_get_stats",
+        "tests\\test_error_handling_resilience.py::test_initial_state",
+        "tests\\test_error_handling_resilience.py::test_transition_to_open",
+        "tests\\test_error_handling_resilience.py::test_transition_to_closed",
+        "tests\\test_error_handling_resilience.py::test_get_state",
+        "tests\\test_error_handling_resilience.py::test_get_stats",
+        "tests\\test_error_handling_resilience.py::test_initial_level",
+        "tests\\test_error_handling_resilience.py::test_degrade",
+        "tests\\test_error_handling_resilience.py::test_restore",
+        "tests\\test_error_handling_resilience.py::test_get_config",
+        "tests\\test_error_handling_resilience.py::test_adjust_parameters",
+        "tests\\test_error_handling_resilience.py::test_adjust_resolution",
+        "tests\\test_error_handling_resilience.py::test_record_error",
+        "tests\\test_error_handling_resilience.py::test_get_error_rate",
+        "tests\\test_error_handling_resilience.py::test_get_most_common_errors",
+        "tests\\test_error_handling_resilience.py::test_get_errors_by_category",
+        "tests\\test_error_handling_resilience.py::test_get_recovery_rate",
+        "tests\\test_error_handling_resilience.py::test_generate_report",
+        "tests\\test_error_handling_resilience.py::test_get_recovery_history",
+        "tests\\test_error_handling_resilience.py::test_get_circuit_breaker",
+        "tests\\test_error_handling_resilience.py::test_get_fallback_chain",
+        "tests\\test_error_handling_resilience.py::test_categorize_error",
+        "tests\\test_error_handling_resilience.py::test_assess_severity",
+        "tests\\test_error_handling_resilience.py::test_get_system_health",
+        "tests\\test_error_handling_resilience.py::test_generate_resilience_report",
+        "tests\\test_extended_grid.py::test_stack_grids",
+        "tests\\test_extended_grid.py::test_invalid_grids",
+        "tests\\test_file_analyzer_basic.py::test_file_categorization",
+        "tests\\test_file_analyzer_basic.py::test_project_scanning",
+        "tests\\test_file_analyzer_basic.py::test_dependency_analysis",
+        "tests\\test_file_analyzer_basic.py::test_movement_plan_generation",
+        "tests\\test_grid.py::test_grid_generation",
+        "tests\\test_grid.py::test_grid_validation",
+        "tests\\test_hunyuan_video_integration.py::test_image",
+        "tests\\test_infographic_prompt_generator.py::test_load_templates_from_file",
+        "tests\\test_infographic_prompt_generator.py::test_get_available_templates",
+        "tests\\test_infographic_prompt_generator.py::test_get_available_graphic_styles",
+        "tests\\test_infographic_prompt_generator.py::test_generate_prompt",
+        "tests\\test_infographic_prompt_generator.py::test_generate_prompt_with_custom_requirements",
+        "tests\\test_infographic_prompt_generator.py::test_save_and_load_template_json",
+        "tests\\test_infographic_prompt_generator.py::test_create_infographic_prompt_function",
+        "tests\\test_installation_api.py::test_cors_test_server_not_running",
+        "tests\\test_model_deployment.py::test_model_backup",
+        "tests\\test_model_deployment.py::test_model_deployment",
+        "tests\\test_model_deployment.py::test_model_update",
+        "tests\\test_model_deployment.py::test_model_rollback",
+        "tests\\test_model_deployment.py::test_model_integrity_check",
+        "tests\\test_model_deployment.py::test_model_integrity_check_failure",
+        "tests\\test_model_deployment.py::test_model_monitoring",
+        "tests\\test_model_deployment.py::test_deployment_with_backup_failure",
+        "tests\\test_model_deployment.py::test_update_with_rollback",
+        "tests\\test_model_manager_foundation.py::test_memory_requirements",
+        "tests\\test_model_optimization.py::test_model",
+        "tests\\test_model_optimization.py::test_input",
+        "tests\\test_newbie_image_integration.py::test_integration_initialization",
+        "tests\\test_newbie_image_integration.py::test_factory_function",
+        "tests\\test_newbie_image_integration.py::test_character_creation_from_dict",
+        "tests\\test_newbie_image_integration.py::test_character_xml_parsing",
+        "tests\\test_newbie_image_integration.py::test_xml_parsing_error_handling",
+        "tests\\test_newbie_image_integration.py::test_character_description_building",
+        "tests\\test_newbie_image_integration.py::test_personality_to_visuals_mapping",
+        "tests\\test_newbie_image_integration.py::test_structured_prompt_building",
+        "tests\\test_newbie_image_integration.py::test_prompt_template_system",
+        "tests\\test_newbie_image_integration.py::test_invalid_template_handling",
+        "tests\\test_newbie_image_integration.py::test_image_generation",
+        "tests\\test_newbie_image_integration.py::test_image_generation_quality_levels",
+        "tests\\test_newbie_image_integration.py::test_image_generation_custom_config",
+        "tests\\test_newbie_image_integration.py::test_generation_error_handling",
+        "tests\\test_newbie_image_integration.py::test_quality_score_calculation",
+        "tests\\test_newbie_image_integration.py::test_consistency_score_calculation",
+        "tests\\test_newbie_image_integration.py::test_anime_quality_validation",
+        "tests\\test_newbie_image_integration.py::test_character_consistency_checking",
+        "tests\\test_newbie_image_integration.py::test_consistency_check_insufficient_images",
+        "tests\\test_newbie_image_integration.py::test_score_to_grade_conversion",
+        "tests\\test_newbie_image_integration.py::test_generation_statistics",
+        "tests\\test_newbie_image_integration.py::test_character_library_export",
+        "tests\\test_newbie_image_integration.py::test_export_error_handling",
+        "tests\\test_newbie_image_integration.py::test_enum_values",
+        "tests\\test_newbie_image_integration.py::test_config_validation",
+        "tests\\test_newbie_image_integration.py::test_template_customization",
+        "tests\\test_newbie_image_integration.py::test_character_definition_creation",
+        "tests\\test_newbie_image_integration.py::test_newbie_config_defaults",
+        "tests\\test_newbie_image_integration.py::test_generation_result_structure",
+        "tests\\test_newbie_simple.py::test_basic_functionality",
+        "tests\\test_newbie_simple.py::test_anime_styles_and_quality",
+        "tests\\test_newbie_simple.py::test_character_library_management",
+        "tests\\test_newbie_simple.py::test_error_handling",
+        "tests\\test_performance_monitor_properties.py::test_callback",
+        "tests\\test_performance_monitor_simple.py::test_callback",
+        "tests\\test_performance_monitoring.py::test_resource_monitoring",
+        "tests\\test_performance_monitoring.py::test_resource_availability_check",
+        "tests\\test_performance_monitoring.py::test_performance_stats",
+        "tests\\test_performance_monitoring.py::test_workflow_optimization",
+        "tests\\test_performance_monitoring.py::test_batch_optimization",
+        "tests\\test_performance_monitoring.py::test_optimization_strategies",
+        "tests\\test_performance_monitoring.py::test_optimization_stats",
+        "tests\\test_performance_monitoring.py::test_performance_report_export",
+        "tests\\test_performance_monitoring.py::test_monitor_start_stop",
+        "tests\\test_performance_monitoring.py::test_performance_level_detection",
+        "tests\\test_performance_monitoring.py::test_optimization_recommendations",
+        "tests\\test_personality_generation.py::test_personality_generation",
+        "tests\\test_production_config.py::test_config_loading",
+        "tests\\test_production_config.py::test_model_paths_configuration",
+        "tests\\test_production_config.py::test_backup_path_configuration",
+        "tests\\test_production_config.py::test_update_interval_parsing",
+        "tests\\test_production_config.py::test_directory_creation",
+        "tests\\test_production_config.py::test_deployment_pipeline_configuration",
+        "tests\\test_production_config.py::test_config_validation",
+        "tests\\test_production_config.py::test_environment_specific_config",
+        "tests\\test_production_config.py::test_model_update_configuration",
+        "tests\\test_production_config.py::test_monitoring_configuration",
+        "tests\\test_production_config.py::test_config_with_missing_sections",
+        "tests\\test_production_config.py::test_config_with_invalid_values",
+        "tests\\test_promote.py::test_promote_command",
+        "tests\\test_quality_validator_error_handling.py::test_calculate_sharpness_error_recovery",
+        "tests\\test_qwen3_tts_integration.py::test_initialization",
+        "tests\\test_qwen3_tts_integration.py::test_generate_voice_success",
+        "tests\\test_qwen3_tts_integration.py::test_generate_voice_failure",
+        "tests\\test_qwen3_tts_integration.py::test_clone_voice_success",
+        "tests\\test_qwen3_tts_integration.py::test_clone_voice_failure",
+        "tests\\test_qwen3_tts_integration.py::test_generate_prompt",
+        "tests\\test_qwen3_tts_integration.py::test_close",
+        "tests\\test_qwen3_tts_integration.py::test_generate_prompt_simple",
+        "tests\\test_qwen3_tts_integration.py::test_generate_prompt_few_shot",
+        "tests\\test_qwen3_tts_integration.py::test_save_custom_prompt",
+        "tests\\test_qwen3_tts_integration.py::test_get_custom_prompt",
+        "tests\\test_qwen3_tts_integration.py::test_list_available_prompts",
+        "tests\\test_real_model_quality.py::test_images",
+        "tests\\test_real_time_preview_system.py::test_default_parameters",
+        "tests\\test_real_time_preview_system.py::test_custom_parameters",
+        "tests\\test_real_time_preview_system.py::test_cache_key_generation",
+        "tests\\test_real_time_preview_system.py::test_cache_put_and_get",
+        "tests\\test_real_time_preview_system.py::test_cache_lru_eviction",
+        "tests\\test_real_time_preview_system.py::test_cache_invalidation",
+        "tests\\test_real_time_preview_system.py::test_cache_stats",
+        "tests\\test_real_time_preview_system.py::test_wireframe_generation",
+        "tests\\test_real_time_preview_system.py::test_preview_generation",
+        "tests\\test_real_time_preview_system.py::test_high_quality_generation",
+        "tests\\test_real_time_preview_system.py::test_full_quality_generation",
+        "tests\\test_real_time_preview_system.py::test_processing_time_scaling",
+        "tests\\test_real_time_preview_system.py::test_session_creation",
+        "tests\\test_real_time_preview_system.py::test_session_retrieval",
+        "tests\\test_real_time_preview_system.py::test_parameter_updates",
+        "tests\\test_real_time_preview_system.py::test_system_statistics",
+        "tests\\test_real_time_preview_system.py::test_session_cleanup",
+        "tests\\test_real_time_preview_system.py::test_quality_level_performance_scaling",
+        "tests\\test_refine.py::test_refine_command",
+        "tests\\test_refine_metrics.py::test_refine_metrics",
+        "tests\\test_security_validation_system.py::test_valid_text_prompt",
+        "tests\\test_security_validation_system.py::test_empty_prompt",
+        "tests\\test_security_validation_system.py::test_prompt_too_long",
+        "tests\\test_security_validation_system.py::test_dangerous_script_injection",
+        "tests\\test_security_validation_system.py::test_javascript_protocol",
+        "tests\\test_security_validation_system.py::test_valid_image_input",
+        "tests\\test_security_validation_system.py::test_image_not_found",
+        "tests\\test_security_validation_system.py::test_unsupported_image_format",
+        "tests\\test_security_validation_system.py::test_valid_trajectory_json",
+        "tests\\test_security_validation_system.py::test_invalid_trajectory_format",
+        "tests\\test_security_validation_system.py::test_trajectory_missing_coordinates",
+        "tests\\test_security_validation_system.py::test_sanitize_filename",
+        "tests\\test_security_validation_system.py::test_calculate_checksum",
+        "tests\\test_security_validation_system.py::test_verify_model_with_no_checksum",
+        "tests\\test_security_validation_system.py::test_verify_model_with_matching_checksum",
+        "tests\\test_security_validation_system.py::test_verify_model_with_mismatched_checksum",
+        "tests\\test_security_validation_system.py::test_valid_huggingface_url",
+        "tests\\test_security_validation_system.py::test_valid_github_url",
+        "tests\\test_security_validation_system.py::test_invalid_protocol",
+        "tests\\test_security_validation_system.py::test_untrusted_domain",
+        "tests\\test_security_validation_system.py::test_public_access",
+        "tests\\test_security_validation_system.py::test_authenticated_access_denied",
+        "tests\\test_security_validation_system.py::test_authenticated_access_granted",
+        "tests\\test_security_validation_system.py::test_admin_access",
+        "tests\\test_security_validation_system.py::test_unknown_resource",
+        "tests\\test_security_validation_system.py::test_log_workflow_execution",
+        "tests\\test_security_validation_system.py::test_log_model_download",
+        "tests\\test_security_validation_system.py::test_log_access_attempt",
+        "tests\\test_security_validation_system.py::test_filter_logs_by_user",
+        "tests\\test_security_validation_system.py::test_filter_logs_by_action",
+        "tests\\test_security_validation_system.py::test_sanitize_html",
+        "tests\\test_security_validation_system.py::test_sanitize_sql",
+        "tests\\test_security_validation_system.py::test_sanitize_path",
+        "tests\\test_security_validation_system.py::test_detect_email",
+        "tests\\test_security_validation_system.py::test_detect_phone",
+        "tests\\test_security_validation_system.py::test_redact_pii",
+        "tests\\test_security_validation_system.py::test_anonymize_user_data",
+        "tests\\test_security_validation_system.py::test_validate_valid_workflow_request",
+        "tests\\test_security_validation_system.py::test_validate_workflow_request_access_denied",
+        "tests\\test_security_validation_system.py::test_validate_workflow_request_invalid_prompt",
+        "tests\\test_security_validation_system.py::test_generate_security_report",
+        "tests\\test_story_generation_e2e.py::test_complete_workflow_with_story_generation",
+        "tests\\test_story_generation_e2e.py::test_workflow_with_manual_story_fallback",
+        "tests\\test_story_generation_e2e.py::test_story_generation_with_different_genres",
+        "tests\\test_story_generation_e2e.py::test_story_generation_performance",
+        "tests\\test_storycore_video_prompt_integration.py::test_recommend_template_for_project",
+        "tests\\test_storycore_video_prompt_integration.py::test_generate_prompts_for_project",
+        "tests\\test_storycore_video_prompt_integration.py::test_export_prompts_to_storycore_format",
+        "tests\\test_storycore_video_prompt_integration.py::test_integrate_with_timeline",
+        "tests\\test_video_configuration_manager.py::test_valid_resolution_config",
+        "tests\\test_video_configuration_manager.py::test_invalid_resolution_dimensions",
+        "tests\\test_video_configuration_manager.py::test_odd_resolution_dimensions",
+        "tests\\test_video_configuration_manager.py::test_aspect_ratio_mismatch",
+        "tests\\test_video_configuration_manager.py::test_invalid_pixel_aspect_ratio",
+        "tests\\test_video_configuration_manager.py::test_valid_frame_rate_config",
+        "tests\\test_video_configuration_manager.py::test_invalid_frame_rate",
+        "tests\\test_video_configuration_manager.py::test_extremely_high_frame_rate",
+        "tests\\test_video_configuration_manager.py::test_common_frame_rates",
+        "tests\\test_video_configuration_manager.py::test_valid_quality_config",
+        "tests\\test_video_configuration_manager.py::test_invalid_quality_level",
+        "tests\\test_video_configuration_manager.py::test_invalid_interpolation_samples",
+        "tests\\test_video_configuration_manager.py::test_invalid_motion_estimation_accuracy",
+        "tests\\test_video_configuration_manager.py::test_invalid_color_depth",
+        "tests\\test_video_configuration_manager.py::test_invalid_chroma_subsampling",
+        "tests\\test_video_configuration_manager.py::test_valid_motion_curve_config",
+        "tests\\test_video_configuration_manager.py::test_invalid_ease_strength",
+        "tests\\test_video_configuration_manager.py::test_invalid_bounce_amplitude",
+        "tests\\test_video_configuration_manager.py::test_invalid_control_points",
+        "tests\\test_video_configuration_manager.py::test_insufficient_control_points",
+        "tests\\test_video_configuration_manager.py::test_valid_camera_override_config",
+        "tests\\test_video_configuration_manager.py::test_invalid_position_keyframe_time",
+        "tests\\test_video_configuration_manager.py::test_invalid_rotation_keyframe_angles",
+        "tests\\test_video_configuration_manager.py::test_invalid_zoom_keyframe",
+        "tests\\test_video_configuration_manager.py::test_valid_video_configuration",
+        "tests\\test_video_configuration_manager.py::test_video_configuration_with_invalid_components",
+        "tests\\test_video_configuration_manager.py::test_manager_initialization",
+        "tests\\test_video_configuration_manager.py::test_builtin_presets_creation",
+        "tests\\test_video_configuration_manager.py::test_load_preset",
+        "tests\\test_video_configuration_manager.py::test_save_and_load_custom_preset",
+        "tests\\test_video_configuration_manager.py::test_create_custom_configuration",
+        "tests\\test_video_configuration_manager.py::test_hardware_optimization",
+        "tests\\test_video_configuration_manager.py::test_configuration_summary",
+        "tests\\test_video_configuration_manager.py::test_save_and_load_configuration_json",
+        "tests\\test_video_configuration_manager.py::test_save_and_load_configuration_yaml",
+        "tests\\test_video_configuration_manager.py::test_invalid_preset_loading",
+        "tests\\test_video_configuration_manager.py::test_preset_validation",
+        "tests\\test_video_configuration_manager.py::test_configuration_format_detection",
+        "tests\\test_video_configuration_manager.py::test_preset_consistency",
+        "tests\\test_video_configuration_manager.py::test_hardware_optimization_consistency",
+        "tests\\test_video_configuration_manager.py::test_configuration_serialization_roundtrip",
+        "tests\\test_video_configuration_properties.py::test_property_ve29_configurable_interpolation_algorithms",
+        "tests\\test_video_configuration_properties.py::test_property_ve29_custom_frame_rates_and_resolutions",
+        "tests\\test_video_configuration_properties.py::test_property_ve29_quality_vs_speed_tradeoffs",
+        "tests\\test_video_configuration_properties.py::test_property_ve29_manual_camera_movement_override",
+        "tests\\test_video_configuration_properties.py::test_property_ve29_custom_motion_curves_and_timing",
+        "tests\\test_video_configuration_properties.py::test_property_ve30_cinematic_presets_consistency",
+        "tests\\test_video_configuration_properties.py::test_property_ve30_preset_serialization_consistency",
+        "tests\\test_video_configuration_properties.py::test_property_ve30_hardware_optimization_consistency",
+        "tests\\test_video_configuration_properties.py::test_property_ve30_custom_configuration_consistency",
+        "tests\\test_video_configuration_properties.py::test_configuration_state_machine",
+        "tests\\test_video_engine_end_to_end.py::test_basic_video_engine_functionality",
+        "tests\\test_video_engine_end_to_end.py::test_advanced_interpolation_functionality",
+        "tests\\test_video_engine_end_to_end.py::test_video_configuration_system",
+        "tests\\test_video_engine_end_to_end.py::test_complete_pipeline_integration",
+        "tests\\test_video_engine_end_to_end.py::test_performance_characteristics",
+        "tests\\test_video_engine_end_to_end.py::test_error_handling_robustness",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve31_pipeline_initialization_reliability",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve31_interpolation_consistency",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve31_error_recovery_reliability",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve31_metadata_generation_completeness",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve32_processing_speed_consistency",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve32_memory_usage_consistency",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve32_scalability_characteristics",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve33_visual_quality_preservation",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve33_configuration_compliance",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve33_temporal_coherence_standards",
+        "tests\\test_video_engine_end_to_end_properties.py::test_property_ve33_export_standards_compliance",
+        "tests\\test_video_engine_system_validation.py::test_complete_video_engine_system",
+        "tests\\test_video_engine_system_validation.py::test_system_initialization",
+        "tests\\test_video_engine_system_validation.py::test_cross_platform_compatibility",
+        "tests\\test_video_engine_system_validation.py::test_quality_validation",
+        "tests\\test_video_engine_system_validation.py::test_metadata_integrity",
+        "tests\\test_video_engine_system_validation.py::test_system_under_load",
+        "tests\\test_video_engine_system_validation.py::test_emergency_controls",
+        "tests\\test_video_performance_properties.py::test_task",
+        "tests\\test_video_pipeline_properties.py::test_stateful_pipeline_integration",
+        "tests\\test_video_prompt_generator.py::test_initialization",
+        "tests\\test_video_prompt_generator.py::test_list_templates",
+        "tests\\test_video_prompt_generator.py::test_generate_prompt",
+        "tests\\test_video_prompt_generator.py::test_save_and_load_template",
+        "tests\\test_video_prompt_generator.py::test_get_template_info",
+        "tests\\test_video_prompt_generator.py::test_invalid_template",
+        "tests\\test_video_prompt_integration.py::test_integrate_with_storycore",
+        "tests\\test_video_prompt_integration.py::test_generate_prompt_for_scene",
+        "tests\\test_video_prompt_integration.py::test_save_project_with_prompts",
+        "tests\\test_video_quality_core.py::test_core_architecture",
+        "tests\\test_video_quality_core.py::test_quality_calculations",
+        "tests\\test_video_quality_core.py::test_configuration_system",
+        "tests\\test_video_quality_core.py::test_error_handling",
+        "tests\\test_video_quality_core.py::test_dashboard_integration",
+        "tests\\test_video_quality_core.py::test_export_functionality",
+        "tests\\test_wan_ati_integration.py::test_parse_invalid_json",
+        "tests\\test_wan_ati_integration.py::test_parse_invalid_format",
+        "tests\\unit\\migration\\test_backup_manager.py::test_create_backup_nonexistent_project",
+        "tests\\unit\\migration\\test_file_mover.py::test_init_without_git_repo",
+        "tests\\unit\\roadmap\\test_changelog_writer.py::test_append_entry_non_completed_feature_raises_error",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_update_broken_links_file_not_found",
+        "tests\\unit\\roadmap\\test_spec_badge_injector.py::test_inject_badge_file_not_found",
+        "tests\\unit\\roadmap\\test_spec_badge_injector.py::test_remove_badge_file_not_found",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_file_not_found",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_unreadable_file",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_determine_status_invalid_completion_raises",
+        "tests\\unit\\test_audio_mixing_engine.py::test_voice_segment_merging",
+        "tests\\unit\\test_cli_core.py::test_register_handlers_validation_failure",
+        "tests\\unit\\test_comfyui_handler.py::test_command_name",
+        "tests\\unit\\test_comfyui_handler.py::test_description",
+        "tests\\unit\\test_comfyui_handler.py::test_setup_parser",
+        "tests\\unit\\test_comfyui_handler.py::test_setup_parser_with_url",
+        "tests\\unit\\test_comfyui_handler.py::test_setup_parser_with_open",
+        "tests\\unit\\test_comfyui_handler.py::test_start_service_success",
+        "tests\\unit\\test_comfyui_handler.py::test_stop_service_success",
+        "tests\\unit\\test_comfyui_handler.py::test_status_command",
+        "tests\\unit\\test_comfyui_handler.py::test_restart_service_success",
+        "tests\\unit\\test_comfyui_handler.py::test_execute_no_command",
+        "tests\\unit\\test_comfyui_handler.py::test_open_in_browser",
+        "tests\\unit\\test_dashboard_handler.py::test_command_name",
+        "tests\\unit\\test_dashboard_handler.py::test_description",
+        "tests\\unit\\test_dashboard_handler.py::test_setup_parser",
+        "tests\\unit\\test_dashboard_handler.py::test_setup_parser_with_output",
+        "tests\\unit\\test_dashboard_handler.py::test_setup_parser_with_open",
+        "tests\\unit\\test_dashboard_handler.py::test_setup_parser_with_template",
+        "tests\\unit\\test_dashboard_handler.py::test_execute_success",
+        "tests\\unit\\test_dashboard_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_dashboard_handler.py::test_open_in_browser_success",
+        "tests\\unit\\test_dashboard_handler.py::test_open_in_browser_failure",
+        "tests\\unit\\test_extensibility.py::test_handler_with_aliases",
+        "tests\\unit\\test_extensibility.py::test_get_handler_by_alias",
+        "tests\\unit\\test_extensibility.py::test_pre_execution_hook",
+        "tests\\unit\\test_extensibility.py::test_post_execution_hook",
+        "tests\\unit\\test_extensibility.py::test_multiple_hooks",
+        "tests\\unit\\test_extensibility.py::test_hook_removal",
+        "tests\\unit\\test_extensibility.py::test_plugin_loader_initialization",
+        "tests\\unit\\test_extensibility.py::test_get_loaded_plugins",
+        "tests\\unit\\test_extensibility.py::test_create_command_help",
+        "tests\\unit\\test_extensibility.py::test_add_example",
+        "tests\\unit\\test_extensibility.py::test_add_note",
+        "tests\\unit\\test_extensibility.py::test_add_see_also",
+        "tests\\unit\\test_extensibility.py::test_format_epilog",
+        "tests\\unit\\test_extensibility.py::test_chaining",
+        "tests\\unit\\test_extensibility.py::test_register_external_handler",
+        "tests\\unit\\test_extensibility.py::test_unregister_handler",
+        "tests\\unit\\test_extensibility.py::test_get_command_info",
+        "tests\\unit\\test_grid_format_optimization_integration.py::test_error_handling",
+        "tests\\unit\\test_project_utils.py::test_get_metadata_nonexistent_project",
+        "tests\\unit\\test_project_utils.py::test_save_missing_required_fields",
+        "tests\\unit\\test_project_utils.py::test_list_files_nonexistent_project",
+        "tests\\unit\\test_test_infrastructure_manager.py::test_nonexistent_test_directory",
+        "tests\\unit\\test_validate_handler.py::test_command_name",
+        "tests\\unit\\test_validate_handler.py::test_description",
+        "tests\\unit\\test_validate_handler.py::test_setup_parser",
+        "tests\\unit\\test_validate_handler.py::test_setup_parser_with_strict",
+        "tests\\unit\\test_validate_handler.py::test_setup_parser_with_fix",
+        "tests\\unit\\test_validate_handler.py::test_execute_success",
+        "tests\\unit\\test_validate_handler.py::test_execute_with_failures",
+        "tests\\unit\\test_validate_handler.py::test_execute_project_not_found",
+        "tests\\unit\\test_validate_handler.py::test_attempt_fixes",
+        "tests\\unit\\test_validation_utils.py::test_zero_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_negative_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_invalid_string_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_empty_name_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_invalid_characters_raise_error",
+        "tests\\unit\\test_validation_utils.py::test_invalid_format_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_too_small_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_too_large_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_invalid_level_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_invalid_url_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_too_small_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_too_large_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_value_below_range_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_value_above_range_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_float_below_range_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_float_above_range_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_nonexistent_directory_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_nonexistent_file_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_nonexistent_parent_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_invalid_json_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_invalid_pattern_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_empty_string_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_whitespace_only_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_invalid_emails_raise_error",
+        "tests\\unit\\test_validation_utils.py::test_invalid_format_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_negative_raises_error",
+        "tests\\unit\\test_validation_utils.py::test_over_100_raises_error"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\integration\\test_grid_format_optimization_e2e.py::test_error_recovery_and_fallbacks",
+        "tests\\unit\\test_grid_format_optimization_integration.py::test_content_analysis_variations"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert content_analysis.content_type in ['action', 'dialogue', 'landscape', 'portrait']",
+        "assert isinstance(recommendation.recommended_format, GridFormat)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\integration\\test_grid_format_optimization_pipeline.py::test_integration_with_grid_generator",
+        "tests\\test_character_name_generation.py::test_integration_with_auto_generator"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\integration\\test_grid_format_optimization_pipeline.py::test_format_optimization_for_action_content",
+        "tests\\unit\\test_grid_format_optimization_integration.py::test_format_specific_recommendations"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert recommendation.recommended_format in [GridFormat.LINEAR_1X3, GridFormat.LINEAR_1X4]",
+        "assert recommendation.recommended_format.is_linear"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\integration\\test_grid_format_optimization_pipeline.py::test_data_contract_v1_compliance",
+        "tests\\unit\\test_grid_format_optimizer_data_contract.py::test_data_contract_v1_compliance"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\property\\test_config_manager_properties.py::test_property_config_schema_validation_rejects_invalid",
+        "tests\\property\\test_config_manager_properties.py::test_property_config_schema_validation_accepts_valid"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\property\\test_config_manager_properties.py::test_property_memory_system_config_validation",
+        "tests\\property\\test_config_manager_properties.py::test_property_memory_system_config_valid_updates"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\property\\test_config_manager_properties.py::test_property_default_config_creation",
+        "tests\\test_comfyui_config_properties.py::test_property_default_config_validity"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\property\\test_directory_manager_properties.py::test_property_directory_creation_idempotent",
+        "tests\\test_asset_retriever_properties.py::test_property_directory_creation_robustness"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\property\\test_quality_models_properties.py::test_audio_keyframe_serialization",
+        "tests\\test_ai_enhancement_foundation.py::test_enhanced_frame_serialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\property\\test_quality_models_properties.py::test_quality_issue_serialization",
+        "tests\\property\\test_quality_models_properties.py::test_quality_score_serialization",
+        "tests\\unit\\test_quality_models_basic.py::test_quality_score_serialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\property\\test_quality_models_properties.py::test_continuity_violation_round_trip",
+        "tests\\unit\\test_quality_models.py::test_empty_description",
+        "tests\\unit\\test_quality_models_basic.py::test_continuity_violation_creation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\property\\test_quality_models_properties.py::test_quality_issue_round_trip",
+        "tests\\property\\test_quality_models_properties.py::test_quality_score_round_trip"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_addon_system.py::test_initialization",
+        "tests\\test_advanced_security_validation.py::test_initialization",
+        "tests\\test_advanced_workflow_config.py::test_initialization",
+        "tests\\test_comfyui_workflow_executor.py::test_initialization",
+        "tests\\test_performance_monitor_simple.py::test_initialization",
+        "tests\\test_platform_manager_simple.py::test_initialization",
+        "tests\\test_production_deployment_manager.py::test_initialization",
+        "tests\\test_wan_ati_integration.py::test_initialization",
+        "tests\\unit\\migration\\test_build_script_updater.py::test_initialization",
+        "tests\\unit\\migration\\test_directory_structure_creator.py::test_initialization",
+        "tests\\unit\\migration\\test_python_import_updater.py::test_initialization",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_initialization",
+        "tests\\unit\\roadmap\\test_changelog_writer.py::test_initialization",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_initialization",
+        "tests\\unit\\roadmap\\test_synchronization_engine.py::test_initialization",
+        "tests\\unit\\test_cli_core.py::test_initialization",
+        "tests\\unit\\test_cli_errors.py::test_initialization",
+        "tests\\unit\\test_test_infrastructure_manager.py::test_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_addon_system.py::test_manifest_validation_valid",
+        "tests\\test_advanced_workflow_config.py::test_validation_success",
+        "tests\\test_advanced_workflow_config.py::test_validation_success",
+        "tests\\test_advanced_workflow_config.py::test_validation_success",
+        "tests\\test_advanced_workflow_config.py::test_validation_success",
+        "tests\\test_advanced_workflow_config.py::test_validation_success",
+        "tests\\test_advanced_workflow_config_extended.py::test_quality_config_validation",
+        "tests\\test_hunyuan_video_integration.py::test_config_validation",
+        "tests\\test_security_validation_simple.py::test_valid_config",
+        "tests\\test_security_validation_simple.py::test_validate_workflow_request_valid",
+        "tests\\test_wan_ati_integration.py::test_validate_trajectory_success",
+        "tests\\unit\\migration\\test_file_mover.py::test_verify_movements_all_success",
+        "tests\\unit\\test_config_utils.py::test_validate_valid_config",
+        "tests\\unit\\test_memory_system_setup.py::test_validate_schema_function",
+        "tests\\unit\\test_project_utils.py::test_validate_complete_structure",
+        "tests\\unit\\test_project_utils.py::test_validate_valid_schema"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(errors) == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_addon_system.py::test_manifest_validation_invalid_name",
+        "tests\\test_hunyuan_video_integration.py::test_invalid_config_validation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(errors) > 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_image_quality_monitor.py::test_default_config",
+        "tests\\test_advanced_performance_optimizer.py::test_default_config",
+        "tests\\test_advanced_security_validation.py::test_default_config",
+        "tests\\test_comfyui_workflow_executor.py::test_default_config",
+        "tests\\test_enhanced_image_engine.py::test_default_config",
+        "tests\\test_model_manager_foundation.py::test_default_config",
+        "tests\\test_production_deployment_manager.py::test_default_config",
+        "tests\\test_qwen_image_suite_integration.py::test_default_config",
+        "tests\\test_wan_ati_integration.py::test_default_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_image_quality_monitor.py::test_custom_config",
+        "tests\\test_advanced_performance_optimizer.py::test_custom_config",
+        "tests\\test_advanced_security_validation.py::test_custom_config",
+        "tests\\test_comfyui_workflow_executor.py::test_custom_config",
+        "tests\\test_config_system_simple.py::test_custom_configuration",
+        "tests\\test_enhanced_image_engine.py::test_custom_config",
+        "tests\\test_production_deployment_manager.py::test_custom_config",
+        "tests\\test_qwen_image_suite_integration.py::test_custom_config",
+        "tests\\test_wan_ati_integration.py::test_custom_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_image_quality_monitor.py::test_enhancement_type_enum",
+        "tests\\test_advanced_performance_optimizer.py::test_resource_type_enum"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert expected in types"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_image_quality_monitor.py::test_image_quality_report",
+        "tests\\test_advanced_image_quality_monitor.py::test_image_quality_report_to_dict"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_image_quality_monitor.py::test_monitor_initialization",
+        "tests\\test_advanced_model_manager.py::test_manager_initialization",
+        "tests\\test_advanced_workflow_config_extended.py::test_manager_initialization",
+        "tests\\test_manager_integration.py::test_manager_initialization",
+        "tests\\test_model_compatibility_versioning.py::test_checker_initialization",
+        "tests\\test_monitoring_dashboard.py::test_manager_initialization",
+        "tests\\test_task_15_performance_optimization.py::test_monitor_initialization",
+        "tests\\test_task_15_performance_optimization.py::test_monitor_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_image_quality_monitor.py::test_create_advanced_image_quality_monitor_default",
+        "tests\\test_advanced_image_quality_monitor.py::test_create_advanced_image_quality_monitor_custom_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(monitor, AdvancedImageQualityMonitor)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_engine.py::test_engine_initialization",
+        "tests\\test_cli_service_management.py::test_engine_initialization_failure",
+        "tests\\test_enhanced_image_engine.py::test_engine_initialization",
+        "tests\\test_enhanced_video_engine.py::test_engine_initialization",
+        "tests\\test_integrated_workflow_system.py::test_system_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_engine.py::test_depth_of_field_effects",
+        "tests\\test_advanced_interpolation_simple.py::test_depth_of_field_effects"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_engine.py::test_lens_simulation_effects",
+        "tests\\test_advanced_interpolation_simple.py::test_lens_simulation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_engine.py::test_configuration_validation",
+        "tests\\test_advanced_interpolation_simple.py::test_configuration_validation",
+        "tests\\test_advanced_workflow_config_extended.py::test_configuration_validation_levels",
+        "tests\\test_manager_integration.py::test_configuration_validation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_engine.py::test_cinematic_presets",
+        "tests\\test_advanced_interpolation_simple.py::test_cinematic_presets"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert is_valid, f'Preset {preset} should be valid, issues: {issues}'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_engine.py::test_performance_metrics_tracking",
+        "tests\\test_ai_enhancement_foundation.py::test_performance_metrics_tracking",
+        "tests\\test_api_orchestrator_simple.py::test_performance_metrics_collection",
+        "tests\\test_manager_integration.py::test_performance_metrics_collection",
+        "tests\\test_task_16_integration.py::test_performance_metrics",
+        "tests\\unit\\test_grid_format_optimization_integration.py::test_performance_history_tracking"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_engine.py::test_edge_cases",
+        "tests\\test_advanced_interpolation_simple.py::test_motion_blur_effects",
+        "tests\\test_audio_effects.py::test_edge_cases"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_properties.py::test_property_ve28_interpolation_output_consistency",
+        "tests\\test_advanced_interpolation_properties.py::test_property_ve28_interpolation_method_consistency"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_properties.py::test_property_ve28_depth_of_field_consistency",
+        "tests\\test_cross_platform_properties.py::test_property_ve26_resource_limit_consistency"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_interpolation_properties.py::test_property_ve28_performance_consistency",
+        "tests\\test_video_pipeline_properties.py::test_property_vp24_integration_consistency"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_model_manager.py::test_can_load_model_cpu",
+        "tests\\test_advanced_model_manager.py::test_can_load_model_cuda"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_model_manager.py::test_get_optimal_device",
+        "tests\\test_model_manager.py::test_optimal_device_selection"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert device == 'cpu'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_model_manager.py::test_get_model_info",
+        "tests\\test_model_manager.py::test_get_model_info"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_model_manager.py::test_get_performance_stats",
+        "tests\\test_production_deployment_manager.py::test_get_performance_metrics"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_model_manager.py::test_default_models_config",
+        "tests\\test_advanced_model_manager_simple.py::test_default_models_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(DEFAULT_MODELS_CONFIG, dict)",
+        "assert 'file_path' in model_config",
+        "assert 'type' in model_config",
+        "assert len(DEFAULT_MODELS_CONFIG) > 0",
+        "assert 'size_gb' in model_config"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_model_manager_simple.py::test_model_info_creation",
+        "tests\\test_data_models.py::test_asset_info_creation",
+        "tests\\unit\\test_memory_system_setup.py::test_asset_info_creation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_model_manager_simple.py::test_memory_stats",
+        "tests\\test_model_manager_foundation.py::test_memory_stats"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert stats.total_vram_gb == 8.0",
+        "assert stats.available_vram_gb == 6.0",
+        "assert stats.model_memory_gb == 1.5"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_model_manager_simple.py::test_config_creation",
+        "tests\\test_advanced_workflow_config.py::test_backup_creation",
+        "tests\\test_model_manager_foundation.py::test_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_model_manager_simple.py::test_enums",
+        "tests\\test_model_manager_foundation.py::test_enums",
+        "tests\\unit\\test_validation_utils.py::test_hours"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_optimization_strategy_enum",
+        "tests\\test_advanced_performance_optimizer.py::test_optimization_strategy_setting"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_model_state_enum",
+        "tests\\test_advanced_performance_optimizer.py::test_model_stats"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_model_info",
+        "tests\\test_model_manager_foundation.py::test_model_info"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_workflow_profile",
+        "tests\\test_comfyui_audio_integration.py::test_workflow_loading"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_model_manager_initialization",
+        "tests\\test_file_analyzer_basic.py::test_file_analyzer_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_get_current_metrics",
+        "tests\\test_production_deployment_manager.py::test_get_current_metrics"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_metrics_history",
+        "tests\\test_task_15_performance_optimization.py::test_metrics_summary"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_optimizer_initialization",
+        "tests\\test_asset_retriever_simple.py::test_retriever_initialization",
+        "tests\\test_comprehensive_workflows.py::test_performance_optimizer_initialization",
+        "tests\\test_monitoring_dashboard.py::test_collector_initialization",
+        "tests\\test_task_15_performance_optimization.py::test_optimizer_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_optimization_statistics",
+        "tests\\test_performance_monitor_simple.py::test_optimization_suggestions"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_performance_report_export",
+        "tests\\test_enhanced_image_engine.py::test_performance_report",
+        "tests\\test_qwen_image_suite_integration.py::test_performance_report"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_performance_optimizer.py::test_create_advanced_performance_optimizer_default",
+        "tests\\test_advanced_performance_optimizer.py::test_create_advanced_performance_optimizer_custom_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(optimizer, AdvancedPerformanceOptimizer)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_valid_prompt",
+        "tests\\test_security_validation_simple.py::test_valid_prompt",
+        "tests\\test_security_validation_simple.py::test_empty_prompt",
+        "tests\\test_security_validation_simple.py::test_valid_path",
+        "tests\\unit\\test_validation_utils.py::test_valid_choice",
+        "tests\\unit\\test_validation_utils.py::test_valid_urls",
+        "tests\\unit\\test_validation_utils.py::test_valid_ports",
+        "tests\\unit\\test_validation_utils.py::test_valid_json"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_long_prompt",
+        "tests\\test_security_validation_simple.py::test_long_prompt"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_sql_injection_prompt",
+        "tests\\test_advanced_security_validation.py::test_xss_prompt",
+        "tests\\test_advanced_security_validation.py::test_path_traversal_prompt",
+        "tests\\test_advanced_security_validation.py::test_validate_request_malicious",
+        "tests\\test_security_validation_simple.py::test_sql_injection_detection"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_file_validation_valid",
+        "tests\\test_advanced_security_validation.py::test_file_validation_too_large",
+        "tests\\test_advanced_security_validation.py::test_normal_rate_limiting",
+        "tests\\test_advanced_security_validation.py::test_full_authentication_flow"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_path_traversal_file",
+        "tests\\test_advanced_security_validation.py::test_model_integrity_with_checksums",
+        "tests\\test_security_validation_simple.py::test_path_traversal_detection"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_model_integrity_missing_file",
+        "tests\\test_advanced_security_validation.py::test_invalid_api_key"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.result == ValidationResult.BLOCKED",
+        "assert result.risk_score == 1.0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_valid_api_key",
+        "tests\\test_advanced_security_validation.py::test_valid_session"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.details['user_id'] == 'test_user'",
+        "assert result.result == ValidationResult.VALID"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_insufficient_permissions",
+        "tests\\test_advanced_security_validation.py::test_invalid_session"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.result == ValidationResult.BLOCKED",
+        "assert result.risk_score == 0.8"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_session_creation",
+        "tests\\test_advanced_workflow_config.py::test_default_creation",
+        "tests\\test_advanced_workflow_config.py::test_default_creation",
+        "tests\\test_advanced_workflow_config.py::test_default_creation",
+        "tests\\test_advanced_workflow_config.py::test_default_creation",
+        "tests\\test_advanced_workflow_config.py::test_default_creation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_burst_limit_exceeded",
+        "tests\\test_advanced_security_validation.py::test_rate_limit_per_minute"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.result == ValidationResult.BLOCKED"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_validate_request_simple",
+        "tests\\test_advanced_security_validation.py::test_validate_request_with_file"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.result == ValidationResult.VALID"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_security_validation.py::test_security_status",
+        "tests\\test_advanced_security_validation.py::test_security_scan",
+        "tests\\test_infrastructure_setup.py::test_security_marker"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_config.py::test_validation_invalid_dimensions",
+        "tests\\test_advanced_workflow_config.py::test_validation_invalid_frames",
+        "tests\\test_advanced_workflow_config.py::test_validation_invalid_steps",
+        "tests\\test_advanced_workflow_config.py::test_validation_invalid_blend_mode",
+        "tests\\test_advanced_workflow_config.py::test_validation_invalid_memory",
+        "tests\\test_advanced_workflow_config.py::test_validation_invalid_batch_size"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(errors) > 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_config.py::test_save_and_load_yaml",
+        "tests\\test_advanced_workflow_config.py::test_save_and_load_json",
+        "tests\\test_advanced_workflow_config.py::test_save_config_to_file",
+        "tests\\test_config_system_simple.py::test_save_and_load",
+        "tests\\test_task_15_performance_optimization.py::test_save_and_load_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_config.py::test_load_nonexistent_file",
+        "tests\\unit\\test_project_utils.py::test_load_nonexistent_directory"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_config.py::test_save_invalid_config_fails",
+        "tests\\test_model_manager.py::test_memory_allocation_limits",
+        "tests\\unit\\migration\\test_backup_manager.py::test_restore_nonexistent_backup"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert success is False"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_config.py::test_create_default_config",
+        "tests\\test_advanced_workflow_config_extended.py::test_create_default_configuration",
+        "tests\\unit\\roadmap\\test_config_loader.py::test_create_default_config_file",
+        "tests\\unit\\test_config_utils.py::test_create_default_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_config.py::test_complete_workflow",
+        "tests\\test_model_compatibility_versioning.py::test_complete_workflow",
+        "tests\\unit\\roadmap\\test_core_integration.py::test_complete_workflow"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_config_extended.py::test_gpu_detection",
+        "tests\\test_security_validation_simple.py::test_xss_detection"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_config_extended.py::test_default_config_creation",
+        "tests\\unit\\test_memory_system_setup.py::test_project_config_creation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_config_extended.py::test_config_validation",
+        "tests\\test_advanced_workflow_foundation.py::test_config_validation",
+        "tests\\test_security_enhancements.py::test_domain_validation",
+        "tests\\unit\\test_grid_format_optimization_integration.py::test_format_validation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_foundation.py::test_workflow_initialization",
+        "tests\\test_advanced_workflow_foundation.py::test_registry_initialization",
+        "tests\\test_model_manager.py::test_registry_initialization",
+        "tests\\test_workflow_executor_simple.py::test_executor_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_foundation.py::test_workflow_capabilities",
+        "tests\\test_platform_manager_simple.py::test_platform_capabilities"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_foundation.py::test_performance_stats_update",
+        "tests\\test_enhanced_image_engine.py::test_performance_stats_update",
+        "tests\\test_qwen_image_suite_integration.py::test_performance_stats_update"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_foundation.py::test_registry_validation",
+        "tests\\test_api_security.py::test_password_validation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_advanced_workflow_foundation.py::test_config_manager_initialization",
+        "tests\\test_health_monitor_simple.py::test_health_monitor_initialization",
+        "tests\\test_task_15_performance_optimization.py::test_config_manager_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_ai_enhancement_foundation.py::test_model_info_serialization",
+        "tests\\test_error_handler_simple.py::test_error_info_serialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_ai_error_handling_simple.py::test_parameter_validation",
+        "tests\\test_audio_effects.py::test_parameter_validation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_api_security.py::test_login_success",
+        "tests\\test_api_security.py::test_refresh_token_success",
+        "tests\\unit\\test_output_utils.py::test_print_success"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_api_security.py::test_login_invalid_credentials",
+        "tests\\test_api_security.py::test_invalid_api_key",
+        "tests\\test_api_security.py::test_create_api_key_requires_auth"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert response.status_code == 401"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_api_security.py::test_logout_success",
+        "tests\\test_api_security.py::test_api_key_authentication"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert response.status_code == 200"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_api_security.py::test_protected_endpoint_without_auth",
+        "tests\\test_api_security.py::test_protected_endpoint_with_valid_token"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_api_security.py::test_workflow_validation_passes",
+        "tests\\test_workflow_executor_simple.py::test_workflow_validation_success",
+        "tests\\test_workflow_executor_simple.py::test_workflow_validation_missing_nodes"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_api_security.py::test_workflow_validation_fails_dangerous_prompt",
+        "tests\\test_api_security.py::test_workflow_validation_fails_unauthorized_workflow"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert response.status_code == 400"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_api_security.py::test_validation_error_handling",
+        "tests\\test_config_system_simple.py::test_validation_errors"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_asset_retriever_properties.py::test_property_15_asset_retrieval_completeness",
+        "tests\\test_quality_feedback_properties.py::test_property_18_issue_reporting_completeness"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_asset_retriever_properties.py::test_property_metrics_consistency",
+        "tests\\test_health_monitor_properties.py::test_property_metrics_collection"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_asset_retriever_simple.py::test_organize_assets_by_date",
+        "tests\\test_asset_retriever_simple.py::test_organize_assets_by_type",
+        "tests\\test_asset_retriever_simple.py::test_organize_assets_by_size"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_audio_effects.py::test_equalization",
+        "tests\\test_audio_effects.py::test_reverb",
+        "tests\\test_audio_effects.py::test_filter_effects",
+        "tests\\test_audio_effects.py::test_pitch_shift",
+        "tests\\test_audio_effects.py::test_vibrato",
+        "tests\\test_audio_effects.py::test_tremolo",
+        "tests\\test_audio_effects.py::test_distortion",
+        "tests\\test_audio_effects.py::test_chorus",
+        "tests\\test_audio_effects.py::test_wah_wah",
+        "tests\\test_audio_effects.py::test_phaser",
+        "tests\\test_audio_effects.py::test_delay",
+        "tests\\test_audio_effects.py::test_speed_change",
+        "tests\\test_audio_effects.py::test_doppler_effect",
+        "tests\\test_audio_effects.py::test_voice_modification",
+        "tests\\test_audio_effects.py::test_auto_tune"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(result) == len(self.test_audio)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_audio_engine_properties.py::test_audio_engine_basic_functionality",
+        "tests\\test_video_config_properties.py::test_video_config_basic_functionality"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_audio_engine_properties.py::test_quality_level_consistency",
+        "tests\\test_task_15_performance_optimization.py::test_quality_level_adjustment"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_camera_movement_properties.py::test_property_ve_5_camera_movement_accuracy",
+        "tests\\test_timeline_manager_properties.py::test_property_ve_8_timeline_timing_accuracy"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_camera_movement_properties.py::test_property_ve_5_movement_type_consistency",
+        "tests\\test_video_config_properties.py::test_property_ve_1_configuration_consistency"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_camera_movement_properties.py::test_property_ve_8_frame_rate_consistency",
+        "tests\\test_timeline_manager_properties.py::test_property_ve_9_frame_rate_consistency"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_character_name_generation.py::test_basic_name_generation",
+        "tests\\test_character_name_generation.py::test_scifi_name_generation",
+        "tests\\test_character_name_generation.py::test_multiple_generations_consistency"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert name is not None",
+        "assert len(name) >= 2"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_character_name_generation.py::test_fantasy_name_generation",
+        "tests\\test_character_name_generation.py::test_cultural_context_fantasy",
+        "tests\\test_character_name_generation.py::test_archetype_hero_naming",
+        "tests\\test_character_name_generation.py::test_archetype_villain_naming",
+        "tests\\test_character_name_generation.py::test_archetype_mentor_naming",
+        "tests\\test_character_name_generation.py::test_personality_trait_influence",
+        "tests\\test_character_name_generation.py::test_style_preference_fantasy"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert name is not None",
+        "assert len(name) >= 3"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_character_name_generation.py::test_modern_name_generation",
+        "tests\\test_character_name_generation.py::test_cultural_context_western",
+        "tests\\test_character_name_generation.py::test_style_preference_scifi",
+        "tests\\test_character_name_generation.py::test_edge_case_empty_traits",
+        "tests\\test_character_name_generation.py::test_edge_case_none_traits",
+        "tests\\test_character_name_generation.py::test_fallback_to_simple_generation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert name is not None",
+        "assert len(name) >= 2"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_character_name_generation.py::test_full_name_generation",
+        "tests\\test_video_pipeline_integration.py::test_audio_cue_generation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_cli_comfyui_integration.py::test_comfyui_status_command",
+        "tests\\test_cli_service_management_simple.py::test_comfyui_status_command_runs"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'Server URL:' in result.stdout",
+        "assert 'Port:' in result.stdout",
+        "assert 'State:' in result.stdout",
+        "assert 'ComfyUI Service Status:' in result.stdout",
+        "assert 'Running:' in result.stdout",
+        "assert result.returncode == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cli_comfyui_integration.py::test_comfyui_status_with_custom_url",
+        "tests\\test_cli_service_management_simple.py::test_comfyui_status_with_custom_url"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'http://localhost:8189' in result.stdout",
+        "assert result.returncode == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cli_comfyui_integration.py::test_cli_help_includes_comfyui_commands",
+        "tests\\test_cli_service_management_simple.py::test_main_help_includes_comfyui"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'comfyui' in result.stdout",
+        "assert result.returncode == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cli_comfyui_integration.py::test_comfyui_help_shows_subcommands",
+        "tests\\test_cli_service_management_simple.py::test_comfyui_command_help"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'stop' in help_text",
+        "assert 'status' in help_text",
+        "assert 'restart' in help_text",
+        "assert 'start' in help_text",
+        "assert result.returncode == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cli_comfyui_integration.py::test_comfyui_service_start_integration",
+        "tests\\test_cli_comfyui_integration.py::test_comfyui_service_stop_integration"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert e.code == 0 or e.code is None"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cli_service_management.py::test_handle_comfyui_start_success",
+        "tests\\test_cli_service_management.py::test_handle_comfyui_start_failure",
+        "tests\\test_cli_service_management.py::test_handle_comfyui_stop_success"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_cli_service_management.py::test_handle_comfyui_status",
+        "tests\\test_cli_service_management.py::test_handle_comfyui_status_with_error",
+        "tests\\test_cli_service_management.py::test_handle_comfyui_custom_url"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_cli_service_management.py::test_handle_comfyui_restart_success",
+        "tests\\test_cli_service_management.py::test_handle_comfyui_restart_stop_failure",
+        "tests\\test_cli_service_management.py::test_handle_comfyui_restart_start_failure"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'Restarting ComfyUI service' in output",
+        "assert 'Stopping service...' in output"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cli_service_management.py::test_handle_comfyui_invalid_command",
+        "tests\\test_cli_service_management.py::test_missing_comfyui_command",
+        "tests\\test_cli_service_management_simple.py::test_handle_comfyui_missing_command"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'Error: ComfyUI service command required' in output",
+        "assert 'Available commands: start, stop, status, restart' in output",
+        "assert exc_info.value.code == 1"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cli_service_management_simple.py::test_comfyui_start_command_structure",
+        "tests\\test_cli_service_management_simple.py::test_comfyui_stop_command_structure",
+        "tests\\test_cli_service_management_simple.py::test_comfyui_restart_command_structure"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'ComfyUI server URL' in result.stdout",
+        "assert '--comfyui-url' in result.stdout",
+        "assert result.returncode == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cli_video_integration.py::test_cli_generate_video_with_config",
+        "tests\\test_cli_video_integration.py::test_cli_generate_video_with_preset",
+        "tests\\test_cli_video_integration.py::test_cli_generate_video_with_overrides"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_cli_video_integration.py::test_cli_generate_video_invalid_project",
+        "tests\\test_cli_video_integration.py::test_cli_generate_video_invalid_config",
+        "tests\\test_cli_video_integration.py::test_cli_generate_video_invalid_resolution"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_comfyui_workflow_executor.py::test_initialization_custom_config",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_initialization_custom_path"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_comprehensive_workflows.py::test_enhanced_video_engine_initialization",
+        "tests\\test_comprehensive_workflows.py::test_enhanced_image_engine_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert hasattr(engine, 'workflow_router')",
+        "assert hasattr(engine, 'quality_monitor')",
+        "assert engine.config is not None",
+        "assert engine.logger is not None"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_comprehensive_workflows.py::test_video_quality_monitor_initialization",
+        "tests\\test_comprehensive_workflows.py::test_image_quality_monitor_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert monitor.config is not None",
+        "assert hasattr(monitor, 'quality_analyzers')",
+        "assert monitor.logger is not None",
+        "assert hasattr(monitor, 'enhancement_engine')"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_comprehensive_workflows.py::test_hunyuan_integration_initialization",
+        "tests\\test_comprehensive_workflows.py::test_wan_integration_initialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert integration.logger is not None",
+        "assert hasattr(integration, 'workflow_manager')",
+        "assert integration.config is not None"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_config_system_simple.py::test_configuration_manager",
+        "tests\\test_config_system_simple.py::test_configuration_summary",
+        "tests\\unit\\test_cli_errors.py::test_configuration_error"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_config_system_simple.py::test_hardware_optimization",
+        "tests\\test_model_optimization.py::test_tensorrt_optimization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_cross_platform_compatibility.py::test_platform_detection",
+        "tests\\test_platform_manager_simple.py::test_platform_detection_windows",
+        "tests\\test_platform_manager_simple.py::test_platform_detection_linux",
+        "tests\\test_platform_manager_simple.py::test_platform_detection_wsl",
+        "tests\\test_platform_manager_simple.py::test_platform_detection_docker",
+        "tests\\test_platform_manager_simple.py::test_platform_detection_macos"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_cross_platform_compatibility.py::test_dependency_validation",
+        "tests\\test_cross_platform_compatibility.py::test_dependency_validation_edge_cases",
+        "tests\\test_platform_manager_properties.py::test_property_environment_validation_completeness"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(is_valid, bool)",
+        "assert isinstance(issues, list)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cross_platform_compatibility.py::test_hardware_adaptation",
+        "tests\\test_hardware_adaptation_simple.py::test_hardware_adaptation_basic"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert adapted_config['max_workers'] >= 1",
+        "assert adapted_config['max_workers'] <= manager.capabilities.cpu_cores"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cross_platform_compatibility.py::test_linux_specific_features",
+        "tests\\test_cross_platform_compatibility.py::test_macos_specific_features"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert manager.optimizations.file_path_separator == '/'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_cross_platform_properties.py::test_property_ve26_optimization_scaling_consistency",
+        "tests\\test_interpolation_quality_properties.py::test_property_ve2_interpolation_quality_consistency"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_data_models.py::test_project_config_to_dict",
+        "tests\\test_data_models.py::test_project_memory_to_dict",
+        "tests\\unit\\test_config_utils.py::test_project_config_path"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_data_models.py::test_project_config_from_dict",
+        "tests\\unit\\test_memory_system_setup.py::test_project_config_from_dict"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert config.project_name == 'test_project'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_data_models.py::test_conversation_creation",
+        "tests\\unit\\test_memory_system_setup.py::test_conversation_creation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert conversation.messages[0].role == 'user'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_data_models.py::test_asset_type_enum",
+        "tests\\test_data_models.py::test_error_type_enum",
+        "tests\\test_qwen_image_suite_integration.py::test_layer_type_enum"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_enhanced_image_engine.py::test_successful_result",
+        "tests\\test_qwen_image_suite_integration.py::test_successful_result"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.error_message is None",
+        "assert result.image == mock_image",
+        "assert result.success is True",
+        "assert result.processing_time == 1.5"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_enhanced_image_engine.py::test_failed_result",
+        "tests\\test_qwen_image_suite_integration.py::test_failed_result"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.success is False",
+        "assert result.image is None",
+        "assert result.processing_time == 0.5"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_enhanced_image_engine.py::test_result_to_dict",
+        "tests\\test_qwen_image_suite_integration.py::test_result_to_dict"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result_dict['processing_time'] == 2.0",
+        "assert result_dict['layer_count'] == 2",
+        "assert result_dict['success'] is True",
+        "assert result_dict['error_message'] is None",
+        "assert result_dict['has_image'] is True"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_enhanced_image_engine.py::test_export_generation_session",
+        "tests\\test_qwen_image_suite_integration.py::test_export_editing_session"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'session_info' in session_data",
+        "assert success is True",
+        "assert 'performance_report' in session_data",
+        "assert len(session_data['results']) == 2",
+        "assert 'results' in session_data"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_enhanced_image_engine.py::test_create_enhanced_image_engine_default",
+        "tests\\test_enhanced_image_engine.py::test_create_enhanced_image_engine_custom_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(engine, EnhancedImageEngine)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_error_handler_simple.py::test_error_classification_network",
+        "tests\\test_error_handler_simple.py::test_error_classification_service"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_error_handler_simple.py::test_severity_assessment_critical",
+        "tests\\test_error_handler_simple.py::test_severity_assessment_high"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_error_handler_simple.py::test_suggestion_generation_network",
+        "tests\\test_error_handler_simple.py::test_suggestion_generation_service"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_error_handler_simple.py::test_error_history_tracking",
+        "tests\\test_error_handler_simple.py::test_error_pattern_tracking",
+        "tests\\test_error_handler_simple.py::test_error_history_limit"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_final_integration_validation.py::test_circuit_breaker_protection",
+        "tests\\test_final_integration_validation.py::test_error_handling_and_recovery",
+        "tests\\test_video_engine_system_validation.py::test_circuit_breaker_protection"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_gpu_memory_monitoring.py::test_alert_generation",
+        "tests\\test_task_15_performance_optimization.py::test_alert_generation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_gpu_memory_monitoring.py::test_memory_prediction",
+        "tests\\test_performance_monitor_simple.py::test_memory_estimation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_health_monitor_properties.py::test_property_4_health_check_reliability",
+        "tests\\test_performance_monitor_properties.py::test_property_alert_callback_reliability"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_health_monitor_properties.py::test_property_health_summary_consistency",
+        "tests\\test_health_monitor_simple.py::test_health_summary"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert summary['consecutive_failures'] == 0",
+        "assert summary['status'] == 'unknown'",
+        "assert summary['status'] == 'healthy'",
+        "assert summary['is_healthy'] == True",
+        "assert 'message' in summary",
+        "assert summary['response_time_ms'] == 150.0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_health_monitor_simple.py::test_backoff_calculation",
+        "tests\\test_video_pipeline_integration.py::test_quality_calculation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_hunyuan_video_integration.py::test_frame_sequence_creation",
+        "tests\\test_hunyuan_video_integration.py::test_frame_sequence_duration",
+        "tests\\test_hunyuan_video_integration.py::test_frame_sequence_save"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_infrastructure_setup.py::test_hypothesis_list_generation",
+        "tests\\test_infrastructure_setup.py::test_hypothesis_text_generation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_infrastructure_setup.py::test_pytest_working",
+        "tests\\test_infrastructure_setup.py::test_pytest_markers"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_installation_api.py::test_check_file_nonexistent_directory",
+        "tests\\test_installation_api.py::test_check_file_empty_directory"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert data['valid'] is False",
+        "assert response.status_code == 200",
+        "assert data['exists'] is False"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_installation_api.py::test_check_file_wrong_filename",
+        "tests\\test_installation_api.py::test_check_file_valid_filename"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert response.status_code == 200",
+        "assert data['valid'] is False",
+        "assert data['exists'] is True"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_integrated_workflow_system.py::test_workflow_request_creation",
+        "tests\\test_integrated_workflow_system.py::test_workflow_request_defaults"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_integrated_workflow_system.py::test_workflow_result_success",
+        "tests\\test_integrated_workflow_system.py::test_workflow_result_failure"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_integrated_workflow_system.py::test_get_system_status",
+        "tests\\test_model_compatibility_versioning.py::test_get_system_info"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_integrated_workflow_system.py::test_setup_video_workflow",
+        "tests\\test_integrated_workflow_system.py::test_setup_image_workflow"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_integrated_workflow_system.py::test_categorize_error_network",
+        "tests\\test_integrated_workflow_system.py::test_categorize_error_memory"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_integrated_workflow_system.py::test_assess_severity_critical",
+        "tests\\test_integrated_workflow_system.py::test_assess_severity_high",
+        "tests\\test_integrated_workflow_system.py::test_assess_severity_medium"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_manager_integration.py::test_health_monitor_integration",
+        "tests\\test_manager_integration.py::test_service_status_with_health_monitor"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert manager.health_monitor == health_monitor"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_model_compatibility_versioning.py::test_check_compatible_model",
+        "tests\\test_model_compatibility_versioning.py::test_check_fp8_quantization_support",
+        "tests\\test_model_compatibility_versioning.py::test_check_model_compatibility_integration",
+        "tests\\test_quality_validator_error_handling.py::test_detect_metallic_voice_error_recovery"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(issues, list)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_model_compatibility_versioning.py::test_check_insufficient_vram",
+        "tests\\test_model_compatibility_versioning.py::test_check_insufficient_ram"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert not is_compatible"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_model_compatibility_versioning.py::test_get_latest_version",
+        "tests\\test_model_compatibility_versioning.py::test_suggest_model_upgrade_integration"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert latest == '2.0.0'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_model_manager.py::test_list_models",
+        "tests\\test_model_manager.py::test_available_models_listing"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(all_models) >= 4",
+        "assert all((m.model_type == ModelType.STYLE_TRANSFER for m in style_models))",
+        "assert len(style_models) >= 1"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_model_manager.py::test_registry_persistence",
+        "tests\\test_secure_logging.py::test_keystore_persistence",
+        "tests\\unit\\migration\\test_backup_manager.py::test_metadata_persistence"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_model_workflow_installation.py::test_install_local_model_file",
+        "tests\\test_model_workflow_installation.py::test_install_local_workflow_file"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(errors) == 0",
+        "assert target_path.exists()",
+        "assert target_path.stat().st_size > 0",
+        "assert len(installed) == 1"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_model_workflow_installation.py::test_install_nonexistent_model_continues",
+        "tests\\test_model_workflow_installation.py::test_install_invalid_json_workflow_fails",
+        "tests\\test_model_workflow_installation.py::test_install_non_json_workflow_fails",
+        "tests\\test_model_workflow_installation.py::test_install_nonexistent_workflow_continues"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(errors) == 1",
+        "assert len(installed) == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_model_workflow_installation.py::test_install_multiple_models_with_failures",
+        "tests\\test_model_workflow_installation.py::test_install_multiple_workflows_with_failures"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(errors) == 2",
+        "assert len(installed) == 1"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_model_workflow_installation.py::test_verify_installed_files_exist",
+        "tests\\test_model_workflow_installation.py::test_verify_installed_workflows_exist"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert target_path.stat().st_size > 0",
+        "assert target_path.exists()"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_monitoring_dashboard.py::test_metric_point_creation",
+        "tests\\test_monitoring_dashboard.py::test_metric_point_defaults"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_monitoring_dashboard.py::test_alert_creation",
+        "tests\\test_task_15_performance_optimization.py::test_batch_creation",
+        "tests\\unit\\test_memory_system_setup.py::test_error_creation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_monitoring_dashboard.py::test_record_metric",
+        "tests\\test_task_15_performance_optimization.py::test_record_metric"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_monitoring_dashboard.py::test_max_points_limit",
+        "tests\\test_monitoring_dashboard.py::test_max_alerts_limit"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_monitoring_dashboard.py::test_get_metric_history",
+        "tests\\test_monitoring_dashboard.py::test_get_metric_stats",
+        "tests\\test_production_deployment_manager.py::test_get_backup_history"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_monitoring_dashboard.py::test_check_thresholds_warning",
+        "tests\\test_monitoring_dashboard.py::test_check_thresholds_critical",
+        "tests\\test_monitoring_dashboard.py::test_check_thresholds_no_alert"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_monitoring_dashboard.py::test_get_alert_summary",
+        "tests\\test_production_deployment_manager.py::test_get_alert_history"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_monitoring_dashboard.py::test_calculate_health_score_excellent",
+        "tests\\test_monitoring_dashboard.py::test_calculate_health_score_with_errors",
+        "tests\\test_monitoring_dashboard.py::test_calculate_health_score_degraded",
+        "tests\\test_monitoring_dashboard.py::test_calculate_health_score_minimum"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_performance_monitor_simple.py::test_workflow_recommendations",
+        "tests\\test_performance_monitor_simple.py::test_workflow_recommendations_not_found"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_platform_manager_properties.py::test_property_model_recommendations_relevance",
+        "tests\\test_platform_manager_simple.py::test_recommended_models"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(recommendations, list)",
+        "assert isinstance(rec, str)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_platform_manager_simple.py::test_cross_platform_path_handling",
+        "tests\\unit\\migration\\test_build_script_updater.py::test_cross_platform_path_handling"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_production_deployment_manager.py::test_check_system_resources_success",
+        "tests\\test_production_deployment_manager.py::test_check_system_resources_no_cuda",
+        "tests\\test_production_deployment_manager.py::test_check_cuda_environment_success",
+        "tests\\test_production_deployment_manager.py::test_check_storage_space_success"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_production_deployment_manager.py::test_check_cuda_environment_failure",
+        "tests\\test_production_deployment_manager.py::test_check_storage_space_failure"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result is False"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_production_deployment_manager.py::test_get_model_info_nonexistent_directory",
+        "tests\\unit\\roadmap\\test_synchronization_engine.py::test_detect_changes_nonexistent_directory"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_quality_threshold_validation_properties.py::test_threshold_boundary_property",
+        "tests\\unit\\test_quality_models.py::test_threshold_boundary"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_error_handling.py::test_validate_video_file_nonexistent",
+        "tests\\test_quality_validator_error_handling.py::test_validate_video_file_directory",
+        "tests\\test_quality_validator_error_handling.py::test_validate_video_file_corrupted",
+        "tests\\test_quality_validator_error_handling.py::test_validate_audio_file_nonexistent"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert not is_valid"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_error_handling.py::test_validate_video_file_unsupported_format",
+        "tests\\test_quality_validator_error_handling.py::test_validate_audio_file_unsupported_format"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert not is_valid"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_error_handling.py::test_validate_video_file_empty",
+        "tests\\test_quality_validator_error_handling.py::test_validate_audio_file_empty"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert not is_valid"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_error_handling.py::test_validate_audio_file_corrupted",
+        "tests\\test_quality_validator_error_handling.py::test_validate_audio_file_silence"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert not is_valid"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_error_handling.py::test_analyze_voice_quality_empty_audio",
+        "tests\\test_quality_validator_error_handling.py::test_analyze_voice_quality_error_recovery"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_error_handling.py::test_generate_quality_score_no_frames",
+        "tests\\test_quality_validator_error_handling.py::test_generate_quality_score_error_recovery"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(score.issues) >= 1"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_error_handling.py::test_detect_unnatural_movements_error_recovery",
+        "tests\\test_quality_validator_error_handling.py::test_single_frame_video"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(anomalies, list)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_error_handling.py::test_grayscale_frame",
+        "tests\\test_quality_validator_error_handling.py::test_bgr_frame"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(sharpness, float)",
+        "assert sharpness >= 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_error_handling.py::test_audio_with_nan_values",
+        "tests\\test_quality_validator_error_handling.py::test_audio_with_inf_values"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert not is_valid",
+        "assert 'invalid data' in error.lower()"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_quality_validator_visual_properties.py::test_property_13_unnatural_movement_detection",
+        "tests\\test_quality_validator_visual_properties.py::test_property_14_visual_anomaly_detection"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert anomaly['metric_value'] >= 0.0, f\"Invalid metric value: {anomaly['metric_value']}\"",
+        "assert anomaly['frame_number'] >= 0, f\"Invalid frame number: {anomaly['frame_number']}\"",
+        "assert isinstance(anomaly['description'], str), 'Description should be string'",
+        "assert 'severity' in anomaly, \"Anomaly missing 'severity'\"",
+        "assert isinstance(anomaly['type'], str), 'Type should be string'",
+        "assert 'metric_value' in anomaly, \"Anomaly missing 'metric_value'\"",
+        "assert 'type' in anomaly, \"Anomaly missing 'type'\"",
+        "assert 'threshold_value' in anomaly, \"Anomaly missing 'threshold_value'\"",
+        "assert 'frame_number' in anomaly, \"Anomaly missing 'frame_number'\"",
+        "assert 'timestamp' in anomaly, \"Anomaly missing 'timestamp'\"",
+        "assert anomaly['severity'] in ['low', 'medium', 'high'], f\"Invalid severity: {anomaly['severity']}\"",
+        "assert isinstance(anomaly['frame_number'], int), 'Frame number should be int'",
+        "assert anomaly['timestamp'] >= 0.0, f\"Invalid timestamp: {anomaly['timestamp']}\"",
+        "assert 'description' in anomaly, \"Anomaly missing 'description'\""
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_report_generator_properties.py::test_property_26_visualization_generation",
+        "tests\\test_report_generator_properties.py::test_property_26_comparison_chart_generation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert empty_chart == ''",
+        "assert len(decoded) > 0",
+        "assert chart_data.startswith('data:image/png;base64,')"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_report_generator_properties.py::test_property_24_html_report_generation",
+        "tests\\test_report_generator_properties.py::test_property_25_html_comparison_report_generation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert project_name in html_report",
+        "assert '</table>' in html_report",
+        "assert '</html>' in html_report",
+        "assert '<html' in html_report",
+        "assert '<!DOCTYPE html>' in html_report",
+        "assert '<table' in html_report"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_secure_logging.py::test_secure_audit_logger_basic",
+        "tests\\test_secure_logging.py::test_secure_audit_logger_stats"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_security_enhancements.py::test_https_only_validation",
+        "tests\\test_security_enhancements.py::test_download_size_validation"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert not result.is_valid",
+        "assert result.severity.name == 'CRITICAL'",
+        "assert result.is_valid"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_security_enhancements.py::test_encrypted_log_entry",
+        "tests\\test_security_enhancements.py::test_encrypted_log_report"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_security_validation_simple.py::test_command_injection_detection",
+        "tests\\test_security_validation_simple.py::test_blocked_path_detection"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result == ValidationResult.BLOCKED"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_security_validation_simple.py::test_invalid_extension",
+        "tests\\unit\\test_validation_utils.py::test_invalid_extension"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_security_validation_simple.py::test_invalid_config_steps",
+        "tests\\test_security_validation_simple.py::test_invalid_config_cfg_scale"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result == ValidationResult.INVALID"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_security_validation_simple.py::test_verify_checksum_valid",
+        "tests\\test_security_validation_simple.py::test_verify_checksum_mismatch",
+        "tests\\test_security_validation_simple.py::test_validate_model_format_valid",
+        "tests\\test_security_validation_simple.py::test_scan_for_malware_valid",
+        "tests\\test_security_validation_simple.py::test_validate_https_url"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_security_validation_simple.py::test_verify_nonexistent_file",
+        "tests\\test_security_validation_simple.py::test_reject_invalid_url",
+        "tests\\unit\\migration\\test_backup_manager.py::test_verify_nonexistent_backup"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_security_validation_simple.py::test_grant_and_check_permission",
+        "tests\\test_security_validation_simple.py::test_revoke_permission"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert ac.check_permission('user1', 'workflow1')",
+        "assert not ac.check_permission('user1', 'workflow1')"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_task_15_performance_optimization.py::test_load_default_config",
+        "tests\\unit\\roadmap\\test_config_loader.py::test_load_default_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_task_15_performance_optimization.py::test_update_config",
+        "tests\\test_task_15_performance_optimization.py::test_update_model"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_task_16_quick.py::test_integration",
+        "tests\\test_video_quality_enhancement.py::test_integration"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_video_pipeline_integration.py::test_validate_data_contract_compliance",
+        "tests\\test_video_pipeline_integration.py::test_validate_data_contract_invalid_schema"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_wan_ati_integration.py::test_create_trajectory_point",
+        "tests\\test_wan_ati_integration.py::test_create_trajectory"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_wan_ati_integration.py::test_trajectory_point_to_dict",
+        "tests\\test_wan_ati_integration.py::test_trajectory_point_from_dict"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\test_wan_ati_integration.py::test_visualize_trajectory",
+        "tests\\test_wan_ati_integration.py::test_visualize_trajectories"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(result, Image.Image)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\test_workflow_executor_properties.py::test_property_model_scanning_robustness",
+        "tests\\test_workflow_executor_simple.py::test_model_availability_scanning"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'ipadapters' in models",
+        "assert isinstance(models, dict)",
+        "assert models == models2",
+        "assert 'checkpoints' in models",
+        "assert 'controlnets' in models",
+        "assert 'vaes' in models"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_backup_manager.py::test_verify_valid_backup",
+        "tests\\unit\\migration\\test_backup_manager.py::test_verify_backup_without_metadata"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert backup_manager.verify_backup(backup_info.backup_path) is True"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_backup_manager.py::test_list_empty_backups",
+        "tests\\unit\\migration\\test_backup_manager.py::test_metadata_handles_missing_file"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert backups == []"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_build_script_updater.py::test_update_shell_script",
+        "tests\\unit\\migration\\test_build_script_updater.py::test_update_batch_script"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.updates_made > 0",
+        "assert result.success"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_build_script_updater.py::test_error_handling_invalid_json",
+        "tests\\unit\\migration\\test_build_script_updater.py::test_error_handling_missing_file"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.error_message is not None",
+        "assert not result.success"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_configuration_path_updater.py::test_property_8_1_path_reference_updates_json",
+        "tests\\unit\\migration\\test_configuration_path_updater.py::test_property_8_1_path_reference_updates_yaml",
+        "tests\\unit\\migration\\test_configuration_path_updater.py::test_property_8_1_path_reference_updates_env"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_directory_structure_creator.py::test_create_directory_structure_function",
+        "tests\\unit\\migration\\test_directory_structure_creator.py::test_create_directory_structure_dry_run"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(tree, DirectoryTree)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_file_mover.py::test_move_file_success",
+        "tests\\unit\\migration\\test_file_mover.py::test_move_file_without_git_history"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert (temp_git_repo / dest).exists()",
+        "assert result is True",
+        "assert not source.exists()"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_file_mover.py::test_move_file_source_not_exists",
+        "tests\\unit\\migration\\test_file_mover.py::test_move_file_destination_exists"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert file_mover.movement_history[0].status == MovementStatus.FAILED",
+        "assert len(file_mover.movement_history) == 1",
+        "assert result is False"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_file_mover.py::test_get_statistics",
+        "tests\\unit\\test_audio_mixing_engine.py::test_gap_statistics"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_file_mover.py::test_resolve_relative_path",
+        "tests\\unit\\migration\\test_file_mover.py::test_resolve_absolute_path"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert resolved.is_absolute()"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_file_mover.py::test_success_rate_zero_files",
+        "tests\\unit\\migration\\test_file_mover.py::test_success_rate_all_failed"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result.success_rate == 0.0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_python_import_updater.py::test_relative_import_detection",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_relative_import_detection",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_absolute_import_detection"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_python_import_updater.py::test_add_and_get_mapping",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_add_and_get_mapping"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert mapping.get_new_path(old_path) == new_path"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_python_import_updater.py::test_extract_from_import",
+        "tests\\unit\\migration\\test_python_import_updater.py::test_multiline_imports"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(imports) == 1",
+        "assert 'exists' in imports[0].names",
+        "assert 'join' in imports[0].names"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_python_import_updater.py::test_extract_relative_import",
+        "tests\\unit\\migration\\test_python_import_updater.py::test_calculate_relative_import_same_level",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_extract_multiple_imports"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_python_import_updater.py::test_update_absolute_imports",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_update_imports"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert count >= 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_python_import_updater.py::test_apply_updates",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_apply_updates"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert success is True"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_python_import_updater.py::test_update_python_imports_basic",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_update_typescript_imports_basic"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert stats['files_processed'] == 1",
+        "assert stats['errors'] == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_python_import_updater.py::test_empty_file",
+        "tests\\unit\\migration\\test_python_import_updater.py::test_file_with_only_comments"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert imports == []"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_calculate_new_import_path_no_change",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_calculate_new_import_path_with_movement",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_skip_external_imports"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_update_typescript_imports_with_tsconfig",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_update_typescript_imports_with_vite_config",
+        "tests\\unit\\migration\\test_typescript_import_updater.py::test_update_typescript_imports_error_handling"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_changelog_writer.py::test_entry_initialization",
+        "tests\\unit\\roadmap\\test_changelog_writer.py::test_entry_without_version"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert entry.feature == sample_feature",
+        "assert entry.completion_date == completion_date"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_changelog_writer.py::test_format_entry",
+        "tests\\unit\\test_output_utils.py::test_format_hours",
+        "tests\\unit\\test_output_utils.py::test_format_bytes"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_changelog_writer.py::test_organize_by_version_single_entry",
+        "tests\\unit\\roadmap\\test_changelog_writer.py::test_organize_by_version_multiple_entries_same_version"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert '## v1.2.0' in changelog",
+        "assert '### User Authentication System' in changelog",
+        "assert '# Changelog' in changelog"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_config_loader.py::test_merge_nested_configs",
+        "tests\\unit\\test_config_utils.py::test_merge_simple_configs",
+        "tests\\unit\\test_config_utils.py::test_merge_nested_configs"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_core_integration.py::test_metadata_override",
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_valid_frontmatter"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert metadata['category'] == 'UI'",
+        "assert metadata['priority'] == 'High'",
+        "assert metadata['timeline'] == 'Q1 2026'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_spec_links_empty_content",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_spec_links_no_links",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_spec_links_external_links_ignored",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_spec_links_anchor_links_ignored",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_spec_links_non_spec_links_ignored",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_spec_links_valid_spec_link"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert broken == []"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_roadmap_badges_empty_list",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_roadmap_badges_valid_badge",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_roadmap_badges_case_insensitive",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_roadmap_badges_multiple_specs"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_roadmap_badges_no_requirements_file",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_validate_roadmap_badges_missing_badge"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(missing) == 1",
+        "assert missing[0].spec_dir == spec_dir"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_link_validator.py::test_update_broken_links_single_fix",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_update_broken_links_no_fixes"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_link_validator.py::test_update_broken_links_multiple_fixes",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_update_broken_links_multiple_occurrences"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_link_validator.py::test_generate_anchor_simple_name",
+        "tests\\unit\\roadmap\\test_link_validator.py::test_generate_anchor_nested_path"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert anchor == 'my-feature'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_link_validator.py::test_generate_anchor_lowercase",
+        "tests\\unit\\roadmap\\test_spec_badge_injector.py::test_generate_anchor_for_spec"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_no_frontmatter",
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_invalid_yaml",
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_empty_frontmatter"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert metadata == {}"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_simple_title",
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_title_with_extra_spaces",
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_title_after_frontmatter"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert title == 'Feature Title'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_backend_category_from_name",
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_testing_category_from_name",
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_tooling_category_from_name"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_high_priority_keywords",
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_mixed_keywords"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert extractor.infer_priority(content) == Priority.HIGH"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_medium_priority_keywords",
+        "tests\\unit\\roadmap\\test_metadata_extractor.py::test_default_priority"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert extractor.infer_priority(content) == Priority.MEDIUM"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_roadmap_formatter.py::test_header_contains_title",
+        "tests\\unit\\roadmap\\test_roadmap_formatter.py::test_header_contains_timestamp"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_roadmap_formatter.py::test_toc_includes_legend",
+        "tests\\unit\\roadmap\\test_roadmap_formatter.py::test_toc_includes_separator"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_roadmap_formatter.py::test_feature_entry_contains_title",
+        "tests\\unit\\roadmap\\test_roadmap_formatter.py::test_feature_entry_contains_status_emoji",
+        "tests\\unit\\roadmap\\test_roadmap_formatter.py::test_feature_entry_contains_category_tag",
+        "tests\\unit\\roadmap\\test_roadmap_formatter.py::test_feature_entry_contains_description",
+        "tests\\unit\\roadmap\\test_roadmap_formatter.py::test_feature_entry_contains_spec_link"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_spec_badge_injector.py::test_update_existing_badge",
+        "tests\\unit\\test_project_utils.py::test_update_existing_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_spec_badge_injector.py::test_has_roadmap_badge_true",
+        "tests\\unit\\roadmap\\test_spec_badge_injector.py::test_has_roadmap_badge_false",
+        "tests\\unit\\roadmap\\test_spec_badge_injector.py::test_has_roadmap_badge_case_insensitive"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_spec_scanner.py::test_scan_nonexistent_directory",
+        "tests\\unit\\roadmap\\test_spec_scanner.py::test_scan_empty_directory",
+        "tests\\unit\\roadmap\\test_spec_scanner.py::test_scan_file_instead_of_directory"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result == []"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_spec_scanner.py::test_is_valid_spec_with_requirements",
+        "tests\\unit\\roadmap\\test_spec_scanner.py::test_is_valid_spec_with_design",
+        "tests\\unit\\roadmap\\test_spec_scanner.py::test_is_valid_spec_with_tasks",
+        "tests\\unit\\roadmap\\test_spec_scanner.py::test_is_valid_spec_with_all_files"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert scanner.is_valid_spec(spec_dir) is True"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_all_completed",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_all_optional",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_empty_file"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_none_completed",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_no_tasks",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_with_extra_text"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_partial",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_with_queued",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_excludes_optional_tasks",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_nested_tasks",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_case_sensitivity",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_multiline_tasks"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_with_in_progress",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_with_subtasks"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_various_spacing",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_calculate_completion_unicode_content"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_determine_status_planned",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_determine_status_completed"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_determine_status_in_progress",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_determine_status_invalid_metadata_ignored",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_determine_status_no_metadata",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_determine_status_empty_metadata"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert status == FeatureStatus.IN_PROGRESS"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_get_completion_date_no_tasks_file",
+        "tests\\unit\\roadmap\\test_status_tracker.py::test_get_completion_date_not_git_repo"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert completion_date is None"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_synchronization_engine.py::test_detect_changes_modified_spec",
+        "tests\\unit\\roadmap\\test_synchronization_engine.py::test_detect_changes_multiple_specs"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(changes2['modified']) == 1"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_synchronization_engine.py::test_get_latest_mtime",
+        "tests\\unit\\roadmap\\test_synchronization_engine.py::test_get_latest_mtime_no_files"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_synchronization_engine.py::test_extract_protected_sections",
+        "tests\\unit\\roadmap\\test_synchronization_engine.py::test_extract_protected_sections_none",
+        "tests\\unit\\roadmap\\test_synchronization_engine.py::test_restore_protected_sections"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_timeline_organizer.py::test_assign_quarter_q1",
+        "tests\\unit\\roadmap\\test_timeline_organizer.py::test_assign_quarter_q2",
+        "tests\\unit\\roadmap\\test_timeline_organizer.py::test_assign_quarter_q3",
+        "tests\\unit\\roadmap\\test_timeline_organizer.py::test_assign_quarter_q4",
+        "tests\\unit\\roadmap\\test_timeline_organizer.py::test_assign_quarter_no_date"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\roadmap\\test_timeline_organizer.py::test_sort_within_quarter_by_priority",
+        "tests\\unit\\roadmap\\test_timeline_organizer.py::test_sort_within_quarter_empty_list"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_audio_mixing_engine.py::test_voice_segment_detection_basic",
+        "tests\\unit\\test_audio_mixing_engine.py::test_voice_segment_detection_empty_audio",
+        "tests\\unit\\test_audio_mixing_engine.py::test_voice_segment_detection_stereo"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_audio_mixing_engine.py::test_sample_rate_mismatch_handling",
+        "tests\\unit\\test_audio_mixing_engine.py::test_crossfade_sample_rate_mismatch",
+        "tests\\unit\\test_audio_mixing_engine.py::test_gap_detection_empty_audio",
+        "tests\\unit\\test_audio_mixing_engine.py::test_gap_detection_missing_samples"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'error' in result"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_audio_mixing_engine.py::test_missing_audio_samples_handling",
+        "tests\\unit\\test_audio_mixing_engine.py::test_crossfade_missing_samples"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'missing audio samples' in result['error'].lower()",
+        "assert 'error' in result"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_audio_mixing_engine.py::test_edge_case_single_keyframe",
+        "tests\\unit\\test_audio_mixing_engine.py::test_edge_case_zero_duration"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(result) == len(samples)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_audio_mixing_engine.py::test_crossfade_basic",
+        "tests\\unit\\test_audio_mixing_engine.py::test_crossfade_curves"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'crossfaded_samples' in result"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_audio_mixing_engine.py::test_gap_detection_basic",
+        "tests\\unit\\test_audio_mixing_engine.py::test_gap_detection_stereo"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'gaps_detected' in result"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_audio_mixing_engine.py::test_gap_filling_ambient",
+        "tests\\unit\\test_audio_mixing_engine.py::test_gap_filling_crossfade"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert 'filled_samples' in result",
+        "assert result['gaps_filled'] > 0",
+        "assert result['filled_samples'] is not None"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_character_wizard_handler.py::test_handler_attributes",
+        "tests\\unit\\test_completion_handler.py::test_handler_attributes",
+        "tests\\unit\\test_export_handler.py::test_handler_attributes",
+        "tests\\unit\\test_generate_audio_handler.py::test_handler_attributes",
+        "tests\\unit\\test_generate_images_handler.py::test_handler_attributes",
+        "tests\\unit\\test_generate_video_handler.py::test_handler_attributes",
+        "tests\\unit\\test_grid_handler.py::test_handler_attributes",
+        "tests\\unit\\test_help_handler.py::test_handler_attributes",
+        "tests\\unit\\test_init_handler.py::test_handler_attributes",
+        "tests\\unit\\test_narrative_handler.py::test_handler_attributes",
+        "tests\\unit\\test_promote_handler.py::test_handler_attributes",
+        "tests\\unit\\test_puppet_layer_handler.py::test_handler_attributes",
+        "tests\\unit\\test_qa_handler.py::test_handler_attributes",
+        "tests\\unit\\test_scene_breakdown_handler.py::test_handler_attributes",
+        "tests\\unit\\test_script_handler.py::test_handler_attributes",
+        "tests\\unit\\test_shot_planning_handler.py::test_handler_attributes",
+        "tests\\unit\\test_storyboard_handler.py::test_handler_attributes",
+        "tests\\unit\\test_video_plan_handler.py::test_handler_attributes",
+        "tests\\unit\\test_world_generate_handler.py::test_handler_attributes"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_character_wizard_handler.py::test_setup_parser",
+        "tests\\unit\\test_cli_core.py::test_setup_parser",
+        "tests\\unit\\test_completion_handler.py::test_setup_parser",
+        "tests\\unit\\test_export_handler.py::test_setup_parser",
+        "tests\\unit\\test_generate_audio_handler.py::test_setup_parser",
+        "tests\\unit\\test_generate_images_handler.py::test_setup_parser",
+        "tests\\unit\\test_generate_video_handler.py::test_setup_parser",
+        "tests\\unit\\test_grid_handler.py::test_setup_parser",
+        "tests\\unit\\test_help_handler.py::test_setup_parser",
+        "tests\\unit\\test_init_handler.py::test_setup_parser",
+        "tests\\unit\\test_narrative_handler.py::test_setup_parser",
+        "tests\\unit\\test_promote_handler.py::test_setup_parser",
+        "tests\\unit\\test_puppet_layer_handler.py::test_setup_parser",
+        "tests\\unit\\test_qa_handler.py::test_setup_parser",
+        "tests\\unit\\test_scene_breakdown_handler.py::test_setup_parser",
+        "tests\\unit\\test_script_handler.py::test_setup_parser",
+        "tests\\unit\\test_shot_planning_handler.py::test_setup_parser",
+        "tests\\unit\\test_storyboard_handler.py::test_setup_parser",
+        "tests\\unit\\test_video_plan_handler.py::test_setup_parser",
+        "tests\\unit\\test_world_generate_handler.py::test_setup_parser"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_cli_core.py::test_setup_logging_verbose",
+        "tests\\unit\\test_cli_core.py::test_setup_logging_quiet",
+        "tests\\unit\\test_cli_core.py::test_logging_configuration"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert logging.getLogger().handlers"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_cli_core.py::test_run_initialization_error",
+        "tests\\unit\\test_cli_errors.py::test_error_without_message",
+        "tests\\unit\\test_cli_errors.py::test_nested_error_handling"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert exit_code == 2"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_cli_errors.py::test_format_error_message_basic",
+        "tests\\unit\\test_cli_errors.py::test_format_error_message_with_suggestion"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert '\u2717' in formatted",
+        "assert 'Test message' in formatted"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_cli_integration.py::test_optimize_format_command",
+        "tests\\unit\\test_cli_integration.py::test_validate_format_command"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result == 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_config_utils.py::test_global_config_path",
+        "tests\\unit\\test_config_utils.py::test_current_directory_config_path"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert path.name == 'config.json'",
+        "assert '.storycore' in str(path)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_config_utils.py::test_validate_invalid_log_level",
+        "tests\\unit\\test_config_utils.py::test_validate_invalid_mock_mode"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert not is_valid"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_config_utils.py::test_get_environment_overrides_empty",
+        "tests\\unit\\test_config_utils.py::test_get_environment_overrides_comfyui_url",
+        "tests\\unit\\test_config_utils.py::test_get_environment_overrides_log_level",
+        "tests\\unit\\test_config_utils.py::test_get_environment_overrides_boolean",
+        "tests\\unit\\test_config_utils.py::test_get_environment_overrides_integer"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_config_utils.py::test_get_active_profile_default",
+        "tests\\unit\\test_config_utils.py::test_get_active_profile_from_env"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_directory_manager.py::test_validate_structure_missing_directory",
+        "tests\\unit\\test_directory_manager.py::test_validate_structure_missing_file",
+        "tests\\unit\\test_directory_manager.py::test_validate_structure_missing_subdirectory",
+        "tests\\unit\\test_directory_manager.py::test_validate_structure_empty_project_path"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(missing_items) > 0"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_memory_system_setup.py::test_memory_schema_exists",
+        "tests\\unit\\test_memory_system_setup.py::test_errors_schema_exists"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_output_utils.py::test_print_error",
+        "tests\\unit\\test_output_utils.py::test_print_info"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_output_utils.py::test_print_progress_with_counts",
+        "tests\\unit\\test_output_utils.py::test_print_progress_without_counts"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert '\u23f3' in captured.out",
+        "assert 'Processing' in captured.out"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_output_utils.py::test_format_kilobytes",
+        "tests\\unit\\test_output_utils.py::test_format_megabytes",
+        "tests\\unit\\test_output_utils.py::test_format_gigabytes",
+        "tests\\unit\\test_output_utils.py::test_format_terabytes"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_output_utils.py::test_no_truncate_short_text",
+        "tests\\unit\\test_output_utils.py::test_truncate_exact_length"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result == text"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_project_utils.py::test_load_valid_project",
+        "tests\\unit\\test_project_utils.py::test_save_valid_config"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert loaded_config['project_name'] == 'test-project'",
+        "assert loaded_config['schema_version'] == '1.0'"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_project_utils.py::test_validate_nonexistent_directory",
+        "tests\\unit\\test_project_utils.py::test_validate_missing_required_fields"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(errors) > 0",
+        "assert is_valid is False"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_project_utils.py::test_ensure_directories_creates_all",
+        "tests\\unit\\test_project_utils.py::test_ensure_directories_idempotent"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_project_utils.py::test_check_nonexistent_project",
+        "tests\\unit\\test_project_utils.py::test_check_directory_without_project_file"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert exists is False"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_quality_models.py::test_zero_timestamps",
+        "tests\\unit\\test_quality_models.py::test_zero_timestamp"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_quality_models.py::test_minimum_volume",
+        "tests\\unit\\test_quality_models.py::test_maximum_volume"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_quality_models.py::test_json_serialization",
+        "tests\\unit\\test_quality_models.py::test_json_serialization"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(json_str, str)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_quality_models.py::test_all_passed",
+        "tests\\unit\\test_quality_models.py::test_all_failed"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_test_infrastructure_manager.py::test_discover_python_test_file",
+        "tests\\unit\\test_test_infrastructure_manager.py::test_discover_python_test_class"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert len(tests) >= 2"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_test_infrastructure_manager.py::test_executability_report_creation",
+        "tests\\unit\\test_test_infrastructure_manager.py::test_executability_report_with_issues"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_validation_utils.py::test_existing_path",
+        "tests\\unit\\test_validation_utils.py::test_existing_file"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_validation_utils.py::test_value_in_range",
+        "tests\\unit\\test_validation_utils.py::test_float_in_range"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_validation_utils.py::test_existing_directory",
+        "tests\\unit\\test_validation_utils.py::test_writable_path"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert isinstance(result, Path)"
+      ]
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_validation_utils.py::test_valid_string",
+        "tests\\unit\\test_validation_utils.py::test_valid_emails"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": []
+    },
+    {
+      "tests": [
+        "tests\\unit\\test_video_plan_persistence.py::test_find_project_path_standard_name",
+        "tests\\unit\\test_video_plan_persistence.py::test_find_project_path_non_standard_name"
+      ],
+      "similarity_score": 0.8,
+      "shared_assertions": [
+        "assert result == project_dir"
+      ]
+    }
+  ],
+  "valuable_tests": [
+    "test_roadmap_generator",
+    "test_cli_backward_compatibility",
+    "test_cli_command_workflows",
+    "test_extensibility_integration",
+    "test_grid_format_optimization_e2e",
+    "test_grid_format_optimization_pipeline",
+    "test_character_data_contract_compliance",
+    "test_config_manager_properties",
+    "test_directory_manager_properties",
+    "test_grid_format_optimization_properties",
+    "test_quality_models_properties",
+    "test_addon_system",
+    "test_advanced_image_quality_monitor",
+    "test_advanced_interpolation_engine",
+    "test_advanced_interpolation_properties",
+    "test_advanced_interpolation_simple",
+    "test_advanced_model_manager",
+    "test_advanced_model_manager_simple",
+    "test_advanced_performance_optimizer",
+    "test_advanced_security_validation",
+    "test_advanced_video_quality_monitor",
+    "test_advanced_video_quality_simple",
+    "test_advanced_workflow_config",
+    "test_advanced_workflow_config_extended",
+    "test_advanced_workflow_foundation",
+    "test_ai_enhancement_foundation",
+    "test_ai_enhancement_integration",
+    "test_ai_error_handling_simple",
+    "test_ai_operations_monitoring",
+    "test_analytics_ai_integration_simple",
+    "test_analytics_dashboard",
+    "test_api_orchestrator_simple",
+    "test_api_security",
+    "test_asset_retriever_properties",
+    "test_asset_retriever_simple",
+    "test_audio_cli",
+    "test_audio_effects",
+    "test_audio_engine_properties",
+    "test_audio_features",
+    "test_batch_ai_integration_simple",
+    "test_batch_processing_system",
+    "test_camera_movement_properties",
+    "test_character_name_generation",
+    "test_character_wizard_basic",
+    "test_checkpoint_validation",
+    "test_circuit_breaker_integration",
+    "test_cli_comfyui_integration",
+    "test_cli_mix_audio_properties",
+    "test_cli_service_management",
+    "test_cli_service_management_simple",
+    "test_cli_validation_properties",
+    "test_cli_video_integration",
+    "test_comfyui_audio_integration",
+    "test_comfyui_config_properties",
+    "test_comfyui_integration",
+    "test_comfyui_workflow_executor",
+    "test_compare",
+    "test_compilation_simple",
+    "test_complete_pipeline",
+    "test_comprehensive_workflows",
+    "test_config_system_simple",
+    "test_content_aware_interpolation_properties",
+    "test_corrections_tasks_7_8",
+    "test_cross_platform_compatibility",
+    "test_cross_platform_integration",
+    "test_cross_platform_properties",
+    "test_cross_platform_simple",
+    "test_data_models",
+    "test_dynamic_quality_adjustment",
+    "test_enhanced_image_engine",
+    "test_enhanced_image_simple",
+    "test_enhanced_video_engine",
+    "test_enhanced_video_simple",
+    "test_error_handler_properties",
+    "test_error_handler_simple",
+    "test_error_handling_resilience",
+    "test_export_manager_properties",
+    "test_extended_grid",
+    "test_file_analyzer_basic",
+    "test_final_integration_validation",
+    "test_foundation_simple",
+    "test_gpu_memory_monitoring",
+    "test_gpu_optimization",
+    "test_gpu_scheduler",
+    "test_gpu_scheduler_properties",
+    "test_grid",
+    "test_hardware_adaptation_properties",
+    "test_hardware_adaptation_simple",
+    "test_health_monitor_properties",
+    "test_health_monitor_simple",
+    "test_hunyuan_integration_simple",
+    "test_hunyuan_simple",
+    "test_hunyuan_video_integration",
+    "test_image_quality_simple",
+    "test_infographic_prompt_generator",
+    "test_infrastructure_setup",
+    "test_installation_api",
+    "test_integrated_workflow_system",
+    "test_integration_wan_video_task_2_2",
+    "test_interpolation_minimal",
+    "test_interpolation_quality_properties",
+    "test_manager_integration",
+    "test_metadata_compliance_simple",
+    "test_metadata_integrity_properties",
+    "test_model_compatibility_versioning",
+    "test_model_deployment",
+    "test_model_manager",
+    "test_model_manager_foundation",
+    "test_model_optimization",
+    "test_model_workflow_installation",
+    "test_monitoring_dashboard",
+    "test_motion_coherence_properties",
+    "test_newbie_image_integration",
+    "test_newbie_simple",
+    "test_performance_monitor_properties",
+    "test_performance_monitor_simple",
+    "test_performance_monitoring",
+    "test_performance_optimizer_simple",
+    "test_personality_generation",
+    "test_pipeline_integration_properties",
+    "test_pipeline_quality_integration",
+    "test_platform_manager_properties",
+    "test_platform_manager_simple",
+    "test_production_config",
+    "test_production_deployment_manager",
+    "test_production_deployment_simple",
+    "test_promote",
+    "test_quality_feedback_properties",
+    "test_quality_threshold_validation_properties",
+    "test_quality_validator_audio_properties",
+    "test_quality_validator_error_handling",
+    "test_quality_validator_properties",
+    "test_quality_validator_visual_properties",
+    "test_qwen3_tts_integration",
+    "test_qwen_image_suite_integration",
+    "test_qwen_simple",
+    "test_real_model_quality",
+    "test_real_time_preview_system",
+    "test_refine",
+    "test_refine_metrics",
+    "test_report_generator_properties",
+    "test_resilient_integrations_simple",
+    "test_secure_logging",
+    "test_security_enhancements",
+    "test_security_validation_simple",
+    "test_security_validation_system",
+    "test_story_generation_e2e",
+    "test_storycore_video_prompt_integration",
+    "test_style_transfer_properties",
+    "test_super_resolution_properties",
+    "test_synchronization",
+    "test_task_15_performance_optimization",
+    "test_task_16_checkpoint_validation",
+    "test_task_16_integration",
+    "test_task_16_quick",
+    "test_timeline_manager_properties",
+    "test_video_config_properties",
+    "test_video_configuration_manager",
+    "test_video_configuration_properties",
+    "test_video_engine_end_to_end",
+    "test_video_engine_end_to_end_properties",
+    "test_video_engine_system_validation",
+    "test_video_error_handling_properties",
+    "test_video_performance_properties",
+    "test_video_pipeline_integration",
+    "test_video_pipeline_properties",
+    "test_video_prompt_generator",
+    "test_video_prompt_integration",
+    "test_video_quality_core",
+    "test_video_quality_enhancement",
+    "test_wan_ati_integration",
+    "test_wan_simple",
+    "test_wan_video_integration",
+    "test_workflow_executor_properties",
+    "test_workflow_executor_simple",
+    "test_backup_manager",
+    "test_build_script_updater",
+    "test_configuration_path_updater",
+    "test_directory_structure_creator",
+    "test_file_mover",
+    "test_python_import_updater",
+    "test_typescript_import_updater",
+    "test_changelog_writer",
+    "test_config_loader",
+    "test_core_integration",
+    "test_formatter_integration",
+    "test_link_validator",
+    "test_metadata_extractor",
+    "test_roadmap_formatter",
+    "test_spec_badge_injector",
+    "test_spec_scanner",
+    "test_status_tracker",
+    "test_synchronization_engine",
+    "test_timeline_organizer",
+    "test_audio_mixing_engine",
+    "test_character_wizard_handler",
+    "test_cli_core",
+    "test_cli_errors",
+    "test_cli_integration",
+    "test_comfyui_handler",
+    "test_completion_handler",
+    "test_config_utils",
+    "test_continuity_validator",
+    "test_dashboard_handler",
+    "test_directory_manager",
+    "test_export_handler",
+    "test_extensibility",
+    "test_generate_audio_handler",
+    "test_generate_images_handler",
+    "test_generate_video_handler",
+    "test_grid_format_optimization_integration",
+    "test_grid_format_optimizer_data_contract",
+    "test_grid_handler",
+    "test_handler_fixes",
+    "test_help_handler",
+    "test_init_handler",
+    "test_memory_system_setup",
+    "test_narrative_handler",
+    "test_output_utils",
+    "test_project_utils",
+    "test_promote_handler",
+    "test_puppet_layer_handler",
+    "test_qa_handler",
+    "test_quality_models",
+    "test_quality_models_basic",
+    "test_scene_breakdown_handler",
+    "test_script_handler",
+    "test_shot_planning_handler",
+    "test_storyboard_handler",
+    "test_test_infrastructure_manager",
+    "test_validate_handler",
+    "test_validation_utils",
+    "test_video_plan_handler",
+    "test_video_plan_persistence",
+    "test_world_generate_handler"
+  ],
+  "total_execution_time": 0.0,
+  "coverage_percentage": 40.3,
+  "summary": {
+    "obsolete_count": 105,
+    "fragile_count": 0,
+    "duplicate_count": 1491,
+    "valuable_count": 235
+  }
+}

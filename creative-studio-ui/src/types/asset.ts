@@ -12,6 +12,19 @@ export interface AssetMetadata {
   size: number;
   imported_at: string;
   thumbnail?: string;
+  // Extended properties for asset library
+  description?: string;
+  author?: string;
+  license?: string;
+  tags?: string[]; // Array of tags for categorization and search
+  category?: string;
+  characterMetadata?: Record<string, any>;
+  environmentMetadata?: Record<string, any>;
+  styleMetadata?: Record<string, any>;
+  cameraMetadata?: Record<string, any>;
+  lightingMetadata?: Record<string, any>;
+  templateMetadata?: Record<string, any>;
+  [key: string]: any;
 }
 
 export interface ValidationResult {

@@ -1,26 +1,41 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { WizardProvider, useWizard } from '@/contexts/WizardContext';
-import { WizardContainer } from '../WizardContainer';
+import { ProductionWizardContainer } from '../production-wizards/ProductionWizardContainer';
 import type { WizardStep } from '../WizardStepIndicator';
 import type { Character } from '@/types/character';
 import { createEmptyCharacter } from '@/types/character';
 import type { World } from '@/types/world';
+import type { Story } from '@/types/story';
 import { useCharacterPersistence } from '@/hooks/useCharacterPersistence';
+import { useServiceStatus } from '@/hooks/useServiceStatus';
+import { eventEmitter, CharacterEventType, createCharacterCreatedPayload } from '@/services/eventEmitter';
 import { Step1BasicIdentity } from './Step1BasicIdentity';
 import { Step2PhysicalAppearance } from './Step2PhysicalAppearance';
 import { Step3Personality } from './Step3Personality';
 import { Step4Background } from './Step4Background';
 import { Step5Relationships } from './Step5Relationships';
 import { Step6ReviewFinalize } from './Step6ReviewFinalize';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 // ============================================================================
 // Character Wizard Component
 // ============================================================================
 
+/**
+ * Story context for character creation
+ * Used when creating a character from within the Story Generator
+ */
+export interface StoryContext {
+  storyId?: string;
+  storyName?: string;
+  storyData?: Partial<Story>;
+}
+
 export interface CharacterWizardProps {
-  onComplete: (character: Character) => void;
+  onComplete: (character: Character, context?: StoryContext) => void;
   onCancel: () => void;
   worldContext?: World;
+  storyContext?: StoryContext;
   initialData?: Partial<Character>;
 }
 
@@ -65,26 +80,40 @@ interface CharacterWizardContentProps {
   steps: WizardStep[];
   onCancel: () => void;
   worldContext?: World;
+  storyContext?: StoryContext;
   renderStepContent: (step: number) => React.ReactNode;
+  onComplete?: () => void;
 }
 
 function CharacterWizardContent({
   steps,
   onCancel,
   renderStepContent,
+  onComplete,
 }: CharacterWizardContentProps) {
-  const { currentStep } = useWizard<Character>();
+  const { currentStep, nextStep, previousStep, goToStep, isDirty, submitWizard } = useWizard<Character>();
 
-  return (
-    <WizardContainer
+  const handleComplete = async () => {
+    await submitWizard();
+      onComplete?.();
+      };
+      
+      return (
+      <ProductionWizardContainer
       title="Create Character"
       steps={steps}
       onCancel={onCancel}
+      onComplete={handleComplete}
       allowJumpToStep={false}
       showAutoSaveIndicator={true}
+      currentStep={currentStep}
+      onNextStep={nextStep}
+      onPreviousStep={previousStep}
+      onGoToStep={goToStep}
+      isDirty={isDirty}
     >
       {renderStepContent(currentStep)}
-    </WizardContainer>
+    </ProductionWizardContainer>
   );
 }
 
@@ -92,12 +121,17 @@ export function CharacterWizard({
   onComplete,
   onCancel,
   worldContext,
+  storyContext,
   initialData,
 }: CharacterWizardProps) {
   // ============================================================================
-  // Character Persistence
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   // ============================================================================
 
+  // Check LLM service status
+  const { ollama: llmStatus } = useServiceStatus();
+  
+  // Character Persistence hook
   const { saveCharacter } = useCharacterPersistence();
 
   // ============================================================================
@@ -177,17 +211,42 @@ export function CharacterWizard({
         // Save character to JSON file and update store
         const savedCharacter = await saveCharacter(data);
 
-        // Emit event for other components to subscribe to
-        window.dispatchEvent(
-          new CustomEvent('character-created', {
-            detail: { character: savedCharacter },
-          })
+        // Emit character-created event with proper payload structure
+        // Requirements: 3.4, 12.1
+        eventEmitter.emit(
+          CharacterEventType.CHARACTER_CREATED,
+          createCharacterCreatedPayload(
+            savedCharacter,
+            'wizard',
+            storyContext?.storyName
+          )
         );
 
-        // Call the onComplete callback with saved character
-        onComplete(savedCharacter);
+        // Call the onComplete callback with saved character and story context
+        // Requirements: 3.2, 3.5
+        onComplete(savedCharacter, storyContext);
       } catch (error) {
         console.error('Failed to save character:', error);
+        
+        // Create a detailed error message based on the error type
+        let errorMessage = 'Failed to save character: ';
+        if (error instanceof Error) {
+          errorMessage += error.message;
+          
+          // Add specific guidance for common error types
+          if (error.message.includes('permission') || error.message.includes('access')) {
+            errorMessage += '\nPlease check your file system permissions.';
+          } else if (error.message.includes('network') || error.message.includes('connection')) {
+            errorMessage += '\nPlease check your network connection.';
+          } else if (error.message.includes('invalid')) {
+            errorMessage += '\nPlease verify all character data is valid.';
+          }
+        } else {
+          errorMessage += 'Unknown error occurred.';
+        }
+        
+        // Show error to user
+        alert(errorMessage);
         
         // Still create the character object for the callback
         // even if persistence failed
@@ -253,11 +312,31 @@ export function CharacterWizard({
           },
         };
 
-        onComplete(character);
+        // Emit event even on persistence failure
+        eventEmitter.emit(
+          CharacterEventType.CHARACTER_CREATED,
+          createCharacterCreatedPayload(
+            character,
+            'wizard',
+            storyContext?.storyName
+          )
+        );
+
+        onComplete(character, storyContext);
       }
     },
-    [onComplete, saveCharacter]
+    [onComplete, saveCharacter, storyContext]
   );
+
+  // Create a callback for WizardContainer that triggers completion
+  // The actual character data is handled by handleSubmit (passed to WizardProvider.onSubmit)
+  // This callback is called after submitWizard() completes successfully
+  const handleWizardComplete = useCallback(() => {
+    // This callback is called by WizardNavigation when user clicks "Complete"
+    // The character has already been created and onComplete(character) was called by handleSubmit
+    // This is just a notification that the wizard finished successfully
+    console.log('[CharacterWizard] Wizard completion confirmed');
+  }, []);
 
   // ============================================================================
   // Render Step Content
@@ -266,21 +345,56 @@ export function CharacterWizard({
   const renderStepContent = (currentStep: number) => {
     switch (currentStep) {
       case 1:
-        return <Step1BasicIdentity worldContext={worldContext} />;
+        return <Step1BasicIdentity worldContext={worldContext} storyContext={storyContext} />;
       case 2:
-        return <Step2PhysicalAppearance worldContext={worldContext} />;
+        return <Step2PhysicalAppearance worldContext={worldContext} storyContext={storyContext} />;
       case 3:
-        return <Step3Personality />;
+        return <Step3Personality storyContext={storyContext} />;
       case 4:
-        return <Step4Background worldContext={worldContext} />;
+        return <Step4Background worldContext={worldContext} storyContext={storyContext} />;
       case 5:
-        return <Step5Relationships />;
+        return <Step5Relationships storyContext={storyContext} />;
       case 6:
-        return <Step6ReviewFinalize />;
+        return <Step6ReviewFinalize storyContext={storyContext} />;
       default:
         return null;
     }
   };
+
+  // Derived state from hooks (AFTER all hooks are called)
+  const llmChecking = llmStatus === 'checking';
+  const llmConfigured = llmStatus === 'connected';
+
+  // ============================================================================
+  // CONDITIONAL RENDERING (after all hooks)
+  // ============================================================================
+
+  // Show loading state while checking LLM service
+  if (llmChecking) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 space-y-4 min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Checking AI service status...</p>
+      </div>
+    );
+  }
+
+  // Show info if LLM is not configured
+  if (!llmConfigured) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 space-y-4 min-h-[400px]">
+        <AlertCircle className="h-8 w-8 text-amber-500" />
+        <p className="text-sm text-muted-foreground">AI service not connected</p>
+        <p className="text-xs text-muted-foreground">Configure Ollama to enable AI-assisted character generation</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <WizardProvider<Character>
@@ -296,8 +410,11 @@ export function CharacterWizard({
         steps={WIZARD_STEPS}
         onCancel={onCancel}
         worldContext={worldContext}
+        storyContext={storyContext}
+        onComplete={handleWizardComplete}
         renderStepContent={renderStepContent}
       />
     </WizardProvider>
   );
 }
+

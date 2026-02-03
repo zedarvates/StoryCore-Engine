@@ -6,8 +6,9 @@
 export type SupportedLanguage = 'fr' | 'en' | 'es' | 'de';
 
 export interface WizardStep {
+  number: number;
   title: string;
-  description: string;
+  description?: string;
   icon?: React.ComponentType<{ size?: number; className?: string }>;
   requiredFields?: string[];
 }
@@ -265,3 +266,344 @@ export const LANGUAGE_FLAGS: Record<SupportedLanguage, string> = {
   de: '🇩🇪'
 };
 
+
+// ============================================================================
+// Project Setup Wizard Types
+// Comprehensive data models for the multi-step project initialization wizard
+// ============================================================================
+
+// Project Type Data
+export interface ProjectTypeData {
+  type: 'court-metrage' | 'moyen-metrage' | 'long-metrage-standard' |
+  'long-metrage-premium' | 'tres-long-metrage' | 'special-tv' |
+  'episode-serie' | 'custom';
+  durationMinutes: number;
+  durationRange?: { min: number; max: number };
+}
+
+// Genre and Style Data
+export type Genre = 'action' | 'drama' | 'comedy' | 'sci-fi' | 'fantasy' |
+  'horror' | 'romance' | 'thriller' | 'documentary' |
+  'mystery' | 'adventure' | 'historical' | 'musical' | 'western';
+
+export type VisualStyle = 'realistic' | 'stylized' | 'anime' | 'comic-book' |
+  'noir' | 'vintage' | 'futuristic' | 'watercolor' |
+  'oil-painting' | 'minimalist' | 'surreal';
+
+export type Mood = 'dark' | 'light' | 'serious' | 'playful' | 'tense' |
+  'calm' | 'energetic' | 'melancholic' | 'hopeful' | 'mysterious';
+
+export interface ColorPalette {
+  primary: string;
+  secondary: string;
+  accent: string;
+  preset?: string; // e.g., 'warm-sunset', 'cool-ocean', 'monochrome'
+}
+
+export interface GenreStyleData {
+  genres: Genre[];
+  visualStyle: VisualStyle;
+  colorPalette: ColorPalette;
+  mood: Mood[];
+}
+
+// World Building Data
+export interface Location {
+  id: string;
+  name: string;
+  description: string;
+  visualCharacteristics: string;
+  mood: Mood;
+  referenceImages?: string[];
+}
+
+export interface WorldBuildingData {
+  timePeriod: string;
+  primaryLocation: string;
+  universeType: 'realistic' | 'fantasy' | 'sci-fi' | 'historical' | 'alternate';
+  worldRules: string;
+  locations: Location[];
+  culturalContext: string;
+  technologyLevel: number; // 0-10 scale
+}
+
+// Character Data
+export type DialogueStyle = 'formal' | 'casual' | 'technical' | 'poetic' |
+  'terse' | 'verbose' | 'dialect-specific';
+
+export interface CharacterRelationship {
+  characterId: string;
+  relationshipType: string; // e.g., 'friend', 'enemy', 'family', 'mentor'
+  description: string;
+}
+
+export interface CharacterProfile {
+  id: string;
+  name: string;
+  role: 'protagonist' | 'antagonist' | 'supporting' | 'background';
+  physicalAppearance: string;
+  personalityTraits: string[];
+  characterArc: string;
+  visualReferences: string[];
+  dialogueStyle: DialogueStyle;
+  relationships: CharacterRelationship[];
+}
+
+// Story Structure Data
+export type ActStructure = '3-act' | '5-act' | 'hero-journey' | 'save-the-cat' | 'custom';
+
+export interface PlotPoint {
+  id: string;
+  name: string;
+  description: string;
+  timingMinutes: number;
+  actNumber: number;
+}
+
+export interface StoryStructureData {
+  premise: string; // max 500 chars
+  logline: string; // max 150 chars
+  actStructure: ActStructure;
+  plotPoints: PlotPoint[];
+  themes: string[];
+  motifs: string[];
+  narrativePerspective: 'first-person' | 'third-person-limited' |
+  'third-person-omniscient' | 'multiple-pov';
+}
+
+// Script Data
+export interface DialogueLine {
+  character: string;
+  line: string;
+  parenthetical?: string;
+}
+
+export interface ParsedScene {
+  sceneNumber: number;
+  heading: string;
+  description: string;
+  dialogue: DialogueLine[];
+  characters: string[];
+}
+
+export interface ScriptData {
+  format: 'full-screenplay' | 'scene-descriptions' | 'shot-list' | 'storyboard-notes';
+  content: string;
+  importedFrom?: string; // file path if imported
+  parsedScenes?: ParsedScene[];
+}
+
+// Scene Breakdown Data
+export interface SceneBreakdown {
+  id: string;
+  sceneNumber: number;
+  sceneName: string;
+  durationMinutes: number;
+  locationId: string;
+  characterIds: string[];
+  timeOfDay: 'dawn' | 'morning' | 'afternoon' | 'evening' | 'night' | 'unspecified';
+  emotionalBeat: string;
+  keyActions: string[];
+  order: number; // for drag-and-drop reordering
+}
+
+// Shot Planning Data
+export type ShotType = 'extreme-wide' | 'wide' | 'medium' | 'close-up' |
+  'extreme-close-up' | 'over-the-shoulder' | 'pov';
+
+export type CameraAngle = 'eye-level' | 'high-angle' | 'low-angle' |
+  'dutch-angle' | 'birds-eye' | 'worms-eye';
+
+export type CameraMovement = 'static' | 'pan' | 'tilt' | 'dolly' | 'track' |
+  'zoom' | 'handheld' | 'crane';
+
+export type Transition = 'cut' | 'fade' | 'dissolve' | 'wipe' | 'match-cut';
+
+export interface ShotPlan {
+  id: string;
+  sceneId: string;
+  shotNumber: number;
+  shotType: ShotType;
+  cameraAngle: CameraAngle;
+  cameraMovement: CameraMovement;
+  transition: Transition;
+  compositionNotes: string;
+  order: number;
+}
+
+// Validation Types
+export interface ValidationError {
+  field: string;
+  message: string;
+  severity: 'error' | 'warning';
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationError[];
+  warnings: ValidationError[];
+}
+
+// Wizard Step Data Union Type
+export type WizardStepData =
+  | ProjectTypeData
+  | GenreStyleData
+  | WorldBuildingData
+  | CharacterProfile[]
+  | StoryStructureData
+  | ScriptData
+  | SceneBreakdown[]
+  | ShotPlan[];
+
+// Wizard State
+export interface WizardState {
+  // Navigation state
+  currentStep: number;
+  completedSteps: Set<number>;
+  isReviewMode: boolean;
+
+  // Project data (mirrors Data Contract v1)
+  projectType: ProjectTypeData | null;
+  genreStyle: GenreStyleData | null;
+  worldBuilding: WorldBuildingData | null;
+  characters: CharacterProfile[];
+  storyStructure: StoryStructureData | null;
+  script: ScriptData | null;
+  scenes: SceneBreakdown[];
+  shots: ShotPlan[];
+
+  // Metadata
+  draftId: string | null;
+  lastSaved: Date | null;
+  validationErrors: Map<number, ValidationError[]>;
+
+  // Actions
+  setCurrentStep: (step: number) => void;
+  updateStepData: (step: number, data: Partial<WizardStepData>) => void;
+  markStepComplete: (step: number) => void;
+  validateStep: (step: number) => Promise<ValidationResult>;
+  canProceed: () => boolean;
+  reset: () => void;
+}
+
+// Template Types
+export type TemplateCategory = 'short-film' | 'feature' | 'series' | 'documentary' | 'custom';
+
+export interface ProjectTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: TemplateCategory;
+  data: Partial<WizardState>;
+}
+
+export interface DraftMetadata {
+  id: string;
+  projectName: string;
+  timestamp: Date;
+  currentStep: number;
+}
+
+// Export Types
+export interface CoherenceConfig {
+  visualStyle: VisualStyle;
+  colorPalette: ColorPalette;
+  mood: Mood[];
+  styleConsistencyRules: string[];
+}
+
+export interface ProjectJSON {
+  schema_version: '1.0';
+  project_name: string;
+  project_metadata: {
+    type: string;
+    duration_minutes: number;
+    genres: string[];
+    visual_style: string;
+    created_at: string;
+  };
+  world_building: WorldBuildingData;
+  characters: CharacterProfile[];
+  story_structure: StoryStructureData;
+  scenes: SceneBreakdown[];
+  shots: ShotPlan[];
+  capabilities: {
+    grid_generation: boolean;
+    promotion_engine: boolean;
+    qa_engine: boolean;
+    autofix_engine: boolean;
+  };
+  generation_status: {
+    grid: 'pending' | 'done' | 'failed' | 'passed';
+    promotion: 'pending' | 'done' | 'failed' | 'passed';
+  };
+}
+
+export interface ProjectExport {
+  projectJSON: ProjectJSON;
+  projectPath: string;
+  summaryDocument: string; // Markdown content
+  coherenceConfig: CoherenceConfig;
+  exportTimestamp: Date;
+}
+
+// Component Props Types
+export interface StepComponentProps<T = any> {
+  data: T;
+  onUpdate: (data: Partial<T>) => void;
+  onValidate: () => ValidationResult;
+  mode: 'beginner' | 'advanced';
+}
+
+export interface WizardContainerProps {
+  initialTemplate?: string;
+  onComplete: (projectData: ProjectExport) => void;
+  onCancel: () => void;
+}
+
+export interface WizardNavigationProps {
+  currentStep: number;
+  totalSteps: number;
+  canGoNext: boolean;
+  canGoBack: boolean;
+  canSkip: boolean;
+  onNext: () => void;
+  onBack: () => void;
+  onSkip: () => void;
+  onSaveDraft: () => void;
+  onSubmit?: () => void; // Called at the last step
+  onCancel?: () => void; // Called when cancel is clicked
+  lastSaved?: Date;
+}
+
+export interface WizardReviewProps {
+  projectData: WizardState;
+  onEdit: (step: number) => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+// Schema Validation Result
+export interface SchemaValidationResult {
+  isValid: boolean;
+  errors: Array<{
+    path: string;
+    message: string;
+  }>;
+}
+// ============================================================================
+// Wizard Contexts
+// For specific wizard launches via Store
+// ============================================================================
+
+export interface SequencePlanWizardContext {
+  mode: 'create' | 'edit';
+  sequenceId?: string;
+  initialData?: any;
+}
+
+export interface ShotWizardContext {
+  mode: 'create' | 'edit';
+  shotId?: string;
+  initialData?: any;
+}

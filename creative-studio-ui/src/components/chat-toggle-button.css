@@ -1,0 +1,82 @@
+/**
+ * Chat Toggle Button Styles
+ * 
+ * Styles for the floating chat toggle button
+ */
+
+/* Toggle button base animation */
+.chat-toggle-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-toggle-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.3);
+}
+
+.chat-toggle-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Icon rotation on hover */
+.chat-toggle-icon {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-toggle-btn:hover .chat-toggle-icon {
+  transform: rotate(15deg);
+}
+
+/* Unread indicator pulse animation */
+.chat-unread-indicator {
+  animation: unreadPulse 2s ease-in-out infinite;
+}
+
+@keyframes unreadPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(139, 92, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+  }
+}
+
+/* Focus visible styles */
+.chat-toggle-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.4);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .chat-toggle-btn:hover:not(:disabled) {
+    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .chat-toggle-btn {
+    transition-duration: 0.01ms;
+  }
+
+  .chat-toggle-btn:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .chat-toggle-btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  .chat-toggle-btn:hover .chat-toggle-icon {
+    transform: none;
+  }
+
+  .chat-unread-indicator {
+    animation: none;
+  }
+}
+

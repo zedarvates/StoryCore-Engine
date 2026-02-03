@@ -1,0 +1,27 @@
+{
+  "menu": {
+    "main": "主菜单",
+    "view": "查看",
+    "settings": "设置",
+    "backToDashboard": "返回仪表板",
+    "llmConfig": "LLM StoryCore 助手配置",
+    "comfyUIConfig": "ComfyUI 服务器配置",
+    "userPreferences": "用户偏好"
+  },
+  "preferences": {
+    "title": "用户偏好",
+    "language": "语言",
+    "selectLanguage": "选择语言",
+    "languageDescription": "选择您的界面首选语言"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "close": "关闭",
+    "ok": "确定",
+    "yes": "是",
+    "no": "否",
+    "apply": "应用",
+    "reset": "重置"
+  }
+}

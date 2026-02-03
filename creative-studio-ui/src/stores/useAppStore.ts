@@ -12,11 +12,21 @@ export type WizardType =
   | 'sequence-plan'
   | 'shot';
 
+// Character filter types for character integration system
+// Requirements: 9.3
+export interface CharacterFilters {
+  archetype?: string[];
+  ageRange?: string[];
+  creationMethod?: ('wizard' | 'auto_generated' | 'manual')[];
+}
+
 interface AppState {
   // Project data
   project: Project | null;
   shots: Shot[];
   assets: Asset[];
+  worlds: any[];
+  characters: any[];
 
   // UI state
   selectedShotId: string | null;
@@ -25,8 +35,17 @@ interface AppState {
   showTaskQueue: boolean;
   panelSizes: PanelSizes;
 
+  // Floating chat panel state
+  chatPanelPosition: { x: number; y: number };
+  chatPanelSize: { width: number; height: number };
+  chatPanelMinimized: boolean;
+
   // Task queue
   taskQueue: GenerationTask[];
+
+  // Service Status
+  ollamaStatus: 'connected' | 'error' | 'disconnected' | 'connecting';
+  comfyuiStatus: 'connected' | 'error' | 'disconnected' | 'connecting';
 
   // Playback state
   isPlaying: boolean;
@@ -42,6 +61,8 @@ interface AppState {
   // Configuration wizards state
   showWorldWizard: boolean;
   showCharacterWizard: boolean;
+  showProjectSetupWizard: boolean;
+  showStorytellerWizard: boolean;
   showLLMSettings: boolean;
   showComfyUISettings: boolean;
   showGeneralSettings: boolean;
@@ -52,6 +73,8 @@ interface AppState {
   showObjectsModal: boolean;
   showImageGalleryModal: boolean;
   showDialogueEditor: boolean;
+  showFeedbackPanel: boolean;
+  showPendingReportsList: boolean;
 
   // Production wizards state
   showSequencePlanWizard: boolean;
@@ -66,6 +89,14 @@ interface AppState {
   showStoryboardCreator: boolean;
   showStyleTransfer: boolean;
   activeWizardType: WizardType | null;
+
+  // Character integration system UI state
+  // Requirements: 4.2, 9.1, 9.2, 9.3
+  selectedCharacterIds: string[];
+  characterSearchQuery: string;
+  characterFilters: CharacterFilters;
+  isCharacterEditorOpen: boolean;
+  editingCharacterId: string | null;
 
   // Undo/Redo
   history: AppState[];
@@ -82,6 +113,9 @@ interface AppState {
   setShowChat: (show: boolean) => void;
   setShowTaskQueue: (show: boolean) => void;
   setPanelSizes: (sizes: PanelSizes) => void;
+  setChatPanelPosition: (position: { x: number; y: number }) => void;
+  setChatPanelSize: (size: { width: number; height: number }) => void;
+  setChatPanelMinimized: (minimized: boolean) => void;
   setIsPlaying: (playing: boolean) => void;
   setPlaybackSpeed: (speed: number) => void;
   addAsset: (asset: Asset) => void;
@@ -94,6 +128,8 @@ interface AppState {
   setInstallationComplete: (complete: boolean) => void;
   setShowWorldWizard: (show: boolean) => void;
   setShowCharacterWizard: (show: boolean) => void;
+  setShowProjectSetupWizard: (show: boolean) => void;
+  setShowStorytellerWizard: (show: boolean) => void;
   setShowLLMSettings: (show: boolean) => void;
   setShowComfyUISettings: (show: boolean) => void;
   setShowGeneralSettings: (show: boolean) => void;
@@ -104,6 +140,8 @@ interface AppState {
   setShowObjectsModal: (show: boolean) => void;
   setShowImageGalleryModal: (show: boolean) => void;
   setShowDialogueEditor: (show: boolean) => void;
+  setShowFeedbackPanel: (show: boolean) => void;
+  setShowPendingReportsList: (show: boolean) => void;
   openSequencePlanWizard: (context?: SequencePlanWizardContext) => void;
   closeSequencePlanWizard: () => void;
   openShotWizard: (context?: ShotWizardContext) => void;
@@ -116,6 +154,16 @@ interface AppState {
   setShowStyleTransfer: (show: boolean) => void;
   openWizard: (wizardType: WizardType) => void;
   closeActiveWizard: () => void;
+
+  // Character integration system actions
+  // Requirements: 4.2, 9.2, 9.4
+  setSelectedCharacterIds: (ids: string[]) => void;
+  setCharacterSearchQuery: (query: string) => void;
+  setCharacterFilters: (filters: CharacterFilters) => void;
+  openCharacterEditor: (characterId: string) => void;
+  closeCharacterEditor: () => void;
+  setOllamaStatus: (status: 'connected' | 'error' | 'disconnected' | 'connecting') => void;
+  setComfyUIStatus: (status: 'connected' | 'error' | 'disconnected' | 'connecting') => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -132,7 +180,14 @@ export const useAppStore = create<AppState>((set) => ({
     canvas: 50,
     propertiesOrChat: 30,
   },
+  chatPanelPosition: { x: 100, y: 100 },
+  chatPanelSize: { width: 384, height: 500 },
+  chatPanelMinimized: false,
   taskQueue: [],
+  ollamaStatus: 'disconnected',
+  comfyuiStatus: 'disconnected',
+  worlds: [],
+  characters: [],
   isPlaying: false,
   playbackSpeed: 1,
   chatMessages: [],
@@ -142,6 +197,8 @@ export const useAppStore = create<AppState>((set) => ({
   installationComplete: false,
   showWorldWizard: false,
   showCharacterWizard: false,
+  showProjectSetupWizard: false,
+  showStorytellerWizard: false,
   showLLMSettings: false,
   showComfyUISettings: false,
   showGeneralSettings: false,
@@ -152,6 +209,8 @@ export const useAppStore = create<AppState>((set) => ({
   showObjectsModal: false,
   showImageGalleryModal: false,
   showDialogueEditor: false,
+  showFeedbackPanel: false,
+  showPendingReportsList: false,
   showSequencePlanWizard: false,
   sequencePlanWizardContext: null,
   showShotWizard: false,
@@ -163,6 +222,14 @@ export const useAppStore = create<AppState>((set) => ({
   showStoryboardCreator: false,
   showStyleTransfer: false,
   activeWizardType: null,
+
+  // Character integration system initial state
+  // Requirements: 4.2, 9.1, 9.2, 9.3
+  selectedCharacterIds: [],
+  characterSearchQuery: '',
+  characterFilters: {},
+  isCharacterEditorOpen: false,
+  editingCharacterId: null,
 
   // Actions
   setProject: (project) => set({ project }),
@@ -182,6 +249,9 @@ export const useAppStore = create<AppState>((set) => ({
   setShowChat: (show) => set({ showChat: show }),
   setShowTaskQueue: (show) => set({ showTaskQueue: show }),
   setPanelSizes: (sizes) => set({ panelSizes: sizes }),
+  setChatPanelPosition: (position) => set({ chatPanelPosition: position }),
+  setChatPanelSize: (size) => set({ chatPanelSize: size }),
+  setChatPanelMinimized: (minimized) => set({ chatPanelMinimized: minimized }),
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
   addAsset: (asset) => set((state) => ({ assets: [...state.assets, asset] })),
@@ -197,7 +267,15 @@ export const useAppStore = create<AppState>((set) => ({
   setShowInstallationWizard: (show) => set({ showInstallationWizard: show }),
   setInstallationComplete: (complete) => set({ installationComplete: complete }),
   setShowWorldWizard: (show) => set({ showWorldWizard: show }),
-  setShowCharacterWizard: (show) => set({ showCharacterWizard: show }),
+  setShowCharacterWizard: (show) => {
+    console.log('[useAppStore] setShowCharacterWizard called with:', show);
+    set({ showCharacterWizard: show });
+  },
+  setShowProjectSetupWizard: (show) => set({ showProjectSetupWizard: show }),
+  setShowStorytellerWizard: (show) => {
+    console.log('[useAppStore] setShowStorytellerWizard called with:', show);
+    set({ showStorytellerWizard: show });
+  },
   setShowLLMSettings: (show) => set({ showLLMSettings: show }),
   setShowComfyUISettings: (show) => set({ showComfyUISettings: show }),
   setShowGeneralSettings: (show) => set({ showGeneralSettings: show }),
@@ -208,6 +286,8 @@ export const useAppStore = create<AppState>((set) => ({
   setShowObjectsModal: (show) => set({ showObjectsModal: show }),
   setShowImageGalleryModal: (show) => set({ showImageGalleryModal: show }),
   setShowDialogueEditor: (show) => set({ showDialogueEditor: show }),
+  setShowFeedbackPanel: (show) => set({ showFeedbackPanel: show }),
+  setShowPendingReportsList: (show) => set({ showPendingReportsList: show }),
   openSequencePlanWizard: (context) => {
     set({
       showSequencePlanWizard: true,
@@ -239,7 +319,11 @@ export const useAppStore = create<AppState>((set) => ({
   // Open wizard with mutual exclusion (Requirement 3.4)
   openWizard: (wizardType) =>
     set({
-      // Close all wizards first (mutual exclusion)
+      // Close ALL wizards first (mutual exclusion) - including multi-step wizards
+      showWorldWizard: false,
+      showCharacterWizard: false,
+      showProjectSetupWizard: false,
+      showStorytellerWizard: false,
       showDialogueWriter: false,
       showSceneGenerator: false,
       showStoryboardCreator: false,
@@ -256,10 +340,32 @@ export const useAppStore = create<AppState>((set) => ({
   // Close active wizard (Requirement 3.3)
   closeActiveWizard: () =>
     set({
+      showWorldWizard: false,
+      showCharacterWizard: false,
+      showProjectSetupWizard: false,
+      showStorytellerWizard: false,
       showDialogueWriter: false,
       showSceneGenerator: false,
       showStoryboardCreator: false,
       showStyleTransfer: false,
       activeWizardType: null,
     }),
+
+  // Character integration system actions
+  // Requirements: 4.2, 9.2, 9.4
+  setSelectedCharacterIds: (ids) => set({ selectedCharacterIds: ids }),
+  setCharacterSearchQuery: (query) => set({ characterSearchQuery: query }),
+  setCharacterFilters: (filters) => set({ characterFilters: filters }),
+  openCharacterEditor: (characterId) =>
+    set({
+      isCharacterEditorOpen: true,
+      editingCharacterId: characterId,
+    }),
+  closeCharacterEditor: () =>
+    set({
+      isCharacterEditorOpen: false,
+      editingCharacterId: null,
+    }),
+  setOllamaStatus: (status) => set({ ollamaStatus: status }),
+  setComfyUIStatus: (status) => set({ comfyuiStatus: status }),
 }));

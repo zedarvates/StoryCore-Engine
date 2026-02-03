@@ -79,10 +79,14 @@ export interface Shot {
     trimEnd?: number;   // End point within the source media (seconds)
   };
   thumbnailUrl?: string;
+  promoted_panel_path?: string; // Path to promoted panel image
+  title?: string;
+  duration?: number;
   status: string;
   tags: string[];
   sequencePlanId?: string;
   sceneId?: string;
+  position: number;
 }
 
 export interface ProductionShot {
@@ -172,6 +176,8 @@ export const CharacterPositionSchema = z.object({
   pose: z.string().optional(),
   expression: z.string().optional(),
 });
+
+export type CharacterPosition = z.infer<typeof CharacterPositionSchema>;
 
 export const ShotSchema = z.object({
   id: z.string(),

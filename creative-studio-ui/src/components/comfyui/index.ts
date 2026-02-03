@@ -1,17 +1,32 @@
 /**
- * ComfyUI Instance Management Components
- *
- * Exports all components related to ComfyUI instance management.
+ * ComfyUI Integration Components
+ * 
+ * Components for ComfyUI Desktop integration including generation progress
+ * monitoring, status displays, and cancellation controls.
  */
 
-// Main components
-export { ComfyUIInstancePanel } from './ComfyUIInstancePanel';
-export { InstanceCard } from './InstanceCard';
-export { InstanceEditorDialog } from './InstanceEditorDialog';
-export { ActiveInstanceSwitcher } from './ActiveInstanceSwitcher';
+export { GenerationStatusDisplay } from './GenerationStatusDisplay';
+export type { 
+  GenerationStatusDisplayProps,
+  GenerationProgress 
+} from './GenerationStatusDisplay';
 
-// Type exports
-export type { ComfyUIInstancePanelProps } from './ComfyUIInstancePanel';
-export type { InstanceCardProps } from './InstanceCard';
-export type { InstanceEditorDialogProps } from './InstanceEditorDialog';
-export type { ActiveInstanceSwitcherProps } from './ActiveInstanceSwitcher';
+export { MasterCoherenceSheetProgress } from './MasterCoherenceSheetProgress';
+export type {
+  MasterCoherenceSheetProgressProps,
+  PanelInfo,
+  PanelStatus
+} from './MasterCoherenceSheetProgress';
+
+export { GenerationCompletionSummary } from './GenerationCompletionSummary';
+export type {
+  GenerationCompletionSummaryProps,
+  GenerationStats
+} from './GenerationCompletionSummary';
+
+export { GenerationCancellationDialog } from './GenerationCancellationDialog';
+export type {
+  GenerationCancellationDialogProps,
+  CancellationStatus,
+  CleanupProgress
+} from './GenerationCancellationDialog';

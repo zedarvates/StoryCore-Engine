@@ -42,6 +42,72 @@ export class PersistenceService {
   }
 
   /**
+   * Sauvegarde un personnage avec multi-layer persistance
+   */
+  async saveCharacter(character: Character, projectPath?: string): Promise<PersistenceResult[]> {
+    const results: PersistenceResult[] = [];
+
+    // Normalize role field to ensure it's in object format
+    const normalizedCharacter = this.normalizeCharacterRole(character);
+
+    // Validation des données
+    const validation = this.validateCharacter(normalizedCharacter);
+    if (!validation.isValid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+    }
+
+    // Layer 1: Store Zustand (si disponible)
+    try {
+      results.push(await this.saveCharacterToStore(normalizedCharacter));
+    } catch (error) {
+      console.warn('[PersistenceService] Store save failed:', error);
+      results.push({
+        success: false,
+        layer: 'store',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+
+    // Layer 2: localStorage
+    try {
+      results.push(await this.saveCharacterToLocalStorage(normalizedCharacter, projectPath));
+    } catch (error) {
+      console.warn('[PersistenceService] localStorage save failed:', error);
+      results.push({
+        success: false,
+        layer: 'localStorage',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+
+    // Layer 3: Fichier JSON du projet
+    if (projectPath) {
+      try {
+        results.push(await this.saveCharacterToFile(normalizedCharacter, projectPath));
+      } catch (error) {
+        console.warn('[PersistenceService] File save failed:', error);
+        results.push({
+          success: false,
+          layer: 'file',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+
+    // Si toutes les couches ont échoué, utiliser fallback
+    const successfulLayers = results.filter(r => r.success);
+    if (successfulLayers.length === 0) {
+      try {
+        results.push(await this.saveCharacterToFallback(normalizedCharacter));
+      } catch (error) {
+        console.error('[PersistenceService] All persistence layers failed:', error);
+      }
+    }
+
+    return results;
+  }
+
+  /**
    * Sauvegarde un monde avec multi-layer persistance
    */
   async saveWorld(world: World, projectPath?: string): Promise<PersistenceResult[]> {
@@ -188,8 +254,10 @@ export class PersistenceService {
         }
 
         const jsonData = JSON.stringify(world, null, 2);
+        
+        // Use Uint8Array instead of Buffer for browser compatibility
         const encoder = new TextEncoder();
-        const dataBuffer = Buffer.from(encoder.encode(jsonData));
+        const dataBuffer = encoder.encode(jsonData);
 
         await window.electronAPI.fs.writeFile(filePath, dataBuffer);
 
@@ -272,6 +340,207 @@ export class PersistenceService {
     const { useStore } = await import('@/store');
     const store = useStore.getState();
     return store.getWorldById(worldId) || null;
+  }
+
+  /**
+   * Sauvegarde un personnage dans le store Zustand
+   */
+  private async saveCharacterToStore(character: Character): Promise<PersistenceResult> {
+    return this.retryOperation(async () => {
+      // Importer dynamiquement pour éviter les dépendances circulaires
+      const { useStore } = await import('@/store');
+      const store = useStore.getState();
+      store.addCharacter(character);
+
+      return { success: true, layer: 'store' as const };
+    }, 3);
+  }
+
+  /**
+   * Sauvegarde un personnage dans localStorage
+   */
+  private async saveCharacterToLocalStorage(character: Character, projectPath?: string): Promise<PersistenceResult> {
+    return this.retryOperation(async () => {
+      const projectName = projectPath ?
+        projectPath.split(/[/\\]/).pop() || 'unknown' :
+        'default';
+
+      const key = `project-${projectName}-characters`;
+      const existingCharacters = JSON.parse(localStorage.getItem(key) || '[]');
+      const updatedCharacters = existingCharacters.filter((c: Character) => c.character_id !== character.character_id);
+      updatedCharacters.push(character);
+
+      localStorage.setItem(key, JSON.stringify(updatedCharacters));
+
+      return { success: true, layer: 'localStorage' as const };
+    }, 3);
+  }
+
+  /**
+   * Sauvegarde un personnage dans un fichier JSON
+   */
+  private async saveCharacterToFile(character: Character, projectPath: string): Promise<PersistenceResult> {
+    return this.retryOperation(async () => {
+      // Utiliser l'API Electron pour sauvegarder
+      if (window.electronAPI?.fs?.writeFile) {
+        const charactersDir = `${projectPath}/characters`;
+        const fileName = `character_${character.character_id}.json`;
+        const filePath = `${charactersDir}/${fileName}`;
+
+        // S'assurer que le dossier existe
+        if (window.electronAPI.fs.mkdir) {
+          await window.electronAPI.fs.mkdir(charactersDir, { recursive: true });
+        }
+
+        const jsonData = JSON.stringify(character, null, 2);
+        
+        // Use Uint8Array instead of Buffer for browser compatibility
+        const encoder = new TextEncoder();
+        const dataBuffer = encoder.encode(jsonData);
+
+        await window.electronAPI.fs.writeFile(filePath, dataBuffer);
+
+        return { success: true, layer: 'file' as const };
+      }
+
+      // Fallback: déclencher un téléchargement
+      this.downloadAsFile(character, `character_${character.character_id}.json`);
+
+      return { success: true, layer: 'file' as const };
+    }, 3);
+  }
+
+  /**
+   * Sauvegarde de fallback pour personnage (IndexedDB ou autre)
+   */
+  private async saveCharacterToFallback(character: Character): Promise<PersistenceResult> {
+    return this.retryOperation(async () => {
+      // Utiliser IndexedDB comme fallback
+      const db = await this.openIndexedDB();
+      const transaction = db.transaction(['characters'], 'readwrite');
+      const store = transaction.objectStore('characters');
+
+      await new Promise((resolve, reject) => {
+        const request = store.put(character);
+        request.onsuccess = () => resolve(undefined);
+        request.onerror = () => reject(request.error);
+      });
+
+      return { success: true, layer: 'fallback' as const };
+    }, 3);
+  }
+
+  /**
+   * Normalizes the character role field to ensure it's in object format
+   * Handles migration from legacy string format to object format
+   */
+  private normalizeCharacterRole(character: Character): Character {
+    // If role is null or undefined, set it to empty object
+    if (!character.role) {
+      return {
+        ...character,
+        role: {
+          archetype: '',
+          narrative_function: '',
+          character_arc: ''
+        }
+      };
+    }
+
+    // If role is already an object, return as-is
+    if (typeof character.role === 'object' && character.role !== null) {
+      // Ensure all required properties exist
+      return {
+        ...character,
+        role: {
+          archetype: character.role.archetype || '',
+          narrative_function: character.role.narrative_function || '',
+          character_arc: character.role.character_arc || ''
+        }
+      };
+    }
+
+    // If role is a string (legacy format), convert to object
+    if (typeof character.role === 'string') {
+      return {
+        ...character,
+        role: {
+          archetype: character.role,
+          narrative_function: '',
+          character_arc: ''
+        }
+      };
+    }
+
+    // If role is any other type, convert to string representation and use as archetype
+    return {
+      ...character,
+      role: {
+        archetype: String(character.role),
+        narrative_function: '',
+        character_arc: ''
+      }
+    };
+  }
+
+  /**
+   * Validation des données du personnage
+   */
+  private validateCharacter(character: Character): ValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // Validation de base
+    if (!character.character_id || typeof character.character_id !== 'string') {
+      errors.push('Character ID is required and must be a string');
+    }
+
+    if (!character.name || character.name.trim().length === 0) {
+      errors.push('Character name is required');
+    }
+
+    // Note: world_id is optional in the Character type, so we don't validate it as required
+    // This allows characters to exist independently before being assigned to a world
+    if (character.world_id && typeof character.world_id !== 'string') {
+      errors.push('World ID must be a string if provided');
+    }
+
+    // Validate role field - handle both object and legacy string formats
+    if (!character.role) {
+      warnings.push('Character role is recommended for better consistency');
+    } else if (typeof character.role === 'object' && character.role !== null) {
+      // Role is an object with archetype, narrative_function, character_arc
+      if (!character.role.archetype || typeof character.role.archetype !== 'string' || character.role.archetype.trim().length === 0) {
+        warnings.push('Character archetype is recommended for better consistency');
+      }
+      if (character.role.narrative_function && typeof character.role.narrative_function === 'string' && character.role.narrative_function.trim().length === 0) {
+        warnings.push('Character narrative function should not be empty if provided');
+      }
+      if (character.role.character_arc && typeof character.role.character_arc === 'string' && character.role.character_arc.trim().length === 0) {
+        warnings.push('Character arc should not be empty if provided');
+      }
+    } else if (typeof character.role === 'string') {
+      // Legacy string format - convert to object format
+      if (character.role.trim().length === 0) {
+        warnings.push('Character role is recommended for better consistency');
+      }
+    } else {
+      // Invalid type
+      errors.push('Character role must be an object with archetype, narrative_function, and character_arc properties');
+    }
+
+    // Validation des traits de personnalité
+    if (character.personality?.traits && Array.isArray(character.personality.traits)) {
+      if (character.personality.traits.length === 0) {
+        warnings.push('At least one personality trait is recommended');
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings
+    };
   }
 
   /**

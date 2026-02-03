@@ -1,0 +1,131 @@
+/**
+ * Unsaved Changes Dialog Styles
+ */
+
+.unsaved-changes-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: unsaved-fade-in 0.2s ease-out;
+}
+
+@keyframes unsaved-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.unsaved-changes-dialog {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  width: 90%;
+  max-width: 500px;
+  animation: unsaved-slide-up 0.3s ease-out;
+}
+
+@keyframes unsaved-slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.unsaved-changes-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #333;
+}
+
+.unsaved-changes-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.unsaved-changes-icon {
+  font-size: 24px;
+}
+
+.unsaved-changes-content {
+  padding: 24px;
+}
+
+.unsaved-changes-content p {
+  margin: 0;
+  color: #ccc;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.unsaved-changes-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #333;
+}
+
+.unsaved-changes-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.unsaved-changes-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.unsaved-changes-button-secondary {
+  background-color: #333;
+  color: #fff;
+}
+
+.unsaved-changes-button-secondary:hover:not(:disabled) {
+  background-color: #444;
+}
+
+.unsaved-changes-button-danger {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.unsaved-changes-button-danger:hover:not(:disabled) {
+  background-color: #c0392b;
+}
+
+.unsaved-changes-button-primary {
+  background-color: #4a90e2;
+  color: #fff;
+}
+
+.unsaved-changes-button-primary:hover:not(:disabled) {
+  background-color: #357abd;
+}
+
+.unsaved-changes-button-primary:disabled {
+  background-color: #2a5a8a;
+}

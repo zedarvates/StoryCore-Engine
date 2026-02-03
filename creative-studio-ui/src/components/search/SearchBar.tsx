@@ -131,7 +131,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             className="filter-toggle-button"
             onClick={() => setShowFilters(!showFilters)}
             aria-label="Toggle filters"
-            aria-expanded={showFilters}
+            aria-expanded={showFilters ? "true" : "false"}
           >
             <Filter size={18} />
             <ChevronDown

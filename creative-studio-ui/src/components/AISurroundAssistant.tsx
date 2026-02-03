@@ -65,7 +65,7 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-blue-400" />
-          <h3 className="text-lg font-semibold text-foreground">AI Assistant</h3>
+          <h3 className="text-lg font-semibold text-white">AI Assistant</h3>
         </div>
 
         <button
@@ -95,7 +95,7 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
       {!suggestion && !error && !isAnalyzing && (
         <div className="flex items-start gap-2 p-3 bg-blue-950/50 rounded-md border border-blue-800/50">
           <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-blue-200">
+          <p className="text-sm text-blue-200 dark:text-blue-100">
             Click "Ask AI" to analyze this scene and get intelligent surround sound preset
             recommendations based on the content.
           </p>
@@ -104,11 +104,11 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
 
       {/* Error state */}
       {error && (
-        <div className="flex items-start gap-2 p-3 bg-red-100 rounded-md">
-          <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 p-3 bg-red-900/20 rounded-md border border-red-800/50">
+          <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-red-900">Analysis Failed</p>
-            <p className="text-sm text-red-700 mt-1">{error}</p>
+            <p className="text-sm font-medium text-red-300">Analysis Failed</p>
+            <p className="text-sm text-red-200 mt-1">{error}</p>
           </div>
         </div>
       )}
@@ -117,7 +117,7 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
       {suggestion && (
         <div className="space-y-4">
           {/* Scene Analysis */}
-          <div className="bg-card p-4 rounded-lg border border-border">
+          <div className="bg-gray-200 dark:bg-gray-800 p-4 rounded-lg border border-gray-300 dark:border-gray-700">
             <h4 className="text-sm font-semibold text-foreground mb-2">Scene Analysis</h4>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -129,7 +129,7 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Confidence:</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="w-24 h-2 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
                         suggestion.confidence >= 80
@@ -147,7 +147,7 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
                 </div>
               </div>
               {suggestion.analysis.keywords.length > 0 && (
-                <div className="pt-2 border-t border-border">
+                <div className="pt-2 border-t border-gray-300 dark:border-gray-700">
                   <span className="text-xs text-muted-foreground">Detected keywords:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {suggestion.analysis.keywords.map((keyword, index) => (
@@ -165,9 +165,9 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
           </div>
 
           {/* Suggested Preset */}
-          <div className="bg-card p-4 rounded-lg border-2 border-blue-600">
+          <div className="bg-gray-200 dark:bg-gray-800 p-4 rounded-lg border-2 border-blue-600">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-foreground">Recommended Preset</h4>
+              <h4 className="text-sm font-semibold text-white dark:text-white">Recommended Preset</h4>
               <span className="text-xs px-2 py-1 bg-blue-950/50 text-blue-300 rounded font-medium border border-blue-800/50">
                 {suggestion.preset.mode}
               </span>
@@ -175,36 +175,36 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
 
             <div className="space-y-3">
               <div>
-                <h5 className="text-base font-medium text-foreground">
+                <h5 className="text-base font-medium text-white dark:text-white">
                   {suggestion.preset.name}
                 </h5>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                   {suggestion.preset.description}
                 </p>
               </div>
 
               <div className="p-3 bg-blue-950/30 rounded-md border border-blue-800/50">
-                <p className="text-sm text-blue-200">{suggestion.reasoning}</p>
+                <p className="text-sm text-blue-200 dark:text-blue-100">{suggestion.reasoning}</p>
               </div>
 
               {/* Channel levels preview */}
               <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">Channel Configuration:</span>
+                <span className="text-xs text-gray-600 dark:text-gray-300">Channel Configuration:</span>
                 <div className="grid grid-cols-2 gap-2">
                   {Object.entries(suggestion.preset.channels).map(([channel, level]) => {
                     if (typeof level !== 'number') return null;
                     return (
                       <div key={channel} className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground w-16 truncate">
+                        <span className="text-xs text-gray-600 dark:text-gray-300 w-16 truncate">
                           {channel}:
                         </span>
-                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="flex-1 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-blue-600 rounded-full"
                             style={{ width: `${level}%` }}
                           />
                         </div>
-                        <span className="text-xs text-muted-foreground w-8 text-right">
+                        <span className="text-xs text-gray-600 dark:text-gray-300 w-8 text-right">
                           {level}%
                         </span>
                       </div>
@@ -237,21 +237,21 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
           {/* Alternative Presets */}
           {suggestion.alternativePresets && suggestion.alternativePresets.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-foreground">Alternative Options</h4>
+              <h4 className="text-sm font-semibold text-white dark:text-white">Alternative Options</h4>
               <div className="grid grid-cols-2 gap-2">
                 {suggestion.alternativePresets.map((preset) => (
                   <div
                     key={preset.id}
-                    className="bg-card p-3 rounded-lg border border-border hover:border-blue-400 transition-colors cursor-pointer"
+                    className="bg-gray-200 dark:bg-gray-800 p-3 rounded-lg border border-gray-300 dark:border-gray-700 hover:border-blue-400 transition-colors cursor-pointer"
                     onClick={() => handleApplyPreset(preset)}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <h5 className="text-sm font-medium text-foreground">{preset.name}</h5>
-                      <span className="text-xs px-1.5 py-0.5 bg-muted text-muted-foreground rounded">
+                      <h5 className="text-sm font-medium text-white dark:text-white">{preset.name}</h5>
+                      <span className="text-xs px-1.5 py-0.5 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded">
                         {preset.mode}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{preset.description}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">{preset.description}</p>
                     {appliedPresetId === preset.id && (
                       <div className="mt-2 flex items-center gap-1 text-green-600">
                         <CheckCircle className="w-3 h-3" />
@@ -268,7 +268,7 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
 
       {/* Scene info */}
       <div className="pt-3 border-t border-blue-800/50">
-        <div className="text-xs text-muted-foreground space-y-1">
+        <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
           <div>
             <span className="font-medium">Scene:</span> {shot.title}
           </div>

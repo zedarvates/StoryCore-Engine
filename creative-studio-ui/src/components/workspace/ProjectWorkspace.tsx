@@ -6,12 +6,13 @@
 
 import type { ProjectWorkspaceProps } from '../../types/configuration';
 import { useActiveProject } from '../../hooks/useConfigurationHooks';
-import { WizardLauncher } from '../wizards/WizardLauncher';
+import { WizardLauncher } from '@/components/wizard/WizardLauncher';
 import { WIZARD_DEFINITIONS } from '../../data/wizardDefinitions';
 import { useAppStore } from '../../stores/useAppStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSequencePlanStore } from '../../stores/sequencePlanStore';
 import { useToast } from '../../hooks/use-toast';
+import { logger } from '../../utils/logging';
 import './ProjectWorkspace.css';
 
 export function ProjectWorkspace({
@@ -23,6 +24,10 @@ export function ProjectWorkspace({
   const openWizard = useAppStore((state) => state.openWizard);
   const setShowWorldWizard = useAppStore((state) => state.setShowWorldWizard);
   const setShowCharacterWizard = useAppStore((state) => state.setShowCharacterWizard);
+  const setShowStorytellerWizard = useAppStore((state) => state.setShowStorytellerWizard);
+  const setShowProjectSetupWizard = useAppStore((state) => state.setShowProjectSetupWizard);
+  const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
+  const setShowDialogueWriter = useAppStore((state) => state.setShowDialogueWriter);
   const projectPath = useEditorStore((state) => state.projectPath);
   const currentProject = useEditorStore((state) => state.currentProject);
 
@@ -37,15 +42,27 @@ export function ProjectWorkspace({
   const handleLaunchWizard = (wizardId: string) => {
     ;
     
+    // Get the closeActiveWizard function from store
+    const closeActiveWizard = useAppStore.getState().closeActiveWizard;
+    
+    // Close ALL wizards first (mutual exclusion)
+    closeActiveWizard();
+    
     // Map wizard IDs to appropriate wizard openers
     // Multi-step wizards (world, character) use separate modals
     // Simple form wizards use GenericWizardModal
     switch (wizardId) {
+      case 'project-init':
+        setShowProjectSetupWizard(true);
+        break;
       case 'world-building':
         setShowWorldWizard(true);
         break;
       case 'character-creation':
         setShowCharacterWizard(true);
+        break;
+      case 'storyteller-wizard':
+        setShowStorytellerWizard(true);
         break;
       case 'scene-generator':
         openWizard('scene-generator');
@@ -54,14 +71,22 @@ export function ProjectWorkspace({
         openWizard('storyboard-creator');
         break;
       case 'dialogue-writer':
-        openWizard('dialogue-writer');
+      case 'dialogue-wizard':
+        setShowDialogueWriter(true);
         break;
       case 'style-transfer':
         openWizard('style-transfer');
         break;
+      case 'shot-planning':
+        openSequencePlanWizard();
+        break;
       default:
-        console.warn(`Unknown wizard type: ${wizardId}`);
-        alert(`Wizard "${wizardId}" is not yet implemented.`);
+        logger.warn(`Unknown wizard type: ${wizardId}`);
+        toast({
+          title: 'Wizard Not Implemented',
+          description: `Wizard "${wizardId}" is not yet implemented.`,
+          variant: 'default',
+        });
     }
   };
 
@@ -69,19 +94,31 @@ export function ProjectWorkspace({
   const handleOpenProjectFiles = async () => {
     try {
       if (!projectPath) {
-        alert('No project is currently loaded.');
+        toast({
+          title: 'No Project Loaded',
+          description: 'No project is currently loaded.',
+          variant: 'destructive',
+        });
         return;
       }
 
       if (!window.electronAPI?.openFolder) {
-        alert('File explorer integration is not available in this environment.');
+        toast({
+          title: 'File Explorer Not Available',
+          description: 'File explorer integration is not available in this environment.',
+          variant: 'default',
+        });
         return;
       }
 
       await window.electronAPI.openFolder(projectPath);
     } catch (error) {
-      console.error('Failed to open project folder:', error);
-      alert('Failed to open project folder. Please check if the project path is valid.');
+      logger.error('Failed to open project folder:', error);
+      toast({
+        title: 'Failed to Open Folder',
+        description: 'Failed to open project folder. Please check if the project path is valid.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -95,14 +132,22 @@ export function ProjectWorkspace({
   // Handle analytics dashboard
   const handleOpenAnalytics = () => {
     ;
-    alert('Analytics dashboard will be available in a future update.');
+    toast({
+      title: 'Coming Soon',
+      description: 'Analytics dashboard will be available in a future update.',
+      variant: 'default',
+    });
   };
 
   // Handle export functionality
   const handleExport = async () => {
     try {
       if (!currentProject) {
-        alert('No project is currently loaded.');
+        toast({
+          title: 'No Project Loaded',
+          description: 'No project is currently loaded.',
+          variant: 'destructive',
+        });
         return;
       }
 
@@ -112,7 +157,11 @@ export function ProjectWorkspace({
       const hasSequences = shots && shots.length > 0;
 
       if (!hasShots && !hasAssets && !hasSequences) {
-        alert('Project has no content to export. Please generate some shots, add assets, or create sequences first.');
+        toast({
+          title: 'Nothing to Export',
+          description: 'Project has no content to export. Please generate some shots, add assets, or create sequences first.',
+          variant: 'destructive',
+        });
         return;
       }
 
@@ -162,7 +211,7 @@ export function ProjectWorkspace({
       });
 
     } catch (error) {
-      console.error('Failed to export project:', error);
+      logger.error('Failed to export project:', error);
       toast({
         title: 'Export Failed',
         description: 'Failed to export project. Please check the console for details.',
@@ -210,8 +259,8 @@ export function ProjectWorkspace({
           </button>
           <button
             className="settings-button general"
-            onClick={() => onOpenSettings('general')}
-            title="General Settings"
+            onClick={() => onOpenSettings('llm')}
+            title="LLM Settings"
           >
             ⚙️ General
           </button>

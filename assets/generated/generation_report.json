@@ -1,0 +1,85 @@
+{
+  "generation_summary": {
+    "timestamp": "2026-01-27T10:24:53.815425Z",
+    "total_assets": 12,
+    "successful": 0,
+    "failed": 12,
+    "total_time": 0.03955698013305664,
+    "average_time": 0.0032964150110880532,
+    "mock_mode": false
+  },
+  "results": [
+    {
+      "name": "storycore_logo_horizontal",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.003501415252685547
+    },
+    {
+      "name": "storycore_logo_square",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.003000497817993164
+    },
+    {
+      "name": "storycore_panel_placeholder",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.0035102367401123047
+    },
+    {
+      "name": "storycore_loading_state",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.003000497817993164
+    },
+    {
+      "name": "storycore_error_state",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.003000974655151367
+    },
+    {
+      "name": "storycore_character_template_male",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.0034995079040527344
+    },
+    {
+      "name": "storycore_character_template_female",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.003512144088745117
+    },
+    {
+      "name": "storycore_environment_landscape",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.0030014514923095703
+    },
+    {
+      "name": "storycore_environment_interior",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.0030159950256347656
+    },
+    {
+      "name": "storycore_ui_button_primary",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.003505706787109375
+    },
+    {
+      "name": "storycore_ui_button_secondary",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.0034983158111572266
+    },
+    {
+      "name": "storycore_banner_featured",
+      "success": false,
+      "error_message": "Failed to queue prompt",
+      "generation_time": 0.0035102367401123047
+    }
+  ]
+}

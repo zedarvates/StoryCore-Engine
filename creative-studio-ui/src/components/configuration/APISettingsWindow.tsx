@@ -14,10 +14,12 @@ import { useAPIConfig } from '../../hooks/useConfigurationHooks';
 import {
   validateAPIConfiguration,
 } from '../../services/configurationValidator';
+import { useToast } from '../../hooks/use-toast';
 import './APISettingsWindow.css';
 
 export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindowProps) {
   const apiConfig = useAPIConfig();
+  const { toast } = useToast();
   
   // Local state for form
   const [formData, setFormData] = useState<APIConfiguration | null>(null);
@@ -132,7 +134,11 @@ export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindow
       onClose();
     } catch (error) {
       console.error('Failed to save API settings:', error);
-      alert(`Failed to save: ${error}`);
+      toast({
+        title: 'Failed to Save',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -159,6 +165,8 @@ export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindow
               value={formData.defaultTimeout}
               onChange={e => handleFieldChange('defaultTimeout', parseInt(e.target.value))}
               className={getFieldError('defaultTimeout') ? 'error' : ''}
+              aria-label="Default timeout in milliseconds"
+              title="Default timeout in milliseconds"
             />
             {getFieldError('defaultTimeout') && (
               <span className="error-message">{getFieldError('defaultTimeout')}</span>
@@ -240,6 +248,8 @@ export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindow
                           parseInt(e.target.value)
                         )
                       }
+                      aria-label={`${serviceName} timeout in milliseconds`}
+                      title="Timeout in milliseconds"
                     />
                   </div>
 
@@ -254,6 +264,8 @@ export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindow
                           parseInt(e.target.value)
                         )
                       }
+                      aria-label={`${serviceName} retry attempts`}
+                      title="Number of retry attempts"
                     />
                   </div>
                 </div>

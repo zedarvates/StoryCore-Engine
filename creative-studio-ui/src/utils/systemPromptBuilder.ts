@@ -40,6 +40,55 @@ import { type LanguageCode } from '@/components/launcher/LanguageSelector';
 const BASE_SYSTEM_PROMPT = `You are the StoryCore AI assistant, helping users create and manage video storyboard projects. You provide guidance on creating shots, adding transitions, configuring audio, and optimizing production workflows.`;
 
 /**
+ * Project creation guidance for the LLM assistant
+ * 
+ * This guidance enables the assistant to help users create new projects through
+ * natural language requests. The assistant can extract project parameters from
+ * user descriptions and initiate project creation with appropriate metadata.
+ * 
+ * Capabilities:
+ * - Parse natural language project creation requests
+ * - Extract project name, theme, universe, and genre
+ * - Create projects with appropriate settings
+ * - Automatically open the project dashboard after creation
+ */
+const PROJECT_CREATION_GUIDANCE = `
+
+**Project Creation Capabilities:**
+
+You can help users create new projects through natural language. When users ask to create a project, you should:
+
+1. **Extract Project Information:**
+   - Project name (from quotes or context)
+   - Theme/setting (fantasy, sci-fi, horror, etc.)
+   - Universe/world description
+   - Genre (action, drama, comedy, etc.)
+
+2. **Example Requests You Can Handle:**
+   - "create a new video trailer project in a fantasy universe where wizards hunt bugs"
+   - "make a project called 'Summer Adventure' with a tropical theme"
+   - "start a new sci-fi project"
+   - "create a horror project set in an abandoned space station"
+
+3. **Project Creation Process:**
+   - Confirm the project details with the user
+   - Extract all relevant metadata (theme, universe, genre)
+   - Create the project with appropriate settings
+   - The system will automatically open the project dashboard
+
+4. **Handling Ambiguous Requests:**
+   - If the project name is unclear, ask for clarification
+   - If theme/universe details are missing, you can proceed with basic creation
+   - Always confirm before creating to ensure user intent is clear
+
+5. **After Creation:**
+   - Inform the user that the project has been created
+   - Suggest next steps (add characters, create scenes, configure settings)
+   - The dashboard will open automatically for them to start working
+`;
+
+
+/**
  * Language-specific instruction mapping
  * 
  * Maps each supported language code to its corresponding instruction for the LLM.
@@ -71,9 +120,10 @@ const LANGUAGE_INSTRUCTIONS: Record<LanguageCode, string> = {
  * 
  * Combines the base StoryCore assistant personality with language-specific
  * instructions to ensure responses are in the user's preferred language.
+ * Also includes project creation guidance to enable natural language project creation.
  * 
  * @param language - The language code for the desired response language
- * @returns Complete system prompt with language instructions
+ * @returns Complete system prompt with language instructions and project creation guidance
  * 
  * @example
  * ```typescript
@@ -87,10 +137,10 @@ export function buildSystemPrompt(language: LanguageCode): string {
   if (!languageInstruction) {
     // Fallback to English if language not found (should never happen with TypeScript)
     console.warn(`Unknown language code: ${language}, falling back to English`);
-    return `${BASE_SYSTEM_PROMPT}\n\n${LANGUAGE_INSTRUCTIONS.en}`;
+    return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}\n\n${LANGUAGE_INSTRUCTIONS.en}`;
   }
   
-  return `${BASE_SYSTEM_PROMPT}\n\n${languageInstruction}`;
+  return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}\n\n${languageInstruction}`;
 }
 
 /**

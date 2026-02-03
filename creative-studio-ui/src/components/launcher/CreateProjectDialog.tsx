@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FolderPlus, Loader2, Film, Tv, Video, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FolderPlus, Loader2, Film, Tv, Video, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { validateProjectName, validateProjectPath, checkDuplicateProject } from '@/utils/projectValidation';
 
 // ============================================================================
 // Types
@@ -165,31 +167,60 @@ export function CreateProjectDialog({
   onOpenChange,
   onCreateProject,
 }: CreateProjectDialogProps) {
+  const { toast } = useToast();
   const [projectName, setProjectName] = useState('');
   const [projectPath, setProjectPath] = useState('');
   const [selectedFormat, setSelectedFormat] = useState<ProjectFormat>(PROJECT_FORMATS[0]); // Default: Court-métrage
   const [isCreating, setIsCreating] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [lastFailedAttempt, setLastFailedAttempt] = useState<{
+    projectName: string;
+    projectPath: string;
+    format: SerializableProjectFormat;
+  } | null>(null);
+  const [existingProjects, setExistingProjects] = useState<string[]>([]);
 
-  // Validate form
+  // Load existing projects when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadExistingProjects();
+    }
+  }, [open]);
+
+  // Load existing projects from the file system
+  const loadExistingProjects = async () => {
+    try {
+      if (window.electronAPI?.recentProjects?.getMergedList) {
+        const projects = await window.electronAPI.recentProjects.getMergedList();
+        setExistingProjects(projects.map(p => p.path));
+      }
+    } catch (error) {
+      console.warn('Failed to load existing projects:', error);
+      // Non-fatal error, continue without duplicate checking
+    }
+  };
+
+  // Validate form with comprehensive backend-matching validation
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // Validate project name
-    if (!projectName.trim()) {
-      newErrors.projectName = 'Project name is required';
-    } else if (projectName.length < 3) {
-      newErrors.projectName = 'Project name must be at least 3 characters';
-    } else if (projectName.length > 50) {
-      newErrors.projectName = 'Project name must be less than 50 characters';
-    } else if (!/^[a-zA-Z0-9\s\-_]+$/.test(projectName)) {
-      newErrors.projectName = 'Project name can only contain letters, numbers, spaces, hyphens, and underscores';
+    // Validate project name using backend-matching validation
+    const nameValidation = validateProjectName(projectName, projectPath);
+    if (!nameValidation.isValid) {
+      newErrors.projectName = nameValidation.error;
+    } else if (projectPath) {
+      // Check for duplicates only if name is valid
+      const duplicateCheck = checkDuplicateProject(projectName, projectPath, existingProjects);
+      if (!duplicateCheck.isValid) {
+        newErrors.projectName = duplicateCheck.error;
+      }
     }
 
     // Validate project path
-    if (!projectPath.trim()) {
-      newErrors.projectPath = 'Project location is required';
+    const pathValidation = validateProjectPath(projectPath);
+    if (!pathValidation.isValid) {
+      newErrors.projectPath = pathValidation.error;
     }
 
     setErrors(newErrors);
@@ -204,7 +235,29 @@ export function CreateProjectDialog({
         const result = await window.electronAPI.project.selectDirectory();
         if (result) {
           setProjectPath(result);
-          setErrors((prev) => ({ ...prev, projectPath: undefined }));
+          // Clear path error and re-validate name with new path
+          setErrors((prev) => {
+            const newErrors = { ...prev, projectPath: undefined };
+            
+            // Re-validate project name with the new path for length checks
+            if (projectName) {
+              const nameValidation = validateProjectName(projectName, result);
+              if (!nameValidation.isValid) {
+                newErrors.projectName = nameValidation.error;
+              } else {
+                // Check for duplicates with new path
+                const duplicateCheck = checkDuplicateProject(projectName, result, existingProjects);
+                if (!duplicateCheck.isValid) {
+                  newErrors.projectName = duplicateCheck.error;
+                } else {
+                  // Clear name error if it was path-related
+                  newErrors.projectName = undefined;
+                }
+              }
+            }
+            
+            return newErrors;
+          });
         }
       } else {
         // Fallback for web/demo mode
@@ -216,6 +269,77 @@ export function CreateProjectDialog({
       console.error('Failed to select directory:', error);
       setGeneralError('Failed to open directory picker');
     }
+  };
+
+  // Handle project name change with real-time validation
+  const handleProjectNameChange = (value: string) => {
+    setProjectName(value);
+    
+    // Clear errors and perform real-time validation
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      
+      // Only validate if user has typed something
+      if (value.trim()) {
+        const nameValidation = validateProjectName(value, projectPath);
+        if (!nameValidation.isValid) {
+          newErrors.projectName = nameValidation.error;
+        } else if (projectPath) {
+          // Check for duplicates
+          const duplicateCheck = checkDuplicateProject(value, projectPath, existingProjects);
+          if (!duplicateCheck.isValid) {
+            newErrors.projectName = duplicateCheck.error;
+          } else {
+            newErrors.projectName = undefined;
+          }
+        } else {
+          newErrors.projectName = undefined;
+        }
+      } else {
+        // Clear error if field is empty (will be caught on submit)
+        newErrors.projectName = undefined;
+      }
+      
+      return newErrors;
+    });
+  };
+
+  // Handle project path change with real-time validation
+  const handleProjectPathChange = (value: string) => {
+    setProjectPath(value);
+    
+    // Clear errors and perform real-time validation
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      
+      if (value.trim()) {
+        const pathValidation = validateProjectPath(value);
+        if (!pathValidation.isValid) {
+          newErrors.projectPath = pathValidation.error;
+        } else {
+          newErrors.projectPath = undefined;
+          
+          // Re-validate project name with new path
+          if (projectName) {
+            const nameValidation = validateProjectName(projectName, value);
+            if (!nameValidation.isValid) {
+              newErrors.projectName = nameValidation.error;
+            } else {
+              const duplicateCheck = checkDuplicateProject(projectName, value, existingProjects);
+              if (!duplicateCheck.isValid) {
+                newErrors.projectName = duplicateCheck.error;
+              } else {
+                newErrors.projectName = undefined;
+              }
+            }
+          }
+        }
+      } else {
+        newErrors.projectPath = undefined;
+      }
+      
+      return newErrors;
+    });
   };
 
   // Handle form submission
@@ -230,19 +354,92 @@ export function CreateProjectDialog({
     setGeneralError(null);
 
     try {
-      await onCreateProject(projectName, projectPath, toSerializableFormat(selectedFormat));
+      const serializableFormat = toSerializableFormat(selectedFormat);
+      
+      // Store attempt details for retry
+      setLastFailedAttempt({
+        projectName,
+        projectPath,
+        format: serializableFormat,
+      });
+
+      await onCreateProject(projectName, projectPath, serializableFormat);
+      
+      // Show success toast
+      toast({
+        title: 'Project Created',
+        description: `"${projectName}" has been created successfully!`,
+        variant: 'success',
+      });
       
       // Reset form on success
       setProjectName('');
       setProjectPath('');
       setSelectedFormat(PROJECT_FORMATS[0]);
       setErrors({});
+      setGeneralError(null);
+      setLastFailedAttempt(null);
       onOpenChange(false);
     } catch (error) {
       console.error('Failed to create project:', error);
-      setGeneralError(
-        error instanceof Error ? error.message : 'Failed to create project'
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create project';
+      setGeneralError(errorMessage);
+      
+      // Show error toast
+      toast({
+        title: 'Project Creation Failed',
+        description: errorMessage,
+        variant: 'destructive',
+        duration: 7000,
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  // Handle retry
+  const handleRetry = async () => {
+    if (!lastFailedAttempt) {
+      return;
+    }
+
+    setIsCreating(true);
+    setGeneralError(null);
+
+    try {
+      await onCreateProject(
+        lastFailedAttempt.projectName,
+        lastFailedAttempt.projectPath,
+        lastFailedAttempt.format
       );
+      
+      // Show success toast
+      toast({
+        title: 'Project Created',
+        description: `"${lastFailedAttempt.projectName}" has been created successfully!`,
+        variant: 'success',
+      });
+      
+      // Reset form on success
+      setProjectName('');
+      setProjectPath('');
+      setSelectedFormat(PROJECT_FORMATS[0]);
+      setErrors({});
+      setGeneralError(null);
+      setLastFailedAttempt(null);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Failed to create project on retry:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create project';
+      setGeneralError(errorMessage);
+      
+      // Show error toast
+      toast({
+        title: 'Retry Failed',
+        description: errorMessage,
+        variant: 'destructive',
+        duration: 7000,
+      });
     } finally {
       setIsCreating(false);
     }
@@ -256,6 +453,7 @@ export function CreateProjectDialog({
       setSelectedFormat(PROJECT_FORMATS[0]);
       setErrors({});
       setGeneralError(null);
+      setLastFailedAttempt(null);
       onOpenChange(false);
     }
   };
@@ -277,10 +475,53 @@ export function CreateProjectDialog({
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6 py-4">
-            {/* General Error */}
+            {/* General Error with Retry */}
             {generalError && (
               <Alert variant="destructive" className="bg-red-900/20 border-red-800 text-red-400">
-                {generalError}
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold mb-1">Project Creation Failed</p>
+                    <p className="text-sm text-red-300">{generalError}</p>
+                    {lastFailedAttempt && (
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={handleRetry}
+                          disabled={isCreating}
+                          className="bg-red-900/30 border-red-700 text-red-200 hover:bg-red-900/50 hover:text-red-100"
+                        >
+                          {isCreating ? (
+                            <>
+                              <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                              Retrying...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="mr-2 h-3 w-3" />
+                              Retry
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setGeneralError(null);
+                            setLastFailedAttempt(null);
+                          }}
+                          disabled={isCreating}
+                          className="text-red-300 hover:text-red-100 hover:bg-red-900/30"
+                        >
+                          Dismiss
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </Alert>
             )}
 
@@ -292,10 +533,7 @@ export function CreateProjectDialog({
               <Input
                 id="project-name"
                 value={projectName}
-                onChange={(e) => {
-                  setProjectName(e.target.value);
-                  setErrors((prev) => ({ ...prev, projectName: undefined }));
-                }}
+                onChange={(e) => handleProjectNameChange(e.target.value)}
                 placeholder="My Awesome Story"
                 disabled={isCreating}
                 className={`bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 ${
@@ -310,17 +548,14 @@ export function CreateProjectDialog({
             {/* Project Location Field */}
             <div className="space-y-2">
               <Label htmlFor="project-path" className="text-gray-200">
-                Project Location *
+                Project Location <span className="text-gray-500 text-sm font-normal">(Optional)</span>
               </Label>
               <div className="flex gap-2">
                 <Input
                   id="project-path"
                   value={projectPath}
-                  onChange={(e) => {
-                    setProjectPath(e.target.value);
-                    setErrors((prev) => ({ ...prev, projectPath: undefined }));
-                  }}
-                  placeholder="C:/Users/Documents/StoryCore/my-project"
+                  onChange={(e) => handleProjectPathChange(e.target.value)}
+                  placeholder="Leave empty to use default location"
                   disabled={isCreating}
                   className={`flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 ${
                     errors.projectPath ? 'border-red-500' : ''
@@ -336,6 +571,20 @@ export function CreateProjectDialog({
                   Browse
                 </Button>
               </div>
+              {!projectPath && !errors.projectPath && (
+                <div className="rounded-md bg-blue-500/10 border border-blue-500/30 p-3">
+                  <p className="text-sm text-blue-400 flex items-start gap-2">
+                    <span className="flex-shrink-0 mt-0.5">ℹ️</span>
+                    <span>
+                      <strong>Default location:</strong> Documents\StoryCore Projects
+                      <br />
+                      <span className="text-xs text-gray-400 mt-1 block">
+                        Full path: C:\Users\{'{username}'}\Documents\StoryCore Projects
+                      </span>
+                    </span>
+                  </p>
+                </div>
+              )}
               {errors.projectPath && (
                 <p className="text-sm text-red-400">{errors.projectPath}</p>
               )}

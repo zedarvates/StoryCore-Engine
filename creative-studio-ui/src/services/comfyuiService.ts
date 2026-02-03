@@ -85,7 +85,7 @@ export interface ModelInfo {
 
 export function getDefaultComfyUIConfig(): ComfyUIConfig {
   return {
-    serverUrl: 'http://localhost:8188',
+    serverUrl: 'http://localhost:8000', // ComfyUI Desktop default port
     authentication: {
       type: 'none',
     },
@@ -206,19 +206,122 @@ const mockModels: ModelInfo[] = [
 
 export class ComfyUIService {
   private static instance: ComfyUIService;
-  
-  private constructor() {}
-  
+
+  private constructor() { }
+
   public static getInstance(): ComfyUIService {
     if (!ComfyUIService.instance) {
       ComfyUIService.instance = new ComfyUIService();
     }
     return ComfyUIService.instance;
   }
-  
+
+  public getBaseUrl(): string {
+    return this.getConfiguredEndpoint() || 'http://localhost:8000';
+  }
+
   /**
-   * Generate image using ComfyUI
+   * Get available checkpoint models from ComfyUI
    */
+  public async getAvailableModels(): Promise<string[]> {
+    const endpoint = this.getConfiguredEndpoint();
+    if (!endpoint) {
+      console.warn('⚠️ [ComfyUIService] No endpoint configured');
+      return [];
+    }
+
+    try {
+      const response = await fetch(`${endpoint}/object_info/CheckpointLoaderSimple`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const models = data?.CheckpointLoaderSimple?.input?.required?.ckpt_name?.[0] || [];
+        console.log('📦 [ComfyUIService] Available models:', models);
+        return models;
+      }
+    } catch (error) {
+      console.warn('⚠️ [ComfyUIService] Failed to fetch models:', error);
+    }
+
+    return [];
+  }
+
+  /**
+   * Get the first available checkpoint model
+   */
+  public async getDefaultModel(): Promise<string> {
+    const models = await this.getAvailableModels();
+    if (models.length > 0) {
+      console.log('✅ [ComfyUIService] Using default model:', models[0]);
+      return models[0];
+    }
+
+    // Fallback to a common model name
+    console.warn('⚠️ [ComfyUIService] No models found, using fallback');
+    return 'model.safetensors';
+  }
+
+  /**
+   * Check if ComfyUI is configured and available
+   */
+  public async isAvailable(): Promise<{ available: boolean; message: string }> {
+    // Check if we have a valid endpoint
+    const endpoint = this.getConfiguredEndpoint();
+
+    if (!endpoint) {
+      return {
+        available: false,
+        message: 'ComfyUI is not configured. Please configure it in Settings > ComfyUI.'
+      };
+    }
+
+    // Quick health check
+    try {
+      const response = await fetch(`${endpoint}/system_stats`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(2000), // 2 second timeout
+      });
+
+      if (response.ok) {
+        return { available: true, message: 'ComfyUI is ready' };
+      } else {
+        return {
+          available: false,
+          message: `ComfyUI server responded with error: ${response.status}`
+        };
+      }
+    } catch (error) {
+      return {
+        available: false,
+        message: 'ComfyUI server is not reachable. Please start ComfyUI and check the URL in settings.'
+      };
+    }
+  }
+
+  /**
+   * Get configured endpoint from settings or return null
+   */
+  private getConfiguredEndpoint(): string | null {
+    // Try to get from localStorage settings
+    try {
+      const settings = localStorage.getItem('storycore-settings');
+      if (settings) {
+        const parsed = JSON.parse(settings);
+        if (parsed.comfyui?.config?.serverUrl) {
+          return parsed.comfyui.config.serverUrl;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to read ComfyUI settings:', error);
+    }
+
+    // Fallback to default for ComfyUI (port 8188)
+    return 'http://localhost:8000';
+  }
+
   public async generateImage(params: {
     prompt: string;
     negativePrompt?: string;
@@ -230,10 +333,338 @@ export class ComfyUIService {
     model: string;
     sampler: string;
     scheduler: string;
-  }): Promise<string> {
-    // In a real implementation, this would call the ComfyUI API
-    // For now, return a mock image URL
-    return `data:image/png;base64,mock-image-data-for-${params.prompt.substring(0, 10)}`;
+  }, onProgress?: (progress: number, message: string) => void): Promise<string> {
+    return this.generateAsset('image', params, onProgress);
+  }
+
+  /**
+   * Generate video using ComfyUI
+   */
+  public async generateVideo(params: {
+    inputImagePath: string;
+    prompt: string;
+    frameCount: number;
+    frameRate: number;
+    width: number;
+    height: number;
+    motionStrength: number;
+  }, onProgress?: (progress: number, message: string) => void): Promise<string> {
+    console.log('🚀 [ComfyUIService] Starting video generation');
+    return this.generateAsset('video', params, onProgress);
+  }
+
+  /**
+   * Generic asset generation helper
+   */
+  private async generateAsset(type: 'image' | 'video', params: any, onProgress?: (progress: number, message: string) => void): Promise<string> {
+    const endpoint = this.getConfiguredEndpoint();
+    if (!endpoint) throw new Error('ComfyUI endpoint not configured');
+
+    const availability = await this.isAvailable();
+    if (!availability.available) throw new Error(availability.message);
+
+    const workflow = type === 'image'
+      ? this.buildFluxTurboWorkflow(params)
+      : this.buildVideoWorkflow(params);
+
+    const response = await fetch(`${endpoint}/prompt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: workflow,
+        client_id: `${type}_gen_${Date.now()}`,
+      }),
+    });
+
+    if (!response.ok) throw new Error(`ComfyUI ${type} request failed: ${response.status}`);
+
+    const data = await response.json();
+    return this.waitForImage(endpoint, data.prompt_id, 300000, onProgress);
+  }
+
+  private buildVideoWorkflow(params: any): Record<string, any> {
+    // Placeholder for video workflow (SVD or AnimateDiff)
+    // For now, reuse a simplified structure that ComfyUI would accept
+    return {
+      "3": {
+        "inputs": {
+          "seed": Math.floor(Math.random() * 1000000),
+          "steps": 20,
+          "cfg": 2.5,
+          "sampler_name": "euler",
+          "scheduler": "karras",
+          "denoise": 1,
+          "model": ["4", 0],
+          "positive": ["6", 0],
+          "negative": ["7", 0],
+          "latent_image": ["5", 0]
+        },
+        "class_type": "KSampler"
+      },
+      // ... more nodes would go here for a real video workflow
+    };
+  }
+
+  /**
+   * Build Flux Turbo workflow (Z-Image Turbo)
+   * Uses UNETLoader + CLIPLoader + VAELoader separately
+   */
+  private buildFluxTurboWorkflow(params: {
+    prompt: string;
+    negativePrompt?: string;
+    width: number;
+    height: number;
+    steps: number;
+    cfgScale: number;
+    seed?: number;
+  }): Record<string, any> {
+    const seed = params.seed || Math.floor(Math.random() * 1000000);
+
+    return {
+      "9": {
+        "inputs": {
+          "filename_prefix": "character_portrait",
+          "images": ["57:8", 0]
+        },
+        "class_type": "SaveImage",
+        "_meta": { "title": "Save Image" }
+      },
+      "58": {
+        "inputs": {
+          "value": params.prompt
+        },
+        "class_type": "PrimitiveStringMultiline",
+        "_meta": { "title": "Prompt" }
+      },
+      "57:30": {
+        "inputs": {
+          "clip_name": "qwen_3_4b.safetensors",
+          "type": "lumina2",
+          "device": "default"
+        },
+        "class_type": "CLIPLoader",
+        "_meta": { "title": "Load CLIP" }
+      },
+      "57:29": {
+        "inputs": {
+          "vae_name": "ae.safetensors"
+        },
+        "class_type": "VAELoader",
+        "_meta": { "title": "Load VAE" }
+      },
+      "57:33": {
+        "inputs": {
+          "conditioning": ["57:27", 0]
+        },
+        "class_type": "ConditioningZeroOut",
+        "_meta": { "title": "ConditioningZeroOut" }
+      },
+      "57:8": {
+        "inputs": {
+          "samples": ["57:3", 0],
+          "vae": ["57:29", 0]
+        },
+        "class_type": "VAEDecode",
+        "_meta": { "title": "VAE Decode" }
+      },
+      "57:28": {
+        "inputs": {
+          "unet_name": "z_image_turbo_bf16.safetensors",
+          "weight_dtype": "default"
+        },
+        "class_type": "UNETLoader",
+        "_meta": { "title": "Load Diffusion Model" }
+      },
+      "57:27": {
+        "inputs": {
+          "text": ["58", 0],
+          "clip": ["57:30", 0]
+        },
+        "class_type": "CLIPTextEncode",
+        "_meta": { "title": "CLIP Text Encode (Prompt)" }
+      },
+      "57:13": {
+        "inputs": {
+          "width": params.width,
+          "height": params.height,
+          "batch_size": 1
+        },
+        "class_type": "EmptySD3LatentImage",
+        "_meta": { "title": "EmptySD3LatentImage" }
+      },
+      "57:3": {
+        "inputs": {
+          "seed": seed,
+          "steps": params.steps,
+          "cfg": params.cfgScale,
+          "sampler_name": "res_multistep",
+          "scheduler": "simple",
+          "denoise": 1,
+          "model": ["57:11", 0],
+          "positive": ["57:27", 0],
+          "negative": ["57:33", 0],
+          "latent_image": ["57:13", 0]
+        },
+        "class_type": "KSampler",
+        "_meta": { "title": "KSampler" }
+      },
+      "57:11": {
+        "inputs": {
+          "shift": 3,
+          "model": ["57:28", 0]
+        },
+        "class_type": "ModelSamplingAuraFlow",
+        "_meta": { "title": "ModelSamplingAuraFlow" }
+      }
+    };
+  }
+
+  /**
+   * Build a simple ComfyUI workflow for text-to-image
+   */
+  private buildSimpleWorkflow(params: {
+    prompt: string;
+    negativePrompt?: string;
+    width: number;
+    height: number;
+    steps: number;
+    cfgScale: number;
+    seed?: number;
+    model: string;
+    sampler: string;
+    scheduler: string;
+  }): Record<string, any> {
+    const seed = params.seed || Math.floor(Math.random() * 1000000);
+
+    return {
+      "3": {
+        "inputs": {
+          "seed": seed,
+          "steps": params.steps,
+          "cfg": params.cfgScale,
+          "sampler_name": params.sampler,
+          "scheduler": params.scheduler,
+          "denoise": 1,
+          "model": ["4", 0],
+          "positive": ["6", 0],
+          "negative": ["7", 0],
+          "latent_image": ["5", 0]
+        },
+        "class_type": "KSampler"
+      },
+      "4": {
+        "inputs": {
+          "ckpt_name": params.model
+        },
+        "class_type": "CheckpointLoaderSimple"
+      },
+      "5": {
+        "inputs": {
+          "width": params.width,
+          "height": params.height,
+          "batch_size": 1
+        },
+        "class_type": "EmptyLatentImage"
+      },
+      "6": {
+        "inputs": {
+          "text": params.prompt,
+          "clip": ["4", 1]
+        },
+        "class_type": "CLIPTextEncode"
+      },
+      "7": {
+        "inputs": {
+          "text": params.negativePrompt || "",
+          "clip": ["4", 1]
+        },
+        "class_type": "CLIPTextEncode"
+      },
+      "8": {
+        "inputs": {
+          "samples": ["3", 0],
+          "vae": ["4", 2]
+        },
+        "class_type": "VAEDecode"
+      },
+      "9": {
+        "inputs": {
+          "filename_prefix": "character_portrait",
+          "images": ["8", 0]
+        },
+        "class_type": "SaveImage"
+      }
+    };
+  }
+
+  /**
+   * Wait for image generation to complete and return the image URL
+   */
+  private async waitForImage(
+    endpoint: string,
+    promptId: string,
+    maxWait: number = 60000,
+    onProgress?: (progress: number, message: string) => void
+  ): Promise<string> {
+    const startTime = Date.now();
+    let attempts = 0;
+
+    console.log('⏱️ [ComfyUIService] Starting to wait for image...');
+
+    while (Date.now() - startTime < maxWait) {
+      attempts++;
+      try {
+        // Check history for completed prompt
+        const historyResponse = await fetch(`${endpoint}/history/${promptId}`);
+
+        if (historyResponse.ok) {
+          const history = await historyResponse.json();
+
+          if (history[promptId] && history[promptId].outputs) {
+            onProgress?.(100, 'Image generated successfully');
+            const outputs = history[promptId].outputs;
+
+            for (const nodeId in outputs) {
+              if (outputs[nodeId].images && outputs[nodeId].images.length > 0) {
+                const image = outputs[nodeId].images[0];
+                const imageUrl = `${endpoint}/view?filename=${image.filename}&subfolder=${image.subfolder || ''}&type=${image.type || 'output'}`;
+                console.log('✅ [ComfyUIService] Final image URL:', imageUrl);
+                return imageUrl;
+              }
+            }
+          } else {
+            // If not in history yet, it might be in the queue
+            try {
+              const queueResponse = await fetch(`${endpoint}/queue`);
+              if (queueResponse.ok) {
+                const queueData = await queueResponse.json();
+                const running = queueData.queue_running || [];
+                const pending = queueData.queue_pending || [];
+
+                const isRunning = running.some((item: any) => item[1] === promptId);
+                const isPending = pending.some((item: any) => item[1] === promptId);
+
+                if (isRunning) {
+                  onProgress?.(50, 'Processing in ComfyUI...');
+                } else if (isPending) {
+                  onProgress?.(10, 'Queued in ComfyUI...');
+                }
+              }
+            } catch (queueError) {
+              console.warn('⚠️ [ComfyUIService] Failed to check queue:', queueError);
+            }
+          }
+        }
+
+        // Wait before checking again
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error('⚠️ [ComfyUIService] Error checking image status:', error);
+      }
+    }
+
+    console.error('⏰ [ComfyUIService] Image generation timed out after', maxWait, 'ms');
+    throw new Error('Image generation timed out');
   }
 }
 
@@ -300,7 +731,7 @@ interface ComfyUISystemStats {
 function parseSystemInfo(stats: ComfyUISystemStats): ComfyUIServerInfo['systemInfo'] {
   // Try to find GPU device info
   const gpuDevice = stats.devices?.find(d => d.type === 'cuda' || d.type === 'gpu') || stats.devices?.[0];
-  
+
   return {
     gpuName: gpuDevice?.name || 'Unknown GPU',
     vramTotal: gpuDevice?.vram_total || 0,
@@ -351,7 +782,7 @@ async function fetchModels(
   } catch (error) {
     console.warn('Failed to fetch models, using defaults:', error);
   }
-  
+
   return mockModels;
 }
 
@@ -572,7 +1003,7 @@ export async function getConnectionDiagnostics(
       }
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      
+
       if (fetchError instanceof Error && fetchError.name === 'AbortError') {
         diagnostics.errorDetails = 'Connection timeout';
         diagnostics.suggestions.push('Server is not responding within 5 seconds');
@@ -609,7 +1040,7 @@ export async function getConnectionDiagnostics(
     }
   } catch (error) {
     diagnostics.serverReachable = false;
-    
+
     if (error instanceof Error) {
       if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         diagnostics.errorDetails = 'Cannot reach server';

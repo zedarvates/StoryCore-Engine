@@ -5,7 +5,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { RecentProjectsManager, RecentProject } from './RecentProjectsManager';
+import { RecentProjectsManager, RecentProject, MergedProject } from './RecentProjectsManager';
+import { DiscoveredProject } from './services/ProjectDiscoveryService';
 
 describe('RecentProjectsManager', () => {
   let tempDir: string;
@@ -522,6 +523,314 @@ describe('RecentProjectsManager', () => {
 
       // Restore permissions for cleanup
       fs.chmodSync(tempDir, 0o755);
+    });
+  });
+
+  describe('getMergedProjectList', () => {
+    let testProjectDir1: string;
+    let testProjectDir2: string;
+    let testProjectDir3: string;
+
+    beforeEach(() => {
+      // Create test project directories
+      testProjectDir1 = path.join(tempDir, 'test-project-1');
+      testProjectDir2 = path.join(tempDir, 'test-project-2');
+      testProjectDir3 = path.join(tempDir, 'test-project-3');
+
+      fs.mkdirSync(testProjectDir1, { recursive: true });
+      fs.mkdirSync(testProjectDir2, { recursive: true });
+      fs.mkdirSync(testProjectDir3, { recursive: true });
+
+      // Create project.json files
+      fs.writeFileSync(path.join(testProjectDir1, 'project.json'), '{}', 'utf-8');
+      fs.writeFileSync(path.join(testProjectDir2, 'project.json'), '{}', 'utf-8');
+      fs.writeFileSync(path.join(testProjectDir3, 'project.json'), '{}', 'utf-8');
+    });
+
+    it('should merge discovered and recent projects', async () => {
+      // Add one project to recent list
+      manager.addProject({
+        id: '1',
+        name: 'Recent Project',
+        path: testProjectDir1,
+      });
+
+      // Create discovered projects list
+      const discoveredProjects: DiscoveredProject[] = [
+        {
+          name: 'Discovered Project 1',
+          path: testProjectDir2,
+          lastModified: new Date('2024-01-15'),
+          isRecent: false,
+        },
+        {
+          name: 'Discovered Project 2',
+          path: testProjectDir3,
+          lastModified: new Date('2024-01-10'),
+          isRecent: false,
+        },
+      ];
+
+      const merged = await manager.getMergedProjectList(discoveredProjects);
+
+      expect(merged.length).toBe(3);
+      expect(merged.some(p => p.name === 'Recent Project')).toBe(true);
+      expect(merged.some(p => p.name === 'Discovered Project 1')).toBe(true);
+      expect(merged.some(p => p.name === 'Discovered Project 2')).toBe(true);
+    });
+
+    it('should mark recent projects with isRecent flag', async () => {
+      manager.addProject({
+        id: '1',
+        name: 'Recent Project',
+        path: testProjectDir1,
+      });
+
+      const discoveredProjects: DiscoveredProject[] = [
+        {
+          name: 'Discovered Project',
+          path: testProjectDir2,
+          lastModified: new Date('2024-01-15'),
+          isRecent: false,
+        },
+      ];
+
+      const merged = await manager.getMergedProjectList(discoveredProjects);
+
+      const recentProject = merged.find(p => p.name === 'Recent Project');
+      const discoveredProject = merged.find(p => p.name === 'Discovered Project');
+
+      expect(recentProject?.isRecent).toBe(true);
+      expect(discoveredProject?.isRecent).toBe(false);
+    });
+
+    it('should preserve lastOpened for recent projects', async () => {
+      const beforeAdd = new Date();
+      manager.addProject({
+        id: '1',
+        name: 'Recent Project',
+        path: testProjectDir1,
+      });
+      const afterAdd = new Date();
+
+      const discoveredProjects: DiscoveredProject[] = [];
+      const merged = await manager.getMergedProjectList(discoveredProjects);
+
+      const recentProject = merged.find(p => p.name === 'Recent Project');
+      expect(recentProject?.lastOpened).toBeDefined();
+      expect(recentProject?.lastOpened!.getTime()).toBeGreaterThanOrEqual(beforeAdd.getTime());
+      expect(recentProject?.lastOpened!.getTime()).toBeLessThanOrEqual(afterAdd.getTime());
+    });
+
+    it('should not have lastOpened for discovered projects', async () => {
+      const discoveredProjects: DiscoveredProject[] = [
+        {
+          name: 'Discovered Project',
+          path: testProjectDir1,
+          lastModified: new Date('2024-01-15'),
+          isRecent: false,
+        },
+      ];
+
+      const merged = await manager.getMergedProjectList(discoveredProjects);
+
+      const discoveredProject = merged.find(p => p.name === 'Discovered Project');
+      expect(discoveredProject?.lastOpened).toBeUndefined();
+    });
+
+    it('should deduplicate projects with recent taking precedence', async () => {
+      // Add project to recent list
+      manager.addProject({
+        id: '1',
+        name: 'Recent Project Name',
+        path: testProjectDir1,
+      });
+
+      // Same project in discovered list with different name
+      const discoveredProjects: DiscoveredProject[] = [
+        {
+          name: 'Discovered Project Name',
+          path: testProjectDir1, // Same path
+          lastModified: new Date('2024-01-15'),
+          isRecent: false,
+        },
+        {
+          name: 'Another Project',
+          path: testProjectDir2,
+          lastModified: new Date('2024-01-10'),
+          isRecent: false,
+        },
+      ];
+
+      const merged = await manager.getMergedProjectList(discoveredProjects);
+
+      // Should only have 2 projects (duplicate removed)
+      expect(merged.length).toBe(2);
+
+      // Should use recent project's name
+      const duplicateProject = merged.find(p => p.path === testProjectDir1);
+      expect(duplicateProject?.name).toBe('Recent Project Name');
+      expect(duplicateProject?.isRecent).toBe(true);
+    });
+
+    it('should sort projects by lastModified date descending', async () => {
+      // Add recent project
+      manager.addProject({
+        id: '1',
+        name: 'Recent Project',
+        path: testProjectDir1,
+      });
+
+      // Wait a bit to ensure different timestamps
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      // Touch the project files to set specific modification times
+      const oldDate = new Date('2024-01-01');
+      const newDate = new Date('2024-01-20');
+      
+      fs.utimesSync(path.join(testProjectDir2, 'project.json'), oldDate, oldDate);
+      fs.utimesSync(path.join(testProjectDir3, 'project.json'), newDate, newDate);
+
+      // Create discovered projects with different dates
+      const discoveredProjects: DiscoveredProject[] = [
+        {
+          name: 'Old Project',
+          path: testProjectDir2,
+          lastModified: oldDate,
+          isRecent: false,
+        },
+        {
+          name: 'New Project',
+          path: testProjectDir3,
+          lastModified: newDate,
+          isRecent: false,
+        },
+      ];
+
+      const merged = await manager.getMergedProjectList(discoveredProjects);
+
+      // Should be sorted by lastModified descending
+      // Recent project will have current timestamp (most recent)
+      expect(merged[0].name).toBe('Recent Project');
+      expect(merged[1].name).toBe('New Project');
+      expect(merged[2].name).toBe('Old Project');
+    });
+
+    it('should preserve all metadata from discovered projects', async () => {
+      const createdDate = new Date('2024-01-01');
+      const modifiedDate = new Date('2024-01-15');
+
+      const discoveredProjects: DiscoveredProject[] = [
+        {
+          name: 'Test Project',
+          path: testProjectDir1,
+          lastModified: modifiedDate,
+          createdAt: createdDate,
+          isRecent: false,
+        },
+      ];
+
+      const merged = await manager.getMergedProjectList(discoveredProjects);
+
+      const project = merged.find(p => p.name === 'Test Project');
+      expect(project?.name).toBe('Test Project');
+      expect(project?.path).toBe(testProjectDir1);
+      expect(project?.lastModified).toEqual(modifiedDate);
+      expect(project?.createdAt).toEqual(createdDate);
+      expect(project?.isRecent).toBe(false);
+    });
+
+    it('should handle empty discovered list', async () => {
+      manager.addProject({
+        id: '1',
+        name: 'Recent Project',
+        path: testProjectDir1,
+      });
+
+      const merged = await manager.getMergedProjectList([]);
+
+      expect(merged.length).toBe(1);
+      expect(merged[0].name).toBe('Recent Project');
+      expect(merged[0].isRecent).toBe(true);
+    });
+
+    it('should handle empty recent list', async () => {
+      const discoveredProjects: DiscoveredProject[] = [
+        {
+          name: 'Discovered Project',
+          path: testProjectDir1,
+          lastModified: new Date('2024-01-15'),
+          isRecent: false,
+        },
+      ];
+
+      const merged = await manager.getMergedProjectList(discoveredProjects);
+
+      expect(merged.length).toBe(1);
+      expect(merged[0].name).toBe('Discovered Project');
+      expect(merged[0].isRecent).toBe(false);
+    });
+
+    it('should handle both lists empty', async () => {
+      const merged = await manager.getMergedProjectList([]);
+
+      expect(merged.length).toBe(0);
+    });
+
+    it('should get lastModified from file system for recent projects', async () => {
+      manager.addProject({
+        id: '1',
+        name: 'Recent Project',
+        path: testProjectDir1,
+      });
+
+      // Wait a bit to ensure file system timestamp is different
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      // Touch the project.json file to update its modification time
+      const projectJsonPath = path.join(testProjectDir1, 'project.json');
+      const now = new Date();
+      fs.utimesSync(projectJsonPath, now, now);
+
+      const merged = await manager.getMergedProjectList([]);
+
+      const project = merged.find(p => p.name === 'Recent Project');
+      expect(project?.lastModified).toBeDefined();
+      // Should be close to current time (within 1 second)
+      expect(Math.abs(project!.lastModified.getTime() - now.getTime())).toBeLessThan(1000);
+    });
+
+    it('should use lastAccessed as fallback if project.json missing', async () => {
+      const nonExistentPath = path.join(tempDir, 'nonexistent-project');
+      
+      manager.addProject({
+        id: '1',
+        name: 'Missing Project',
+        path: nonExistentPath,
+      });
+
+      const merged = await manager.getMergedProjectList([]);
+
+      const project = merged.find(p => p.name === 'Missing Project');
+      expect(project?.lastModified).toBeDefined();
+      // Should use lastAccessed as fallback
+      expect(project?.lastOpened).toBeDefined();
+    });
+
+    it('should preserve exists property from recent projects', async () => {
+      manager.addProject({
+        id: '1',
+        name: 'Recent Project',
+        path: testProjectDir1,
+      });
+
+      // Manually set exists property
+      await manager.checkProjectsExistence();
+
+      const merged = await manager.getMergedProjectList([]);
+
+      const project = merged.find(p => p.name === 'Recent Project');
+      expect(project?.exists).toBe(true);
     });
   });
 });

@@ -44,7 +44,7 @@ export function AccessibilityExampleWizard() {
   ];
 
   const handleSubmit = async (data: ExampleFormData) => {
-    ;
+    console.log('Submitting:', data);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
   };
@@ -101,8 +101,8 @@ export function AccessibilityExampleWizard() {
       <WizardContainer
         title="Accessibility Example Wizard"
         steps={steps}
-        onCancel={() => }
-        onComplete={() => }
+        onCancel={() => console.log('Wizard cancelled')}
+        onComplete={() => console.log('Wizard completed')}
         allowJumpToStep={true}
       >
         <ExampleWizardContent

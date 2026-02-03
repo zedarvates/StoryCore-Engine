@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from ..memory_integration import log_panel_promotion
 
 
 class PromoteHandler(BaseHandler):
@@ -35,6 +36,19 @@ class PromoteHandler(BaseHandler):
             default="lanczos",
             choices=["lanczos", "bicubic", "bilinear", "nearest"],
             help="Upscaling method (default: lanczos)"
+        )
+        
+        # ComfyUI integration flags (Validates: Requirements 1.4, 11.7)
+        parser.add_argument(
+            "--mock",
+            action="store_true",
+            help="Force mock mode (disable real backend generation)"
+        )
+        
+        parser.add_argument(
+            "--backend-url",
+            type=str,
+            help="Override ComfyUI backend URL (default: http://localhost:8000)"
         )
     
     def execute(self, args: argparse.Namespace) -> int:
@@ -72,8 +86,32 @@ class PromoteHandler(BaseHandler):
             print(f"Scale factor: {args.scale}x")
             print(f"Method: {args.method}")
             
+            # Show backend mode
+            if args.mock:
+                print(f"Backend mode: Mock (forced)")
+            elif args.backend_url:
+                print(f"Backend URL: {args.backend_url}")
+            else:
+                print(f"Backend mode: Auto (will use ComfyUI if available)")
+            
             # Promote panels
-            result = promote_panels(project_path, args.scale, args.method)
+            # Pass backend configuration if provided
+            backend_config = {}
+            if args.mock:
+                backend_config['force_mock'] = True
+            if args.backend_url:
+                backend_config['backend_url'] = args.backend_url
+            
+            result = promote_panels(project_path, args.scale, args.method, **backend_config)
+            
+            # Log to memory system if enabled
+            log_panel_promotion(
+                project_path=project_path,
+                panel_count=result['metadata']['total_panels'],
+                scale_factor=args.scale,
+                method=args.method,
+                output_dir=str(result['output_dir'])
+            )
             
             # Display success message
             self.print_success(f"Promoted {result['metadata']['total_panels']} panels successfully")

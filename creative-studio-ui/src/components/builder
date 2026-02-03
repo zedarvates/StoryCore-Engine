@@ -1,0 +1,8 @@
+/**
+ * Builder.io Components Index
+ * 
+ * Export all Builder.io related components
+ */
+
+export { BuilderIOIntegration } from './BuilderIOIntegration';
+export type { BuilderIOConfig, BuilderIOState } from './BuilderIOIntegration';

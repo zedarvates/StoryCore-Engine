@@ -1,0 +1,348 @@
+
+/**
+ * PlaybackControls Component Styles
+ * 
+ * @module components/video/PlaybackControls.css
+ */
+
+/* Container */
+.playback-controls {
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 8px;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Progress bar */
+.playback-progress {
+  position: relative;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: height 0.15s ease;
+}
+
+.playback-progress:hover {
+  height: 6px;
+}
+
+.playback-progress-bar {
+  height: 100%;
+  background-color: #6366f1;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+  width: var(--progress-width, 0%);
+}
+
+.playback-progress-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  left: var(--progress-position, 0%);
+}
+
+.playback-progress:hover .playback-progress-thumb {
+  opacity: 1;
+}
+
+/* Main controls row */
+.playback-controls-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Left section */
+.playback-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Center section */
+.playback-controls-center {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 12px;
+  color: #aaaaaa;
+}
+
+.playback-time-current {
+  color: #ffffff;
+}
+
+.playback-time-separator {
+  color: #666666;
+  margin: 0 4px;
+}
+
+/* Right section */
+.playback-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Buttons */
+.playback-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.playback-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.playback-btn:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.playback-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.playback-btn-primary {
+  width: 44px;
+  height: 44px;
+  background-color: #6366f1;
+  border-radius: 50%;
+}
+
+.playback-btn-primary:hover {
+  background-color: #5558e3;
+}
+
+.playback-btn-primary svg {
+  width: 24px;
+  height: 24px;
+}
+
+.playback-btn-active {
+  color: #6366f1;
+}
+
+/* Speed selector */
+.playback-speed {
+  position: relative;
+}
+
+.playback-speed-btn {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  width: auto;
+  padding: 0 8px;
+}
+
+.playback-speed-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 80px;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.playback-speed-option {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.playback-speed-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.playback-speed-option-active {
+  color: #6366f1;
+  font-weight: 600;
+}
+
+/* Shortcuts hint */
+.playback-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+  color: #888888;
+}
+
+.playback-shortcuts span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.playback-shortcuts kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 10px;
+  color: #cccccc;
+}
+
+/* Compact mode */
+.playback-controls-compact {
+  padding: 6px;
+  gap: 6px;
+}
+
+.playback-controls-compact .playback-btn {
+  width: 32px;
+  height: 32px;
+}
+
+.playback-controls-compact .playback-btn-primary {
+  width: 36px;
+  height: 36px;
+}
+
+.playback-controls-compact .playback-controls-center {
+  font-size: 11px;
+}
+
+.playback-controls-compact .playback-shortcuts {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .playback-controls {
+    padding: 6px;
+  }
+  
+  .playback-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .playback-btn-primary {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .playback-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .playback-controls-center {
+    font-size: 11px;
+  }
+  
+  .playback-shortcuts {
+    display: none;
+  }
+  
+  .playback-speed-menu {
+    min-width: 60px;
+  }
+  
+  .playback-speed-option {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+
+/* Dark mode - already optimized for dark theme */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .playback-controls {
+    background-color: #000000;
+    border: 1px solid #ffffff;
+  }
+  
+  .playback-progress {
+    background-color: #ffffff;
+  }
+  
+  .playback-progress-bar {
+    background-color: #6366f1;
+  }
+  
+  .playback-btn-primary {
+    background-color: #6366f1;
+    border: 2px solid #ffffff;
+  }
+  
+  .playback-shortcuts kbd {
+    background-color: #ffffff;
+    color: #000000;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .playback-progress,
+  .playback-progress-bar,
+  .playback-progress-thumb,
+  .playback-btn,
+  .playback-speed-menu {
+    transition: none;
+  }
+}
+
+/* Volume button specific */
+.playback-btn-volume {
+  margin-left: 4px;
+}
+
+/* Focus within container */
+.playback-controls:focus-within .playback-btn:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* Disabled state */
+.playback-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.playback-btn:disabled:hover {
+  background-color: transparent;
+}
+

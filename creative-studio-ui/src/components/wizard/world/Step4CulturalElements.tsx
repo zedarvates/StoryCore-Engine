@@ -11,6 +11,7 @@ import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
+import { useToast } from '@/hooks/use-toast';
 
 // ============================================================================
 // Cultural Elements Type
@@ -30,8 +31,9 @@ interface CulturalElements {
 
 export function Step4CulturalElements() {
   const { formData, updateFormData } = useWizard<World>();
-  const { llmConfigured } = useServiceStatus();
+  const { llmConfigured, llmChecking } = useServiceStatus();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+  const { toast } = useToast();
   
   const [languageInput, setLanguageInput] = useState('');
   const [religionInput, setReligionInput] = useState('');
@@ -138,7 +140,11 @@ export function Step4CulturalElements() {
     clearError();
 
     if (!formData.name) {
-      console.warn('Cannot generate cultural elements: No world name');
+      toast({
+        title: 'World Name Required',
+        description: 'Please enter a world name before generating cultural elements.',
+        variant: 'warning',
+      });
       return;
     }
 
@@ -148,8 +154,6 @@ export function Step4CulturalElements() {
       timePeriod: formData.timePeriod || '',
       tone: formData.tone || [],
     };
-
-    ;
 
     const systemPrompt = 'You are a creative world-building assistant. Generate rich, coherent cultural elements that fit the world\'s genre, time period, and tone.';
 
@@ -176,9 +180,6 @@ Example format:
   "culturalConflicts": ["Tension between magic users and non-magical citizens", "Religious divide between old and new faiths"]
 }`;
 
-    ;
-    ;
-
     try {
       await generate({
         prompt,
@@ -187,7 +188,7 @@ Example format:
         maxTokens: 1500,
       });
     } catch (error) {
-      console.error('❌ Failed to generate cultural elements:', error);
+      console.error('Failed to generate cultural elements:', error);
       // Error will be handled by useLLMGeneration hook
     }
   };
@@ -390,20 +391,31 @@ Example format:
           </div>
           <Button
             onClick={handleGenerateCulturalElements}
-            disabled={isLoading || !formData.name || !llmConfigured}
+            disabled={isLoading || llmChecking || !formData.name || !llmConfigured}
             className="gap-2"
           >
             <Sparkles className="h-4 w-4" />
-            {isLoading ? 'Generating...' : 'Generate Elements'}
+            {isLoading ? 'Generating...' : llmChecking ? 'Checking...' : 'Generate Elements'}
           </Button>
         </div>
 
+        {/* Service Checking State */}
+        {llmChecking && !isLoading && (
+          <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-blue-700 dark:text-blue-300">
+              Checking LLM service configuration...
+            </span>
+          </div>
+        )}
+
         {/* Service Warning */}
-        {!llmConfigured && (
+        {!llmChecking && !llmConfigured && (
           <ServiceWarning
             service="llm"
             variant="inline"
             onConfigure={() => setShowLLMSettings(true)}
+            className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800"
           />
         )}
 
@@ -411,12 +423,21 @@ Example format:
           <LLMLoadingState message="Generating cultural elements..." showProgress />
         )}
 
+        {/* Error Display */}
         {llmError && (
-          <LLMErrorDisplay
-            error={llmError}
-            onRetry={handleGenerateCulturalElements}
-            onDismiss={clearError}
-          />
+          <div className="space-y-3">
+            <LLMErrorDisplay
+              error={llmError}
+              onRetry={handleGenerateCulturalElements}
+              onDismiss={clearError}
+            />
+            {/* Fallback to manual entry */}
+            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                You can also add cultural elements manually below
+              </p>
+            </div>
+          </div>
         )}
       </div>
 

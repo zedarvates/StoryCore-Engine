@@ -13,6 +13,7 @@ import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
+import { useToast } from '@/hooks/use-toast';
 
 // ============================================================================
 // Step 2: World Rules
@@ -21,8 +22,9 @@ import { useAppStore } from '@/stores/useAppStore';
 export function Step2WorldRules() {
   const { formData, updateFormData } = useWizard<World>();
   const [_editingRuleId, _setEditingRuleId] = useState<string | null>(null);
-  const { llmConfigured } = useServiceStatus();
+  const { llmConfigured, llmChecking } = useServiceStatus();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+  const { toast } = useToast();
 
   const {
     generate,
@@ -70,7 +72,11 @@ export function Step2WorldRules() {
 
     // Provide helpful message if no genre selected
     if (!formData.genre?.length) {
-      console.warn('Cannot generate rules: No genre selected');
+      toast({
+        title: 'Genre Required',
+        description: 'Please select at least one genre before generating rules.',
+        variant: 'warning',
+      });
       return;
     }
 
@@ -289,20 +295,31 @@ Example format:
           </div>
           <Button
             onClick={handleGenerateRules}
-            disabled={isLoading || !formData.genre?.length || !llmConfigured}
+            disabled={isLoading || llmChecking || !formData.genre?.length || !llmConfigured}
             className="gap-2"
           >
             <Sparkles className="h-4 w-4" />
-            {isLoading ? 'Generating...' : 'Generate Rules'}
+            {isLoading ? 'Generating...' : llmChecking ? 'Checking...' : 'Generate Rules'}
           </Button>
         </div>
 
+        {/* Service Checking State */}
+        {llmChecking && !isLoading && (
+          <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-blue-700 dark:text-blue-300">
+              Checking LLM service configuration...
+            </span>
+          </div>
+        )}
+
         {/* Service Warning */}
-        {!llmConfigured && (
+        {!llmChecking && !llmConfigured && (
           <ServiceWarning
             service="llm"
             variant="inline"
             onConfigure={() => setShowLLMSettings(true)}
+            className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800"
           />
         )}
 
@@ -313,11 +330,28 @@ Example format:
 
         {/* Error Display */}
         {llmError && (
-          <LLMErrorDisplay
-            error={llmError}
-            onRetry={handleGenerateRules}
-            onDismiss={clearError}
-          />
+          <div className="space-y-3">
+            <LLMErrorDisplay
+              error={llmError}
+              onRetry={handleGenerateRules}
+              onDismiss={clearError}
+            />
+            {/* Fallback to manual entry */}
+            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                You can also add rules manually below
+              </p>
+              <button
+                onClick={() => {
+                  clearError();
+                  handleAddRule();
+                }}
+                className="text-sm text-primary hover:underline"
+              >
+                Add Manually
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -381,7 +415,7 @@ Example format:
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="z-[9999]">
                           {RULE_CATEGORIES.map((cat) => (
                             <SelectItem key={cat.value} value={cat.value}>
                               {cat.label}

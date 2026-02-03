@@ -6,8 +6,8 @@ This document outlines all necessary images for the StoryCore Engine project, in
 ## Existing Assets Analysis
 **Current Images Found:**
 - `storycore-icon.png` (32x32 app icon in public/)
-- `StorycoreIcone.png` (larger variant)
-- `StorycoreIconeV2.png` (updated version)
+- `StorycoreIconeV2.png` (current version - active)
+- `StorycoreIcone.png` (archived - legacy version in archive/)
 - Generated content in `assets/` folder (demo outputs, not UI assets)
 
 ## Required Image Categories

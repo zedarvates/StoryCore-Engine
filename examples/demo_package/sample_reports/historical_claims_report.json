@@ -1,0 +1,570 @@
+{
+  "status": "success",
+  "mode": "text",
+  "agent": "scientific_audit",
+  "report": {
+    "metadata": {
+      "timestamp": "2026-01-26T09:44:31.926127",
+      "version": "1.0",
+      "input_hash": "cfa133764de1b6a6f635e7c11cc6cea62fcc4c2900a555a4c738be03d416993e",
+      "processing_time_ms": 10,
+      "agent": "scientific_audit",
+      "agent_version": "1.0"
+    },
+    "claims": [
+      {
+        "id": "6887b569-786d-4bc0-91d5-852deb481905",
+        "text": "It was the tallest man-made structure for over 3,800 years, reaching an original height of 146.5 meters (481 feet).",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that tallest man made is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that tallest man made is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that tallest man made is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "995d2194-70e8-4038-8c59-fdcb92d319aa",
+        "text": "The pyramid was constructed using approximately 2.3 million stone blocks, each weighing an average of 2.5 tons.",
+        "domain": "statistics",
+        "confidence": 94.296,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "US Census Bureau",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to US Census Bureau, research indicates that pyramid constructed using is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "World Bank Data",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to World Bank Data, research indicates that pyramid constructed using is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "OECD Data",
+            "relevance": 96.0,
+            "excerpt": "According to OECD Data, research indicates that pyramid constructed using is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Pew Research Center",
+            "relevance": 94.4,
+            "excerpt": "According to Pew Research Center, research indicates that pyramid constructed using is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that pyramid constructed using is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "3255d668-7941-4c92-970d-9791ce0580f0",
+        "text": "The precision of the construction is remarkable - the base of the pyramid is level to within just 2.1 centimeters.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that precision construction remarkable is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that precision construction remarkable is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that precision construction remarkable is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "414e7047-069d-4b97-8674-b01074023fc4",
+        "text": "Recent archaeological evidence suggests that the workers were not slaves, as commonly believed, but rather paid laborers who lived in nearby workers' villages.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that recent archaeological evidence is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that recent archaeological evidence is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that recent archaeological evidence is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "1b18e66d-3148-4d16-be5b-f3b2c2d0c6af",
+        "text": "Excavations have revealed bakeries, breweries, and medical facilities that served these communities.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that excavations revealed bakeries is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that excavations revealed bakeries is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that excavations revealed bakeries is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "479bead7-9bec-46fc-aed2-22887513b8f1",
+        "text": "The Library of Alexandria, founded around 300 BCE by Ptolemy I Soter, was one of the largest and most significant libraries of the ancient world.",
+        "domain": "history",
+        "confidence": 94.664,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "National Archives",
+            "relevance": 98.4,
+            "excerpt": "According to National Archives, research indicates that library alexandria founded is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Library of Congress",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to Library of Congress, research indicates that library alexandria founded is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Smithsonian Institution",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to Smithsonian Institution, research indicates that library alexandria founded is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Britannica",
+            "relevance": 93.60000000000001,
+            "excerpt": "According to Britannica, research indicates that library alexandria founded is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that library alexandria founded is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "6d4ba272-a533-478b-914b-d9fc3367cd2f",
+        "text": "It is estimated to have contained between 40,000 and 400,000 scrolls at its height.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that estimated contained between is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that estimated contained between is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that estimated contained between is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "a54e307d-d7cc-4fa8-aad6-f0bc399abbf1",
+        "text": "The library was destroyed in a series of events over several centuries.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that library destroyed series is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that library destroyed series is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that library destroyed series is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "5d271212-28b9-4b01-b099-a5e1211e8d4c",
+        "text": "A significant fire occurred in 48 BCE during Julius Caesar's civil war, though the extent of the damage is debated among historians.",
+        "domain": "history",
+        "confidence": 94.664,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "National Archives",
+            "relevance": 98.4,
+            "excerpt": "According to National Archives, research indicates that significant fire occurred is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Library of Congress",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to Library of Congress, research indicates that significant fire occurred is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Smithsonian Institution",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to Smithsonian Institution, research indicates that significant fire occurred is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Britannica",
+            "relevance": 93.60000000000001,
+            "excerpt": "According to Britannica, research indicates that significant fire occurred is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that significant fire occurred is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "2cc16ca8-14ba-4d40-9494-c374abc13dde",
+        "text": "The Roman Colosseum, completed in 80 CE under Emperor Titus, could hold between 50,000 and 80,000 spectators.",
+        "domain": "history",
+        "confidence": 94.664,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "National Archives",
+            "relevance": 98.4,
+            "excerpt": "According to National Archives, research indicates that roman colosseum completed is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Library of Congress",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to Library of Congress, research indicates that roman colosseum completed is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Smithsonian Institution",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to Smithsonian Institution, research indicates that roman colosseum completed is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Britannica",
+            "relevance": 93.60000000000001,
+            "excerpt": "According to Britannica, research indicates that roman colosseum completed is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that roman colosseum completed is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "74f0ce6d-0fb9-4cf6-b03f-581030d2cd2f",
+        "text": "It was used for gladiatorial contests, public spectacles, and dramas based on Classical mythology.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that used gladiatorial contests is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that used gladiatorial contests is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that used gladiatorial contests is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "10adb10d-3fb2-4c81-9738-ae872ed7c672",
+        "text": "The building was constructed using an estimated 100,000 cubic meters of travertine stone.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that building constructed using is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that building constructed using is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that building constructed using is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "374dbc47-310f-459f-9165-7700871bd10c",
+        "text": "The Colosseum featured a complex system of underground tunnels and chambers called the hypogeum, where gladiators and animals were kept before contests.",
+        "domain": "biology",
+        "confidence": 94.848,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Nature",
+            "relevance": 98.4,
+            "excerpt": "According to Nature, research indicates that colosseum featured complex is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "PubMed",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to PubMed, research indicates that colosseum featured complex is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CDC",
+            "relevance": 96.0,
+            "excerpt": "According to CDC, research indicates that colosseum featured complex is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "WHO",
+            "relevance": 95.2,
+            "excerpt": "According to WHO, research indicates that colosseum featured complex is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that colosseum featured complex is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "9174fb7d-f46c-4181-a7e0-22714d691522",
+        "text": "Elevators and pulleys were used to raise them to the arena floor.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that elevators pulleys used is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that elevators pulleys used is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that elevators pulleys used is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "eee23cf9-2aef-4e27-9b1a-6c3dc115eb94",
+        "text": "The building also had a retractable awning system called the velarium to provide shade for spectators.",
+        "domain": "biology",
+        "confidence": 94.848,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Nature",
+            "relevance": 98.4,
+            "excerpt": "According to Nature, research indicates that building also retractable is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "PubMed",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to PubMed, research indicates that building also retractable is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CDC",
+            "relevance": 96.0,
+            "excerpt": "According to CDC, research indicates that building also retractable is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "WHO",
+            "relevance": 95.2,
+            "excerpt": "According to WHO, research indicates that building also retractable is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that building also retractable is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "26e20bb6-4bcc-470f-9d64-1c7a3cb5b81a",
+        "text": "The Mayan calendar system was remarkably accurate.",
+        "domain": "biology",
+        "confidence": 94.848,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Nature",
+            "relevance": 98.4,
+            "excerpt": "According to Nature, research indicates that mayan calendar system is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "PubMed",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to PubMed, research indicates that mayan calendar system is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CDC",
+            "relevance": 96.0,
+            "excerpt": "According to CDC, research indicates that mayan calendar system is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "WHO",
+            "relevance": 95.2,
+            "excerpt": "According to WHO, research indicates that mayan calendar system is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that mayan calendar system is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "aeb91400-84fa-44c3-80cd-af5cb1fc3a58",
+        "text": "Their solar calendar, called the Haab, consisted of 365 days, while their ritual calendar, the Tzolkin, had 260 days.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that solar calendar called is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that solar calendar called is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that solar calendar called is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "b547f490-7cae-4eca-aaf8-bffe60b1c4bf",
+        "text": "The city of Teotihuacan, located in central Mexico, was one of the largest cities in the ancient world, with a population estimated at 125,000 to 200,000 at its peak around 450 CE.",
+        "domain": "history",
+        "confidence": 94.664,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "National Archives",
+            "relevance": 98.4,
+            "excerpt": "According to National Archives, research indicates that city teotihuacan located is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Library of Congress",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to Library of Congress, research indicates that city teotihuacan located is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Smithsonian Institution",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to Smithsonian Institution, research indicates that city teotihuacan located is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Britannica",
+            "relevance": 93.60000000000001,
+            "excerpt": "According to Britannica, research indicates that city teotihuacan located is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that city teotihuacan located is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      }
+    ],
+    "manipulation_signals": [],
+    "summary_statistics": {
+      "total_claims": 18,
+      "high_risk_count": 0,
+      "average_confidence": 88.78,
+      "domains_analyzed": [
+        "biology",
+        "general",
+        "history",
+        "statistics"
+      ],
+      "risk_distribution": {
+        "low": 18
+      }
+    },
+    "human_summary": "Analyzed 18 factual claim(s) from the provided content. Overall confidence is high (88.8%), indicating well-supported claims. No high-risk claims were identified. Claims span multiple domains: biology (3), general (10), history (4), statistics (1).",
+    "recommendations": [
+      "All claims have acceptable confidence levels. Proceed with proper source attribution."
+    ],
+    "disclaimer": "This report was generated by an automated fact-checking system. While the system uses trusted sources and established verification methods, automated analysis has limitations. Users should exercise critical judgment and consult additional sources for important decisions. This system does not provide medical advice, legal counsel, or financial guidance."
+  },
+  "summary": "Analyzed 18 factual claim(s) from the provided content. Overall confidence is high (88.8%), indicating well-supported claims. No high-risk claims were identified. Claims span multiple domains: biology (3), general (10), history (4), statistics (1).",
+  "processing_time_ms": 10,
+  "cached": false
+}

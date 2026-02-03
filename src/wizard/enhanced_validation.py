@@ -186,7 +186,7 @@ class WizardValidator:
     def validate_form(self, form_data: Dict[str, Any]) -> ValidationResult:
         """Validate an entire form"""
         result = ValidationResult(is_valid=True)
-
+        
         # Validate each field
         for field, value in form_data.items():
             field_result = self.validate_field(field, value, form_data)
@@ -195,14 +195,20 @@ class WizardValidator:
             result.suggestions.extend(field_result.suggestions)
             if not field_result.is_valid:
                 result.is_valid = False
-
+                # Log validation errors
+                for error in field_result.errors:
+                    print(f"VALIDATION_ERROR: Field '{field}' failed validation: {error.message}")
+        
         # Apply cross-field validation
         cross_field_result = self._validate_cross_field_rules(form_data)
         result.errors.extend(cross_field_result.errors)
         result.warnings.extend(cross_field_result.warnings)
         if not cross_field_result.is_valid:
             result.is_valid = False
-
+            # Log cross-field validation errors
+            for error in cross_field_result.errors:
+                print(f"CROSS_FIELD_VALIDATION_ERROR: {error.message}")
+        
         return result
 
     def _validate_cross_field_rules(self, form_data: Dict[str, Any]) -> ValidationResult:

@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "report_type": "bug",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "system_info": {
+    "storycore_version": "1.0.0",
+    "python_version": "3.9.0",
+    "os_platform": "Linux",
+    "os_version": "Ubuntu 22.04",
+    "language": "en-US"
+  },
+  "module_context": {
+    "active_module": "promotion-engine",
+    "module_state": {
+      "status": "processing",
+      "current_panel": 5
+    }
+  },
+  "user_input": {
+    "description": "The promotion engine fails when processing panel 5 with a division by zero error. This happens consistently when the input image has certain dimensions.",
+    "reproduction_steps": "1. Initialize project with 'python storycore.py init test-project'\n2. Generate grid with 'python storycore.py grid --project test-project'\n3. Run promotion with 'python storycore.py promote --project test-project'\n4. Error occurs on panel 5"
+  },
+  "diagnostics": {
+    "stacktrace": "Traceback (most recent call last):\n  File \"src/promotion_engine.py\", line 145, in process_panel\n    scale_factor = target_size / current_size\nZeroDivisionError: division by zero",
+    "logs": [
+      "[2024-01-15 10:29:45] INFO: Starting promotion engine",
+      "[2024-01-15 10:29:46] INFO: Processing panel 1/9",
+      "[2024-01-15 10:29:47] INFO: Processing panel 2/9",
+      "[2024-01-15 10:29:48] INFO: Processing panel 3/9",
+      "[2024-01-15 10:29:49] INFO: Processing panel 4/9",
+      "[2024-01-15 10:29:50] ERROR: Division by zero in panel 5"
+    ],
+    "memory_usage_mb": 512.8,
+    "process_state": {
+      "cpu_percent": 45.2,
+      "threads": 8
+    }
+  },
+  "screenshot_base64": null
+}

@@ -3,7 +3,7 @@
   "context": "Un youtubeur donnant son avis honnête sur des produits et services.",
   "visual_elements": {
     "background": "assets/jpg_files/file_29_1.jpg",
-    "logo": "assets/library/StorycoreIcone.png",
+    "logo": "assets/library/StorycoreIconeV2.png",
     "animated_text": {
       "title": "Mon Avis !",
       "subtitle": "Test complet et honnête."

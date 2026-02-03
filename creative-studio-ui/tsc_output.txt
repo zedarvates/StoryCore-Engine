@@ -1,0 +1,1354 @@
+src/__mocks__/comfyuiServerMock.ts(301,3): error TS2322: Type 'Mock<UnknownFunction>' is not assignable to type '{ (input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>; (input: string | URL | Request, init?: RequestInit | undefined): Promise<...>; }'.
+  Type 'unknown' is not assignable to type 'Promise<Response>'.
+src/__mocks__/comfyuiServerMock.ts(301,47): error TS2345: Argument of type '(url: string, options?: RequestInit) => any' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'url' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+src/__mocks__/comfyuiServerMock.ts(306,12): error TS2571: Object is of type 'unknown'.
+src/addons/audio-production/index.ts(18,10): error TS2484: Export declaration conflicts with exported declaration of 'AudioProductionManager'.
+src/addons/casting/CastingManager.ts(173,5): error TS2741: Property 'uncastCharacters' is missing in type '{ characterSceneCounts: Record<string, number>; avatarUsageCounts: Record<string, number>; uniqueActorCount: number; }' but required in type 'CastingAnalytics'.
+src/addons/casting/components/CastingInterface.tsx(49,3): error TS2686: 'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+src/addons/comic-to-sequence/index.ts(18,10): error TS2484: Export declaration conflicts with exported declaration of 'ComicToSequenceConverter'.
+src/addons/demo-addon/index.ts(16,10): error TS2484: Export declaration conflicts with exported declaration of 'DemoAddonManager'.
+src/addons/example-workflow/index.ts(17,10): error TS2484: Export declaration conflicts with exported declaration of 'ExampleWorkflowManager'.
+src/addons/mcp-server/index.ts(17,10): error TS2484: Export declaration conflicts with exported declaration of 'MCPServerManager'.
+src/addons/mcp/hooks.ts(11,3): error TS2305: Module '"@/types/addons"' has no exported member 'UseMCPServersResult'.
+src/addons/mcp/hooks.ts(12,3): error TS2724: '"@/types/addons"' has no exported member named 'UseMCPConfigResult'. Did you mean 'UseMCPAddonResult'?
+src/addons/mcp/hooks.ts(13,3): error TS2724: '"@/types/addons"' has no exported member named 'UseMCPTestResult'. Did you mean 'MCPTestResult'?
+src/addons/mcp/index.ts(23,3): error TS2724: '"./hooks"' has no exported member named 'useMCPServerTesting'. Did you mean 'useMCPServers'?
+src/addons/mcp/index.ts(24,3): error TS2305: Module '"./hooks"' has no exported member 'useMCPPermissions'.
+src/addons/mcp/index.ts(25,3): error TS2305: Module '"./hooks"' has no exported member 'useMCPMetadata'.
+src/addons/mcp/index.ts(26,3): error TS2305: Module '"./hooks"' has no exported member 'useMCPError'.
+src/addons/mcp/index.ts(38,12): error TS2304: Cannot find name 'MCPAddonManager'.
+src/addons/mcp/index.ts(40,5): error TS18004: No value exists in scope for the shorthand property 'useMCPAddon'. Either declare one or provide an initializer.
+src/addons/mcp/index.ts(41,5): error TS18004: No value exists in scope for the shorthand property 'useMCPServers'. Either declare one or provide an initializer.
+src/addons/mcp/index.ts(42,5): error TS18004: No value exists in scope for the shorthand property 'useMCPConfig'. Either declare one or provide an initializer.
+src/addons/mcp/index.ts(43,5): error TS18004: No value exists in scope for the shorthand property 'useMCPServerTesting'. Either declare one or provide an initializer.
+src/addons/mcp/index.ts(44,5): error TS18004: No value exists in scope for the shorthand property 'useMCPPermissions'. Either declare one or provide an initializer.
+src/addons/mcp/index.ts(45,5): error TS18004: No value exists in scope for the shorthand property 'useMCPMetadata'. Either declare one or provide an initializer.
+src/addons/mcp/index.ts(46,5): error TS18004: No value exists in scope for the shorthand property 'useMCPError'. Either declare one or provide an initializer.
+src/addons/mcp/index.ts(49,5): error TS18004: No value exists in scope for the shorthand property 'MCPSettings'. Either declare one or provide an initializer.
+src/addons/mcp/index.ts(50,5): error TS18004: No value exists in scope for the shorthand property 'MCPPanel'. Either declare one or provide an initializer.
+src/addons/mcp/index.ts(53,5): error TS18004: No value exists in scope for the shorthand property 'useAddonStore'. Either declare one or provide an initializer.
+src/addons/mcp/MCPAddonManager.ts(272,41): error TS2345: Argument of type '{ status: string; lastConnected: string | undefined; errorMessage: string | undefined; id: string; name: string; endpoint: string; apiKey?: string; timeout: number; maxRetries: number; enabled: boolean; capabilities: string[]; }' is not assignable to parameter of type 'Partial<MCPServerConfig>'.
+  Types of property 'status' are incompatible.
+    Type 'string' is not assignable to type '"error" | "connected" | "disconnected" | "connecting" | undefined'.
+src/addons/mcp/MCPPanel.tsx(6,23): error TS2305: Module '"./hooks"' has no exported member 'useMCPError'.
+src/addons/mcp/MCPPanel.tsx(82,34): error TS2304: Cannot find name 'MCPServerConfig'.
+src/addons/mcp/MCPPanel.tsx(95,35): error TS2304: Cannot find name 'MCPServerConfig'.
+src/addons/mcp/MCPPanel.tsx(191,18): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPPanel.tsx(198,54): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPPanel.tsx(258,22): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPPanel.tsx(266,30): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPPanel.tsx(276,35): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPPanel.tsx(277,22): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(6,23): error TS2305: Module '"./hooks"' has no exported member 'useMCPError'.
+src/addons/mcp/MCPSettings.tsx(37,8): error TS2307: Cannot find module '@/components/ui/form' or its corresponding type declarations.
+src/addons/mcp/MCPSettings.tsx(59,25): error TS2307: Cannot find module 'react-hook-form' or its corresponding type declarations.
+src/addons/mcp/MCPSettings.tsx(60,29): error TS2307: Cannot find module '@hookform/resolvers/zod' or its corresponding type declarations.
+src/addons/mcp/MCPSettings.tsx(99,54): error TS2304: Cannot find name 'MCPServerConfig'.
+src/addons/mcp/MCPSettings.tsx(119,25): error TS2345: Argument of type '{ name: string; endpoint: string; timeout: number; maxRetries: number; enabled: boolean; apiKey?: string | undefined; }' is not assignable to parameter of type 'Omit<MCPServerConfig, "id">'.
+  Type '{ name: string; endpoint: string; timeout: number; maxRetries: number; enabled: boolean; apiKey?: string | undefined; }' is missing the following properties from type 'Omit<MCPServerConfig, "id">': status, capabilities
+src/addons/mcp/MCPSettings.tsx(129,31): error TS2304: Cannot find name 'MCPServerConfig'.
+src/addons/mcp/MCPSettings.tsx(167,34): error TS2304: Cannot find name 'MCPServerConfig'.
+src/addons/mcp/MCPSettings.tsx(180,35): error TS2304: Cannot find name 'MCPServerConfig'.
+src/addons/mcp/MCPSettings.tsx(209,24): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(219,29): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(220,16): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(227,62): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(230,61): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(233,63): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(237,25): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(290,34): error TS7031: Binding element 'field' implicitly has an 'any' type.
+src/addons/mcp/MCPSettings.tsx(303,34): error TS7031: Binding element 'field' implicitly has an 'any' type.
+src/addons/mcp/MCPSettings.tsx(322,34): error TS7031: Binding element 'field' implicitly has an 'any' type.
+src/addons/mcp/MCPSettings.tsx(343,36): error TS7031: Binding element 'field' implicitly has an 'any' type.
+src/addons/mcp/MCPSettings.tsx(360,36): error TS7031: Binding element 'field' implicitly has an 'any' type.
+src/addons/mcp/MCPSettings.tsx(378,34): error TS7031: Binding element 'field' implicitly has an 'any' type.
+src/addons/mcp/MCPSettings.tsx(503,8): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(518,26): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(528,26): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(539,24): error TS18047: 'addon' is possibly 'null'.
+src/addons/mcp/MCPSettings.tsx(547,24): error TS18047: 'addon' is possibly 'null'.
+src/addons/plan-sequences/index.ts(18,10): error TS2484: Export declaration conflicts with exported declaration of 'PlanSequencesManager'.
+src/addons/transitions/index.ts(17,10): error TS2484: Export declaration conflicts with exported declaration of 'TransitionsManager'.
+src/App.tsx(263,26): error TS2554: Expected 1 arguments, but got 0.
+src/App.tsx(404,33): error TS2339: Property 'worlds' does not exist on type 'AppState'.
+src/App.tsx(404,46): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/App.tsx(440,37): error TS2339: Property 'characters' does not exist on type 'AppState'.
+src/App.tsx(441,9): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/App.tsx(737,9): error TS2304: Cannot find name 'Logger'.
+src/audio/AudioRecorder.ts(84,7): error TS2531: Object is possibly 'null'.
+src/components/accessibility/index.tsx(471,22): error TS2554: Expected 1 arguments, but got 0.
+src/components/AssetCard.tsx(33,9): error TS2322: Type '"image" | "audio" | "video" | "template"' is not assignable to type '"image" | "audio" | "template"'.
+  Type '"video"' is not assignable to type '"image" | "audio" | "template"'.
+src/components/AssetLibrary.tsx(88,11): error TS2739: Type '{ size: number; lastModified: number; mimeType: string; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path, imported_at
+src/components/assets/AssetDropZone.tsx(8,30): error TS2307: Cannot find module '@/services/asset/AssetService' or its corresponding type declarations.
+src/components/assets/AssetDropZone.tsx(154,10): error TS7006: Parameter 'current' implicitly has an 'any' type.
+src/components/assets/AssetDropZone.tsx(154,19): error TS7006: Parameter 'total' implicitly has an 'any' type.
+src/components/assets/AssetDropZone.tsx(154,26): error TS7006: Parameter 'filename' implicitly has an 'any' type.
+src/components/assets/AssetDropZone.tsx(161,44): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/components/assets/AssetDropZone.tsx(162,44): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/components/assistants/StoryCoreAssistant.tsx(274,26): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ 'ghost-tracker-wizard': string; 'roger-wizard': string; 'audio-production-wizard': string; 'video-editor-wizard': string; 'marketing-wizard': string; 'character-creation': string; 'dialogue-wizard': string; ... 6 more ...; 'project-init': string; }'.
+  No index signature with a parameter of type 'string' was found on type '{ 'ghost-tracker-wizard': string; 'roger-wizard': string; 'audio-production-wizard': string; 'video-editor-wizard': string; 'marketing-wizard': string; 'character-creation': string; 'dialogue-wizard': string; ... 6 more ...; 'project-init': string; }'.
+src/components/assistants/StoryCoreAssistant.tsx(280,65): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/components/assistants/StoryCoreAssistant.tsx(336,13): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ 'audio-production-wizard': { title: string; description: string; }; 'ghost-tracker-wizard': { title: string; description: string; }; 'roger-wizard': { title: string; description: string; }; 'video-editor-wizard': { ...; }; ... 5 more ...; 'shot-reference-wizard': { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ 'audio-production-wizard': { title: string; description: string; }; 'ghost-tracker-wizard': { title: string; description: string; }; 'roger-wizard': { title: string; description: string; }; 'video-editor-wizard': { ...; }; ... 5 more ...; 'shot-reference-wizard': { ...; }; }'.
+src/components/assistants/StoryCoreAssistant.tsx(339,20): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ 'audio-production-wizard': { title: string; description: string; }; 'ghost-tracker-wizard': { title: string; description: string; }; 'roger-wizard': { title: string; description: string; }; 'video-editor-wizard': { ...; }; ... 5 more ...; 'shot-reference-wizard': { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ 'audio-production-wizard': { title: string; description: string; }; 'ghost-tracker-wizard': { title: string; description: string; }; 'roger-wizard': { title: string; description: string; }; 'video-editor-wizard': { ...; }; ... 5 more ...; 'shot-reference-wizard': { ...; }; }'.
+src/components/assistants/StoryCoreAssistant.tsx(340,26): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ 'audio-production-wizard': { title: string; description: string; }; 'ghost-tracker-wizard': { title: string; description: string; }; 'roger-wizard': { title: string; description: string; }; 'video-editor-wizard': { ...; }; ... 5 more ...; 'shot-reference-wizard': { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ 'audio-production-wizard': { title: string; description: string; }; 'ghost-tracker-wizard': { title: string; description: string; }; 'roger-wizard': { title: string; description: string; }; 'video-editor-wizard': { ...; }; ... 5 more ...; 'shot-reference-wizard': { ...; }; }'.
+src/components/assistants/StoryCoreAssistant.tsx(420,22): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ 'character-creation': { id: string; title: string; desc: string; }[]; 'world-building': { id: string; title: string; desc: string; }[]; 'shot-planning': { id: string; title: string; desc: string; }[]; 'shot-reference-wizard': { ...; }[]; ... 4 more ...; 'ghost-tracker-wizard': { ...; }[]; }'.
+  No index signature with a parameter of type 'string' was found on type '{ 'character-creation': { id: string; title: string; desc: string; }[]; 'world-building': { id: string; title: string; desc: string; }[]; 'shot-planning': { id: string; title: string; desc: string; }[]; 'shot-reference-wizard': { ...; }[]; ... 4 more ...; 'ghost-tracker-wizard': { ...; }[]; }'.
+src/components/assistants/StoryCoreAssistant.tsx(421,37): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/assistants/StoryCoreAssistant.tsx(767,71): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/components/assistants/StoryCoreAssistant.tsx(768,20): error TS2339: Property 'path' does not exist on type 'File'.
+src/components/AudioPanel.tsx(494,30): error TS2322: Type '{ shotId: string; trackId: string; }' is not assignable to type 'IntrinsicAttributes & AudioEffectsPanelProps'.
+  Property 'shotId' does not exist on type 'IntrinsicAttributes & AudioEffectsPanelProps'.
+src/components/AudioTimeline.tsx(94,37): error TS2304: Cannot find name 'scrollOffset'.
+src/components/AudioTimeline.tsx(95,24): error TS2304: Cannot find name 'scrollOffset'.
+src/components/AudioTimeline.tsx(101,17): error TS2304: Cannot find name 'scrollOffset'.
+src/components/AudioTimeline.tsx(102,24): error TS2304: Cannot find name 'scrollOffset'.
+src/components/batchOperations/BatchOperationsToolbar.tsx(35,31): error TS2339: Property 'notes' does not exist on type 'ProductionShot'.
+src/components/batchOperations/BatchOperationsToolbar.tsx(37,25): error TS2339: Property 'thumbnailUrl' does not exist on type 'ProductionShot'.
+src/components/batchOperations/BatchOperationsToolbar.tsx(46,28): error TS2339: Property 'status' does not exist on type 'ProductionShot'.
+src/components/batchOperations/BatchOperationsToolbar.tsx(47,26): error TS2339: Property 'tags' does not exist on type 'ProductionShot'.
+src/components/character/CharacterList.tsx(234,45): error TS2554: Expected 1 arguments, but got 2.
+src/components/character/CharacterList.tsx(235,45): error TS2554: Expected 1 arguments, but got 2.
+src/components/character/CharacterList.tsx(236,45): error TS2554: Expected 1 arguments, but got 2.
+src/components/clips/TextClip.tsx(2,86): error TS2305: Module '"lucide-react"' has no exported member 'Font'.
+src/components/clips/TextClip.tsx(293,5): error TS2698: Spread types may only be created from object types.
+src/components/comfyui/GenerationCancellationDialog.tsx(191,9): error TS2322: Type '{ children: (false | "" | Element | undefined)[]; onInteractOutside: (e: Event) => void; }' is not assignable to type 'IntrinsicAttributes & Omit<AlertDialogContentProps & RefAttributes<HTMLDivElement>, "ref"> & RefAttributes<...>'.
+  Property 'onInteractOutside' does not exist on type 'IntrinsicAttributes & Omit<AlertDialogContentProps & RefAttributes<HTMLDivElement>, "ref"> & RefAttributes<...>'.
+src/components/ComfyUIActions.tsx(117,36): error TS2339: Property 'path' does not exist on type 'File'.
+src/components/ComfyUIControlPanel.tsx(140,33): error TS2345: Argument of type 'ComfyUIConfig' is not assignable to parameter of type 'string | ComfyUIInstanceConfig | undefined'.
+src/components/editor/effects/EffectPanel.tsx(86,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPanel.tsx(97,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPanel.tsx(108,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPanel.tsx(119,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPanel.tsx(136,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPanel.tsx(147,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPanel.tsx(159,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPanel.tsx(170,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPanel.tsx(188,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPanel.tsx(197,17): error TS2322: Type 'string | number | boolean' is not assignable to type 'boolean | undefined'.
+  Type 'string' is not assignable to type 'boolean | undefined'.
+src/components/editor/effects/EffectPanel.tsx(213,17): error TS2322: Type 'string | number | true' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'true' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/editor/effects/EffectPreviewRenderer.tsx(45,29): error TS2554: Expected 1 arguments, but got 0.
+src/components/editor/effects/index.ts(2,31): error TS2307: Cannot find module './EffectLibrary' or its corresponding type declarations.
+src/components/editor/effects/index.ts(10,78): error TS2307: Cannot find module './EffectLibrary' or its corresponding type declarations.
+src/components/editor/effects/index.ts(11,15): error TS2724: '"./EffectKeyframes"' has no exported member named 'EffectKeyframe'. Did you mean 'EffectKeyframes'?
+src/components/editor/sequence-planning/SceneSelector.tsx(34,35): error TS2339: Property 'targetDuration' does not exist on type 'Scene'.
+src/components/editor/sequence-planning/SceneSelector.tsx(54,24): error TS2339: Property 'targetDuration' does not exist on type 'Scene'.
+src/components/editor/sequence-planning/SceneSelector.tsx(59,22): error TS2339: Property 'sceneIds' does not exist on type 'Scene'.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(58,5): error TS2740: Type '{ id: string; name: any; elements: never[]; camera: { position: { x: number; y: number; z: number; }; target: { x: number; y: number; z: number; }; fov: number; }; lighting: { ambient: number; directional: { x: number; y: number; z: number; }; }; }' is missing the following properties from type 'SceneData': actId, number, title, description, and 6 more.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(60,37): error TS2339: Property 'name' does not exist on type 'Scene'.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(91,9): error TS2740: Type '{ id: string; name: any; elements: never[]; camera: { position: { x: number; y: number; z: number; }; target: { x: number; y: number; z: number; }; fov: number; }; lighting: { ambient: number; directional: { x: number; y: number; z: number; }; }; }' is missing the following properties from type 'SceneData': actId, number, title, description, and 6 more.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(93,23): error TS2339: Property 'name' does not exist on type 'Scene'.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(109,31): error TS18048: 'prev.currentScene.elements' is possibly 'undefined'.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(123,27): error TS2353: Object literal may only specify known properties, and 'showPromptGenerator' does not exist in type 'Partial<PlanningState>'.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(146,5): error TS2345: Argument of type 'CanvasElement[] | undefined' is not assignable to parameter of type 'CanvasElement[]'.
+  Type 'undefined' is not assignable to type 'CanvasElement[]'.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(371,15): error TS2322: Type 'CanvasElement[] | undefined' is not assignable to type '{ id: string; name: string; audio?: { enabled: boolean; speakerAssignment: string; volume: number; } | undefined; }[]'.
+  Type 'undefined' is not assignable to type '{ id: string; name: string; audio?: { enabled: boolean; speakerAssignment: string; volume: number; } | undefined; }[]'.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(378,17): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'ProductionShot'.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(378,37): error TS2339: Property 'name' does not exist on type 'Scene'.
+src/components/editor/sequence-planning/SequencePlanningStudio.tsx(380,33): error TS18048: 'planningState.currentScene.elements' is possibly 'undefined'.
+src/components/editor/sequence-planning/StorytellerWizard.tsx(186,41): error TS2345: Argument of type 'LLMConfig' is not assignable to parameter of type 'Partial<LLMConfig>'.
+  Types of property 'systemPrompts' are incompatible.
+    Type '{ worldGeneration?: string | undefined; characterGeneration?: string | undefined; storyGeneration?: string | undefined; } | undefined' is not assignable to type '{ worldGeneration: string; characterGeneration: string; dialogueGeneration: string; } | undefined'.
+      Property 'dialogueGeneration' is missing in type '{ worldGeneration?: string | undefined; characterGeneration?: string | undefined; storyGeneration?: string | undefined; }' but required in type '{ worldGeneration: string; characterGeneration: string; dialogueGeneration: string; }'.
+src/components/editor/sequence-planning/useAudioSpatialization.ts(23,42): error TS18048: 'audioProps.volume' is possibly 'undefined'.
+src/components/editor/sequence-planning/useAudioSpatialization.ts(24,42): error TS18048: 'audioProps.reverb' is possibly 'undefined'.
+src/components/editor/sequence-planning/useAudioSpatialization.ts(25,41): error TS18048: 'audioProps.delay' is possibly 'undefined'.
+src/components/editor/tools/KeyframeEditor.tsx(55,24): error TS2554: Expected 1 arguments, but got 0.
+src/components/editor/tools/TransitionEditor.tsx(34,24): error TS2554: Expected 1 arguments, but got 0.
+src/components/editor/VideoEditorPage.tsx(1033,40): error TS2322: Type 'AppliedEffect | { id: string; order: number; type: "custom"; enabled: true; name: string; category: "transform" | "color" | "blur" | "creative" | "temporal" | "stylize"; icon: ReactNode; description: string; parameters: EffectParameter[]; preview?: string | undefined; }' is not assignable to type 'AppliedEffect'.
+  Type '{ id: string; order: number; type: "custom"; enabled: true; name: string; category: "color" | "creative" | "transform" | "temporal" | "blur" | "stylize"; icon: React.ReactNode; description: string; parameters: EffectParameter[]; preview?: string; }' is not assignable to type 'AppliedEffect'.
+    Types of property 'type' are incompatible.
+      Type '"custom"' is not assignable to type '"transition" | "filter" | "distortion" | "blur" | "sharpen" | "color-correction"'.
+src/components/editor/VideoEditorPage.tsx(1037,23): error TS2322: Type '"custom"' is not assignable to type '"transition" | "filter" | "distortion" | "blur" | "sharpen" | "color-correction"'.
+src/components/editor/VideoEditorPage.tsx(1048,19): error TS2322: Type '(effects: import("C:/storycore-engine/creative-studio-ui/src/types/effect").AppliedEffect[]) => void' is not assignable to type '(effects: AppliedEffect[]) => void'.
+  Types of parameters 'effects' and 'effects' are incompatible.
+    Type 'AppliedEffect[]' is not assignable to type 'import("C:/storycore-engine/creative-studio-ui/src/types/effect").AppliedEffect[]'.
+      Property 'type' is missing in type 'AppliedEffect' but required in type 'import("C:/storycore-engine/creative-studio-ui/src/types/effect").AppliedEffect'.
+src/components/editor/VideoEditorPage.tsx(1049,19): error TS2322: Type '(effect: import("C:/storycore-engine/creative-studio-ui/src/types/effect").AppliedEffect) => void' is not assignable to type '(effect: AppliedEffect) => void'.
+  Types of parameters 'effect' and 'effect' are incompatible.
+    Property 'type' is missing in type 'AppliedEffect' but required in type 'import("C:/storycore-engine/creative-studio-ui/src/types/effect").AppliedEffect'.
+src/components/editor/VideoEditorPage.tsx(1304,11): error TS2322: Type '{ fontFamily: string; fontSize: number; fontWeight: "normal" | "bold" | "lighter"; fontStyle: "normal" | "italic" | "oblique"; textDecoration: "none" | "underline" | "line-through"; ... 6 more ...; textTransform?: "none" | ... 3 more ... | undefined; }' is not assignable to type 'TextStyle'.
+  Types of property 'letterSpacing' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/components/editor/VideoEditorPage.tsx(1316,26): error TS2345: Argument of type '(prev: TextLayer[]) => { style: { fontFamily: string; fontSize: number; fontWeight: "normal" | "bold" | "lighter" | "bolder"; fontStyle: "normal" | "italic" | "oblique"; textDecoration: "none" | ... 1 more ... | "line-through"; ... 6 more ...; textTransform?: "none" | ... 3 more ... | undefined; }; ... 5 more ...; a...' is not assignable to parameter of type 'SetStateAction<TextLayer[]>'.
+  Type '(prev: TextLayer[]) => { style: { fontFamily: string; fontSize: number; fontWeight: "normal" | "bold" | "lighter" | "bolder"; fontStyle: "normal" | "italic" | "oblique"; textDecoration: "none" | ... 1 more ... | "line-through"; ... 6 more ...; textTransform?: "none" | ... 3 more ... | undefined; }; ... 5 more ...; a...' is not assignable to type '(prevState: TextLayer[]) => TextLayer[]'.
+    Type '{ style: { fontFamily: string; fontSize: number; fontWeight: "normal" | "bold" | "lighter" | "bolder"; fontStyle: "normal" | "italic" | "oblique"; textDecoration: "none" | "underline" | "line-through"; ... 6 more ...; textTransform?: "none" | ... 3 more ... | undefined; }; ... 5 more ...; animation?: { ...; } | unde...' is not assignable to type 'TextLayer[]'.
+      Type '{ style: { fontFamily: string; fontSize: number; fontWeight: "normal" | "bold" | "lighter" | "bolder"; fontStyle: "normal" | "italic" | "oblique"; textDecoration: "none" | "underline" | "line-through"; ... 6 more ...; textTransform?: "none" | "uppercase" | "lowercase" | "capitalize"; }; ... 5 more ...; animation?: {...' is not assignable to type 'TextLayer'.
+        The types of 'style.fontWeight' are incompatible between these types.
+          Type '"normal" | "bold" | "lighter" | "bolder"' is not assignable to type '"normal" | "bold" | "lighter"'.
+            Type '"bolder"' is not assignable to type '"normal" | "bold" | "lighter"'. Did you mean '"bold"'?
+src/components/editor/VideoEditorPage.tsx(1321,26): error TS2345: Argument of type '(prev: TextLayer[]) => (TextLayer | { animation: TextAnimation | undefined; id: string; text: string; style: { fontFamily: string; fontSize: number; ... 9 more ...; textTransform?: "none" | ... 3 more ... | undefined; }; position: { ...; }; size: { ...; }; isSelected?: boolean | undefined; })[]' is not assignable to parameter of type 'SetStateAction<TextLayer[]>'.
+  Type '(prev: TextLayer[]) => (TextLayer | { animation: TextAnimation | undefined; id: string; text: string; style: { fontFamily: string; fontSize: number; ... 9 more ...; textTransform?: "none" | ... 3 more ... | undefined; }; position: { ...; }; size: { ...; }; isSelected?: boolean | undefined; })[]' is not assignable to type '(prevState: TextLayer[]) => TextLayer[]'.
+    Type '(TextLayer | { animation: TextAnimation | undefined; id: string; text: string; style: { fontFamily: string; fontSize: number; fontWeight: "normal" | "bold" | "lighter"; ... 8 more ...; textTransform?: "none" | ... 3 more ... | undefined; }; position: { ...; }; size: { ...; }; isSelected?: boolean | undefined; })[]' is not assignable to type 'TextLayer[]'.
+      Type 'TextLayer | { animation: TextAnimation | undefined; id: string; text: string; style: { fontFamily: string; fontSize: number; fontWeight: "normal" | "bold" | "lighter"; ... 8 more ...; textTransform?: "none" | ... 3 more ... | undefined; }; position: { ...; }; size: { ...; }; isSelected?: boolean | undefined; }' is not assignable to type 'TextLayer'.
+        Type '{ animation: TextAnimation | undefined; id: string; text: string; style: { fontFamily: string; fontSize: number; fontWeight: "normal" | "bold" | "lighter"; fontStyle: "normal" | "italic" | "oblique"; textDecoration: "none" | "underline" | "line-through"; textAlign: "left" | "center" | "right"; color: string; backgro...' is not assignable to type 'TextLayer'.
+          Types of property 'animation' are incompatible.
+            Type 'TextAnimation | undefined' is not assignable to type '{ type: "fade-in" | "slide-in" | "none" | "typing"; duration: number; delay?: number | undefined; } | undefined'.
+              Type 'TextAnimation' is not assignable to type '{ type: "fade-in" | "slide-in" | "none" | "typing"; duration: number; delay?: number | undefined; }'.
+                Types of property 'type' are incompatible.
+                  Type '"fade" | "rotate" | "scale" | "slide" | "typewriter" | "bounce" | "glow"' is not assignable to type '"fade-in" | "slide-in" | "none" | "typing"'.
+                    Type '"fade"' is not assignable to type '"fade-in" | "slide-in" | "none" | "typing"'.
+src/components/EditorLayout.tsx(5,15): error TS2724: '"@/types"' has no exported member named 'GeneratedAsset'. Did you mean 'GeneratedShot'?
+src/components/EditorLayout.tsx(27,11): error TS2339: Property 'currentShot' does not exist on type 'AppState'.
+src/components/EditorLayout.tsx(27,24): error TS2339: Property 'currentSequence' does not exist on type 'AppState'.
+src/components/ErrorBoundary.tsx(64,48): error TS2345: Argument of type 'ErrorInfo' is not assignable to parameter of type '{ componentStack: string; }'.
+  Types of property 'componentStack' are incompatible.
+    Type 'string | null | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/components/feedback/FeedbackPanel.tsx(459,29): error TS2339: Property 'openExternal' does not exist on type 'StoryCoreElectronAPI'.
+src/components/feedback/FeedbackPanel.tsx(461,32): error TS2339: Property 'openExternal' does not exist on type 'StoryCoreElectronAPI'.
+src/components/feedback/utils/diagnosticBridge.ts(112,31): error TS2339: Property 'feedback' does not exist on type 'StoryCoreElectronAPI'.
+src/components/feedback/utils/diagnosticBridge.ts(113,41): error TS2339: Property 'feedback' does not exist on type 'StoryCoreElectronAPI'.
+src/components/feedback/utils/feedbackConfig.ts(51,29): error TS2339: Property 'getFeedbackConfig' does not exist on type 'StoryCoreElectronAPI'.
+src/components/feedback/utils/feedbackConfig.ts(52,47): error TS2339: Property 'getFeedbackConfig' does not exist on type 'StoryCoreElectronAPI'.
+src/components/feedback/utils/feedbackConfig.ts(135,29): error TS2339: Property 'updateFeedbackConfig' does not exist on type 'StoryCoreElectronAPI'.
+src/components/feedback/utils/feedbackConfig.ts(136,32): error TS2339: Property 'updateFeedbackConfig' does not exist on type 'StoryCoreElectronAPI'.
+src/components/feedback/utils/feedbackConfig.ts(185,29): error TS2339: Property 'resetFeedbackConfig' does not exist on type 'StoryCoreElectronAPI'.
+src/components/feedback/utils/feedbackConfig.ts(186,32): error TS2339: Property 'resetFeedbackConfig' does not exist on type 'StoryCoreElectronAPI'.
+src/components/generation-buttons/GenerationButtonToolbar.example.tsx(9,31): error TS2724: '"../../types"' has no exported member named 'GeneratedAsset'. Did you mean 'GeneratedShot'?
+src/components/generation-buttons/GenerationButtonToolbar.example.tsx(34,5): error TS2353: Object literal may only specify known properties, and 'shots' does not exist in type 'Sequence | (() => Sequence)'.
+src/components/generation-buttons/ImageGeneration.example.tsx(100,10): error TS2304: Cannot find name 'Button'.
+src/components/generation-buttons/ImageGeneration.example.tsx(130,11): error TS2304: Cannot find name 'Button'.
+src/components/generation-buttons/PresetManager.tsx(239,31): error TS2322: Type '{ children: (string | Element)[]; onClick: () => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & DropdownMenuItemProps'.
+  Property 'onClick' does not exist on type 'IntrinsicAttributes & DropdownMenuItemProps'.
+src/components/generation-buttons/PresetManager.tsx(243,31): error TS2322: Type '{ children: (string | Element)[]; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & DropdownMenuItemProps'.
+  Property 'onClick' does not exist on type 'IntrinsicAttributes & DropdownMenuItemProps'.
+src/components/GenerationProgressModal.tsx(103,22): error TS2345: Argument of type 'RefObject<HTMLElement | null>' is not assignable to parameter of type 'RefObject<HTMLElement>'.
+  Type 'HTMLElement | null' is not assignable to type 'HTMLElement'.
+    Type 'null' is not assignable to type 'HTMLElement'.
+src/components/GenerationProgressModal.tsx(235,9): error TS2322: Type 'RefObject<HTMLElement | null>' is not assignable to type 'Ref<HTMLDivElement> | undefined'.
+  Type 'RefObject<HTMLElement | null>' is not assignable to type 'RefObject<HTMLDivElement | null>'.
+    Type 'HTMLElement | null' is not assignable to type 'HTMLDivElement | null'.
+      Property 'align' is missing in type 'HTMLElement' but required in type 'HTMLDivElement'.
+src/components/gridEditor/AutoSaveIndicator.tsx(14,23): error TS2614: Module '"../../hooks/useAutoSave"' has no exported member 'useAutoSaveStatus'. Did you mean to use 'import useAutoSaveStatus from "../../hooks/useAutoSave"' instead?
+src/components/gridEditor/AutoSaveIndicator.tsx(14,42): error TS2614: Module '"../../hooks/useAutoSave"' has no exported member 'useAutoSaveIndicator'. Did you mean to use 'import useAutoSaveIndicator from "../../hooks/useAutoSave"' instead?
+src/components/gridEditor/AutoSaveIndicator.tsx(75,5): error TS2339: Property 'isEnabled' does not exist on type '{ draft: unknown; lastSaved: Date | null; isSaving: boolean; error: string | null; saveNow: (data: unknown, stepIndex: number) => void; restore: (stepIndex?: number | undefined) => unknown; clear: () => void; hasDraft: boolean; }'.
+src/components/gridEditor/AutoSaveIndicator.tsx(76,5): error TS2339: Property 'toggle' does not exist on type '{ draft: unknown; lastSaved: Date | null; isSaving: boolean; error: string | null; saveNow: (data: unknown, stepIndex: number) => void; restore: (stepIndex?: number | undefined) => unknown; clear: () => void; hasDraft: boolean; }'.
+src/components/gridEditor/AutoSaveIndicator.tsx(77,5): error TS2339: Property 'lastSavedAt' does not exist on type '{ draft: unknown; lastSaved: Date | null; isSaving: boolean; error: string | null; saveNow: (data: unknown, stepIndex: number) => void; restore: (stepIndex?: number | undefined) => unknown; clear: () => void; hasDraft: boolean; }'.
+src/components/gridEditor/AutoSaveIndicator.tsx(78,5): error TS2339: Property 'setInterval' does not exist on type '{ draft: unknown; lastSaved: Date | null; isSaving: boolean; error: string | null; saveNow: (data: unknown, stepIndex: number) => void; restore: (stepIndex?: number | undefined) => unknown; clear: () => void; hasDraft: boolean; }'.
+src/components/gridEditor/AutoSaveIndicator.tsx(82,5): error TS2554: Expected 1 arguments, but got 2.
+src/components/gridEditor/AutoSaveIndicator.tsx(86,20): error TS7006: Parameter 'timestamp' implicitly has an 'any' type.
+src/components/gridEditor/AutoSaveIndicator.tsx(89,17): error TS7006: Parameter 'error' implicitly has an 'any' type.
+src/components/gridEditor/AutoSaveIndicator.tsx(184,13): error TS2322: Type '(data: unknown, stepIndex: number) => void' is not assignable to type 'MouseEventHandler<HTMLButtonElement>'.
+  Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/components/gridEditor/AutoSaveIndicator.tsx(274,11): error TS2339: Property 'isEnabled' does not exist on type '{ draft: unknown; lastSaved: Date | null; isSaving: boolean; error: string | null; saveNow: (data: unknown, stepIndex: number) => void; restore: (stepIndex?: number | undefined) => unknown; clear: () => void; hasDraft: boolean; }'.
+src/components/gridEditor/AutoSaveIndicator.tsx(274,22): error TS2339: Property 'toggle' does not exist on type '{ draft: unknown; lastSaved: Date | null; isSaving: boolean; error: string | null; saveNow: (data: unknown, stepIndex: number) => void; restore: (stepIndex?: number | undefined) => unknown; clear: () => void; hasDraft: boolean; }'.
+src/components/gridEditor/AutoSaveIndicator.tsx(274,30): error TS2339: Property 'lastSavedAt' does not exist on type '{ draft: unknown; lastSaved: Date | null; isSaving: boolean; error: string | null; saveNow: (data: unknown, stepIndex: number) => void; restore: (stepIndex?: number | undefined) => unknown; clear: () => void; hasDraft: boolean; }'.
+src/components/gridEditor/AutoSaveIndicator.tsx(276,5): error TS2554: Expected 1 arguments, but got 2.
+src/components/gridEditor/BackendIntegration.example.tsx(112,21): error TS2345: Argument of type '{ type: "batch_generation"; timestamp: number; data: { panelId: string; before: {}; after: GeneratedImage[]; }; }' is not assignable to parameter of type 'Operation'.
+  Property 'description' is missing in type '{ type: "batch_generation"; timestamp: number; data: { panelId: string; before: {}; after: GeneratedImage[]; }; }' but required in type 'Operation'.
+src/components/gridEditor/ConfigurationExportImport.tsx(291,15): error TS2322: Type 'RefObject<HTMLInputElement | null>' is not assignable to type 'RefObject<HTMLInputElement>'.
+  Type 'HTMLInputElement | null' is not assignable to type 'HTMLInputElement'.
+    Type 'null' is not assignable to type 'HTMLInputElement'.
+src/components/gridEditor/FocusModeIntegration.example.tsx(33,7): error TS2304: Cannot find name 'useGridEditorStore'.
+src/components/gridEditor/FocusModeIntegration.example.tsx(63,38): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/gridEditor/GridEditorCanvas.tsx(169,5): error TS2353: Object literal may only specify known properties, and 'onSave' does not exist in type 'KeyboardShortcutsConfig'.
+src/components/gridEditor/GridItem.tsx(107,23): error TS2339: Property 'title' does not exist on type 'ProductionShot'.
+src/components/gridEditor/GridLayout.example.tsx(32,7): error TS2740: Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/components/gridEditor/GridLayout.example.tsx(49,7): error TS2740: Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/components/gridEditor/GridLayout.example.tsx(66,7): error TS2740: Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/components/gridEditor/GridLayout.example.tsx(198,7): error TS2740: Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/components/gridEditor/GridListView.tsx(109,28): error TS2339: Property 'notes' does not exist on type 'ProductionShot'.
+src/components/gridEditor/PresetIntegration.example.tsx(96,11): error TS2339: Property 'panels' does not exist on type 'GridStore'.
+src/components/gridEditor/PresetIntegration.example.tsx(108,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/gridEditor/PresetIntegration.example.tsx(244,24): error TS2339: Property 'panels' does not exist on type 'GridStore'.
+src/components/gridEditor/PresetIntegration.example.tsx(264,31): error TS7006: Parameter 'panel' implicitly has an 'any' type.
+src/components/gridEditor/PresetIntegration.example.tsx(264,38): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/gridEditor/PresetPanel.tsx(26,24): error TS2339: Property 'panels' does not exist on type 'GridStore'.
+src/components/gridEditor/PresetPanel.tsx(59,35): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/gridEditor/PresetPanel.tsx(60,30): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/gridEditor/Viewport.example.tsx(43,10): error TS2741: Property 'viewport' is missing in type '{ panels: Panel[]; selectedPanelIds: never[]; onPanelClick: (panelId: string) => void; }' but required in type 'GridRendererProps'.
+src/components/index.ts(17,32): error TS2307: Cannot find module './wizards/WizardLauncher' or its corresponding type declarations.
+src/components/index.ts(30,32): error TS2724: '"../hooks/useKeyboardShortcuts"' has no exported member named 'CommonShortcuts'. Did you mean 'COMMON_SHORTCUTS'?
+src/components/index.ts(30,49): error TS2614: Module '"../hooks/useKeyboardShortcuts"' has no exported member 'formatShortcut'. Did you mean to use 'import formatShortcut from "../hooks/useKeyboardShortcuts"' instead?
+src/components/index.ts(30,65): error TS2614: Module '"../hooks/useKeyboardShortcuts"' has no exported member 'useShortcutHelp'. Did you mean to use 'import useShortcutHelp from "../hooks/useKeyboardShortcuts"' instead?
+src/components/installation/InstallationWizardModal.tsx(94,31): error TS2339: Property 'openFolder' does not exist on type 'StoryCoreElectronAPI'.
+src/components/installation/InstallationWizardModal.tsx(96,34): error TS2339: Property 'openFolder' does not exist on type 'StoryCoreElectronAPI'.
+src/components/launcher/LandingChatBox.tsx(87,72): error TS2345: Argument of type '() => string' is not assignable to parameter of type 'LanguageCode | (() => LanguageCode)'.
+  Type '() => string' is not assignable to type '() => LanguageCode'.
+    Type 'string' is not assignable to type 'LanguageCode'.
+src/components/launcher/LandingChatBox.tsx(232,11): error TS2322: Type '"project"' is not assignable to type '"follow-up" | "clarification" | "expansion" | "alternative" | "refinement"'.
+src/components/launcher/LandingChatBox.tsx(238,11): error TS2322: Type '"project"' is not assignable to type '"follow-up" | "clarification" | "expansion" | "alternative" | "refinement"'.
+src/components/launcher/LandingChatBox.tsx(244,11): error TS2322: Type '"project"' is not assignable to type '"follow-up" | "clarification" | "expansion" | "alternative" | "refinement"'.
+src/components/launcher/LandingChatBox.tsx(250,11): error TS2322: Type '"project"' is not assignable to type '"follow-up" | "clarification" | "expansion" | "alternative" | "refinement"'.
+src/components/launcher/LandingChatBox.tsx(256,11): error TS2322: Type '"help"' is not assignable to type '"follow-up" | "clarification" | "expansion" | "alternative" | "refinement"'.
+src/components/launcher/LandingChatBox.tsx(521,17): error TS18047: 'llmConfig' is possibly 'null'.
+src/components/launcher/LandingChatBox.tsx(529,11): error TS18047: 'llmConfig' is possibly 'null'.
+src/components/launcher/LandingChatBox.tsx(642,11): error TS2322: Type '"configuration"' is not assignable to type 'LLMErrorCategory'.
+src/components/launcher/LLMConfigDialog.tsx(92,75): error TS2339: Property 'creativityMode' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/launcher/LLMConfigDialog.tsx(93,71): error TS2339: Property 'jokesEnabled' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/launcher/LLMConfigDialog.tsx(94,79): error TS2339: Property 'wordGamesEnabled' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/launcher/LLMConfigDialog.tsx(95,97): error TS2339: Property 'probabilityFramingEnabled' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/launcher/LLMConfigDialog.tsx(96,89): error TS2339: Property 'vectorialOptimization' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/launcher/LLMConfigDialog.tsx(97,75): error TS2339: Property 'embeddingModel' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/launcher/LLMConfigDialog.tsx(98,85): error TS2339: Property 'similarityThreshold' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/launcher/LLMConfigDialog.tsx(207,11): error TS2322: Type '{ provider: LLMProvider; model: string; apiKey: string; parameters: { temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }; ... 4 more ...; retryAttempts?: number | undefined; }' is not assignable to type 'LLMConfig'.
+  Types of property 'systemPrompts' are incompatible.
+    Type '{ worldGeneration: string; characterGeneration: string; dialogueGeneration: string; } | undefined' is not assignable to type '{ worldGeneration: string; characterGeneration: string; dialogueGeneration: string; }'.
+      Type 'undefined' is not assignable to type '{ worldGeneration: string; characterGeneration: string; dialogueGeneration: string; }'.
+src/components/launcher/LLMConfigDialog.tsx(213,12): error TS18047: 'currentConfig' is possibly 'null'.
+src/components/launcher/LLMConfigDialog.tsx(239,14): error TS18047: 'currentConfig' is possibly 'null'.
+src/components/launcher/LLMConfigDialog.tsx(242,11): error TS2353: Object literal may only specify known properties, and 'creativityMode' does not exist in type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/LazyComponents.tsx(34,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(38,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(42,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(46,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(50,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(54,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(58,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(62,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(66,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(71,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: FC<WaveformDisplayProps>; }>' is not assignable to type 'Promise<{ default: ComponentType<WaveformDisplayProps>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: FC<WaveformDisplayProps>; }' is not assignable to type '{ default: ComponentType<WaveformDisplayProps>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<WaveformDisplayProps>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<WaveformDisplayProps>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<WaveformDisplayProps>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<WaveformDisplayProps, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<WaveformDisplayProps, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<WaveformDisplayProps, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'Readonly<WaveformDisplayProps>' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(78,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/LazyComponents.tsx(82,9): error TS2322: Type 'Promise<{ default: ComponentType<never>; } | { default: any; }>' is not assignable to type 'Promise<{ default: ComponentType<object>; }>'.
+  Type '{ default: ComponentType<never>; } | { default: any; }' is not assignable to type '{ default: ComponentType<object>; }'.
+    Type '{ default: ComponentType<never>; }' is not assignable to type '{ default: ComponentType<object>; }'.
+      Types of property 'default' are incompatible.
+        Type 'ComponentType<never>' is not assignable to type 'ComponentType<object>'.
+          Type 'ComponentClass<never, any>' is not assignable to type 'ComponentType<object>'.
+            Type 'ComponentClass<never, any>' is not assignable to type 'ComponentClass<object, any>'.
+              Types of property 'getDerivedStateFromProps' are incompatible.
+                Type 'GetDerivedStateFromProps<never, any> | undefined' is not assignable to type 'GetDerivedStateFromProps<object, any> | undefined'.
+                  Type 'GetDerivedStateFromProps<never, any>' is not assignable to type 'GetDerivedStateFromProps<object, any>'.
+                    Types of parameters 'nextProps' and 'nextProps' are incompatible.
+                      Type 'object' is not assignable to type 'never'.
+src/components/MenuBarCompat.tsx(15,10): error TS2614: Module '"./menuBar"' has no exported member 'MenuBar'. Did you mean to use 'import MenuBar from "./menuBar"' instead?
+src/components/MenuBarCompat.tsx(15,25): error TS1149: File name 'C:/storycore-engine/creative-studio-ui/src/components/menuBar.tsx' differs from already included file name 'C:/storycore-engine/creative-studio-ui/src/components/MenuBar.tsx' only in casing.
+  The file is in the program because:
+    Matched by include pattern 'src' in 'tsconfig.app.json'
+    Imported via './menuBar' from file 'C:/storycore-engine/creative-studio-ui/src/components/MenuBarCompat.tsx'
+src/components/modals/CharactersModal.tsx(111,18): error TS2345: Argument of type '{ characters: Character[]; schema_version: string; project_name: string; shots: Shot[]; assets: Asset[]; worlds?: World[]; selectedWorldId?: string | null; capabilities: { grid_generation: boolean; promotion_engine: boolean; qa_engine: boolean; autofix_engine: boolean; character_casting?: boolean; }; generation_stat...' is not assignable to parameter of type 'Project'.
+  Types of property 'characters' are incompatible.
+    Type 'Character[]' is not assignable to type 'import("C:/storycore-engine/creative-studio-ui/src/types/character").Character[]'.
+      Type 'Character' is missing the following properties from type 'Character': creation_method, creation_timestamp, version, visual_identity
+src/components/modals/CharactersModal.tsx(133,7): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Character'.
+src/components/modals/CharactersModal.tsx(173,68): error TS2339: Property 'id' does not exist on type 'Character'.
+src/components/modals/LocationsModal.tsx(86,74): error TS2339: Property 'id' does not exist on type 'Project'.
+src/components/modals/LocationsModal.tsx(163,49): error TS2339: Property 'id' does not exist on type 'Project'.
+src/components/modals/ObjectsModal.tsx(71,70): error TS2339: Property 'id' does not exist on type 'Project'.
+src/components/modals/ObjectsModal.tsx(129,47): error TS2339: Property 'id' does not exist on type 'Project'.
+src/components/modals/ObjectsModal.tsx(493,42): error TS2552: Cannot find name 'handleEditObject'. Did you mean 'handleCreateObject'?
+src/components/modals/WorldModal.tsx(81,83): error TS2339: Property 'id' does not exist on type 'Project'.
+src/components/modals/WorldModal.tsx(149,54): error TS2339: Property 'id' does not exist on type 'Project'.
+src/components/navigation/MainSidebar.tsx(8,26): error TS2307: Cannot find module '@/hooks/use-theme' or its corresponding type declarations.
+src/components/navigation/MainSidebar.tsx(57,58): error TS2339: Property 'ollamaStatus' does not exist on type 'AppState'.
+src/components/navigation/MainSidebar.tsx(58,59): error TS2339: Property 'comfyuiStatus' does not exist on type 'AppState'.
+src/components/PropertiesPanel.tsx(216,49): error TS2551: Property 'setCurrentPlan' does not exist on type 'SequencePlanState'. Did you mean 'currentPlanId'?
+src/components/PropertiesPanel.tsx(224,48): error TS2304: Cannot find name 'useAppStore'.
+src/components/PropertiesPanel.tsx(249,68): error TS2345: Argument of type '{ id: string; name: string; createdAt: number; modifiedAt: number; description: string; worldId: string; templateId?: string; targetDuration: number; frameRate: number; resolution: { width: number; height: number; }; ... 4 more ...; tags: string[]; }' is not assignable to parameter of type 'string'.
+src/components/ResizablePanelGroup.tsx(139,14): error TS2322: Type '{ className: string; onMouseDown: (e: MouseEvent<HTMLDivElement, MouseEvent>) => void; role: "separator"; "aria-orientation": "vertical" | "horizontal"; "aria-valuenow": string; "aria-valuemin": string; "aria-valuemax": string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Type '{ className: string; onMouseDown: (e: MouseEvent<HTMLDivElement, MouseEvent>) => void; role: "separator"; "aria-orientation": "vertical" | "horizontal"; "aria-valuenow": string; "aria-valuemin": string; "aria-valuemax": string; }' is not assignable to type 'HTMLAttributes<HTMLDivElement>'.
+    Types of property '"aria-valuemax"' are incompatible.
+      Type 'string' is not assignable to type 'number'.
+src/components/search/AdvancedSearch.tsx(20,7): error TS2322: Type '"title"' is not assignable to type '"name" | "type" | "tags" | "duration" | "status"'.
+src/components/search/AdvancedSearch.tsx(25,17): error TS2345: Argument of type '(prev: SearchCriteria[]) => (SearchCriteria | { field: "title"; value: string; operator: "AND"; })[]' is not assignable to parameter of type 'SetStateAction<SearchCriteria[]>'.
+  Type '(prev: SearchCriteria[]) => (SearchCriteria | { field: "title"; value: string; operator: "AND"; })[]' is not assignable to type '(prevState: SearchCriteria[]) => SearchCriteria[]'.
+    Type '(SearchCriteria | { field: "title"; value: string; operator: "AND"; })[]' is not assignable to type 'SearchCriteria[]'.
+      Type 'SearchCriteria | { field: "title"; value: string; operator: "AND"; }' is not assignable to type 'SearchCriteria'.
+        Type '{ field: "title"; value: string; operator: "AND"; }' is not assignable to type 'SearchCriteria'.
+          Types of property 'field' are incompatible.
+            Type '"title"' is not assignable to type '"name" | "type" | "tags" | "duration" | "status"'.
+src/components/search/AdvancedSearch.tsx(51,20): error TS2322: Type '"title"' is not assignable to type '"name" | "type" | "tags" | "duration" | "status"'.
+src/components/search/AdvancedSearch.tsx(175,14): error TS2322: Type '{ children: string; jsx: true; }' is not assignable to type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+  Property 'jsx' does not exist on type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+src/components/search/AdvancedSearch.tsx(383,10): error TS2678: Type '"title"' is not comparable to type '"name" | "type" | "tags" | "duration" | "status"'.
+src/components/search/AdvancedSearch.tsx(385,10): error TS2678: Type '"description"' is not comparable to type '"name" | "type" | "tags" | "duration" | "status"'.
+src/components/search/NoResults.tsx(77,14): error TS2322: Type '{ children: string; jsx: true; }' is not assignable to type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+  Property 'jsx' does not exist on type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+src/components/search/PredefinedFilters.tsx(125,14): error TS2322: Type '{ children: string; jsx: true; }' is not assignable to type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+  Property 'jsx' does not exist on type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+src/components/search/SavedFilters.tsx(60,9): error TS2353: Object literal may only specify known properties, and 'createdAt' does not exist in type 'SearchFilter'.
+src/components/search/SavedFilters.tsx(212,14): error TS2322: Type '{ children: string; jsx: true; }' is not assignable to type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+  Property 'jsx' does not exist on type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+src/components/search/SearchBar.tsx(178,14): error TS2322: Type '{ children: string; jsx: true; }' is not assignable to type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+  Property 'jsx' does not exist on type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+src/components/search/SearchResultsNavigation.tsx(150,14): error TS2322: Type '{ children: string; jsx: true; }' is not assignable to type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+  Property 'jsx' does not exist on type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+src/components/settings/AddonsPanel.tsx(87,49): error TS18046: 'error' is of type 'unknown'.
+src/components/settings/AddonsPanel.tsx(110,51): error TS18046: 'error' is of type 'unknown'.
+src/components/settings/ComfyUIServerCard.tsx(117,36): error TS2339: Property 'system' does not exist on type 'ComfyUIServerInfo'.
+src/components/settings/ComfyUIServerCard.tsx(118,61): error TS2339: Property 'system' does not exist on type 'ComfyUIServerInfo'.
+src/components/settings/ComfyUIServerCard.tsx(120,36): error TS2339: Property 'models' does not exist on type 'ComfyUIServerInfo'.
+src/components/settings/ComfyUIServerCard.tsx(121,44): error TS2339: Property 'models' does not exist on type 'ComfyUIServerInfo'.
+src/components/settings/ComfyUIServerModal.tsx(117,10): error TS2367: This comparison appears to be unintentional because the types 'AuthenticationType' and '"bearer"' have no overlap.
+src/components/settings/ComfyUIServerModal.tsx(117,35): error TS2367: This comparison appears to be unintentional because the types 'AuthenticationType' and '"api-key"' have no overlap.
+src/components/settings/ComfyUIServerModal.tsx(134,13): error TS2367: This comparison appears to be unintentional because the types 'AuthenticationType' and '"bearer"' have no overlap.
+src/components/settings/ComfyUIServerModal.tsx(135,13): error TS2367: This comparison appears to be unintentional because the types 'AuthenticationType' and '"api-key"' have no overlap.
+src/components/settings/ComfyUIServerModal.tsx(258,15): error TS2367: This comparison appears to be unintentional because the types 'AuthenticationType' and '"bearer"' have no overlap.
+src/components/settings/ComfyUIServerModal.tsx(258,40): error TS2367: This comparison appears to be unintentional because the types 'AuthenticationType' and '"api-key"' have no overlap.
+src/components/settings/ComfyUIServerModalNew.tsx(58,7): error TS2322: Type '"none" | "basic" | "bearer" | "api-key"' is not assignable to type 'AuthenticationType'.
+  Type '"bearer"' is not assignable to type 'AuthenticationType'.
+src/components/settings/ComfyUIServerModalNew.tsx(95,37): error TS2345: Argument of type 'ComfyUIServer | null | undefined' is not assignable to parameter of type 'ComfyUIServer | null'.
+  Type 'undefined' is not assignable to type 'ComfyUIServer | null'.
+src/components/settings/LLMSettingsPanel.tsx(180,83): error TS2339: Property 'creativityMode' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/settings/LLMSettingsPanel.tsx(181,79): error TS2339: Property 'jokesEnabled' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/settings/LLMSettingsPanel.tsx(182,87): error TS2339: Property 'wordGamesEnabled' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/settings/LLMSettingsPanel.tsx(183,105): error TS2339: Property 'probabilityFramingEnabled' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/settings/LLMSettingsPanel.tsx(184,97): error TS2339: Property 'vectorialOptimization' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/settings/LLMSettingsPanel.tsx(185,83): error TS2339: Property 'embeddingModel' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/settings/LLMSettingsPanel.tsx(186,93): error TS2339: Property 'similarityThreshold' does not exist on type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/settings/LLMSettingsPanel.tsx(442,11): error TS2353: Object literal may only specify known properties, and 'creativityMode' does not exist in type '{ temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }'.
+src/components/StoryboardCanvas.tsx(335,15): error TS2339: Property 'status' does not exist on type 'Shot'.
+src/components/StoryboardCanvas.tsx(337,19): error TS2339: Property 'status' does not exist on type 'Shot'.
+src/components/StoryboardCanvas.tsx(423,17): error TS2339: Property 'progress' does not exist on type 'Shot'.
+src/components/StoryboardCanvas.tsx(423,34): error TS2339: Property 'progress' does not exist on type 'Shot'.
+src/components/StoryboardCanvas.tsx(424,79): error TS2339: Property 'progress' does not exist on type 'Shot'.
+src/components/StoryboardCanvas.tsx(433,27): error TS2339: Property 'progress' does not exist on type 'Shot'.
+src/components/timeline/DraggableShot.tsx(210,15): error TS2339: Property 'thumbnailUrl' does not exist on type 'ProductionShot'.
+src/components/timeline/DraggableShot.tsx(222,25): error TS2339: Property 'thumbnailUrl' does not exist on type 'ProductionShot'.
+src/components/ui/KeyboardShortcutsHelp.tsx(9,10): error TS2614: Module '"../../hooks/useKeyboardShortcuts"' has no exported member 'formatShortcut'. Did you mean to use 'import formatShortcut from "../../hooks/useKeyboardShortcuts"' instead?
+src/components/ui/LoadingFeedback.tsx(449,8): error TS2322: Type '{ children: Element; className: string; role: "progressbar"; "aria-valuenow": string; "aria-valuemin": string; "aria-valuemax": string; "aria-label": string | undefined; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Type '{ children: Element; className: string; role: "progressbar"; "aria-valuenow": string; "aria-valuemin": string; "aria-valuemax": string; "aria-label": string | undefined; }' is not assignable to type 'HTMLAttributes<HTMLDivElement>'.
+    Types of property '"aria-valuemax"' are incompatible.
+      Type 'string' is not assignable to type 'number'.
+src/components/video/PlaybackControls.tsx(327,12): error TS2322: Type '{ children: Element[]; className: string; onClick: (e: MouseEvent<HTMLDivElement, MouseEvent>) => void; onMouseDown: () => void; role: "slider"; ... 4 more ...; tabIndex: number; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Type '{ children: Element[]; className: string; onClick: (e: MouseEvent<HTMLDivElement, MouseEvent>) => void; onMouseDown: () => void; role: "slider"; ... 4 more ...; tabIndex: number; }' is not assignable to type 'HTMLAttributes<HTMLDivElement>'.
+    Types of property '"aria-valuenow"' are incompatible.
+      Type 'string' is not assignable to type 'number'.
+src/components/video/ThumbnailCacheDemo.tsx(10,10): error TS2305: Module '"../../hooks/useThumbnailCache"' has no exported member 'useCacheStats'.
+src/components/video/ThumbnailCacheDemo.tsx(10,25): error TS2305: Module '"../../hooks/useThumbnailCache"' has no exported member 'usePreloadThumbnails'.
+src/components/video/ThumbnailPreview.tsx(41,11): error TS2339: Property 'thumbnailUrl' does not exist on type 'UseThumbnailCacheReturn'.
+src/components/video/ThumbnailPreview.tsx(41,25): error TS2339: Property 'isLoading' does not exist on type 'UseThumbnailCacheReturn'.
+src/components/video/ThumbnailPreview.tsx(41,36): error TS2339: Property 'error' does not exist on type 'UseThumbnailCacheReturn'.
+src/components/video/ThumbnailPreview.tsx(41,43): error TS2339: Property 'reload' does not exist on type 'UseThumbnailCacheReturn'.
+src/components/video/ThumbnailPreview.tsx(41,82): error TS2554: Expected 0-1 arguments, but got 3.
+src/components/video/VideoThumbnailPreview.tsx(35,37): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/video/VideoThumbnailPreview.tsx(39,25): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/wizard/AccessibilityExample.tsx(101,8): error TS2322: Type '{ children: Element; title: string; steps: { number: number; title: string; description: string; }[]; onCancel: () => void; onComplete: () => void; allowJumpToStep: boolean; }' is not assignable to type 'IntrinsicAttributes & WizardContainerProps'.
+  Property 'children' does not exist on type 'IntrinsicAttributes & WizardContainerProps'.
+src/components/wizard/BaseWizard.tsx(309,13): error TS2322: Type '(() => Promise<void>) | undefined' is not assignable to type '() => void'.
+  Type 'undefined' is not assignable to type '() => void'.
+src/components/wizard/BaseWizard.tsx(310,13): error TS2322: Type '(() => void) | undefined' is not assignable to type '() => void'.
+  Type 'undefined' is not assignable to type '() => void'.
+src/components/wizard/character/CharacterWizard.tsx(101,7): error TS2322: Type '(() => void) | undefined' is not assignable to type '(projectData: ProjectExport) => void'.
+  Type 'undefined' is not assignable to type '(projectData: ProjectExport) => void'.
+src/components/wizard/character/Step1BasicIdentity.tsx(19,44): error TS2307: Cannot find module '../../character-creator/EnhancedCharacterAssistant' or its corresponding type declarations.
+src/components/wizard/character/Step1BasicIdentity.tsx(69,7): error TS2304: Cannot find name 'useLLMGeneration'.
+src/components/wizard/character/Step1BasicIdentity.tsx(70,17): error TS7006: Parameter 'response' implicitly has an 'any' type.
+src/components/wizard/character/Step1BasicIdentity.tsx(235,14): error TS2304: Cannot find name 'LLMLoadingState'.
+src/components/wizard/character/Step1BasicIdentity.tsx(240,14): error TS2304: Cannot find name 'LLMErrorDisplay'.
+src/components/wizard/character/Step1BasicIdentity.tsx(255,24): error TS2304: Cannot find name 'cn'.
+src/components/wizard/CreateProjectWizard.tsx(65,54): error TS2551: Property 'createProject' does not exist on type 'AppState'. Did you mean 'setProject'?
+src/components/wizard/CreateProjectWizard.tsx(169,11): error TS2322: Type 'string[]' is not assignable to type '{ label: string; description?: string | undefined; }[]'.
+  Type 'string' is not assignable to type '{ label: string; description?: string | undefined; }'.
+src/components/wizard/DataExportImport.tsx(52,22): error TS2503: Cannot find namespace 'JSX'.
+src/components/wizard/DataExportImport.tsx(159,22): error TS2503: Cannot find namespace 'JSX'.
+src/components/wizard/DataExportImport.tsx(258,33): error TS2503: Cannot find namespace 'JSX'.
+src/components/wizard/ErrorDisplay.tsx(46,24): error TS2503: Cannot find namespace 'JSX'.
+src/components/wizard/errorHandling.ts(9,15): error TS2724: '"./WizardErrorBoundary"' has no exported member named 'WizardErrorBoundaryProps'. Did you mean 'WizardErrorBoundary'?
+src/components/wizard/ErrorNotification.tsx(40,29): error TS2503: Cannot find namespace 'JSX'.
+src/components/wizard/ErrorNotification.tsx(224,38): error TS2503: Cannot find namespace 'JSX'.
+src/components/wizard/forms/DialogueWriterForm.tsx(76,17): error TS2448: Block-scoped variable 'validateForm' used before its declaration.
+src/components/wizard/forms/DialogueWriterForm.tsx(76,17): error TS2454: Variable 'validateForm' is used before being assigned.
+src/components/wizard/forms/DialogueWriterForm.tsx(206,10): error TS2741: Property 'name' is missing in type '{ children: Element; label: string; required: true; error: string | undefined; }' but required in type 'FormFieldProps'.
+src/components/wizard/index.ts(5,27): error TS2614: Module '"./WizardContainer"' has no exported member 'WizardResumeBanner'. Did you mean to use 'import WizardResumeBanner from "./WizardContainer"' instead?
+src/components/wizard/index.ts(54,3): error TS2305: Module '"@/hooks/useKeyboardNavigation"' has no exported member 'useFocusManagement'.
+src/components/wizard/index.ts(55,3): error TS2305: Module '"@/hooks/useKeyboardNavigation"' has no exported member 'useTabOrder'.
+src/components/wizard/marketing/MarketingWizard.config.ts(182,3): error TS2561: Object literal may only specify known properties, but 'minimaliste' does not exist in type 'Record<VisualStyle, { primary: string; secondary: string; }>'. Did you mean to write 'minimalist'?
+src/components/wizard/marketing/MarketingWizard.tsx(108,5): error TS2820: Type '"minimaliste"' is not assignable to type 'VisualStyle'. Did you mean '"minimalist"'?
+src/components/wizard/marketing/MarketingWizard.tsx(164,30): error TS2339: Property 'value' does not exist on type 'T'.
+src/components/wizard/marketing/MarketingWizard.tsx(165,42): error TS2339: Property 'value' does not exist on type 'T'.
+src/components/wizard/marketing/MarketingWizard.tsx(168,41): error TS2339: Property 'value' does not exist on type 'T'.
+src/components/wizard/marketing/MarketingWizard.tsx(198,9): error TS2322: Type 'string' is not assignable to type '{ value: MarketingContentType; label: string; icon: ReactNode; description: string; }'.
+src/components/wizard/marketing/MarketingWizard.tsx(199,46): error TS2352: Conversion of type '{ value: MarketingContentType; label: string; icon: ReactNode; description: string; }' to type 'MarketingContentType' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/components/wizard/marketing/MarketingWizard.tsx(249,11): error TS2322: Type 'string' is not assignable to type '{ value: VisualStyle; label: string; description: string; }'.
+src/components/wizard/marketing/MarketingWizard.tsx(250,50): error TS2352: Conversion of type '{ value: VisualStyle; label: string; description: string; }' to type 'VisualStyle' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/components/wizard/marketing/MarketingWizard.tsx(271,17): error TS2322: Type '{ aspectRatio: string; resolution?: string | undefined; format?: "mp4" | "webm" | "gif" | undefined; quality?: "medium" | "high" | "low" | undefined; }' is not assignable to type 'ExportSettings'.
+  Types of property 'resolution' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/components/wizard/production-wizards/ProductionWizardComponents.stories.tsx(33,5): error TS2353: Object literal may only specify known properties, and 'number' does not exist in type 'WizardStep'.
+src/components/wizard/production-wizards/ProductionWizardComponents.stories.tsx(34,5): error TS2353: Object literal may only specify known properties, and 'number' does not exist in type 'WizardStep'.
+src/components/wizard/production-wizards/ProductionWizardComponents.stories.tsx(35,5): error TS2353: Object literal may only specify known properties, and 'number' does not exist in type 'WizardStep'.
+src/components/wizard/production-wizards/ProductionWizardComponents.stories.tsx(36,5): error TS2353: Object literal may only specify known properties, and 'number' does not exist in type 'WizardStep'.
+src/components/wizard/production-wizards/ProductionWizardComponents.stories.tsx(37,5): error TS2353: Object literal may only specify known properties, and 'number' does not exist in type 'WizardStep'.
+src/components/wizard/production-wizards/ProductionWizardComponents.stories.tsx(38,5): error TS2353: Object literal may only specify known properties, and 'number' does not exist in type 'WizardStep'.
+src/components/wizard/production-wizards/ProductionWizardStepIndicator.tsx(39,39): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/production-wizards/ProductionWizardStepIndicator.tsx(54,46): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/production-wizards/ProductionWizardStepIndicator.tsx(57,55): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/production-wizards/ProductionWizardStepIndicator.tsx(80,67): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/project-setup/ProjectSetupWizard.tsx(55,7): error TS2322: Type '{ children: ReactNode; title: string; steps: WizardStep[]; onCancel: () => void; onComplete: (() => void) | undefined; allowJumpToStep: boolean; showAutoSaveIndicator: boolean; }' is not assignable to type 'IntrinsicAttributes & ProjectSetupWizardContainerProps'.
+  Property 'allowJumpToStep' does not exist on type 'IntrinsicAttributes & ProjectSetupWizardContainerProps'.
+src/components/wizard/ProjectSetupWizardModal.tsx(30,9): error TS2353: Object literal may only specify known properties, and 'projectSetup' does not exist in type 'Project'.
+src/components/wizard/RogerWizardModal.tsx(83,67): error TS2339: Property 'path' does not exist on type 'File'.
+src/components/wizard/RogerWizardModal.tsx(83,73): error TS2554: Expected 1 arguments, but got 2.
+src/components/wizard/RogerWizardModal.tsx(86,35): error TS2339: Property 'split' does not exist on type 'Buffer<ArrayBufferLike>'.
+src/components/wizard/RogerWizardModal.tsx(90,38): error TS2339: Property 'match' does not exist on type 'Buffer<ArrayBufferLike>'.
+src/components/wizard/RogerWizardModal.tsx(91,42): error TS2339: Property 'match' does not exist on type 'Buffer<ArrayBufferLike>'.
+src/components/wizard/RogerWizardModal.tsx(99,33): error TS2339: Property 'substring' does not exist on type 'Buffer<ArrayBufferLike>'.
+src/components/wizard/RogerWizardModal.tsx(157,28): error TS2339: Property 'path' does not exist on type 'File'.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(5,10): error TS2305: Module '"@/types/wizard"' has no exported member 'SequencePlanWizardState'.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(73,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(79,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(85,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(91,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(97,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(103,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(235,26): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(255,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(268,22): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(355,76): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/sequence-plan/SequencePlanWizard.tsx(364,30): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/wizard/sequence-plan/Step5ShotPreview.tsx(96,9): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type 'PreviewShot'.
+src/components/wizard/sequence-plan/Step6ReviewFinalize.tsx(368,67): error TS2339: Property 'notes' does not exist on type 'ProductionShot'.
+src/components/wizard/shot/ShotWizard.tsx(5,10): error TS2724: '"@/types/wizard"' has no exported member named 'ShotWizardState'. Did you mean 'WizardState'?
+src/components/wizard/shot/ShotWizard.tsx(33,5): error TS2353: Object literal may only specify known properties, and 'notes' does not exist in type 'Partial<ProductionShot>'.
+src/components/wizard/shot/ShotWizard.tsx(47,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/shot/ShotWizard.tsx(53,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/shot/ShotWizard.tsx(59,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/shot/ShotWizard.tsx(65,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/shot/ShotWizard.tsx(71,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/shot/ShotWizard.tsx(77,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/shot/ShotWizard.tsx(83,5): error TS2322: Type 'string' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | undefined'.
+src/components/wizard/shot/ShotWizard.tsx(286,13): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type 'ProductionShot'.
+src/components/wizard/shot/ShotWizard.tsx(295,26): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/wizard/shot/ShotWizard.tsx(334,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/wizard/shot/ShotWizard.tsx(342,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/wizard/shot/ShotWizard.tsx(350,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/wizard/shot/ShotWizard.tsx(358,22): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/wizard/shot/ShotWizard.tsx(385,43): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/shot/ShotWizard.tsx(385,64): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/shot/ShotWizard.tsx(390,50): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/shot/ShotWizard.tsx(433,9): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type 'ProductionShot'.
+src/components/wizard/shot/ShotWizard.tsx(528,76): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/shot/ShotWizard.tsx(566,76): error TS2339: Property 'number' does not exist on type 'WizardStep'.
+src/components/wizard/ShotWizardModal.tsx(32,26): error TS2345: Argument of type 'ProductionShot' is not assignable to parameter of type 'ShotInput'.
+  Type 'ProductionShot' is missing the following properties from type 'ShotInput': title, description, duration
+src/components/wizard/steps/Step1_ProjectType.tsx(12,15): error TS2305: Module '"@/types/wizard"' has no exported member 'ProjectType'.
+src/components/wizard/steps/Step3_WorldBuilding.tsx(29,44): error TS2305: Module '"@/types/wizard"' has no exported member 'UniverseType'.
+src/components/wizard/steps/Step4_CharacterCreation.tsx(31,3): error TS2724: '"@/types/wizard"' has no exported member named 'CharacterRole'. Did you mean 'CharacterProfile'?
+src/components/wizard/steps/Step5_StoryStructure.tsx(32,3): error TS2305: Module '"@/types/wizard"' has no exported member 'NarrativePerspective'.
+src/components/wizard/storyteller/StorytellerWizard.tsx(68,6): error TS2322: Type '{ children: ReactNode; title: string; steps: WizardStep[]; onCancel: () => void; allowJumpToStep: boolean; showAutoSaveIndicator: boolean; }' is not assignable to type 'IntrinsicAttributes & WizardContainerProps'.
+  Property 'children' does not exist on type 'IntrinsicAttributes & WizardContainerProps'.
+src/components/wizard/storyteller/StorytellerWizard.tsx(108,9): error TS2322: Type '"short" | "medium" | "long" | "scene" | "short_story" | "novella" | "novel" | "epic_novel" | undefined' is not assignable to type '"short" | "medium" | "long" | undefined'.
+  Type '"scene"' is not assignable to type '"short" | "medium" | "long" | undefined'.
+src/components/wizard/WizardDialog.tsx(213,15): error TS2322: Type '{ currentStep: number; totalSteps: number; onPrevious: () => void; onNext: () => void; onCancel: () => void; onSubmit: () => Promise<void>; isSubmitting: boolean; canGoNext: boolean; canGoPrevious: boolean; }' is not assignable to type 'IntrinsicAttributes & WizardNavigationProps'.
+  Property 'onPrevious' does not exist on type 'IntrinsicAttributes & WizardNavigationProps'.
+src/components/wizard/WizardLauncher.tsx(115,27): error TS18048: 'dependencies.config' is possibly 'undefined'.
+src/components/wizard/WizardLauncher.tsx(125,9): error TS18048: 'dependencies.config' is possibly 'undefined'.
+src/components/wizard/WizardLauncher.tsx(128,9): error TS18048: 'dependencies.config' is possibly 'undefined'.
+src/components/wizard/world-builder/steps/CultureStep.tsx(57,23): error TS2322: Type '{ id: string; name: string; values: string[]; customs: string[]; }' is not assignable to type 'ReactNode'.
+src/components/wizard/world/WorldWizard.tsx(73,7): error TS2322: Type '(() => void) | undefined' is not assignable to type '(projectData: ProjectExport) => void'.
+  Type 'undefined' is not assignable to type '(projectData: ProjectExport) => void'.
+src/components/workspace/ProjectDashboardNew.tsx(26,15): error TS2614: Module '"@/components/wizard/marketing/MarketingWizard.config"' has no exported member 'MarketingPlan'. Did you mean to use 'import MarketingPlan from "@/components/wizard/marketing/MarketingWizard.config"' instead?
+src/components/workspace/ProjectDashboardNew.tsx(1452,11): error TS2322: Type 'Project | undefined' is not assignable to type '{ projectId: string; projectName: string; storySummary?: string | undefined; characters?: string[] | undefined; scenes?: string[] | undefined; }'.
+  Type 'undefined' is not assignable to type '{ projectId: string; projectName: string; storySummary?: string | undefined; characters?: string[] | undefined; scenes?: string[] | undefined; }'.
+src/components/workspace/ProjectWorkspace.tsx(9,32): error TS2307: Cannot find module '../wizards/WizardLauncher' or its corresponding type declarations.
+src/components/workspace/ProjectWorkspace.tsx(91,32): error TS2339: Property 'openFolder' does not exist on type 'StoryCoreElectronAPI'.
+src/components/workspace/ProjectWorkspace.tsx(100,32): error TS2339: Property 'openFolder' does not exist on type 'StoryCoreElectronAPI'.
+src/components/workspace/ProjectWorkspace.tsx(248,43): error TS2345: Argument of type '"general"' is not assignable to parameter of type '"comfyui" | "api" | "llm"'.
+src/contexts/ProjectContext.tsx(136,20): error TS2345: Argument of type 'Project' is not assignable to parameter of type 'SetStateAction<Project | null>'.
+  Type 'Project' is missing the following properties from type 'Project': id, name, schemaVersion, sequences, and 2 more.
+src/contexts/ProjectContext.tsx(161,46): error TS2345: Argument of type 'import("C:/storycore-engine/creative-studio-ui/src/types/projectDashboard").Project' is not assignable to parameter of type 'import("C:/storycore-engine/creative-studio-ui/src/types/index").Project'.
+  Type 'Project' is missing the following properties from type 'Project': schema_version, project_name, assets, generation_status
+src/contexts/ProjectContext.tsx(188,71): error TS2345: Argument of type 'import("C:/storycore-engine/creative-studio-ui/src/types/projectDashboard").Project' is not assignable to parameter of type 'import("C:/storycore-engine/creative-studio-ui/src/types/index").Project'.
+  Type 'Project' is missing the following properties from type 'Project': schema_version, project_name, assets, generation_status
+src/contexts/ProjectContext.tsx(233,43): error TS2345: Argument of type 'import("C:/storycore-engine/creative-studio-ui/src/types/projectDashboard").Project' is not assignable to parameter of type 'import("C:/storycore-engine/creative-studio-ui/src/types/index").Project'.
+  Type 'Project' is missing the following properties from type 'Project': schema_version, project_name, assets, generation_status
+src/examples/BatchOperationsExample.tsx(71,11): error TS2740: Type 'ProductionShot' is missing the following properties from type 'Shot': title, description, duration, audioTracks, and 4 more.
+src/examples/BatchOperationsExample.tsx(74,24): error TS2345: Argument of type 'ProductionShot' is not assignable to parameter of type 'Shot'.
+  Type 'ProductionShot' is missing the following properties from type 'Shot': title, description, duration, audioTracks, and 4 more.
+src/examples/BatchOperationsExample.tsx(87,44): error TS2339: Property 'title' does not exist on type 'ProductionShot'.
+src/examples/BatchOperationsExample.tsx(136,11): error TS2322: Type 'Shot[]' is not assignable to type 'ProductionShot[]'.
+  Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/examples/ErrorHandlingExample.tsx(267,13): error TS2322: Type '{ children: Element; wizardType: "world"; errorMessage: string; }' is not assignable to type 'IntrinsicAttributes & IntrinsicClassAttributes<WizardErrorBoundary> & Readonly<Props>'.
+  Property 'errorMessage' does not exist on type 'IntrinsicAttributes & IntrinsicClassAttributes<WizardErrorBoundary> & Readonly<Props>'.
+src/examples/PersistenceExample.tsx(47,11): error TS2741: Property 'position' is missing in type '{ id: string; sequenceId: string; startTime: number; duration: number; prompt: string; metadata: { cameraAngle: string; lighting: string; mood: string; }; }' but required in type 'Shot'.
+src/examples/PromptLibraryExample.tsx(13,23): error TS2339: Property 'loading' does not exist on type 'UsePromptLibraryReturn'.
+src/examples/ResponsiveGridExample.tsx(30,35): error TS2322: Type '"shot"' is not assignable to type 'ShotType'.
+src/examples/ResponsiveGridExample.tsx(38,35): error TS2322: Type '"shot"' is not assignable to type 'ShotType'.
+src/examples/ResponsiveGridExample.tsx(46,35): error TS2322: Type '"shot"' is not assignable to type 'ShotType'.
+src/examples/ResponsiveGridExample.tsx(54,35): error TS2322: Type '"shot"' is not assignable to type 'ShotType'.
+src/examples/ResponsiveGridExample.tsx(62,35): error TS2322: Type '"shot"' is not assignable to type 'ShotType'.
+src/examples/ResponsiveGridExample.tsx(70,35): error TS2322: Type '"shot"' is not assignable to type 'ShotType'.
+src/examples/SearchExample.tsx(279,14): error TS2322: Type '{ children: string; jsx: true; }' is not assignable to type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+  Property 'jsx' does not exist on type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+src/examples/SequenceGenerationControlExample.tsx(37,5): error TS2741: Property 'position' is missing in type '{ id: string; sequenceId: string; startTime: number; duration: number; prompt: string; metadata: { cameraAngle: string; lighting: string; mood: string; }; }' but required in type 'Shot'.
+src/examples/SequenceGenerationControlExample.tsx(49,5): error TS2741: Property 'position' is missing in type '{ id: string; sequenceId: string; startTime: number; duration: number; prompt: string; metadata: { cameraAngle: string; lighting: string; mood: string; }; }' but required in type 'Shot'.
+src/examples/SequenceGenerationControlExample.tsx(61,5): error TS2741: Property 'position' is missing in type '{ id: string; sequenceId: string; startTime: number; duration: number; prompt: string; metadata: { cameraAngle: string; lighting: string; mood: string; }; }' but required in type 'Shot'.
+src/examples/SequenceGenerationControlExample.tsx(102,5): error TS2741: Property 'position' is missing in type '{ id: string; sequenceId: string; startTime: number; duration: number; prompt: string; metadata: {}; }' but required in type 'Shot'.
+src/examples/SequenceGenerationControlExample.tsx(110,5): error TS2741: Property 'position' is missing in type '{ id: string; sequenceId: string; startTime: number; duration: number; prompt: string; metadata: {}; }' but required in type 'Shot'.
+src/examples/SequenceGenerationControlExample.tsx(118,5): error TS2741: Property 'position' is missing in type '{ id: string; sequenceId: string; startTime: number; duration: number; prompt: string; metadata: {}; }' but required in type 'Shot'.
+src/examples/VideoPlayerExample.tsx(2,10): error TS2305: Module '"@/components/video"' has no exported member 'VideoPlayer'.
+src/examples/VideoPlayerExample.tsx(2,23): error TS2305: Module '"@/components/video"' has no exported member 'VideoSequencePlayer'.
+src/examples/VideoPlayerExample.tsx(2,44): error TS2305: Module '"@/components/video"' has no exported member 'VideoThumbnailPreview'.
+src/examples/VideoPlayerExample.tsx(2,67): error TS2305: Module '"@/components/video"' has no exported member 'useVideoThumbnailPreview'.
+src/examples/VideoPlayerExample.tsx(92,30): error TS7006: Parameter 'time' implicitly has an 'any' type.
+src/hooks/__mocks__/useComfyUI.ts(6,15): error TS2724: '"../useComfyUI"' has no exported member named 'UseComfyUIReturn'. Did you mean 'UseComfyUIResult'?
+src/hooks/__mocks__/useComfyUI.ts(29,42): error TS2345: Argument of type '{ id: string; name: string; serverUrl: string; authentication: { type: "none"; }; isActive: boolean; status: "connected"; timeout: number; }' is not assignable to parameter of type 'never'.
+src/hooks/__mocks__/useComfyUI.ts(30,45): error TS2345: Argument of type '{ id: string; name: string; serverUrl: string; authentication: { type: "none"; }; isActive: boolean; status: "connected"; timeout: number; }' is not assignable to parameter of type 'never'.
+src/hooks/__mocks__/useComfyUI.ts(31,45): error TS2345: Argument of type 'true' is not assignable to parameter of type 'never'.
+src/hooks/__mocks__/useComfyUI.ts(32,48): error TS2345: Argument of type 'true' is not assignable to parameter of type 'never'.
+src/hooks/__mocks__/useComfyUI.ts(35,43): error TS2345: Argument of type 'true' is not assignable to parameter of type 'never'.
+src/hooks/__mocks__/useComfyUI.ts(36,47): error TS2345: Argument of type 'Map<string, boolean>' is not assignable to parameter of type 'never'.
+src/hooks/__mocks__/useComfyUI.ts(37,51): error TS2345: Argument of type '{ id: string; name: string; serverUrl: string; authentication: { type: "none"; }; isActive: boolean; status: "connected"; timeout: number; }' is not assignable to parameter of type 'never'.
+src/hooks/useCharacterPersistenceOptimized.ts(17,23): error TS2307: Cannot find module './toast' or its corresponding type declarations.
+src/hooks/useCharacterPersistenceOptimized.ts(21,8): error TS2459: Module '"./useCharacterPersistence"' declares 'PersistedCharacter' locally, but it is not exported.
+src/hooks/useCharacterPersistenceOptimized.ts(22,8): error TS2459: Module '"./useCharacterPersistence"' declares 'RetryConfig' locally, but it is not exported.
+src/hooks/useCharacterSync.ts(224,94): error TS2554: Expected 1-2 arguments, but got 3.
+src/hooks/useCharacterSync.ts(234,32): error TS2339: Property 'character_id' does not exist on type 'never'.
+src/hooks/useCharacterSync.ts(235,75): error TS2339: Property 'character_id' does not exist on type 'never'.
+src/hooks/useCharacterSync.ts(240,70): error TS2554: Expected 1-2 arguments, but got 3.
+src/hooks/useCharacterSync.ts(249,90): error TS2554: Expected 1-2 arguments, but got 3.
+src/hooks/useCharacterSync.ts(315,27): error TS2339: Property 'character_id' does not exist on type 'never'.
+src/hooks/useCharacterSync.ts(337,17): error TS18048: 'project.characters' is possibly 'undefined'.
+src/hooks/useDragCopy.tsx(91,7): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type 'ProductionShot'.
+src/hooks/useDragCopy.tsx(92,26): error TS2339: Property 'thumbnailUrl' does not exist on type 'ProductionShot'.
+src/hooks/useEventListener.ts(28,45): error TS2684: The 'this' context of type 'RefObject<(this: Window, ev: WindowEventMap[K]) => any>' is not assignable to method's 'this' of type 'Window'.
+  Type 'RefObject<(this: Window, ev: WindowEventMap[K]) => any>' is missing the following properties from type 'Window': clientInformation, closed, cookieStore, customElements, and 211 more.
+src/hooks/useEventListener.ts(53,47): error TS2684: The 'this' context of type 'void' is not assignable to method's 'this' of type 'Window'.
+src/hooks/useEventListener.ts(94,20): error TS2345: Argument of type '"visibilitychange"' is not assignable to parameter of type 'keyof WindowEventMap'.
+src/hooks/useLandingPage.ts(1,22): error TS6053: File 'C:/storycore-engine/creative-studio-ui/src/types/electron.d.ts' not found.
+src/hooks/useModalConnectionTest.ts(113,43): error TS2304: Cannot find name 'startTime'.
+src/hooks/useModalValidation.ts(92,38): error TS2345: Argument of type '(value: unknown) => boolean' is not assignable to parameter of type 'never'.
+src/hooks/useModalValidation.ts(96,38): error TS2345: Argument of type 'number' is not assignable to parameter of type 'never'.
+src/hooks/useModalValidation.ts(99,38): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+src/hooks/useModalValidation.ts(102,21): error TS2554: Expected 2 arguments, but got 1.
+src/hooks/useProjectLoader.ts(114,54): error TS18048: 'window.electron' is possibly 'undefined'.
+src/hooks/useProjectLoader.ts(114,54): error TS18048: 'window.electron.projectDiscovery' is possibly 'undefined'.
+src/hooks/useRecentProjects.ts(1,22): error TS6053: File 'C:/storycore-engine/creative-studio-ui/src/types/electron.d.ts' not found.
+src/hooks/useTaskExecution.ts(10,22): error TS2339: Property 'updateTask' does not exist on type 'AppState'.
+src/hooks/useTaskExecution.ts(73,30): error TS2339: Property 'image' does not exist on type '{ grid: number; promotion: number; refine: number; qa: number; }'.
+src/hooks/useTaskExecution.ts(73,30): error TS2339: Property 'inpaint' does not exist on type '{ grid: number; promotion: number; refine: number; qa: number; }'.
+src/hooks/useTaskExecution.ts(73,30): error TS2339: Property 'upscale' does not exist on type '{ grid: number; promotion: number; refine: number; qa: number; }'.
+src/hooks/useTaskExecution.ts(73,30): error TS2339: Property 'video' does not exist on type '{ grid: number; promotion: number; refine: number; qa: number; }'.
+src/hooks/useWizardAutoSave.tsx(115,51): error TS2345: Argument of type 'T & { draftId: string | null; lastSaved: Date; }' is not assignable to parameter of type 'Partial<WizardState>'.
+  Types of property 'completedSteps' are incompatible.
+    Type 'number[]' is missing the following properties from type 'Set<number>': add, clear, delete, has, and 2 more.
+src/hooks/useWizardAutoSave.tsx(245,5): error TS2353: Object literal may only specify known properties, and 'markDirty' does not exist in type 'UseWizardAutoSaveResult'.
+src/hooks/useWizardErrorHandler.ts(8,33): error TS2307: Cannot find module '../../utils/wizardStorage' or its corresponding type declarations.
+src/library/PromptLibraryService.ts(84,7): error TS2322: Type 'LibraryIndex | null' is not assignable to type 'LibraryIndex'.
+  Type 'null' is not assignable to type 'LibraryIndex'.
+src/pages/ProjectDashboardPage.tsx(56,11): error TS2322: Type '{ projectId: any; projectName: string; onOpenEditor: (sequenceId?: string | undefined) => void; }' is not assignable to type 'IntrinsicAttributes & ProjectDashboardNewProps'.
+  Property 'projectId' does not exist on type 'IntrinsicAttributes & ProjectDashboardNewProps'.
+src/providers/LLMProvider.tsx(62,55): error TS2367: This comparison appears to be unintentional because the types '"custom" | "openai" | "anthropic"' and '"ollama"' have no overlap.
+src/renderer/tos/tos-preload.ts(58,5): error TS2687: All declarations of 'tosAPI' must have identical modifiers.
+src/renderer/tos/tos-preload.ts(58,5): error TS2717: Subsequent property declarations must have the same type.  Property 'tosAPI' must be of type '{ sendAcceptance: () => void; sendExit: () => void; } | undefined', but here has type 'TOSElectronAPI'.
+src/router.tsx(23,19): error TS2741: Property 'onOpenEditor' is missing in type '{}' but required in type 'ProjectDashboardPageProps'.
+src/router.tsx(27,19): error TS2741: Property 'onBackToDashboard' is missing in type '{}' but required in type 'EditorPageSimpleProps'.
+src/schemas/modalSchemas.ts(85,11): error TS2322: Type '(value: any, context: any) => boolean' is not assignable to type 'string | number | ((value: unknown) => boolean) | undefined'.
+  Type '(value: any, context: any) => boolean' is not assignable to type '(value: unknown) => boolean'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/schemas/modalSchemas.ts(85,19): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/schemas/modalSchemas.ts(85,26): error TS7006: Parameter 'context' implicitly has an 'any' type.
+src/schemas/modalSchemas.ts(104,11): error TS2322: Type '(value: any, context: any) => boolean' is not assignable to type 'string | number | ((value: unknown) => boolean) | undefined'.
+  Type '(value: any, context: any) => boolean' is not assignable to type '(value: unknown) => boolean'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/schemas/modalSchemas.ts(104,19): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/schemas/modalSchemas.ts(104,26): error TS7006: Parameter 'context' implicitly has an 'any' type.
+src/schemas/modalSchemas.ts(123,11): error TS2322: Type '(value: any, context: any) => boolean' is not assignable to type 'string | number | ((value: unknown) => boolean) | undefined'.
+  Type '(value: any, context: any) => boolean' is not assignable to type '(value: unknown) => boolean'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/schemas/modalSchemas.ts(123,19): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/schemas/modalSchemas.ts(123,26): error TS7006: Parameter 'context' implicitly has an 'any' type.
+src/sequence-editor/components/AssetLibrary/DraggableAsset.tsx(180,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/sequence-editor/components/CreateTemplateDialog/CreateTemplateDialog.tsx(41,39): error TS7006: Parameter 'shot' implicitly has an 'any' type.
+src/sequence-editor/components/GenerateButton/GenerateButton.tsx(27,24): error TS7006: Parameter 'shot' implicitly has an 'any' type.
+src/sequence-editor/components/GenerateButton/GenerateButton.tsx(31,51): error TS7006: Parameter 'img' implicitly has an 'any' type.
+src/sequence-editor/components/PreviewFrame/PreviewDropTarget.tsx(161,19): error TS2345: Argument of type 'ServiceAsset[]' is not assignable to parameter of type 'Asset[]'.
+  Type 'ServiceAsset' is not assignable to type 'Asset'.
+    Types of property 'type' are incompatible.
+      Type 'ServiceAssetType' is not assignable to type 'AssetType'.
+        Type '"image"' is not assignable to type 'AssetType'.
+src/sequence-editor/components/PreviewFrame/PreviewDropTarget.tsx(167,24): error TS2345: Argument of type 'ServiceAsset' is not assignable to parameter of type 'Asset'.
+  Types of property 'type' are incompatible.
+    Type 'ServiceAssetType' is not assignable to type 'AssetType'.
+      Type '"image"' is not assignable to type 'AssetType'.
+src/sequence-editor/components/PreviewFrame/PreviewFrame.tsx(90,24): error TS7006: Parameter 'shot' implicitly has an 'any' type.
+src/sequence-editor/components/PreviewFrame/PreviewFrame.tsx(189,26): error TS7006: Parameter 'word' implicitly has an 'any' type.
+src/sequence-editor/components/ShotConfig/ShotConfigDropTarget.tsx(140,19): error TS2345: Argument of type 'ServiceAsset[]' is not assignable to parameter of type 'Asset[]'.
+  Type 'ServiceAsset' is not assignable to type 'Asset'.
+    Types of property 'type' are incompatible.
+      Type 'ServiceAssetType' is not assignable to type 'AssetType'.
+        Type '"image"' is not assignable to type 'AssetType'.
+src/sequence-editor/components/ShotConfig/ShotConfigDropTarget.tsx(146,24): error TS2345: Argument of type 'ServiceAsset' is not assignable to parameter of type 'Asset'.
+  Types of property 'type' are incompatible.
+    Type 'ServiceAssetType' is not assignable to type 'AssetType'.
+      Type '"image"' is not assignable to type 'AssetType'.
+src/sequence-editor/components/Timeline/markerTypes.ts(203,3): error TS2484: Export declaration conflicts with exported declaration of 'TimelineMarker'.
+src/sequence-editor/components/Timeline/markerTypes.ts(204,3): error TS2484: Export declaration conflicts with exported declaration of 'TimelineRegion'.
+src/sequence-editor/components/Timeline/markerTypes.ts(205,3): error TS2484: Export declaration conflicts with exported declaration of 'ChapterPoint'.
+src/sequence-editor/components/Timeline/markerTypes.ts(206,3): error TS2484: Export declaration conflicts with exported declaration of 'Annotation'.
+src/sequence-editor/components/Timeline/markerTypes.ts(207,3): error TS2484: Export declaration conflicts with exported declaration of 'AnnotationReply'.
+src/sequence-editor/components/Timeline/markerTypes.ts(208,3): error TS2484: Export declaration conflicts with exported declaration of 'AnnotationTargetType'.
+src/sequence-editor/components/Timeline/TimelineDropTarget.tsx(43,10): error TS2367: This comparison appears to be unintentional because the types '"audio" | "text" | "keyframes" | "transitions"' and '"media"' have no overlap.
+src/sequence-editor/components/Timeline/TimelineDropTarget.tsx(90,19): error TS2345: Argument of type 'ServiceAsset[]' is not assignable to parameter of type 'Asset[]'.
+  Type 'ServiceAsset' is not assignable to type 'Asset'.
+    Types of property 'type' are incompatible.
+      Type 'ServiceAssetType' is not assignable to type 'AssetType'.
+        Type '"image"' is not assignable to type 'AssetType'.
+src/sequence-editor/components/Timeline/TimelineDropTarget.tsx(133,17): error TS18048: 'asset.metadata' is possibly 'undefined'.
+src/sequence-editor/components/Timeline/TimelineDropTarget.tsx(146,24): error TS2345: Argument of type '{ id: string; name: string; startTime: number; duration: number; layers: { id: string; type: LayerType; startTime: number; duration: number; locked: boolean; hidden: boolean; opacity: number; blendMode: string; data: { ...; }; }[]; referenceImages: { ...; }[]; prompt: string; parameters: { ...; }; generationStatus: ...' is not assignable to parameter of type 'Shot'.
+  Types of property 'layers' are incompatible.
+    Type '{ id: string; type: LayerType; startTime: number; duration: number; locked: boolean; hidden: boolean; opacity: number; blendMode: string; data: { sourceUrl: string | undefined; trim: { ...; }; transform: { ...; }; }; }[]' is not assignable to type 'Layer[]'.
+      Type '{ id: string; type: LayerType; startTime: number; duration: number; locked: boolean; hidden: boolean; opacity: number; blendMode: string; data: { sourceUrl: string | undefined; trim: { ...; }; transform: { ...; }; }; }' is not assignable to type 'Layer'.
+        Types of property 'data' are incompatible.
+          Type '{ sourceUrl: string | undefined; trim: { start: number; end: number; }; transform: { position: { x: number; y: number; }; scale: { x: number; y: number; }; rotation: number; anchor: { x: number; y: number; }; }; }' is not assignable to type 'LayerData'.
+            Type '{ sourceUrl: string | undefined; trim: { start: number; end: number; }; transform: { position: { x: number; y: number; }; scale: { x: number; y: number; }; rotation: number; anchor: { x: number; y: number; }; }; }' is not assignable to type 'MediaLayerData'.
+              Types of property 'sourceUrl' are incompatible.
+                Type 'string | undefined' is not assignable to type 'string'.
+                  Type 'undefined' is not assignable to type 'string'.
+src/sequence-editor/components/Timeline/TimelineDropTarget.tsx(161,43): error TS2345: Argument of type 'ServiceAssetType' is not assignable to parameter of type 'AssetType'.
+  Type '"image"' is not assignable to type 'AssetType'.
+src/sequence-editor/components/Timeline/TimelineDropTarget.tsx(177,7): error TS2322: Type 'ConnectDropTarget' is not assignable to type 'Ref<HTMLDivElement> | undefined'.
+  Type 'ConnectDropTarget' is not assignable to type '(instance: HTMLDivElement | null) => void | (() => VoidOrUndefinedOnly)'.
+    Type 'ReactElement<unknown, string | JSXElementConstructor<any>> | null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+      Type 'null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+src/sequence-editor/components/Timeline/TimelineInteractionHandler.tsx(289,30): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/sequence-editor/components/Timeline/TimelineInteractionHandler.tsx(298,41): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/sequence-editor/components/Timeline/TimelineInteractionHandler.tsx(312,41): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/sequence-editor/components/Timeline/TimelineInteractionHandler.tsx(418,30): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/sequence-editor/components/Timeline/TimelineInteractionHandler.tsx(563,55): error TS2345: Argument of type '"end" | "start" | "middle"' is not assignable to parameter of type '"end" | "start"'.
+  Type '"middle"' is not assignable to type '"end" | "start"'.
+src/sequence-editor/components/Timeline/TimelineInteractionHandler.tsx(569,57): error TS2345: Argument of type '"end" | "start" | "middle"' is not assignable to parameter of type '"end" | "start"'.
+  Type '"middle"' is not assignable to type '"end" | "start"'.
+src/sequence-editor/components/ToolBar/index.ts(8,19): error TS2614: Module '"./ToolBar"' has no exported member 'TOOLS'. Did you mean to use 'import TOOLS from "./ToolBar"' instead?
+src/sequence-editor/examples/BasicUsage.tsx(78,33): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/sequence-editor/hooks/index.ts(8,1): error TS2308: Module './useAccessibility' has already exported a member named 'useReducedMotion'. Consider explicitly re-exporting to resolve the ambiguity.
+src/sequence-editor/hooks/useProjectFile.ts(144,35): error TS2345: Argument of type 'string' is not assignable to parameter of type '"timeline" | "assetLibrary" | "preview" | "shotConfig" | null'.
+src/sequence-editor/hooks/useProjectRecovery.ts(144,35): error TS2345: Argument of type 'string' is not assignable to parameter of type '"timeline" | "assetLibrary" | "preview" | "shotConfig" | null'.
+src/sequence-editor/hooks/useTemplates.ts(106,58): error TS7006: Parameter 'shot' implicitly has an 'any' type.
+src/sequence-editor/hooks/useTemplates.ts(130,43): error TS7006: Parameter 'shot' implicitly has an 'any' type.
+src/sequence-editor/SequenceEditor.tsx(79,5): error TS2339: Property 'hasRecovery' does not exist on type 'UseProjectRecoveryResult'.
+src/sequence-editor/SequenceEditor.tsx(81,5): error TS2339: Property 'showRecoveryDialog' does not exist on type 'UseProjectRecoveryResult'.
+src/sequence-editor/SequenceEditor.tsx(82,5): error TS2339: Property 'handleRecover' does not exist on type 'UseProjectRecoveryResult'.
+src/sequence-editor/SequenceEditor.tsx(83,5): error TS2339: Property 'handleDismiss' does not exist on type 'UseProjectRecoveryResult'.
+src/sequence-editor/SequenceEditor.tsx(88,5): error TS2339: Property 'showUnsavedDialog' does not exist on type 'UseProjectFileResult'.
+src/sequence-editor/SequenceEditor.tsx(89,5): error TS2339: Property 'handleSave' does not exist on type 'UseProjectFileResult'.
+src/sequence-editor/SequenceEditor.tsx(90,5): error TS2339: Property 'handleDiscard' does not exist on type 'UseProjectFileResult'.
+src/sequence-editor/SequenceEditor.tsx(91,5): error TS2339: Property 'handleCancel' does not exist on type 'UseProjectFileResult'.
+src/sequence-editor/SequenceEditor.tsx(125,11): error TS2322: Type '{ snapshots: RecoverySnapshot[]; onRecover: any; onDismiss: any; }' is not assignable to type 'IntrinsicAttributes & RecoveryDialogProps'.
+  Property 'snapshots' does not exist on type 'IntrinsicAttributes & RecoveryDialogProps'.
+src/sequence-editor/SequenceEditor.tsx(175,16): error TS2739: Type '{}' is missing the following properties from type 'LayerManagerProps': shot, selectedLayerIds
+src/sequence-editor/SequenceEditor.tsx(176,16): error TS2739: Type '{}' is missing the following properties from type 'LayerPropertiesPanelProps': shot, selectedLayerId
+src/sequence-editor/SequenceEditor.tsx(179,30): error TS2322: Type '{ shotId: any; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'shotId' does not exist on type 'IntrinsicAttributes'.
+src/sequence-editor/store/index.ts(27,14): error TS7022: 'store' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+src/sequence-editor/store/index.ts(37,3): error TS7023: 'middleware' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+src/sequence-editor/store/index.ts(52,13): error TS2456: Type alias 'RootState' circularly references itself.
+src/sequence-editor/store/middleware/autoSaveMiddleware.ts(86,14): error TS2502: 'autoSaveMiddleware' is referenced directly or indirectly in its own type annotation.
+src/sequence-editor/store/middleware/historyMiddleware.ts(73,14): error TS2502: 'historyMiddleware' is referenced directly or indirectly in its own type annotation.
+src/sequence-editor/utils/audioEffects.ts(267,3): error TS2322: Type '({ data: { sourceUrl: string; volume: number; fadeIn: number; fadeOut: number; }; id: string; type: LayerType; startTime: number; duration: number; locked: boolean; hidden: boolean; opacity: number; blendMode: string; } | null)[]' is not assignable to type 'Layer[]'.
+  Type '{ data: { sourceUrl: string; volume: number; fadeIn: number; fadeOut: number; }; id: string; type: LayerType; startTime: number; duration: number; locked: boolean; hidden: boolean; opacity: number; blendMode: string; } | null' is not assignable to type 'Layer'.
+    Type 'null' is not assignable to type 'Layer'.
+src/sequence-editor/utils/audioEffects.ts(281,31): error TS2677: A type predicate's type must be assignable to its parameter's type.
+  Type 'Layer' is not assignable to type '{ data: { sourceUrl: string; volume: number; fadeIn: number; fadeOut: number; }; id: string; type: LayerType; startTime: number; duration: number; locked: boolean; hidden: boolean; opacity: number; blendMode: string; }'.
+    Types of property 'data' are incompatible.
+      Type 'LayerData' is not assignable to type '{ sourceUrl: string; volume: number; fadeIn: number; fadeOut: number; }'.
+        Type 'MediaLayerData' is missing the following properties from type '{ sourceUrl: string; volume: number; fadeIn: number; fadeOut: number; }': volume, fadeIn, fadeOut
+src/sequence-editor/utils/performance.ts(417,25): error TS2345: Argument of type 'K | undefined' is not assignable to parameter of type 'K'.
+  'K' could be instantiated with an arbitrary type which could be unrelated to 'K | undefined'.
+src/sequence-editor/utils/trackManagement.ts(55,18): error TS2430: Interface 'MasterTrack' incorrectly extends interface 'Track'.
+  Types of property 'type' are incompatible.
+    Type '"master"' is not assignable to type 'LayerType'.
+src/sequence-editor/utils/trackManagement.ts(73,18): error TS2430: Interface 'AnnotationTrack' incorrectly extends interface 'Track'.
+  Types of property 'type' are incompatible.
+    Type '"annotation"' is not assignable to type 'LayerType'.
+src/sequence-editor/utils/trackManagement.ts(89,18): error TS2430: Interface 'MarkerTrack' incorrectly extends interface 'Track'.
+  Types of property 'type' are incompatible.
+    Type '"marker"' is not assignable to type 'LayerType'.
+src/sequence-editor/utils/trackManagement.ts(103,18): error TS2430: Interface 'LayerTrack' incorrectly extends interface 'Track'.
+  Types of property 'type' are incompatible.
+    Type '"layer"' is not assignable to type 'LayerType'.
+src/sequence-editor/utils/trackManagement.ts(485,3): error TS1016: A required parameter cannot follow an optional parameter.
+src/services/aiAudioEnhancementService.ts(9,79): error TS2307: Cannot find module '../../src/ai_audio_enhancement_engine' or its corresponding type declarations.
+src/services/aiAudioEnhancementService.ts(198,48): error TS18046: 'error' is of type 'unknown'.
+src/services/aiAudioEnhancementService.ts(517,18): error TS1361: 'AudioType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(523,27): error TS1361: 'AudioMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(531,18): error TS1361: 'AudioType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(537,27): error TS1361: 'AudioMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(548,14): error TS1361: 'AudioEnhancementType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(557,14): error TS1361: 'AudioEnhancementType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(566,14): error TS1361: 'AudioEnhancementType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(595,12): error TS1361: 'AudioMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(600,12): error TS1361: 'AudioMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(605,12): error TS1361: 'AudioMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(608,21): error TS2339: Property 'attackTime' does not exist on type 'AudioMixingProfile'.
+src/services/aiAudioEnhancementService.ts(610,12): error TS1361: 'AudioMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(634,54): error TS1361: 'AudioEnhancementType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiAudioEnhancementService.ts(746,3): error TS2484: Export declaration conflicts with exported declaration of 'AudioEnhancement'.
+src/services/aiAudioEnhancementService.ts(746,21): error TS2484: Export declaration conflicts with exported declaration of 'AudioEnhancementResult'.
+src/services/aiAudioEnhancementService.ts(746,45): error TS2484: Export declaration conflicts with exported declaration of 'AudioAnalysis'.
+src/services/aiAudioEnhancementService.ts(746,60): error TS2484: Export declaration conflicts with exported declaration of 'AudioEnhancementItem'.
+src/services/aiAudioEnhancementService.ts(747,3): error TS2484: Export declaration conflicts with exported declaration of 'AudioMixingProfile'.
+src/services/aiAudioEnhancementService.ts(747,23): error TS2484: Export declaration conflicts with exported declaration of 'MusicGeneration'.
+src/services/aiAudioEnhancementService.ts(747,40): error TS2484: Export declaration conflicts with exported declaration of 'MusicGenerationResult'.
+src/services/aiAudioEnhancementService.ts(747,63): error TS2484: Export declaration conflicts with exported declaration of 'AudioMixing'.
+src/services/aiAudioEnhancementService.ts(748,3): error TS2484: Export declaration conflicts with exported declaration of 'AudioMixingResult'.
+src/services/aiAudioEnhancementService.ts(748,22): error TS2484: Export declaration conflicts with exported declaration of 'AudioEnhancementConfig'.
+src/services/aiAudioEnhancementService.ts(748,46): error TS2484: Export declaration conflicts with exported declaration of 'MusicGenerationConfig'.
+src/services/aiAudioEnhancementService.ts(748,69): error TS2484: Export declaration conflicts with exported declaration of 'AudioMixingConfig'.
+src/services/aiCharacterService.ts(9,74): error TS2307: Cannot find module '../../src/ai_character_engine' or its corresponding type declarations.
+src/services/aiCharacterService.ts(436,42): error TS1361: 'PersonalityTrait' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(454,33): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(455,33): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(458,28): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(459,28): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(470,53): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(471,52): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(472,42): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(527,8): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(528,8): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(529,8): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(538,8): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(539,8): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(540,8): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(572,19): error TS1361: 'PersonalityTrait' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(573,14): error TS2538: Type 'unknown' cannot be used as an index type.
+src/services/aiCharacterService.ts(573,31): error TS2538: Type 'unknown' cannot be used as an index type.
+src/services/aiCharacterService.ts(612,23): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(616,30): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(620,30): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(622,18): error TS2339: Property 'wisdom' does not exist on type '{ courage: number; intelligence: number; charisma: number; humility: number; ambition: number; loyalty: number; cunning: number; compassion: number; }'.
+src/services/aiCharacterService.ts(623,18): error TS2339: Property 'patience' does not exist on type '{ courage: number; intelligence: number; charisma: number; humility: number; ambition: number; loyalty: number; cunning: number; compassion: number; }'.
+src/services/aiCharacterService.ts(631,43): error TS1361: 'PersonalityTrait' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(644,33): error TS1361: 'CharacterArchetype' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(645,28): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiCharacterService.ts(741,15): error TS2484: Export declaration conflicts with exported declaration of 'CharacterProfile'.
+src/services/aiCharacterService.ts(741,33): error TS2484: Export declaration conflicts with exported declaration of 'CharacterAppearance'.
+src/services/aiCharacterService.ts(741,54): error TS2484: Export declaration conflicts with exported declaration of 'CharacterPersonality'.
+src/services/aiCharacterService.ts(741,76): error TS2484: Export declaration conflicts with exported declaration of 'CharacterBackstory'.
+src/services/aiCharacterService.ts(741,96): error TS2484: Export declaration conflicts with exported declaration of 'CharacterTraits'.
+src/services/aiCharacterService.ts(742,15): error TS2484: Export declaration conflicts with exported declaration of 'CharacterGenerationConfig'.
+src/services/aiCharacterService.ts(742,42): error TS2484: Export declaration conflicts with exported declaration of 'CharacterConsistency'.
+src/services/aiColorGradingService.ts(9,79): error TS2307: Cannot find module '../../src/ai_color_grading_engine' or its corresponding type declarations.
+src/services/aiColorGradingService.ts(158,44): error TS18046: 'error' is of type 'unknown'.
+src/services/aiColorGradingService.ts(467,12): error TS1361: 'ColorMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiColorGradingService.ts(472,12): error TS1361: 'ColorMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiColorGradingService.ts(477,12): error TS1361: 'ColorMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiColorGradingService.ts(482,12): error TS1361: 'ColorMood' cannot be used as a value because it was imported using 'import type'.
+src/services/aiColorGradingService.ts(491,12): error TS1361: 'ColorStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiColorGradingService.ts(495,12): error TS1361: 'ColorStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiColorGradingService.ts(499,12): error TS1361: 'ColorStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiColorGradingService.ts(503,12): error TS1361: 'ColorStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiColorGradingService.ts(673,3): error TS2484: Export declaration conflicts with exported declaration of 'ColorGrading'.
+src/services/aiColorGradingService.ts(673,17): error TS2484: Export declaration conflicts with exported declaration of 'ColorGradingResult'.
+src/services/aiColorGradingService.ts(673,37): error TS2484: Export declaration conflicts with exported declaration of 'ColorGradingPreset'.
+src/services/aiColorGradingService.ts(673,57): error TS2484: Export declaration conflicts with exported declaration of 'ColorSettings'.
+src/services/aiColorGradingService.ts(674,3): error TS2484: Export declaration conflicts with exported declaration of 'MoodEnhancement'.
+src/services/aiColorGradingService.ts(674,20): error TS2484: Export declaration conflicts with exported declaration of 'TechnicalQuality'.
+src/services/aiColorGradingService.ts(674,38): error TS2484: Export declaration conflicts with exported declaration of 'CompatibilityReport'.
+src/services/aiColorGradingService.ts(674,59): error TS2484: Export declaration conflicts with exported declaration of 'ColorGradingConfig'.
+src/services/aiPresetService.ts(321,12): error TS2540: Cannot assign to 'legacyConfig' because it is a read-only property.
+src/services/aiPresetService.ts(343,10): error TS2540: Cannot assign to 'llmProvider' because it is a read-only property.
+src/services/aiPresetService.ts(344,10): error TS2540: Cannot assign to 'legacyConfig' because it is a read-only property.
+src/services/aiScriptAnalysisService.ts(9,74): error TS2307: Cannot find module '../../src/ai_script_analysis_engine' or its corresponding type declarations.
+src/services/aiScriptAnalysisService.ts(176,46): error TS18046: 'error' is of type 'unknown'.
+src/services/aiScriptAnalysisService.ts(235,59): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(236,58): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(237,58): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(257,60): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(258,62): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(259,56): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(260,63): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(261,60): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(280,65): error TS1361: 'DialogueType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(281,63): error TS1361: 'DialogueType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(282,65): error TS1361: 'DialogueType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(459,29): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(460,29): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(461,15): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(464,26): error TS1361: 'EmotionType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(464,49): error TS1361: 'EmotionType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(464,68): error TS1361: 'EmotionType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(484,28): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(485,43): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(486,43): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(486,62): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(491,24): error TS1361: 'EmotionType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(514,25): error TS1361: 'DialogueType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(515,20): error TS1361: 'EmotionType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(609,40): error TS1361: 'EmotionType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(620,82): error TS1361: 'CharacterRole' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(636,79): error TS1361: 'SceneType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(652,86): error TS1361: 'DialogueType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiScriptAnalysisService.ts(752,3): error TS2484: Export declaration conflicts with exported declaration of 'ScriptAnalysis'.
+src/services/aiScriptAnalysisService.ts(752,19): error TS2484: Export declaration conflicts with exported declaration of 'ScriptAnalysisResult'.
+src/services/aiScriptAnalysisService.ts(752,41): error TS2484: Export declaration conflicts with exported declaration of 'CharacterAnalysis'.
+src/services/aiScriptAnalysisService.ts(752,60): error TS2484: Export declaration conflicts with exported declaration of 'SceneAnalysis'.
+src/services/aiScriptAnalysisService.ts(752,75): error TS2484: Export declaration conflicts with exported declaration of 'DialogueAnalysis'.
+src/services/aiScriptAnalysisService.ts(753,3): error TS2484: Export declaration conflicts with exported declaration of 'StoryStructure'.
+src/services/aiScriptAnalysisService.ts(753,19): error TS2484: Export declaration conflicts with exported declaration of 'ScriptMetrics'.
+src/services/aiScriptAnalysisService.ts(753,34): error TS2484: Export declaration conflicts with exported declaration of 'ScriptAnalysisConfig'.
+src/services/aiShotCompositionService.ts(9,94): error TS2307: Cannot find module '../../src/ai_shot_composition_engine' or its corresponding type declarations.
+src/services/aiShotCompositionService.ts(140,47): error TS18046: 'error' is of type 'unknown'.
+src/services/aiShotCompositionService.ts(183,9): error TS2393: Duplicate function implementation.
+src/services/aiShotCompositionService.ts(393,14): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(395,14): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(397,14): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(399,14): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(407,14): error TS1361: 'CameraMovement' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(409,14): error TS1361: 'CameraMovement' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(411,14): error TS1361: 'CameraMovement' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(413,14): error TS1361: 'CameraMovement' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(421,16): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(424,18): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(428,18): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(432,18): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(442,14): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(444,14): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(446,14): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(448,14): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(457,14): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(460,14): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(463,14): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(466,14): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(493,12): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(498,12): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(503,12): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(512,12): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(516,12): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(520,12): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(536,22): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(541,28): error TS1361: 'CameraMovement' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(546,27): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(557,11): error TS2393: Duplicate function implementation.
+src/services/aiShotCompositionService.ts(565,38): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(565,58): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(565,81): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(569,26): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(570,22): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(577,44): error TS1361: 'CameraMovement' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(577,68): error TS1361: 'CameraMovement' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(577,89): error TS1361: 'CameraMovement' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(581,26): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(582,22): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(589,54): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(589,78): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(593,26): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(604,33): error TS1361: 'ShotType' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(611,37): error TS1361: 'CameraMovement' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(618,36): error TS1361: 'CompositionRule' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(624,34): error TS1361: 'LightingStyle' cannot be used as a value because it was imported using 'import type'.
+src/services/aiShotCompositionService.ts(688,3): error TS2484: Export declaration conflicts with exported declaration of 'ShotComposition'.
+src/services/aiShotCompositionService.ts(688,20): error TS2484: Export declaration conflicts with exported declaration of 'ShotCompositionResult'.
+src/services/aiShotCompositionService.ts(688,43): error TS2484: Export declaration conflicts with exported declaration of 'CameraSettings'.
+src/services/aiShotCompositionService.ts(688,59): error TS2484: Export declaration conflicts with exported declaration of 'ShotCompositionAlternative'.
+src/services/aiShotCompositionService.ts(689,3): error TS2484: Export declaration conflicts with exported declaration of 'ShotCompositionConfig'.
+src/services/aiShotCompositionService.ts(689,26): error TS2484: Export declaration conflicts with exported declaration of 'CompositionAnalysis'.
+src/services/aiWizardService.ts(9,74): error TS2307: Cannot find module '../../src/ai_enhancement_engine' or its corresponding type declarations.
+src/services/aiWizardService.ts(152,33): error TS18046: 'error' is of type 'unknown'.
+src/services/aiWizardService.ts(155,45): error TS18046: 'error' is of type 'unknown'.
+src/services/aiWizardService.ts(632,13): error TS2322: Type '"general"' is not assignable to type 'WizardType'.
+src/services/aiWizardService.ts(706,52): error TS2345: Argument of type 'WizardType' is not assignable to parameter of type '"generation" | "analysis" | "enhancement" | "recommendation"'.
+  Type '"character"' is not assignable to type '"generation" | "analysis" | "enhancement" | "recommendation"'.
+src/services/aiWizardService.ts(767,3): error TS2484: Export declaration conflicts with exported declaration of 'WizardSession'.
+src/services/aiWizardService.ts(767,18): error TS2484: Export declaration conflicts with exported declaration of 'WizardConfig'.
+src/services/aiWizardService.ts(767,32): error TS2484: Export declaration conflicts with exported declaration of 'WizardState'.
+src/services/aiWizardService.ts(767,45): error TS2484: Export declaration conflicts with exported declaration of 'WizardResult'.
+src/services/aiWizardService.ts(768,3): error TS2484: Export declaration conflicts with exported declaration of 'WizardTask'.
+src/services/aiWizardService.ts(768,15): error TS2484: Export declaration conflicts with exported declaration of 'WizardProgress'.
+src/services/aiWizardService.ts(768,31): error TS2484: Export declaration conflicts with exported declaration of 'WizardType'.
+src/services/APIManager.ts(364,41): error TS2322: Type 'boolean' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'boolean'.
+src/services/APIManager.ts(396,17): error TS2339: Property 'saveData' does not exist on type '{ create: (data: ProjectData) => Promise<Project>; open: (path: string) => Promise<Project>; selectForOpen: () => Promise<string | null>; validate: (path: string) => Promise<...>; selectDirectory: () => Promise<...>; listDirectory: (path: string) => Promise<...>; updateMetadata: (path: string, metadata: Record<...>)...'.
+src/services/APIManager.ts(397,21): error TS2339: Property 'saveData' does not exist on type '{ create: (data: ProjectData) => Promise<Project>; open: (path: string) => Promise<Project>; selectForOpen: () => Promise<string | null>; validate: (path: string) => Promise<...>; selectDirectory: () => Promise<...>; listDirectory: (path: string) => Promise<...>; updateMetadata: (path: string, metadata: Record<...>)...'.
+src/services/APIManager.ts(454,16): error TS2339: Property 'ensureDir' does not exist on type '{ readdir: (dirPath: string) => Promise<string[]>; readFile: (filePath: string) => Promise<Buffer<ArrayBufferLike>>; writeFile: (filePath: string, data: string | Buffer<...>) => Promise<...>; exists: (filePath: string) => Promise<...>; stat: (filePath: string) => Promise<...>; mkdir: (dirPath: string, options?: { .....'.
+src/services/APIManager.ts(455,20): error TS2339: Property 'ensureDir' does not exist on type '{ readdir: (dirPath: string) => Promise<string[]>; readFile: (filePath: string) => Promise<Buffer<ArrayBufferLike>>; writeFile: (filePath: string, data: string | Buffer<...>) => Promise<...>; exists: (filePath: string) => Promise<...>; stat: (filePath: string) => Promise<...>; mkdir: (dirPath: string, options?: { .....'.
+src/services/APIManager.ts(463,35): error TS2322: Type 'boolean' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'boolean'.
+src/services/assetLibraryService.ts(122,5): error TS2740: Type '{ source: string; category: string; tags: string[]; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path, and 2 more.
+src/services/assetLibraryService.ts(134,5): error TS2740: Type '{ source: string; category: string; tags: string[]; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path, and 2 more.
+src/services/assetLibraryService.ts(146,5): error TS2740: Type '{ source: string; category: string; tags: string[]; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path, and 2 more.
+src/services/assetLibraryService.ts(160,5): error TS2740: Type '{ source: string; category: string; tags: string[]; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path, and 2 more.
+src/services/assetLibraryService.ts(172,5): error TS2740: Type '{ source: string; category: string; tags: string[]; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path, and 2 more.
+src/services/assetLibraryService.ts(184,5): error TS2740: Type '{ source: string; category: string; tags: string[]; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path, and 2 more.
+src/services/assetLibraryService.ts(198,5): error TS2740: Type '{ source: string; category: string; tags: string[]; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path, and 2 more.
+src/services/assetLibraryService.ts(210,5): error TS2740: Type '{ source: string; category: string; tags: string[]; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path, and 2 more.
+src/services/assetLibraryService.ts(437,50): error TS2339: Property 'assets' does not exist on type 'StoryCoreElectronAPI'.
+src/services/assetLibraryService.ts(459,50): error TS2339: Property 'assets' does not exist on type 'StoryCoreElectronAPI'.
+src/services/AssetManagementService.ts(121,56): error TS2339: Property 'showSaveFilePicker' does not exist on type 'Window & typeof globalThis'.
+src/services/AssetManagementService.ts(159,39): error TS2339: Property 'showSaveFilePicker' does not exist on type 'Window & typeof globalThis'.
+src/services/AssetManagementService.ts(449,61): error TS2304: Cannot find name 'FilePickerAcceptType'.
+src/services/assets/AssetService.ts(389,35): error TS2339: Property 'ensureDir' does not exist on type '{ readdir: (dirPath: string) => Promise<string[]>; readFile: (filePath: string) => Promise<Buffer<ArrayBufferLike>>; writeFile: (filePath: string, data: string | Buffer<...>) => Promise<...>; exists: (filePath: string) => Promise<...>; stat: (filePath: string) => Promise<...>; mkdir: (dirPath: string, options?: { .....'.
+src/services/batchOperations/BatchOperationsManager.ts(67,7): error TS2322: Type 'Shot[]' is not assignable to type 'ProductionShot[]'.
+  Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/services/batchOperations/BatchOperationsManager.ts(99,32): error TS2345: Argument of type 'Shot' is not assignable to parameter of type 'ProductionShot'.
+  Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/services/batchOperations/BatchOperationsManager.ts(100,31): error TS2345: Argument of type '{ shot: Shot; error: Error; }' is not assignable to parameter of type '{ shot: ProductionShot; error: Error; }'.
+  Types of property 'shot' are incompatible.
+    Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/services/batchOperations/BatchOperationsManager.ts(109,34): error TS2345: Argument of type 'Shot' is not assignable to parameter of type 'ProductionShot'.
+  Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/services/batchOperations/BatchOperationsManager.ts(111,35): error TS2740: Type 'Shot' is missing the following properties from type 'ProductionShot': sequencePlanId, sceneId, number, type, and 6 more.
+src/services/comfyuiServersService.ts(188,9): error TS2353: Object literal may only specify known properties, and 'timeout' does not exist in type 'Partial<ComfyUIConfig>'.
+src/services/contextMenu/ContextMenuBuilder.tsx(155,30): error TS2339: Property 'onShowInfo' does not exist on type 'ContextMenuActionHandlers'.
+src/services/contextMenu/ContextMenuBuilder.tsx(322,30): error TS2339: Property 'onGroup' does not exist on type 'ContextMenuActionHandlers'.
+src/services/contextMenu/ContextMenuBuilder.tsx(352,34): error TS2339: Property 'onImport' does not exist on type 'ContextMenuActionHandlers'.
+src/services/contextMenu/ContextMenuBuilder.tsx(357,34): error TS2339: Property 'onImport' does not exist on type 'ContextMenuActionHandlers'.
+src/services/contextMenu/ContextMenuBuilder.tsx(362,34): error TS2339: Property 'onImport' does not exist on type 'ContextMenuActionHandlers'.
+src/services/contextMenu/ContextMenuBuilder.tsx(395,34): error TS2339: Property 'onCreateFromTemplate' does not exist on type 'ContextMenuActionHandlers'.
+src/services/contextMenu/ContextMenuBuilder.tsx(400,34): error TS2339: Property 'onCreateFromTemplate' does not exist on type 'ContextMenuActionHandlers'.
+src/services/contextMenu/ContextMenuBuilder.tsx(405,34): error TS2339: Property 'onCreateFromTemplate' does not exist on type 'ContextMenuActionHandlers'.
+src/services/FormAutoFill.ts(94,7): error TS2322: Type 'string[]' is not assignable to type 'WorldRule[]'.
+  Type 'string' is not assignable to type 'WorldRule'.
+src/services/FormAutoFill.ts(118,7): error TS2322: Type '{ id: `${string}-${string}-${string}-${string}-${string}`; name: string; description: string; type: string; }[]' is not assignable to type 'Location[]'.
+  Type '{ id: `${string}-${string}-${string}-${string}-${string}`; name: string; description: string; type: string; }' is missing the following properties from type 'Location': significance, atmosphere
+src/services/FormAutoFill.ts(214,7): error TS2322: Type 'string[]' is not assignable to type 'CharacterRelationship[]'.
+  Type 'string' is not assignable to type 'CharacterRelationship'.
+src/services/GenerationOrchestrator.ts(352,9): error TS2353: Object literal may only specify known properties, and 'shotId' does not exist in type 'VoiceOver'.
+src/services/gridEditor/ConfigurationExportImport.ts(747,9): error TS2561: Object literal may only specify known properties, but 'error' does not exist in type 'ImportResult'. Did you mean to write 'errors'?
+src/services/gridEditor/ConfigurationExportImport.ts(782,11): error TS2561: Object literal may only specify known properties, but 'error' does not exist in type 'ImportResult'. Did you mean to write 'errors'?
+src/services/gridEditor/ConfigurationExportImport.ts(792,9): error TS2561: Object literal may only specify known properties, but 'error' does not exist in type 'ImportResult'. Did you mean to write 'errors'?
+src/services/gridEditor/index.ts(8,15): error TS2300: Duplicate identifier 'ExportFormat'.
+src/services/gridEditor/index.ts(11,30): error TS2300: Duplicate identifier 'ImportResult'.
+src/services/gridEditor/index.ts(50,3): error TS2300: Duplicate identifier 'ImportResult'.
+src/services/gridEditor/index.ts(52,3): error TS2300: Duplicate identifier 'ExportFormat'.
+src/services/gridGenerationService.ts(166,55): error TS2339: Property 'createTracker' does not exist on type 'typeof ProgressTrackingService'.
+src/services/gridGenerationService.ts(250,28): error TS2304: Cannot find name 'comfyuiService'.
+src/services/ImageGalleryService.ts(176,7): error TS2322: Type '(string | undefined)[]' is not assignable to type 'string[]'.
+  Type 'string | undefined' is not assignable to type 'string'.
+    Type 'undefined' is not assignable to type 'string'.
+src/services/ImageGalleryService.ts(476,26): error TS2339: Property 'downloadFile' does not exist on type 'StoryCoreElectronAPI'.
+src/services/llmConfigService.ts(78,9): error TS2739: Type '{ provider: "local"; model: string; apiKey: string; apiEndpoint: string; streamingEnabled: true; parameters: { temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number; }; }' is missing the following properties from type 'LLMConfig': systemPrompts, timeout, retryAttempts
+src/services/llmConfigService.ts(93,30): error TS2345: Argument of type 'LLMConfig | null' is not assignable to parameter of type 'LLMConfig'.
+  Type 'null' is not assignable to type 'LLMConfig'.
+src/services/llmService.ts(645,35): error TS2339: Property 'finishReason' does not exist on type 'LLMResponse'.
+src/services/llmService.ts(681,7): error TS2561: Object literal may only specify known properties, but 'finishReason' does not exist in type 'LLMResponse'. Did you mean to write 'finish_reason'?
+src/services/llmService.ts(771,11): error TS2322: Type '{ promptTokens: any; completionTokens: any; totalTokens: any; } | undefined' is not assignable to type '{ prompt_tokens: number; completion_tokens: number; total_tokens: number; } | undefined'.
+  Object literal may only specify known properties, but 'promptTokens' does not exist in type '{ prompt_tokens: number; completion_tokens: number; total_tokens: number; }'. Did you mean to write 'prompt_tokens'?
+src/services/llmService.ts(891,35): error TS2339: Property 'finishReason' does not exist on type 'LLMResponse'.
+src/services/llmService.ts(924,7): error TS2561: Object literal may only specify known properties, but 'finishReason' does not exist in type 'LLMResponse'. Did you mean to write 'finish_reason'?
+src/services/llmService.ts(938,35): error TS2339: Property 'finishReason' does not exist on type 'LLMResponse'.
+src/services/llmService.ts(973,7): error TS2561: Object literal may only specify known properties, but 'finishReason' does not exist in type 'LLMResponse'. Did you mean to write 'finish_reason'?
+src/services/llmService.ts(1290,7): error TS2322: Type 'ApiResponse<unknown>' is not assignable to type 'ApiResponse<GeneratedImage>'.
+  Type 'unknown' is not assignable to type 'GeneratedImage'.
+src/services/llmService.ts(1296,25): error TS2339: Property 'generateImage' does not exist on type 'LLMProviderBase'.
+src/services/LoggingService.ts(8,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/services/LoggingService.ts(16,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/services/menuBar/index.ts(8,15): error TS2305: Module '"./MenuStateManager"' has no exported member 'StateChangeCallback'.
+src/services/MetricsService.ts(27,3): error TS2300: Duplicate identifier 'cacheHitRate'.
+src/services/MetricsService.ts(43,3): error TS2300: Duplicate identifier 'cacheHitRate'.
+src/services/MetricsService.ts(356,67): error TS2339: Property 'cooldown' does not exist on type 'MetricThreshold'.
+src/services/NotificationService.ts(95,5): error TS2741: Property 'language' is missing in type '{ userActivity: "active"; currentPage: string; pendingTasks: number; lastInteraction: Date; }' but required in type 'NotificationContext'.
+src/services/ObjectsAIService.ts(82,12): error TS2353: Object literal may only specify known properties, and 'role' does not exist in type 'Message'.
+src/services/ObjectsAIService.ts(87,73): error TS2339: Property 'content' does not exist on type 'PromptSuggestion'.
+src/services/ObjectsAIService.ts(121,12): error TS2353: Object literal may only specify known properties, and 'role' does not exist in type 'Message'.
+src/services/ObjectsAIService.ts(126,59): error TS2339: Property 'content' does not exist on type 'PromptSuggestion'.
+src/services/ObjectsAIService.ts(203,12): error TS2353: Object literal may only specify known properties, and 'role' does not exist in type 'Message'.
+src/services/ObjectsAIService.ts(208,63): error TS2339: Property 'content' does not exist on type 'PromptSuggestion'.
+src/services/ObjectsAIService.ts(242,12): error TS2353: Object literal may only specify known properties, and 'role' does not exist in type 'Message'.
+src/services/ObjectsAIService.ts(247,52): error TS2339: Property 'content' does not exist on type 'PromptSuggestion'.
+src/services/persistence/projectPersistence.ts(45,15): error TS2554: Expected 2-3 arguments, but got 1.
+src/services/persistence/projectPersistence.ts(183,56): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(190,37): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(196,42): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(227,54): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(236,42): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(244,65): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(256,43): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(357,59): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(365,63): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(367,42): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/persistence/projectPersistence.ts(370,37): error TS2339: Property 'id' does not exist on type 'Project'.
+src/services/PersistenceCache.ts(26,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/services/PersistenceService.ts(252,35): error TS2339: Property 'ensureDir' does not exist on type '{ readdir: (dirPath: string) => Promise<string[]>; readFile: (filePath: string) => Promise<Buffer<ArrayBufferLike>>; writeFile: (filePath: string, data: string | Buffer<...>) => Promise<...>; exists: (filePath: string) => Promise<...>; stat: (filePath: string) => Promise<...>; mkdir: (dirPath: string, options?: { .....'.
+src/services/PersistenceService.ts(253,39): error TS2339: Property 'ensureDir' does not exist on type '{ readdir: (dirPath: string) => Promise<string[]>; readFile: (filePath: string) => Promise<Buffer<ArrayBufferLike>>; writeFile: (filePath: string, data: string | Buffer<...>) => Promise<...>; exists: (filePath: string) => Promise<...>; stat: (filePath: string) => Promise<...>; mkdir: (dirPath: string, options?: { .....'.
+src/services/PersistenceService.ts(262,57): error TS2345: Argument of type 'Uint8Array<ArrayBuffer>' is not assignable to parameter of type 'string | Buffer<ArrayBufferLike>'.
+  Type 'Uint8Array<ArrayBuffer>' is missing the following properties from type 'Buffer<ArrayBufferLike>': write, toJSON, equals, compare, and 66 more.
+src/services/PersistenceService.ts(401,57): error TS2345: Argument of type 'Uint8Array<ArrayBuffer>' is not assignable to parameter of type 'string | Buffer<ArrayBufferLike>'.
+  Type 'Uint8Array<ArrayBuffer>' is missing the following properties from type 'Buffer<ArrayBufferLike>': write, toJSON, equals, compare, and 66 more.
+src/services/PersistenceService.ts(504,19): error TS2339: Property 'world_id' does not exist on type 'Character'.
+src/services/PersistenceService.ts(504,48): error TS2339: Property 'world_id' does not exist on type 'Character'.
+src/services/PersistenceService.ts(524,26): error TS2339: Property 'trim' does not exist on type 'never'.
+src/services/phraseSyncManager.ts(9,15): error TS2305: Module '"@/types"' has no exported member 'VoiceRecording'.
+src/services/phraseSyncManager.ts(9,31): error TS2305: Module '"@/types"' has no exported member 'PhraseData'.
+src/services/phraseSyncManager.ts(9,43): error TS2305: Module '"@/types"' has no exported member 'SyncStatus'.
+src/services/phraseSyncManager.ts(256,11): error TS2345: Argument of type 'MockVoiceHttpClient' is not assignable to parameter of type 'VoiceHttpClient'.
+  The types returned by 'uploadVoiceRecording(...)' are incompatible between these types.
+    Type 'Promise<VoiceApiResponse<{ recordingId: string; }>>' is not assignable to type 'Promise<VoiceApiResponse<VoiceUploadResponse>>'.
+      Type 'VoiceApiResponse<{ recordingId: string; }>' is not assignable to type 'VoiceApiResponse<VoiceUploadResponse>'.
+        Type '{ recordingId: string; }' is missing the following properties from type 'VoiceUploadResponse': status, message, timestamp
+src/services/phraseSyncManager.ts(297,9): error TS2416: Property 'uploadVoiceRecording' in type 'MockVoiceHttpClient' is not assignable to the same property in base type 'VoiceHttpClient'.
+  Type '(recording: VoiceRecording) => Promise<VoiceApiResponse<{ recordingId: string; }>>' is not assignable to type '(recording: VoiceRecording) => Promise<VoiceApiResponse<VoiceUploadResponse>>'.
+    Type 'Promise<VoiceApiResponse<{ recordingId: string; }>>' is not assignable to type 'Promise<VoiceApiResponse<VoiceUploadResponse>>'.
+      Type 'VoiceApiResponse<{ recordingId: string; }>' is not assignable to type 'VoiceApiResponse<VoiceUploadResponse>'.
+        Type '{ recordingId: string; }' is missing the following properties from type 'VoiceUploadResponse': status, message, timestamp
+src/services/phraseSyncManager.ts(310,9): error TS2416: Property 'syncPhraseData' in type 'MockVoiceHttpClient' is not assignable to the same property in base type 'VoiceHttpClient'.
+  Type '(phrase: PhraseData) => Promise<VoiceApiResponse<{ phraseId: string; recordingId: string; }>>' is not assignable to type '(phrase: PhraseData) => Promise<VoiceApiResponse<PhraseSyncResponse>>'.
+    Type 'Promise<VoiceApiResponse<{ phraseId: string; recordingId: string; }>>' is not assignable to type 'Promise<VoiceApiResponse<PhraseSyncResponse>>'.
+      Type 'VoiceApiResponse<{ phraseId: string; recordingId: string; }>' is not assignable to type 'VoiceApiResponse<PhraseSyncResponse>'.
+        Type '{ phraseId: string; recordingId: string; }' is missing the following properties from type 'PhraseSyncResponse': syncStatus, timestamp
+src/services/project/ProjectService.ts(175,58): error TS2339: Property 'showSaveFilePicker' does not exist on type 'Window & typeof globalThis'.
+src/services/project/ProjectService.ts(181,43): error TS2339: Property 'showSaveFilePicker' does not exist on type 'Window & typeof globalThis'.
+src/services/resultService.ts(247,21): error TS2341: Property 'generatePlaceholderImage' is private and only accessible within class 'ResultService'.
+src/services/resultService.ts(248,27): error TS2341: Property 'generatePlaceholderImage' is private and only accessible within class 'ResultService'.
+src/services/search/SearchService.ts(134,30): error TS2339: Property 'toLowerCase' does not exist on type 'string | number'.
+  Property 'toLowerCase' does not exist on type 'number'.
+src/services/search/SearchService.ts(137,12): error TS2678: Type '"title"' is not comparable to type '"name" | "type" | "tags" | "duration" | "status"'.
+src/services/search/SearchService.ts(140,12): error TS2678: Type '"description"' is not comparable to type '"name" | "type" | "tags" | "duration" | "status"'.
+src/services/search/SearchService.ts(147,50): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/services/video/VideoTimelineSyncService.ts(86,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/services/video/VideoTimelineSyncService.ts(87,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/services/video/VideoTimelineSyncService.ts(299,28): error TS2339: Property 'onPlayStateChange' does not exist on type 'TimelineCallbacks'.
+src/services/video/VideoTimelineSyncService.ts(305,28): error TS2339: Property 'onPlayStateChange' does not exist on type 'TimelineCallbacks'.
+src/services/video/VideoTimelineSyncService.ts(319,28): error TS2339: Property 'onSeek' does not exist on type 'TimelineCallbacks'.
+src/services/voiceHttpClient.ts(8,15): error TS2305: Module '"@/types"' has no exported member 'VoiceRecording'.
+src/services/voiceHttpClient.ts(8,31): error TS2305: Module '"@/types"' has no exported member 'PhraseData'.
+src/services/VoiceTextService.ts(45,30): error TS2304: Cannot find name 'SpeechRecognition'.
+src/services/VoiceTextService.ts(80,38): error TS2339: Property 'SpeechRecognition' does not exist on type 'Window & typeof globalThis'.
+src/services/VoiceTextService.ts(122,40): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/services/VoiceTextService.ts(140,39): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/services/wizard/ComfyUIInstanceManager.ts(663,15): error TS2741: Property 'createdAt' is missing in type '{ id: string; config: ComfyUIInstanceConfig; status: "stopped"; health: InstanceHealth; stats: InstanceStats; lastUsedAt: Date; }' but required in type 'ComfyUIInstance'.
+src/services/wizard/index.ts(49,43): error TS2724: '"./WizardService"' has no exported member named 'createWizardService'. Did you mean 'getWizardService'?
+src/services/wizard/index.ts(49,64): error TS2724: '"./WizardService"' has no exported member named 'setWizardService'. Did you mean 'getWizardService'?
+src/services/wizard/WizardService.ts(140,30): error TS2339: Property 'executeCommand' does not exist on type 'StoryCoreElectronAPI'.
+src/services/wizard/WizardService.ts(155,47): error TS2339: Property 'executeCommand' does not exist on type 'StoryCoreElectronAPI'.
+src/services/wizard/WizardService.ts(235,11): error TS2353: Object literal may only specify known properties, and 'timeout' does not exist in type 'Partial<ComfyUIConfig>'.
+src/store/index.ts(238,25): error TS2339: Property 'stories' does not exist on type 'Partial<Project>'.
+src/store/index.ts(239,42): error TS2339: Property 'stories' does not exist on type 'Partial<Project>'.
+src/store/index.ts(906,21): error TS2739: Type '{ size: number; imported_at: string; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path
+src/store/index.ts(993,21): error TS2739: Type '{ size: number; imported_at: string; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path
+src/store/index.ts(1024,23): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'AudioTrack'.
+src/store/index.ts(1055,19): error TS2561: Object literal may only specify known properties, but 'technologyMagic' does not exist in type 'World'. Did you mean to write 'technology'?
+src/store/index.ts(1086,21): error TS2739: Type '{ size: number; imported_at: string; }' is missing the following properties from type 'AssetMetadata': id, filename, type, path
+src/stores/editorStore.ts(449,32): error TS2339: Property 'executeCharacterWizard' does not exist on type 'WizardService'.
+src/stores/editorStore.ts(454,32): error TS2339: Property 'executeSceneGenerator' does not exist on type 'WizardService'.
+src/stores/editorStore.ts(459,32): error TS2339: Property 'executeStoryboardCreator' does not exist on type 'WizardService'.
+src/stores/editorStore.ts(464,32): error TS2339: Property 'executeDialogueWriter' does not exist on type 'WizardService'.
+src/stores/editorStore.ts(469,32): error TS2339: Property 'executeWorldBuilder' does not exist on type 'WizardService'.
+src/stores/editorStore.ts(474,32): error TS2339: Property 'executeStyleTransfer' does not exist on type 'WizardService'.
+src/stores/editorStore.ts(547,11): error TS2353: Object literal may only specify known properties, and 'number' does not exist in type 'Shot'.
+src/stores/editorStore.ts(547,28): error TS2339: Property 'number' does not exist on type 'ShotInput'.
+src/stores/editorStore.ts(550,37): error TS2339: Property 'camera_movement' does not exist on type 'ShotInput'.
+src/stores/editorStore.ts(551,32): error TS2339: Property 'transition' does not exist on type 'ShotInput'.
+src/stores/editorStore.ts(552,27): error TS2339: Property 'image' does not exist on type 'ShotInput'.
+src/stores/editorStore.ts(553,27): error TS2339: Property 'audio' does not exist on type 'ShotInput'.
+src/stores/editorStore.ts(554,30): error TS2339: Property 'dialogue' does not exist on type 'ShotInput'.
+src/stores/editorStore.ts(748,32): error TS2551: Property 'checkAllConnections' does not exist on type 'WizardService'. Did you mean 'checkOllamaConnection'?
+src/stores/generationStore.ts(214,5): error TS2322: Type '{ status: "failed"; error: string; attempts: number; result?: GeneratedPrompt | undefined; progress?: GenerationProgress | undefined; } | { status: "failed"; error: string; attempts: number; result?: GeneratedAsset | undefined; progress?: GenerationProgress | undefined; }' is not assignable to type 'StageState<GeneratedAsset> & StageState<GeneratedPrompt>'.
+  Type '{ status: "failed"; error: string; attempts: number; result?: GeneratedPrompt | undefined; progress?: GenerationProgress; }' is not assignable to type 'StageState<GeneratedAsset> & StageState<GeneratedPrompt>'.
+    Type '{ status: "failed"; error: string; attempts: number; result?: GeneratedPrompt | undefined; progress?: GenerationProgress; }' is not assignable to type 'StageState<GeneratedAsset>'.
+      Types of property 'result' are incompatible.
+        Type 'GeneratedPrompt | undefined' is not assignable to type 'GeneratedAsset | undefined'.
+          Type 'GeneratedPrompt' is missing the following properties from type 'GeneratedAsset': id, type, url, metadata, relatedAssets
+src/stores/generationStore.ts(230,5): error TS2322: Type '{ status: "skipped"; result?: GeneratedPrompt | undefined; error?: string | undefined; progress?: GenerationProgress | undefined; attempts: number; } | { ...; }' is not assignable to type 'StageState<GeneratedAsset> & StageState<GeneratedPrompt>'.
+  Type '{ status: "skipped"; result?: GeneratedPrompt | undefined; error?: string; progress?: GenerationProgress; attempts: number; }' is not assignable to type 'StageState<GeneratedAsset> & StageState<GeneratedPrompt>'.
+    Type '{ status: "skipped"; result?: GeneratedPrompt | undefined; error?: string; progress?: GenerationProgress; attempts: number; }' is not assignable to type 'StageState<GeneratedAsset>'.
+      Types of property 'result' are incompatible.
+        Type 'GeneratedPrompt | undefined' is not assignable to type 'GeneratedAsset | undefined'.
+          Type 'GeneratedPrompt' is missing the following properties from type 'GeneratedAsset': id, type, url, metadata, relatedAssets
+src/stores/generationStore.ts(251,5): error TS2322: Type '{ status: "in_progress"; progress: GenerationProgress; result?: GeneratedPrompt | undefined; error?: string | undefined; attempts: number; } | { ...; }' is not assignable to type 'StageState<GeneratedAsset> & StageState<GeneratedPrompt>'.
+  Type '{ status: "in_progress"; progress: GenerationProgress; result?: GeneratedPrompt | undefined; error?: string; attempts: number; }' is not assignable to type 'StageState<GeneratedAsset> & StageState<GeneratedPrompt>'.
+    Type '{ status: "in_progress"; progress: GenerationProgress; result?: GeneratedPrompt | undefined; error?: string; attempts: number; }' is not assignable to type 'StageState<GeneratedAsset>'.
+      Types of property 'result' are incompatible.
+        Type 'GeneratedPrompt | undefined' is not assignable to type 'GeneratedAsset | undefined'.
+          Type 'GeneratedPrompt' is missing the following properties from type 'GeneratedAsset': id, type, url, metadata, relatedAssets
+src/stores/useAppStore.ts(3,15): error TS2305: Module '"@/types/wizard"' has no exported member 'SequencePlanWizardContext'.
+src/stores/useAppStore.ts(3,42): error TS2305: Module '"@/types/wizard"' has no exported member 'ShotWizardContext'.
+src/stores/useStore.example.ts(134,44): error TS2304: Cannot find name 'ProjectSettings'.
+src/stores/useStore.example.ts(336,50): error TS2304: Cannot find name 'AudioTrack'.
+src/stores/useStore.example.ts(351,72): error TS2304: Cannot find name 'AudioTrack'.
+src/stores/useStore.example.ts(685,27): error TS2304: Cannot find name 'AudioTrack'.
+src/stores/wizard/index.ts(27,3): error TS2305: Module '"../../types/wizard"' has no exported member 'ProjectType'.
+src/stores/wizard/index.ts(34,3): error TS2305: Module '"../../types/wizard"' has no exported member 'UniverseType'.
+src/stores/wizard/index.ts(37,3): error TS2724: '"../../types/wizard"' has no exported member named 'CharacterRole'. Did you mean 'CharacterProfile'?
+src/stores/wizard/index.ts(42,3): error TS2305: Module '"../../types/wizard"' has no exported member 'NarrativePerspective'.
+src/stores/wizard/index.ts(45,3): error TS2305: Module '"../../types/wizard"' has no exported member 'ScriptFormat'.
+src/stores/wizard/index.ts(49,3): error TS2305: Module '"../../types/wizard"' has no exported member 'TimeOfDay'.
+src/stores/wizard/wizardStore.ts(67,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(partial: WizardState | Partial<WizardState> | ((state: WizardState) => WizardState | Partial<WizardState>), replace?: false | undefined, action?: Action | undefined): unknown', gave the following error.
+    Object literal may only specify known properties, and 'wizardType' does not exist in type 'WizardState | Partial<WizardState> | ((state: WizardState) => WizardState | Partial<WizardState>)'.
+  Overload 2 of 2, '(state: WizardState | ((state: WizardState) => WizardState), replace: true, action?: Action | undefined): unknown', gave the following error.
+    Object literal may only specify known properties, and 'wizardType' does not exist in type 'WizardState | ((state: WizardState) => WizardState)'.
+src/stores/worldBuilderStore.ts(126,21): error TS2698: Spread types may only be created from object types.
+src/test-utils/accessibilityHelpers.ts(82,19): error TS2339: Property 'toHaveNoViolations' does not exist on type 'Assertion<AxeResults>'.
+src/test-utils/mockFactories.ts(10,15): error TS2305: Module '"../types/project"' has no exported member 'Project'.
+src/test-utils/mockFactories.ts(85,11): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(86,11): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(87,11): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(88,12): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(113,10): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(114,11): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(115,12): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(116,12): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(194,13): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(260,18): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(261,18): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(262,18): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(263,20): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(281,17): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(282,16): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(283,18): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(303,17): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(304,24): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(305,20): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(306,15): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(307,22): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(326,16): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(327,17): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(328,15): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(329,13): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(347,11): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(348,14): error TS2304: Cannot find name 'vi'.
+src/test-utils/mockFactories.ts(349,17): error TS2304: Cannot find name 'vi'.
+src/types/projectDiscovery.ts(93,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/types/shot.ts(101,25): error TS2552: Cannot find name 'CharacterPosition'. Did you mean 'CaretPosition'?
+src/utils/errorHandling.ts(13,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/utils/errorHandling.ts(26,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/utils/errorHandling.ts(36,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/utils/llmDiagnostic.ts(120,48): error TS2339: Property 'apiEndpoint' does not exist on type 'ChatboxLLMConfig'.
+src/utils/llmDiagnostic.ts(134,35): error TS2339: Property 'apiEndpoint' does not exist on type 'ChatboxLLMConfig'.
+src/utils/logger.ts(5,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/utils/projectTemplateGenerator.ts(54,5): error TS2353: Object literal may only specify known properties, and 'shot_type' does not exist in type 'Shot'.
+src/utils/validation.ts(115,13): error TS2339: Property 'errors' does not exist on type 'ZodError<unknown>'.
+src/utils/validation.ts(115,29): error TS7006: Parameter 'err' implicitly has an 'any' type.
+src/workers/processing.worker.ts(311,23): error TS2339: Property 'mozHasAudio' does not exist on type 'HTMLVideoElement'.
+../electron/errors.ts(49,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(58,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(60,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(115,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(132,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(134,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(135,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(198,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(209,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(211,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(282,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(290,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+../electron/errors.ts(292,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.

@@ -1,0 +1,399 @@
+/**
+ * VideoCanvas Component Styles
+ * 
+ * @module components/video/VideoCanvas.css
+ */
+
+/* Container */
+.video-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background-color: #000000;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-canvas-container:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.video-canvas-container:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Canvas */
+.video-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.video-canvas-playing {
+  cursor: default;
+}
+
+.video-canvas-buffering {
+  cursor: wait;
+}
+
+.video-canvas-resizing {
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+}
+
+/* Loading Indicator */
+.video-canvas-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+.video-canvas-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: video-canvas-spin 0.8s linear infinite;
+}
+
+@keyframes video-canvas-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Play Button Overlay */
+.video-canvas-play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  z-index: 5;
+}
+
+.video-canvas-play-overlay:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.video-canvas-play-button {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  color: #1a1a1a;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.video-canvas-play-overlay:hover .video-canvas-play-button {
+  transform: scale(1.1);
+  background-color: #ffffff;
+}
+
+.video-canvas-play-button svg {
+  width: 32px;
+  height: 32px;
+  margin-left: 4px;
+}
+
+/* Time Display */
+.video-canvas-time-display {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 13px;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  z-index: 15;
+}
+
+.video-canvas-frame {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.video-canvas-time {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* Playback Controls Overlay */
+.video-canvas-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 20;
+}
+
+.video-canvas-container:hover .video-canvas-controls,
+.video-canvas-container:focus-within .video-canvas-controls {
+  opacity: 1;
+}
+
+/* Progress Bar */
+.video-canvas-progress {
+  flex: 1;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.video-canvas-progress-bar {
+  height: 100%;
+  background-color: #6366f1;
+  border-radius: 2px;
+  position: relative;
+  transition: width 0.1s linear;
+}
+
+.video-canvas-progress-thumb {
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.video-canvas-progress:hover .video-canvas-progress-thumb {
+  opacity: 1;
+}
+
+/* Control Buttons */
+.video-canvas-control-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-canvas-control-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.video-canvas-control-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Volume Control */
+.video-canvas-volume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.video-canvas-volume-slider {
+  width: 80px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.video-canvas-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Playback Rate */
+.video-canvas-rate {
+  position: relative;
+}
+
+.video-canvas-rate-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.video-canvas-rate-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.video-canvas-rate-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(30, 30, 30, 0.95);
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 100px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin-bottom: 8px;
+}
+
+.video-canvas-rate-option {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.video-canvas-rate-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.video-canvas-rate-option.active {
+  color: #6366f1;
+  font-weight: 600;
+}
+
+/* Fullscreen Button */
+.video-canvas-fullscreen {
+  margin-left: auto;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .video-canvas-time-display {
+    font-size: 11px;
+  }
+  
+  .video-canvas-play-button {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .video-canvas-play-button svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .video-canvas-controls {
+    padding: 12px;
+  }
+  
+  .video-canvas-volume-slider {
+    display: none;
+  }
+  
+  .video-canvas-rate {
+    display: none;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .video-canvas-play-button {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .video-canvas-loading-spinner {
+    border-width: 4px;
+    border-color: rgba(255, 255, 255, 0.5);
+    border-top-color: #ffffff;
+  }
+  
+  .video-canvas-time-display {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .video-canvas-play-button {
+    background-color: #ffffff;
+    border: 2px solid #ffffff;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .video-canvas-loading-spinner {
+    animation: none;
+  }
+  
+  .video-canvas-play-button {
+    transition: none;
+  }
+  
+  .video-canvas-controls {
+    transition: none;
+  }
+  
+  .video-canvas-progress-bar {
+    transition: none;
+  }
+}
+

@@ -3,6 +3,8 @@ import { X, ChevronLeft, ChevronRight, Wand2, Save, BookOpen, Users, MapPin, Clo
 import { LLMService } from '../../../services/llmService';
 import { useStore } from '../../../store';
 import { StorySummary, StorytellerWizardData } from '../../../types/story';
+import { EnhancedStorytellerAssistant } from '../../wizard/storyteller/EnhancedStorytellerAssistant';
+import { ConfigManager } from '../../../services/llm/ConfigManager';
 
 export interface StorytellerWizardProps {
   isOpen: boolean;
@@ -179,7 +181,9 @@ export const StorytellerWizard: React.FC<StorytellerWizardProps> = ({
 
     setIsGenerating(true);
     try {
-      const llmService = new LLMService();
+      // Get properly configured LLM service from ConfigManager
+      const llmConfig = ConfigManager.getLLMConfig();
+      const llmService = new LLMService(llmConfig);
 
       const selectedChars = characters.filter(c => storyData.selectedCharacters.includes(c.character_id));
       const worldDesc = world ? `${world.name} (${world.genre.join(', ')}, ${world.timePeriod}, ${world.atmosphere})` : 'monde fantastique';
@@ -705,19 +709,37 @@ Génère au format JSON:
                   </p>
                 </div>
 
-                <button
-                  onClick={generateStorySummary}
-                  disabled={isGenerating || !storyData.visualStyle}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-4 rounded-md hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <Wand2 size={20} />
-                  {isGenerating ? 'Génération en cours...' : 'Générer l\'histoire avec l\'IA'}
-                </button>
-
                 {!storyData.visualStyle && (
-                  <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-200 mt-4">
+                  <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-200 mb-4">
                     Veuillez d'abord sélectionner un style visuel à l'étape précédente.
                   </div>
+                )}
+
+                {storyData.visualStyle && (
+                  <EnhancedStorytellerAssistant
+                    projectContext={{
+                      characters,
+                      world,
+                      locations: [],
+                      previousStories: []
+                    }}
+                    storyData={storyData}
+                    onStoryGenerated={(storyResult) => {
+                      setStoryData(prev => ({
+                        ...prev,
+                        storySummary: storyResult.summary || '',
+                        mainConflict: storyResult.mainConflict || '',
+                        resolution: storyResult.resolution || '',
+                        themes: storyResult.themes || [],
+                        acts: storyResult.acts || [],
+                        recommendedVisualStyle: storyResult.visualStyle || '',
+                        pacing: storyResult.pacing || '',
+                        musicSuggestions: storyResult.musicSuggestions || [],
+                        moodPalette: storyResult.moodPalette || [],
+                        cameraTechniques: storyResult.cameraTechniques || []
+                      }));
+                    }}
+                  />
                 )}
 
                 {storyData.storySummary && (

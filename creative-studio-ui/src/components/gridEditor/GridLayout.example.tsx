@@ -79,12 +79,12 @@ export const GridLayoutExample: React.FC = () => {
   ]);
 
   const handleLayoutChange = (newItems: GridPanel[]) => {
-    ;
+    console.log('Layout changed:', newItems);
     // Save to state or backend
   };
 
   const handleConfigChange = (newConfig: GridLayoutConfig) => {
-    ;
+    console.log('Config changed:', newConfig);
     // Save configuration
   };
 
@@ -171,8 +171,8 @@ export const GridSizeExample: React.FC = () => {
       <GridLayoutContainer
         initialConfig={config}
         initialItems={[]}
-        onLayoutChange={(items) => }
-        onConfigChange={(cfg) => }
+        onLayoutChange={(items) => console.log('Layout changed:', items)}
+        onConfigChange={(cfg) => console.log('Config changed:', cfg)}
       />
     </div>
   );
@@ -216,7 +216,7 @@ export const ResizeConstraintsExample: React.FC = () => {
         initialConfig={config}
         initialItems={items}
         onLayoutChange={(newItems) => {
-          ;
+          console.log('Resized items:', newItems);
           // Size will always be a multiple of cellSize + gap
         }}
       />

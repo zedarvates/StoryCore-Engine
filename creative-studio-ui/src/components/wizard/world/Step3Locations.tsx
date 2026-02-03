@@ -248,6 +248,7 @@ Example:
             service="llm"
             variant="inline"
             onConfigure={() => setShowLLMSettings(true)}
+            className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800"
           />
         )}
 

@@ -1,11 +1,11 @@
 /**
- * Event Emitter Service for Wizard Completions
+ * Event Emitter Service for Wizard Completions and Character Operations
  * 
- * This service provides a centralized event system for wizard completions
- * and other application events. Components can subscribe to events and
- * receive notifications when entities are created or updated.
+ * This service provides a centralized event system for wizard completions,
+ * character operations, and other application events. Components can subscribe
+ * to events and receive notifications when entities are created or updated.
  * 
- * Requirements: 7.5
+ * Requirements: 7.5, 5.4, 12.1, 12.2, 12.3, 12.4, 12.5
  */
 
 import type { World } from '@/types/world';
@@ -425,3 +425,41 @@ export function useEventListener<T extends EventPayload>(
 
 // Import React for the hook
 import React from 'react';
+
+// ============================================================================
+// Re-export Character Event System
+// ============================================================================
+
+/**
+ * Re-export character event types and payloads for convenience
+ * This allows consumers to import everything from a single module
+ */
+export {
+  CharacterEventType,
+  type CharacterEventPayload,
+  type CharacterCreatedEventPayload,
+  type CharacterUpdatedEventPayload,
+  type CharacterDeletedEventPayload,
+  type CharacterSelectedEventPayload,
+  type RelationshipAddedEventPayload,
+  type RelationshipUpdatedEventPayload,
+  type RelationshipRemovedEventPayload,
+  type CharacterValidationFailedEventPayload,
+  type CharacterValidationPassedEventPayload,
+  type CharacterExportedEventPayload,
+  type CharacterImportedEventPayload,
+  type CharacterImportFailedEventPayload,
+  type CharacterDependenciesCheckedEventPayload,
+  type CharacterDeletionBlockedEventPayload,
+  isCharacterEvent,
+  isCharacterCreatedEvent,
+  isCharacterUpdatedEvent,
+  isCharacterDeletedEvent,
+  createCharacterCreatedPayload,
+  createCharacterUpdatedPayload,
+  createCharacterDeletedPayload,
+  createCharacterSelectedPayload,
+  createRelationshipAddedPayload,
+  createValidationFailedPayload,
+  createDependenciesCheckedPayload,
+} from './characterEvents';

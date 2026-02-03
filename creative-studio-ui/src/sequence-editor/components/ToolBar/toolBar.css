@@ -1,0 +1,312 @@
+/**
+ * Tool Bar Styles
+ * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 17.1, 19.4, 20.1, 20.3, 20.5
+ */
+
+.tool-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--panel-bg, #1a1a1a);
+  border-bottom: 1px solid var(--border-color, #333333);
+  height: 56px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Tool Groups */
+.tool-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tool-separator {
+  width: 1px;
+  height: 32px;
+  background-color: var(--border-color, #333333);
+  margin: 0 4px;
+}
+
+.tool-spacer {
+  flex: 1;
+  min-width: 16px;
+}
+
+/* Tool Buttons */
+.tool-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 12px;
+  min-width: 64px;
+  height: 48px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-primary, #ffffff);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  user-select: none;
+}
+
+.tool-btn:hover {
+  background-color: var(--hover-bg, #2a2a2a);
+  border-color: var(--border-color, #333333);
+}
+
+.tool-btn:active {
+  transform: scale(0.95);
+}
+
+.tool-btn.active {
+  background-color: var(--accent-color, #4A90E2);
+  border-color: var(--accent-color, #4A90E2);
+  color: #ffffff;
+}
+
+.tool-btn.active:hover {
+  background-color: var(--accent-hover, #357ABD);
+}
+
+/* Tool Icon */
+.tool-icon {
+  font-size: 20px;
+  line-height: 1;
+  display: block;
+}
+
+/* Tool Label */
+.tool-label {
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Tool Shortcut */
+.tool-shortcut {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 9px;
+  padding: 1px 3px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tool-btn:hover .tool-shortcut {
+  opacity: 1;
+}
+
+.tool-btn.active .tool-shortcut {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Project Tools */
+.project-tools {
+  gap: 8px;
+}
+
+.project-btn {
+  min-width: 80px;
+}
+
+.save-btn {
+  position: relative;
+}
+
+.save-status {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.save-status.saved {
+  background-color: var(--success-color, #27ae60);
+  color: #ffffff;
+}
+
+.save-status.modified {
+  background-color: var(--warning-color, #f39c12);
+  color: #ffffff;
+}
+
+.save-status.saving {
+  background-color: var(--info-color, #3498db);
+  color: #ffffff;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.save-status.error {
+  background-color: var(--error-color, #e74c3c);
+  color: #ffffff;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Cursor Classes */
+.cursor-default {
+  cursor: default !important;
+}
+
+.cursor-crosshair {
+  cursor: crosshair !important;
+}
+
+.cursor-grab {
+  cursor: grab !important;
+}
+
+.cursor-grabbing {
+  cursor: grabbing !important;
+}
+
+.cursor-zoom-in {
+  cursor: zoom-in !important;
+}
+
+.cursor-zoom-out {
+  cursor: zoom-out !important;
+}
+
+.cursor-ew-resize {
+  cursor: ew-resize !important;
+}
+
+.cursor-ns-resize {
+  cursor: ns-resize !important;
+}
+
+.cursor-text {
+  cursor: text !important;
+}
+
+/* Accessibility */
+.tool-btn:focus {
+  outline: 2px solid var(--accent-color, #4A90E2);
+  outline-offset: 2px;
+}
+
+.tool-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .tool-bar {
+    padding: 6px 12px;
+    height: 52px;
+  }
+  
+  .tool-btn {
+    min-width: 56px;
+    height: 44px;
+    padding: 4px 8px;
+  }
+  
+  .tool-icon {
+    font-size: 18px;
+  }
+  
+  .tool-label {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tool-bar {
+    gap: 4px;
+    padding: 4px 8px;
+  }
+  
+  .tool-btn {
+    min-width: 48px;
+    height: 40px;
+    padding: 4px 6px;
+  }
+  
+  .tool-label {
+    display: none;
+  }
+  
+  .tool-separator {
+    height: 28px;
+  }
+}
+
+/* Scrollbar Styling */
+.tool-bar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tool-bar::-webkit-scrollbar-track {
+  background-color: var(--panel-bg, #1a1a1a);
+}
+
+.tool-bar::-webkit-scrollbar-thumb {
+  background-color: var(--border-color, #333333);
+  border-radius: 3px;
+}
+
+.tool-bar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-secondary, #888888);
+}
+
+/* Animation for tool selection */
+@keyframes tool-select {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.tool-btn.active {
+  animation: tool-select 0.3s ease;
+}
+
+/* Tooltip Enhancement */
+.tool-btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #ffffff;
+  font-size: 11px;
+  white-space: nowrap;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0;
+  animation: tooltip-fade-in 0.2s ease forwards 0.5s;
+}
+
+@keyframes tooltip-fade-in {
+  to {
+    opacity: 1;
+  }
+}

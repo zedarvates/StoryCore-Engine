@@ -45,6 +45,10 @@ class WizardOrchestrator:
             # Welcome screen
             self._show_welcome()
             
+            # Check if required configurations are available
+            if not self._check_required_configurations():
+                return None
+            
             # Question sequence
             if not self._collect_project_name():
                 return None
@@ -74,7 +78,41 @@ class WizardOrchestrator:
         except Exception as e:
             display_error(f"Unexpected error: {e}")
             return None
-    
+
+    def _check_required_configurations(self) -> bool:
+        """
+        Check if required configurations are available before starting the wizard
+        
+        Returns:
+            True if all required configurations are available, False otherwise
+        """
+        try:
+            # Check if genre definitions are available
+            genres = get_all_genres()
+            if not genres:
+                display_error("No genre definitions found. Please check your configuration.")
+                return False
+            
+            # Check if format definitions are available
+            formats = get_all_formats()
+            if not formats:
+                display_error("No format definitions found. Please check your configuration.")
+                return False
+            
+            # Check if required modules are available
+            try:
+                from .validator_service import create_project_name_validator, create_duration_validator, create_story_validator
+            except ImportError as e:
+                display_error(f"Required validation modules not found: {e}")
+                return False
+            
+            display_success("All required configurations are available!")
+            return True
+            
+        except Exception as e:
+            display_error(f"Error checking configurations: {e}")
+            return False
+
     def _show_welcome(self):
         """Display welcome screen"""
         display_section("StoryCore-Engine Interactive Project Setup")
@@ -109,6 +147,12 @@ class WizardOrchestrator:
                 validator=validator
             )
             self.state.current_step = 1
+            
+            # Validate that the project name is not empty
+            if not self.state.project_name:
+                display_error("Project name cannot be empty.")
+                return False
+            
             return True
         except KeyboardInterrupt:
             return False
@@ -125,6 +169,10 @@ class WizardOrchestrator:
         
         # Prepare choices
         formats = get_all_formats()
+        if not formats:
+            display_error("No formats available. Please check your configuration.")
+            return False
+        
         choices = []
         for key, format_def in formats.items():
             min_dur, max_dur = format_def.duration_range
@@ -138,6 +186,12 @@ class WizardOrchestrator:
                 default=1  # Default to first option (court_metrage)
             )
             self.state.current_step = 2
+            
+            # Validate that the format key is not empty
+            if not self.state.format_key:
+                display_error("Format selection cannot be empty.")
+                return False
+            
             return True
         except KeyboardInterrupt:
             return False
@@ -181,6 +235,10 @@ class WizardOrchestrator:
         
         # Prepare choices
         genres = get_all_genres()
+        if not genres:
+            display_error("No genres available. Please check your configuration.")
+            return False
+        
         choices = []
         for key, genre_def in genres.items():
             choices.append((key, genre_def.name))
@@ -192,6 +250,12 @@ class WizardOrchestrator:
                 default=1  # Default to first option (action)
             )
             self.state.current_step = 4
+            
+            # Validate that the genre key is not empty
+            if not self.state.genre_key:
+                display_error("Genre selection cannot be empty.")
+                return False
+            
             return True
         except KeyboardInterrupt:
             return False
@@ -261,6 +325,11 @@ class WizardOrchestrator:
                     return self._collect_story_manually()  # Retry
             else:
                 self.state.story_content = story_input
+            
+            # Validate that the story content is not empty
+            if not self.state.story_content:
+                display_error("Story content cannot be empty.")
+                return False
             
             self.state.current_step = 5
             return True

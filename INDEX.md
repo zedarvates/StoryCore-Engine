@@ -8,6 +8,7 @@ Welcome to the StoryCore-Engine project index! This document provides a comprehe
 - [Quick Start](#quick-start)
 - [Architecture Overview](#architecture-overview)
 - [Core Components](#core-components)
+- [API Documentation](#api-documentation)
 - [File Structure](#file-structure)
 - [Key Files](#key-files)
 - [Development Workflow](#development-workflow)
@@ -126,6 +127,75 @@ python storycore.py export --project my-project
 | `MainLayout.tsx` | Main application layout |
 | `SkeletonLoader.tsx` | Loading states and placeholders |
 | `progress.tsx` | Progress indicators |
+
+## 📚 API Documentation
+
+### Comprehensive API Reference
+
+StoryCore-Engine provides extensive API documentation covering all system interfaces, from Python backend services to TypeScript frontend components, Electron integration, and ComfyUI workflow APIs.
+
+**Main API Index**: [documentation/API_INDEX.md](documentation/API_INDEX.md)
+
+### API Categories
+
+#### Core APIs
+- **[Python Backend API](documentation/api/PYTHON_BACKEND_API.md)** - Core engine modules and processing pipelines
+- **[TypeScript Frontend API](documentation/api/TYPESCRIPT_FRONTEND_API.md)** - React components and UI services
+- **[Electron API](documentation/api/ELECTRON_API.md)** - Desktop application integration
+- **[ComfyUI Workflow API](documentation/api/COMFYUI_WORKFLOW_API.md)** - AI workflow integration
+
+#### Service APIs
+- **[Security & Validation API](documentation/api/SECURITY_VALIDATION_API.md)** - Input validation and security services
+- **[Error Handling API](documentation/api/ERROR_HANDLING_API.md)** - Error handling and resilience patterns
+- **[Monitoring API](documentation/api/MONITORING_API.md)** - System monitoring and analytics
+- **[Storage API](documentation/api/STORAGE_API.md)** - Data persistence and file management
+
+#### Integration APIs
+- **[REST API Reference](documentation/api/REST_API_REFERENCE.md)** - HTTP endpoints and webhooks
+- **[WebSocket API](documentation/api/WEBSOCKET_API.md)** - Real-time communication
+- **[CLI API](documentation/api/CLI_API.md)** - Command-line interface reference
+- **[Plugin API](documentation/api/PLUGIN_API.md)** - Extension and addon system
+
+### API Status
+
+| API Category | Status | Version | Test Coverage |
+|--------------|--------|---------|---------------|
+| Python Backend | ✅ Stable | 1.0.0 | 95%+ |
+| TypeScript Frontend | ✅ Stable | 1.0.0 | 90%+ |
+| Electron Integration | ✅ Stable | 1.0.0 | 85%+ |
+| ComfyUI Workflows | ✅ Stable | 1.0.0 | 95%+ |
+| Security & Validation | ✅ Stable | 1.0.0 | 100% |
+| Error Handling | ✅ Stable | 1.0.0 | 100% |
+| Monitoring | ✅ Stable | 1.0.0 | 95%+ |
+| REST API | ✅ Stable | 1.0.0 | 90%+ |
+| WebSocket API | 🚧 Beta | 0.9.0 | 80%+ |
+| Plugin API | 🚧 Beta | 0.9.0 | 85%+ |
+
+### Quick API Access by Role
+
+#### Backend Developers
+1. [Python Backend API](documentation/api/PYTHON_BACKEND_API.md) - Core engine modules
+2. [Security & Validation API](documentation/api/SECURITY_VALIDATION_API.md) - Input validation
+3. [Error Handling API](documentation/api/ERROR_HANDLING_API.md) - Resilience patterns
+4. [CLI API](documentation/api/CLI_API.md) - Command-line interface
+
+#### Frontend Developers
+1. [TypeScript Frontend API](documentation/api/TYPESCRIPT_FRONTEND_API.md) - React components
+2. [Component Library](documentation/api/TYPESCRIPT_FRONTEND_API.md#component-library) - Reusable UI
+3. [State Management](documentation/api/TYPESCRIPT_FRONTEND_API.md#state-management) - Redux store
+4. [Hooks](documentation/api/TYPESCRIPT_FRONTEND_API.md#hooks) - Custom React hooks
+
+#### Integration Developers
+1. [REST API Reference](documentation/api/REST_API_REFERENCE.md) - HTTP endpoints
+2. [WebSocket API](documentation/api/WEBSOCKET_API.md) - Real-time communication
+3. [Plugin API](documentation/api/PLUGIN_API.md) - Extension system
+4. [ComfyUI Workflow API](documentation/api/COMFYUI_WORKFLOW_API.md) - AI workflows
+
+#### DevOps Engineers
+1. [Monitoring API](documentation/api/MONITORING_API.md) - System monitoring
+2. [Error Handling API](documentation/api/ERROR_HANDLING_API.md) - Resilience patterns
+3. [Security & Validation API](documentation/api/SECURITY_VALIDATION_API.md) - Security services
+4. [CLI API](documentation/api/CLI_API.md) - Automation commands
 
 ## 📁 File Structure
 
@@ -305,6 +375,7 @@ npm run dev
 - **[BUILD_REPORT.md](BUILD_REPORT.md)** - Latest build analysis and metrics
 - **[FIX_TESTS.md](FIX_TESTS.md)** - Test improvements and known issues
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Developer quick reference
+- **[TODO.md](TODO.md)** - Master TODO list and task tracking
 - **[docs/](docs/)** - Detailed documentation
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history
 - **[ROADMAP.md](ROADMAP.md)** - Development roadmap

@@ -341,7 +341,7 @@ export class MockInstallationApiService extends InstallationApiService {
         installed: true,
         running: true,
         corsEnabled: true,
-        url: 'http://localhost:8188',
+        url: 'http://localhost:8000', // ComfyUI Desktop default
         models: ['sd_xl_base_1.0.safetensors', 'sd_xl_refiner_1.0.safetensors'],
         workflows: ['text2img.json', 'img2img.json'],
         errors: [],

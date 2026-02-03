@@ -470,3 +470,7 @@ export function isExportConfiguration(value: unknown): value is ExportConfigurat
     return false;
   }
 }
+
+
+// Re-export Shot type for convenience
+export type { Shot } from './index';

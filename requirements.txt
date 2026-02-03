@@ -8,6 +8,7 @@ numpy>=1.24.0
 
 # ComfyUI integration dependencies
 aiohttp>=3.10.0
+ffmpeg-python>=0.2.0
 
 # Real-time preview system dependencies
 websockets>=13.0.0
@@ -51,8 +52,13 @@ passlib[bcrypt]>=1.7.4
 fastapi-limiter>=0.1.5
 redis>=4.5.0
 
+# JSON Schema validation
+jsonschema>=4.17.0
+
+# Process and memory monitoring
+psutil>=5.9.0
+
 # Future versions may add:
-# - jsonschema (for proper JSON Schema validation)
 # - click or typer (for richer CLI features)
 # - pydantic (for type-safe data validation)
 

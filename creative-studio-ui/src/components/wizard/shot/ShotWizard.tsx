@@ -206,11 +206,29 @@ export function ShotWizard({
 
       setWizardState(initialState);
     } catch (err) {
-      console.error('Failed to initialize wizard:', err);
-      setError(err instanceof Error ? err.message : 'Failed to initialize wizard');
-    } finally {
-      setIsLoading(false);
-    }
+     console.error('Failed to initialize wizard:', err);
+     
+     // Create a detailed error message based on the error type
+     let errorMessage = 'Failed to initialize wizard: ';
+     if (err instanceof Error) {
+       errorMessage += err.message;
+       
+       // Add specific guidance for common error types
+       if (err.message.includes('template') || err.message.includes('Template')) {
+         errorMessage += '\nPlease verify your shot templates are properly configured.';
+       } else if (err.message.includes('network') || err.message.includes('connection')) {
+         errorMessage += '\nPlease check your network connection.';
+       } else if (err.message.includes('permission') || err.message.includes('access')) {
+         errorMessage += '\nPlease check your file system permissions.';
+       }
+     } else {
+       errorMessage += 'Unknown error occurred.';
+     }
+     
+     setError(errorMessage);
+   } finally {
+     setIsLoading(false);
+   }
   };
 
   // ============================================================================
@@ -280,8 +298,27 @@ export function ShotWizard({
             isDirty: false,
           }));
         } catch (err) {
-          console.error('Failed to auto-save draft:', err);
-        }
+         console.error('Failed to auto-save draft:', err);
+         
+         // Create a detailed error message based on the error type
+         let errorMessage = 'Failed to auto-save draft: ';
+         if (err instanceof Error) {
+           errorMessage += err.message;
+           
+           // Add specific guidance for common error types
+           if (err.message.includes('permission') || err.message.includes('access')) {
+             errorMessage += '\nPlease check your file system permissions.';
+           } else if (err.message.includes('network') || err.message.includes('connection')) {
+             errorMessage += '\nPlease check your network connection.';
+           } else if (err.message.includes('quota') || err.message.includes('storage')) {
+             errorMessage += '\nPlease check your available storage space.';
+           }
+         } else {
+           errorMessage += 'Unknown error occurred.';
+         }
+         
+         console.warn(errorMessage);
+       }
       };
 
       const timer = setTimeout(saveDraft, 30000); // Auto-save every 30 seconds
@@ -409,11 +446,29 @@ export function ShotWizard({
       onComplete(finalShot);
       onClose();
     } catch (err) {
-      console.error('Failed to complete shot:', err);
-      setError(err instanceof Error ? err.message : 'Failed to complete shot');
-    } finally {
-      setIsLoading(false);
-    }
+     console.error('Failed to complete shot:', err);
+     
+     // Create a detailed error message based on the error type
+     let errorMessage = 'Failed to complete shot: ';
+     if (err instanceof Error) {
+       errorMessage += err.message;
+       
+       // Add specific guidance for common error types
+       if (err.message.includes('validation') || err.message.includes('Validation')) {
+         errorMessage += '\nPlease verify all shot data is valid.';
+       } else if (err.message.includes('network') || err.message.includes('connection')) {
+         errorMessage += '\nPlease check your network connection.';
+       } else if (err.message.includes('permission') || err.message.includes('access')) {
+         errorMessage += '\nPlease check your file system permissions.';
+       }
+     } else {
+       errorMessage += 'Unknown error occurred.';
+     }
+     
+     setError(errorMessage);
+   } finally {
+     setIsLoading(false);
+   }
   }, [wizardState, existingShot, onComplete, onClose]);
 
   // ============================================================================
@@ -649,6 +704,8 @@ export function ShotWizard({
                     });
                   }}
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                  aria-label="Duration in seconds"
+                  placeholder="Enter duration"
                 />
               </div>
 

@@ -1,0 +1,263 @@
+/**
+ * Camera Preset Preview Styles
+ * 
+ * Styling for camera preset preview component with animation display.
+ */
+
+.camera-preset-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: var(--color-bg-secondary, #1e1e1e);
+  border-radius: 8px;
+  max-width: 500px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+.camera-preset-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.camera-preset-preview-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary, #ffffff);
+}
+
+.camera-preset-preview-close {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary, #999999);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.camera-preset-preview-close:hover {
+  background: var(--color-bg-hover, #2a2a2a);
+  color: var(--color-text-primary, #ffffff);
+}
+
+/* Preview Animation */
+.camera-preset-preview-animation {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--color-bg-tertiary, #0a0a0a);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.camera-preset-video-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.camera-preset-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-preset-play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  color: #ffffff;
+  font-size: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.camera-preset-video-container:hover .camera-preset-play-button {
+  opacity: 1;
+}
+
+.camera-preset-play-button:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: #ffffff;
+}
+
+.camera-preset-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 12px;
+}
+
+.camera-preset-placeholder-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.camera-preset-placeholder-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #999999);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Description */
+.camera-preset-preview-description {
+  color: var(--color-text-secondary, #cccccc);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.camera-preset-preview-description p {
+  margin: 0;
+}
+
+/* Metadata */
+.camera-preset-preview-metadata {
+  padding: 12px;
+  background: var(--color-bg-tertiary, #0a0a0a);
+  border-radius: 6px;
+}
+
+.camera-preset-metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.camera-preset-metadata-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.camera-preset-metadata-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-tertiary, #666666);
+}
+
+.camera-preset-metadata-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary, #ffffff);
+  text-transform: capitalize;
+}
+
+/* Use Cases */
+.camera-preset-preview-use-cases {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.camera-preset-use-cases-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-tertiary, #666666);
+}
+
+.camera-preset-use-cases-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.camera-preset-use-case-item {
+  font-size: 13px;
+  color: var(--color-text-secondary, #cccccc);
+  line-height: 1.4;
+}
+
+/* Tags */
+.camera-preset-preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.camera-preset-tag {
+  padding: 4px 10px;
+  background: var(--color-bg-tertiary, #0a0a0a);
+  border: 1px solid var(--color-border, #333333);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary, #999999);
+  text-transform: lowercase;
+}
+
+/* Actions */
+.camera-preset-preview-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border, #333333);
+}
+
+.camera-preset-apply-button {
+  flex: 1;
+  padding: 10px 20px;
+  background: var(--color-primary, #4A90E2);
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.camera-preset-apply-button:hover {
+  background: var(--color-primary-hover, #357ABD);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+.camera-preset-apply-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .camera-preset-preview {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .camera-preset-metadata-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .camera-preset-play-button {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+}

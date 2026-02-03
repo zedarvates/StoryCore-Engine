@@ -9,13 +9,14 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { ProjectValidator, ProjectConfig, ValidationResult } from './ProjectValidator';
 import { ProjectError, ProjectErrorCode, FileSystemError, FileSystemErrorCode } from './errors';
+import { getDefaultProjectsDirectory } from './defaultPaths';
 
 /**
  * Data for creating a new project
  */
 export interface NewProjectData {
   name: string;
-  location: string;
+  location?: string; // Optional - defaults to Documents/StoryCore Projects
   template?: string;
   format?: any; // Project format configuration
   initialShots?: any[]; // Initial shots to create
@@ -118,8 +119,12 @@ export class ProjectService {
       // Validate project name
       this.validateProjectName(data.name);
 
+      // Use default projects directory if location not provided
+      const location = data.location || getDefaultProjectsDirectory();
+      console.log(`Creating project "${data.name}" at location: ${location}`);
+
       // Validate and sanitize location path
-      const sanitizedLocation = this.sanitizePath(data.location);
+      const sanitizedLocation = this.sanitizePath(location);
       
       // Create project directory
       const projectPath = path.join(sanitizedLocation, this.sanitizeFileName(data.name));

@@ -8,6 +8,17 @@ Object.defineProperty((globalThis as any).HTMLElement.prototype, 'hasPointerCapt
   value: vi.fn(() => false),
 });
 
+// Mock requestSubmit for Radix UI Dialog compatibility with jsdom
+if (!HTMLFormElement.prototype.requestSubmit) {
+  HTMLFormElement.prototype.requestSubmit = function (submitter?: HTMLElement) {
+    if (submitter) {
+      submitter.click();
+    } else {
+      this.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    }
+  };
+}
+
 // Mock scrollIntoView for Radix UI Select
 Object.defineProperty((globalThis as any).HTMLElement.prototype, 'scrollIntoView', {
   writable: true,
@@ -19,6 +30,39 @@ Object.defineProperty((globalThis as any).HTMLElement.prototype, 'scrollIntoView
   observe() {}
   unobserve() {}
   disconnect() {}
+};
+
+// Mock IntersectionObserver for lazy loading components
+(globalThis as any).IntersectionObserver = class IntersectionObserver {
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback;
+  }
+  callback: IntersectionObserverCallback;
+  observe() {
+    // Immediately trigger callback with isIntersecting: true for testing
+    this.callback(
+      [
+        {
+          isIntersecting: true,
+          target: document.createElement('div'),
+          boundingClientRect: {} as DOMRectReadOnly,
+          intersectionRatio: 1,
+          intersectionRect: {} as DOMRectReadOnly,
+          rootBounds: null,
+          time: Date.now(),
+        } as IntersectionObserverEntry,
+      ],
+      this as any
+    );
+  }
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+  root = null;
+  rootMargin = '';
+  thresholds = [];
 };
 
 // Mock HTMLCanvasElement.getContext for canvas-based components

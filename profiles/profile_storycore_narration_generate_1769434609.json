@@ -1,0 +1,30 @@
+{
+  "operation": "storycore.narration.generate",
+  "profile_type": "time",
+  "execution_time_ms": 150.5,
+  "memory_usage_mb": null,
+  "peak_memory_mb": null,
+  "call_count": 42,
+  "hotspots": [
+    {
+      "function": "image_generation",
+      "time_ms": 85.3,
+      "percentage": 56.7,
+      "calls": 1
+    },
+    {
+      "function": "quality_analysis",
+      "time_ms": 35.2,
+      "percentage": 23.4,
+      "calls": 3
+    },
+    {
+      "function": "parameter_validation",
+      "time_ms": 15.0,
+      "percentage": 10.0,
+      "calls": 15
+    }
+  ],
+  "call_graph": null,
+  "profiled_at": "2026-01-26T14:36:49.128483"
+}

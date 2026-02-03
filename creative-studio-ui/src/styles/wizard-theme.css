@@ -1,0 +1,627 @@
+/**
+ * Enhanced Wizard Theme Styles
+ * 
+ * Improved color scheme for better visibility and accessibility
+ * Addresses contrast issues with dark neon theme
+ */
+
+/* ============================================================================ */
+/* Wizard Container Enhancements */
+/* ============================================================================ */
+
+.wizard-container {
+  /* Enhanced background with better contrast */
+  background: linear-gradient(180deg, 
+    rgba(24, 24, 24, 0.95) 0%, 
+    rgba(16, 16, 16, 0.95) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.wizard-header {
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.wizard-content {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.wizard-footer {
+  background: linear-gradient(0deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================================================ */
+/* Step Indicator Enhancements */
+/* ============================================================================ */
+
+.wizard-step-indicator {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.wizard-step-circle {
+  /* Enhanced step circles with better contrast */
+  border-width: 3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wizard-step-circle.completed {
+  background: linear-gradient(135deg, 
+    #667eea 0%, 
+    #764ba2 100%
+  );
+  border-color: #667eea;
+  box-shadow: 
+    0 0 0 4px rgba(102, 126, 234, 0.3),
+    0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.wizard-step-circle.current {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #667eea;
+  color: #1f2937;
+  box-shadow: 
+    0 0 0 4px rgba(102, 126, 234, 0.5),
+    0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.wizard-step-circle.inactive {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.wizard-step-title {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wizard-step-title.current {
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.wizard-step-title.completed {
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
+.wizard-step-title.inactive {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+.wizard-step-connector {
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.3) 50%, 
+    rgba(255, 255, 255, 0.1) 100%
+  );
+}
+
+.wizard-step-connector.completed {
+  background: linear-gradient(90deg, 
+    #667eea 0%, 
+    #764ba2 100%
+  );
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+/* ============================================================================ */
+/* Form Layout Enhancements */
+/* ============================================================================ */
+
+.wizard-form-section {
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.03) 0%, 
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.wizard-form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    rgba(102, 126, 234, 0) 0%, 
+    rgba(102, 126, 234, 0.6) 50%, 
+    rgba(102, 126, 234, 0) 100%
+  );
+}
+
+.wizard-form-title {
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 8px;
+}
+
+.wizard-form-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* ============================================================================ */
+/* Input Field Enhancements */
+/* ============================================================================ */
+
+.wizard-input-group {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wizard-input-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wizard-input-label.required::after {
+  content: '*';
+  color: #ef4444;
+  font-weight: 800;
+}
+
+.wizard-input {
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(4px);
+}
+
+.wizard-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
+}
+
+.wizard-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 0 0 4px rgba(102, 126, 234, 0.2),
+    0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.wizard-input.error {
+  border-color: #ef4444;
+  box-shadow: 
+    0 0 0 4px rgba(239, 68, 68, 0.2),
+    0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.wizard-input.error:focus {
+  border-color: #ef4444;
+  box-shadow: 
+    0 0 0 4px rgba(239, 68, 68, 0.3),
+    0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.wizard-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* ============================================================================ */
+/* Select Enhancements */
+/* ============================================================================ */
+
+.wizard-select-trigger {
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wizard-select-trigger:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 
+    0 0 0 4px rgba(102, 126, 234, 0.2),
+    0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.wizard-select-content {
+  background: rgba(16, 16, 16, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.wizard-select-item {
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.wizard-select-item:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+.wizard-select-item[data-state="checked"] {
+  background: rgba(102, 126, 234, 0.3);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ============================================================================ */
+/* Button Enhancements */
+/* ============================================================================ */
+
+.wizard-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.wizard-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.wizard-button:hover::before {
+  left: 100%;
+}
+
+.wizard-button-primary {
+  background: linear-gradient(135deg, 
+    #667eea 0%, 
+    #764ba2 100%
+  );
+  border: none;
+  color: white;
+  box-shadow: 
+    0 4px 15px rgba(102, 126, 234, 0.4),
+    0 8px 30px rgba(102, 126, 234, 0.3);
+}
+
+.wizard-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(102, 126, 234, 0.6),
+    0 12px 40px rgba(102, 126, 234, 0.4);
+}
+
+.wizard-button-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.wizard-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.wizard-button-ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.wizard-button-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+}
+
+.wizard-button-danger {
+  background: linear-gradient(135deg, 
+    #ef4444 0%, 
+    #dc2626 100%
+  );
+  border: none;
+  color: white;
+  box-shadow: 
+    0 4px 15px rgba(239, 68, 68, 0.4),
+    0 8px 30px rgba(239, 68, 68, 0.3);
+}
+
+.wizard-button-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(239, 68, 68, 0.6),
+    0 12px 40px rgba(239, 68, 68, 0.4);
+}
+
+.wizard-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ============================================================================ */
+/* Badge Enhancements */
+/* ============================================================================ */
+
+.wizard-badge {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wizard-badge:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.wizard-badge-secondary {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.4);
+  color: #e0e7ff;
+}
+
+.wizard-badge-destructive {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fecaca;
+}
+
+/* ============================================================================ */
+/* Card Enhancements */
+/* ============================================================================ */
+
+.wizard-card {
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.03) 0%, 
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.wizard-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    rgba(102, 126, 234, 0) 0%, 
+    rgba(102, 126, 234, 0.6) 50%, 
+    rgba(102, 126, 234, 0) 100%
+  );
+}
+
+.wizard-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+.wizard-card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.wizard-card-title {
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.wizard-card-content {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ============================================================================ */
+/* Error and Validation Enhancements */
+/* ============================================================================ */
+
+.wizard-error-message {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.wizard-error-field {
+  color: #fecaca;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.wizard-validation-summary {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.wizard-validation-item {
+  color: #fecaca;
+  font-size: 0.875rem;
+  padding: 4px 0;
+}
+
+/* ============================================================================ */
+/* Loading and Progress Enhancements */
+/* ============================================================================ */
+
+.wizard-loading-overlay {
+  background: rgba(16, 16, 16, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+.wizard-loading-spinner {
+  border-top-color: #667eea;
+  border-right-color: #764ba2;
+  border-bottom-color: #667eea;
+  animation: wizard-spin 1s linear infinite;
+}
+
+@keyframes wizard-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.wizard-progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.wizard-progress-fill {
+  background: linear-gradient(90deg, 
+    #667eea 0%, 
+    #764ba2 100%
+  );
+  height: 100%;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+/* ============================================================================ */
+/* Accessibility Enhancements */
+/* ============================================================================ */
+
+.wizard-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.wizard-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 
+    0 0 0 4px rgba(102, 126, 234, 0.5),
+    0 0 0 6px rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================================================ */
+/* Responsive Enhancements */
+/* ============================================================================ */
+
+@media (max-width: 768px) {
+  .wizard-container {
+    border-radius: 0;
+    min-height: 100vh;
+  }
+  
+  .wizard-step-indicator {
+    border-radius: 8px;
+    padding: 12px;
+  }
+  
+  .wizard-form-section {
+    border-radius: 12px;
+    padding: 16px;
+  }
+  
+  .wizard-card {
+    border-radius: 12px;
+  }
+}
+
+/* ============================================================================ */
+/* High Contrast Mode Support */
+/* ============================================================================ */
+
+@media (prefers-contrast: high) {
+  .wizard-container {
+    background: #000000;
+    border-color: #ffffff;
+  }
+  
+  .wizard-input {
+    background: #ffffff;
+    color: #000000;
+    border-color: #000000;
+  }
+  
+  .wizard-input::placeholder {
+    color: #666666;
+  }
+  
+  .wizard-button-primary {
+    background: #000000;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+  }
+  
+  .wizard-card {
+    background: #ffffff;
+    color: #000000;
+    border-color: #000000;
+  }
+}
+
+/* ============================================================================ */
+/* Reduced Motion Support */
+/* ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .wizard-loading-spinner {
+    animation: none;
+  }
+}

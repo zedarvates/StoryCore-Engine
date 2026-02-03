@@ -134,6 +134,7 @@ export function Step3_WorldBuilding({ data, onUpdate, errors = {} }: Step3_World
         technologyLevel,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     timePeriod,
     primaryLocation,
@@ -142,7 +143,7 @@ export function Step3_WorldBuilding({ data, onUpdate, errors = {} }: Step3_World
     locations,
     culturalContext,
     technologyLevel,
-    onUpdate,
+    // Don't include onUpdate to avoid infinite loops
   ]);
 
   // Handle location dialog open
@@ -550,7 +551,7 @@ export function Step3_WorldBuilding({ data, onUpdate, errors = {} }: Step3_World
                 <SelectTrigger id="locationMood">
                   <SelectValue placeholder="Select mood" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[9999]">
                   {MOOD_OPTIONS.map((mood) => (
                     <SelectItem key={mood.value} value={mood.value}>
                       {mood.label}

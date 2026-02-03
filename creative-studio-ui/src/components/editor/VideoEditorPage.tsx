@@ -11,19 +11,37 @@ import {
   Sun,
   Plus,
   Play,
+  Pause,
   SkipBack,
   SkipForward,
   Image as ImageIcon,
   MessageCircle,
   X,
-  Send,
   Sparkles,
   Save,
   Edit,
   Copy,
   Trash2,
+  BookOpen,
+  Scissors as ScissorsIcon,
+  SplitIcon,
+  Type,
+  Move,
+  Layers as LayersIcon,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  ZoomIn,
+  ZoomOut,
+  Volume2,
+  VolumeX,
+  Repeat,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
-import { useStore } from '../../store';
+import { useStore, useSelectedWorld, useStories } from '../../store';
+import type { Character } from '@/types/character';
 import { TimelineTracks } from './TimelineTracks';
 import { TransitionLibrary } from './tools/TransitionLibrary';
 import { TransitionEditor } from './tools/TransitionEditor';
@@ -34,7 +52,7 @@ import { TimelineRuler } from './timeline/TimelineRuler';
 import { AudioWaveform } from './timeline/AudioWaveform';
 import { VolumeKeyframes } from './timeline/VolumeKeyframes';
 import { KeyframeEditor } from './tools/KeyframeEditor';
-import { TextClip } from './clips/TextClip';
+import { TextClip } from '../clips/TextClip';
 import { EffectPanel } from './effects/EffectPanel';
 import { FilterLibrary } from './effects/FilterLibrary';
 import { LayerPanel } from './layers/LayerPanel';
@@ -47,6 +65,12 @@ import { EffectControls } from './effects/EffectControls';
 import { CharacterCreatorWizard } from './sequence-planning/CharacterCreatorWizard';
 import { StorytellerWizard } from './sequence-planning/StorytellerWizard';
 import { useCharacterPersistence } from '../../hooks/useCharacterPersistence';
+import { FloatingAIAssistant } from '../FloatingAIAssistant';
+import type { VolumeKeyframe } from '../../types/timeline';
+import type { Layer } from './layers/LayerPanel';
+import type { Effect, AppliedEffect, EffectStackProps, EffectParameter } from '../../types/effect';
+
+import type { TextLayer } from '../../types/text-layer';
 import './VideoEditorPage.css';
 import './TimelineTransitions.css';
 import './timeline/TimelineScrubber.css';
@@ -65,13 +89,11 @@ const ShotContextMenu = ({ shot, position, onClose, onEdit, onDelete, onDuplicat
 }) => {
   return (
     <div
-      className="context-menu"
+      className="context-menu context-menu-position"
       style={{
-        position: 'fixed',
-        left: position.x,
-        top: position.y,
-        zIndex: 1000
-      }}
+        '--left': `${position.x}px`,
+        '--top': `${position.y}px`
+      } as React.CSSProperties}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="context-menu-item" onClick={onEdit}>
@@ -99,13 +121,6 @@ interface Shot {
   thumbnail?: string;
 }
 
-interface Message {
-  id: number;
-  text: string;
-  sender: 'user' | 'assistant';
-  timestamp: Date;
-}
-
 interface VideoEditorPageProps {
   sequenceId?: string;
   sequenceName?: string;
@@ -121,16 +136,6 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   projectName = 'Untitled Project',
   onBackToDashboard,
 }) => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: "Bonjour ! Je suis l'assistant Storycore. Comment puis-je vous aider aujourd'hui ?",
-      sender: 'assistant',
-      timestamp: new Date()
-    }
-  ]);
-  const [inputMessage, setInputMessage] = useState('');
   const [selectedShot, setSelectedShot] = useState<number | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState(true);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
@@ -144,6 +149,31 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   // Grid generation state
   const [isGeneratingGrid, setIsGeneratingGrid] = useState(false);
   const [generationProgress, setGenerationProgress] = useState<GridGenerationProgress | null>(null);
+
+  // Loading overlay state
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+
+  // Toast notifications state
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  // Toast helper functions
+  const showToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
+    setToast({ type, message });
+    // Auto-hide after 3 seconds
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  // Loading helper functions
+  const showLoading = useCallback((message: string) => {
+    setLoadingMessage(message);
+    setIsLoading(true);
+  }, []);
+
+  const hideLoading = useCallback(() => {
+    setIsLoading(false);
+    setLoadingMessage('');
+  }, []);
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -160,6 +190,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   // Character persistence hook
   const { saveCharacter } = useCharacterPersistence();
   const characters = useStore((state) => state.characters);
+  const world = useSelectedWorld();
 
   // Initialize shots from props or use default
   const [shots, setShots] = useState<Shot[]>(() => {
@@ -217,10 +248,10 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   // Audio state
   const [audioVolume, setAudioVolume] = useState(1);
   const [audioMuted, setAudioMuted] = useState(false);
-  const [volumeKeyframes, setVolumeKeyframes] = useState([]);
+  const [volumeKeyframes, setVolumeKeyframes] = useState<VolumeKeyframe[]>([]);
 
   // Effects state for preview
-  const [appliedEffects, setAppliedEffects] = useState([]);
+  const [appliedEffects, setAppliedEffects] = useState<AppliedEffect[]>([]);
 
   // Professional video editing state
   const [selectedTool, setSelectedTool] = useState<'select' | 'trim' | 'split' | 'transition' | 'text' | 'keyframe'>('select');
@@ -230,12 +261,12 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   const [showLayerPanel, setShowLayerPanel] = useState(false);
 
   // Text clips state
-  const [textClips, setTextClips] = useState([]);
-  const [selectedTextClip, setSelectedTextClip] = useState(null);
+  const [textClips, setTextClips] = useState<TextLayer[]>([]);
+  const [selectedTextClip, setSelectedTextClip] = useState<string | null>(null);
 
   // Layer management state
-  const [layers, setLayers] = useState([]);
-  const [selectedLayerIds, setSelectedLayerIds] = useState([]);
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>([]);
 
   // Media library state
   const [mediaAssets, setMediaAssets] = useState([]);
@@ -286,31 +317,6 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
       }
     }, 1000);
   }, []);
-
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
-
-    const newMessage: Message = {
-      id: messages.length + 1,
-      text: inputMessage,
-      sender: 'user',
-      timestamp: new Date()
-    };
-
-    setMessages([...messages, newMessage]);
-    setInputMessage('');
-
-    // Simulate assistant response
-    setTimeout(() => {
-      const response: Message = {
-        id: messages.length + 2,
-        text: "Je comprends votre demande. Laissez-moi vous aider avec ça...",
-        sender: 'assistant',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, response]);
-    }, 1000);
-  };
 
   const handleAddShot = () => {
     const newShot: Shot = {
@@ -392,23 +398,50 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   const handleSaveCharacter = async (character: any) => {
     try {
       // Map wizard data to Character type
-      const characterData = {
+      const characterData: Partial<Character> = {
         name: character.name,
         visual_identity: {
           age_range: `${character.age} ans`,
           build: character.appearance,
+          hair_color: '',
+          hair_style: '',
+          hair_length: '',
+          eye_color: '',
+          eye_shape: '',
+          skin_tone: '',
+          facial_structure: '',
+          distinctive_features: [],
+          height: '',
+          posture: '',
+          clothing_style: '',
+          color_palette: [],
         },
         personality: {
           traits: character.personality,
           temperament: character.personality.join(', '),
+          values: [],
+          fears: [],
+          desires: [],
+          flaws: [],
+          strengths: [],
+          communication_style: '',
         },
         background: {
           origin: character.backstory,
           current_situation: character.worldRelation,
+          occupation: '',
+          education: '',
+          family: '',
+          significant_events: [],
         },
         role: {
           archetype: character.abilities.join(', '),
+          narrative_function: '',
+          character_arc: '',
         },
+        creation_method: 'wizard',
+        creation_timestamp: new Date().toISOString(),
+        version: '1.0',
       };
 
       await saveCharacter(characterData);
@@ -858,29 +891,28 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
 
           {/* Timeline */}
           <div className="timeline-container">
-            <>
-              {/* Professional Timeline Controls */}
-              <TimelineScrubber
-                currentTime={currentTime}
-                duration={totalDuration}
-                zoom={zoom}
-                isPlaying={isPlaying}
-                onTimeChange={handleTimeChange}
-                onPlayPause={() => setIsPlaying(!isPlaying)}
-                onZoomChange={handleZoomChange}
-                onFrameStep={handleFrameStep}
-                loopEnabled={loopEnabled}
-                onLoopToggle={handleLoopToggle}
-              />
+            {/* Professional Timeline Controls */}
+            <TimelineScrubber
+              currentTime={currentTime}
+              duration={totalDuration}
+              zoom={zoom}
+              isPlaying={isPlaying}
+              onTimeChange={handleTimeChange}
+              onPlayPause={() => isPlaying ? pause() : play()}
+              onZoomChange={handleZoomChange}
+              onFrameStep={handleFrameStep}
+              loopEnabled={loopEnabled}
+              onLoopToggle={handleLoopToggle}
+            />
 
-              {/* Timeline Ruler */}
-                  <TimelineRuler
-                    duration={totalDuration}
-                    zoom={zoom}
-                    currentTime={currentTime}
-                  />
+            {/* Timeline Ruler */}
+            <TimelineRuler
+              duration={totalDuration}
+              zoom={zoom}
+              currentTime={currentTime}
+            />
 
-                  <div className="timeline-track">
+            <div className="timeline-track">
               {shots.map((shot, index) => (
                 <div
                   key={shot.id}
@@ -892,37 +924,35 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
                     {shot.title} : Durée {shot.duration} secondes
                   </span>
                 </div>
-                    ))}
-                    <button className="timeline-add-btn" onClick={handleAddShot}>
-                      <Plus size={16} />
-                    </button>
-                  </div>
+              ))}
+              <button className="timeline-add-btn" onClick={handleAddShot} title="Add shot" aria-label="Add shot">
+                <Plus size={16} />
+              </button>
+            </div>
 
-                  <p className="timeline-hint">
-                    Fais glisser les ressources ici et commence à créer
-                  </p>
+            <p className="timeline-hint">
+              Fais glisser les ressources ici et commence à créer
+            </p>
 
-                  {/* Audio Waveform and Volume Controls */}
-                  <AudioWaveform
-                    duration={totalDuration}
-                    currentTime={currentTime}
-                    volume={audioVolume}
-                    isMuted={audioMuted}
-                    onVolumeChange={setAudioVolume}
-                    onMuteToggle={() => setAudioMuted(!audioMuted)}
-                  />
+            {/* Audio Waveform and Volume Controls */}
+            <AudioWaveform
+              duration={totalDuration}
+              currentTime={currentTime}
+              volume={audioVolume}
+              isMuted={audioMuted}
+              onVolumeChange={setAudioVolume}
+              onMuteToggle={() => setAudioMuted(!audioMuted)}
+            />
 
-                  <VolumeKeyframes
-                    duration={totalDuration}
-                    currentTime={currentTime}
-                    keyframes={volumeKeyframes}
-                    onKeyframesChange={setVolumeKeyframes}
-                  />
+            <VolumeKeyframes
+              duration={totalDuration}
+              currentTime={currentTime}
+              keyframes={volumeKeyframes}
+              onKeyframesChange={setVolumeKeyframes}
+            />
 
-                  {/* Timeline Tracks for Media */}
-                  <TimelineTracks onDropMedia={handleDropMedia} />
-                </>
-              );
+            {/* Timeline Tracks for Media */}
+            <TimelineTracks onDropMedia={handleDropMedia} />
           </div>
         </main>
 
@@ -944,8 +974,8 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
               <div className="generation-progress">
                 <div className="progress-bar">
                   <div
-                    className="progress-fill"
-                    style={{ width: `${generationProgress.progress}%` }}
+                    className="progress-fill progress-fill-width"
+                    style={{ '--width': `${generationProgress.progress}%` } as React.CSSProperties}
                   />
                 </div>
                 <div className="progress-text">
@@ -973,12 +1003,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
                     <img
                       src={shot.thumbnail}
                       alt={`${shot.title} thumbnail`}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        borderRadius: '4px'
-                      }}
+                      className="shot-thumbnail-img"
                     />
                   ) : (
                     <ImageIcon size={32} />
@@ -1005,7 +1030,13 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
                 <h3>Effets Visuels</h3>
                 <EffectsLibrary
                   onEffectSelect={(effect) => {
-                    setAppliedEffects([...appliedEffects, { ...effect, id: Date.now().toString() }]);
+                    setAppliedEffects([...appliedEffects, { 
+                      ...effect, 
+                      id: Date.now().toString(),
+                      order: appliedEffects.length,
+                      type: 'custom',
+                      enabled: true
+                    }]);
                   }}
                 />
               </div>
@@ -1014,9 +1045,9 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
                 <h3>Pile d'Effets</h3>
                 <EffectStack
                   effects={appliedEffects}
-                  onReorder={(effects) => setAppliedEffects(effects)}
-                  onRemove={(effectId) => {
-                    setAppliedEffects(appliedEffects.filter(e => e.id !== effectId));
+                  onEffectsChange={(effects: AppliedEffect[]) => setAppliedEffects(effects)}
+                  onEffectSelect={(effect: AppliedEffect) => {
+                    // Handle effect selection if needed
                   }}
                 />
               </div>
@@ -1063,51 +1094,25 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
         </aside>
       </div>
 
-      {/* Floating Chat Assistant */}
-      <div className="chat-assistant">
-        {isChatOpen && (
-          <div className="chat-window">
-            <div className="chat-header">
-              <div className="chat-avatar">SC</div>
-              <div className="chat-title">
-                <h3>Storycore Assistant</h3>
-                <span className="status">En ligne</span>
-              </div>
-              <button className="chat-close" onClick={() => setIsChatOpen(false)}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="chat-messages">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`message ${msg.sender}`}>
-                  <div className="message-bubble">{msg.text}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="chat-input">
-              <input
-                type="text"
-                placeholder="Tapez votre message..."
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              />
-              <button className="send-btn" onClick={handleSendMessage}>
-                <Send size={18} />
-              </button>
-            </div>
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-content">
+            <Loader2 size={48} className="loading-spinner" />
+            <p className="loading-message">{loadingMessage}</p>
           </div>
-        )}
+        </div>
+      )}
 
-        <button
-          className="chat-toggle"
-          onClick={() => setIsChatOpen(!isChatOpen)}
-        >
-          {isChatOpen ? <X size={24} /> : <MessageCircle size={24} />}
-        </button>
-      </div>
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`toast-notification toast-${toast.type}`}>
+          {toast.type === 'success' && <CheckCircle size={20} />}
+          {toast.type === 'error' && <AlertCircle size={20} />}
+          {toast.type === 'info' && <AlertCircle size={20} />}
+          <span>{toast.message}</span>
+        </div>
+      )}
 
       {/* Context Menu */}
       {contextMenu && (
@@ -1174,7 +1179,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
             onKeyframeAdd={() => {}}
             onKeyframeUpdate={() => {}}
             onKeyframeRemove={() => {}}
-            onPlayPause={() => setIsPlaying(!isPlaying)}
+            onPlayPause={() => isPlaying ? pause() : play()}
             onSeek={handleTimeChange}
           />
         </div>
@@ -1185,7 +1190,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
           <div className="media-library-modal">
             <div className="modal-header">
               <h3>Media Library</h3>
-              <button onClick={() => setShowMediaLibrary(false)}>×</button>
+              <button onClick={() => setShowMediaLibrary(false)} title="Close media library" aria-label="Close media library">×</button>
             </div>
             <MediaLibrary
               assets={mediaAssets}
@@ -1212,7 +1217,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
           <div className="layer-panel-modal">
             <div className="modal-header">
               <h3>Layer Management</h3>
-              <button onClick={() => setShowLayerPanel(false)}>×</button>
+              <button onClick={() => setShowLayerPanel(false)} title="Close layer panel" aria-label="Close layer panel">×</button>
             </div>
             <LayerPanel
               layers={layers}
@@ -1263,8 +1268,22 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
                 }
               }}
               onLayerReorder={(layerId, newIndex) => {
-                // TODO: Implement reordering logic
-                console.log('Reorder layer:', layerId, 'to index:', newIndex);
+                // Implémenter la logique de réordering des layers
+                setLayers(prev => {
+                  const oldIndex = prev.findIndex(l => l.id === layerId);
+                  if (oldIndex === -1) return prev;
+                  
+                  const newLayers = [...prev];
+                  const [removed] = newLayers.splice(oldIndex, 1);
+                  newLayers.splice(newIndex, 0, removed);
+                  
+                  // Mettre à jour les positions z
+                  return newLayers.map((layer, index) => ({
+                    ...layer,
+                    position: { ...layer.position, z: index }
+                  }));
+                });
+                console.log('Layer reordered:', layerId, 'to index:', newIndex);
               }}
               onLayerGroup={(layerIds, groupName) => {
                 console.log('Group layers:', layerIds, 'with name:', groupName);
@@ -1316,6 +1335,9 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
           onSelect={() => setSelectedTextClip(textClip.id)}
         />
       ))}
+
+      {/* AI Assistant Integration for Video Editor V3 */}
+      <FloatingAIAssistant />
     </div>
   );
 };

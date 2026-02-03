@@ -1,0 +1,500 @@
+{
+  "metadata": {
+    "version": "1.1.0",
+    "created_at": "2026-01-26T15:25:21.666Z",
+    "updated_at": "2026-01-26T16:10:27.104Z",
+    "schema_version": "2026.1.26",
+    "description": "Structure hiérarchique des plans séquences avec dialogues générés et fichiers associés",
+    "purpose": "Données complètes pour le fonctionnement des plans séquences dans le storycore-engine",
+    "author": "StoryCore Engine",
+    "last_modified_by": "system"
+  },
+  "llm_friendly_config": {
+    "system_prompt": "Vous êtes un assistant d'écriture narrative spécialisé dans la création de séquences cinématographiques engageantes. Votre rôle est de générer des dialogues cohérents, des descriptions scéniques évocatrices et des structures narratives captivantes en respectant les contraintes temporelles et émotionnelles fournies.",
+    "prompt_examples": [
+      {
+        "scenario": "Ouverture dramatique",
+        "prompt": "Génère une introduction atmosphérique pour une scène contemporaine urbaine avec une tension croissante. Inclut un narrateur et une introduction du protagoniste.",
+        "expected_output": "Dialogue narratif + description visuelle + émotion contemplative"
+      },
+      {
+        "scenario": "Développement des personnages",
+        "prompt": "Crée une interaction entre protagonistes révélant leurs motivations et conflits internes dans un café moderne.",
+        "expected_output": "Dialogue conversationnel + émotions intenses + dynamique relationnelle"
+      },
+      {
+        "scenario": "Point culminant",
+        "prompt": "Développe une confrontation finale avec des enjeux élevés et une résolution dramatique.",
+        "expected_output": "Dialogue conflictuel + émotions fortes + résolution narrative"
+      }
+    ],
+    "valid_emotions": ["joy", "sadness", "anger", "fear", "surprise", "contempt", "anticipation", "trust", "curious", "contemplative", "intense", "prudent", "frustrated", "determined", "desperate", "resolved"]
+  },
+  "project_sequences": {
+    "sequence_catalog": {
+      "opening_sequence": {
+        "sequence_id": "seq_001",
+        "sequence_type": "opening",
+        "title": "Ouverture dramatique",
+        "duration_minutes": 5,
+        "purpose": "Établir le contexte et captiver l'audience",
+        "context": {
+          "setting": "Contemporain, urban",
+          "time_period": "Présent",
+          "mood": "Tension croissante",
+          "target_audience": "Adultes 18-45 ans"
+        },
+        "structure": {
+          "acts": [
+            {
+              "act_number": 1,
+              "start_time": "00:00:00",
+              "end_time": "00:01:30",
+              "description": "Plan d'introduction atmosphérique",
+              "key_elements": ["Paysage urbain", "Musique ambiant", "Lumière dramatique"]
+            },
+            {
+              "act_number": 2,
+              "start_time": "00:01:30",
+              "end_time": "00:03:00",
+              "description": "Introduction du protagoniste",
+              "key_elements": ["Premier plan du personnage", "Expression faciale", "Mouvement significatif"]
+            },
+            {
+              "act_number": 3,
+              "start_time": "00:03:00",
+              "end_time": "00:05:00",
+              "description": "Établissement du conflit initial",
+              "key_elements": ["Incitant incident", "Première tension", "Question posée"]
+            }
+          ]
+        },
+        "dialogues": [
+          {
+            "scene_id": "scene_001",
+            "character": "Narrateur",
+            "dialogue_type": "voix_off",
+            "text": "Dans un monde où le temps s'écoule comme du sable entre les doigts, chaque seconde compte.",
+            "emotion": "contemplative",
+            "delivery": "lente et réfléchie",
+            "timing": "00:00:15-00:00:25",
+            "associated_files": [
+              "assets/audio/narration_001.mp3",
+              "assets/images/cityscape_001.jpg"
+            ]
+          },
+          {
+            "scene_id": "scene_002",
+            "character": "Alex",
+            "dialogue_type": "monologue_interieur",
+            "text": "Encore une journée, encore les mêmes visages. Mais aujourd'hui, quelque chose est différent.",
+            "emotion": "curieux",
+            "delivery": "intime et réflexif",
+            "timing": "00:02:10-00:02:18",
+            "associated_files": [
+              "assets/video/alex_closeup_001.mp4",
+              "assets/audio/voice_alex_001.mp3"
+            ]
+          }
+        ],
+        "associated_assets": {
+          "visual_assets": [
+            {
+              "asset_id": "vis_001",
+              "type": "background",
+              "file_path": "assets/images/cityscape_dusk.jpg",
+              "description": "Paysage urbain au crépuscule",
+              "usage": "fond atmosphérique",
+              "resolution": "1920x1080"
+            },
+            {
+              "asset_id": "vis_002",
+              "type": "character",
+              "file_path": "assets/images/alex_portrait.jpg",
+              "description": "Portrait du protagoniste",
+              "usage": "plan rapproché",
+              "resolution": "1280x720"
+            }
+          ],
+          "audio_assets": [
+            {
+              "asset_id": "aud_001",
+              "type": "music",
+              "file_path": "assets/music/ambient_tension.mp3",
+              "description": "Musique ambiente avec tension croissante",
+              "duration": "300s",
+              "mood": "suspense"
+            },
+            {
+              "asset_id": "aud_002",
+              "type": "sound_effect",
+              "file_path": "assets/sounds/city_ambience.mp3",
+              "description": "Ambiance sonore de ville",
+              "duration": "180s",
+              "loop": true
+            }
+          ]
+        }
+      },
+      "development_sequence": {
+        "sequence_id": "seq_002",
+        "sequence_type": "development",
+        "title": "Développement des personnages",
+        "duration_minutes": 15,
+        "purpose": "Approfondissement des personnages et progression du conflit",
+        "context": {
+          "setting": "Multiples environnements",
+          "time_period": "Jour courant",
+          "mood": "Progression narrative",
+          "target_audience": "Adultes 18-45 ans"
+        },
+        "structure": {
+          "acts": [
+            {
+              "act_number": 1,
+              "start_time": "00:05:00",
+              "end_time": "00:08:00",
+              "description": "Interaction entre personnages",
+              "key_elements": ["Dialogue entre protagonistes", "Révélation de caractères", "Dynamique relationnelle"]
+            },
+            {
+              "act_number": 2,
+              "start_time": "00:08:00",
+              "end_time": "00:12:00",
+              "description": "Approfondissement des motivations",
+              "key_elements": ["Récits passés", "Objectifs révélés", "Conflits internes"]
+            },
+            {
+              "act_number": 3,
+              "start_time": "00:12:00",
+              "end_time": "00:20:00",
+              "description": "Montée en tension",
+              "key_elements": ["Obstacles apparus", "Décisions cruciales", "Point de non-retour"]
+            }
+          ]
+        },
+        "dialogues": [
+          {
+            "scene_id": "scene_003",
+            "character": "Alex",
+            "dialogue_type": "conversation",
+            "text": "Tu ne comprends pas, c'est plus qu'un simple travail. C'est une question de survie.",
+            "emotion": "intense",
+            "delivery": "passionnée",
+            "timing": "00:06:30-00:06:42",
+            "associated_files": [
+              "assets/video/alex_dialogue_001.mp4",
+              "assets/audio/voice_alex_002.mp3"
+            ]
+          },
+          {
+            "scene_id": "scene_004",
+            "character": "Sarah",
+            "dialogue_type": "conversation",
+            "text": "Je sais que c'est important, mais il y a d'autres façons de faire les choses. Des façons plus sûres.",
+            "emotion": "prudente",
+            "delivery": "concernée",
+            "timing": "00:07:15-00:07:28",
+            "associated_files": [
+              "assets/video/sarah_dialogue_001.mp4",
+              "assets/audio/voice_sarah_001.mp3"
+            ]
+          },
+          {
+            "scene_id": "scene_005",
+            "character": "Alex",
+            "dialogue_type": "monologue_interieur",
+            "text": "Pourquoi ne peuvent-ils jamais comprendre? Chaque seconde compte, et je dois faire ce qui est nécessaire.",
+            "emotion": "frustré",
+            "delivery": "résigné",
+            "timing": "00:14:45-00:15:02",
+            "associated_files": [
+              "assets/video/alex_closeup_002.mp4",
+              "assets/audio/voice_alex_003.mp3",
+              "assets/images/alex_thought_bubble.jpg"
+            ]
+          }
+        ],
+        "associated_assets": {
+          "visual_assets": [
+            {
+              "asset_id": "vis_003",
+              "type": "environment",
+              "file_path": "assets/images/cafe_interior.jpg",
+              "description": "Intérieur de café moderne",
+              "usage": "scène de dialogue",
+              "resolution": "1920x1080"
+            },
+            {
+              "asset_id": "vis_004",
+              "type": "character",
+              "file_path": "assets/images/sarah_portrait.jpg",
+              "description": "Portrait du personnage secondaire",
+              "usage": "plan rapproché",
+              "resolution": "1280x720"
+            }
+          ],
+          "audio_assets": [
+            {
+              "asset_id": "aud_003",
+              "type": "music",
+              "file_path": "assets/music/development_theme.mp3",
+              "description": "Thème musical pour développement des personnages",
+              "duration": "900s",
+              "mood": "contemplative"
+            },
+            {
+              "asset_id": "aud_004",
+              "type": "ambient",
+              "file_path": "assets/sounds/cafe_ambience.mp3",
+              "description": "Ambiance de café",
+              "duration": "300s",
+              "loop": true
+            }
+          ]
+        }
+      },
+      "climax_sequence": {
+        "sequence_id": "seq_003",
+        "sequence_type": "climax",
+        "title": "Point culminant",
+        "duration_minutes": 10,
+        "purpose": "Résolution du conflit et point de non-retour",
+        "context": {
+          "setting": "Tension maximale",
+          "time_period": "Crise",
+          "mood": "Dramatique intense",
+          "target_audience": "Adultes 18-45 ans"
+        },
+        "structure": {
+          "acts": [
+            {
+              "act_number": 1,
+              "start_time": "00:20:00",
+              "end_time": "00:25:00",
+              "description": "Confrontation finale",
+              "key_elements": ["Opposition directe", "Stakes élevés", "Tension maximale"]
+            },
+            {
+              "act_number": 2,
+              "start_time": "00:25:00",
+              "end_time": "00:28:00",
+              "description": "Révélation cruciale",
+              "key_elements": ["Twist narratif", "Vérité révélée", "Changement de perspective"]
+            },
+            {
+              "act_number": 3,
+              "start_time": "00:28:00",
+              "end_time": "00:30:00",
+              "description": "Point de non-retour",
+              "key_elements": ["Décision finale", "Conséquences inévitables", "Nouvelle réalité"]
+            }
+          ]
+        },
+        "dialogues": [
+          {
+            "scene_id": "scene_006",
+            "character": "Alex",
+            "dialogue_type": "confrontation",
+            "text": "C'est fini. Plus de compromis, plus d'attentes. Je dois faire ce qui doit être fait.",
+            "emotion": "déterminé",
+            "delivery": "puissant",
+            "timing": "00:21:30-00:21:48",
+            "associated_files": [
+              "assets/video/alex_confrontation_001.mp4",
+              "assets/audio/voice_alex_004.mp3",
+              "assets/sounds/dramatic_music.mp3"
+            ]
+          },
+          {
+            "scene_id": "scene_007",
+            "character": "Sarah",
+            "dialogue_type": "confrontation",
+            "text": "Tu vas tout perdre ! Tout ce pour quoi tu as travaillé, tout ce que nous avons bâti ensemble !",
+            "emotion": "désespérée",
+            "delivery": "émotionnelle",
+            "timing": "00:24:15-00:24:35",
+            "associated_files": [
+              "assets/video/sarah_confrontation_001.mp4",
+              "assets/audio/voice_sarah_002.mp3"
+            ]
+          },
+          {
+            "scene_id": "scene_008",
+            "character": "Alex",
+            "dialogue_type": "final_statement",
+            "text": "Parfois, pour sauver ce qui compte vraiment, il faut être prêt à tout perdre.",
+            "emotion": "résolu",
+            "delivery": "calme mais intense",
+            "timing": "00:28:45-00:29:02",
+            "associated_files": [
+              "assets/video/alex_final_001.mp4",
+              "assets/audio/voice_alex_005.mp3",
+              "assets/images/sunset_background.jpg"
+            ]
+          }
+        ],
+        "associated_assets": {
+          "visual_assets": [
+            {
+              "asset_id": "vis_005",
+              "type": "environment",
+              "file_path": "assets/images/rooftop_scene.jpg",
+              "description": "Scène de confrontation sur toit",
+              "usage": "scène de climax",
+              "resolution": "1920x1080"
+            },
+            {
+              "asset_id": "vis_006",
+              "type": "special_effect",
+              "file_path": "assets/images/lightning_effect.jpg",
+              "description": "Effet visuel dramatique",
+              "usage": "accentuation de tension",
+              "resolution": "1920x1080"
+            }
+          ],
+          "audio_assets": [
+            {
+              "asset_id": "aud_005",
+              "type": "music",
+              "file_path": "assets/music/climax_theme.mp3",
+              "description": "Thème musical intense pour climax",
+              "duration": "600s",
+              "mood": "dramatique"
+            },
+            {
+              "asset_id": "aud_006",
+              "type": "sound_effect",
+              "file_path": "assets/sounds/thunder.mp3",
+              "description": "Effet sonore de tonnerre",
+              "duration": "5s",
+              "impact": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  "sequence_templates": {
+    "template_basic_opening": {
+      "template_id": "temp_opening_basic",
+      "sequence_type": "opening",
+      "duration_range": {
+        "min_minutes": 3,
+        "max_minutes": 8
+      },
+      "required_elements": [
+        "context_establishment",
+        "character_introduction",
+        "conflict_setup"
+      ],
+      "dialogue_patterns": [
+        "narrator_introduction",
+        "character_reflection",
+        "foreshadowing"
+      ]
+    },
+    "template_character_development": {
+      "template_id": "temp_dev_character",
+      "sequence_type": "development",
+      "duration_range": {
+        "min_minutes": 10,
+        "max_minutes": 20
+      },
+      "required_elements": [
+        "character_interaction",
+        "motivation_reveal",
+        "relationship_building"
+      ],
+      "dialogue_patterns": [
+        "conversation_exchange",
+        "emotional_revelation",
+        "conflict_emergence"
+      ]
+    },
+    "template_climax_resolution": {
+      "template_id": "temp_climax_final",
+      "sequence_type": "climax",
+      "duration_range": {
+        "min_minutes": 8,
+        "max_minutes": 15
+      },
+      "required_elements": [
+        "confrontation",
+        "critical_decision",
+        "resolution"
+      ],
+      "dialogue_patterns": [
+        "confrontational_dialogue",
+        "emotional_climax",
+        "final_resolution"
+      ]
+    }
+  },
+  "file_references": {
+    "audio_directory": "assets/audio/",
+    "video_directory": "assets/video/",
+    "image_directory": "assets/images/",
+    "music_directory": "assets/music/",
+    "effects_directory": "assets/sounds/",
+    "output_directory": "output/final/"
+  },
+  "validation_schema": {
+    "dialogue_validation": {
+      "required_fields": ["scene_id", "character", "text", "timing"],
+      "emotion_validation": {"valid_emotions": ["joy", "sadness", "anger", "fear", "surprise", "contempt", "anticipation", "trust", "curious", "contemplative", "intense", "prudent", "frustrated", "determined", "desperate", "resolved"]},
+      "timing_format": "HH:MM:SS-HH:MM:SS"
+    },
+    "sequence_validation": {
+      "required_fields": ["sequence_id", "sequence_type", "title", "duration_minutes", "structure"],
+      "act_validation": {
+        "required_fields": ["act_number", "start_time", "end_time", "description"],
+        "time_validation": "HH:MM:SS format required"
+      },
+      "asset_validation": {
+        "required_fields": ["asset_id", "type", "file_path", "description"],
+        "file_path_validation": "Must be relative path from project root"
+      }
+    },
+    "complete_validation_schema": {
+      "sequence_structure": {
+        "max_depth": 5,
+        "allowed_fields": ["sequence_id", "sequence_type", "title", "duration_minutes", "purpose", "context", "structure", "dialogues", "associated_assets", "file_references"],
+        "nested_object_rules": {
+          "context": ["setting", "time_period", "mood", "target_audience"],
+          "structure": ["acts"],
+          "dialogues": ["scene_id", "character", "dialogue_type", "text", "emotion", "delivery", "timing", "associated_files"],
+          "associated_assets": ["visual_assets", "audio_assets"]
+        }
+      }
+    }
+  },
+  "version_history": [
+    {
+      "version": "1.0.0",
+      "date": "2026-01-26T15:25:21.666Z",
+      "changes": [
+        "Initial version with comprehensive narrative sequences structure",
+        "Added three complete sequences (opening, development, climax)",
+        "Implemented dialogue generation with timing and emotion",
+        "Created asset association system with file references",
+        "Established validation schema for data integrity",
+        "Added sequence templates for standard patterns"
+      ],
+      "breaking_changes": false
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-01-26T16:10:27.104Z",
+      "changes": [
+        "Added LLM-friendly configuration with system_prompt and prompt_examples",
+        "Extended valid emotions list to include 'curious' and additional emotional states",
+        "Added comprehensive validation schema with depth constraints",
+        "Improved dialogue validation with extended emotion support",
+        "Enhanced sequence structure validation with max_depth=5",
+        "Standardized naming conventions across all components"
+      ],
+      "breaking_changes": false
+    }
+  ]
+}

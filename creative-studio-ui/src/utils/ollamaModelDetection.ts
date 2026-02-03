@@ -54,14 +54,16 @@ export async function suggestBestModel(
   }
 
   // Priority order for model selection (best for StoryCore use case)
+  // Note: qwen3-vl models have extended thinking enabled which causes empty responses
+  // for JSON generation tasks, so they're deprioritized
   const preferredModels = [
-    'qwen3-vl:8b',        // Best: Vision + Language, perfect for StoryCore
-    'llama3.1:8b',        // High quality, good for complex narratives
-    'llama3.2:3b',        // Balanced performance
-    'gemma3:4b',          // Fast and efficient
-    'gemma3:1b',          // Ultra fast
-    'mistral:latest',     // Alternative high-quality option
-    'qwen2.5-coder:latest', // Good for technical content
+    'llama3.1:8b',        // Best: High quality, excellent for JSON and narratives
+    'mistral:latest',     // Excellent: Fast and reliable for structured output
+    'gemma3:4b',          // Good: Fast and efficient
+    'llama3.2:3b',        // Good: Balanced performance
+    'qwen2.5-coder:latest', // Good: Reliable for structured content
+    'gemma3:1b',          // Fast: Ultra fast but lower quality
+    'qwen3-vl:8b',        // Vision capable but has extended thinking issues
     'phi3:mini',          // Compact and efficient
   ];
 

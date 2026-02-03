@@ -51,59 +51,63 @@ class LLMConfigService {
       return;
     }
 
-
-    // Load configuration from storage
-    let config = await loadLLMSettings();
-    
-    // If no configuration exists, create a default one with auto-detected model
-    if (!config) {
+    try {
+      // Load configuration from storage
+      let config = await loadLLMSettings();
       
-      // Try to detect available Ollama models
-      let detectedModel = 'llama3.2:1b'; // Fallback default
-      try {
-        const { suggestBestModel } = await import('@/utils/ollamaModelDetection');
-        const suggestion = await suggestBestModel('http://localhost:11434');
+      // If no configuration exists, create a default one with auto-detected model
+      if (!config) {
         
-        if (suggestion) {
-          detectedModel = suggestion.model;
-          if (suggestion.alternatives.length > 0) {
+        // Try to detect available Ollama models
+        let detectedModel = 'llama3.2:1b'; // Fallback default
+        try {
+          const { suggestBestModel } = await import('@/utils/ollamaModelDetection');
+          const suggestion = await suggestBestModel('http://localhost:11434');
+          
+          if (suggestion) {
+            detectedModel = suggestion.model;
+            if (suggestion.alternatives.length > 0) {
+            }
+          } else {
+            console.warn('[LLMConfigService] No models detected, using fallback:', detectedModel);
           }
-        } else {
-          console.warn('[LLMConfigService] No models detected, using fallback:', detectedModel);
+        } catch (error) {
+          console.warn('[LLMConfigService] Failed to detect models, using fallback:', error);
         }
-      } catch (error) {
-        console.warn('[LLMConfigService] Failed to detect models, using fallback:', error);
+        
+        config = {
+          provider: 'local',
+          model: detectedModel,
+          apiKey: '',
+          apiEndpoint: 'http://localhost:11434',
+          streamingEnabled: true,
+          parameters: {
+            temperature: 0.7,
+            maxTokens: 2000,
+            topP: 0.9,
+            frequencyPenalty: 0,
+            presencePenalty: 0,
+          },
+        };
+        // Save the default configuration
+        await this.setConfig(config, true);
+      } else {
+        await this.setConfig(config, false); // Don't save, just load
       }
-      
-      config = {
-        provider: 'local',
-        model: detectedModel,
-        apiKey: '',
-        apiEndpoint: 'http://localhost:11434',
-        streamingEnabled: true,
-        parameters: {
-          temperature: 0.7,
-          maxTokens: 2000,
-          topP: 0.9,
-          frequencyPenalty: 0,
-          presencePenalty: 0,
-        },
-      };
-      // Save the default configuration
-      await this.setConfig(config, true);
-    } else {
-      await this.setConfig(config, false); // Don't save, just load
+
+      // Listen for settings updates from other sources
+      eventEmitter.on(WizardEventType.LLM_SETTINGS_UPDATED, async () => {
+        const updatedConfig = await loadLLMSettings();
+        if (updatedConfig) {
+          await this.setConfig(updatedConfig, false);
+        }
+      });
+
+      this.initialized = true;
+    } catch (error) {
+      console.error('[LLMConfigService] Initialization failed:', error);
+      throw new Error(`LLM configuration service initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-
-    // Listen for settings updates from other sources
-    eventEmitter.on(WizardEventType.LLM_SETTINGS_UPDATED, async () => {
-      const updatedConfig = await loadLLMSettings();
-      if (updatedConfig) {
-        await this.setConfig(updatedConfig, false);
-      }
-    });
-
-    this.initialized = true;
   }
 
   /**
@@ -111,7 +115,12 @@ class LLMConfigService {
    * Saves to storage, updates service, and notifies all listeners
    */
   async updateConfig(config: LLMConfig): Promise<void> {
-    await this.setConfig(config, true);
+    try {
+      await this.setConfig(config, true);
+    } catch (error) {
+      console.error('[LLMConfigService] Failed to update configuration:', error);
+      throw new Error(`Failed to update LLM configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -121,31 +130,36 @@ class LLMConfigService {
     const previousConfig = this.currentConfig;
     this.currentConfig = config;
 
-    // Create or update LLM service
-    if (!this.llmService) {
-      this.llmService = new LLMService(config);
-    } else {
-      this.llmService.updateConfig(config);
-    }
+    try {
+      // Create or update LLM service
+      if (!this.llmService) {
+        this.llmService = new LLMService(config);
+      } else {
+        this.llmService.updateConfig(config);
+      }
 
-    // Save to storage if requested
-    if (save) {
-      await saveLLMSettings(config);
-    }
+      // Save to storage if requested
+      if (save) {
+        await saveLLMSettings(config);
+      }
 
-    // Notify all listeners
-    this.notifyListeners(config);
+      // Notify all listeners
+      this.notifyListeners(config);
 
-    // Emit event for other parts of the app
-    if (save) {
-      eventEmitter.emit(WizardEventType.LLM_SETTINGS_UPDATED, {
-        provider: config.provider,
-        model: config.model,
-        previousProvider: previousConfig?.provider,
-        previousModel: previousConfig?.model,
-        timestamp: new Date(),
-        source: 'llmConfigService',
-      });
+      // Emit event for other parts of the app
+      if (save) {
+        eventEmitter.emit(WizardEventType.LLM_SETTINGS_UPDATED, {
+          provider: config.provider,
+          model: config.model,
+          previousProvider: previousConfig?.provider,
+          previousModel: previousConfig?.model,
+          timestamp: new Date(),
+          source: 'llmConfigService',
+        });
+      }
+    } catch (error) {
+      console.error('[LLMConfigService] Failed to set configuration:', error);
+      throw new Error(`Failed to set LLM configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

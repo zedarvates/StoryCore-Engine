@@ -1,0 +1,27 @@
+{
+  "menu": {
+    "main": "Main Menu",
+    "view": "View",
+    "settings": "Settings",
+    "backToDashboard": "Back to Dashboard",
+    "llmConfig": "LLM StoryCore Assistant Configuration",
+    "comfyUIConfig": "ComfyUI Server Configuration",
+    "userPreferences": "User Preferences"
+  },
+  "preferences": {
+    "title": "User Preferences",
+    "language": "Language",
+    "selectLanguage": "Select language",
+    "languageDescription": "Select your preferred language for the interface"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "apply": "Apply",
+    "reset": "Reset"
+  }
+}

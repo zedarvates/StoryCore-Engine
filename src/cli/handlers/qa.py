@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from ..memory_integration import log_qa_scoring
 
 
 class QAHandler(BaseHandler):
@@ -34,6 +35,19 @@ class QAHandler(BaseHandler):
             "--detailed",
             action="store_true",
             help="Show detailed per-panel analysis"
+        )
+        
+        # ComfyUI integration flags (Validates: Requirements 1.4, 11.7)
+        parser.add_argument(
+            "--mock",
+            action="store_true",
+            help="Force mock mode (disable real backend generation)"
+        )
+        
+        parser.add_argument(
+            "--backend-url",
+            type=str,
+            help="Override ComfyUI backend URL (default: http://localhost:8000)"
         )
     
     def execute(self, args: argparse.Namespace) -> int:
@@ -68,12 +82,27 @@ class QAHandler(BaseHandler):
             if args.threshold != 3.0:
                 print(f"Quality threshold: {args.threshold}/5.0")
             
+            # Show backend mode
+            if args.mock:
+                print(f"Backend mode: Mock (forced)")
+            elif args.backend_url:
+                print(f"Backend URL: {args.backend_url}")
+            
             # Run QA scoring with integrated quality validation
             qa_engine = QAEngine()
+            
+            # Pass backend configuration if provided
+            backend_config = {}
+            if args.mock:
+                backend_config['force_mock'] = True
+            if args.backend_url:
+                backend_config['backend_url'] = args.backend_url
+            
             qa_report = qa_engine.run_qa_scoring(
                 str(project_path),
                 enable_advanced_validation=True,
-                enable_audio_mixing=True
+                enable_audio_mixing=True,
+                **backend_config
             )
             
             # Display results
@@ -85,6 +114,16 @@ class QAHandler(BaseHandler):
             status_text = "PASSED" if passed else "FAILED"
             status_icon = "✓" if passed else "✗"
             print(f"Status: {status_icon} {status_text}")
+            
+            # Log to memory system if enabled
+            issues_count = len(qa_report.get("issues", []))
+            log_qa_scoring(
+                project_path=project_path,
+                overall_score=qa_report['overall_score'],
+                threshold=args.threshold,
+                passed=passed,
+                issues_count=issues_count
+            )
             
             # Display category scores
             if qa_report.get("categories"):

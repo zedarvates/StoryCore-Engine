@@ -1,0 +1,67 @@
+{
+  "changelog": [
+    {
+      "version": "v1.0.0",
+      "date": "2024-01-15",
+      "change_type": "added",
+      "description": "Initial release of StoryCore Complete API System",
+      "affected_endpoints": [
+        "*"
+      ],
+      "breaking": false
+    },
+    {
+      "version": "v1.0.0",
+      "date": "2024-01-15",
+      "change_type": "added",
+      "description": "113 endpoints across 14 functional categories",
+      "affected_endpoints": [
+        "*"
+      ],
+      "breaking": false
+    },
+    {
+      "version": "v1.0.0",
+      "date": "2024-01-15",
+      "change_type": "added",
+      "description": "Async task management for long-running operations",
+      "affected_endpoints": [
+        "storycore.task.status",
+        "storycore.task.cancel"
+      ],
+      "breaking": false
+    },
+    {
+      "version": "v1.0.0",
+      "date": "2024-01-15",
+      "change_type": "added",
+      "description": "Authentication and authorization support",
+      "affected_endpoints": [
+        "storycore.security.*"
+      ],
+      "breaking": false
+    },
+    {
+      "version": "v1.0.0",
+      "date": "2024-01-15",
+      "change_type": "added",
+      "description": "Rate limiting and caching capabilities",
+      "affected_endpoints": [
+        "*"
+      ],
+      "breaking": false
+    },
+    {
+      "version": "v1.0.0",
+      "date": "2024-01-15",
+      "change_type": "added",
+      "description": "OpenAPI 3.0 specification generation",
+      "affected_endpoints": [
+        "storycore.api.openapi",
+        "storycore.api.schema"
+      ],
+      "breaking": false
+    }
+  ],
+  "last_updated": "2026-01-26T15:32:06.080586"
+}

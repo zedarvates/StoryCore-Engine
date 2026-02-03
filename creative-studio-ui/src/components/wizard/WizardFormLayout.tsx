@@ -22,10 +22,10 @@ export function WizardFormLayout({
   className,
 }: WizardFormLayoutProps) {
   return (
-    <Card className={cn('w-full', className)}>
+    <Card className={cn('w-full wizard-form-section', className)}>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
+        <CardTitle className="wizard-form-title">{title}</CardTitle>
+        {description && <CardDescription className="wizard-form-description">{description}</CardDescription>}
       </CardHeader>
       <CardContent className="space-y-6">
         {children}

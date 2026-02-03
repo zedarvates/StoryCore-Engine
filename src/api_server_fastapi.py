@@ -44,7 +44,12 @@ app = FastAPI(title="StoryCore API", version="1.0.0")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,6 +69,9 @@ api_keys_router = APIRouter()
 # Import installation router
 from .installation_api import installation_router
 
+# Import sequence router
+from .api.sequence_routes import sequences_router
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -77,6 +85,9 @@ v1_router.include_router(api_keys_router, prefix="/api-keys", tags=["api-keys"])
 
 # Include installation router (not under v1 to match design spec)
 app.include_router(installation_router)
+
+# Include sequence router
+app.include_router(sequences_router, prefix="/api")
 
 # Include v1 router in app
 app.include_router(v1_router)

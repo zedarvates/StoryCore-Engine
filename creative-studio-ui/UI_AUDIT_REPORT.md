@@ -1,435 +1,340 @@
-# StoryCore Creative Studio UI Audit Report
+# UI Audit Report - StoryCore Creative Studio
 
-**Date:** January 23, 2026  
-**Auditor:** AI Assistant  
-**Scope:** User interface analysis, dashboard inventory, functionality assessment, menu improvements, chatbox UX enhancement
+**Date:** January 2026
+**Scope:** User Interface Components Audit
+**Status:** Issues Found
+
+---
 
 ## Executive Summary
 
-This audit examines the StoryCore Creative Studio user interface, identifying key dashboards, user-integrable functionalities, current menu structure, and specific improvement opportunities. The primary focus areas include chatbox usability issues and menu organization enhancements.
+The UI audit identified **several categories of issues** across the Creative Studio UI components that need attention to improve user experience, accessibility, and code quality.
 
-## 1. Dashboard Inventory
-
-### 1.1 WelcomeScreen.tsx
-**Purpose:** Landing page and project entry point
-**Features:**
-- New project creation
-- Open existing project
-- Recent projects list (last 5)
-- Quick create wizards (World, Character)
-- Quick tips section
-
-**UI Elements:**
-- Hero section with app branding
-- Action cards grid (2x2)
-- Wizard shortcuts section
-- Recent projects panel
-- Tips footer
-
-### 1.2 ProjectDashboardNew.tsx
-**Purpose:** Main project workspace dashboard
-**Architecture:** Tab-based interface with 4 main sections
-
-**Tabs:**
-1. **Prompts Tab**
-   - Shot-level prompt management
-   - Real-time validation
-   - Prompt completion tracking
-
-2. **Audio Tab**
-   - Audio track management
-   - Voice generation integration
-   - Phrase-level synchronization
-
-3. **Generate Tab**
-   - Sequence generation controls
-   - Automated pipeline integration
-   - Progress monitoring
-
-4. **Analysis Tab**
-   - Prompt analysis and insights
-   - Performance metrics
-   - Optimization suggestions
-
-**Header Features:**
-- Project info display
-- Prompt completion progress bar
-- Generation status indicators
-- Save status badges
-- Capabilities badges (Grid Gen, Promotion, QA, Voice)
-
-### 1.3 CentralConfigurationUI.tsx
-**Purpose:** System configuration and settings management
-**Modal Windows:**
-- **Workspace View:** Main configuration dashboard
-- **API Settings:** Endpoint configuration
-- **LLM Configuration:** Language model settings
-- **ComfyUI Configuration:** AI image generation setup
-- **General Settings:** Application preferences
-
-### 1.4 Additional Dashboard Components
-- **ProjectWorkspace.tsx:** Workspace component within configuration UI
-- **StoryCoreDashboard.tsx:** Alternative dashboard with plans/panels
-- **ProjectDashboardPage.tsx:** Page wrapper for dashboard routing
-
-## 2. User-Integrable Functionalities
-
-### 2.1 Core Editing Panels
-
-#### Visual Editing
-- **StoryboardCanvas.tsx:** Visual storyboard editing interface
-- **CanvasArea.tsx:** Main canvas workspace
-- **Timeline.tsx:** Video timeline editing
-- **TextLayersPanel.tsx:** Text overlay management
-
-#### Audio Production
-- **AudioPanel.tsx:** Audio editing controls
-- **AudioTrackManager.tsx:** Advanced audio track management
-- **VoiceGenerationPanel.tsx:** Voice-over generation
-- **WaveformDisplay.tsx:** Audio visualization
-- **AudioEffectsPanel.tsx:** Audio effect processing
-- **AudioAutomationPanel.tsx:** Automated audio processing
-
-#### AI Integration
-- **ComfyUIControlPanel.tsx:** AI image generation controls
-- **ComfyUIParameterPanel.tsx:** Generation parameter tuning
-- **ComfyUIProgressMonitor.tsx:** Generation progress tracking
-- **AIGenerationPanel.tsx:** AI content generation
-
-#### Content Creation
-- **PromptManagementPanel.tsx:** Prompt editing and validation
-- **SequenceGenerationControl.tsx:** Automated sequence creation
-- **DialoguePhraseEditor.tsx:** Script dialogue editing
-- **EffectsPanel.tsx:** Visual effects
-- **TransitionPanel.tsx:** Transition effects
-
-### 2.2 Wizards and Assistants
-
-#### Creative Wizards
-- **StorytellerWizard.tsx:** Story creation wizard
-- **CharacterCreatorWizard.tsx:** Character design wizard
-- **World Building Wizards:** Environment creation
-- **Dialogue Generation:** Automated dialogue writing
-- **Storyboard Creator:** Visual storyboard generation
-
-#### Specialized Tools
-- **Scene Generator:** Automated scene creation
-- **Style Transfer:** Artistic style application
-- **Comic to Sequence:** Comic adaptation tool
-- **Plan Sequences:** Sequence planning and organization
-
-### 2.3 Settings and Configuration
-
-#### API & Services
-- **APISettingsWindow.tsx:** API endpoint management
-- **LLMConfigurationWindow.tsx:** Language model configuration
-- **ComfyUIConfigurationWindow.tsx:** AI image generation setup
-
-#### Application Settings
-- **GeneralSettingsWindow.tsx:** Application preferences
-- **Add-ons Panel:** Extension management
-- **Installation Wizard:** Setup and configuration
-
-### 2.4 Asset Management
-- **AssetLibrary.tsx:** Media asset browser
-- **AssetPanel.tsx:** Asset editing tools
-- **AssetCard.tsx:** Individual asset display
-- **ImageGalleryModal:** Image collection viewer
-
-### 2.5 Monitoring and Progress
-- **GenerationProgressModal.tsx:** Generation monitoring
-- **ProgressIndicator.tsx:** Progress visualization
-- **ServiceStatusIndicator.tsx:** Service health monitoring
-- **TaskQueueModal.tsx:** Background task management
-
-## 3. Current Menu Structure Analysis
-
-### 3.1 MenuBar.tsx Structure
-
-#### File Menu
-- New Project (Ctrl+N)
-- Open Project (Ctrl+O)
-- Save Project (Ctrl+S)
-- Export Project (Ctrl+Shift+S)
-- Close Project
-
-#### Create Menu
-- Create World
-- Create Character
-- Dialogue Editor
-
-#### Edit Menu
-- Undo (Ctrl+Z)
-- Redo (Ctrl+Y)
-- Cut (Ctrl+X)
-- Copy (Ctrl+C)
-- Paste (Ctrl+V)
-- Characters modal
-- World modal
-- Locations modal
-- Objects modal
-
-#### View Menu
-- Toggle Asset Library
-- Toggle Timeline
-- Toggle Chat Assistant
-- Toggle Task Queue
-- Zoom In (Ctrl++)
-- Zoom Out (Ctrl+-)
-- Reset Zoom (Ctrl+0)
-- Toggle Grid
-- Image Gallery
-
-#### Settings Menu
-- LLM Configuration
-- ComfyUI Configuration
-- Add-ons
-- General Settings
-
-#### Documentation Menu
-- User Guide
-- Learn More
-
-#### Help Menu
-- About StoryCore
-- GitHub Repository
-- Documentation
-- MIT License
-
-### 3.2 Current Issues
-1. **View Menu Overload:** Too many toggle options mixed with zoom controls
-2. **Settings Scatter:** Configuration options spread across different menus
-3. **No Tools Menu:** Creative tools buried in Create/Edit menus
-4. **Missing Keyboard Shortcuts:** Not all shortcuts documented
-5. **Context Insensitivity:** Same menu regardless of active dashboard
-
-## 4. Menu Improvement Proposals
-
-### 4.1 Proposed Menu Restructuring
-
-#### File Menu (Unchanged)
-- New Project (Ctrl+N)
-- Open Project (Ctrl+O)
-- Recent Projects → submenu
-- ---
-- Save Project (Ctrl+S)
-- Export Project (Ctrl+Shift+S)
-- ---
-- Close Project
-
-#### Edit Menu (Streamlined)
-- Undo (Ctrl+Z)
-- Redo (Ctrl+Y)
-- ---
-- Cut (Ctrl+X)
-- Copy (Ctrl+C)
-- Paste (Ctrl+V)
-
-#### View Menu (Reorganized)
-**Window Toggles**
-- Asset Library (Ctrl+1)
-- Timeline (Ctrl+2)
-- Chat Assistant (Ctrl+3)
-- Task Queue (Ctrl+4)
-- Properties Panel (Ctrl+5)
 ---
-**Zoom & Display**
-- Zoom In (Ctrl++)
-- Zoom Out (Ctrl+-)
-- Reset Zoom (Ctrl+0)
-- Toggle Grid (Ctrl+G)
----
-**Galleries**
-- Image Gallery
-- Audio Library
-- Template Browser
 
-#### Tools Menu (New)
-**Creative Tools**
-- World Builder
-- Character Creator
-- Scene Generator
-- Dialogue Writer
----
-**Media Tools**
-- Audio Editor
-- Video Editor
-- Effects Browser
----
-**AI Tools**
-- Prompt Generator
-- Style Transfer
-- Batch Processor
+## Critical Issues (Priority: HIGH)
 
-#### Wizards Menu (New)
-- Storyteller Wizard
-- Character Creation Wizard
-- World Building Wizard
-- Dialogue Generation Wizard
-- Storyboard Creator
-- Sequence Planner
+### 1. Blocking Native Alerts and Dialogs
 
-#### Window Menu (New)
-- New Window
-- Split View
-- Full Screen (F11)
-- Developer Tools
----
-- Reset Layout
-- Save Layout
-- Load Layout
+**Files Affected:**
+- `src/components/workspace/ProjectDashboardNew.tsx` (14 instances)
+- `src/components/workspace/ProjectWorkspace.tsx` (7 instances)
+- `src/components/workspace/ProjectDashboardNew_backup.tsx` (20+ instances)
 
-#### Settings Menu (Consolidated)
-**AI Configuration**
-- LLM Settings
-- ComfyUI Settings
-- API Settings
----
-**Application**
-- General Settings
-- Keyboard Shortcuts
-- Appearance
----
-**Extensions**
-- Add-ons Manager
-- Plugin Settings
+**Problem:**
+Multiple locations use native `alert()` and `window.confirm()` which:
+- Block the entire browser UI thread
+- Are not customizable (can't change styling)
+- Provide poor UX on mobile devices
+- Break accessibility patterns
+- Cannot be tracked in analytics
 
-### 4.2 Implementation Benefits
-1. **Logical Grouping:** Related functions grouped together
-2. **Reduced Cognitive Load:** Fewer items per menu
-3. **Better Discoverability:** Creative tools prominently featured
-4. **Improved Workflow:** Context-appropriate menu options
-
-## 5. Chatbox UX Analysis & Improvements
-
-### 5.1 Current Implementation
-
-#### Components
-- **ChatBox.tsx:** Main chat interface (messages, input, suggestions)
-- **ChatPanel.tsx:** Floating window wrapper
-- **ChatToggleButton.tsx:** Toggle button
-
-#### Current Behavior
-- Fixed position: bottom-right corner
-- Abrupt show/hide transitions
-- No drag/resize capability
-- Separate toggle from main UI
-- Always overlay mode
-
-#### Identified Issues
-1. **Disruptive Movement:** Abrupt appearance affects user focus
-2. **Poor Integration:** Toggle button disconnected from dashboard context
-3. **Limited Flexibility:** No user control over position/size
-4. **Context Insensitivity:** Same behavior across all dashboards
-
-### 5.2 Proposed Floating Window Solution
-
-#### Enhanced ChatPanel Features
+**Examples from code:**
 ```typescript
-interface EnhancedChatPanelProps {
-  position?: { x: number; y: number };
-  size?: { width: number; height: number };
-  mode?: 'floating' | 'docked' | 'minimized';
-  dashboardContext?: string;
-  onPositionChange?: (position: { x: number; y: number }) => void;
-  onSizeChange?: (size: { width: number; height: number }) => void;
+// ProjectDashboardNew.tsx
+alert('Project path not found. Please ensure the project is properly loaded.');
+if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette séquence ?')) {
+  return;
+}
+alert(`✅ ${loadedSequences.length} séquence(s) mise(s) à jour depuis les fichiers JSON.`);
+```
+
+**Recommendation:**
+- Replace with Toast notification system
+- Create custom modal components for confirmations
+- Use the existing `NotificationSystem` component
+
+---
+
+### 2. Console Logging in Production Code
+
+**Files Affected:**
+- `src/components/workspace/ProjectDashboardNew.tsx`
+- `src/components/workspace/ProjectWorkspace.tsx`
+- `src/components/wizards/WizardLauncher.tsx`
+- `src/components/workspace/StoryDetailView.tsx`
+- Multiple other components
+
+**Problem:**
+Debug console statements left in production code:
+- `console.warn()` and `console.error()` throughout components
+- Exposes internal debugging information
+- Can leak sensitive data in production
+
+**Examples from code:**
+```typescript
+// WizardLauncher.tsx
+console.error("OLLAMA_CONNECTION_ERROR:", error.message);
+console.error("COMFYUI_CONNECTION_ERROR:", error.message);
+
+// ProjectDashboardNew.tsx
+console.warn('[ProjectDashboard] Ollama responded with error:', response.status);
+console.warn('[ProjectDashboard] Ollama connection failed:', error);
+console.error('[ProjectDashboard] Migration failed:', migrationResult.errors);
+console.error('[ProjectDashboard] Auto-migration error:', error);
+```
+
+**Recommendation:**
+- Implement proper logging service
+- Use environment variables to control log levels
+- Remove or replace console statements with proper error handling
+
+---
+
+## High Priority Issues (Priority: MEDIUM-HIGH)
+
+### 3. Inconsistent Loading States
+
+**Files Affected:**
+- Multiple wizard components
+- Generation panels
+- API call handlers
+
+**Problem:**
+Inconsistent loading state implementation across components:
+- Some use `isLoading` state, others use `isGenerating`
+- Loading indicators not always visible during async operations
+- No unified loading spinner component
+
+**Observed Patterns:**
+```typescript
+// Some components use
+const [isLoading, setIsLoading] = useState(false);
+
+// Others use
+const [isGenerating, setIsGenerating] = useState(false);
+
+// And others use
+const [loading, setLoading] = useState(false);
+```
+
+**Recommendation:**
+- Standardize loading state naming convention (`isLoading`)
+- Create reusable `LoadingSpinner` component
+- Apply consistent loading indicators across all async operations
+
+---
+
+### 4. Accessibility Issues
+
+#### 4.1 Missing ARIA Labels
+
+**Files Affected:**
+- `src/components/WelcomeScreen.tsx` - Buttons without `aria-label`
+- `src/components/VideoGenerationPanel.tsx` - Inputs missing labels
+- Various form inputs
+
+**Examples:**
+```typescript
+// WelcomeScreen.tsx - Button without description
+<button onClick={onNewProject}>
+  {/* No aria-label for screen readers */}
+</button>
+
+// VideoGenerationPanel.tsx
+<input type="file" accept="image/*" /> {/* Missing id/htmlFor */}
+```
+
+#### 4.2 Focus Management
+
+**Issues Found:**
+- Modal dialogs (SequenceEditModal) don't automatically focus the first element
+- No focus trap in modal dialogs
+- Focus not restored after modal closes
+
+#### 4.3 Keyboard Navigation
+
+**Issues Found:**
+- Some interactive elements not keyboard accessible
+- No skip links for main content
+- Missing focus indicators in some custom components
+
+**Recommendation:**
+- Add proper ARIA labels to all interactive elements
+- Implement focus management in modals
+- Add skip-to-content links
+- Use proper heading hierarchy
+
+---
+
+### 5. Error Handling Gaps
+
+**Files Affected:**
+- `src/components/VideoGenerationPanel.tsx`
+- `src/components/AIGenerationPanel.tsx`
+- Various wizard components
+
+**Problem:**
+Error states are not consistently handled:
+- Some errors shown in console only
+- No visual error indicators in forms
+- No error recovery options provided to users
+
+**Example:**
+```typescript
+// VideoGenerationPanel.tsx
+} catch (err) {
+  console.error('Video generation failed:', err);
+  const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+  setError(errorMessage);  // Error is set but not displayed prominently
 }
 ```
 
-#### Key Improvements
+**Recommendation:**
+- Create consistent error display components
+- Implement retry mechanisms for failed operations
+- Show errors inline with form fields
 
-##### 1. Draggable Floating Window
-- Mouse drag to reposition
-- Position persistence in localStorage
-- Collision detection with screen edges
-- Dashboard-aware positioning
+---
 
-##### 2. Resizable Interface
-- Corner/corner drag handles
-- Minimum/maximum size constraints
-- Aspect ratio preservation option
-- Size persistence
+## Medium Priority Issues (Priority: MEDIUM)
 
-##### 3. Multiple Display Modes
-- **Floating:** Free-positioned overlay
-- **Docked:** Attached to dashboard edges
-- **Minimized:** Collapsed to toolbar
+### 6. Mixed Language in UI
 
-##### 4. Dashboard Integration
-- Toggle button in each dashboard header
-- Context-aware positioning logic
-- Dashboard-specific chat contexts
-- Seamless integration with existing UI
+**Files Affected:**
+- `src/components/workspace/ProjectDashboardNew.tsx`
+- `src/components/workspace/SequenceEditModal.tsx`
+- Various other components
 
-##### 5. Enhanced UX Features
-- Smooth animations (fade/slide instead of abrupt show/hide)
-- Auto-hide after inactivity
-- Keyboard shortcuts (Ctrl+Space)
-- Multiple chat instances
-- Message threading
-- Chat history persistence
+**Problem:**
+UI contains both English and French text without consistent localization:
+- Button labels: "Enregistrer", "Annuler", "Fermer"
+- Success messages: "✅ Séquence mise à jour"
+- Some parts in English
 
-#### Implementation Architecture
+**Recommendation:**
+- Implement i18n system consistently
+- Extract all hardcoded strings to translation files
+- Use existing i18n utilities from `src/utils/i18n.tsx`
 
-##### Modified Components
-1. **ChatPanel.tsx:** Enhanced with drag/resize logic
-2. **ChatToggleButton.tsx:** Dashboard-context aware positioning
-3. **Dashboard Headers:** Integrated toggle buttons
+---
 
-##### New Components
-1. **ChatWindowManager.tsx:** Global chat state management
-2. **ChatPositionProvider.tsx:** Position persistence and collision detection
-3. **ChatContextMenu.tsx:** Right-click options for chat windows
+### 7. Inconsistent Component Patterns
 
-##### Integration Points
-- Add to ProjectDashboardNew.tsx header
-- Add to CentralConfigurationUI.tsx workspace
-- Add to WelcomeScreen.tsx for initial guidance
-- Keyboard shortcut handler in MenuBar.tsx
+**7.1 Button Styling**
 
-### 5.3 Expected Benefits
-1. **Reduced Disruption:** Smooth transitions maintain user focus
-2. **Enhanced Control:** Users control chat window behavior
-3. **Better Integration:** Contextual placement in dashboards
-4. **Improved Productivity:** Persistent positioning and sizing
-5. **Accessibility:** Keyboard navigation and screen reader support
+**Problem:**
+Buttons have inconsistent styling:
+- Some use Tailwind classes directly
+- Others use CSS classes
+- Mixed color schemes (blue, green, purple)
 
-## 6. Recommendations & Next Steps
+**7.2 Form Handling**
 
-### 6.1 Priority Implementation Order
+**Problem:**
+Forms use inconsistent patterns:
+- Some use controlled components
+- Some use refs directly
+- Validation is not standardized
 
-#### Phase 1: Menu Improvements
-1. Restructure MenuBar.tsx with new organization
-2. Add keyboard shortcut documentation
-3. Implement Tools and Wizards menus
-4. Test menu navigation flows
+**Recommendation:**
+- Create Button component library
+- Implement form validation hook (useForm)
+- Standardize color scheme
 
-#### Phase 2: Chatbox Enhancements
-1. Implement draggable ChatPanel
-2. Add dashboard toggle buttons
-3. Implement position persistence
-4. Add smooth animations
+---
 
-#### Phase 3: Advanced Features
-1. Multiple chat instances
-2. Chat context management
-3. Advanced positioning logic
-4. Performance optimizations
+### 8. Performance Concerns
 
-### 6.2 Testing Considerations
-- User acceptance testing for menu changes
-- Usability testing for chatbox improvements
-- Performance impact assessment
-- Accessibility compliance verification
+**8.1 Unnecessary Re-renders**
 
-### 6.3 Documentation Updates
-- Update user guide with new menu structure
-- Document chatbox features and shortcuts
-- Create migration guide for existing users
+**Files Affected:**
+- `src/components/workspace/ProjectDashboardNew.tsx`
+- Multiple wizard components
 
-## Conclusion
+**Problem:**
+- Missing React.memo on components
+- useEffect dependencies not optimized
+- Large component trees re-render unnecessarily
 
-This audit identifies significant opportunities to improve the StoryCore Creative Studio user experience through menu reorganization and chatbox enhancement. The proposed floating window chat system addresses the core disruption issue while providing users with greater control and flexibility. The menu restructuring creates a more logical and discoverable interface that better supports creative workflows.
+**Example:**
+```typescript
+// ProjectDashboardNew.tsx - Force update pattern
+const [forceUpdate, setForceUpdate] = useState(0);
+setForceUpdate(prev => prev + 1);  // Triggers full re-render
+```
 
-**Estimated Implementation Effort:** 2-3 weeks for Phase 1, 1-2 weeks for Phase 2, 1 week for Phase 3
-**Expected User Impact:** Significant improvement in workflow efficiency and user satisfaction
+**8.2 Uncontrolled Polling**
+
+**Files Affected:**
+- `src/components/VideoGenerationPanel.tsx`
+
+**Problem:**
+- Polling interval not cleaned up properly in all cases
+- setInterval used without cleanup in some components
+
+**Recommendation:**
+- Use React.memo for expensive components
+- Optimize useEffect dependencies
+- Replace polling with webhooks or SSE where possible
+
+---
+
+## Low Priority Issues (Priority: LOW)
+
+### 9. Code Organization
+
+**9.1 Duplicate Code**
+
+Files with similar functionality have duplicated code:
+- Multiple similar modal implementations
+- Duplicate form validation logic
+- Repeated API call patterns
+
+**9.2 Large Components**
+
+Some components are too large and should be split:
+- `ProjectDashboardNew.tsx` - 800+ lines
+- Should be split into smaller sub-components
+
+---
+
+## Recommendations Summary
+
+| Priority | Issue | Files Affected | Estimated Fix Time |
+|----------|-------|----------------|-------------------|
+| HIGH | Native alerts/confirms | 3 | 4 hours |
+| HIGH | Console logging | 10+ | 2 hours |
+| MEDIUM | Loading states | 15+ | 6 hours |
+| MEDIUM | Accessibility | 20+ | 8 hours |
+| MEDIUM | Error handling | 8+ | 4 hours |
+| LOW | Mixed language | 5+ | 3 hours |
+| LOW | Code organization | 10+ | 10 hours |
+
+---
+
+## Testing Recommendations
+
+1. **Accessibility Testing:**
+   - Run axe-core on all pages
+   - Test with screen readers (NVDA, VoiceOver)
+   - Verify keyboard navigation
+
+2. **Performance Testing:**
+   - Measure re-render frequency
+   - Test with large datasets
+   - Profile memory usage
+
+3. **User Testing:**
+   - Test alert replacement with toast system
+   - Verify loading states are clear
+   - Confirm error recovery flows
+
+---
+
+## Appendix: Files Analyzed
+
+1. `src/components/VideoGenerationPanel.tsx`
+2. `src/components/workspace/ProjectDashboardNew.tsx`
+3. `src/components/WelcomeScreen.tsx`
+4. `src/components/EditorLayout.tsx`
+5. `src/components/workspace/SequenceEditModal.tsx`
+6. `src/components/wizards/WizardLauncher.tsx`
+7. `src/components/ErrorBoundary.tsx`
+8. `src/components/workspace/ProjectWorkspace.tsx`
+9. `src/components/workspace/StoryDetailView.tsx`
+
+---
+
+*Report generated as part of StoryCore UI Audit*
+

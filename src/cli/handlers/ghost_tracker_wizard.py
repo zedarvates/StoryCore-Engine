@@ -1,10 +1,10 @@
 """
-Ghost Tracker Wizard command handler - AI-powered project advisor.
+Ghost Tracker Wizard command handler - AI-powered tracking analysis.
 """
 
 import argparse
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import json
 
 from ..base import BaseHandler
@@ -12,10 +12,10 @@ from ..errors import UserError, SystemError
 
 
 class GhostTrackerWizardHandler(BaseHandler):
-    """Handler for the ghost-tracker-wizard command - AI project advisor."""
+    """Handler for the ghost-tracker-wizard command - Tracking analysis."""
 
     command_name = "ghost-tracker-wizard"
-    description = "AI-powered advisor providing insights and recommendations for video storyboard projects"
+    description = "AI-powered tracking analysis for continuity and visual consistency"
 
     def setup_parser(self, parser: argparse.ArgumentParser) -> None:
         """Set up ghost-tracker-wizard command arguments."""
@@ -26,15 +26,16 @@ class GhostTrackerWizardHandler(BaseHandler):
         )
 
         parser.add_argument(
-            "--focus",
-            nargs="+",
-            choices=["storytelling", "cinematography", "pacing", "character_development", "production_design", "technical_aspects"],
-            help="Focus analysis on specific areas"
+            "--mode",
+            choices=["continuity", "anomaly_detection", "motion_analysis", "visual_consistency", "quality_assurance"],
+            default="continuity",
+            help="Tracking analysis mode (default: continuity)"
         )
 
         parser.add_argument(
-            "--quick-advice",
-            help="Get quick advice on a specific question"
+            "--shots",
+            nargs="+",
+            help="Specific shot IDs to analyze"
         )
 
         parser.add_argument(
@@ -57,8 +58,8 @@ class GhostTrackerWizardHandler(BaseHandler):
             try:
                 from src.wizard.ghost_tracker_wizard import (
                     create_ghost_tracker_wizard,
-                    get_ghost_tracker_advice,
-                    AdviceCategory
+                    TrackingResult,
+                    TrackingMode
                 )
             except ImportError as e:
                 raise SystemError(
@@ -74,12 +75,8 @@ class GhostTrackerWizardHandler(BaseHandler):
                     "Check the project path or create a new project with 'storycore init'"
                 )
 
-            print("👻 Ghost Tracker Wizard - AI Project Advisor")
+            print("👻 Ghost Tracker Wizard - Advanced Tracking System")
             print("=" * 60)
-
-            # Handle quick advice mode
-            if args.quick_advice:
-                return self._execute_quick_advice(project_path, args.quick_advice)
 
             # Execute full analysis
             import asyncio
@@ -87,177 +84,167 @@ class GhostTrackerWizardHandler(BaseHandler):
             wizard = create_ghost_tracker_wizard()
 
             print(f"🔍 Analyzing project: {project_path.absolute()}")
-            if args.focus:
-                print(f"   Focus areas: {', '.join(args.focus)}")
 
-            print("\n⏳ Starting comprehensive analysis...")
+            # Parse mode
+            mode_map = {
+                'continuity': TrackingMode.CONTINUITY,
+                'anomaly_detection': TrackingMode.ANOMALY_DETECTION,
+                'motion_analysis': TrackingMode.MOTION_ANALYSIS,
+                'visual_consistency': TrackingMode.VISUAL_CONSISTENCY,
+                'quality_assurance': TrackingMode.QUALITY_ASSURANCE
+            }
+            tracking_mode = mode_map.get(args.mode, TrackingMode.CONTINUITY)
+            print(f"🎯 Tracking mode: {tracking_mode.value.replace('_', ' ').title()}")
+
+            print("\n⏳ Starting tracking analysis...")
             print("   This may take a moment...")
 
             # Run analysis
             report = asyncio.run(
-                wizard.analyze_project(project_path, args.focus)
+                wizard.perform_tracking_analysis(project_path, tracking_mode, args.shots)
             )
 
             # Display results based on format
             if args.report_only:
                 return self._display_report_only(report, project_path)
 
-            return self._display_full_analysis(report, args.format)
+            return self._display_tracking_results(report, args.format)
 
         except Exception as e:
             return self.handle_error(e, "Ghost Tracker analysis")
 
-    def _execute_quick_advice(self, project_path: Path, question: str) -> int:
-        """Execute quick advice mode."""
-        print(f"💡 Quick Advice: {question}")
-        print("-" * 40)
-
-        advice = get_ghost_tracker_advice(project_path, question)
-
-        print(advice)
-        print("\n" + "=" * 60)
-        print("💭 For more detailed analysis, run without --quick-advice")
-
-        return 0
-
-    def _display_report_only(self, report: GhostTrackerReport, project_path: Path) -> int:
+    def _display_report_only(self, report: TrackingResult, project_path: Path) -> int:
         """Display minimal report information."""
-        print("\n📊 Analysis Complete")
+        print("\n📊 Tracking Analysis Complete")
         print("=" * 30)
-        print(f"Overall Score: {report.overall_score}/10.0")
-        print(f"Insights Found: {len(report.insights)}")
-        print(f"Report Saved: {project_path / 'ghost_tracker_report.json'}")
+        print(f"Elements Tracked: {report.total_elements_tracked}")
+        print(f"Issues Found: {report.total_issues_found}")
+        print(f"Confidence: {report.overall_confidence:.1f}/10")
+        print(f"Report Saved: {project_path / 'ghost_tracking_result.json'}")
 
         return 0
 
-    def _display_full_analysis(self, report: GhostTrackerReport, format_type: str) -> int:
-        """Display full analysis results."""
-        print(f"\n🎯 Analysis Complete - Score: {report.overall_score}/10.0")
+    def _display_tracking_results(self, report: TrackingResult, format_type: str) -> int:
+        """Display tracking analysis results."""
+        print(f"\n🎯 Tracking Analysis Complete")
         print("=" * 60)
 
         # Project info
-        metadata = report.metadata
-        print(f"📁 Project: {metadata.get('project_name', 'Unknown')}")
-        print(f"🕒 Analyzed: {report.analysis_timestamp[:19].replace('T', ' ')}")
-        print(f"📊 Insights: {len(report.insights)}")
+        print(f"🔍 Elements tracked: {report.total_elements_tracked}")
+        print(f"⚠️ Issues found: {report.total_issues_found}")
+        print(f"⏱️ Processing time: {report.processing_time:.1f}s")
+        print(f"📊 Overall confidence: {report.overall_confidence:.1f}/10")
 
         if format_type == "minimal":
-            return self._display_minimal_format(report)
+            return self._display_minimal_tracking(report)
         elif format_type == "summary":
-            return self._display_summary_format(report)
+            return self._display_summary_tracking(report)
         else:
-            return self._display_detailed_format(report)
+            return self._display_detailed_tracking(report)
 
-    def _display_minimal_format(self, report: GhostTrackerReport) -> int:
-        """Display minimal format output."""
-        print(f"\n🎯 Score: {report.overall_score}/10.0")
+    def _display_minimal_tracking(self, report: TrackingResult) -> int:
+        """Display minimal tracking output."""
+        print(f"\n🎯 Score: {report.overall_confidence:.1f}/10")
 
-        if report.next_steps:
-            print("\n🚀 Top Next Steps:")
-            for i, step in enumerate(report.next_steps[:3], 1):
-                print(f"   {i}. {step}")
+        if report.continuity_issues:
+            print(f"\n⚠️ Found {len(report.continuity_issues)} issues")
 
-        print(f"\n📄 Full report saved to: ghost_tracker_report.json")
+        if report.recommendations:
+            print("\n🚀 Top Recommendations:")
+            for i, rec in enumerate(report.recommendations[:3], 1):
+                print(f"   {i}. {rec}")
+
+        print(f"\n📄 Full report saved to: ghost_tracking_result.json")
         return 0
 
-    def _display_summary_format(self, report: GhostTrackerReport) -> int:
-        """Display summary format output."""
-        print(f"\n🎯 Overall Assessment: {report.overall_score}/10.0")
+    def _display_summary_tracking(self, report: TrackingResult) -> int:
+        """Display summary tracking output."""
+        print(f"\n🎯 Overall Assessment: {report.overall_confidence:.1f}/10")
 
-        # Strengths
-        if report.strengths:
-            print("\n✅ Strengths:")
-            for strength in report.strengths[:3]:
-                print(f"   • {strength}")
+        # Tracked elements summary
+        if report.tracked_elements:
+            print(f"\n📍 Tracked Elements: {len(report.tracked_elements)}")
+            for elem in report.tracked_elements[:3]:
+                print(f"   • {elem.name} ({elem.target_type.value}) - seen in {elem.total_occurrences} shots")
 
-        # Key issues
-        critical_insights = [i for i in report.insights if i.priority.value == "critical"]
-        high_insights = [i for i in report.insights if i.priority.value == "high"]
-
-        if critical_insights or high_insights:
-            print("\n⚠️  Priority Areas:")
-            for insight in critical_insights + high_insights[:2]:
-                print(f"   • {insight.title}")
-
-        # Next steps
-        if report.next_steps:
-            print("\n🚀 Recommended Next Steps:")
-            for step in report.next_steps[:3]:
-                print(f"   • {step}")
-
-        print(f"\n📊 Total Insights: {len(report.insights)}")
-        print(f"📄 Detailed report saved to: ghost_tracker_report.json")
-
-        return 0
-
-    def _display_detailed_format(self, report: GhostTrackerReport) -> int:
-        """Display detailed format output."""
-        # Score interpretation
-        score = report.overall_score
-        if score >= 9.0:
-            assessment = "🌟 Excellent - Ready for production!"
-        elif score >= 7.5:
-            assessment = "✅ Good - Minor improvements suggested"
-        elif score >= 6.0:
-            assessment = "⚠️ Fair - Several improvements needed"
-        else:
-            assessment = "🚨 Needs Work - Major revisions recommended"
-
-        print(f"\n🎯 Assessment: {assessment}")
-
-        # Strengths
-        if report.strengths:
-            print("\n✅ Project Strengths:")
-            for strength in report.strengths:
-                print(f"   • {strength}")
-
-        # Weaknesses
-        if report.weaknesses:
-            print("\n⚠️  Key Areas for Improvement:")
-            for weakness in report.weaknesses:
-                print(f"   • {weakness}")
-
-        # Detailed insights by category
-        insights_by_category = {}
-        for insight in report.insights:
-            category = insight.category.value
-            if category not in insights_by_category:
-                insights_by_category[category] = []
-            insights_by_category[category].append(insight)
-
-        print(f"\n🔍 Detailed Analysis:")
-        for category, insights in insights_by_category.items():
-            print(f"\n📋 {category.replace('_', ' ').title()}:")
-            for insight in insights:
-                priority_icon = {
-                    "critical": "🚨",
-                    "high": "⚠️",
-                    "medium": "ℹ️",
-                    "low": "💡",
-                    "suggestion": "💭"
-                }.get(insight.priority.value, "•")
-
-                print(f"   {priority_icon} {insight.title}")
-                print(f"      {insight.description}")
-                if insight.actionable_steps:
-                    print("      💡 Actions:")
-                    for step in insight.actionable_steps[:2]:
-                        print(f"         • {step}")
+        # Issues summary
+        if report.continuity_issues:
+            print(f"\n⚠️  Issues Found: {len(report.continuity_issues)}")
+            for issue in report.continuity_issues[:3]:
+                print(f"   • {issue.description[:60]}...")
 
         # Recommendations
         if report.recommendations:
-            print(f"\n📝 Key Recommendations:")
-            for i, rec in enumerate(report.recommendations[:5], 1):
-                print(f"   {i}. {rec}")
+            print(f"\n🚀 Recommendations:")
+            for rec in report.recommendations[:3]:
+                print(f"   • {rec}")
 
-        # Next steps
-        if report.next_steps:
-            print(f"\n🚀 Immediate Next Steps:")
-            for i, step in enumerate(report.next_steps, 1):
-                print(f"   {i}. {step}")
-
-        # Report location
-        print(f"\n📄 Complete analysis saved to: ghost_tracker_report.json")
-        print("   Use this file to review all insights and track improvements")
+        print(f"\n📄 Detailed report saved to: ghost_tracking_result.json")
 
         return 0
+
+    def _display_detailed_tracking(self, report: TrackingResult) -> int:
+        """Display detailed tracking output."""
+        # Score interpretation
+        score = report.overall_confidence
+        if score >= 9.0:
+            assessment = "🌟 Excellent - Tracking ready for production!"
+        elif score >= 7.5:
+            assessment = "✅ Good - Minor issues found"
+        elif score >= 6.0:
+            assessment = "⚠️ Fair - Several issues need attention"
+        else:
+            assessment = "🚨 Needs Work - Major issues detected"
+
+        print(f"\n🎯 Assessment: {assessment}")
+
+        # Analysis summary
+        if report.analysis_summary:
+            print(f"\n📊 Analysis Summary:")
+            print(f"   {report.analysis_summary}")
+
+        # Tracked elements by type
+        elements_by_type = {}
+        for elem in report.tracked_elements:
+            elem_type = elem.target_type.value
+            if elem_type not in elements_by_type:
+                elements_by_type[elem_type] = []
+            elements_by_type[elem_type].append(elem)
+
+        print(f"\n🔍 Tracked Elements ({len(report.tracked_elements)} total):")
+        for elem_type, elements in elements_by_type.items():
+            print(f"\n📋 {elem_type.replace('_', ' ').title()}:")
+            for elem in elements:
+                print(f"   • {elem.name}")
+                print(f"      First seen: {elem.first_seen_shot}")
+                print(f"      Last seen: {elem.last_seen_shot}")
+                print(f"      Occurrences: {elem.total_occurrences}")
+                print(f"      Confidence: {elem.confidence_score:.1f}")
+
+        # Continuity issues
+        if report.continuity_issues:
+            print(f"\n⚠️  Continuity Issues ({len(report.continuity_issues)}):")
+            for issue in report.continuity_issues:
+                priority_indicator = {
+                    "critical": "🚨",
+                    "major": "⚠️",
+                    "minor": "ℹ️"
+                }.get(issue.severity, "•")
+
+                print(f"   {priority_indicator} {issue.description}")
+                print(f"      Severity: {issue.severity}")
+                print(f"      Shot affected: {issue.shot_affected}")
+                if issue.suggested_fix:
+                    print(f"      Fix: {issue.suggested_fix}")
+
+        # Recommendations
+        if report.recommendations:
+            print(f"\n📝 Recommendations:")
+            for i, rec in enumerate(report.recommendations, 1):
+                print(f"   {i}. {rec}")
+
+        # Report location
+        print(f"\n📄 Complete analysis saved to: ghost_tracking_result.json")
+
+        return 0
+

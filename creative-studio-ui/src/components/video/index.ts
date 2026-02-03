@@ -1,11 +1,21 @@
-export { VideoPlayer } from './VideoPlayer';
-export type { VideoPlayerProps, VideoPlayerState } from './VideoPlayer';
+/**
+ * Video Components Index
+ * 
+ * @module components/video/index
+ */
 
-export { VideoSequencePlayer } from './VideoSequencePlayer';
-export type { VideoSequencePlayerProps } from './VideoSequencePlayer';
+export { VideoCanvas, default as VideoCanvasDefault } from './VideoCanvas';
+export type { VideoCanvasProps } from './VideoCanvas';
 
-export { VideoThumbnailPreview, useVideoThumbnailPreview } from './VideoThumbnailPreview';
-export type { VideoThumbnailPreviewProps } from './VideoThumbnailPreview';
+export { default as PlaybackControls } from './PlaybackControls';
+export type { PlaybackControlsProps } from './PlaybackControls';
 
-export { PlaybackSpeedControl } from './PlaybackSpeedControl';
-export type { PlaybackSpeedControlProps } from './PlaybackSpeedControl';
+export { default as VideoHoverPreview } from './VideoHoverPreview';
+export type { VideoHoverPreviewProps } from './VideoHoverPreview';
+
+export { default as VideoInfo } from './VideoInfo';
+export type { VideoInfoProps } from './VideoInfo';
+
+export { default as VideoPreviewPanel } from './VideoPreviewPanel';
+export type { VideoPreviewPanelProps } from './VideoPreviewPanel';
+

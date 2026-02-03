@@ -1,8 +1,10 @@
 # ✅ Intégration de l'Icône StoryCore - Terminée
 
+> **⚠️ ARCHIVED DOCUMENTATION**: This document describes the integration of the legacy icon `StorycoreIcone.png`. The application now uses `StorycoreIconeV2.png`. This document is kept for historical reference only.
+
 ## Résumé
 
-L'icône personnalisée **StorycoreIcone.png** a été intégrée avec succès dans l'application StoryCore Creative Studio !
+L'icône personnalisée **StorycoreIcone.png** (legacy) a été intégrée avec succès dans l'application StoryCore Creative Studio !
 
 ## 🎨 Emplacements de l'Icône
 

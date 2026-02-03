@@ -1,0 +1,164 @@
+/**
+ * MockModeIndicator Styles
+ * 
+ * Provides visual distinction for mock mode with amber/orange color scheme
+ * to clearly indicate the system is not using real AI generation.
+ */
+
+.mock-mode-indicator {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+  transition: all 0.3s ease;
+}
+
+.mock-mode-indicator:hover {
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  transform: translateY(-1px);
+}
+
+.mock-mode-indicator[role="button"] {
+  cursor: pointer;
+}
+
+.mock-mode-indicator[role="button"]:focus {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.mock-mode-indicator.compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin: 0;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mock-mode-indicator.compact:hover {
+  background: #fde68a;
+}
+
+.mock-mode-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.mock-mode-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.mock-mode-indicator.compact .mock-mode-icon {
+  font-size: 16px;
+}
+
+.mock-mode-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.mock-mode-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #92400e;
+}
+
+.mock-mode-content {
+  margin-left: 34px;
+}
+
+.mock-mode-reason {
+  font-size: 14px;
+  font-weight: 500;
+  color: #78350f;
+  margin-bottom: 6px;
+}
+
+.mock-mode-description {
+  font-size: 13px;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.mock-mode-hint {
+  margin-top: 12px;
+  margin-left: 34px;
+  font-size: 12px;
+  color: #78350f;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mock-mode-indicator {
+    background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+    border-color: #f59e0b;
+  }
+
+  .mock-mode-indicator.compact {
+    background: #78350f;
+  }
+
+  .mock-mode-indicator.compact:hover {
+    background: #92400e;
+  }
+
+  .mock-mode-title,
+  .mock-mode-label,
+  .mock-mode-reason,
+  .mock-mode-description,
+  .mock-mode-hint {
+    color: #fef3c7;
+  }
+}
+
+/* Animation for pulsing effect */
+@keyframes mock-mode-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.mock-mode-indicator.pulsing {
+  animation: mock-mode-pulse 2s ease-in-out infinite;
+}
+
+/* Accessibility */
+.mock-mode-indicator:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .mock-mode-indicator {
+    padding: 12px;
+  }
+
+  .mock-mode-title {
+    font-size: 16px;
+  }
+
+  .mock-mode-content {
+    margin-left: 28px;
+  }
+
+  .mock-mode-hint {
+    margin-left: 28px;
+  }
+}

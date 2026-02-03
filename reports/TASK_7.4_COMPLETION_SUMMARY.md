@@ -113,7 +113,7 @@ Matches existing format in `characters/` directory:
   "character_id": "uuid",
   "name": "Character Name",
   "creation_method": "wizard",
-  "creation_timestamp": "2024-01-01T00:00:00Z",
+  "creation_timestamp": "2026-01-26T00:00:00Z",
   "version": "1.0",
   "visual_identity": {
     "hair_color": "brown",

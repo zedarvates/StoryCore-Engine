@@ -182,8 +182,8 @@ class AudioProductionWizard:
         self.production_plan = plan
         self._save_audio_production_plan(project_path, plan)
 
-        print("
-✅ Audio production plan created!"        print(f"🎵 Total duration: {total_duration:.1f} seconds")
+        print("\n✅ Audio production plan created!")
+        print(f"🎵 Total duration: {total_duration:.1f} seconds")
         print(f"🎼 Audio sequences: {len(plan.audio_sequences)}")
         print(f"🎤 Voice elements: {sum(1 for seq in plan.audio_sequences for elem in seq.audio_elements if elem.audio_type == AudioType.VOICE_OVER)}")
         print(f"🔊 Sound effects: {sum(1 for seq in plan.audio_sequences for elem in seq.audio_elements if elem.audio_type == AudioType.SOUND_EFFECT)}")

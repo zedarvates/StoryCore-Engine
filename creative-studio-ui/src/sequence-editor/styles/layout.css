@@ -1,0 +1,452 @@
+/**
+ * CSS Grid Layout System for Sequence Editor Interface
+ * 
+ * This file defines the responsive grid layout with four primary panels:
+ * - Asset Library (left)
+ * - Preview Frame (center)
+ * - Shot Configuration (right)
+ * - Timeline (bottom)
+ * 
+ * Requirements: 4.1, 4.2, 4.3, 4.4, 20.1
+ */
+
+/* ============================================================================
+   Root Layout Container
+   ============================================================================ */
+
+.sequence-editor-root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  background-color: var(--bg-primary, #1a1a1a);
+  color: var(--text-primary, #ffffff);
+}
+
+/* ============================================================================
+   Top Toolbar Area
+   ============================================================================ */
+
+.sequence-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+  min-height: 48px;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+/* ============================================================================
+   Main Content Area
+   ============================================================================ */
+
+.sequence-editor-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ============================================================================
+   Asset Library Panel (Left)
+   ============================================================================ */
+
+.sequence-editor-asset-library {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-panel, #252525);
+  border-right: 1px solid var(--border-color, #3a3a3a);
+  overflow: hidden;
+  min-width: 200px;
+  position: relative;
+}
+
+.asset-library-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ============================================================================
+   Center Panel - Preview Frame
+   ============================================================================ */
+
+.sequence-editor-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary, #1a1a1a);
+  min-width: 640px;
+  position: relative;
+}
+
+.preview-canvas-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-canvas, #1a1a1a);
+  overflow: hidden;
+}
+
+.preview-controls {
+  padding: 0.75rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-top: 1px solid var(--border-color, #3a3a3a);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ============================================================================
+   Shot Configuration Panel (Right)
+   ============================================================================ */
+
+.sequence-editor-shot-config {
+  grid-area: shot-config;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-panel, #252525);
+  border-left: 1px solid var(--border-color, #3a3a3a);
+  overflow: hidden;
+  min-width: 200px;
+  position: relative;
+}
+
+.shot-config-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+}
+
+/* ============================================================================
+   Timeline Panel (Bottom)
+   ============================================================================ */
+
+.sequence-editor-timeline {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-panel, #252525);
+  border-top: 1px solid var(--border-color, #3a3a3a);
+  overflow: hidden;
+  min-height: 150px;
+  position: relative;
+}
+
+.timeline-controls {
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-content {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* ============================================================================
+   Resize Handles
+   ============================================================================ */
+
+.resize-handle {
+  position: absolute;
+  background-color: transparent;
+  z-index: 50;
+  transition: background-color 200ms ease-in-out, opacity 200ms ease-in-out;
+}
+
+.resize-handle:hover {
+  background-color: var(--accent-color, #4A90E2);
+}
+
+.resize-handle-vertical {
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  top: 0;
+}
+
+.resize-handle-horizontal {
+  width: 100%;
+  height: 6px;
+  cursor: row-resize;
+  left: 0;
+}
+
+/* Asset Library resize handle */
+.resize-handle-asset-library {
+  right: -3px;
+}
+
+/* Shot Config resize handle */
+.resize-handle-shot-config {
+  left: -3px;
+}
+
+/* Timeline resize handle */
+.resize-handle-timeline {
+  top: -3px;
+}
+
+/* ============================================================================
+   Resizable Panel Component
+   ============================================================================ */
+
+.resizable-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 200ms ease-in-out, height 200ms ease-in-out;
+}
+
+.resizable-panel-content {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+.resizable-panel.dragging {
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Reset Layout Button */
+.reset-layout-button {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-primary, #ffffff);
+  cursor: pointer;
+  z-index: 100;
+  opacity: 0.8;
+  transition: opacity 200ms ease-in-out, background-color 200ms ease-in-out;
+}
+
+.reset-layout-button:hover {
+  opacity: 1;
+  background-color: var(--bg-hover, #3a3a3a);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.reset-layout-button:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================================
+   Drag Preview State
+   ============================================================================ */
+
+.drag-preview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  background-color: var(--accent-color, #4A90E2);
+  opacity: 0.5;
+  border: 2px dashed var(--accent-color, #4A90E2);
+  border-radius: 4px;
+}
+
+/* ============================================================================
+   Resize Indicator Line
+   ============================================================================ */
+
+.resize-indicator {
+  position: absolute;
+  background-color: var(--accent-color, #4A90E2);
+  z-index: 49;
+  pointer-events: none;
+}
+
+.resize-indicator-vertical {
+  width: 2px;
+  height: 100%;
+  top: 0;
+}
+
+.resize-indicator-horizontal {
+  width: 100%;
+  height: 2px;
+  left: 0;
+}
+
+/* ============================================================================
+   Responsive Breakpoints
+   ============================================================================ */
+
+/* Large screens (1920px and above) - Default layout */
+@media (min-width: 1920px) {
+  .sequence-editor-root {
+    --asset-library-width: 20%;
+    --preview-width: 50%;
+    --shot-config-width: 30%;
+    --timeline-height: 40%;
+  }
+}
+
+/* Medium screens (1280px - 1919px) */
+@media (min-width: 1280px) and (max-width: 1919px) {
+  .sequence-editor-root {
+    --asset-library-width: 18%;
+    --preview-width: 52%;
+    --shot-config-width: 30%;
+    --timeline-height: 35%;
+  }
+}
+
+/* Small screens (1024px - 1279px) */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .sequence-editor-root {
+    --asset-library-width: 15%;
+    --preview-width: 55%;
+    --shot-config-width: 30%;
+    --timeline-height: 35%;
+  }
+  
+  .sequence-editor-preview {
+    min-width: 480px;
+  }
+}
+
+/* Tablet screens (768px - 1023px) - Stacked layout */
+@media (max-width: 1023px) {
+  .sequence-editor-root {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto auto auto;
+    grid-template-areas:
+      "toolbar"
+      "preview"
+      "asset-library"
+      "shot-config"
+      "timeline";
+  }
+  
+  .sequence-editor-asset-library,
+  .sequence-editor-shot-config {
+    border-right: none;
+    border-left: none;
+    border-bottom: 1px solid var(--border-color, #3a3a3a);
+    min-width: 100%;
+    max-height: 300px;
+  }
+  
+  .sequence-editor-preview {
+    min-width: 100%;
+    min-height: 400px;
+  }
+  
+  .sequence-editor-timeline {
+    min-height: 200px;
+  }
+}
+
+/* Mobile screens (below 768px) - Minimal layout */
+@media (max-width: 767px) {
+  .sequence-editor-root {
+    font-size: 14px;
+  }
+  
+  .sequence-editor-toolbar {
+    padding: 0.25rem 0.5rem;
+    min-height: 40px;
+  }
+  
+  .sequence-editor-preview {
+    min-height: 300px;
+  }
+  
+  .sequence-editor-timeline {
+    min-height: 150px;
+  }
+}
+
+/* ============================================================================
+   Panel Focus States
+   ============================================================================ */
+
+.panel-focused {
+  outline: 2px solid var(--accent-color, #4A90E2);
+  outline-offset: -2px;
+}
+
+/* ============================================================================
+   Smooth Transitions
+   ============================================================================ */
+
+.sequence-editor-root * {
+  transition: grid-template-columns 200ms ease-in-out,
+              grid-template-rows 200ms ease-in-out;
+}
+
+/* ============================================================================
+   Scrollbar Styling
+   ============================================================================ */
+
+.sequence-editor-root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.sequence-editor-root ::-webkit-scrollbar-track {
+  background: var(--bg-secondary, #2a2a2a);
+}
+
+.sequence-editor-root ::-webkit-scrollbar-thumb {
+  background: var(--border-color, #3a3a3a);
+  border-radius: 4px;
+}
+
+.sequence-editor-root ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color, #4A90E2);
+}
+
+/* ============================================================================
+   Utility Classes
+   ============================================================================ */
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.gap-sm {
+  gap: 0.5rem;
+}
+
+.gap-md {
+  gap: 1rem;
+}
+
+.gap-lg {
+  gap: 1.5rem;
+}

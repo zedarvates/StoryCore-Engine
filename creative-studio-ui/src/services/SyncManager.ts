@@ -159,12 +159,11 @@ export class SyncManager {
       let synced = 0;
       const conflicts: SyncConflict[] = [];
 
-      // Logique similaire à syncWorlds
+      // Synchroniser chaque personnage avec la méthode appropriée
       for (const character of storeCharacters) {
         try {
-          // Pour les personnages, nous utilisons une approche simplifiée
-          // car ils sont moins critiques que les mondes
-          await persistenceService.saveWorld(character as any, projectPath); // Adapter le type
+          // Utiliser saveCharacter au lieu de saveWorld
+          await persistenceService.saveCharacter(character, projectPath);
           synced++;
         } catch (error) {
           console.error(`[SyncManager] Error syncing character ${character.character_id}:`, error);

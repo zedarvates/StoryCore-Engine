@@ -1,0 +1,28 @@
+{
+  "total_tests": 5,
+  "obsolete_tests": [
+    "test_cleanup\\checkpoint_6_output\\sample_tests\\test_obsolete.py"
+  ],
+  "fragile_tests": [
+    {
+      "name": "test_obsolete.py::test_obsolete_functionality",
+      "failure_rate": 1.0,
+      "total_runs": 10,
+      "failures": 10
+    },
+    {
+      "name": "test_fragile.py::test_fragile_with_timing",
+      "failure_rate": 0.08,
+      "total_runs": 100,
+      "failures": 8
+    },
+    {
+      "name": "test_fragile.py::test_fragile_with_external_state",
+      "failure_rate": 0.1,
+      "total_runs": 50,
+      "failures": 5
+    }
+  ],
+  "duplicate_groups": [],
+  "timestamp": "2026-01-24T10:39:17.440157"
+}

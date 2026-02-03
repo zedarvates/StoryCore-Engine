@@ -25,7 +25,8 @@
 
 ### 🏗️ Technical Documentation
 - **[documentation/TECHNICAL_GUIDE.md](documentation/TECHNICAL_GUIDE.md)** - Architecture and implementation
-- **[documentation/api/](documentation/api/)** - API documentation
+- **[documentation/API_INDEX.md](documentation/API_INDEX.md)** - Complete API documentation index
+- **[documentation/api/](documentation/api/)** - Detailed API references
 - **[documentation/TROUBLESHOOTING.md](documentation/TROUBLESHOOTING.md)** - Common issues
 
 ### 🎨 UI Documentation
@@ -55,9 +56,11 @@
 
 ### For Developers
 1. [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Common commands
-2. [BUILD_REPORT.md](BUILD_REPORT.md) - Build status
-3. [FIX_TESTS.md](FIX_TESTS.md) - Test improvements
-4. [documentation/TECHNICAL_GUIDE.md](documentation/TECHNICAL_GUIDE.md) - Architecture
+2. [TODO.md](TODO.md) - Master TODO list
+3. [BUILD_REPORT.md](BUILD_REPORT.md) - Build status
+4. [FIX_TESTS.md](FIX_TESTS.md) - Test improvements
+5. [documentation/API_INDEX.md](documentation/API_INDEX.md) - API documentation
+6. [documentation/TECHNICAL_GUIDE.md](documentation/TECHNICAL_GUIDE.md) - Architecture
 
 ### For Team Leads
 1. [RELEASE_NOTES_2026_01_23.md](RELEASE_NOTES_2026_01_23.md) - Latest release
@@ -78,6 +81,12 @@
 4. [documentation/CONTRIBUTING.md](documentation/CONTRIBUTING.md) - Contribution guide
 
 ## 📖 Documentation by Topic
+
+### API Documentation
+- [documentation/API_INDEX.md](documentation/API_INDEX.md) - Complete API index
+- [documentation/api/PYTHON_BACKEND_API.md](documentation/api/PYTHON_BACKEND_API.md) - Python backend
+- [documentation/api/TYPESCRIPT_FRONTEND_API.md](documentation/api/TYPESCRIPT_FRONTEND_API.md) - TypeScript frontend
+- [documentation/api/REST_API_REFERENCE.md](documentation/api/REST_API_REFERENCE.md) - REST endpoints
 
 ### Build System
 - [BUILD_REPORT.md](BUILD_REPORT.md) - Build analysis
@@ -103,6 +112,18 @@
 
 ### I want to...
 
+#### Access API documentation
+→ [documentation/API_INDEX.md](documentation/API_INDEX.md)
+
+#### Use Python backend APIs
+→ [documentation/api/PYTHON_BACKEND_API.md](documentation/api/PYTHON_BACKEND_API.md)
+
+#### Use TypeScript frontend APIs
+→ [documentation/api/TYPESCRIPT_FRONTEND_API.md](documentation/api/TYPESCRIPT_FRONTEND_API.md)
+
+#### Integrate with REST API
+→ [documentation/api/REST_API_REFERENCE.md](documentation/api/REST_API_REFERENCE.md)
+
 #### Build the project
 → [QUICK_REFERENCE.md - Building](QUICK_REFERENCE.md#building)
 
@@ -114,6 +135,9 @@
 
 #### Check build status
 → [BUILD_REPORT.md](BUILD_REPORT.md)
+
+#### Check current tasks and progress
+→ [TODO.md](TODO.md)
 
 #### See what changed
 → [CHANGELOG.md](CHANGELOG.md)
@@ -135,6 +159,11 @@
 
 ## 📅 Recent Updates
 
+### January 26, 2026
+- ✅ Master TODO list created
+- ✅ Consolidated task tracking document
+- ✅ Documentation cross-references updated
+
 ### January 23, 2026
 - ✅ Build system validated and documented
 - ✅ Test infrastructure improved
@@ -142,6 +171,7 @@
 - ✅ Production deployment ready
 
 ### Key Documents Added
+- `TODO.md` - Master TODO list (Jan 26, 2026)
 - `BUILD_REPORT.md` - Build analysis
 - `FIX_TESTS.md` - Test improvements
 - `QUICK_REFERENCE.md` - Developer guide
@@ -178,7 +208,7 @@
 
 ---
 
-**Last Updated**: January 23, 2026  
+**Last Updated**: January 26, 2026
 **Version**: 1.0.0  
 **Status**: Production Ready ✅
 

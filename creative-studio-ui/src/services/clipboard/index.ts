@@ -1,0 +1,1 @@
+export { ClipboardManager } from './ClipboardManager';

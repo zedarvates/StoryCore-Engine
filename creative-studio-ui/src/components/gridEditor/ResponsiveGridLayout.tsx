@@ -165,7 +165,7 @@ export const ResponsiveGridLayout: React.FC<ResponsiveGridLayoutProps> = ({
       return (
         <GridListView
           items={items}
-          onItemClick={(item) => }
+          onItemClick={(item) => console.log('Item clicked:', item)}
           onLayoutChange={onLayoutChange}
         />
       );

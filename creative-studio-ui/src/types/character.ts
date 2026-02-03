@@ -40,6 +40,7 @@ export interface VisualIdentity {
   posture: string;
   clothing_style: string;
   color_palette: string[];
+  generated_portrait?: string; // Path to generated portrait image (relative to project or indexeddb://)
 }
 
 export interface Personality {

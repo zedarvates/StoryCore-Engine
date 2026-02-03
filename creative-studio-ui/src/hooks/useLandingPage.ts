@@ -107,6 +107,12 @@ export function useLandingPage(): UseLandingPageReturn {
   // Handle create project submission
   const handleCreateProjectSubmit = useCallback(
     async (projectName: string, projectPath: string, format: SerializableProjectFormat) => {
+      console.log('[useLandingPage] handleCreateProjectSubmit called with:', {
+        projectName,
+        projectPath: projectPath || '(empty - will use default)',
+        format: format.name,
+      });
+      
       setIsLoading(true);
       setError(null);
 
@@ -117,13 +123,25 @@ export function useLandingPage(): UseLandingPageReturn {
 
         if (window.electronAPI) {
           // Create project via Electron API with format (returns Project directly, throws on error)
-          const electronProject = await window.electronAPI.project.create({
-            name: projectName, 
-            location: projectPath,
+          // If projectPath is empty, the backend will use the default Documents directory
+          const createData: any = {
+            name: projectName,
             format: format,
             initialShots: initialShots,
-          });
+          };
+          
+          // Only include location if it's not empty - this ensures default path is used
+          if (projectPath && projectPath.trim() !== '') {
+            createData.location = projectPath;
+            console.log('[useLandingPage] Using custom location:', projectPath);
+          } else {
+            console.log('[useLandingPage] No location specified, backend will use default path');
+          }
+          
+          console.log('[useLandingPage] Creating project with data:', createData);
+          const electronProject = await window.electronAPI.project.create(createData);
 
+          console.log('Project created successfully:', electronProject);
 
           // Convert Electron project to Store project format
           const storeProject = convertElectronProjectToStore(electronProject);

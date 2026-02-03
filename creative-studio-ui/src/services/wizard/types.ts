@@ -212,6 +212,7 @@ export interface OllamaRequest {
     num_predict?: number;
     seed?: number;
   };
+  num_predict?: number;
 }
 
 export interface OllamaResponse {

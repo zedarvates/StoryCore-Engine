@@ -1,0 +1,352 @@
+/**
+ * Keyboard Navigation and Focus Styles
+ * 
+ * Provides consistent focus indicators and keyboard navigation styles
+ * across all wizard components for accessibility compliance.
+ * 
+ * Requirements: 13.3
+ */
+
+/* ============================================================================
+ * Focus Indicators
+ * ============================================================================ */
+
+/**
+ * Base focus-visible styles for all interactive elements
+ * Uses :focus-visible to only show focus indicators for keyboard navigation
+ */
+*:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/**
+ * Remove default focus outline for mouse/touch interactions
+ */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ============================================================================
+ * Button Focus Styles
+ * ============================================================================ */
+
+/**
+ * Primary button focus
+ */
+button.btn-primary:focus-visible,
+.wizard-navigation__button--next:focus-visible {
+  outline: 3px solid #1e40af;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+}
+
+/**
+ * Secondary button focus
+ */
+button.btn-secondary:focus-visible,
+.wizard-navigation__button--back:focus-visible,
+.wizard-navigation__button--skip:focus-visible {
+  outline: 3px solid #6b7280;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.2);
+}
+
+/**
+ * Danger/Cancel button focus
+ */
+button.btn-danger:focus-visible,
+button.btn-cancel:focus-visible {
+  outline: 3px solid #dc2626;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2);
+}
+
+/* ============================================================================
+ * Form Input Focus Styles
+ * ============================================================================ */
+
+/**
+ * Text inputs, textareas, and selects
+ */
+input[type="text"]:focus-visible,
+input[type="email"]:focus-visible,
+input[type="number"]:focus-visible,
+input[type="password"]:focus-visible,
+input[type="search"]:focus-visible,
+input[type="tel"]:focus-visible,
+input[type="url"]:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+}
+
+/**
+ * Checkbox and radio focus
+ */
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/* ============================================================================
+ * Card and Interactive Element Focus Styles
+ * ============================================================================ */
+
+/**
+ * Clickable cards
+ */
+.card-clickable:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/**
+ * List items that are interactive
+ */
+[role="listitem"][tabindex]:focus-visible,
+.list-item-interactive:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 4px rgba(59, 130, 246, 0.2);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* ============================================================================
+ * Link Focus Styles
+ * ============================================================================ */
+
+/**
+ * Links
+ */
+a:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  text-decoration: underline;
+}
+
+/* ============================================================================
+ * Modal and Dialog Focus Styles
+ * ============================================================================ */
+
+/**
+ * Modal/Dialog containers
+ */
+[role="dialog"]:focus-visible,
+.modal:focus-visible,
+.dialog:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: -3px;
+}
+
+/**
+ * Close buttons in modals
+ */
+.modal-close:focus-visible,
+.dialog-close:focus-visible {
+  outline: 3px solid #dc2626;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2);
+}
+
+/* ============================================================================
+ * Tab Navigation Focus Styles
+ * ============================================================================ */
+
+/**
+ * Tab buttons
+ */
+[role="tab"]:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/**
+ * Active tab
+ */
+[role="tab"][aria-selected="true"]:focus-visible {
+  outline: 3px solid #1e40af;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 4px rgba(30, 64, 175, 0.3);
+}
+
+/* ============================================================================
+ * Accordion/Collapsible Focus Styles
+ * ============================================================================ */
+
+/**
+ * Accordion headers/triggers
+ */
+[role="button"][aria-expanded]:focus-visible,
+.accordion-trigger:focus-visible,
+.collapsible-trigger:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+/* ============================================================================
+ * Skip Link Styles
+ * ============================================================================ */
+
+/**
+ * Skip to content link (for keyboard users)
+ */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 10000;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ============================================================================
+ * Keyboard Navigation Hints
+ * ============================================================================ */
+
+/**
+ * Visual indicator for keyboard-navigable elements
+ */
+[data-keyboard-hint]::after {
+  content: attr(data-keyboard-hint);
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+[data-keyboard-hint]:focus-visible::after {
+  opacity: 1;
+}
+
+/* ============================================================================
+ * High Contrast Mode Support
+ * ============================================================================ */
+
+/**
+ * Ensure focus indicators are visible in high contrast mode
+ */
+@media (prefers-contrast: high) {
+  *:focus-visible {
+    outline-width: 4px;
+    outline-offset: 4px;
+  }
+}
+
+/* ============================================================================
+ * Reduced Motion Support
+ * ============================================================================ */
+
+/**
+ * Disable transitions for users who prefer reduced motion
+ */
+@media (prefers-reduced-motion: reduce) {
+  *:focus-visible {
+    transition: none;
+  }
+}
+
+/* ============================================================================
+ * Dark Mode Focus Styles
+ * ============================================================================ */
+
+/**
+ * Adjust focus colors for dark mode
+ */
+@media (prefers-color-scheme: dark) {
+  *:focus-visible {
+    outline-color: #60a5fa;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.3);
+  }
+
+  button.btn-primary:focus-visible,
+  .wizard-navigation__button--next:focus-visible {
+    outline-color: #93c5fd;
+    box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.3);
+  }
+
+  input[type="text"]:focus-visible,
+  input[type="email"]:focus-visible,
+  input[type="number"]:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline-color: #60a5fa;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.3);
+    border-color: #60a5fa;
+  }
+}
+
+/* ============================================================================
+ * Utility Classes
+ * ============================================================================ */
+
+/**
+ * Force focus indicator to always show (for testing)
+ */
+.force-focus-visible:focus {
+  outline: 3px solid #3b82f6 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2) !important;
+}
+
+/**
+ * Hide focus indicator (use sparingly and only when alternative is provided)
+ */
+.no-focus-visible:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/**
+ * Custom focus color
+ */
+.focus-primary:focus-visible {
+  outline-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.focus-secondary:focus-visible {
+  outline-color: #6b7280;
+  box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.2);
+}
+
+.focus-success:focus-visible {
+  outline-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+}
+
+.focus-warning:focus-visible {
+  outline-color: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+}
+
+.focus-danger:focus-visible {
+  outline-color: #dc2626;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2);
+}

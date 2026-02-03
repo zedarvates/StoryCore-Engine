@@ -1,0 +1,650 @@
+/**
+ * Animation Styles for Sequence Editor Interface
+ * 
+ * Provides reusable animation classes and keyframes for consistent
+ * visual feedback across the application.
+ * 
+ * Requirements: 20.1, 20.2, 20.3, 20.4, 20.5, 20.6, 20.7
+ */
+
+/* ============================================================================
+   Keyframe Animations
+   ============================================================================ */
+
+/**
+ * Fade in animation
+ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/**
+ * Fade out animation
+ */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/**
+ * Slide in from top
+ */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/**
+ * Slide in from bottom
+ */
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/**
+ * Slide in from left
+ */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/**
+ * Slide in from right
+ */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/**
+ * Scale in animation
+ */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/**
+ * Pulse animation
+ * Requirement 20.1: Visual feedback within 16ms
+ */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/**
+ * Shake animation (for errors)
+ */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-10px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(10px);
+  }
+}
+
+/**
+ * Spin animation (for loading spinners)
+ * Requirement 20.6: Loading spinners for operations exceeding 500ms
+ */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/**
+ * Bounce animation
+ */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/**
+ * Glow animation (for highlights)
+ * Requirement 20.3: Animate tool selection with highlight transition
+ */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 4px var(--accent-color, #4A90E2);
+  }
+  50% {
+    box-shadow: 0 0 12px var(--accent-color, #4A90E2);
+  }
+}
+
+/**
+ * Progress bar animation
+ */
+@keyframes progressBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/**
+ * Shimmer animation (for loading states)
+ */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* ============================================================================
+   Utility Animation Classes
+   ============================================================================ */
+
+/**
+ * Fade animations
+ */
+.animate-fade-in {
+  animation: fadeIn var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out);
+}
+
+.animate-fade-out {
+  animation: fadeOut var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Slide animations
+ */
+.animate-slide-in-top {
+  animation: slideInFromTop var(--animation-duration-normal, 200ms) var(--ease-out, ease-out);
+}
+
+.animate-slide-in-bottom {
+  animation: slideInFromBottom var(--animation-duration-normal, 200ms) var(--ease-out, ease-out);
+}
+
+.animate-slide-in-left {
+  animation: slideInFromLeft var(--animation-duration-normal, 200ms) var(--ease-out, ease-out);
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight var(--animation-duration-normal, 200ms) var(--ease-out, ease-out);
+}
+
+/**
+ * Scale animation
+ */
+.animate-scale-in {
+  animation: scaleIn var(--animation-duration-normal, 200ms) var(--ease-out, ease-out);
+}
+
+/**
+ * Pulse animation
+ */
+.animate-pulse {
+  animation: pulse 600ms var(--ease-in-out, ease-in-out) infinite;
+}
+
+.animate-pulse-once {
+  animation: pulse 600ms var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Shake animation
+ */
+.animate-shake {
+  animation: shake 400ms var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Spin animation
+ */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-spin-slow {
+  animation: spin 2s linear infinite;
+}
+
+/**
+ * Bounce animation
+ */
+.animate-bounce {
+  animation: bounce 600ms var(--ease-in-out, ease-in-out) infinite;
+}
+
+/**
+ * Glow animation
+ */
+.animate-glow {
+  animation: glow 1.5s var(--ease-in-out, ease-in-out) infinite;
+}
+
+/* ============================================================================
+   Transition Classes
+   Requirement 20.7: Use ease-in-out for all animations
+   ============================================================================ */
+
+/**
+ * Fast transition (100ms)
+ */
+.transition-fast {
+  transition: all var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Normal transition (200ms)
+ * Requirement 20.2: 200ms transitions for panel resizing
+ */
+.transition-normal {
+  transition: all var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Slow transition (300ms)
+ */
+.transition-slow {
+  transition: all var(--animation-duration-slow, 300ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Color transition
+ * Requirement 20.5: Color transitions for state changes
+ */
+.transition-colors {
+  transition: background-color var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out),
+              color var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out),
+              border-color var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Opacity transition
+ */
+.transition-opacity {
+  transition: opacity var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Transform transition
+ */
+.transition-transform {
+  transition: transform var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Shadow transition
+ */
+.transition-shadow {
+  transition: box-shadow var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out);
+}
+
+/* ============================================================================
+   Interactive State Classes
+   Requirement 20.1: Visual feedback within 16ms (60 FPS)
+   ============================================================================ */
+
+/**
+ * Hover state
+ * Requirement 20.5: Color transitions for state changes
+ */
+.interactive-hover {
+  transition: background-color var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out);
+}
+
+.interactive-hover:hover {
+  background-color: var(--bg-hover, #333333);
+}
+
+/**
+ * Active/pressed state
+ */
+.interactive-active {
+  transition: background-color var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out),
+              transform var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out);
+}
+
+.interactive-active:active {
+  background-color: var(--bg-active, #3a3a3a);
+  transform: scale(0.95);
+}
+
+/**
+ * Button press animation
+ */
+.button-press {
+  transition: transform var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out),
+              box-shadow var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out);
+}
+
+.button-press:active {
+  transform: scale(0.95);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/**
+ * Tool selection highlight
+ * Requirement 20.3: Animate tool selection with highlight transition
+ */
+.tool-selected {
+  background-color: var(--accent-color, #4A90E2);
+  border-color: var(--accent-color, #4A90E2);
+  box-shadow: 0 0 8px var(--accent-color, #4A90E2);
+  transition: background-color var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out),
+              border-color var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out),
+              box-shadow var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Disabled state
+ */
+.interactive-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transition: opacity var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out);
+}
+
+/* ============================================================================
+   Loading States
+   Requirement 20.6: Loading spinners for operations exceeding 500ms
+   ============================================================================ */
+
+/**
+ * Loading spinner
+ */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color, #3a3a3a);
+  border-top-color: var(--accent-color, #4A90E2);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner-small {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.loading-spinner-large {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+
+/**
+ * Loading overlay
+ */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal, 50);
+  animation: fadeIn var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Shimmer loading effect
+ */
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary, #2a2a2a) 0%,
+    var(--bg-hover, #333333) 50%,
+    var(--bg-secondary, #2a2a2a) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/**
+ * Progress bar
+ */
+.progress-bar {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--accent-color, #4A90E2);
+  transition: width var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out);
+}
+
+.progress-bar-indeterminate {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30%;
+  height: 100%;
+  background-color: var(--accent-color, #4A90E2);
+  animation: progressBar 1.5s linear infinite;
+}
+
+/* ============================================================================
+   Drag and Drop Animations
+   Requirement 20.4: Animate ghost image and drop target highlights
+   ============================================================================ */
+
+/**
+ * Drag ghost image
+ */
+.drag-ghost {
+  opacity: 0.7;
+  transform: scale(0.95);
+  transition: opacity var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out),
+              transform var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out);
+  pointer-events: none;
+}
+
+/**
+ * Drop target highlight
+ */
+.drop-target {
+  outline: 2px dashed var(--accent-color, #4A90E2);
+  outline-offset: 2px;
+  background-color: rgba(74, 144, 226, 0.1);
+  transition: outline-color var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out),
+              background-color var(--animation-duration-fast, 100ms) var(--ease-in-out, ease-in-out);
+}
+
+.drop-target-active {
+  outline-color: var(--accent-hover, #5BA0F2);
+  background-color: rgba(74, 144, 226, 0.2);
+  animation: pulse 600ms var(--ease-in-out, ease-in-out) infinite;
+}
+
+/**
+ * Drop not allowed cursor
+ */
+.drop-not-allowed {
+  cursor: not-allowed !important;
+  opacity: 0.5;
+}
+
+/* ============================================================================
+   Accessibility - Reduced Motion
+   ============================================================================ */
+
+/**
+ * Respect user's motion preferences
+ * Disable animations for users who prefer reduced motion
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animate-pulse,
+  .animate-bounce,
+  .animate-glow,
+  .animate-spin {
+    animation: none !important;
+  }
+}
+
+/* ============================================================================
+   Performance Optimizations
+   Requirement 20.1: 60 FPS (16ms per frame)
+   ============================================================================ */
+
+/**
+ * Use GPU acceleration for transforms and opacity
+ */
+.gpu-accelerated {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/**
+ * Optimize animations for performance
+ */
+.optimize-animation {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ============================================================================
+   Ripple Effect
+   ============================================================================ */
+
+/**
+ * Ripple container
+ */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/**
+ * Ripple effect
+ */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  transform: scale(0);
+  opacity: 1;
+  animation: rippleEffect 600ms var(--ease-out, ease-out);
+}
+
+@keyframes rippleEffect {
+  to {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* ============================================================================
+   Status Indicators
+   ============================================================================ */
+
+/**
+ * Success state animation
+ */
+.status-success {
+  color: var(--status-success, #50C878);
+  animation: fadeIn var(--animation-duration-normal, 200ms) var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Error state animation
+ */
+.status-error {
+  color: var(--status-error, #E74C3C);
+  animation: shake 400ms var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Warning state animation
+ */
+.status-warning {
+  color: var(--status-warning, #F39C12);
+  animation: pulse 600ms var(--ease-in-out, ease-in-out);
+}
+
+/**
+ * Processing state animation
+ */
+.status-processing {
+  color: var(--status-info, #4A90E2);
+  animation: pulse 1s var(--ease-in-out, ease-in-out) infinite;
+}

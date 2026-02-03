@@ -1,0 +1,132 @@
+/**
+ * Shot Config Drop Target Styles
+ * 
+ * Styles for drag-and-drop functionality in the shot configuration panel.
+ * Requirements: 15.5 - Drop target highlighting
+ */
+
+/* ============================================================================
+   Shot Config Drop Target
+   ============================================================================ */
+
+.shot-config-drop-target {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.shot-config-drop-target.drop-ready {
+  cursor: copy;
+}
+
+.shot-config-drop-target.drop-active {
+  background-color: rgba(74, 144, 226, 0.05);
+  outline: 2px dashed var(--accent-color, #4A90E2);
+  outline-offset: -2px;
+  animation: shotConfigDropPulse 1s infinite;
+}
+
+.shot-config-drop-target.drop-invalid {
+  background-color: rgba(231, 76, 60, 0.05);
+  outline: 2px dashed #e74c3c;
+  outline-offset: -2px;
+  cursor: not-allowed;
+}
+
+/* Drop indicator overlay */
+.shot-config-drop-target .drop-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  pointer-events: none;
+  animation: dropIndicatorFadeIn 200ms ease-out;
+}
+
+.shot-config-drop-target .drop-indicator.invalid {
+  background-color: rgba(231, 76, 60, 0.3);
+}
+
+.shot-config-drop-target .drop-indicator-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem 3rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 3px solid var(--accent-color, #4A90E2);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.shot-config-drop-target .drop-indicator.invalid .drop-indicator-content {
+  border-color: #e74c3c;
+}
+
+.shot-config-drop-target .drop-icon {
+  font-size: 48px;
+  animation: shotConfigDropIconBounce 0.6s infinite;
+}
+
+.shot-config-drop-target .drop-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Animations */
+@keyframes shotConfigDropPulse {
+  0%, 100% {
+    outline-color: var(--accent-color, #4A90E2);
+    background-color: rgba(74, 144, 226, 0.05);
+  }
+  50% {
+    outline-color: rgba(74, 144, 226, 0.6);
+    background-color: rgba(74, 144, 226, 0.1);
+  }
+}
+
+@keyframes dropIndicatorFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shotConfigDropIconBounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-12px) scale(1.1);
+  }
+}
+
+/* Reference image grid drop zone enhancement */
+.reference-image-grid.drag-over {
+  background-color: rgba(74, 144, 226, 0.1);
+  border: 2px dashed var(--accent-color, #4A90E2);
+  animation: referenceGridPulse 1s infinite;
+}
+
+@keyframes referenceGridPulse {
+  0%, 100% {
+    border-color: var(--accent-color, #4A90E2);
+  }
+  50% {
+    border-color: rgba(74, 144, 226, 0.5);
+  }
+}

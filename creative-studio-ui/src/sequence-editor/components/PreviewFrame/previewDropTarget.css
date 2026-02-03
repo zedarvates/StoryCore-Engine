@@ -1,0 +1,165 @@
+/**
+ * Preview Frame Drop Target Styles
+ * 
+ * Styles for drag-and-drop functionality in the preview frame.
+ * Requirements: 15.6 - Drop target highlighting
+ */
+
+/* ============================================================================
+   Preview Drop Target
+   ============================================================================ */
+
+.preview-drop-target {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.preview-drop-target.drop-ready {
+  cursor: copy;
+}
+
+.preview-drop-target.drop-active {
+  outline: 3px dashed var(--accent-color, #4A90E2);
+  outline-offset: -3px;
+  animation: previewDropPulse 1s infinite;
+}
+
+.preview-drop-target.drop-invalid {
+  outline: 3px dashed #e74c3c;
+  outline-offset: -3px;
+  cursor: not-allowed;
+  animation: previewDropInvalid 0.5s infinite;
+}
+
+/* Drop indicator overlay */
+.preview-drop-target .drop-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  pointer-events: none;
+  animation: dropIndicatorFadeIn 200ms ease-out;
+}
+
+.preview-drop-target .drop-indicator.invalid {
+  background-color: rgba(231, 76, 60, 0.4);
+}
+
+.preview-drop-target .drop-indicator-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 4rem;
+  background: linear-gradient(135deg, 
+    rgba(42, 42, 42, 0.95) 0%, 
+    rgba(26, 26, 26, 0.95) 100%
+  );
+  border: 4px solid var(--accent-color, #4A90E2);
+  border-radius: 16px;
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+.preview-drop-target .drop-indicator.invalid .drop-indicator-content {
+  border-color: #e74c3c;
+  background: linear-gradient(135deg, 
+    rgba(42, 26, 26, 0.95) 0%, 
+    rgba(26, 16, 16, 0.95) 100%
+  );
+}
+
+.preview-drop-target .drop-icon {
+  font-size: 64px;
+  animation: previewDropIconBounce 0.6s infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+.preview-drop-target .drop-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  text-align: center;
+  line-height: 1.5;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Animations */
+@keyframes previewDropPulse {
+  0%, 100% {
+    outline-color: var(--accent-color, #4A90E2);
+    outline-width: 3px;
+  }
+  50% {
+    outline-color: rgba(74, 144, 226, 0.5);
+    outline-width: 5px;
+  }
+}
+
+@keyframes previewDropInvalid {
+  0%, 100% {
+    outline-color: #e74c3c;
+  }
+  50% {
+    outline-color: rgba(231, 76, 60, 0.5);
+  }
+}
+
+@keyframes dropIndicatorFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes previewDropIconBounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-16px) scale(1.15);
+  }
+}
+
+/* Canvas container drop state */
+.preview-canvas-container.drop-active {
+  position: relative;
+}
+
+.preview-canvas-container.drop-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 4px solid var(--accent-color, #4A90E2);
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 999;
+  animation: canvasBorderPulse 1s infinite;
+}
+
+@keyframes canvasBorderPulse {
+  0%, 100% {
+    border-color: var(--accent-color, #4A90E2);
+    box-shadow: 0 0 0 rgba(74, 144, 226, 0.4);
+  }
+  50% {
+    border-color: rgba(74, 144, 226, 0.8);
+    box-shadow: 0 0 20px rgba(74, 144, 226, 0.6);
+  }
+}

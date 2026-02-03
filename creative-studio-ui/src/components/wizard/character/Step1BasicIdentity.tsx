@@ -14,12 +14,14 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Sparkles } from 'lucide-react';
-import { useLLMGeneration } from '@/hooks/useLLMGeneration';
-import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
+import { useLLMGeneration } from '@/hooks/useLLMGeneration';
+import { cn } from '@/lib/utils';
+import { LLMLoadingState, LLMErrorDisplay } from '../LLMErrorDisplay';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
+import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 1: Basic Identity
@@ -27,6 +29,7 @@ import type { World } from '@/types/world';
 
 interface Step1BasicIdentityProps {
   worldContext?: World;
+  storyContext?: StoryContext;
 }
 
 const ARCHETYPES = [
@@ -193,7 +196,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
         {/* Character Name with LLM Generation */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="character-name" className="required">
+            <Label htmlFor="character-name" className="wizard-label required">
               Character Name <span className="text-red-600">*</span>
             </Label>
             <div className="flex gap-2">
@@ -202,7 +205,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
                 disabled={isLoading || !formData.role?.archetype || !llmConfigured}
                 variant="ghost"
                 size="sm"
-                className="gap-2 h-8"
+                className="wizard-button wizard-button-ghost gap-2 h-8"
               >
                 <Sparkles className="h-3 w-3" />
                 {isLoading ? 'Generating...' : 'Intelligent'}
@@ -212,7 +215,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
                 disabled={isLoading || !formData.role?.archetype || !llmConfigured}
                 variant="ghost"
                 size="sm"
-                className="gap-2 h-8"
+                className="wizard-button wizard-button-ghost gap-2 h-8"
               >
                 <Sparkles className="h-3 w-3" />
                 {isLoading ? 'Generating...' : 'Random'}
@@ -251,7 +254,10 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
             aria-required="true"
             aria-invalid={!!validationErrors.name}
             aria-describedby={validationErrors.name ? 'name-error' : undefined}
-            className={validationErrors.name ? 'border-red-500 focus:ring-red-500' : ''}
+            className={cn(
+              'wizard-input',
+              validationErrors.name && 'wizard-input.error'
+            )}
           />
           {validationErrors.name && (
             <p id="name-error" className="text-sm text-destructive" role="alert">
@@ -270,7 +276,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
 
         {/* Archetype */}
         <div className="space-y-2">
-          <Label htmlFor="archetype" className="required">
+          <Label htmlFor="archetype" className="wizard-label required">
             Character Archetype <span className="text-red-600">*</span>
           </Label>
           <Select
@@ -282,12 +288,13 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
               aria-required="true"
               aria-invalid={!!validationErrors.archetype}
               aria-describedby={validationErrors.archetype ? 'archetype-error' : undefined}
+              className="wizard-select-trigger"
             >
               <SelectValue placeholder="Select an archetype" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="wizard-select-content">
               {ARCHETYPES.map((archetype) => (
-                <SelectItem key={archetype} value={archetype}>
+                <SelectItem key={archetype} value={archetype} className="wizard-select-item">
                   {archetype}
                 </SelectItem>
               ))}
@@ -305,7 +312,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
 
         {/* Age Range */}
         <div className="space-y-2">
-          <Label htmlFor="age-range" className="required">
+          <Label htmlFor="age-range" className="wizard-label required">
             Age Range <span className="text-red-600">*</span>
           </Label>
           <Select
@@ -317,12 +324,13 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
               aria-required="true"
               aria-invalid={!!validationErrors.age_range}
               aria-describedby={validationErrors.age_range ? 'age-range-error' : undefined}
+              className="wizard-select-trigger"
             >
               <SelectValue placeholder="Select age range" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="wizard-select-content">
               {AGE_RANGES.map((range) => (
-                <SelectItem key={range} value={range}>
+                <SelectItem key={range} value={range} className="wizard-select-item">
                   {range}
                 </SelectItem>
               ))}
@@ -337,7 +345,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
 
         {/* Narrative Function */}
         <div className="space-y-2">
-          <Label htmlFor="narrative-function">
+          <Label htmlFor="narrative-function" className="wizard-label">
             Narrative Function
             <span className="text-muted-foreground ml-1">(Optional)</span>
           </Label>
@@ -348,6 +356,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
             placeholder="What purpose does this character serve in the story?"
             rows={3}
             aria-describedby="narrative-function-help"
+            className="wizard-textarea"
           />
           <p id="narrative-function-help" className="text-sm text-muted-foreground">
             Example: "Provides comic relief and helps the protagonist see different perspectives"
@@ -356,7 +365,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
 
         {/* Character Arc */}
         <div className="space-y-2">
-          <Label htmlFor="character-arc">
+          <Label htmlFor="character-arc" className="wizard-label">
             Character Arc
             <span className="text-muted-foreground ml-1">(Optional)</span>
           </Label>
@@ -367,6 +376,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
             placeholder="How does this character change throughout the story?"
             rows={3}
             aria-describedby="character-arc-help"
+            className="wizard-textarea"
           />
           <p id="character-arc-help" className="text-sm text-muted-foreground">
             Example: "Starts as a cynical loner, learns to trust others, becomes a team leader"

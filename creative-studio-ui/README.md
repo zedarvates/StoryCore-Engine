@@ -589,6 +589,616 @@ The enhanced LLM chatbox provides intelligent assistance with configurable AI pr
 
 For detailed configuration instructions, see [LLM Chatbox Configuration Guide](docs/LLM_CHATBOX_CONFIGURATION_GUIDE.md).
 
+## Menu Bar System
+
+The Creative Studio features a comprehensive, professional menu bar that provides access to all essential workflows through six main menus: File, Edit, View, Project, Tools, and Help. The menu system is designed with accessibility, cross-platform compatibility, and user experience as core priorities.
+
+### Overview
+
+The menu bar implements the WAI-ARIA menubar pattern for full accessibility, supports platform-aware keyboard shortcuts (Cmd on Mac, Ctrl on Windows/Linux), and provides clear visual feedback for all actions. All menu configurations are centralized for easy maintenance and extensibility.
+
+### Six Main Menus
+
+#### 1. File Menu
+
+Comprehensive file operations for project management:
+
+**Project Management:**
+- **New Project** (`Ctrl+N` / `⌘N`) - Create a new StoryCore project with customizable settings
+- **Open Project** (`Ctrl+O` / `⌘O`) - Open existing projects from your file system
+- **Save Project** (`Ctrl+S` / `⌘S`) - Save current project (auto-disabled when no project loaded)
+- **Save Project As** (`Ctrl+Shift+S` / `⌘⇧S`) - Save with new name or location
+
+**Export Operations:**
+- **Export > JSON** - Export project in Data Contract v1 format
+- **Export > PDF Report** - Generate comprehensive project report with shots and QA metrics
+- **Export > Video Sequence** - Export video file from all promoted panels
+
+**Recent Projects:**
+- **Recent Projects** - Quick access to your 10 most recently opened projects
+- Displays project name and last modified date
+- Automatically removes non-existent projects
+- Right-click for "Open" or "Remove from List" options
+
+**Smart Features:**
+- Unsaved changes protection with confirmation dialog
+- Automatic recent projects list management
+- Export progress indicators and success notifications
+
+#### 2. Edit Menu
+
+Standard editing operations with undo/redo support:
+
+**Undo/Redo Operations:**
+- **Undo** (`Ctrl+Z` / `⌘Z`) - Revert last action (disabled when undo stack empty)
+- **Redo** (`Ctrl+Y` / `⌘Y`) - Reapply last undone action (disabled when redo stack empty)
+
+**Clipboard Operations:**
+- **Cut** (`Ctrl+X` / `⌘X`) - Remove selected content and place in clipboard
+- **Copy** (`Ctrl+C` / `⌘C`) - Copy selected content to clipboard
+- **Paste** (`Ctrl+V` / `⌘V`) - Insert clipboard content at current position
+
+**Configuration:**
+- **Preferences** (`Ctrl+,` / `⌘,`) - Open user preferences dialog
+
+**Smart Features:**
+- Context-aware enabling/disabling (Cut/Copy require selection, Paste requires clipboard content)
+- Visual indicators for available actions
+- Seamless integration with application undo stack
+
+#### 3. View Menu
+
+Control workspace view settings and display options:
+
+**Display Toggles:**
+- **Timeline** - Toggle timeline panel visibility
+- **Toggle Grid** - Show/hide grid overlay for precise alignment
+- **Full Screen** (`F11`) - Toggle fullscreen mode for maximum workspace
+
+**Zoom Controls:**
+- **Zoom In** (`Ctrl+=` / `⌘=`) - Increase timeline zoom by one step (disabled at maximum)
+- **Zoom Out** (`Ctrl+-` / `⌘-`) - Decrease timeline zoom by one step (disabled at minimum)
+- **Reset Zoom** (`Ctrl+0` / `⌘0`) - Restore timeline to 100% zoom
+
+**Panel Management:**
+- **Panels** - Submenu with toggles for Properties, Assets, and Preview panels
+- Individual panel visibility controls
+- Optimized layout for different workflows
+
+**Smart Features:**
+- Zoom level boundaries with automatic disable at limits
+- Persistent view state across sessions
+- Smooth transitions for all view changes
+
+#### 4. Project Menu
+
+Project-specific settings and resource management:
+
+**Project Configuration:**
+- **Settings** - Open project settings modal for global project configuration
+- **Characters** - Manage character definitions and visual references
+- **Sequences** - Organize shots into sequences with transitions
+- **Assets** - Access project asset library and management
+
+**Smart Features:**
+- All items (except Settings) disabled when no project loaded
+- Clear visual feedback for project state
+- Seamless integration with project data model
+
+#### 5. Tools Menu
+
+AI tools and utilities for advanced workflows:
+
+**AI Integration:**
+- **LLM Assistant** - Configure StoryCore AI assistant for script analysis and shot planning
+- **ComfyUI Server** - Configure backend AI generation server connection
+- **Script Wizard** - Launch guided script-to-shots workflow with step-by-step assistance
+
+**Processing Tools:**
+- **Batch Generation** - Process multiple shots in batch mode for efficiency
+- **Quality Analysis** - Run QA Engine on current project with Laplacian variance analysis
+
+**Smart Features:**
+- Warning indicators for unconfigured services (ComfyUI)
+- Context-aware tool availability
+- Integration with backend processing pipeline
+
+#### 6. Help Menu
+
+Documentation, support, and system information:
+
+**Documentation:**
+- **Documentation** - Open StoryCore documentation in new browser tab
+- **Keyboard Shortcuts** (`Ctrl+/` / `⌘/`) - Display comprehensive keyboard shortcuts reference
+- **About StoryCore** - View version information, credits, and system details
+
+**Support:**
+- **Check for Updates** - Check for new StoryCore versions and display update status
+- **Report Issue** - Open GitHub issues page for bug reports and feature requests
+
+**Smart Features:**
+- Always accessible (never disabled)
+- External links open in new tabs
+- Version checking with update notifications
+
+### Key Features
+
+#### Keyboard Shortcuts
+
+The menu bar supports comprehensive keyboard shortcuts for efficient workflows:
+
+**Platform-Aware Shortcuts:**
+- Automatically adapts to platform (Cmd on Mac, Ctrl on Windows/Linux)
+- Display text shows correct modifier keys for current platform
+- Shortcuts displayed aligned to the right of menu items
+
+**Global Shortcut Handler:**
+- Centralized keyboard event handling
+- Conflict detection and resolution
+- Shortcuts work even when menus are closed
+
+**Complete Shortcut List:**
+See [KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md) for the complete reference including:
+- 15+ primary shortcuts across all menus
+- Full keyboard navigation (Alt/Option to focus, arrows to navigate)
+- Context-sensitive shortcut enabling/disabling
+
+#### Accessibility Features
+
+The menu bar implements full accessibility compliance:
+
+**Keyboard Navigation:**
+- `Alt` (Option on Mac) focuses first menu
+- Arrow keys navigate between menus and items
+- `Enter` activates focused item
+- `Escape` closes menu and returns focus
+- `Home`/`End` jump to first/last item
+
+**Screen Reader Support:**
+- Complete ARIA attributes (role, aria-haspopup, aria-expanded, aria-label, aria-disabled, aria-checked)
+- Announces menu labels and states
+- Announces keyboard shortcuts
+- Announces disabled/enabled states
+- Announces checked states for toggle items
+
+**Visual Accessibility:**
+- WCAG AA color contrast compliance (4.5:1 for normal text, 3:1 for large text)
+- Clear focus indicators with visible outlines
+- Reduced opacity for disabled items
+- Checkmarks for active toggle items
+- Right-pointing arrows for submenu indicators
+
+**Focus Management:**
+- Roving tabindex for menu items
+- Focus trap within open menu
+- Focus restoration on menu close
+- Logical focus order
+
+#### Internationalization
+
+The menu bar supports multiple languages:
+
+**Language Support:**
+- All menu labels use i18n translation keys
+- Supports English, French, Spanish, German, Japanese, and more
+- Automatic fallback to English for missing translations
+- Real-time language switching without page reload
+
+**Translation System:**
+- Centralized translation files
+- Consistent terminology across menus
+- Context-aware translations for ambiguous terms
+
+#### Configuration System
+
+The menu bar uses a centralized, declarative configuration system:
+
+**MenuConfig Structure:**
+```typescript
+interface MenuConfig {
+  id: string;
+  label: string;  // i18n key
+  items: MenuItemConfig[];
+}
+
+interface MenuItemConfig {
+  id: string;
+  label: string;  // i18n key
+  type: 'action' | 'submenu' | 'separator' | 'toggle';
+  enabled: boolean | ((state: AppState) => boolean);
+  visible: boolean | ((state: AppState) => boolean);
+  checked?: boolean | ((state: AppState) => boolean);
+  shortcut?: KeyboardShortcut;
+  action?: (context: ActionContext) => void | Promise<void>;
+  submenu?: MenuItemConfig[];
+  icon?: string;
+}
+```
+
+**Benefits:**
+- Add menu items without code changes
+- Dynamic enabling/disabling based on application state
+- Centralized maintenance
+- Type-safe configuration with TypeScript
+- Automatic validation on startup
+
+#### State Management
+
+The menu bar integrates with application state:
+
+**State Synchronization:**
+- Menu items reflect current application state
+- Automatic enabling/disabling based on context
+- Visual indicators for toggle states (checkmarks)
+- Real-time updates when state changes
+
+**State Categories:**
+- Project state (loaded/not loaded, has unsaved changes)
+- View state (zoom level, panel visibility, fullscreen)
+- Undo/redo stack state (can undo/redo)
+- Clipboard state (has content, content type)
+- Processing state (long-running operations)
+
+**Smart Disabling:**
+- Save disabled when no project loaded
+- Undo/Redo disabled when stacks empty
+- Cut/Copy disabled when no selection
+- Paste disabled when clipboard empty
+- Zoom In/Out disabled at boundaries
+
+#### Error Handling
+
+Comprehensive error handling with user-friendly feedback:
+
+**Error Categories:**
+- File system errors (not found, permission denied, disk full)
+- Validation errors (invalid data, missing fields, schema mismatch)
+- Service errors (persistence failure, export failure, network errors)
+- User input errors (invalid names, empty fields)
+
+**Error Handling Strategy:**
+- Try-catch blocks around all menu actions
+- User-friendly error messages (no technical jargon)
+- Actionable error notifications with recovery options
+- Automatic rollback for failed operations
+- Console logging for debugging
+
+**Unsaved Changes Protection:**
+- Confirmation dialog before closing project with unsaved changes
+- Options: Save, Don't Save, Cancel
+- Prevents accidental data loss
+
+**Notifications:**
+- Success notifications for completed actions (3-second auto-dismiss)
+- Error notifications with manual dismiss and action buttons
+- Progress indicators for long-running operations
+- Non-intrusive toast-style notifications
+
+### Usage Examples
+
+#### Basic Workflow
+
+```typescript
+// User clicks File > New Project
+// 1. Menu bar validates action is enabled
+// 2. Opens NewProjectModal
+// 3. User enters project name and settings
+// 4. Modal calls onProjectCreate callback
+// 5. Menu bar updates state and shows success notification
+
+// User presses Ctrl+S (Save)
+// 1. Keyboard handler detects shortcut
+// 2. Validates Save action is enabled (project loaded)
+// 3. Calls ProjectPersistenceService.saveProject()
+// 4. Shows success notification with file location
+// 5. Updates recent projects list
+```
+
+#### Keyboard Navigation
+
+```typescript
+// User presses Alt to focus menu bar
+// 1. Focus moves to File menu button
+// 2. User presses Right Arrow to navigate to Edit menu
+// 3. User presses Enter to open Edit menu
+// 4. Focus moves to first menu item (Undo)
+// 5. User presses Down Arrow to navigate to Redo
+// 6. User presses Enter to activate Redo
+// 7. Menu closes and redo action executes
+```
+
+#### State-Based Enabling
+
+```typescript
+// Menu item configuration with dynamic enabling
+{
+  id: 'save-project',
+  label: 'menu.file.save',
+  type: 'action',
+  enabled: (state) => state.project !== null,  // Only enabled when project loaded
+  shortcut: { key: 's', ctrl: true },
+  action: (ctx) => ctx.services.persistence.saveProject(ctx.project)
+}
+
+// Menu bar automatically updates enabled state when project changes
+```
+
+### Integration Guide for Developers
+
+#### Adding a New Menu Item
+
+1. **Update Menu Configuration:**
+
+```typescript
+// In menuConfig.ts
+{
+  id: 'my-new-action',
+  label: 'menu.file.myNewAction',  // Add to i18n files
+  type: 'action',
+  enabled: true,
+  visible: true,
+  shortcut: { key: 'm', ctrl: true, shift: true },
+  action: async (ctx) => {
+    // Your action logic here
+    await myService.doSomething(ctx.project);
+  }
+}
+```
+
+2. **Add Translation Keys:**
+
+```typescript
+// In i18n/en.json
+{
+  "menu": {
+    "file": {
+      "myNewAction": "My New Action"
+    }
+  }
+}
+```
+
+3. **No Code Changes Required:**
+- Menu bar automatically renders new item
+- Keyboard shortcut automatically registered
+- State management automatically applied
+
+#### Adding a New Menu
+
+1. **Create Menu Configuration:**
+
+```typescript
+// In menuConfig.ts
+const myNewMenu: MenuConfig = {
+  id: 'my-menu',
+  label: 'menu.myMenu.title',
+  items: [
+    {
+      id: 'action-1',
+      label: 'menu.myMenu.action1',
+      type: 'action',
+      enabled: true,
+      visible: true,
+      action: (ctx) => { /* ... */ }
+    }
+    // ... more items
+  ]
+};
+
+// Add to menuBarConfig array
+export const menuBarConfig: MenuConfig[] = [
+  fileMenu,
+  editMenu,
+  viewMenu,
+  projectMenu,
+  toolsMenu,
+  myNewMenu,  // Your new menu
+  helpMenu
+];
+```
+
+2. **Add Translations:**
+
+```typescript
+// In i18n/en.json
+{
+  "menu": {
+    "myMenu": {
+      "title": "My Menu",
+      "action1": "Action 1"
+    }
+  }
+}
+```
+
+#### Integrating with Services
+
+```typescript
+// Menu actions receive ActionContext with all services
+interface ActionContext {
+  project: Project | null;
+  viewState: ViewState;
+  undoStack: UndoStack;
+  clipboard: ClipboardState;
+  services: {
+    persistence: ProjectPersistenceService;
+    export: ProjectExportService;
+    recentProjects: RecentProjectsService;
+    modal: ModalManager;
+    notification: NotificationService;
+  };
+}
+
+// Example: Menu action that uses multiple services
+{
+  id: 'save-and-export',
+  label: 'menu.file.saveAndExport',
+  type: 'action',
+  enabled: (state) => state.project !== null,
+  action: async (ctx) => {
+    try {
+      // Save project
+      await ctx.services.persistence.saveProject(ctx.project);
+      
+      // Export to JSON
+      await ctx.services.export.exportJSON(ctx.project);
+      
+      // Show success notification
+      ctx.services.notification.show({
+        type: 'success',
+        message: 'Project saved and exported successfully',
+        duration: 3000
+      });
+    } catch (error) {
+      // Show error notification
+      ctx.services.notification.show({
+        type: 'error',
+        message: `Operation failed: ${error.message}`,
+        duration: null
+      });
+    }
+  }
+}
+```
+
+#### Custom Modal Integration
+
+```typescript
+// 1. Register modal component
+modalManager.registerModal('my-modal', MyModalComponent);
+
+// 2. Add menu item that opens modal
+{
+  id: 'open-my-modal',
+  label: 'menu.tools.myModal',
+  type: 'action',
+  enabled: true,
+  action: (ctx) => {
+    ctx.services.modal.openModal('my-modal', {
+      // Props for your modal
+      project: ctx.project,
+      onSave: (data) => {
+        // Handle modal save
+      }
+    });
+  }
+}
+```
+
+#### Testing Menu Actions
+
+```typescript
+// Unit test example
+describe('Menu Actions', () => {
+  it('should save project when Save action is triggered', async () => {
+    const mockPersistence = {
+      saveProject: vi.fn().mockResolvedValue({ success: true })
+    };
+    
+    const context: ActionContext = {
+      project: createMockProject(),
+      services: { persistence: mockPersistence }
+    };
+    
+    const saveAction = menuConfig.find(m => m.id === 'file')
+      .items.find(i => i.id === 'save-project');
+    
+    await saveAction.action(context);
+    
+    expect(mockPersistence.saveProject).toHaveBeenCalledWith(context.project);
+  });
+});
+```
+
+### Architecture Details
+
+**Component Hierarchy:**
+```
+MenuBar (Root)
+├── MenuBarContext (State Management)
+├── KeyboardShortcutProvider (Global Shortcuts)
+├── Menu (Repeatable for each menu)
+│   ├── MenuTrigger (Button)
+│   └── MenuDropdown (Popup)
+│       └── MenuItem (Repeatable)
+│           ├── MenuItemLabel
+│           ├── MenuItemShortcut
+│           └── MenuItemSubmenu (Optional)
+└── ModalManager
+    ├── NewProjectModal
+    ├── SaveAsModal
+    ├── ExportModal
+    ├── KeyboardShortcutsModal
+    └── AboutModal
+```
+
+**Data Flow:**
+1. User Interaction → Menu click or keyboard shortcut
+2. Event Handler → Validates action availability (enabled state)
+3. Action Dispatcher → Calls appropriate service or updates state
+4. Service Layer → Performs business logic (save, load, export)
+5. State Update → Updates application state and menu state
+6. UI Feedback → Shows notification, updates menu indicators
+
+**Service Integration:**
+- `ProjectPersistenceService` - Save/load projects
+- `ProjectExportService` - Export to JSON/PDF/Video
+- `RecentProjectsService` - Manage recent projects list
+- `ModalManager` - Open/close modals
+- `NotificationService` - Display notifications
+- `UndoRedoService` - Undo/redo operations
+
+### Performance Considerations
+
+**Optimization Strategies:**
+- Lazy loading of menu configurations
+- Memoized menu item rendering
+- Debounced state updates
+- Virtual scrolling for long submenus (e.g., recent projects)
+- Efficient keyboard event handling with event delegation
+
+**Rendering Performance:**
+- Menu items only render when menu is open
+- State-based enabling computed once per state change
+- Smooth transitions (150ms) without blocking UI
+- Minimal re-renders with React.memo and useMemo
+
+### Browser Compatibility
+
+The menu bar works in all modern browsers:
+
+| Browser | Minimum Version | Notes |
+|---------|----------------|-------|
+| Chrome  | 90+            | Full support |
+| Firefox | 88+            | Full support |
+| Safari  | 14+            | Full support |
+| Edge    | 90+            | Full support |
+
+**Known Issues:**
+- Some keyboard shortcuts may conflict with browser shortcuts (e.g., Ctrl+N, Ctrl+O)
+- F11 fullscreen may require browser permission on first use
+- Solution: Use StoryCore as standalone app or in dedicated browser window
+
+### Future Enhancements
+
+**Planned Features:**
+- Customizable keyboard shortcuts
+- Menu item search/command palette
+- Recent actions history
+- Contextual menu items based on selection
+- Menu item favorites/pinning
+- Workspace-specific menu configurations
+- Plugin system for third-party menu extensions
+
+### Additional Resources
+
+- **[Keyboard Shortcuts Reference](docs/KEYBOARD_SHORTCUTS.md)** - Complete keyboard shortcuts guide
+- **[User Guide](docs/USER_GUIDE.md)** - End-user documentation
+- **[API Reference](docs/API_REFERENCE.md)** - Developer API documentation
+- **WAI-ARIA Menubar Pattern** - [W3C Specification](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/)
+
+---
+
 ## Integration with StoryCore-Engine
 
 Creative Studio UI exports projects in the StoryCore-Engine Data Contract v1 format:

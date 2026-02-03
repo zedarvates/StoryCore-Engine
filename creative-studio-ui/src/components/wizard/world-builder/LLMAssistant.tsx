@@ -42,7 +42,7 @@ export const LLMAssistant: React.FC = () => {
       <button
         className="assistant-toggle"
         onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
+        aria-expanded={isOpen ? "true" : "false"}
       >
         AI Assistant
       </button>

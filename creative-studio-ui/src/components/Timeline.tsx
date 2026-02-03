@@ -4,17 +4,24 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useSequencePlanStore, useCurrentPlanShots, useSequencePlanActions } from '@/stores/sequencePlanStore';
 import { useAppStore } from '@/stores/useAppStore';
 import type { Shot } from '../types';
-import { Clock, Play, Pause, SkipBack, SkipForward, FolderOpen, Layers, Plus } from 'lucide-react';
+import { Clock, Play, Pause, SkipBack, SkipForward, FolderOpen, Layers, Plus, ZoomIn, ZoomOut, Grid3X3, MousePointer2 } from 'lucide-react';
 import { ShotThumbnail } from './timeline/ShotThumbnail';
 import { PerformanceMonitor } from './timeline/PerformanceMonitor';
 
 // Constants for timeline rendering
-const PIXELS_PER_SECOND = 50; // 50 pixels = 1 second
+const BASE_PIXELS_PER_SECOND = 50; // 50 pixels = 1 second at zoom 1x
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 4;
+const DEFAULT_ZOOM = 1;
 const TIMELINE_HEIGHT = 200;
 const SHOT_TRACK_HEIGHT = 60;
 const AUDIO_TRACK_HEIGHT = 40;
 const TIME_MARKER_HEIGHT = 30;
 const PLAYHEAD_COLOR = '#ef4444'; // red-500
+const SNAP_GRID_SIZE = 1; // Snap to 1 second intervals
+
+// Calculate pixels per second based on zoom level
+const getPixelsPerSecond = (zoom: number) => BASE_PIXELS_PER_SECOND * zoom;
 
 // DnD item types
 const ItemTypes = {
@@ -98,8 +105,9 @@ const TimelineShot = memo<TimelineShotProps>(({
 
     const handleMouseMove = (e: MouseEvent) => {
       const deltaX = e.clientX - resizeStartX;
-      const newWidth = Math.max(PIXELS_PER_SECOND, resizeStartWidth + deltaX);
-      const newDuration = newWidth / PIXELS_PER_SECOND;
+      const pps = BASE_PIXELS_PER_SECOND; // Use base pixels per second for consistent resize behavior
+      const newWidth = Math.max(pps, resizeStartWidth + deltaX);
+      const newDuration = newWidth / pps;
       onDurationChange(shot.id, Math.round(newDuration * 10) / 10); // Round to 1 decimal
     };
 
@@ -171,11 +179,11 @@ const TimelineShot = memo<TimelineShotProps>(({
       >
         <div className={`h-full bg-blue-600 hover:bg-blue-500 border rounded overflow-hidden transition-colors relative ${borderStyle}`}>
           {/* Thumbnail Background - Async loaded */}
-          {(shot.image || shot.videoUrl) && (
+          {shot.image && (
             <div className="absolute inset-0">
               <ShotThumbnail
                 imageUrl={shot.image}
-                videoUrl={shot.videoUrl}
+                videoUrl={undefined}
                 timestamp={0}
                 alt={shot.title}
                 className="w-full h-full opacity-40"
@@ -298,6 +306,25 @@ export const Timeline: React.FC<TimelineProps> = ({
   const [inPoint, setInPoint] = useState<number | null>(null);
   const [outPoint, setOutPoint] = useState<number | null>(null);
   
+  // Zoom state
+  const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
+  
+  // Zoom control functions
+  const handleZoomIn = useCallback(() => {
+    setZoomLevel(prev => Math.min(prev + 0.25, MAX_ZOOM));
+  }, []);
+  
+  const handleZoomOut = useCallback(() => {
+    setZoomLevel(prev => Math.max(prev - 0.25, MIN_ZOOM));
+  }, []);
+  
+  const handleZoomReset = useCallback(() => {
+    setZoomLevel(DEFAULT_ZOOM);
+  }, []);
+  
+  // Calculate pixels per second based on zoom level
+  const pixelsPerSecond = useMemo(() => getPixelsPerSecond(zoomLevel), [zoomLevel]);
+  
   // Calculate total duration - memoized to avoid recalculation on every render
   const totalDuration = useMemo(() => {
     return shots.reduce((sum, shot) => {
@@ -311,8 +338,8 @@ export const Timeline: React.FC<TimelineProps> = ({
   
   // Calculate total width - memoized
   const totalWidth = useMemo(() => {
-    return Math.max(totalDuration * PIXELS_PER_SECOND, 1000);
-  }, [totalDuration]);
+    return Math.max(totalDuration * pixelsPerSecond, 1000);
+  }, [totalDuration, pixelsPerSecond]);
   
   // Format time as MM:SS - memoized function
   const formatTime = useCallback((seconds: number): string => {
@@ -337,17 +364,15 @@ export const Timeline: React.FC<TimelineProps> = ({
     return shots.map((shot) => {
       const startX = currentPosition;
 
-      // Account for trimming: if trimStart/trimEnd are set, use the trimmed duration
-      const effectiveDuration = shot.timing.trimStart !== undefined && shot.timing.trimEnd !== undefined
-        ? shot.timing.trimEnd - shot.timing.trimStart
-        : shot.timing.duration;
+      // Use duration directly (trimming not available in current type)
+      const effectiveDuration = shot.duration;
 
-      const width = effectiveDuration * PIXELS_PER_SECOND;
+      const width = effectiveDuration * pixelsPerSecond;
       currentPosition += effectiveDuration;
 
       let transitionWidth = 0;
       if (shot.transitionOut) {
-        transitionWidth = shot.transitionOut.duration * PIXELS_PER_SECOND;
+        transitionWidth = shot.transitionOut.duration * pixelsPerSecond;
         currentPosition += shot.transitionOut.duration;
       }
 
@@ -359,7 +384,7 @@ export const Timeline: React.FC<TimelineProps> = ({
         effectiveDuration,
       };
     });
-  }, [shots]);
+  }, [shots, pixelsPerSecond]);
   
   // Handle shot reordering - memoized callback
   const handleShotReorder = useCallback(async (dragIndex: number, hoverIndex: number) => {
@@ -456,9 +481,9 @@ export const Timeline: React.FC<TimelineProps> = ({
 
     const rect = timelineRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left + timelineRef.current.scrollLeft;
-    const time = x / PIXELS_PER_SECOND;
+    const time = x / pixelsPerSecond;
     setCurrentTime(Math.max(0, Math.min(time, totalDuration)));
-  }, [totalDuration]);
+  }, [totalDuration, pixelsPerSecond]);
 
   // Handle context menu for timeline (insert shot) - memoized callback
   const handleTimelineContextMenu = useCallback((x: number, y: number) => {
@@ -466,7 +491,7 @@ export const Timeline: React.FC<TimelineProps> = ({
 
     const rect = timelineRef.current.getBoundingClientRect();
     const relativeX = x - rect.left + timelineRef.current.scrollLeft;
-    const time = relativeX / PIXELS_PER_SECOND;
+    const time = relativeX / pixelsPerSecond;
 
     // Find insertion position
     let insertPosition = 0;
@@ -574,7 +599,7 @@ export const Timeline: React.FC<TimelineProps> = ({
       
       const rect = timelineRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left + timelineRef.current.scrollLeft;
-      const time = x / PIXELS_PER_SECOND;
+      const time = x / pixelsPerSecond;
       setCurrentTime(Math.max(0, Math.min(time, totalDuration)));
     };
     
@@ -589,13 +614,13 @@ export const Timeline: React.FC<TimelineProps> = ({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingPlayhead, totalDuration, setCurrentTime]);
+  }, [isDraggingPlayhead, totalDuration, pixelsPerSecond, setCurrentTime]);
   
   // Auto-scroll to keep playhead visible
   useEffect(() => {
     if (!timelineRef.current || !isPlaying) return;
     
-    const playheadX = currentTime * PIXELS_PER_SECOND;
+    const playheadX = currentTime * pixelsPerSecond;
     const scrollLeft = timelineRef.current.scrollLeft;
     const viewportWidth = timelineRef.current.clientWidth;
     
@@ -603,7 +628,7 @@ export const Timeline: React.FC<TimelineProps> = ({
     if (playheadX > scrollLeft + viewportWidth - 100) {
       timelineRef.current.scrollLeft = playheadX - viewportWidth + 100;
     }
-  }, [currentTime, isPlaying]);
+  }, [currentTime, isPlaying, pixelsPerSecond]);
   
   // Auto-scroll to selected shot(s)
   useEffect(() => {
@@ -633,17 +658,17 @@ export const Timeline: React.FC<TimelineProps> = ({
     // Calculate positions
     let firstShotStartX = 0;
     for (let i = 0; i < firstIndex; i++) {
-      firstShotStartX += shots[i].duration * PIXELS_PER_SECOND;
+      firstShotStartX += shots[i].duration * pixelsPerSecond;
       if (shots[i].transitionOut) {
-        firstShotStartX += shots[i].transitionOut!.duration * PIXELS_PER_SECOND;
+        firstShotStartX += shots[i].transitionOut!.duration * pixelsPerSecond;
       }
     }
 
     let lastShotEndX = firstShotStartX;
     for (let i = firstIndex; i <= lastIndex; i++) {
-      lastShotEndX += shots[i].duration * PIXELS_PER_SECOND;
+      lastShotEndX += shots[i].duration * pixelsPerSecond;
       if (shots[i].transitionOut) {
-        lastShotEndX += shots[i].transitionOut!.duration * PIXELS_PER_SECOND;
+        lastShotEndX += shots[i].transitionOut!.duration * pixelsPerSecond;
       }
     }
     
@@ -679,7 +704,7 @@ export const Timeline: React.FC<TimelineProps> = ({
         behavior: 'smooth',
       });
     }
-  }, [selectedShotId, selectedShotIds, multiSelectMode, shots]);
+  }, [selectedShotId, selectedShotIds, multiSelectMode, shots, pixelsPerSecond]);
   
   // Playback controls - memoized callbacks
   const handlePlayPause = useCallback(() => {
@@ -1008,6 +1033,38 @@ export const Timeline: React.FC<TimelineProps> = ({
             />
           </div>
         )}
+        
+        {/* Zoom Controls */}
+        <div className="ml-4 flex items-center gap-1 bg-gray-700 rounded-lg px-2 py-1">
+          <button
+            onClick={handleZoomOut}
+            disabled={zoomLevel <= MIN_ZOOM}
+            className="p-1 hover:bg-gray-600 rounded transition-colors disabled:opacity-50"
+            title="Zoom Out"
+          >
+            <ZoomOut className="w-4 h-4 text-gray-300" />
+          </button>
+          
+          <div className="flex flex-col items-center min-w-12">
+            <span className="text-xs text-gray-300 font-medium">{Math.round(zoomLevel * 100)}%</span>
+            <button
+              onClick={handleZoomReset}
+              className="text-[10px] text-gray-400 hover:text-gray-200 underline"
+              title="Reset zoom to 100%"
+            >
+              Reset
+            </button>
+          </div>
+          
+          <button
+            onClick={handleZoomIn}
+            disabled={zoomLevel >= MAX_ZOOM}
+            className="p-1 hover:bg-gray-600 rounded transition-colors disabled:opacity-50"
+            title="Zoom In"
+          >
+            <ZoomIn className="w-4 h-4 text-gray-300" />
+          </button>
+        </div>
       </div>
       
       {/* Empty State - No Plan Selected */}
@@ -1062,7 +1119,7 @@ export const Timeline: React.FC<TimelineProps> = ({
               <div
                 key={time}
                 className="absolute top-0 flex flex-col items-center"
-                style={{ left: time * PIXELS_PER_SECOND }}
+                style={{ left: time * pixelsPerSecond }}
               >
                 <div className="w-px h-2 bg-gray-600" />
                 <span className="text-xs text-gray-400 mt-1">{formatTime(time)}</span>
@@ -1107,8 +1164,8 @@ export const Timeline: React.FC<TimelineProps> = ({
             {shotPositions.map(({ shot, startX }) => (
               <div key={`audio-${shot.id}`}>
                 {shot.audioTracks.map((track, index) => {
-                  const trackStartX = startX + (track.startTime * PIXELS_PER_SECOND);
-                  const trackWidth = track.duration * PIXELS_PER_SECOND;
+                  const trackStartX = startX + (track.startTime * pixelsPerSecond);
+                  const trackWidth = track.duration * pixelsPerSecond;
                   
                   return (
                     <div
@@ -1180,7 +1237,7 @@ export const Timeline: React.FC<TimelineProps> = ({
           <div
             className="absolute top-0 bottom-0 pointer-events-none"
             style={{
-              left: currentTime * PIXELS_PER_SECOND,
+              left: currentTime * pixelsPerSecond,
               width: 2,
               backgroundColor: PLAYHEAD_COLOR,
               zIndex: 100,

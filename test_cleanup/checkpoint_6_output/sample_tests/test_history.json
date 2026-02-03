@@ -1,0 +1,32 @@
+{
+  "test_obsolete.py::test_obsolete_functionality": {
+    "total_runs": 10,
+    "failures": 10,
+    "last_run": "2026-01-24T10:39:14.507488"
+  },
+  "test_fragile.py::test_fragile_with_timing": {
+    "total_runs": 100,
+    "failures": 8,
+    "last_run": "2026-01-24T10:39:14.507488"
+  },
+  "test_fragile.py::test_fragile_with_external_state": {
+    "total_runs": 50,
+    "failures": 5,
+    "last_run": "2026-01-24T10:39:14.507488"
+  },
+  "test_duplicate_1.py::test_addition": {
+    "total_runs": 20,
+    "failures": 0,
+    "last_run": "2026-01-24T10:39:14.507488"
+  },
+  "test_duplicate_2.py::test_add_function": {
+    "total_runs": 20,
+    "failures": 0,
+    "last_run": "2026-01-24T10:39:14.507488"
+  },
+  "test_valid.py::test_multiplication": {
+    "total_runs": 30,
+    "failures": 0,
+    "last_run": "2026-01-24T10:39:14.507488"
+  }
+}

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Loading Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .asset-item {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+        }
+        .asset-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Asset Loading Test</h1>
+    
+    <div class="test-section">
+        <h2>Context Detection</h2>
+        <div id="context-status" class="status info">Checking context...</div>
+        <div id="context-info"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Asset Path Test</h2>
+        <div id="path-status" class="status info">Testing asset paths...</div>
+        <div class="asset-grid" id="path-test-assets"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Library Assets Test</h2>
+        <div id="library-status" class="status info">Loading library assets...</div>
+        <div class="asset-grid" id="library-test-assets"></div>
+    </div>
+
+    <script>
+        // Test context detection
+        function testContext() {
+            const contextStatus = document.getElementById('context-status');
+            const contextInfo = document.getElementById('context-info');
+            
+            const isBrowser = !window.electronAPI;
+            const basePath = isBrowser ? '/assets' : 'assets';
+            
+            if (isBrowser) {
+                contextStatus.className = 'status success';
+                contextStatus.textContent = 'Running in Browser Context (Demo Mode)';
+            } else {
+                contextStatus.className = 'status info';
+                contextStatus.textContent = 'Running in Electron Context';
+            }
+            
+            contextInfo.innerHTML = `
+                <p><strong>Base Path:</strong> ${basePath}</p>
+                <p><strong>Electron API Available:</strong> ${!!window.electronAPI}</p>
+            `;
+            
+            return basePath;
+        }
+
+        // Test asset paths
+        async function testAssetPaths(basePath) {
+            const pathStatus = document.getElementById('path-status');
+            const pathTestAssets = document.getElementById('path-test-assets');
+            
+            const testAssets = [
+                `${basePath}/resources/jpg-files/file_0.jpg`,
+                `${basePath}/resources/jpg-files/file_1.jpg`,
+                `${basePath}/library/StorycoreIconeV2.png`,
+                `${basePath}/resources/ui/panel-placeholder-empty.svg`,
+                `${basePath}/resources/icons/storycore-logo-square.svg`
+            ];
+
+            let loadedCount = 0;
+            let errorCount = 0;
+
+            for (const assetPath of testAssets) {
+                try {
+                    const response = await fetch(assetPath);
+                    if (response.ok) {
+                        loadedCount++;
+                        const img = document.createElement('img');
+                        img.src = assetPath;
+                        img.alt = assetPath;
+                        img.style.maxHeight = '100px';
+                        
+                        const item = document.createElement('div');
+                        item.className = 'asset-item';
+                        item.appendChild(img);
+                        item.innerHTML += `<small>${assetPath}</small>`;
+                        pathTestAssets.appendChild(item);
+                    } else {
+                        errorCount++;
+                        const item = document.createElement('div');
+                        item.className = 'asset-item';
+                        item.innerHTML = `<span style="color: red">❌ ${assetPath}</span>`;
+                        pathTestAssets.appendChild(item);
+                    }
+                } catch (error) {
+                    errorCount++;
+                    const item = document.createElement('div');
+                    item.className = 'asset-item';
+                    item.innerHTML = `<span style="color: red">❌ ${assetPath}</span>`;
+                    pathTestAssets.appendChild(item);
+                }
+            }
+
+            if (errorCount === 0) {
+                pathStatus.className = 'status success';
+                pathStatus.textContent = `All ${loadedCount} asset paths are working correctly!`;
+            } else {
+                pathStatus.className = 'status error';
+                pathStatus.textContent = `Failed to load ${errorCount} out of ${testAssets.length} assets`;
+            }
+        }
+
+        // Test library assets
+        async function testLibraryAssets() {
+            const libraryStatus = document.getElementById('library-status');
+            const libraryTestAssets = document.getElementById('library-test-assets');
+            
+            try {
+                // Simulate the asset library service
+                const basePath = testContext();
+                
+                const libraryAssets = [
+                    {
+                        id: 'lib-img-1',
+                        name: 'Sample Image 1',
+                        type: 'image',
+                        url: `${basePath}/resources/jpg-files/file_0.jpg`,
+                        thumbnail: `${basePath}/resources/jpg-files/file_0.jpg`,
+                        metadata: { source: 'library', category: 'demo', tags: ['sample', 'image'] }
+                    },
+                    {
+                        id: 'lib-img-2',
+                        name: 'Sample Image 2',
+                        type: 'image',
+                        url: `${basePath}/resources/jpg-files/file_1.jpg`,
+                        thumbnail: `${basePath}/resources/jpg-files/file_1.jpg`,
+                        metadata: { source: 'library', category: 'demo', tags: ['sample', 'image'] }
+                    },
+                    {
+                        id: 'lib-img-3',
+                        name: 'StoryCore Logo',
+                        type: 'image',
+                        url: `${basePath}/library/StorycoreIconeV2.png`,
+                        thumbnail: `${basePath}/library/StorycoreIconeV2.png`,
+                        metadata: { source: 'library', category: 'branding', tags: ['logo', 'branding'] }
+                    }
+                ];
+
+                let loadedCount = 0;
+
+                for (const asset of libraryAssets) {
+                    try {
+                        const response = await fetch(asset.url);
+                        if (response.ok) {
+                            loadedCount++;
+                            const img = document.createElement('img');
+                            img.src = asset.url;
+                            img.alt = asset.name;
+                            img.style.maxHeight = '100px';
+                            
+                            const item = document.createElement('div');
+                            item.className = 'asset-item';
+                            item.appendChild(img);
+                            item.innerHTML += `<small>${asset.name}</small>`;
+                            item.innerHTML += `<br><small style="color: #666">${asset.metadata.category}</small>`;
+                            libraryTestAssets.appendChild(item);
+                        }
+                    } catch (error) {
+                        console.error('Failed to load asset:', asset.name, error);
+                    }
+                }
+
+                if (loadedCount > 0) {
+                    libraryStatus.className = 'status success';
+                    libraryStatus.textContent = `Successfully loaded ${loadedCount} library assets!`;
+                } else {
+                    libraryStatus.className = 'status error';
+                    libraryStatus.textContent = 'Failed to load any library assets';
+                }
+
+            } catch (error) {
+                libraryStatus.className = 'status error';
+                libraryStatus.textContent = 'Error testing library assets: ' + error.message;
+            }
+        }
+
+        // Run tests
+        document.addEventListener('DOMContentLoaded', () => {
+            const basePath = testContext();
+            testAssetPaths(basePath);
+            testLibraryAssets();
+        });
+    </script>
+</body>
+</html>

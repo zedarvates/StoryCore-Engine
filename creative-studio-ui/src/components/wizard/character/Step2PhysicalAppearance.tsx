@@ -9,9 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, X } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
-import { useServiceStatus } from '@/components/ui/service-warning';
+import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
+import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 2: Physical Appearance
@@ -19,6 +20,7 @@ import type { World } from '@/types/world';
 
 interface Step2PhysicalAppearanceProps {
   worldContext?: World;
+  storyContext?: StoryContext;
 }
 
 export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanceProps) {
@@ -28,7 +30,7 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
   const [newColor, setNewColor] = useState('');
 
   // Check if LLM service is configured
-  const { llmConfigured } = useServiceStatus();
+  const { llmConfigured, llmChecking } = useServiceStatus();
 
   // LLM generation for appearance suggestions
   const {
@@ -309,13 +311,33 @@ Example:
             </div>
             <Button
               onClick={handleGenerateAppearance}
-              disabled={isLoading || !formData.role?.archetype || !llmConfigured}
+              disabled={isLoading || llmChecking || !formData.role?.archetype || !llmConfigured}
               className="gap-2"
             >
               <Sparkles className="h-4 w-4" />
-              {isLoading ? 'Generating...' : 'Generate Appearance'}
+              {isLoading ? 'Generating...' : llmChecking ? 'Checking...' : 'Generate Appearance'}
             </Button>
           </div>
+
+          {/* Checking State */}
+          {llmChecking && (
+            <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+              <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+              <span className="text-sm text-blue-700 dark:text-blue-300">
+                Checking LLM service configuration...
+              </span>
+            </div>
+          )}
+
+          {/* Service Warning */}
+          {!llmChecking && !llmConfigured && (
+            <ServiceWarning
+              service="llm"
+              onConfigure={() => {
+                window.dispatchEvent(new CustomEvent('open-llm-settings'));
+              }}
+            />
+          )}
 
           {/* Loading State */}
           {isLoading && (
@@ -324,11 +346,19 @@ Example:
 
           {/* Error Display */}
           {llmError && (
-            <LLMErrorDisplay
-              error={llmError}
-              onRetry={handleGenerateAppearance}
-              onDismiss={clearError}
-            />
+            <div className="space-y-3">
+              <LLMErrorDisplay
+                error={llmError}
+                onRetry={handleGenerateAppearance}
+                onDismiss={clearError}
+              />
+              {/* Fallback to manual entry */}
+              <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  You can also enter appearance details manually below
+                </p>
+              </div>
+            </div>
           )}
         </div>
 

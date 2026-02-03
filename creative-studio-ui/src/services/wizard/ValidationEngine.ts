@@ -1,712 +1,601 @@
 /**
- * ValidationEngine - Centralized validation logic for all wizard steps
+ * Wizard Validation Engine
  * 
- * This service provides comprehensive validation for each wizard step including:
- * - Required field checks
- * - Data type validation
- * - Range validation
- * - Cross-reference validation
- * - Format validation
+ * Centralized validation system for all wizard steps across all wizards.
+ * Provides consistent validation rules, error messages, and severity levels.
  * 
- * Requirements: 11.1, 11.2, 11.3
+ * Requirements: 3.1, 3.2, 3.3, 3.4
  */
 
-import type {
-  ProjectTypeData,
-  GenreStyleData,
-  WorldBuildingData,
-  CharacterProfile,
-  StoryStructureData,
-  ScriptData,
-  SceneBreakdown,
-  ShotPlan,
-  ValidationResult,
-  ValidationError,
-  WizardState,
-} from '../../types/wizard';
+// ============================================================================
+// Validation Types
+// ============================================================================
 
-export class ValidationEngine {
-  /**
-   * Validate Project Type data (Step 1)
-   * Requirements: 1.4, 1.5, 11.1, 11.2
-   */
-  validateProjectType(data: ProjectTypeData | null): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
+export type ValidationSeverity = 'error' | 'warning' | 'info';
 
-    if (!data) {
-      errors.push({
-        field: 'projectType',
-        message: 'Project type is required',
-        severity: 'error',
-      });
-      return { isValid: false, errors, warnings };
-    }
+export interface ValidationFieldError {
+  field: string;
+  message: string;
+  severity: ValidationSeverity;
+  code?: string; // Optional error code for programmatic handling
+}
 
-    // Validate type is selected
-    if (!data.type) {
-      errors.push({
-        field: 'type',
-        message: 'Please select a project type',
-        severity: 'error',
-      });
-    }
+export interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationFieldError[];
+  warnings: ValidationFieldError[];
+  infos: ValidationFieldError[];
+}
 
-    // Validate duration is positive
-    if (data.durationMinutes <= 0) {
-      errors.push({
-        field: 'durationMinutes',
-        message: 'Duration must be a positive number',
-        severity: 'error',
-      });
-    }
+export interface StepValidationRule {
+  step: number;
+  wizardType: string;
+  validate: (data: any) => ValidationResult;
+  dependencies?: string[]; // Other steps that must be valid first
+}
 
-    // Validate duration is reasonable (warn if > 300 minutes / 5 hours)
-    if (data.durationMinutes > 300) {
-      warnings.push({
-        field: 'durationMinutes',
-        message: 'Duration exceeds 5 hours. This is unusually long for most projects.',
-        severity: 'warning',
-      });
-    }
+// ============================================================================
+// Utility Functions
+// ============================================================================
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
+/**
+ * Create an empty validation result
+ */
+export function createValidResult(): ValidationResult {
+  return {
+    isValid: true,
+    errors: [],
+    warnings: [],
+    infos: [],
+  };
+}
+
+/**
+ * Create a validation result with errors
+ */
+export function createInvalidResult(
+  errors: ValidationFieldError[],
+  warnings: ValidationFieldError[] = [],
+  infos: ValidationFieldError[] = []
+): ValidationResult {
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+    infos,
+  };
+}
+
+/**
+ * Combine multiple validation results
+ */
+export function combineResults(...results: ValidationResult[]): ValidationResult {
+  return results.reduce(
+    (acc, result) => ({
+      isValid: acc.isValid && result.isValid,
+      errors: [...acc.errors, ...result.errors],
+      warnings: [...acc.warnings, ...result.warnings],
+      infos: [...acc.infos, ...result.infos],
+    }),
+    createValidResult()
+  );
+}
+
+/**
+ * Check if a field is empty or whitespace
+ */
+export function isEmpty(value: any): boolean {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string') return value.trim() === '';
+  if (Array.isArray(value)) return value.length === 0;
+  return false;
+}
+
+/**
+ * Check if a string exceeds maximum length
+ */
+export function exceedsMaxLength(value: string, maxLength: number): boolean {
+  return value.length > maxLength;
+}
+
+/**
+ * Check if a value is below minimum length
+ */
+export function belowMinLength(value: any, minLength: number): boolean {
+  if (typeof value === 'string') return value.trim().length < minLength;
+  if (Array.isArray(value)) return value.length < minLength;
+  return false;
+}
+
+// ============================================================================
+// Character Wizard Validation Rules
+// ============================================================================
+
+export function validateCharacterStep1(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+  const warnings: ValidationFieldError[] = [];
+
+  // Name validation
+  if (isEmpty(data?.name)) {
+    errors.push({
+      field: 'name',
+      message: 'Character name is required',
+      severity: 'error',
+      code: 'NAME_REQUIRED',
+    });
+  } else if (data?.name && data.name.length < 2) {
+    errors.push({
+      field: 'name',
+      message: 'Character name must be at least 2 characters',
+      severity: 'error',
+      code: 'NAME_TOO_SHORT',
+    });
+  }
+
+  // Archetype validation
+  if (isEmpty(data?.role?.archetype)) {
+    errors.push({
+      field: 'role.archetype',
+      message: 'Character archetype is required',
+      severity: 'error',
+      code: 'ARCHETYPE_REQUIRED',
+    });
+  }
+
+  // Age range validation
+  if (isEmpty(data?.visual_identity?.age_range)) {
+    errors.push({
+      field: 'visual_identity.age_range',
+      message: 'Age range is required',
+      severity: 'error',
+      code: 'AGE_RANGE_REQUIRED',
+    });
+  }
+
+  return createInvalidResult(errors, warnings);
+}
+
+export function validateCharacterStep2(data: any): ValidationResult {
+  // Step 2 (Physical Appearance) is optional - LLM can help fill in
+  return createValidResult();
+}
+
+export function validateCharacterStep3(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+  const warnings: ValidationFieldError[] = [];
+
+  // Max 10 personality traits
+  if (data?.personality?.traits && data.personality.traits.length > 10) {
+    errors.push({
+      field: 'personality.traits',
+      message: 'Maximum 10 personality traits allowed',
+      severity: 'error',
+      code: 'TOO_MANY_TRAITS',
+    });
+  }
+
+  return createInvalidResult(errors, warnings);
+}
+
+export function validateCharacterStep4(data: any): ValidationResult {
+  // Step 4 (Background) is optional
+  return createValidResult();
+}
+
+export function validateCharacterStep5(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+  const warnings: ValidationFieldError[] = [];
+
+  // Validate relationships
+  if (data?.relationships && data.relationships.length > 0) {
+    data.relationships.forEach((rel: any, index: number) => {
+      if (isEmpty(rel?.character_name)) {
+        errors.push({
+          field: `relationships[${index}].character_name`,
+          message: 'Character name is required for relationship',
+          severity: 'error',
+          code: 'RELATIONSHIP_NAME_REQUIRED',
+        });
+      }
+      if (isEmpty(rel?.relationship_type)) {
+        errors.push({
+          field: `relationships[${index}].relationship_type`,
+          message: 'Relationship type is required',
+          severity: 'error',
+          code: 'RELATIONSHIP_TYPE_REQUIRED',
+        });
+      }
+    });
+  }
+
+  return createInvalidResult(errors, warnings);
+}
+
+export function validateCharacterStep6(data: any): ValidationResult {
+  // Final review step - re-validate required fields
+  return validateCharacterStep1(data);
+}
+
+// ============================================================================
+// World Wizard Validation Rules
+// ============================================================================
+
+export function validateWorldStep1(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+  const warnings: ValidationFieldError[] = [];
+
+  if (isEmpty(data?.name)) {
+    errors.push({
+      field: 'name',
+      message: 'World name is required',
+      severity: 'error',
+      code: 'WORLD_NAME_REQUIRED',
+    });
+  }
+
+  if (isEmpty(data?.genre)) {
+    errors.push({
+      field: 'genre',
+      message: 'Genre is required',
+      severity: 'error',
+      code: 'GENRE_REQUIRED',
+    });
+  }
+
+  return createInvalidResult(errors, warnings);
+}
+
+export function validateWorldStep2(data: any): ValidationResult {
+  // World rules - at least one rule required
+  const errors: ValidationFieldError[] = [];
+  
+  if (data?.rules && data.rules.length === 0) {
+    errors.push({
+      field: 'rules',
+      message: 'At least one world rule is required',
+      severity: 'warning',
+      code: 'NO_RULES',
+    });
+  }
+
+  return createInvalidResult(errors);
+}
+
+export function validateWorldStep3(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+  const warnings: ValidationFieldError[] = [];
+
+  if (isEmpty(data?.setting)) {
+    errors.push({
+      field: 'setting',
+      message: 'Setting/environment description is required',
+      severity: 'error',
+      code: 'SETTING_REQUIRED',
+    });
+  }
+
+  return createInvalidResult(errors, warnings);
+}
+
+export function validateWorldStep4(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+  const warnings: ValidationFieldError[] = [];
+
+  // Culture/societies validation
+  if (data?.societies && data.societies.length === 0) {
+    warnings.push({
+      field: 'societies',
+      message: 'Adding societies enriches your world',
+      severity: 'warning',
+      code: 'NO_SOCIETIES',
+    });
+  }
+
+  return createInvalidResult(errors, warnings);
+}
+
+export function validateWorldStep5(data: any): ValidationResult {
+  // Final review - re-validate critical fields
+  return validateWorldStep1(data);
+}
+
+// ============================================================================
+// Storyteller Wizard Validation Rules
+// ============================================================================
+
+export function validateStorytellerStep1(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+  const warnings: ValidationFieldError[] = [];
+
+  if (isEmpty(data?.storySummary)) {
+    errors.push({
+      field: 'storySummary',
+      message: 'Story summary is required',
+      severity: 'error',
+      code: 'SUMMARY_REQUIRED',
+    });
+  }
+
+  if (data?.storySummary && data.storySummary.length < 50) {
+    warnings.push({
+      field: 'storySummary',
+      message: 'Story summary could be more detailed',
+      severity: 'warning',
+      code: 'SUMMARY_TOO_SHORT',
+    });
+  }
+
+  return createInvalidResult(errors, warnings);
+}
+
+export function validateStorytellerStep2(data: any): ValidationResult {
+  // Character selection
+  const errors: ValidationFieldError[] = [];
+
+  if (!data?.selectedCharacters || data.selectedCharacters.length === 0) {
+    errors.push({
+      field: 'selectedCharacters',
+      message: 'At least one character is required',
+      severity: 'error',
+      code: 'NO_CHARACTERS',
+    });
+  }
+
+  return createInvalidResult(errors);
+}
+
+export function validateStorytellerStep3(data: any): ValidationResult {
+  // Location selection - optional
+  return createValidResult();
+}
+
+export function validateStorytellerStep4(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+
+  if (isEmpty(data?.mainConflict)) {
+    errors.push({
+      field: 'mainConflict',
+      message: 'Main conflict is required',
+      severity: 'error',
+      code: 'CONFLICT_REQUIRED',
+    });
+  }
+
+  return createInvalidResult(errors);
+}
+
+export function validateStorytellerStep5(data: any): ValidationResult {
+  // Final review
+  const result = combineResults(
+    validateStorytellerStep1(data),
+    validateStorytellerStep2(data)
+  );
+  return result;
+}
+
+// ============================================================================
+// Project Setup Wizard Validation Rules
+// ============================================================================
+
+export function validateProjectSetupStep1(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+
+  if (isEmpty(data?.projectName)) {
+    errors.push({
+      field: 'projectName',
+      message: 'Project name is required',
+      severity: 'error',
+      code: 'PROJECT_NAME_REQUIRED',
+    });
+  }
+
+  return createInvalidResult(errors);
+}
+
+export function validateProjectSetupStep2(data: any): ValidationResult {
+  const errors: ValidationFieldError[] = [];
+
+  if (!data?.genres || data.genres.length === 0) {
+    errors.push({
+      field: 'genres',
+      message: 'At least one genre must be selected',
+      severity: 'error',
+      code: 'GENRES_REQUIRED',
+    });
+  }
+
+  return createInvalidResult(errors);
+}
+
+export function validateProjectSetupStep3(data: any): ValidationResult {
+  // Scene breakdown validation
+  const errors: ValidationFieldError[] = [];
+
+  if (!data?.scenes || data.scenes.length === 0) {
+    errors.push({
+      field: 'scenes',
+      message: 'At least one scene is required',
+      severity: 'error',
+      code: 'SCENES_REQUIRED',
+    });
+  }
+
+  return createInvalidResult(errors);
+}
+
+// ============================================================================
+// Validation Engine
+// ============================================================================
+
+export class WizardValidationEngine {
+  private rules: Map<string, StepValidationRule[]> = new Map();
+
+  constructor() {
+    this.registerDefaultRules();
   }
 
   /**
-   * Validate Genre & Style data (Step 2)
-   * Requirements: 2.1, 2.2, 2.3, 2.4, 11.1
+   * Register default validation rules for all wizards
    */
-  validateGenreStyle(data: GenreStyleData | null): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
+  private registerDefaultRules(): void {
+    // Character Wizard
+    this.registerRule('character', 1, validateCharacterStep1);
+    this.registerRule('character', 2, validateCharacterStep2);
+    this.registerRule('character', 3, validateCharacterStep3);
+    this.registerRule('character', 4, validateCharacterStep4);
+    this.registerRule('character', 5, validateCharacterStep5);
+    this.registerRule('character', 6, validateCharacterStep6);
 
-    if (!data) {
-      errors.push({
-        field: 'genreStyle',
-        message: 'Genre and style information is required',
-        severity: 'error',
-      });
-      return { isValid: false, errors, warnings };
+    // World Wizard
+    this.registerRule('world', 1, validateWorldStep1);
+    this.registerRule('world', 2, validateWorldStep2);
+    this.registerRule('world', 3, validateWorldStep3);
+    this.registerRule('world', 4, validateWorldStep4);
+    this.registerRule('world', 5, validateWorldStep5);
+
+    // Storyteller Wizard
+    this.registerRule('storyteller', 1, validateStorytellerStep1);
+    this.registerRule('storyteller', 2, validateStorytellerStep2);
+    this.registerRule('storyteller', 3, validateStorytellerStep3);
+    this.registerRule('storyteller', 4, validateStorytellerStep4);
+    this.registerRule('storyteller', 5, validateStorytellerStep5);
+
+    // Project Setup Wizard
+    this.registerRule('project-setup', 1, validateProjectSetupStep1);
+    this.registerRule('project-setup', 2, validateProjectSetupStep2);
+    this.registerRule('project-setup', 3, validateProjectSetupStep3);
+  }
+
+  /**
+   * Register a validation rule for a specific wizard step
+   */
+  registerRule(
+    wizardType: string,
+    step: number,
+    validate: (data: any) => ValidationResult,
+    dependencies?: string[]
+  ): void {
+    const key = wizardType;
+    if (!this.rules.has(key)) {
+      this.rules.set(key, []);
+    }
+    this.rules.get(key)!.push({ step, wizardType, validate, dependencies });
+  }
+
+  /**
+   * Validate a specific step for a wizard
+   */
+  validateStep(wizardType: string, step: number, data: any): ValidationResult {
+    const rules = this.rules.get(wizardType);
+    if (!rules) {
+      console.warn(`No validation rules found for wizard type: ${wizardType}`);
+      return createValidResult();
     }
 
-    // Validate at least one genre is selected
-    if (!data.genres || data.genres.length === 0) {
-      errors.push({
-        field: 'genres',
-        message: 'Please select at least one genre',
-        severity: 'error',
-      });
+    const rule = rules.find(r => r.step === step);
+    if (!rule) {
+      console.warn(`No validation rule found for step ${step} in ${wizardType}`);
+      return createValidResult();
     }
 
-    // Validate visual style is selected
-    if (!data.visualStyle) {
-      errors.push({
-        field: 'visualStyle',
-        message: 'Please select a visual style',
-        severity: 'error',
-      });
+    return rule.validate(data);
+  }
+
+  /**
+   * Validate all steps for a wizard
+   */
+  validateAll(wizardType: string, allData: Record<number, any>): ValidationResult {
+    const rules = this.rules.get(wizardType);
+    if (!rules) {
+      return createValidResult();
     }
 
-    // Validate color palette
-    if (!data.colorPalette) {
-      errors.push({
-        field: 'colorPalette',
-        message: 'Please define a color palette',
-        severity: 'error',
-      });
+    const results = rules.map(rule => {
+      const stepData = allData[rule.step];
+      return rule.validate(stepData);
+    });
+
+    return combineResults(...results);
+  }
+
+  /**
+   * Get validation summary for display
+   */
+  getSummary(result: ValidationResult): {
+    totalErrors: number;
+    totalWarnings: number;
+    totalInfos: number;
+    hasErrors: boolean;
+    message: string;
+  } {
+    const totalErrors = result.errors.length;
+    const totalWarnings = result.warnings.length;
+    const totalInfos = result.infos.length;
+
+    let message = '';
+    if (totalErrors > 0) {
+      message = `${totalErrors} error${totalErrors > 1 ? 's' : ''} found`;
+    } else if (totalWarnings > 0) {
+      message = `${totalWarnings} warning${totalWarnings > 1 ? 's' : ''} found`;
     } else {
-      // Validate color format (hex colors)
-      const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      
-      if (data.colorPalette.primary && !hexColorRegex.test(data.colorPalette.primary)) {
-        errors.push({
-          field: 'colorPalette.primary',
-          message: 'Primary color must be a valid hex color (e.g., #FF5733)',
-          severity: 'error',
-        });
-      }
-      
-      if (data.colorPalette.secondary && !hexColorRegex.test(data.colorPalette.secondary)) {
-        errors.push({
-          field: 'colorPalette.secondary',
-          message: 'Secondary color must be a valid hex color',
-          severity: 'error',
-        });
-      }
-      
-      if (data.colorPalette.accent && !hexColorRegex.test(data.colorPalette.accent)) {
-        errors.push({
-          field: 'colorPalette.accent',
-          message: 'Accent color must be a valid hex color',
-          severity: 'error',
-        });
-      }
-    }
-
-    // Validate at least one mood is selected
-    if (!data.mood || data.mood.length === 0) {
-      errors.push({
-        field: 'mood',
-        message: 'Please select at least one mood',
-        severity: 'error',
-      });
+      message = 'All validations passed';
     }
 
     return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
-  }
-
-  /**
-   * Validate World Building data (Step 3)
-   * Requirements: 3.1, 3.2, 3.4, 3.6, 11.1, 11.2
-   */
-  validateWorldBuilding(data: WorldBuildingData | null): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
-
-    if (!data) {
-      errors.push({
-        field: 'worldBuilding',
-        message: 'World building information is required',
-        severity: 'error',
-      });
-      return { isValid: false, errors, warnings };
-    }
-
-    // Validate time period
-    if (!data.timePeriod || data.timePeriod.trim() === '') {
-      errors.push({
-        field: 'timePeriod',
-        message: 'Time period is required',
-        severity: 'error',
-      });
-    }
-
-    // Validate primary location
-    if (!data.primaryLocation || data.primaryLocation.trim() === '') {
-      errors.push({
-        field: 'primaryLocation',
-        message: 'Primary location is required',
-        severity: 'error',
-      });
-    }
-
-    // Validate universe type
-    if (!data.universeType) {
-      errors.push({
-        field: 'universeType',
-        message: 'Universe type is required',
-        severity: 'error',
-      });
-    }
-
-    // Validate at least one location is defined (Requirement 3.6)
-    if (!data.locations || data.locations.length === 0) {
-      errors.push({
-        field: 'locations',
-        message: 'At least one key location must be defined',
-        severity: 'error',
-      });
-    } else {
-      // Validate each location has required fields
-      data.locations.forEach((location, index) => {
-        if (!location.name || location.name.trim() === '') {
-          errors.push({
-            field: `locations[${index}].name`,
-            message: `Location ${index + 1}: Name is required`,
-            severity: 'error',
-          });
-        }
-        
-        if (!location.description || location.description.trim() === '') {
-          errors.push({
-            field: `locations[${index}].description`,
-            message: `Location ${index + 1}: Description is required`,
-            severity: 'error',
-          });
-        }
-      });
-    }
-
-    // Validate technology level is in range
-    if (data.technologyLevel < 0 || data.technologyLevel > 10) {
-      errors.push({
-        field: 'technologyLevel',
-        message: 'Technology level must be between 0 and 10',
-        severity: 'error',
-      });
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
-  }
-
-  /**
-   * Validate Character profiles (Step 4)
-   * Requirements: 4.1, 4.2, 4.3, 4.6, 11.1, 11.2
-   */
-  validateCharacters(data: CharacterProfile[]): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
-
-    // Validate at least one character is defined (Requirement 4.6)
-    if (!data || data.length === 0) {
-      errors.push({
-        field: 'characters',
-        message: 'At least one character must be defined',
-        severity: 'error',
-      });
-      return { isValid: false, errors, warnings };
-    }
-
-    // Validate each character has required fields
-    data.forEach((character, index) => {
-      if (!character.name || character.name.trim() === '') {
-        errors.push({
-          field: `characters[${index}].name`,
-          message: `Character ${index + 1}: Name is required`,
-          severity: 'error',
-        });
-      }
-
-      if (!character.role) {
-        errors.push({
-          field: `characters[${index}].role`,
-          message: `Character ${index + 1}: Role is required`,
-          severity: 'error',
-        });
-      }
-
-      if (!character.physicalAppearance || character.physicalAppearance.trim() === '') {
-        errors.push({
-          field: `characters[${index}].physicalAppearance`,
-          message: `Character ${index + 1}: Physical appearance is required`,
-          severity: 'error',
-        });
-      }
-
-      // Warn if personality traits are empty
-      if (!character.personalityTraits || character.personalityTraits.length === 0) {
-        warnings.push({
-          field: `characters[${index}].personalityTraits`,
-          message: `Character ${index + 1}: Consider adding personality traits for better characterization`,
-          severity: 'warning',
-        });
-      }
-    });
-
-    // Check for duplicate character names
-    const names = data.map(c => c.name.toLowerCase().trim()).filter(n => n !== '');
-    const duplicates = names.filter((name, index) => names.indexOf(name) !== index);
-    if (duplicates.length > 0) {
-      warnings.push({
-        field: 'characters',
-        message: `Duplicate character names found: ${[...new Set(duplicates)].join(', ')}`,
-        severity: 'warning',
-      });
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
-  }
-
-  /**
-   * Validate Story Structure data (Step 5)
-   * Requirements: 5.1, 5.2, 5.7, 11.1, 11.2
-   */
-  validateStoryStructure(data: StoryStructureData | null): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
-
-    if (!data) {
-      errors.push({
-        field: 'storyStructure',
-        message: 'Story structure information is required',
-        severity: 'error',
-      });
-      return { isValid: false, errors, warnings };
-    }
-
-    // Validate premise is provided (Requirement 5.7)
-    if (!data.premise || data.premise.trim() === '') {
-      errors.push({
-        field: 'premise',
-        message: 'Premise is required',
-        severity: 'error',
-      });
-    } else if (data.premise.length > 500) {
-      errors.push({
-        field: 'premise',
-        message: 'Premise must not exceed 500 characters',
-        severity: 'error',
-      });
-    }
-
-    // Validate logline is provided (Requirement 5.7)
-    if (!data.logline || data.logline.trim() === '') {
-      errors.push({
-        field: 'logline',
-        message: 'Logline is required',
-        severity: 'error',
-      });
-    } else if (data.logline.length > 150) {
-      errors.push({
-        field: 'logline',
-        message: 'Logline must not exceed 150 characters',
-        severity: 'error',
-      });
-    }
-
-    // Validate act structure is selected
-    if (!data.actStructure) {
-      errors.push({
-        field: 'actStructure',
-        message: 'Act structure is required',
-        severity: 'error',
-      });
-    }
-
-    // Validate narrative perspective is selected
-    if (!data.narrativePerspective) {
-      errors.push({
-        field: 'narrativePerspective',
-        message: 'Narrative perspective is required',
-        severity: 'error',
-      });
-    }
-
-    // Warn if no plot points are defined
-    if (!data.plotPoints || data.plotPoints.length === 0) {
-      warnings.push({
-        field: 'plotPoints',
-        message: 'Consider adding plot points to structure your narrative',
-        severity: 'warning',
-      });
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
-  }
-
-  /**
-   * Validate Script data (Step 6)
-   * Requirements: 6.1, 6.2, 11.1
-   */
-  validateScript(data: ScriptData | null): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
-
-    if (!data) {
-      errors.push({
-        field: 'script',
-        message: 'Script information is required',
-        severity: 'error',
-      });
-      return { isValid: false, errors, warnings };
-    }
-
-    // Validate format is selected
-    if (!data.format) {
-      errors.push({
-        field: 'format',
-        message: 'Script format is required',
-        severity: 'error',
-      });
-    }
-
-    // Validate content is provided
-    if (!data.content || data.content.trim() === '') {
-      errors.push({
-        field: 'content',
-        message: 'Script content is required',
-        severity: 'error',
-      });
-    }
-
-    // Warn if content is very short
-    if (data.content && data.content.trim().length < 100) {
-      warnings.push({
-        field: 'content',
-        message: 'Script content seems very short. Consider adding more detail.',
-        severity: 'warning',
-      });
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
-  }
-
-  /**
-   * Validate Scene Breakdown data (Step 7)
-   * Requirements: 7.2, 7.4, 7.6, 11.1, 11.2
-   */
-  validateSceneBreakdown(
-    data: SceneBreakdown[],
-    projectDuration?: number,
-    locations?: WorldBuildingData['locations'],
-    characters?: CharacterProfile[]
-  ): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
-
-    // Validate at least one scene is defined
-    if (!data || data.length === 0) {
-      errors.push({
-        field: 'scenes',
-        message: 'At least one scene must be defined',
-        severity: 'error',
-      });
-      return { isValid: false, errors, warnings };
-    }
-
-    let totalDuration = 0;
-
-    // Validate each scene has required fields (Requirement 7.6)
-    data.forEach((scene, index) => {
-      if (!scene.sceneName || scene.sceneName.trim() === '') {
-        errors.push({
-          field: `scenes[${index}].sceneName`,
-          message: `Scene ${index + 1}: Name is required`,
-          severity: 'error',
-        });
-      }
-
-      if (scene.durationMinutes <= 0) {
-        errors.push({
-          field: `scenes[${index}].durationMinutes`,
-          message: `Scene ${index + 1}: Duration must be positive`,
-          severity: 'error',
-        });
-      }
-
-      totalDuration += scene.durationMinutes;
-
-      // Validate location is assigned (Requirement 7.6)
-      if (!scene.locationId || scene.locationId.trim() === '') {
-        errors.push({
-          field: `scenes[${index}].locationId`,
-          message: `Scene ${index + 1}: Location is required`,
-          severity: 'error',
-        });
-      }
-
-      // Validate at least one character is assigned (Requirement 7.6)
-      if (!scene.characterIds || scene.characterIds.length === 0) {
-        errors.push({
-          field: `scenes[${index}].characterIds`,
-          message: `Scene ${index + 1}: At least one character is required`,
-          severity: 'error',
-        });
-      }
-
-      // Cross-reference validation: location exists
-      if (locations && scene.locationId) {
-        const locationExists = locations.some(loc => loc.id === scene.locationId);
-        if (!locationExists) {
-          errors.push({
-            field: `scenes[${index}].locationId`,
-            message: `Scene ${index + 1}: Referenced location does not exist`,
-            severity: 'error',
-          });
-        }
-      }
-
-      // Cross-reference validation: characters exist
-      if (characters && scene.characterIds) {
-        scene.characterIds.forEach(charId => {
-          const characterExists = characters.some(char => char.id === charId);
-          if (!characterExists) {
-            errors.push({
-              field: `scenes[${index}].characterIds`,
-              message: `Scene ${index + 1}: Referenced character does not exist`,
-              severity: 'error',
-            });
-          }
-        });
-      }
-    });
-
-    // Validate total duration against project duration (Requirement 7.4)
-    if (projectDuration && totalDuration > projectDuration * 1.1) {
-      warnings.push({
-        field: 'scenes',
-        message: `Total scene duration (${totalDuration} min) exceeds project duration (${projectDuration} min) by more than 10%`,
-        severity: 'warning',
-      });
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
-  }
-
-  /**
-   * Validate Shot Planning data (Step 8)
-   * Requirements: 8.2, 8.3, 8.7, 11.1, 11.2
-   */
-  validateShotPlanning(data: ShotPlan[], scenes?: SceneBreakdown[]): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
-
-    // Validate at least one shot is defined
-    if (!data || data.length === 0) {
-      errors.push({
-        field: 'shots',
-        message: 'At least one shot must be defined',
-        severity: 'error',
-      });
-      return { isValid: false, errors, warnings };
-    }
-
-    // Validate each shot has required fields
-    data.forEach((shot, index) => {
-      if (!shot.sceneId || shot.sceneId.trim() === '') {
-        errors.push({
-          field: `shots[${index}].sceneId`,
-          message: `Shot ${index + 1}: Scene reference is required`,
-          severity: 'error',
-        });
-      }
-
-      if (!shot.shotType) {
-        errors.push({
-          field: `shots[${index}].shotType`,
-          message: `Shot ${index + 1}: Shot type is required`,
-          severity: 'error',
-        });
-      }
-
-      if (!shot.cameraAngle) {
-        errors.push({
-          field: `shots[${index}].cameraAngle`,
-          message: `Shot ${index + 1}: Camera angle is required`,
-          severity: 'error',
-        });
-      }
-
-      if (!shot.cameraMovement) {
-        errors.push({
-          field: `shots[${index}].cameraMovement`,
-          message: `Shot ${index + 1}: Camera movement is required`,
-          severity: 'error',
-        });
-      }
-
-      // Cross-reference validation: scene exists
-      if (scenes && shot.sceneId) {
-        const sceneExists = scenes.some(scene => scene.id === shot.sceneId);
-        if (!sceneExists) {
-          errors.push({
-            field: `shots[${index}].sceneId`,
-            message: `Shot ${index + 1}: Referenced scene does not exist`,
-            severity: 'error',
-          });
-        }
-      }
-    });
-
-    // Validate each scene has at least one shot (Requirement 8.7)
-    if (scenes) {
-      scenes.forEach((scene, index) => {
-        const sceneShots = data.filter(shot => shot.sceneId === scene.id);
-        if (sceneShots.length === 0) {
-          errors.push({
-            field: 'shots',
-            message: `Scene ${index + 1} (${scene.sceneName}): At least one shot is required`,
-            severity: 'error',
-          });
-        }
-      });
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
-  }
-
-  /**
-   * Validate cross-step consistency (Requirement 11.3)
-   * This validates that data across multiple steps is consistent
-   */
-  validateCrossStepConsistency(wizardState: WizardState): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
-
-    // Validate scene breakdown references valid locations and characters
-    if (wizardState.scenes && wizardState.scenes.length > 0) {
-      const sceneValidation = this.validateSceneBreakdown(
-        wizardState.scenes,
-        wizardState.projectType?.durationMinutes,
-        wizardState.worldBuilding?.locations,
-        wizardState.characters
-      );
-      errors.push(...sceneValidation.errors);
-      warnings.push(...sceneValidation.warnings);
-    }
-
-    // Validate shot planning references valid scenes
-    if (wizardState.shots && wizardState.shots.length > 0) {
-      const shotValidation = this.validateShotPlanning(
-        wizardState.shots,
-        wizardState.scenes
-      );
-      errors.push(...shotValidation.errors);
-      warnings.push(...shotValidation.warnings);
-    }
-
-    // Validate parsed script characters match character profiles
-    if (wizardState.script?.parsedScenes && wizardState.characters) {
-      const scriptCharacters = new Set<string>();
-      wizardState.script.parsedScenes.forEach(scene => {
-        scene.characters.forEach(char => scriptCharacters.add(char.toLowerCase()));
-      });
-
-      const profileCharacters = new Set(
-        wizardState.characters.map(c => c.name.toLowerCase())
-      );
-
-      scriptCharacters.forEach(scriptChar => {
-        if (!profileCharacters.has(scriptChar)) {
-          warnings.push({
-            field: 'script',
-            message: `Character "${scriptChar}" appears in script but has no character profile`,
-            severity: 'warning',
-          });
-        }
-      });
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
+      totalErrors,
+      totalWarnings,
+      totalInfos,
+      hasErrors: totalErrors > 0,
+      message,
     };
   }
 }
 
-// Export singleton instance
-export const validationEngine = new ValidationEngine();
+// ============================================================================
+// Singleton instance
+// ============================================================================
+
+export const validationEngine = new WizardValidationEngine();
+
+// ============================================================================
+// Helper functions for UI
+// ============================================================================
+
+/**
+ * Format validation errors for display in a form
+ */
+export function formatValidationErrors(result: ValidationResult): string[] {
+  return result.errors.map(error => `${error.field}: ${error.message}`);
+}
+
+/**
+ * Get first error message for a specific field
+ */
+export function getFieldError(result: ValidationResult, field: string): string | null {
+  const error = result.errors.find(e => e.field === field);
+  return error ? error.message : null;
+}
+
+/**
+ * Check if a field has any errors
+ */
+export function hasFieldError(result: ValidationResult, field: string): boolean {
+  return result.errors.some(e => e.field === field);
+}
+
+/**
+ * Get all errors, warnings, and infos grouped by field
+ */
+export function groupErrorsByField(result: ValidationResult): Record<string, ValidationFieldError[]> {
+  const grouped: Record<string, ValidationFieldError[]> = {};
+  
+  [...result.errors, ...result.warnings, ...result.infos].forEach(error => {
+    if (!grouped[error.field]) {
+      grouped[error.field] = [];
+    }
+    grouped[error.field].push(error);
+  });
+  
+  return grouped;
+}
+

@@ -309,7 +309,13 @@ Format as JSON:
               <Checkbox
                 id={`genre-${option.value}`}
                 checked={formData.genre?.includes(option.value) || false}
-                onCheckedChange={() => handleGenreToggle(option.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    handleGenreToggle(option.value);
+                  } else {
+                    handleGenreToggle(option.value);
+                  }
+                }}
                 aria-label={option.label}
               />
               <Label
@@ -346,7 +352,13 @@ Format as JSON:
               <Checkbox
                 id={`tone-${option.value}`}
                 checked={formData.tone?.includes(option.value) || false}
-                onCheckedChange={() => handleToneToggle(option.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    handleToneToggle(option.value);
+                  } else {
+                    handleToneToggle(option.value);
+                  }
+                }}
                 aria-label={option.label}
               />
               <Label

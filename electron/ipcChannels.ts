@@ -10,9 +10,20 @@ import * as path from 'path';
 import { app } from 'electron';
 import { ProjectService, NewProjectData } from './ProjectService';
 import { RecentProjectsManager, RecentProject } from './RecentProjectsManager';
+import { RoverService } from './services/RoverService';
 import { ViteServerManager, LauncherConfig } from './ViteServerManager';
 import { getDefaultProjectsDirectory } from './defaultPaths';
 import { UpdateManager } from './UpdateManager';
+import { ProjectDiscoveryService, DiscoveryResult } from './services/ProjectDiscoveryService';
+import { ComfyUIService } from './services/ComfyUIService';
+import { LLMService } from './services/LLMService';
+import {
+  ScanProjectsOptions,
+  ScanProjectsResponse,
+  MergedProjectsResponse,
+  RefreshProjectsResponse,
+  ProjectDiscoveryErrorCode,
+} from './types/ipc';
 
 /**
  * IPC channel names
@@ -26,7 +37,7 @@ export const IPC_CHANNELS = {
   PROJECT_SELECT_DIRECTORY: 'project:select-directory',
   PROJECT_LIST_DIRECTORY: 'project:list-directory',
   PROJECT_UPDATE_METADATA: 'project:update-metadata',
-  
+
   // Sequence management
   SEQUENCE_UPDATE_SHOT: 'sequence:update-shot',
   SEQUENCE_GET_SHOTS: 'sequence:get-shots',
@@ -36,6 +47,12 @@ export const IPC_CHANNELS = {
   RECENT_PROJECTS_GET: 'recent-projects:get',
   RECENT_PROJECTS_ADD: 'recent-projects:add',
   RECENT_PROJECTS_REMOVE: 'recent-projects:remove',
+
+  // Project discovery
+  DISCOVER_PROJECTS: 'discover-projects',
+  PROJECTS_SCAN_DIRECTORY: 'projects:scan-directory',
+  PROJECTS_GET_MERGED_LIST: 'projects:get-merged-list',
+  PROJECTS_REFRESH: 'projects:refresh',
 
   // Server management
   SERVER_STATUS: 'server:status',
@@ -53,11 +70,20 @@ export const IPC_CHANNELS = {
   APP_MINIMIZE: 'app:minimize',
   APP_SHOW_DEVTOOLS: 'app:show-devtools',
 
+  // Dialogs
+  DIALOG_SHOW_SAVE: 'dialog:show-save',
+
   // Production Wizard Draft Storage
   DRAFT_SAVE: 'draft:save',
   DRAFT_LOAD: 'draft:load',
   DRAFT_LIST: 'draft:list',
   DRAFT_DELETE: 'draft:delete',
+
+  // LLM integration
+  LLM_GET_CONFIG: 'llm:get-config',
+  LLM_UPDATE_CONFIG: 'llm:update-config',
+  LLM_TEST_CONNECTION: 'llm:test-connection',
+  LLM_GET_MODELS: 'llm:get-models',
 
   // ComfyUI integration
   COMFYUI_EXECUTE_WORKFLOW: 'comfyui:execute-workflow',
@@ -67,6 +93,14 @@ export const IPC_CHANNELS = {
   COMFYUI_GET_SERVICE_STATUS: 'comfyui:get-service-status',
   COMFYUI_START_SERVICE: 'comfyui:start-service',
   COMFYUI_STOP_SERVICE: 'comfyui:stop-service',
+  COMFYUI_GET_CONFIG: 'comfyui:get-config',
+  COMFYUI_UPDATE_CONFIG: 'comfyui:update-config',
+  COMFYUI_TEST_CONNECTION: 'comfyui:test-connection',
+
+  // Rover (Persistent Memory Layer)
+  ROVER_SYNC: 'rover:sync',
+  ROVER_GET_HISTORY: 'rover:get-history',
+  ROVER_RESTORE_CHECKPOINT: 'rover:restore-checkpoint',
 
   // File system operations
   FS_READDIR: 'fs:readdir',
@@ -86,6 +120,10 @@ export class IPCHandlers {
   private recentProjectsManager: RecentProjectsManager;
   private serverManager?: ViteServerManager;
   private updateManager?: UpdateManager;
+  private projectDiscoveryService: ProjectDiscoveryService;
+  private comfyuiService: ComfyUIService;
+  private llmService: LLMService;
+  private roverService: RoverService;
 
   constructor(
     projectService: ProjectService,
@@ -97,6 +135,10 @@ export class IPCHandlers {
     this.recentProjectsManager = recentProjectsManager;
     this.serverManager = serverManager;
     this.updateManager = updateManager;
+    this.projectDiscoveryService = new ProjectDiscoveryService();
+    this.comfyuiService = new ComfyUIService();
+    this.llmService = new LLMService();
+    this.roverService = new RoverService();
   }
 
   /**
@@ -106,12 +148,16 @@ export class IPCHandlers {
     this.registerProjectHandlers();
     this.registerSequenceHandlers();
     this.registerRecentProjectsHandlers();
+    this.registerProjectDiscoveryHandlers();
     this.registerServerHandlers();
     this.registerUpdateHandlers();
     this.registerAppHandlers();
     this.registerDraftHandlers();
+    this.registerLLMHandlers();
     this.registerComfyUIHandlers();
     this.registerFSHandlers();
+    this.registerDialogHandlers();
+    this.registerRoverHandlers();
   }
 
   /**
@@ -125,7 +171,7 @@ export class IPCHandlers {
     ipcMain.removeHandler(IPC_CHANNELS.PROJECT_SELECT_DIRECTORY);
     ipcMain.removeHandler(IPC_CHANNELS.PROJECT_LIST_DIRECTORY);
     ipcMain.removeHandler(IPC_CHANNELS.PROJECT_UPDATE_METADATA);
-    
+
     // Sequence handlers
     ipcMain.removeHandler(IPC_CHANNELS.SEQUENCE_UPDATE_SHOT);
     ipcMain.removeHandler(IPC_CHANNELS.SEQUENCE_GET_SHOTS);
@@ -135,6 +181,12 @@ export class IPCHandlers {
     ipcMain.removeHandler(IPC_CHANNELS.RECENT_PROJECTS_GET);
     ipcMain.removeHandler(IPC_CHANNELS.RECENT_PROJECTS_ADD);
     ipcMain.removeHandler(IPC_CHANNELS.RECENT_PROJECTS_REMOVE);
+
+    // Project discovery handlers
+    ipcMain.removeHandler(IPC_CHANNELS.DISCOVER_PROJECTS);
+    ipcMain.removeHandler(IPC_CHANNELS.PROJECTS_SCAN_DIRECTORY);
+    ipcMain.removeHandler(IPC_CHANNELS.PROJECTS_GET_MERGED_LIST);
+    ipcMain.removeHandler(IPC_CHANNELS.PROJECTS_REFRESH);
 
     // Server handlers
     ipcMain.removeHandler(IPC_CHANNELS.SERVER_STATUS);
@@ -168,6 +220,85 @@ export class IPCHandlers {
     ipcMain.removeAllListeners(IPC_CHANNELS.APP_QUIT);
     ipcMain.removeAllListeners(IPC_CHANNELS.APP_MINIMIZE);
     ipcMain.removeAllListeners(IPC_CHANNELS.APP_SHOW_DEVTOOLS);
+
+    // Dialog handlers
+    ipcMain.removeHandler(IPC_CHANNELS.DIALOG_SHOW_SAVE);
+
+    // Rover handlers
+    ipcMain.removeHandler(IPC_CHANNELS.ROVER_SYNC);
+    ipcMain.removeHandler(IPC_CHANNELS.ROVER_GET_HISTORY);
+    ipcMain.removeHandler(IPC_CHANNELS.ROVER_RESTORE_CHECKPOINT);
+  }
+
+  /**
+   * Register Rover handlers
+   */
+  private registerRoverHandlers(): void {
+    // Sync project state and create commit
+    ipcMain.handle(
+      IPC_CHANNELS.ROVER_SYNC,
+      async (_event, projectPath: string, projectId: string, message: string, data: any) => {
+        try {
+          await this.roverService.initialize(projectPath, projectId);
+          const commit = await this.roverService.commit(projectPath, message, data);
+          return { success: true, commit };
+        } catch (error) {
+          console.error('Rover Sync Failed:', error);
+          return { success: false, error: error instanceof Error ? error.message : String(error) };
+        }
+      }
+    );
+
+    // Get project history
+    ipcMain.handle(IPC_CHANNELS.ROVER_GET_HISTORY, async (_event, projectPath: string) => {
+      try {
+        const history = await this.roverService.getHistory(projectPath);
+        return { success: true, history };
+      } catch (error) {
+        console.error('Rover Get History Failed:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Restore checkpoint
+    ipcMain.handle(IPC_CHANNELS.ROVER_RESTORE_CHECKPOINT, async (_event, projectPath: string, commitId: string) => {
+      try {
+        const data = await this.roverService.restoreCheckpoint(projectPath, commitId);
+        return { success: true, data };
+      } catch (error) {
+        console.error('Rover Restore Checkpoint Failed:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+  }
+
+  /**
+   * Register dialog handlers
+   */
+  private registerDialogHandlers(): void {
+    ipcMain.handle(
+      IPC_CHANNELS.DIALOG_SHOW_SAVE,
+      async (event, options: Electron.SaveDialogOptions) => {
+        try {
+          const window = BrowserWindow.fromWebContents(event.sender);
+          if (!window) {
+            throw new Error('No window found');
+          }
+
+          const result = await dialog.showSaveDialog(window, options);
+          return {
+            success: true,
+            result,
+          };
+        } catch (error) {
+          console.error('Failed to show save dialog:', error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          };
+        }
+      }
+    );
   }
 
   /**
@@ -178,12 +309,34 @@ export class IPCHandlers {
     ipcMain.handle(IPC_CHANNELS.PROJECT_CREATE, async (_event, data: NewProjectData) => {
       try {
         // Validate input
-        if (!data || !data.name || !data.location) {
-          throw new Error('Invalid project data: name and location are required');
+        if (!data || !data.name) {
+          throw new Error('Invalid project data: name is required');
         }
 
+        // Use default projects directory if location not provided
+        const location = data.location || getDefaultProjectsDirectory();
+        console.log(`Creating project "${data.name}" at location: ${location}`);
+
+        // Create project with the determined location
+        const projectData: NewProjectData = {
+          ...data,
+          location,
+        };
+
         // Create project
-        const project = await this.projectService.createProject(data);
+        const project = await this.projectService.createProject(projectData);
+
+        console.log(`Project created successfully at: ${project.path}`);
+
+        // Verify project directory structure
+        const verification = await this.verifyProjectStructure(project.path);
+        if (!verification.success) {
+          console.error('Project verification failed:', verification.errors);
+          // Log warning but don't fail - project was created
+          console.warn('Project created but verification found issues:', verification.errors);
+        } else {
+          console.log('Project structure verified successfully');
+        }
 
         // Add to recent projects
         this.recentProjectsManager.addProject({
@@ -195,6 +348,7 @@ export class IPCHandlers {
         return {
           success: true,
           project,
+          verification,
         };
       } catch (error) {
         console.error('Failed to create project:', error);
@@ -259,13 +413,13 @@ export class IPCHandlers {
         }
 
         const selectedPath = result.filePaths[0];
-        
+
         // Verify the selected path exists and is a directory
         const fs = require('fs');
-        
+
         try {
           const stats = fs.statSync(selectedPath);
-          
+
           if (!stats.isDirectory()) {
             console.error('Selected path is not a directory:', selectedPath);
             return {
@@ -551,7 +705,7 @@ export class IPCHandlers {
       try {
         // Check existence of all projects
         await this.recentProjectsManager.checkProjectsExistence();
-        
+
         const projects = this.recentProjectsManager.getProjects();
 
         return {
@@ -614,6 +768,155 @@ export class IPCHandlers {
   }
 
   /**
+   * Register project discovery handlers
+   */
+  private registerProjectDiscoveryHandlers(): void {
+    // Discover projects - returns DiscoveryResult with full metadata
+    ipcMain.handle(
+      IPC_CHANNELS.DISCOVER_PROJECTS,
+      async (_event): Promise<DiscoveryResult> => {
+        try {
+          console.log('[IPC] discover-projects called');
+
+          // Instantiate ProjectDiscoveryService and call scanProjectDirectory()
+          const result = await this.projectDiscoveryService.scanProjectDirectory();
+
+          console.log(`[IPC] discover-projects completed: ${result.projects.length} projects found, ${result.errors.length} errors`);
+
+          // Return DiscoveryResult with proper error handling
+          return result;
+        } catch (error) {
+          console.error('[IPC] Failed to discover projects:', error);
+
+          // Return error result with proper structure
+          return {
+            projects: [],
+            scannedPath: '',
+            timestamp: Date.now(),
+            errors: [{
+              path: '',
+              error: error instanceof Error ? error.message : 'Failed to discover projects'
+            }],
+          };
+        }
+      }
+    );
+
+    // Scan project directory
+    ipcMain.handle(
+      IPC_CHANNELS.PROJECTS_SCAN_DIRECTORY,
+      async (_event, options?: ScanProjectsOptions): Promise<ScanProjectsResponse> => {
+        try {
+          console.log('[IPC] projects:scan-directory called with options:', options);
+
+          // Validate options if provided
+          if (options !== undefined && typeof options !== 'object') {
+            return {
+              success: false,
+              error: 'Invalid scan options: must be an object',
+              errorCode: ProjectDiscoveryErrorCode.SCAN_FAILED,
+            };
+          }
+
+          // Perform scan
+          const result = await this.projectDiscoveryService.scanProjectDirectory(options);
+
+          return {
+            success: true,
+            projects: result.projects,
+            data: result.projects,
+          };
+        } catch (error) {
+          console.error('[IPC] Failed to scan project directory:', error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to scan project directory',
+            errorCode: ProjectDiscoveryErrorCode.SCAN_FAILED,
+          };
+        }
+      }
+    );
+
+    // Get merged project list (discovered + recent)
+    ipcMain.handle(
+      IPC_CHANNELS.PROJECTS_GET_MERGED_LIST,
+      async (_event, options?: ScanProjectsOptions): Promise<MergedProjectsResponse> => {
+        try {
+          console.log('[IPC] projects:get-merged-list called with options:', options);
+
+          // Validate options if provided
+          if (options !== undefined && typeof options !== 'object') {
+            return {
+              success: false,
+              error: 'Invalid scan options: must be an object',
+              errorCode: ProjectDiscoveryErrorCode.SCAN_FAILED,
+            };
+          }
+
+          // Clean up missing projects from recent projects list first
+          // This ensures old projects that no longer exist are removed
+          await this.recentProjectsManager.cleanupMissingProjects();
+
+          // Scan for discovered projects
+          const discoveryResult = await this.projectDiscoveryService.scanProjectDirectory(options);
+
+          // Merge with recent projects
+          const merged = await this.recentProjectsManager.getMergedProjectList(discoveryResult.projects);
+
+          console.log(`[IPC] Merged project list: ${merged.length} projects (${merged.filter(p => p.isRecent).length} recent, ${merged.filter(p => !p.isRecent).length} discovered)`);
+
+          return {
+            success: true,
+            projects: merged,
+            data: merged,
+          };
+        } catch (error) {
+          console.error('[IPC] Failed to get merged project list:', error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to get merged project list',
+            errorCode: ProjectDiscoveryErrorCode.MERGE_FAILED,
+          };
+        }
+      }
+    );
+
+    // Manual refresh (bypass cache)
+    ipcMain.handle(
+      IPC_CHANNELS.PROJECTS_REFRESH,
+      async (_event): Promise<RefreshProjectsResponse> => {
+        try {
+          console.log('[IPC] projects:refresh called');
+
+          // Clear cache
+          this.projectDiscoveryService.clearCache();
+
+          // Perform fresh scan with cache bypass
+          const discoveryResult = await this.projectDiscoveryService.scanProjectDirectory({
+            bypassCache: true,
+          });
+
+          // Merge with recent projects
+          const merged = await this.recentProjectsManager.getMergedProjectList(discoveryResult.projects);
+
+          return {
+            success: true,
+            projects: merged,
+            data: merged,
+          };
+        } catch (error) {
+          console.error('[IPC] Failed to refresh projects:', error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to refresh projects',
+            errorCode: ProjectDiscoveryErrorCode.SCAN_FAILED,
+          };
+        }
+      }
+    );
+  }
+
+  /**
    * Register server management handlers
    */
   private registerServerHandlers(): void {
@@ -659,7 +962,7 @@ export class IPCHandlers {
 
         // Stop and restart server
         await this.serverManager.stop();
-        
+
         // Start with default config
         const config: LauncherConfig = {
           vitePort: 5173,
@@ -667,7 +970,7 @@ export class IPCHandlers {
           serverStartTimeout: 30000,
           autoOpenBrowser: false,
         };
-        
+
         await this.serverManager.start(config);
 
         return {
@@ -989,9 +1292,187 @@ export class IPCHandlers {
   }
 
   /**
+   * Register LLM integration handlers
+   */
+  private registerLLMHandlers(): void {
+    // Get LLM configuration
+    ipcMain.handle(IPC_CHANNELS.LLM_GET_CONFIG, async () => {
+      try {
+        const config = await this.llmService.getConfiguration();
+        return {
+          success: true,
+          config,
+        };
+      } catch (error) {
+        console.error('Failed to get LLM configuration:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to get LLM configuration',
+        };
+      }
+    });
+
+    // Update LLM configuration
+    ipcMain.handle(IPC_CHANNELS.LLM_UPDATE_CONFIG, async (_event, config: any) => {
+      try {
+        const updated = await this.llmService.updateConfiguration(config);
+        return {
+          success: true,
+          config: updated,
+        };
+      } catch (error) {
+        console.error('Failed to update LLM configuration:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to update LLM configuration',
+        };
+      }
+    });
+
+    // Test LLM connection
+    ipcMain.handle(IPC_CHANNELS.LLM_TEST_CONNECTION, async (_event, provider: any) => {
+      try {
+        const result = await this.llmService.testConnection(provider);
+        return {
+          success: result.success,
+          message: result.message,
+        };
+      } catch (error) {
+        console.error('Failed to test LLM connection:', error);
+        return {
+          success: false,
+          message: error instanceof Error ? error.message : 'Failed to test LLM connection',
+        };
+      }
+    });
+
+    // Get available models
+    ipcMain.handle(IPC_CHANNELS.LLM_GET_MODELS, async (_event, provider: any) => {
+      try {
+        const models = await this.llmService.getAvailableModels(provider);
+        return {
+          success: true,
+          models,
+        };
+      } catch (error) {
+        console.error('Failed to get available models:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to get available models',
+          models: [],
+        };
+      }
+    });
+  }
+
+  /**
    * Register ComfyUI integration handlers
    */
   private registerComfyUIHandlers(): void {
+    // Get ComfyUI configuration
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_GET_CONFIG, async () => {
+      try {
+        const config = await this.comfyuiService.getConfiguration();
+        return {
+          success: true,
+          config,
+        };
+      } catch (error) {
+        console.error('Failed to get ComfyUI configuration:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to get ComfyUI configuration',
+        };
+      }
+    });
+
+    // Update ComfyUI configuration
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_UPDATE_CONFIG, async (_event, config: any) => {
+      try {
+        const updated = await this.comfyuiService.updateConfiguration(config);
+        return {
+          success: true,
+          config: updated,
+        };
+      } catch (error) {
+        console.error('Failed to update ComfyUI configuration:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to update ComfyUI configuration',
+        };
+      }
+    });
+
+    // Test ComfyUI connection
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_TEST_CONNECTION, async () => {
+      try {
+        const result = await this.comfyuiService.testConnection();
+        return {
+          success: result.success,
+          message: result.message,
+        };
+      } catch (error) {
+        console.error('Failed to test ComfyUI connection:', error);
+        return {
+          success: false,
+          message: error instanceof Error ? error.message : 'Failed to test ComfyUI connection',
+        };
+      }
+    });
+
+    // Get service status
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_GET_SERVICE_STATUS, async () => {
+      try {
+        const status = await this.comfyuiService.getServiceStatus();
+        return {
+          success: true,
+          status,
+        };
+      } catch (error) {
+        console.error('Failed to get ComfyUI service status:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to get ComfyUI service status',
+        };
+      }
+    });
+
+    // Start service
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_START_SERVICE, async () => {
+      try {
+        const result = await this.comfyuiService.startService();
+        return {
+          success: result.success,
+          message: result.message,
+          error: result.error,
+        };
+      } catch (error) {
+        console.error('Failed to start ComfyUI service:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to start ComfyUI service',
+        };
+      }
+    });
+
+    // Stop service
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_STOP_SERVICE, async () => {
+      try {
+        const result = await this.comfyuiService.stopService();
+        return {
+          success: result.success,
+          message: result.message,
+          error: result.error,
+        };
+      } catch (error) {
+        console.error('Failed to stop ComfyUI service:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to stop ComfyUI service',
+        };
+      }
+    });
+
     // Execute workflow
     ipcMain.handle(IPC_CHANNELS.COMFYUI_EXECUTE_WORKFLOW, async (_event, workflowData: any) => {
       try {
@@ -1059,64 +1540,6 @@ export class IPCHandlers {
         };
       } catch (error) {
         console.error('Failed to download ComfyUI output:', error);
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
-    });
-
-    // Get service status
-    ipcMain.handle(IPC_CHANNELS.COMFYUI_GET_SERVICE_STATUS, async () => {
-      try {
-        // TODO: Implement service status check
-        return {
-          success: true,
-          status: {
-            running: false,
-            healthy: false,
-            url: null,
-            version: null,
-          },
-        };
-      } catch (error) {
-        console.error('Failed to get ComfyUI service status:', error);
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
-    });
-
-    // Start service
-    ipcMain.handle(IPC_CHANNELS.COMFYUI_START_SERVICE, async () => {
-      try {
-        // TODO: Implement service start
-        console.log('ComfyUI service start requested');
-        return {
-          success: false,
-          error: 'Service start not yet implemented',
-        };
-      } catch (error) {
-        console.error('Failed to start ComfyUI service:', error);
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
-    });
-
-    // Stop service
-    ipcMain.handle(IPC_CHANNELS.COMFYUI_STOP_SERVICE, async () => {
-      try {
-        // TODO: Implement service stop
-        console.log('ComfyUI service stop requested');
-        return {
-          success: false,
-          error: 'Service stop not yet implemented',
-        };
-      } catch (error) {
-        console.error('Failed to stop ComfyUI service:', error);
         return {
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -1250,5 +1673,80 @@ export class IPCHandlers {
         };
       }
     });
+  }
+
+  /**
+   * Verify project directory structure
+   * @param projectPath Path to the project directory
+   * @returns Verification result
+   */
+  private async verifyProjectStructure(projectPath: string): Promise<{
+    success: boolean;
+    errors: string[];
+    warnings: string[];
+  }> {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    try {
+      // Check if project directory exists
+      if (!fs.existsSync(projectPath)) {
+        errors.push(`Project directory does not exist: ${projectPath}`);
+        return { success: false, errors, warnings };
+      }
+
+      // Check if it's a directory
+      const stats = fs.statSync(projectPath);
+      if (!stats.isDirectory()) {
+        errors.push(`Project path is not a directory: ${projectPath}`);
+        return { success: false, errors, warnings };
+      }
+
+      // Check for required subdirectories
+      const requiredDirs = ['sequences', 'characters', 'worlds', 'assets'];
+      for (const dir of requiredDirs) {
+        const dirPath = path.join(projectPath, dir);
+        if (!fs.existsSync(dirPath)) {
+          errors.push(`Required directory missing: ${dir}`);
+        } else {
+          const dirStats = fs.statSync(dirPath);
+          if (!dirStats.isDirectory()) {
+            errors.push(`Required path is not a directory: ${dir}`);
+          }
+        }
+      }
+
+      // Check for project.json file
+      const projectJsonPath = path.join(projectPath, 'project.json');
+      if (!fs.existsSync(projectJsonPath)) {
+        errors.push('Required file missing: project.json');
+      } else {
+        // Verify it's a valid JSON file
+        try {
+          const content = fs.readFileSync(projectJsonPath, 'utf-8');
+          JSON.parse(content);
+        } catch (error) {
+          errors.push(`Invalid project.json file: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+
+      // Check for optional files (warnings only)
+      const optionalFiles = ['README.md', 'PROJECT_SUMMARY.md'];
+      for (const file of optionalFiles) {
+        const filePath = path.join(projectPath, file);
+        if (!fs.existsSync(filePath)) {
+          warnings.push(`Optional file missing: ${file}`);
+        }
+      }
+
+      return {
+        success: errors.length === 0,
+        errors,
+        warnings,
+      };
+    } catch (error) {
+      errors.push(`Verification failed: ${error instanceof Error ? error.message : String(error)}`);
+      return { success: false, errors, warnings };
+    }
   }
 }

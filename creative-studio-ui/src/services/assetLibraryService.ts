@@ -87,109 +87,130 @@ export const ASSET_CATEGORIES: AssetCategory[] = [
 // ============================================================================
 
 /**
+ * Check if we're running in browser context (no Electron)
+ */
+const isBrowserContext = (): boolean => {
+  return !(window as any).electronAPI;
+};
+
+/**
+ * Get the correct base path for assets based on context
+ */
+const getAssetBasePath = (): string => {
+  if (isBrowserContext()) {
+    // In browser context, assets are served from the public folder
+    return '/assets';
+  } else {
+    // In Electron context, assets are in the project root
+    return 'assets';
+  }
+};
+
+/**
  * StoryCore base library assets
  * These are available to all projects
+ * Using actual existing assets from the project
  */
 const BASE_LIBRARY_ASSETS: Asset[] = [
-  // Demo Images
+  // Demo Images - Using actual assets from /assets/resources/jpg-files/
   {
     id: 'lib-img-1',
-    name: 'Camera_shot_example.jpg',
+    name: 'Sample Image 1',
     type: 'image',
-    url: '/assets/demo/camera_shot.jpg',
-    thumbnail: '/assets/demo/camera_shot_thumb.jpg',
+    url: `${getAssetBasePath()}/resources/jpg-files/file_0.jpg`,
+    thumbnail: `${getAssetBasePath()}/resources/jpg-files/file_0.jpg`,
     metadata: {
       source: 'library',
       category: 'demo',
-      tags: ['camera', 'shot', 'example'],
+      tags: ['sample', 'image', 'example'],
     },
   },
   {
     id: 'lib-img-2',
-    name: 'Production_scene.jpg',
+    name: 'Sample Image 2',
     type: 'image',
-    url: '/assets/demo/production.jpg',
-    thumbnail: '/assets/demo/production_thumb.jpg',
+    url: `${getAssetBasePath()}/resources/jpg-files/file_1.jpg`,
+    thumbnail: `${getAssetBasePath()}/resources/jpg-files/file_1.jpg`,
     metadata: {
       source: 'library',
       category: 'demo',
-      tags: ['production', 'scene'],
+      tags: ['sample', 'image', 'production'],
     },
   },
   {
     id: 'lib-img-3',
-    name: 'Storyboard_frame.jpg',
+    name: 'StoryCore Logo',
     type: 'image',
-    url: '/assets/demo/storyboard.jpg',
-    thumbnail: '/assets/demo/storyboard_thumb.jpg',
+    url: `${getAssetBasePath()}/library/StorycoreIconeV2.png`,
+    thumbnail: `${getAssetBasePath()}/library/StorycoreIconeV2.png`,
     metadata: {
       source: 'library',
-      category: 'demo',
-      tags: ['storyboard', 'frame'],
+      category: 'branding',
+      tags: ['logo', 'branding', 'storycore'],
     },
   },
   
-  // Demo Audio
-  {
-    id: 'lib-audio-1',
-    name: 'Background_music.mp3',
-    type: 'audio',
-    url: '/assets/audio/background.mp3',
-    metadata: {
-      source: 'library',
-      category: 'music',
-      tags: ['background', 'music', 'ambient'],
-      duration: 120,
-    },
-  },
-  {
-    id: 'lib-audio-2',
-    name: 'Sound_effect_whoosh.mp3',
-    type: 'audio',
-    url: '/assets/audio/whoosh.mp3',
-    metadata: {
-      source: 'library',
-      category: 'sfx',
-      tags: ['sound', 'effect', 'whoosh', 'transition'],
-      duration: 2,
-    },
-  },
-  {
-    id: 'lib-audio-3',
-    name: 'Narration_voice.mp3',
-    type: 'audio',
-    url: '/assets/audio/narration.mp3',
-    metadata: {
-      source: 'library',
-      category: 'voiceover',
-      tags: ['narration', 'voice', 'voiceover'],
-      duration: 30,
-    },
-  },
-  
-  // UI Assets
+  // UI Assets - Using actual assets from /assets/resources/ui/
   {
     id: 'lib-ui-1',
-    name: 'Placeholder_icon.png',
+    name: 'Panel Placeholder',
     type: 'image',
-    url: '/assets/ui/placeholder.png',
-    thumbnail: '/assets/ui/placeholder_thumb.png',
+    url: `${getAssetBasePath()}/resources/ui/panel-placeholder-empty.svg`,
+    thumbnail: `${getAssetBasePath()}/resources/ui/panel-placeholder-empty.svg`,
     metadata: {
       source: 'library',
       category: 'ui',
-      tags: ['placeholder', 'icon', 'ui'],
+      tags: ['placeholder', 'panel', 'ui'],
     },
   },
   {
     id: 'lib-ui-2',
-    name: 'Logo_storycore.png',
+    name: 'Loading State',
     type: 'image',
-    url: '/assets/ui/logo.png',
-    thumbnail: '/assets/ui/logo_thumb.png',
+    url: `${getAssetBasePath()}/resources/ui/panel-placeholder-loading.svg`,
+    thumbnail: `${getAssetBasePath()}/resources/ui/panel-placeholder-loading.svg`,
     metadata: {
       source: 'library',
       category: 'ui',
-      tags: ['logo', 'branding'],
+      tags: ['loading', 'placeholder', 'ui'],
+    },
+  },
+  {
+    id: 'lib-ui-3',
+    name: 'Toolbar Icons',
+    type: 'image',
+    url: `${getAssetBasePath()}/resources/ui/toolbar-icons.svg`,
+    thumbnail: `${getAssetBasePath()}/resources/ui/toolbar-icons.svg`,
+    metadata: {
+      source: 'library',
+      category: 'ui',
+      tags: ['icons', 'toolbar', 'ui'],
+    },
+  },
+  
+  // Icons from /assets/resources/icons/
+  {
+    id: 'lib-icon-1',
+    name: 'StoryCore Logo Square',
+    type: 'image',
+    url: `${getAssetBasePath()}/resources/icons/storycore-logo-square.svg`,
+    thumbnail: `${getAssetBasePath()}/resources/icons/storycore-logo-square.svg`,
+    metadata: {
+      source: 'library',
+      category: 'branding',
+      tags: ['logo', 'branding', 'storycore', 'square'],
+    },
+  },
+  {
+    id: 'lib-icon-2',
+    name: 'StoryCore Logo Horizontal',
+    type: 'image',
+    url: `${getAssetBasePath()}/resources/icons/storycore-logo-horizontal.svg`,
+    thumbnail: `${getAssetBasePath()}/resources/icons/storycore-logo-horizontal.svg`,
+    metadata: {
+      source: 'library',
+      category: 'branding',
+      tags: ['logo', 'branding', 'storycore', 'horizontal'],
     },
   },
 ];
@@ -374,6 +395,9 @@ export class AssetLibraryService {
     // Notify subscribers
     this.notifySourceUpdate(sources);
     
+    console.log('[AssetLibraryService] Loaded', sources.length, 'sources with', 
+      sources.reduce((acc, s) => acc + s.assets.length, 0), 'total assets');
+    
     return sources;
   }
   
@@ -382,15 +406,16 @@ export class AssetLibraryService {
    */
   private async loadProjectAssets(projectPath: string): Promise<Asset[]> {
     try {
-      // Try to load from Electron API
-      if (window.electronAPI?.project?.getAssets) {
-        const assets = await window.electronAPI.project.getAssets(projectPath);
+      // Try to load from Electron API (with type assertion)
+      const electronProject = window.electronAPI?.project as Record<string, Function> | undefined;
+      if (electronProject?.getAssets) {
+        const assets = await electronProject.getAssets(projectPath) as Asset[];
         return assets;
       }
       
       // Fallback: Try to load from project.json
-      if (window.electronAPI?.project?.load) {
-        const project = await window.electronAPI.project.load(projectPath);
+      if (electronProject?.load) {
+        const project = await electronProject.load(projectPath) as { assets?: Asset[] };
         return project.assets || [];
       }
       
@@ -407,10 +432,11 @@ export class AssetLibraryService {
   private async loadLibraryAssets(): Promise<Asset[]> {
     const assets: Asset[] = [...BASE_LIBRARY_ASSETS];
 
-    // Try to load from local assets folder
+    // Try to load from local assets folder (with type assertion)
     try {
-      if (window.electronAPI?.assets?.scanFolder) {
-        const libraryAssets = await window.electronAPI.assets.scanFolder('/assets/library');
+      const electronAssets = window.electronAPI?.assets as Record<string, Function> | undefined;
+      if (electronAssets?.scanFolder) {
+        const libraryAssets = await electronAssets.scanFolder('/assets/library') as Asset[];
         assets.push(...libraryAssets);
       }
     } catch (error) {
@@ -429,8 +455,10 @@ export class AssetLibraryService {
     description: string
   ): Promise<Asset[]> {
     try {
-      if (window.electronAPI?.assets?.scanFolder) {
-        const assets = await window.electronAPI.assets.scanFolder(folderPath);
+      // With type assertion for Electron API
+      const electronAssets = window.electronAPI?.assets as Record<string, Function> | undefined;
+      if (electronAssets?.scanFolder) {
+        const assets = await electronAssets.scanFolder(folderPath) as Asset[];
         return assets;
       }
     } catch (error) {
@@ -601,3 +629,4 @@ export class AssetLibraryService {
 // ============================================================================
 
 export default AssetLibraryService;
+

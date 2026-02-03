@@ -39,38 +39,8 @@ export function useRecentProjects(autoLoad = true): UseRecentProjectsReturn {
         const loadedProjects = await window.electronAPI.recentProjects.get();
         setProjects(loadedProjects);
       } else {
-        // Demo mode - use mock data
-        const mockProjects: RecentProject[] = [
-          {
-            id: '1',
-            name: 'My First Story',
-            path: 'C:/Users/Documents/StoryCore/my-first-story',
-            lastAccessed: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-            exists: true,
-          },
-          {
-            id: '2',
-            name: 'Epic Adventure',
-            path: 'C:/Users/Documents/StoryCore/epic-adventure',
-            lastAccessed: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-            exists: true,
-          },
-          {
-            id: '3',
-            name: 'Deleted Project',
-            path: 'C:/Users/Documents/StoryCore/deleted-project',
-            lastAccessed: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-            exists: false,
-          },
-          {
-            id: '4',
-            name: 'Tutorial Project',
-            path: 'C:/Users/Documents/StoryCore/tutorial',
-            lastAccessed: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-            exists: true,
-          },
-        ];
-        setProjects(mockProjects);
+        // Demo mode - no projects available without Electron API
+        setProjects([]);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load recent projects';

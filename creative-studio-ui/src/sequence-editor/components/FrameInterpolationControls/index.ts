@@ -1,0 +1,1 @@
+export { FrameInterpolationControls } from './FrameInterpolationControls';

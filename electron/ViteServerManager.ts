@@ -263,6 +263,7 @@ export class ViteServerManager {
       this.process = spawn(npmCommand, ['run', 'dev', '--', '--port', port.toString()], {
         cwd: uiPath,
         stdio: ['ignore', 'pipe', 'pipe'],
+        shell: true,
         env: {
           ...process.env,
           FORCE_COLOR: '1', // Enable colored output

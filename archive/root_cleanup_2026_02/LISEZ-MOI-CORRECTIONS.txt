@@ -1,0 +1,106 @@
+================================================================================
+  CORRECTIONS APPLIQUÉES - CRÉATION DE PROJETS
+================================================================================
+
+Date: 28 janvier 2026
+Statut: ✅ CORRIGÉ
+
+================================================================================
+  PROBLÈME RÉSOLU
+================================================================================
+
+✅ Les nouveaux projets se créent maintenant correctement dans:
+   C:\Users\redga\Documents\StoryCore Projects
+
+✅ Le dossier est créé automatiquement s'il n'existe pas
+
+✅ Message informatif ajouté dans le dialogue de création
+
+================================================================================
+  COMMENT UTILISER
+================================================================================
+
+1. Lancer l'application:
+   > npm run dev
+
+2. Créer un nouveau projet:
+   - Cliquer sur "Create New Project"
+   - Entrer un nom pour votre projet
+   - Laisser le champ "Project Location" VIDE (ne pas cliquer sur Browse)
+   - Choisir un format (Court-métrage, Long-métrage, etc.)
+   - Cliquer sur "Create Project"
+
+3. Votre projet est créé dans:
+   C:\Users\redga\Documents\StoryCore Projects\[Nom du Projet]
+
+================================================================================
+  À PROPOS DU MODE WEB
+================================================================================
+
+❓ Question: Pourquoi les fichiers se téléchargent en mode web?
+
+✅ Réponse: C'est NORMAL! Les navigateurs web ne peuvent pas écrire 
+   directement sur le disque pour des raisons de sécurité.
+
+💡 Solution: Utilisez l'application Electron (mode desktop) pour une 
+   sauvegarde directe sur le disque.
+
+================================================================================
+  DOCUMENTATION
+================================================================================
+
+📄 SOLUTION_RAPIDE.md
+   → Guide rapide pour tester les corrections
+
+📄 RESUME_CORRECTIONS_APPLIQUEES.md
+   → Résumé détaillé des modifications
+
+📄 CORRECTION_CREATION_PROJETS.md
+   → Explication technique complète
+
+📄 MODE_WEB_VS_ELECTRON.md
+   → Différences entre mode web et mode desktop
+
+🧪 test-project-creation.bat
+   → Script de test automatique
+
+================================================================================
+  VÉRIFICATION
+================================================================================
+
+Pour vérifier que tout fonctionne:
+
+1. Exécuter le script de test:
+   > test-project-creation.bat
+
+2. Ou vérifier manuellement:
+   > dir "C:\Users\redga\Documents\StoryCore Projects"
+
+================================================================================
+  BESOIN D'AIDE?
+================================================================================
+
+Si le problème persiste:
+
+1. Ouvrir la console (F12 dans l'application)
+2. Chercher les messages [useLandingPage]
+3. Consulter CORRECTION_CREATION_PROJETS.md
+4. Exécuter test-project-creation.bat
+
+================================================================================
+  FICHIERS MODIFIÉS
+================================================================================
+
+✅ creative-studio-ui/src/hooks/useLandingPage.ts
+   - Correction de la logique de chemin par défaut
+   - Ajout de logs de débogage
+
+✅ creative-studio-ui/src/components/launcher/CreateProjectDialog.tsx
+   - Message informatif amélioré
+   - Meilleure visibilité du chemin par défaut
+
+================================================================================
+
+Merci d'utiliser StoryCore Creative Studio!
+
+================================================================================

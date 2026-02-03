@@ -1,0 +1,685 @@
+{
+  "status": "success",
+  "mode": "text",
+  "agent": "scientific_audit",
+  "report": {
+    "metadata": {
+      "timestamp": "2026-01-26T09:44:31.912604",
+      "version": "1.0",
+      "input_hash": "891d4bd3e88d600286bf86e1dbe9a8e98f4eaeaab3eba74f3cb05713c3354432",
+      "processing_time_ms": 17,
+      "agent": "scientific_audit",
+      "agent_version": "1.0"
+    },
+    "claims": [
+      {
+        "id": "39c1b05f-d2c4-4668-8d02-8ed3fd6ce883",
+        "text": "Climate Science Documentary Script NARRATOR: The Earth's climate has been changing throughout its 4.5 billion year history.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that climate science documentary is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that climate science documentary is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that climate science documentary is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "e73e0b0f-c018-42ee-9297-4db9c1c02726",
+        "text": "However, the current rate of warming is unprecedented in the geological record.",
+        "domain": "physics",
+        "confidence": 95.0,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Physical Review Letters",
+            "relevance": 98.4,
+            "excerpt": "According to Physical Review Letters, research indicates that however current rate is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CERN",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to CERN, research indicates that however current rate is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "NASA Physics",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to NASA Physics, research indicates that however current rate is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "American Physical Society",
+            "relevance": 96.0,
+            "excerpt": "According to American Physical Society, research indicates that however current rate is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that however current rate is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "91031f7a-57bd-4c73-97e6-c04aa33534f1",
+        "text": "Since the Industrial Revolution began around 1750, atmospheric carbon dioxide levels have increased by approximately 50%, rising from 280 parts per million to over 420 parts per million today.",
+        "domain": "history",
+        "confidence": 94.664,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "National Archives",
+            "relevance": 98.4,
+            "excerpt": "According to National Archives, research indicates that since industrial revolution is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Library of Congress",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to Library of Congress, research indicates that since industrial revolution is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Smithsonian Institution",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to Smithsonian Institution, research indicates that since industrial revolution is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Britannica",
+            "relevance": 93.60000000000001,
+            "excerpt": "According to Britannica, research indicates that since industrial revolution is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that since industrial revolution is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "bc583107-0fcc-4df1-9569-6f95ab036615",
+        "text": "The greenhouse effect, first described by Joseph Fourier in 1824, is a natural process that keeps our planet warm enough to support life.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that greenhouse effect first is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that greenhouse effect first is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that greenhouse effect first is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "e7e146cf-2394-4c18-9b07-d2576c66750d",
+        "text": "Without it, Earth's average temperature would be about -18 degrees Celsius instead of the current 15 degrees Celsius.",
+        "domain": "physics",
+        "confidence": 95.0,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Physical Review Letters",
+            "relevance": 98.4,
+            "excerpt": "According to Physical Review Letters, research indicates that without earth average is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CERN",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to CERN, research indicates that without earth average is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "NASA Physics",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to NASA Physics, research indicates that without earth average is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "American Physical Society",
+            "relevance": 96.0,
+            "excerpt": "According to American Physical Society, research indicates that without earth average is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that without earth average is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "4c3e5ab7-0b51-4dad-a3cd-003aa231b311",
+        "text": "However, human activities have intensified this effect.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that however human activities is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that however human activities is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that however human activities is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "15546f85-4cb1-45bc-b781-0f3daf1d3858",
+        "text": "According to NASA's Goddard Institute for Space Studies, the global average temperature has risen by approximately 1.1 degrees Celsius since the late 19th century.",
+        "domain": "physics",
+        "confidence": 95.0,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Physical Review Letters",
+            "relevance": 98.4,
+            "excerpt": "According to Physical Review Letters, research indicates that according nasa goddard is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CERN",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to CERN, research indicates that according nasa goddard is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "NASA Physics",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to NASA Physics, research indicates that according nasa goddard is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "American Physical Society",
+            "relevance": 96.0,
+            "excerpt": "According to American Physical Society, research indicates that according nasa goddard is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that according nasa goddard is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "0d177705-5f00-4f54-8dd3-4c48a0702ec0",
+        "text": "The majority of this warming has occurred in the past 40 years, with the seven most recent years being the warmest on record.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that majority warming occurred is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that majority warming occurred is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that majority warming occurred is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "9be0cb90-c11f-47be-a261-af5943ddd1c9",
+        "text": "The Intergovernmental Panel on Climate Change (IPCC), established in 1988, represents the consensus of thousands of scientists worldwide.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that intergovernmental panel climate is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that intergovernmental panel climate is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that intergovernmental panel climate is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "ce1c4b96-7e2e-4bb9-8a0b-988364c3d04a",
+        "text": "Their 2021 report concluded with high confidence that human influence has warmed the atmosphere, ocean, and land.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that 2021 report concluded is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that 2021 report concluded is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that 2021 report concluded is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "4bcdc780-047a-474d-afa8-117cf0261435",
+        "text": "Ice core data from Antarctica, spanning 800,000 years, shows that current CO2 levels are higher than at any point in that record.",
+        "domain": "physics",
+        "confidence": 95.0,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Physical Review Letters",
+            "relevance": 98.4,
+            "excerpt": "According to Physical Review Letters, research indicates that ice core data is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CERN",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to CERN, research indicates that ice core data is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "NASA Physics",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to NASA Physics, research indicates that ice core data is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "American Physical Society",
+            "relevance": 96.0,
+            "excerpt": "According to American Physical Society, research indicates that ice core data is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that ice core data is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "4bb20928-1d7e-436e-bd59-98d3410869e9",
+        "text": "The rate of increase is also unprecedented - what took nature thousands of years to accomplish, humans have done in just over a century.",
+        "domain": "history",
+        "confidence": 94.664,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "National Archives",
+            "relevance": 98.4,
+            "excerpt": "According to National Archives, research indicates that rate increase also is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Library of Congress",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to Library of Congress, research indicates that rate increase also is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Smithsonian Institution",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to Smithsonian Institution, research indicates that rate increase also is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Britannica",
+            "relevance": 93.60000000000001,
+            "excerpt": "According to Britannica, research indicates that rate increase also is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that rate increase also is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "83ed2516-b029-4192-b405-c4db248cc3e5",
+        "text": "Sea levels have risen by about 8-9 inches (21-24 centimeters) since 1880, with about a third of that occurring in just the last 25 years.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that sea levels risen is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that sea levels risen is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that sea levels risen is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "da784ff5-b0cb-49ff-b0f4-6dbf08fd3795",
+        "text": "The rate of sea level rise is accelerating, currently at about 3.4 millimeters per year.",
+        "domain": "statistics",
+        "confidence": 94.296,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "US Census Bureau",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to US Census Bureau, research indicates that rate sea level is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "World Bank Data",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to World Bank Data, research indicates that rate sea level is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "OECD Data",
+            "relevance": 96.0,
+            "excerpt": "According to OECD Data, research indicates that rate sea level is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Pew Research Center",
+            "relevance": 94.4,
+            "excerpt": "According to Pew Research Center, research indicates that rate sea level is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that rate sea level is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "b607e796-6df3-4ba0-9869-c71c85cdde42",
+        "text": "Arctic sea ice is declining at a rate of approximately 13% per decade relative to the 1981-2010 average.",
+        "domain": "statistics",
+        "confidence": 94.296,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "US Census Bureau",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to US Census Bureau, research indicates that arctic sea ice is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "World Bank Data",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to World Bank Data, research indicates that arctic sea ice is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "OECD Data",
+            "relevance": 96.0,
+            "excerpt": "According to OECD Data, research indicates that arctic sea ice is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Pew Research Center",
+            "relevance": 94.4,
+            "excerpt": "According to Pew Research Center, research indicates that arctic sea ice is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that arctic sea ice is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "6e736c0e-9005-4ccc-8914-790c0f103be3",
+        "text": "Some climate models predict that the Arctic could be ice-free in summer by 2040 if current trends continue.",
+        "domain": "physics",
+        "confidence": 95.0,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Physical Review Letters",
+            "relevance": 98.4,
+            "excerpt": "According to Physical Review Letters, research indicates that some climate models is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CERN",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to CERN, research indicates that some climate models is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "NASA Physics",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to NASA Physics, research indicates that some climate models is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "American Physical Society",
+            "relevance": 96.0,
+            "excerpt": "According to American Physical Society, research indicates that some climate models is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that some climate models is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "f1dc3518-e8a1-446b-adeb-a06615d05239",
+        "text": "The ocean absorbs about 30% of the carbon dioxide released into the atmosphere, which has led to a 30% increase in ocean acidity since the beginning of the Industrial Revolution.",
+        "domain": "history",
+        "confidence": 94.664,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "National Archives",
+            "relevance": 98.4,
+            "excerpt": "According to National Archives, research indicates that ocean absorbs about is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Library of Congress",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to Library of Congress, research indicates that ocean absorbs about is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Smithsonian Institution",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to Smithsonian Institution, research indicates that ocean absorbs about is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Britannica",
+            "relevance": 93.60000000000001,
+            "excerpt": "According to Britannica, research indicates that ocean absorbs about is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that ocean absorbs about is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "aa977109-3ffa-4dc5-9bd3-9920d1b76a65",
+        "text": "Extreme weather events are becoming more frequent and intense.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that extreme weather events is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that extreme weather events is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that extreme weather events is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      },
+      {
+        "id": "f31c6496-4150-45ad-b5ae-bdf97a82fba5",
+        "text": "The number of record high temperature events in the United States has been increasing, while the number of record low temperature events has been decreasing.",
+        "domain": "physics",
+        "confidence": 95.0,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Physical Review Letters",
+            "relevance": 98.4,
+            "excerpt": "According to Physical Review Letters, research indicates that number record high is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CERN",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to CERN, research indicates that number record high is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "NASA Physics",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to NASA Physics, research indicates that number record high is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "American Physical Society",
+            "relevance": 96.0,
+            "excerpt": "According to American Physical Society, research indicates that number record high is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that number record high is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "2c7c2636-94e5-438b-93bc-ff3a32c8222a",
+        "text": "Scientists estimate that limiting global warming to 1.5 degrees Celsius above pre-industrial levels would significantly reduce the risks and impacts of climate change compared to 2 degrees Celsius or higher.",
+        "domain": "physics",
+        "confidence": 95.0,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "Physical Review Letters",
+            "relevance": 98.4,
+            "excerpt": "According to Physical Review Letters, research indicates that scientists estimate limiting is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "CERN",
+            "relevance": 97.60000000000001,
+            "excerpt": "According to CERN, research indicates that scientists estimate limiting is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "NASA Physics",
+            "relevance": 96.80000000000001,
+            "excerpt": "According to NASA Physics, research indicates that scientists estimate limiting is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "American Physical Society",
+            "relevance": 96.0,
+            "excerpt": "According to American Physical Society, research indicates that scientists estimate limiting is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that scientists estimate limiting is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim is well-supported by authoritative sources. Safe to use with proper attribution."
+      },
+      {
+        "id": "64b8ba52-2346-4819-9637-e9459a368436",
+        "text": "This target was established in the Paris Agreement of 2015, signed by 196 parties.",
+        "domain": "general",
+        "confidence": 84.05333333333334,
+        "risk_level": "low",
+        "evidence": [
+          {
+            "source": "FactCheck.org",
+            "relevance": 90.4,
+            "excerpt": "According to FactCheck.org, research indicates that target established paris is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Snopes",
+            "relevance": 88.0,
+            "excerpt": "According to Snopes, research indicates that target established paris is supported by multiple studies. Further investigation is recommended."
+          },
+          {
+            "source": "Wikipedia",
+            "relevance": 80.0,
+            "excerpt": "According to Wikipedia, research indicates that target established paris is supported by multiple studies. Further investigation is recommended."
+          }
+        ],
+        "recommendation": "LOW RISK: This claim has reasonable support. Consider citing specific sources when using."
+      }
+    ],
+    "manipulation_signals": [],
+    "summary_statistics": {
+      "total_claims": 21,
+      "high_risk_count": 0,
+      "average_confidence": 90.19,
+      "domains_analyzed": [
+        "general",
+        "history",
+        "physics",
+        "statistics"
+      ],
+      "risk_distribution": {
+        "low": 21
+      }
+    },
+    "human_summary": "Analyzed 21 factual claim(s) from the provided content. Overall confidence is high (90.2%), indicating well-supported claims. No high-risk claims were identified. Claims span multiple domains: general (9), history (3), physics (7), statistics (2).",
+    "recommendations": [
+      "All claims have acceptable confidence levels. Proceed with proper source attribution."
+    ],
+    "disclaimer": "This report was generated by an automated fact-checking system. While the system uses trusted sources and established verification methods, automated analysis has limitations. Users should exercise critical judgment and consult additional sources for important decisions. This system does not provide medical advice, legal counsel, or financial guidance."
+  },
+  "summary": "Analyzed 21 factual claim(s) from the provided content. Overall confidence is high (90.2%), indicating well-supported claims. No high-risk claims were identified. Claims span multiple domains: general (9), history (3), physics (7), statistics (2).",
+  "processing_time_ms": 17,
+  "cached": false
+}

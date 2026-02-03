@@ -183,7 +183,7 @@ export function Step2BasicInformation({
                 )}>
                   <SelectValue placeholder="Select a world..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[9999]">
                   {worlds.map((world) => (
                     <SelectItem key={world.id} value={world.id}>
                       <div>
@@ -307,7 +307,7 @@ export function Step2BasicInformation({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[9999]">
                   {frameRateOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value.toString()}>
                       <div>
@@ -338,7 +338,7 @@ export function Step2BasicInformation({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[9999]">
                   {resolutionOptions.map((option) => (
                     <SelectItem
                       key={`${option.value.width}x${option.value.height}`}

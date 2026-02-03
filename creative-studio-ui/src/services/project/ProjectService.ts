@@ -29,6 +29,7 @@ function joinPath(...parts: string[]): string {
  * ProjectService class for managing project data operations
  */
 export class ProjectService {
+  private filePickerActive = false;
   /**
    * Load project data from project.json file
    * @param projectPath - Absolute path to the project directory
@@ -36,90 +37,101 @@ export class ProjectService {
    * @throws Error if file cannot be read or parsed
    */
   async loadProject(projectPath: string): Promise<ProjectData> {
-   try {
-     const projectFilePath = joinPath(projectPath, 'project.json');
+    try {
+      const projectFilePath = joinPath(projectPath, 'project.json');
+      let projectJson: string | undefined;
 
-     // Debug: Log environment information
-     console.log('[ProjectService] Environment check:', {
-       isElectron: typeof window !== 'undefined' && 'electronAPI' in window,
-       electronAPI: window?.electronAPI,
-       electronAPI_fs: window?.electronAPI?.fs,
-       projectPath,
-       projectFilePath
-     });
+      // Debug: Log environment information
+      console.log('[ProjectService] Environment check:', {
+        isElectron: typeof window !== 'undefined' && 'electronAPI' in window,
+        electronAPI: window?.electronAPI,
+        electronAPI_fs: window?.electronAPI?.fs,
+        projectPath,
+        projectFilePath
+      });
 
-     // Check if we're running in Electron environment
-     if (window.electronAPI?.fs) {
-       // Use Electron API for file system access
-       console.log('[ProjectService] Using Electron API for file access');
-       const buffer = await window.electronAPI.fs.readFile(projectFilePath);
-       const projectJson = buffer.toString('utf-8');
+      // Check if we're running in Electron environment
+      if (window.electronAPI?.fs) {
+        // Use Electron API for file system access
+        console.log('[ProjectService] Using Electron API for file access');
+        const buffer = await window.electronAPI.fs.readFile(projectFilePath);
+        projectJson = buffer.toString('utf-8');
 
-     } else if (typeof window !== 'undefined' && window.showOpenFilePicker) {
-       // Fallback: Use browser File System Access API if available
-       console.log('[ProjectService] Using browser File System Access API');
-       
-       try {
-         // Request file handle
-         const [fileHandle] = await window.showOpenFilePicker({
-           types: [{
-             description: 'JSON Files',
-             accept: {
-               'application/json': ['.json'],
-             },
-           }],
-           multiple: false,
-         });
-         
-         const file = await fileHandle.getFile();
-         const projectJson = await file.text();
-         
-       } catch (filePickerError) {
-         console.error('[ProjectService] File System Access API error:', filePickerError);
-         throw new Error(`Failed to access file system: ${filePickerError instanceof Error ? filePickerError.message : String(filePickerError)}`);
-       }
+        // Debug: Log raw file content to check for encoding issues
+        console.log('[ProjectService] Raw file content (first 100 chars):', projectJson?.substring(0, 100));
+        console.log('[ProjectService] File content length:', projectJson?.length);
+        
+        // Check for BOM or encoding issues
+        if (projectJson && projectJson.charCodeAt(0) === 0xFEFF) {
+          console.warn('[ProjectService] BOM detected, removing...');
+          projectJson = projectJson.substring(1);
+        }
 
-     } else {
-       // Development/fallback mode - use mock data
-       console.warn('[ProjectService] Running in non-Electron environment without File System Access API. Using fallback data.');
-       
-       // Return mock project data for development
-       const mockProjectData: ProjectData = {
-         schema_version: '1.0',
-         project_name: 'Development Project',
-         capabilities: {
-           grid_generation: true,
-           promotion_engine: true,
-           qa_engine: true,
-           autofix_engine: true,
-           wizard_generation: true,
-         },
-         generation_status: {
-           grid: 'pending',
-           promotion: 'pending',
-           wizard: 'pending',
-         },
-         storyboard: [],
-         assets: [],
-         characters: [],
-         scenes: [],
-         world: undefined,
-         global_resume: 'This is a development project running in non-Electron environment.',
-       };
-       
-       return mockProjectData;
-     }
+      } else {
+        // In browser environment, don't attempt file picker during component initialization
+        // File picker requires user interaction and cannot be called automatically
+        console.log('[ProjectService] Running in browser environment - using mock data');
+        projectJson = undefined;
+      }
 
-     const data = JSON.parse(projectJson);
+      // If we didn't get projectJson from file system access, use fallback
+      if (!projectJson) {
+        // Development/fallback mode - use mock data
+        console.warn('[ProjectService] Running in non-Electron environment without File System Access API. Using fallback data.');
+        
+        // Return mock project data for development
+        const mockProjectData: ProjectData = {
+          schema_version: '1.0',
+          project_name: 'Development Project',
+          capabilities: {
+            grid_generation: true,
+            promotion_engine: true,
+            qa_engine: true,
+            autofix_engine: true,
+            wizard_generation: true,
+          },
+          generation_status: {
+            grid: 'pending',
+            promotion: 'pending',
+            wizard: 'pending',
+          },
+          storyboard: [],
+          assets: [],
+          characters: [],
+          scenes: [],
+          world: undefined,
+          global_resume: 'This is a development project running in non-Electron environment.',
+        };
+        
+        return mockProjectData;
+      }
+
+      console.log('[ProjectService] Attempting to parse JSON...');
+      const data = JSON.parse(projectJson);
+      console.log('[ProjectService] JSON parsed successfully');
+
+      // Debug: Log the parsed data structure
+      console.log('[ProjectService] Parsed data keys:', Object.keys(data));
+      console.log('[ProjectService] Data structure preview:', {
+        schema_version: data.schema_version,
+        project_name: data.project_name,
+        has_storyboard: 'storyboard' in data,
+        has_shots: 'shots' in data,
+        has_global_resume: 'global_resume' in data,
+        has_metadata: 'metadata' in data
+      });
 
       // Validate the loaded data
       const validation = this.validateProjectData(data);
+      console.log('[ProjectService] Validation result:', { valid: validation.valid, errors: validation.errors, warnings: validation.warnings });
+
       if (!validation.valid) {
         console.warn('Project data validation warnings:', validation.warnings);
         console.error('Project data validation errors:', validation.errors);
         
         // Attempt migration if schema version is missing or old
         if (!data.schema_version || data.schema_version !== '1.0') {
+          console.log('[ProjectService] Attempting migration to Data Contract v1...');
           return this.migrateToDataContractV1(data);
         }
         
@@ -140,61 +152,61 @@ export class ProjectService {
    * @throws Error if validation fails or file cannot be written
    */
   async saveProject(projectPath: string, data: ProjectData): Promise<void> {
-   try {
-     // Validate before saving
-     const validation = this.validateProjectData(data);
-     if (!validation.valid) {
-       throw new Error(`Cannot save invalid project data: ${validation.errors.join(', ')}`);
-     }
+    try {
+      // Validate before saving
+      const validation = this.validateProjectData(data);
+      if (!validation.valid) {
+        throw new Error(`Cannot save invalid project data: ${validation.errors.join(', ')}`);
+      }
 
-     const projectFilePath = joinPath(projectPath, 'project.json');
-     const projectJson = JSON.stringify(data, null, 2);
+      const projectFilePath = joinPath(projectPath, 'project.json');
+      const projectJson = JSON.stringify(data, null, 2);
 
-     // Check if we're running in Electron environment
-     if (window.electronAPI?.fs) {
-       // Use Electron API for file system access
-       console.log('[ProjectService] Using Electron API for file save');
-       
-       // Convert string to Uint8Array for Electron
-       const encoder = new TextEncoder();
-       const uint8Array = encoder.encode(projectJson);
-       await window.electronAPI.fs.writeFile(projectFilePath, uint8Array as any);
+      // Check if we're running in Electron environment
+      if (window.electronAPI?.fs) {
+        // Use Electron API for file system access
+        console.log('[ProjectService] Using Electron API for file save');
+        
+        // Convert string to Uint8Array for Electron
+        const encoder = new TextEncoder();
+        const uint8Array = encoder.encode(projectJson);
+        await window.electronAPI.fs.writeFile(projectFilePath, uint8Array as any);
 
-     } else if (typeof window !== 'undefined' && window.showSaveFilePicker) {
-       // Fallback: Use browser File System Access API if available
-       console.log('[ProjectService] Using browser File System Access API for save');
-       
-       try {
-         // Create file handle
-         const fileHandle = await window.showSaveFilePicker({
-           suggestedName: 'project.json',
-           types: [{
-             description: 'JSON Files',
-             accept: {
-               'application/json': ['.json'],
-             },
-           }],
-         });
-         
-         // Create writable stream
-         const writable = await fileHandle.createWritable();
-         await writable.write(projectJson);
-         await writable.close();
-         
-       } catch (filePickerError) {
-         console.error('[ProjectService] File System Access API save error:', filePickerError);
-         throw new Error(`Failed to save file: ${filePickerError instanceof Error ? filePickerError.message : String(filePickerError)}`);
-       }
+      } else if (typeof window !== 'undefined' && window.showSaveFilePicker) {
+        // Fallback: Use browser File System Access API if available
+        console.log('[ProjectService] Using browser File System Access API for save');
+        
+        try {
+          // Create file handle
+          const fileHandle = await window.showSaveFilePicker({
+            suggestedName: 'project.json',
+            types: [{
+              description: 'JSON Files',
+              accept: {
+                'application/json': ['.json'],
+              },
+            }],
+          });
+          
+          // Create writable stream
+          const writable = await fileHandle.createWritable();
+          await writable.write(projectJson);
+          await writable.close();
+          
+        } catch (filePickerError) {
+          console.error('[ProjectService] File System Access API save error:', filePickerError);
+          throw new Error(`Failed to save file: ${filePickerError instanceof Error ? filePickerError.message : String(filePickerError)}`);
+        }
 
-     } else {
-       // Development/fallback mode - log instead of saving
-       console.warn('[ProjectService] Running in non-Electron environment without File System Access API. Save operation skipped.');
-       console.log('[ProjectService] Project data that would be saved:', data);
-       
-       // In development mode, we can also update the in-memory project
-       // This allows the UI to reflect changes even if they're not persisted
-       return;
-     }
+      } else {
+        // Development/fallback mode - log instead of saving
+        console.warn('[ProjectService] Running in non-Electron environment without File System Access API. Save operation skipped.');
+        console.log('[ProjectService] Project data that would be saved:', data);
+        
+        // In development mode, we can also update the in-memory project
+        // This allows the UI to reflect changes even if they're not persisted
+        return;
+      }
 
     } catch (error) {
       console.error('Error saving project:', error);
@@ -575,11 +587,13 @@ export class ProjectService {
     if (!data.capabilities) {
       errors.push('Missing required field: capabilities');
     } else {
-      // Validate capabilities structure
+      // Validate capabilities structure - be more flexible for migration
       const requiredCapabilities = ['grid_generation', 'promotion_engine', 'qa_engine', 'autofix_engine'];
       for (const cap of requiredCapabilities) {
-        if (typeof data.capabilities[cap] !== 'boolean') {
-          errors.push(`Invalid or missing capability: ${cap}`);
+        if (data.capabilities[cap] === undefined) {
+          warnings.push(`Missing capability: ${cap} - will be set to default`);
+        } else if (typeof data.capabilities[cap] !== 'boolean') {
+          errors.push(`Invalid capability: ${cap} must be boolean`);
         }
       }
     }
@@ -587,18 +601,20 @@ export class ProjectService {
     if (!data.generation_status) {
       errors.push('Missing required field: generation_status');
     } else {
-      // Validate generation status
+      // Validate generation status - be more flexible
       const validStatuses = ['pending', 'done', 'failed', 'passed'];
-      if (!validStatuses.includes(data.generation_status.grid)) {
+      if (data.generation_status.grid && !validStatuses.includes(data.generation_status.grid)) {
         errors.push(`Invalid generation_status.grid: ${data.generation_status.grid}`);
       }
-      if (!validStatuses.includes(data.generation_status.promotion)) {
+      if (data.generation_status.promotion && !validStatuses.includes(data.generation_status.promotion)) {
         errors.push(`Invalid generation_status.promotion: ${data.generation_status.promotion}`);
       }
     }
     
     if (!Array.isArray(data.storyboard)) {
       errors.push('Missing or invalid field: storyboard (must be an array)');
+    } else if (data.storyboard.length === 0) {
+      warnings.push('Empty storyboard - project has no shots');
     }
     
     if (!Array.isArray(data.assets)) {
@@ -631,6 +647,38 @@ export class ProjectService {
    * @returns Migrated ProjectData
    */
   migrateToDataContractV1(data: any): ProjectData {
+    console.log('[ProjectService] Starting migration to Data Contract v1');
+    console.log('[ProjectService] Source data structure:', Object.keys(data));
+    
+    // Debug: Check for global_resume in metadata
+    if (data.metadata?.globalResume) {
+      console.log('[ProjectService] Found globalResume in metadata, will migrate to global_resume');
+    }
+    
+    // Handle the specific case where shots array needs to be converted to storyboard format
+    let storyboard = [];
+    if (Array.isArray(data.storyboard)) {
+      storyboard = data.storyboard;
+    } else if (Array.isArray(data.shots)) {
+      // Convert shots to storyboard format
+      console.log('[ProjectService] Converting shots array to storyboard format');
+      storyboard = data.shots.map((shot: any) => ({
+        id: shot.id || `shot_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        title: shot.title || 'Untitled Shot',
+        description: shot.description || '',
+        duration: shot.duration || 60,
+        position: shot.order || 0,
+        audioTracks: [],
+        effects: [],
+        textLayers: [],
+        animations: [],
+        metadata: {
+          source: 'migrated',
+          created_at: shot.metadata?.created_at || new Date().toISOString(),
+          status: shot.metadata?.status || 'draft',
+        },
+      }));
+    }
     
     // Create base Data Contract v1 structure
     const migratedData: ProjectData = {
@@ -648,7 +696,7 @@ export class ProjectService {
         promotion: data.generation_status?.promotion || 'pending',
         wizard: data.generation_status?.wizard || 'pending',
       },
-      storyboard: Array.isArray(data.storyboard) ? data.storyboard : (Array.isArray(data.shots) ? data.shots : []),
+      storyboard: storyboard,
       assets: Array.isArray(data.assets) ? data.assets : [],
       characters: Array.isArray(data.characters) ? data.characters.map((char: any) => ({
         id: char.character_id || char.id,
@@ -658,8 +706,12 @@ export class ProjectService {
       })) : [],
       scenes: Array.isArray(data.scenes) ? data.scenes : [],
       world: data.world || data.selectedWorld,
-      global_resume: data.global_resume || data.resume || undefined,
+      global_resume: data.global_resume || data.resume || data.metadata?.globalResume || undefined,
     };
+    
+    console.log('[ProjectService] Migration completed successfully');
+    console.log('[ProjectService] Migrated data keys:', Object.keys(migratedData));
+    console.log('[ProjectService] Storyboard length:', migratedData.storyboard.length);
     
     return migratedData;
   }

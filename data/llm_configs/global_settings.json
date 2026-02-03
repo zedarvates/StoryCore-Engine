@@ -1,0 +1,318 @@
+{
+  "metadata": {
+    "version": "1.1.0",
+    "created_at": "2026-01-26T15:22:47.486Z",
+    "updated_at": "2026-01-26T16:08:52.676Z",
+    "schema_version": "2026.1.26",
+    "description": "Configuration globale des paramètres LLM pour le storycore-engine",
+    "purpose": "Centralisation des paramètres, titres et configurations pour une compatibilité optimale avec les LLMs",
+    "author": "StoryCore Engine",
+    "last_modified_by": "system"
+  },
+  "llm_parameters": {
+    "model_config": {
+      "default_model": "gpt-4-turbo",
+      "fallback_model": "gpt-3.5-turbo",
+      "temperature": 0.7,
+      "max_tokens": 4000,
+      "top_p": 0.9,
+      "frequency_penalty": 0.1,
+      "presence_penalty": 0.0
+    },
+    "narrative_generation": {
+      "title_generation": {
+        "max_length": 100,
+        "min_length": 10,
+        "style_options": [
+          "dramatic",
+          "humorous",
+          "mysterious",
+          "romantic",
+          "action",
+          "thriller",
+          "documentary"
+        ],
+        "language_options": [
+          "francais",
+          "english",
+          "español",
+          "italiano",
+          "deutsch"
+        ],
+        "creativity_level": 0.8
+      },
+      "plot_structure": {
+        "acts_config": {
+          "act_1_duration_percent": 25,
+          "act_2_duration_percent": 50,
+          "act_3_duration_percent": 25
+        },
+        "beats_per_act": {
+          "act_1": 3,
+          "act_2": 5,
+          "act_3": 3
+        },
+        "climax_position": 0.75,
+        "resolution_position": 0.95
+      },
+      "character_development": {
+        "main_characters": 3,
+        "supporting_characters": 5,
+        "character_depth_score": 0.9,
+        "dialogue_naturalness": 0.85,
+        "character_consistency": 0.95
+      }
+    },
+    "duration_planning": {
+      "short_format": {
+        "min_minutes": 1,
+        "max_minutes": 20,
+        "optimal_minutes": 10,
+        "description": "Contenu court pour réseaux sociaux ou publicités"
+      },
+      "medium_format": {
+        "min_minutes": 21,
+        "max_minutes": 59,
+        "optimal_minutes": 45,
+        "description": "Contenu moyen pour webisodes ou courts documentaires"
+      },
+      "long_format": {
+        "min_minutes": 60,
+        "max_minutes": 180,
+        "optimal_minutes": 120,
+        "description": "Contenu long pour films, documentaires complets"
+      },
+      "planning_strategy": {
+        "buffer_percentage": 0.15,
+        "revision_rounds": 3,
+        "quality_checkpoints": [
+          0.25,
+          0.5,
+          0.75,
+          1.0
+        ]
+      }
+    },
+    "quality_parameters": {
+      "content_quality": {
+        "coherence_score": 0.9,
+        "engagement_score": 0.85,
+        "originality_score": 0.8,
+        "structure_score": 0.95
+      },
+      "technical_quality": {
+        "audio_quality": "high",
+        "video_quality": "1080p",
+        "frame_rate": 24,
+        "aspect_ratio": "16:9"
+      },
+      "performance_targets": {
+        "rendering_time": "real_time",
+        "memory_usage": "optimized",
+        "cpu_utilization": "balanced",
+        "gpu_acceleration": "enabled"
+      }
+    }
+  },
+  "workflow_config": {
+    "generation_pipeline": {
+      "step_1_preprocessing": {
+        "description": "Préparation et analyse des entrées",
+        "estimated_time": "5-10 minutes",
+        "dependencies": [],
+        "output_artifacts": ["input_analysis.json", "requirements_document.md"]
+      },
+      "step_2_structure_planning": {
+        "description": "Planification de la structure narrative",
+        "estimated_time": "15-20 minutes",
+        "dependencies": ["step_1_preprocessing"],
+        "output_artifacts": ["narrative_structure.json", "timeline_plan.json"]
+      },
+      "step_3_content_generation": {
+        "description": "Génération du contenu principal",
+        "estimated_time": "30-45 minutes",
+        "dependencies": ["step_2_structure_planning"],
+        "output_artifacts": ["script_draft.md", "dialogues.json", "scene_breakdown.json"]
+      },
+      "step_4_quality_refinement": {
+        "description": "Affinement et optimisation de la qualité",
+        "estimated_time": "20-30 minutes",
+        "dependencies": ["step_3_content_generation"],
+        "output_artifacts": ["final_script.md", "quality_report.json", "optimization_notes.md"]
+      }
+    },
+    "validation_rules": {
+      "content_validation": {
+        "min_word_count": 500,
+        "max_word_count": 10000,
+        "readability_score": 70,
+        "grammar_check": true,
+        "spell_check": true
+      },
+      "structure_validation": {
+        "has_clear_beginning": true,
+        "has_middle_climax": true,
+        "has_resolution": true,
+        "character_arc_completeness": 0.8,
+        "plot_consistency": 0.9
+      }
+    }
+  },
+  "examples": {
+    "title_examples": [
+      {
+        "type": "dramatic",
+        "example": "Le Dernier Soupir du Temps",
+        "context": "Film de science-fiction dramatique"
+      },
+      {
+        "type": "humorous",
+        "example": "Les Aventures Improbables de Bob",
+        "context": "Comédie légère et divertissante"
+      },
+      {
+        "type": "mysterious",
+        "example": "L'Énigme de la Chambre Grise",
+        "context": "Thriller psychologique"
+      }
+    ],
+    "structure_examples": [
+      {
+        "format": "short_film",
+        "act_structure": "3-act_compressed",
+        "duration_minutes": 15,
+        "beats_count": 8,
+        "description": "Structure classique adaptée pour un format court"
+      },
+      {
+        "format": "feature_film",
+        "act_structure": "traditional_3_act",
+        "duration_minutes": 120,
+        "beats_count": 22,
+        "description": "Structure traditionnelle pour long métrage"
+      }
+    ],
+    "dialogue_examples": [
+      {
+        "scenario": "emotional_conflict",
+        "dialogue": {
+          "character": "Alex",
+          "emotion": "frustrated",
+          "text": "Je ne peux plus continuer comme ça. Chaque jour est la même lutte.",
+          "context": "Moment de crise personnelle"
+        }
+      },
+      {
+        "scenario": "hopeful_moment",
+        "dialogue": {
+          "character": "Sarah",
+          "emotion": "contemplative",
+          "text": "Peut-être que demain sera différent. Il faut toujours espérer.",
+          "context": "Moment de réflexion et d'espoir"
+        }
+      }
+    ],
+    "prompt_templates": [
+      {
+        "template_name": "character_introduction",
+        "template": "Introduis {character_name} dans un {setting} avec une {emotion} émotion. Décrit son apparence et sa personnalité en {word_count} mots.",
+        "variables": ["character_name", "setting", "emotion", "word_count"]
+      },
+      {
+        "template_name": "conflict_scene",
+        "template": "Crée une scène de confrontation entre {character1} et {character2} dans un {environment}. Le conflit porte sur {conflict_topic} et génère une {emotion} ambiance.",
+        "variables": ["character1", "character2", "environment", "conflict_topic", "emotion"]
+      }
+    ]
+  },
+  "compatibility": {
+    "llm_providers": {
+      "openai": {
+        "api_version": "v1",
+        "models": ["gpt-4", "gpt-3.5-turbo", "gpt-4-turbo"],
+        "rate_limits": {
+          "requests_per_minute": 60,
+          "tokens_per_minute": 90000
+        }
+      },
+      "anthropic": {
+        "api_version": "v1",
+        "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
+        "rate_limits": {
+          "requests_per_minute": 50,
+          "tokens_per_minute": 75000
+        }
+      }
+    },
+    "file_formats": {
+      "input_formats": ["json", "md", "txt", "docx"],
+      "output_formats": ["json", "md", "pdf", "html"],
+      "intermediate_formats": ["yaml", "xml", "csv"]
+    }
+  },
+  "validation_schema": {
+    "global_settings_validation": {
+      "required_fields": [
+        "metadata",
+        "llm_parameters",
+        "workflow_config",
+        "examples",
+        "compatibility"
+      ],
+      "field_validations": {
+        "metadata": {
+          "required": ["version", "created_at", "schema_version", "description"],
+          "format_validations": {
+            "version": "semantic_versioning",
+            "created_at": "iso_8601_timestamp",
+            "updated_at": "iso_8601_timestamp"
+          }
+        },
+        "llm_parameters": {
+          "required": ["model_config", "narrative_generation", "duration_planning", "quality_parameters"],
+          "nested_validations": {
+            "model_config": ["default_model", "temperature", "max_tokens"],
+            "narrative_generation": ["title_generation", "plot_structure", "character_development"]
+          }
+        },
+        "workflow_config": {
+          "required": ["generation_pipeline", "validation_rules"],
+          "array_validations": {
+            "generation_pipeline": ["step_1_preprocessing", "step_2_structure_planning", "step_3_content_generation", "step_4_quality_refinement"]
+          }
+        }
+      },
+      "constraints": {
+        "max_depth": 6,
+        "max_string_length": 10000,
+        "allowed_emotions": ["joy", "sadness", "anger", "fear", "surprise", "contempt", "anticipation", "trust", "curious", "contemplative", "intense", "prudent", "frustrated", "determined", "desperate", "resolved"]
+      }
+    }
+  },
+  "version_history": [
+    {
+      "version": "1.0.0",
+      "date": "2026-01-26T15:22:47.486Z",
+      "changes": [
+        "Initial version with comprehensive LLM configuration",
+        "Added narrative generation parameters",
+        "Included duration planning and quality settings",
+        "Established workflow pipeline configuration",
+        "Added compatibility layer for multiple LLM providers"
+      ],
+      "breaking_changes": false
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-01-26T16:08:52.676Z",
+      "changes": [
+        "Added comprehensive validation schema for LLM-friendly configuration",
+        "Enhanced examples with dialogue examples and prompt templates",
+        "Standardized field naming conventions to snake_case",
+        "Added emotion validation with extended emotion list",
+        "Improved compatibility validation with constraints"
+      ],
+      "breaking_changes": false
+    }
+  ]
+}

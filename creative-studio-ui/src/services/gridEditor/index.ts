@@ -40,3 +40,14 @@ export type {
   VersionDifference,
   VersionControlConfig,
 } from './VersionControlService';
+
+export { ConfigurationExportImport } from './ConfigurationExportImport';
+export type { 
+  GridEditorConfiguration,
+  GridEditorTemplate,
+  ExportMetadata,
+  ExportedGridConfiguration,
+  ImportResult,
+  ConfigurationConflict,
+  ExportFormat
+} from './ConfigurationExportImport';

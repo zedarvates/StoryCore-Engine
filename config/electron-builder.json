@@ -14,8 +14,16 @@
   },
   "win": {
     "target": "nsis",
-    "icon": "StorycoreIconeV2.png",
+    "icon": "build/icon.ico",
     "artifactName": "${productName}-Setup-${version}.${ext}"
+  },
+  "mac": {
+    "icon": "build/icon.icns",
+    "category": "public.app-category.video"
+  },
+  "linux": {
+    "icon": "build/icon.png",
+    "category": "Video"
   },
   "nsis": {
     "oneClick": false,
@@ -23,7 +31,13 @@
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
     "shortcutName": "StoryCore Creative Studio",
-    "installerIcon": "StorycoreIconeV2.png",
-    "uninstallerIcon": "StorycoreIconeV2.png"
-  }
+    "installerIcon": "build/icon.ico",
+    "uninstallerIcon": "build/icon.ico"
+  },
+  "extraResources": [
+    {
+      "from": "StorycoreIconeV2.png",
+      "to": "StorycoreIconeV2.png"
+    }
+  ]
 }

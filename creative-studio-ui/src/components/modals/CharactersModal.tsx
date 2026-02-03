@@ -35,7 +35,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { notificationService } from '@/services/NotificationService';
 
 interface Character {
-  id: string;
+  character_id: string;
   name: string;
   description: string;
   personality: string;
@@ -77,57 +77,24 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
     if (!project) return;
 
     try {
-      // Dans un vrai système, cela viendrait du projet ou d'une API
-      // Pour l'instant, on simule avec des données locales
-      const projectCharacters = localStorage.getItem(`characters_${project.id}`);
-      if (projectCharacters) {
-        const parsed = JSON.parse(projectCharacters);
-        const charactersWithDates = parsed.map((char: any) => ({
+      // Load characters from project object
+      if (project.characters && project.characters.length > 0) {
+        const charactersWithDates = project.characters.map((char: any) => ({
           ...char,
-          createdAt: new Date(char.createdAt),
-          updatedAt: new Date(char.updatedAt)
+          createdAt: char.createdAt instanceof Date ? char.createdAt : new Date(char.createdAt || Date.now()),
+          updatedAt: char.updatedAt instanceof Date ? char.updatedAt : new Date(char.updatedAt || Date.now())
         }));
         setCharacters(charactersWithDates);
+        console.log(`✅ [CharactersModal] Loaded ${charactersWithDates.length} characters from project`);
       } else {
-        // Personnages par défaut pour la démonstration
-        const defaultCharacters: Character[] = [
-          {
-            id: 'char_1',
-            name: 'Alexandre',
-            description: 'Un jeune aventurier courageux et déterminé.',
-            personality: 'Courageux, loyal, parfois impulsif',
-            goals: 'Retrouver sa famille perdue et protéger les innocents',
-            background: 'Orphelin élevé par des marchands itinérants',
-            relationships: 'Frère de Clara, ami de Marcus',
-            appearance: 'Cheveux bruns, yeux verts, cicatrice sur la joue',
-            role: 'protagonist',
-            importance: 'high',
-            tags: ['héros', 'aventurier', 'loyal'],
-            createdAt: new Date(),
-            updatedAt: new Date()
-          },
-          {
-            id: 'char_2',
-            name: 'Clara',
-            description: 'La sœur d\'Alexandre, intelligente et mystérieuse.',
-            personality: 'Intelligente, mystérieuse, protectrice',
-            goals: 'Aider son frère et découvrir ses origines',
-            background: 'Élevée avec Alexandre par les marchands',
-            relationships: 'Sœur d\'Alexandre, confidente de Marcus',
-            appearance: 'Cheveux noirs, yeux bleus, robe élégante',
-            role: 'supporting',
-            importance: 'high',
-            tags: ['sœur', 'mystérieuse', 'intelligente'],
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }
-        ];
-        setCharacters(defaultCharacters);
-        saveCharacters(defaultCharacters);
+        // No characters in project, set empty array
+        setCharacters([]);
+        console.log('ℹ️ [CharactersModal] No characters found in project');
       }
     } catch (error) {
       console.error('Failed to load characters:', error);
       notificationService.error('Erreur', 'Impossible de charger les personnages');
+      setCharacters([]);
     }
   };
 
@@ -135,7 +102,14 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
     if (!project) return;
 
     try {
-      localStorage.setItem(`characters_${project.id}`, JSON.stringify(chars));
+      // Update project in store with new characters
+      const setProject = useAppStore.getState().setProject;
+      const updatedProject = {
+        ...project,
+        characters: chars
+      };
+      setProject(updatedProject);
+      console.log(`✅ [CharactersModal] Saved ${chars.length} characters to project`);
     } catch (error) {
       console.error('Failed to save characters:', error);
       notificationService.error('Erreur', 'Impossible de sauvegarder les personnages');
@@ -186,8 +160,8 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
       return;
     }
 
-    const updatedCharacters = editingCharacter?.id
-      ? characters.map(c => c.id === character.id ? { ...character, updatedAt: new Date() } : c)
+    const updatedCharacters = editingCharacter?.character_id
+      ? characters.map(c => c.character_id === character.character_id ? { ...character, updatedAt: new Date() } : c)
       : [...characters, character];
 
     setCharacters(updatedCharacters);
@@ -201,11 +175,11 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
   };
 
   const handleDeleteCharacter = (characterId: string) => {
-    const character = characters.find(c => c.id === characterId);
+    const character = characters.find(c => c.character_id === characterId);
     if (!character) return;
 
     if (confirm(`Êtes-vous sûr de vouloir supprimer le personnage "${character.name}" ?`)) {
-      const updatedCharacters = characters.filter(c => c.id !== characterId);
+      const updatedCharacters = characters.filter(c => c.character_id !== characterId);
       setCharacters(updatedCharacters);
       saveCharacters(updatedCharacters);
 
@@ -297,6 +271,8 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value as Character['role'] | 'all')}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  aria-label="Filtrer par rôle"
+                  title="Filtrer les personnages par rôle"
                 >
                   <option value="all">Tous les rôles</option>
                   <option value="protagonist">Protagonistes</option>
@@ -309,6 +285,8 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
                   value={selectedImportance}
                   onChange={(e) => setSelectedImportance(e.target.value as Character['importance'] | 'all')}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  aria-label="Filtrer par importance"
+                  title="Filtrer les personnages par niveau d'importance"
                 >
                   <option value="all">Toute importance</option>
                   <option value="high">Haute</option>
@@ -329,104 +307,14 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
 
           {/* Characters List - Scrollable */}
           <div className="flex-1 overflow-y-auto p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCharacters.length === 0 ? (
-                <div className="col-span-full text-center py-12">
-                  <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Aucun personnage trouvé
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    {searchQuery || selectedRole !== 'all' || selectedImportance !== 'all'
-                      ? 'Essayez de modifier vos critères de recherche.'
-                      : 'Créez votre premier personnage pour commencer.'}
-                  </p>
-                  {!searchQuery && selectedRole === 'all' && selectedImportance === 'all' && (
-                    <Button onClick={handleCreateCharacter} className="flex items-center gap-2">
-                      <PlusIcon className="w-4 h-4" />
-                      Créer un personnage
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                filteredCharacters.map(character => (
-                  <div
-                    key={character.id}
-                    className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-                  >
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        {getRoleIcon(character.role)}
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {character.name}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Badge className={getImportanceColor(character.importance)}>
-                          {character.importance === 'high' ? 'Élevé' :
-                           character.importance === 'medium' ? 'Moyen' : 'Faible'}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {/* Role */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-sm text-gray-500">Rôle:</span>
-                      <Badge variant="outline">
-                        {getRoleLabel(character.role)}
-                      </Badge>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-gray-700 mb-3 line-clamp-3">
-                      {character.description}
-                    </p>
-
-                    {/* Tags */}
-                    {character.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {character.tags.slice(0, 3).map(tag => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {character.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{character.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="text-xs text-gray-500">
-                        Modifié {character.updatedAt.toLocaleDateString('fr-FR')}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditCharacter(character)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <EditIcon className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteCharacter(character.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+            <CharacterGrid
+              characters={filteredCharacters}
+              onEdit={handleEditCharacter}
+              onDelete={handleDeleteCharacter}
+              searchQuery={searchQuery}
+              selectedRole={selectedRole}
+              selectedImportance={selectedImportance}
+            />
           </div>
         </DialogContent>
       </Dialog>
@@ -435,7 +323,7 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
       {editingCharacter && (
         <CharacterEditModal
           character={editingCharacter}
-          isCreate={!characters.some(c => c.id === editingCharacter.id)}
+          isCreate={!characters.some(c => c.character_id === editingCharacter.character_id)}
           onSave={handleSaveCharacter}
           onCancel={() => setEditingCharacter(null)}
         />
@@ -443,6 +331,184 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
     </>
   );
 }
+
+/**
+ * CharacterGrid - Optimized grid component with React.memo
+ * Prevents unnecessary re-renders when parent state changes
+ */
+const CharacterGrid = React.memo(function CharacterGrid({
+  characters,
+  onEdit,
+  onDelete,
+  searchQuery,
+  selectedRole,
+  selectedImportance
+}: {
+  characters: Character[];
+  onEdit: (character: Character) => void;
+  onDelete: (characterId: string) => void;
+  searchQuery: string;
+  selectedRole: Character['role'] | 'all';
+  selectedImportance: Character['importance'] | 'all';
+}) {
+  if (characters.length === 0) {
+    return (
+      <div className="col-span-full text-center py-12">
+        <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          Aucun personnage trouvé
+        </h3>
+        <p className="text-gray-600 mb-4">
+          {searchQuery || selectedRole !== 'all' || selectedImportance !== 'all'
+            ? 'Essayez de modifier vos critères de recherche.'
+            : 'Créez votre premier personnage pour commencer.'}
+        </p>
+        {searchQuery === '' && selectedRole === 'all' && selectedImportance === 'all' && (
+          <Button onClick={() => {/* This would need to be passed from parent */}} className="flex items-center gap-2">
+            <PlusIcon className="w-4 h-4" />
+            Créer un personnage
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {characters.map(character => (
+        <CharacterCard
+          key={character.character_id}
+          character={character}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
+  );
+});
+
+/**
+ * CharacterCard - Memoized individual character card
+ */
+const CharacterCard = React.memo(function CharacterCard({
+  character,
+  onEdit,
+  onDelete
+}: {
+  character: Character;
+  onEdit: (character: Character) => void;
+  onDelete: (characterId: string) => void;
+}) {
+  const getRoleIcon = (role: Character['role']) => {
+    switch (role) {
+      case 'protagonist':
+        return <StarIcon className="w-4 h-4 text-yellow-500" />;
+      case 'antagonist':
+        return <TargetIcon className="w-4 h-4 text-red-500" />;
+      case 'supporting':
+        return <UsersIcon className="w-4 h-4 text-blue-500" />;
+      case 'minor':
+        return <UserIcon className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getRoleLabel = (role: Character['role']) => {
+    switch (role) {
+      case 'protagonist': return 'Protagoniste';
+      case 'antagonist': return 'Antagoniste';
+      case 'supporting': return 'Secondaire';
+      case 'minor': return 'Figurant';
+    }
+  };
+
+  const getImportanceColor = (importance: Character['importance']) => {
+    switch (importance) {
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <div
+      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+      data-testid={`character-card-${character.character_id}`}
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2">
+          {getRoleIcon(character.role)}
+          <h3 className="text-lg font-semibold text-gray-900">
+            {character.name}
+          </h3>
+        </div>
+        <div className="flex items-center gap-1">
+          <Badge className={getImportanceColor(character.importance)}>
+            {character.importance === 'high' ? 'Élevé' :
+             character.importance === 'medium' ? 'Moyen' : 'Faible'}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Role */}
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-sm text-gray-500">Rôle:</span>
+        <Badge variant="outline">
+          {getRoleLabel(character.role)}
+        </Badge>
+      </div>
+
+      {/* Description */}
+      <p className="text-sm text-gray-700 mb-3 line-clamp-3">
+        {character.description}
+      </p>
+
+      {/* Tags */}
+      {character.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {character.tags.slice(0, 3).map(tag => (
+            <Badge key={tag} variant="secondary" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+          {character.tags.length > 3 && (
+            <Badge variant="secondary" className="text-xs">
+              +{character.tags.length - 3}
+            </Badge>
+          )}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <div className="text-xs text-gray-500">
+          Modifié {character.updatedAt.toLocaleDateString('fr-FR')}
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(character)}
+            className="text-blue-600 hover:text-blue-800"
+            aria-label={`Modifier ${character.name}`}
+            title={`Modifier ${character.name}`}
+          >
+            <EditIcon className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(character.character_id)}
+            className="text-red-600 hover:text-red-800"
+            aria-label={`Supprimer ${character.name}`}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 /**
  * CharacterEditModal - Modale d'édition de personnage
@@ -511,6 +577,8 @@ function CharacterEditModal({ character, isCreate, onSave, onCancel }: Character
                   value={editedCharacter.role}
                   onChange={(e) => setEditedCharacter(prev => ({ ...prev, role: e.target.value as Character['role'] }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  aria-label="Sélectionner le rôle du personnage"
+                  title="Rôle du personnage dans l'histoire"
                 >
                   <option value="protagonist">Protagoniste</option>
                   <option value="antagonist">Antagoniste</option>
@@ -602,6 +670,8 @@ function CharacterEditModal({ character, isCreate, onSave, onCancel }: Character
                   value={editedCharacter.importance}
                   onChange={(e) => setEditedCharacter(prev => ({ ...prev, importance: e.target.value as Character['importance'] }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  aria-label="Sélectionner l'importance du personnage"
+                  title="Niveau d'importance du personnage dans l'histoire"
                 >
                   <option value="high">Élevée</option>
                   <option value="medium">Moyenne</option>
@@ -621,8 +691,13 @@ function CharacterEditModal({ character, isCreate, onSave, onCancel }: Character
                   onChange={(e) => setNewTag(e.target.value)}
                   placeholder="Ajouter un tag"
                   onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                  aria-label="Nouveau tag"
                 />
-                <Button onClick={handleAddTag} variant="outline">
+                <Button 
+                  onClick={handleAddTag} 
+                  variant="outline"
+                  aria-label="Ajouter le tag"
+                >
                   <PlusIcon className="w-4 h-4" />
                 </Button>
               </div>

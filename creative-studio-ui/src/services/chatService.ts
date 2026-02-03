@@ -8,7 +8,7 @@ export interface ChatContext {
 }
 
 export interface ChatAction {
-  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText';
+  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject';
   payload: any;
 }
 
@@ -16,6 +16,16 @@ export interface ChatResponse {
   message: string;
   suggestions?: string[];
   actions?: ChatAction[];
+  projectPath?: string;
+}
+
+export interface ProjectCreationRequest {
+  name: string;
+  theme?: string;
+  universe?: string;
+  genre?: string;
+  description?: string;
+  settings?: Record<string, any>;
 }
 
 /**
@@ -63,6 +73,12 @@ export class ChatService {
   async processMessage(userInput: string): Promise<ChatResponse> {
     const input = userInput.toLowerCase();
 
+    // Check for project creation request first
+    const projectRequest = this.parseProjectCreationRequest(userInput);
+    if (projectRequest) {
+      return this.handleProjectCreation(projectRequest, userInput);
+    }
+
     // Analyze intent
     const intent = this.analyzeIntent(input);
 
@@ -92,6 +108,295 @@ export class ChatService {
       default:
         return this.handleGeneral(input);
     }
+  }
+
+  /**
+   * Parse natural language input for project creation requests
+   * Extracts project name, theme, universe, genre, and other metadata
+   */
+  private parseProjectCreationRequest(input: string): ProjectCreationRequest | null {
+    const lowerInput = input.toLowerCase();
+
+    // Check if this is a project creation request
+    const isProjectCreation =
+      (lowerInput.includes('create') || lowerInput.includes('make') || lowerInput.includes('start') || lowerInput.includes('new')) &&
+      (lowerInput.includes('project') || lowerInput.includes('video') || lowerInput.includes('trailer'));
+
+    if (!isProjectCreation) {
+      return null;
+    }
+
+    // Extract project name from various patterns
+    let projectName: string | null = null;
+
+    // Pattern 1: "create a project called/named 'X'"
+    const namedPattern = /(?:called|named|titled)\s+["']([^"']+)["']/i;
+    const namedMatch = input.match(namedPattern);
+    if (namedMatch) {
+      projectName = namedMatch[1];
+    }
+
+    // Pattern 2: "create 'X' project"
+    if (!projectName) {
+      const quotedPattern = /["']([^"']+)["']\s+(?:project|video|trailer)/i;
+      const quotedMatch = input.match(quotedPattern);
+      if (quotedMatch) {
+        projectName = quotedMatch[1];
+      }
+    }
+
+    // Pattern 3: "create a [adjective] project" - extract adjective as name
+    if (!projectName) {
+      const adjectivePattern = /(?:create|make|start|new)\s+(?:a|an)\s+([a-z\s]+?)\s+(?:project|video|trailer)/i;
+      const adjectiveMatch = input.match(adjectivePattern);
+      if (adjectiveMatch) {
+        const extracted = adjectiveMatch[1].trim();
+        // Only use if it's not too generic
+        if (extracted && !['new', 'video', 'trailer'].includes(extracted)) {
+          projectName = extracted;
+        }
+      }
+    }
+
+    // If no name found, generate a default one
+    if (!projectName) {
+      projectName = `Project ${new Date().toISOString().split('T')[0]}`;
+    }
+
+    // Extract theme/universe/genre
+    const theme = this.extractThemeFromInput(input);
+    const universe = this.extractUniverseFromInput(input);
+    const genre = this.extractGenreFromInput(input);
+
+    return {
+      name: projectName,
+      theme,
+      universe,
+      genre,
+      description: input,
+      settings: {
+        created_by: 'llm-assistant',
+        creation_timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  /**
+   * Extract theme from natural language input
+   */
+  private extractThemeFromInput(input: string): string | undefined {
+    const themePatterns = [
+      /(?:theme|setting|atmosphere|mood)(?:\s+is|\s+of)?\s+["']?([^"',.]+)["']?/i,
+      /(?:in|with)\s+(?:a|an)\s+([a-z\s]+?)\s+(?:theme|setting|atmosphere)/i,
+    ];
+
+    for (const pattern of themePatterns) {
+      const match = input.match(pattern);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+
+    // Check for common theme keywords
+    const themes = [
+      'fantasy', 'sci-fi', 'science fiction', 'horror', 'thriller', 'comedy', 'drama',
+      'action', 'adventure', 'romance', 'mystery', 'western', 'noir', 'cyberpunk',
+      'steampunk', 'post-apocalyptic', 'medieval', 'futuristic', 'historical',
+      'tropical', 'arctic', 'desert', 'urban', 'rural', 'space', 'underwater',
+    ];
+
+    for (const theme of themes) {
+      if (input.toLowerCase().includes(theme)) {
+        return theme;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Extract universe/world description from natural language input
+   */
+  private extractUniverseFromInput(input: string): string | undefined {
+    const universePatterns = [
+      /(?:universe|world|realm|dimension)(?:\s+where|\s+in which|\s+with)?\s+([^,.]+)/i,
+      /(?:in|set in)\s+(?:a|an)\s+(?:universe|world|realm)\s+(?:where|with)?\s+([^,.]+)/i,
+      /where\s+([^,.]+?)(?:\s+and|\s+but|$)/i,
+    ];
+
+    for (const pattern of universePatterns) {
+      const match = input.match(pattern);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Extract genre from natural language input
+   */
+  private extractGenreFromInput(input: string): string | undefined {
+    const genres = [
+      'action', 'adventure', 'comedy', 'drama', 'fantasy', 'horror', 'mystery',
+      'romance', 'sci-fi', 'science fiction', 'thriller', 'western', 'animation',
+      'documentary', 'musical', 'crime', 'war', 'biographical', 'historical',
+    ];
+
+    const lowerInput = input.toLowerCase();
+    for (const genre of genres) {
+      if (lowerInput.includes(genre)) {
+        return genre;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Handle project creation request
+   */
+  private async handleProjectCreation(
+    request: ProjectCreationRequest,
+    originalInput: string
+  ): Promise<ChatResponse> {
+    // Return a response that includes the project creation action
+    // The actual project creation will be handled by the component that uses this service
+    const themeInfo = request.theme ? ` with a ${request.theme} theme` : '';
+    const universeInfo = request.universe ? ` set in a universe where ${request.universe}` : '';
+    const genreInfo = request.genre ? ` in the ${request.genre} genre` : '';
+
+    return {
+      message: `I'll create a project called "${request.name}"${themeInfo}${universeInfo}${genreInfo}. Setting up the project structure now...`,
+      suggestions: [
+        'Add characters to the project',
+        'Create the first scene',
+        'Configure project settings',
+      ],
+      actions: [
+        {
+          type: 'createProject',
+          payload: request,
+        },
+      ],
+    };
+  }
+
+  /**
+   * Execute project creation via Electron API
+   * This method should be called by the component after receiving a createProject action
+   */
+  static async executeProjectCreation(request: ProjectCreationRequest): Promise<{
+    success: boolean;
+    projectPath?: string;
+    error?: string;
+  }> {
+    try {
+      // Check if Electron API is available
+      if (!window.electronAPI?.project?.create) {
+        return {
+          success: false,
+          error: 'Project creation requires Electron environment',
+        };
+      }
+
+      // Prepare project data with theme/universe metadata
+      const projectData = {
+        name: request.name,
+        format: {
+          schema_version: '1.0',
+          capabilities: {
+            grid_generation: true,
+            promotion_engine: true,
+            qa_engine: true,
+            autofix_engine: true,
+          },
+          generation_status: {
+            grid: 'pending',
+            promotion: 'pending',
+          },
+          metadata: {
+            theme: request.theme,
+            universe: request.universe,
+            genre: request.genre,
+            description: request.description,
+            created_by: 'llm-assistant',
+            created_at: new Date().toISOString(),
+            ...request.settings,
+          },
+        },
+      };
+
+      // Call Electron API to create project
+      const project = await window.electronAPI.project.create(projectData);
+
+      return {
+        success: true,
+        projectPath: project.path,
+      };
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  /**
+   * Navigate to project dashboard after successful creation
+   * This method handles the navigation logic for opening a newly created project
+   */
+  static navigateToProjectDashboard(projectPath: string): void {
+    try {
+      // Check if we're in a React Router environment
+      if (typeof window !== 'undefined') {
+        // Encode the project path for URL safety
+        const encodedPath = encodeURIComponent(projectPath);
+        
+        // Navigate to the project dashboard
+        // The exact route depends on the application's routing structure
+        // Common patterns: /project/:path or /dashboard/:path
+        window.location.href = `/project/${encodedPath}`;
+        
+        // Alternative: If using React Router programmatically
+        // This would need to be called from a component with access to navigate()
+        // navigate(`/project/${encodedPath}`);
+      }
+    } catch (error) {
+      console.error('Failed to navigate to project dashboard:', error);
+      // Fallback: reload the page to show the new project
+      window.location.reload();
+    }
+  }
+
+  /**
+   * Complete project creation workflow: create project and navigate to dashboard
+   * This is a convenience method that combines creation and navigation
+   */
+  static async createProjectAndNavigate(request: ProjectCreationRequest): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
+    // Execute project creation
+    const result = await ChatService.executeProjectCreation(request);
+
+    if (!result.success) {
+      return {
+        success: false,
+        error: result.error,
+      };
+    }
+
+    // Navigate to the dashboard
+    if (result.projectPath) {
+      ChatService.navigateToProjectDashboard(result.projectPath);
+    }
+
+    return {
+      success: true,
+    };
   }
 
   /**

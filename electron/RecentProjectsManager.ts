@@ -6,6 +6,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { DiscoveredProject } from './services/ProjectDiscoveryService';
 
 /**
  * Recent project entry
@@ -15,6 +16,20 @@ export interface RecentProject {
   name: string;
   path: string;
   lastAccessed: Date;
+  exists?: boolean;
+}
+
+/**
+ * Merged project entry combining discovered and recent project data
+ */
+export interface MergedProject {
+  id?: string;
+  name: string;
+  path: string;
+  lastModified: Date;
+  createdAt?: Date;
+  isRecent: boolean;
+  lastOpened?: Date; // Only for recent projects
   exists?: boolean;
 }
 
@@ -133,12 +148,20 @@ export class RecentProjectsManager {
   }
 
   /**
-   * Remove all projects that no longer exist
+   * Remove all projects that no longer exist on disk
+   * This should be called before displaying the project list
+   * @returns Number of removed projects
    */
-  async cleanupMissingProjects(): Promise<void> {
+  async cleanupMissingProjects(): Promise<number> {
+    const initialCount = this.projects.length;
     await this.checkProjectsExistence();
     this.projects = this.projects.filter(p => p.exists !== false);
-    this.save();
+    const removedCount = initialCount - this.projects.length;
+    if (removedCount > 0) {
+      console.log(`[RecentProjectsManager] Cleaned up ${removedCount} missing projects`);
+      this.save();
+    }
+    return removedCount;
   }
 
   /**
@@ -155,6 +178,89 @@ export class RecentProjectsManager {
    */
   getCount(): number {
     return this.projects.length;
+  }
+
+  /**
+   * Merges discovered projects with recent projects
+   * Recent projects take precedence for duplicates
+   * @param discoveredProjects Array of discovered projects from ProjectDiscoveryService
+   * @returns Array of merged projects sorted by last modified date
+   */
+  async getMergedProjectList(discoveredProjects: DiscoveredProject[]): Promise<MergedProject[]> {
+    const merged: MergedProject[] = [];
+    const processedPaths = new Set<string>();
+
+    // First, add all recent projects (they take precedence)
+    for (const recentProject of this.projects) {
+      // Get file system stats for lastModified
+      let lastModified: Date;
+      try {
+        const projectJsonPath = path.join(recentProject.path, 'project.json');
+        if (fs.existsSync(projectJsonPath)) {
+          const stats = await fs.promises.stat(projectJsonPath);
+          lastModified = stats.mtime;
+        } else {
+          // If project.json doesn't exist, use lastAccessed as fallback
+          lastModified = recentProject.lastAccessed;
+        }
+      } catch (error) {
+        // On error, use lastAccessed as fallback
+        lastModified = recentProject.lastAccessed;
+      }
+
+      merged.push({
+        id: recentProject.id,
+        name: recentProject.name,
+        path: recentProject.path,
+        lastModified,
+        isRecent: true,
+        lastOpened: recentProject.lastAccessed,
+        exists: recentProject.exists,
+      });
+
+      processedPaths.add(recentProject.path);
+    }
+
+    // Then, add discovered projects that aren't already in recent list
+    for (const discoveredProject of discoveredProjects) {
+      if (!this.isRecentProject(discoveredProject.path, processedPaths)) {
+        merged.push({
+          name: discoveredProject.name,
+          path: discoveredProject.path,
+          lastModified: new Date(discoveredProject.lastModified),
+          createdAt: discoveredProject.createdAt,
+          isRecent: false,
+        });
+      }
+    }
+
+    // Sort by last modified date (most recent first)
+    return this.sortProjectsByDate(merged);
+  }
+
+  /**
+   * Sorts projects by last modified date in descending order (most recent first)
+   * @param projects Array of projects to sort
+   * @returns Sorted array of projects
+   */
+  private sortProjectsByDate(projects: MergedProject[]): MergedProject[] {
+    return projects.sort((a, b) => {
+      // Sort by lastModified in descending order
+      return b.lastModified.getTime() - a.lastModified.getTime();
+    });
+  }
+
+  /**
+   * Checks if a project path exists in recent projects
+   * @param projectPath Path to check
+   * @param processedPaths Optional set of already processed paths for optimization
+   * @returns True if the project is in the recent list
+   */
+  private isRecentProject(projectPath: string, processedPaths?: Set<string>): boolean {
+    if (processedPaths) {
+      return processedPaths.has(projectPath);
+    }
+    return this.projects.some(p => p.path === projectPath);
   }
 
   /**

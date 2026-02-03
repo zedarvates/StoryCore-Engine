@@ -4,6 +4,10 @@
 import type { World } from './world';
 // Import Character types
 import type { Character } from './character';
+// Import Story types
+import type { Story, StoryVersion } from './story';
+// Import Asset types
+import type { AssetMetadata } from './asset';
 
 // ============================================================================
 // Shot and Related Types
@@ -15,24 +19,25 @@ export interface Shot {
   description: string;
   duration: number; // in seconds
   image?: string; // URL or base64
-  
+
   // Audio tracks (enhanced)
   audioTracks: AudioTrack[];
-  
+
   // Visual effects
   effects: Effect[];
-  
+
   // Text layers
   textLayers: TextLayer[];
-  
+
   // Keyframe animations
   animations: Animation[];
-  
+
   // Transition to next shot
   transitionOut?: Transition;
-  
+
   position: number; // order in sequence
   metadata?: Record<string, any>;
+  promoted_panel_path?: string; // Path to promoted panel image
 }
 
 // ============================================================================
@@ -44,41 +49,41 @@ export interface AudioTrack {
   name: string;
   type: 'music' | 'sfx' | 'dialogue' | 'voiceover' | 'ambient';
   url: string; // audio file URL
-  
+
   // Timing
   startTime: number; // seconds from shot start
   duration: number; // seconds
   offset: number; // trim start of audio file
-  
+
   // Volume and pan
   volume: number; // 0-100
   fadeIn: number; // seconds
   fadeOut: number; // seconds
   pan: number; // -100 (left) to 100 (right) for stereo
-  
+
   // Surround sound configuration
   surroundConfig?: SurroundConfig;
-  
+
   // State
   muted: boolean;
   solo: boolean;
-  
+
   // Effects
   effects: AudioEffect[];
-  
+
   // Waveform data (for visualization)
   waveformData?: number[]; // amplitude values
 }
 
 export interface SurroundConfig {
   mode: 'stereo' | '5.1' | '7.1';
-  
+
   // Channel levels (0-100) for surround modes
   channels: {
     // Stereo
     left?: number;
     right?: number;
-    
+
     // 5.1 Surround
     frontLeft?: number;
     frontRight?: number;
@@ -86,19 +91,19 @@ export interface SurroundConfig {
     lfe?: number; // Low Frequency Effects (subwoofer)
     surroundLeft?: number;
     surroundRight?: number;
-    
+
     // 7.1 Surround (adds side channels)
     sideLeft?: number;
     sideRight?: number;
   };
-  
+
   // Spatial positioning (for automatic panning)
   spatialPosition?: {
     x: number; // -1 (left) to 1 (right)
     y: number; // -1 (back) to 1 (front)
     z: number; // 0 (ground) to 1 (height)
   };
-  
+
   // LLM-suggested preset based on scene
   aiSuggestedPreset?: string; // e.g., "dialogue-center", "ambient-surround", "action-full"
 }
@@ -109,7 +114,7 @@ export interface AudioEffect {
   enabled: boolean;
   preset?: 'podcast' | 'music-video' | 'cinematic' | 'dialogue' | 'custom';
   parameters: AudioEffectParameters;
-  
+
   // Automation curve (like Houdini)
   automationCurve?: AutomationCurve;
 }
@@ -134,39 +139,39 @@ export interface AudioEffectParameters {
   threshold?: number; // dB
   ceiling?: number; // dB
   release?: number; // ms
-  
+
   // EQ
   lowGain?: number; // dB
   midGain?: number; // dB
   highGain?: number; // dB
-  
+
   // Compressor
   ratio?: number; // 1:1 to 20:1
   attack?: number; // ms
-  
+
   // Voice Clarity (auto mode)
   intensity?: number; // 0-100
-  
+
   // Noise Reduction
   noiseFloor?: number; // dB
-  
+
   // Gain
   gain?: number; // dB (-60 to +60)
-  
+
   // Distortion
   distortion?: number; // 0-100 (amount of distortion)
   distortionType?: 'soft' | 'hard' | 'tube' | 'fuzz';
-  
+
   // Bass Boost
   bassFrequency?: number; // Hz (default 100)
   bassGain?: number; // dB (-12 to +12)
   bassQ?: number; // Quality factor (0.1 to 10)
-  
+
   // Treble Boost
   trebleFrequency?: number; // Hz (default 8000)
   trebleGain?: number; // dB (-12 to +12)
   trebleQ?: number; // Quality factor (0.1 to 10)
-  
+
   // Reverb
   roomSize?: number; // 0-1 (size of the room)
   damping?: number; // 0-1 (high frequency absorption)
@@ -267,20 +272,33 @@ export interface Point {
 export interface Asset {
   id: string;
   name: string;
-  type: 'image' | 'audio' | 'template';
+  type: 'image' | 'audio' | 'video' | 'template';
   url: string;
   thumbnail?: string;
-  metadata?: Record<string, any>;
+  metadata?: AssetMetadata;
+  // Extended properties for sequence editor compatibility
+  category?: string;
+  subcategory?: string;
+  thumbnailUrl?: string;
+  previewUrl?: string;
+  tags?: string[];
+  source?: 'builtin' | 'user' | 'ai-generated';
+  createdAt?: Date;
+  path?: string; // Local file path if available
 }
 
 export interface Project {
+  id: string; // Project unique identifier
   schema_version: string; // "1.0" for Data Contract v1
+  path?: string; // Local file system path
   project_name: string;
   shots: Shot[];
   assets: Asset[];
   worlds?: World[]; // Story worlds created via wizard
   selectedWorldId?: string | null; // Currently active world for generation
   characters?: Character[]; // Characters for the project
+  stories?: Story[]; // Stories for the project
+  storyVersions?: StoryVersion[]; // Version history for stories
   capabilities: {
     grid_generation: boolean;
     promotion_engine: boolean;
@@ -303,6 +321,7 @@ export interface Project {
     last_modified: string;
   };
   metadata?: Record<string, any>;
+  global_resume?: string;
 }
 
 // Import World type from world.ts
@@ -311,6 +330,25 @@ export type { World, Location, WorldRule, CulturalElements } from './world';
 // Import Character types from character.ts
 export type { Character, CharacterRelationship, VisualIdentity, Personality, Background, Role } from './character';
 
+// Import Story types from story.ts
+export type {
+  Story,
+  CharacterReference,
+  LocationReference,
+  AutoGeneratedElement,
+  StoryDraft,
+  StoryVersion,
+  StoryGenerationParams,
+  WorldContext,
+  CharacterCreationRequest,
+  LocationCreationRequest,
+  GenerationProgress,
+  ExportOptions,
+  StorySetupData,
+  CharacterSelectionData,
+  LocationSelectionData
+} from './story';
+
 // Import Production Wizards types
 export type { SequencePlan, Act, Scene } from './sequencePlan';
 export type {
@@ -318,8 +356,7 @@ export type {
   ShotType,
   TransitionType,
   ComfyUIParameters,
-  CameraMovement,
-  CharacterPosition
+  CameraMovement
 } from './shot';
 export type {
   SequenceTemplate,
@@ -329,10 +366,7 @@ export type {
   AssetTemplate
 } from './template';
 export type {
-  WizardStep,
-  ShotPreview,
-  SequencePlanWizardState,
-  ShotWizardState
+  WizardStep
 } from './wizard';
 
 // Import Asset types from asset.ts
@@ -518,7 +552,6 @@ export type {
   ProjectData,
   ProjectCapabilities,
   GenerationStatus as ProjectGenerationStatus,
-  CharacterReference,
   SceneReference,
   WorldDefinition,
   Location as ProjectLocation,
@@ -526,6 +559,19 @@ export type {
   ShotInput,
   ValidationResult as ProjectValidationResult,
 } from './project';
+
+// Import Project Discovery types from projectDiscovery.ts
+export type {
+  DiscoveredProject,
+  DiscoveryResult,
+  ScanProjectsOptions,
+  IPCResponse,
+  ScanProjectsResponse,
+  MergedProject,
+  MergedProjectsResponse,
+  RefreshProjectsResponse,
+} from './projectDiscovery';
+export { ProjectDiscoveryErrorCode } from './projectDiscovery';
 
 // Import ProjectDashboard types from projectDashboard.ts
 export type {
@@ -544,6 +590,24 @@ export type {
   Sequence,
   GenerationRecord,
 } from './projectDashboard';
+
+// Import Menu Configuration types from menuConfig.ts
+export type {
+  MenuItemType,
+  ActionContext,
+  MenuItemConfig,
+  MenuConfig,
+  MenuBarConfig,
+} from './menuConfig';
+export {
+  isEnabledFunction,
+  isVisibleFunction,
+  isCheckedFunction,
+  evaluateEnabled,
+  evaluateVisible,
+  evaluateChecked,
+  MenuConfigError,
+} from './menuConfig';
 export {
   VoiceParametersSchema,
   ValidationErrorSchema,
@@ -564,6 +628,9 @@ export {
   hasValidPrompts,
 } from './projectDashboard';
 
+// Import Electron types
+export type { StoryCoreElectronAPI as ElectronAPI, Project as ElectronProject, ProjectData as ElectronProjectData } from './electron';
+
 // ============================================================================
 // Task Queue Types
 // ============================================================================
@@ -578,7 +645,7 @@ export interface GenerationTask {
   startedAt?: Date;
   completedAt?: Date;
   error?: string;
-  
+
   // ComfyUI workflow parameters
   prompt?: string;
   negativePrompt?: string;
@@ -609,28 +676,30 @@ export interface AppState {
   worlds: World[]; // Story worlds for the project
   selectedWorldId: string | null; // Currently active world
   characters: Character[]; // Characters for the project
-  
+  stories: Story[]; // Stories for the project
+  storyVersions: StoryVersion[]; // Version history for stories
+
   // UI state
   selectedShotId: string | null;
   currentTime: number;
   showChat: boolean;
   showTaskQueue: boolean;
   panelSizes: PanelSizes;
-  
+
   // Task queue
   taskQueue: GenerationTask[];
-  
+
   // Backend communication
   generationStatus: GenerationStatus;
-  
+
   // Playback state
   isPlaying: boolean;
   playbackSpeed: number; // 0.25, 0.5, 1, 1.5, 2
-  
+
   // Undo/Redo
   history: HistoryState[];
   historyIndex: number;
-  
+
   // Selection state
   selectedEffectId: string | null;
   selectedTextLayerId: string | null;

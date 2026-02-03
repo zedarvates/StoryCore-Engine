@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Menu, dialog } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import { ViteServerManager, LauncherConfig } from './ViteServerManager';
 import { ProjectService } from './ProjectService';
 import { RecentProjectsManager } from './RecentProjectsManager';
@@ -16,11 +17,43 @@ let ipcHandlers: IPCHandlers | null = null;
 // let updateManager: UpdateManager | null = null;
 
 /**
+ * Get the icon path with environment-aware resolution and fallback handling
+ * Requirements: 2.1, 2.2, 2.3
+ */
+function getIconPath(): string | undefined {
+  const possiblePaths = [
+    // Production paths (when app is packaged)
+    path.join(process.resourcesPath, 'StorycoreIconeV2.png'),
+    path.join(process.resourcesPath, 'build', 'icon.ico'),
+    // Development paths (when running from source)
+    path.join(__dirname, '../../StorycoreIconeV2.png'),
+    path.join(__dirname, '../../build/icon.ico'),
+  ];
+
+  for (const iconPath of possiblePaths) {
+    try {
+      if (fs.existsSync(iconPath)) {
+        console.log(`Using icon from: ${iconPath}`);
+        return iconPath;
+      }
+    } catch (error) {
+      console.warn(`Error checking icon path ${iconPath}:`, error);
+    }
+  }
+
+  console.warn('No icon found in any expected location, using default Electron icon');
+  return undefined;
+}
+
+/**
  * Create the main application window
  */
 function createWindow(url: string): void {
   // Disable the native menu bar
   Menu.setApplicationMenu(null);
+  
+  // Get icon path with environment-aware resolution and fallback
+  const iconPath = getIconPath();
   
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -36,7 +69,7 @@ function createWindow(url: string): void {
     title: 'StoryCore Creative Studio',
     show: false, // Don't show until ready
     backgroundColor: '#0a0a0f', // Dark background to match neon theme
-    icon: path.join(__dirname, '../../StorycoreIcone.png'),
+    icon: iconPath,
     autoHideMenuBar: true, // Hide menu bar (can be shown with Alt key)
     frame: true, // Keep window frame for minimize/maximize/close buttons
   });
@@ -46,7 +79,7 @@ function createWindow(url: string): void {
   mainWindow!.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     const csp = isDevelopment
       ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* ws://localhost:* data: blob:;"
-      : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://localhost:* ws://localhost:*;";
+      : "default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http://localhost:8000 http://127.0.0.1:8000; connect-src 'self' http://localhost:* ws://localhost:*; font-src 'self' data:;";
 
     callback({
       responseHeaders: {
@@ -58,7 +91,21 @@ function createWindow(url: string): void {
 
   // Load the provided URL
   mainWindow!.loadURL(url);
-  
+
+  console.log('Window created, loading URL:', url);
+
+  mainWindow!.webContents.on('did-start-loading', () => {
+    console.log('Started loading page...');
+  });
+
+  mainWindow!.webContents.on('did-finish-load', () => {
+    console.log('Page loaded successfully');
+  });
+
+  mainWindow!.webContents.on('dom-ready', () => {
+    console.log('DOM is ready');
+  });
+
   // Always open DevTools for debugging
   mainWindow!.webContents.openDevTools();
 
@@ -147,9 +194,22 @@ async function startServer(): Promise<void> {
   } else {
     // In production, load from built files
     // The files are packaged in the app.asar, so we use a relative path
-    const indexPath = path.join(__dirname, '../../creative-studio-ui/dist/index.html');
-    const url = `file://${indexPath}`;
+    const indexPath = path.join(__dirname, '..', '..', 'creative-studio-ui', 'dist', 'index.html');
+
+    if (!fs.existsSync(indexPath)) {
+      console.error('Production build not found at:', indexPath);
+      console.error('Please run "npm run build" first');
+      await dialog.showErrorBox(
+        'Build Not Found',
+        `Production build not found.\n\nExpected location: ${indexPath}\n\nPlease run "npm run build" to create the production build.`
+      );
+      app.quit();
+      return;
+    }
+
+    const url = `file://${indexPath.replace(/\\/g, '/')}`;
     console.log('Loading production UI from:', url);
+    console.log('Index file exists:', fs.existsSync(indexPath));
     createWindow(url);
   }
 }

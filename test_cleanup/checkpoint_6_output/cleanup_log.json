@@ -1,0 +1,27 @@
+{
+  "removed": [],
+  "rewritten": [
+    {
+      "test": "test_fragile.py::test_fragile_with_timing",
+      "failure_rate": 0.08,
+      "improvements": [
+        "Remove sleep patterns",
+        "Remove random patterns",
+        "Remove external_call patterns"
+      ],
+      "issues_found": 3
+    },
+    {
+      "test": "test_fragile.py::test_fragile_with_external_state",
+      "failure_rate": 0.1,
+      "improvements": [
+        "Remove sleep patterns",
+        "Remove random patterns",
+        "Remove external_call patterns"
+      ],
+      "issues_found": 3
+    }
+  ],
+  "consolidated": [],
+  "timestamp": "2026-01-24T10:39:17.441157"
+}

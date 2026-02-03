@@ -7,12 +7,14 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 export type WizardType = 
   | 'world' 
   | 'character'
+  | 'storyteller'
   | 'dialogue-writer'
   | 'scene-generator'
   | 'storyboard-creator'
   | 'style-transfer'
   | 'sequence-plan'
-  | 'shot';
+  | 'shot'
+  | 'project-setup';
 
 export interface WizardContextState<T> {
   currentStep: number;

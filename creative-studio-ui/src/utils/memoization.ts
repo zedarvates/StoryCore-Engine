@@ -62,7 +62,7 @@ export function memoizeAsync<T extends (...args: any[]) => Promise<any>>(
 
     // Execute and cache
     const promise = fn(...args);
-    pending.set(key, promise);
+    pending.set(key, promise as ReturnType<T>);
 
     try {
       const result = await promise;

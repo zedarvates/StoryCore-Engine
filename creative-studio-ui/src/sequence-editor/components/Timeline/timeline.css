@@ -1,0 +1,3370 @@
+/**
+ * Timeline Component Styles
+ * 
+ * CSS for the multi-track timeline component with virtual scrolling support.
+ * Includes styles for track management, drag-and-drop, and resizing.
+ * 
+ * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 4.1, 4.2, 4.3, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7
+ */
+
+/* ============================================================================
+   Timeline Panel Container
+   ============================================================================ */
+
+.timeline-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-panel, #252525);
+}
+
+/* ============================================================================
+   Timeline Controls Bar
+   ============================================================================ */
+
+.timeline-controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+  flex-shrink: 0;
+}
+
+.timeline-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.timeline-control-btn {
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-primary, #ffffff);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 200ms ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.timeline-control-btn:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+  border-color: var(--border-color, #4a4a4a);
+}
+
+.timeline-control-btn.active {
+  background-color: var(--accent-color, #4A90E2);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.timeline-control-btn.playback-btn {
+  min-width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+
+.timeline-control-btn.add-track-btn {
+  padding: 0.5rem 1rem;
+  font-size: 12px;
+}
+
+.timeline-control-btn.toggle-btn {
+  font-size: 11px;
+  padding: 0.25rem 0.5rem;
+}
+
+.timeline-timecode {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 14px;
+  color: var(--text-primary, #ffffff);
+  background-color: var(--bg-primary, #1a1a1a);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  min-width: 160px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.timeline-timecode .current-time {
+  color: var(--accent-color, #4A90E2);
+  font-weight: 600;
+}
+
+.timeline-timecode .time-separator {
+  color: var(--text-muted, #666);
+  font-weight: normal;
+}
+
+.timeline-timecode .total-duration {
+  color: var(--text-secondary, #aaaaaa);
+  font-weight: normal;
+}
+
+.zoom-level-display {
+  font-size: 12px;
+  color: var(--text-secondary, #aaaaaa);
+  min-width: 50px;
+  text-align: center;
+}
+
+/* ============================================================================
+   Timeline Container
+   ============================================================================ */
+
+.timeline-container {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* ============================================================================
+   Track Headers
+   ============================================================================ */
+
+.timeline-track-headers {
+  width: 200px;
+  flex-shrink: 0;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-right: 1px solid var(--border-color, #3a3a3a);
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.timeline-ruler-spacer {
+  height: 30px; /* Height of time ruler */
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+}
+
+.track-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+  transition: background-color 200ms ease-in-out, height 100ms ease-out;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.track-header.hovered {
+  background-color: var(--bg-hover, #3a3a3a);
+}
+
+.track-header.locked {
+  opacity: 0.6;
+}
+
+.track-header.hidden {
+  opacity: 0.4;
+}
+
+.track-header.dragging {
+  opacity: 0.5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.track-header.drop-target {
+  border-top: 2px solid var(--accent-color, #4A90E2);
+}
+
+.track-header.resizing {
+  cursor: ns-resize;
+}
+
+/* Drag handle */
+.track-drag-handle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 16px;
+  height: 100%;
+  cursor: grab;
+  color: var(--text-muted, #666);
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
+}
+
+.track-header:hover .track-drag-handle {
+  opacity: 1;
+}
+
+.track-drag-handle:active {
+  cursor: grabbing;
+}
+
+.track-icon {
+  font-size: 16px;
+  width: 24px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track-icon-emoji {
+  font-size: 14px;
+}
+
+.track-name {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-primary, #ffffff);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-controls {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.track-control-btn {
+  padding: 2px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--text-secondary, #aaaaaa);
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0.7;
+  transition: all 200ms ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+}
+
+.track-control-btn:hover {
+  opacity: 1;
+  background-color: var(--bg-hover, #3a3a3a);
+}
+
+.track-control-btn.active {
+  color: var(--accent-color, #4A90E2);
+  opacity: 1;
+  background-color: var(--accent-color, #4A90E2);
+  color: white;
+}
+
+.track-control-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 12px;
+}
+
+/* Audio track buttons */
+.track-control-btn.audio-btn {
+  border-radius: 3px;
+  font-weight: bold;
+  font-size: 10px;
+  min-width: 20px;
+  height: 20px;
+  padding: 2px 4px;
+}
+
+.track-control-btn.mute-btn.active {
+  background-color: #e74c3c;
+}
+
+.track-control-btn.solo-btn.active {
+  background-color: #f1c40f;
+  color: #000;
+}
+
+.track-control-btn.record-btn {
+  color: #e74c3c;
+}
+
+.track-control-btn.record-btn:hover {
+  background-color: rgba(231, 76, 60, 0.2);
+}
+
+.track-color-indicator {
+  width: 4px;
+  height: 60%;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Resize handle */
+.track-resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
+}
+
+.track-header:hover .track-resize-handle {
+  opacity: 1;
+}
+
+.track-resize-handle.active {
+  opacity: 1;
+  background-color: var(--accent-color, #4A90E2);
+}
+
+.resize-grip {
+  width: 30px;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--text-muted, #666) 20%, 
+    var(--text-muted, #666) 80%, 
+    transparent 100%
+  );
+  border-radius: 1px;
+}
+
+/* ============================================================================
+   Timeline Content Area
+   ============================================================================ */
+
+.timeline-content-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   Time Ruler
+   ============================================================================ */
+
+.timeline-ruler {
+  height: 30px;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-ruler-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-left: 1px solid var(--border-color, #4a4a4a);
+}
+
+.timeline-ruler-marker.major {
+  border-left-color: var(--text-secondary, #aaaaaa);
+}
+
+.timeline-ruler-label {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 10px;
+  color: var(--text-secondary, #aaaaaa);
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   Tracks Area (DOM-based rendering)
+   ============================================================================ */
+
+.timeline-tracks-area {
+  position: relative;
+}
+
+.timeline-track-row {
+  position: relative;
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+  background-color: var(--bg-tertiary, #1e1e1e);
+}
+
+.timeline-canvas {
+  position: relative;
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+}
+
+.timeline-grid-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--border-color, #3a3a3a);
+  opacity: 0.3;
+}
+
+/* ============================================================================
+   Virtual Timeline Canvas (Canvas-based rendering)
+   ============================================================================ */
+
+.virtual-timeline-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.timeline-track-list {
+  position: relative;
+  width: 100%;
+}
+
+.virtual-track-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.track-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.track-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.static-overlay-canvas {
+  pointer-events: none;
+}
+
+.overlay-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================================================
+   Timeline Shots
+   ============================================================================ */
+
+.timeline-shot {
+  position: absolute;
+  cursor: pointer;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 100ms ease-in-out, box-shadow 100ms ease-in-out;
+}
+
+.timeline-shot:hover {
+  transform: scale(1.02);
+  z-index: 5;
+}
+
+.timeline-shot.selected {
+  z-index: 10;
+  box-shadow: 0 0 0 2px var(--accent-color, #4A90E2);
+}
+
+.shot-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  height: 100%;
+  border-radius: 4px;
+  color: white;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shot-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shot-duration {
+  font-size: 10px;
+  opacity: 0.7;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.resize-handle-left,
+.resize-handle-right {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
+  background: linear-gradient(to right, rgba(0,0,0,0.3), transparent);
+}
+
+.resize-handle-left {
+  left: 0;
+}
+
+.resize-handle-right {
+  right: 0;
+  background: linear-gradient(to left, rgba(0,0,0,0.3), transparent);
+}
+
+.timeline-shot:hover .resize-handle-left,
+.timeline-shot:hover .resize-handle-right {
+  opacity: 1;
+}
+
+/* ============================================================================
+   Playhead Indicator
+   ============================================================================ */
+
+.playhead-indicator {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.playhead-indicator.dragging {
+  cursor: grabbing;
+}
+
+.playhead-handle {
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: 18px;
+  height: 20px;
+  pointer-events: auto;
+  cursor: grab;
+  transition: transform 100ms ease-in-out;
+}
+
+.playhead-handle:hover {
+  transform: scale(1.1);
+}
+
+.playhead-indicator.dragging .playhead-handle {
+  cursor: grabbing;
+}
+
+.playhead-handle-top {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 12px solid var(--accent-color, #4A90E2);
+}
+
+.playhead-line {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 2px;
+  bottom: 0;
+  background-color: var(--accent-color, #4A90E2);
+  box-shadow: 0 0 4px var(--accent-color, #4A90E2);
+}
+
+.playhead-timecode {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--accent-color, #4A90E2);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  white-space: nowrap;
+}
+
+.playhead-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--accent-color, #4A90E2);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ============================================================================
+   Scrollbar Styling
+   ============================================================================ */
+
+.timeline-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.timeline-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary, #2a2a2a);
+}
+
+.timeline-container::-webkit-scrollbar-thumb {
+  background: var(--border-color, #3a3a3a);
+  border-radius: 4px;
+}
+
+.timeline-container::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color, #4A90E2);
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+  .timeline-track-headers {
+    width: 150px;
+  }
+  
+  .timeline-controls-bar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .timeline-track-headers {
+    width: 120px;
+  }
+  
+  .track-name {
+    display: none;
+  }
+  
+  .track-drag-handle {
+    display: none;
+  }
+  
+  .timeline-controls-group {
+    gap: 0.125rem;
+  }
+  
+  .timeline-control-btn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+/* ============================================================================
+   Animation Effects & Polish (Task 22 - Timeline Polish)
+   ============================================================================ */
+
+@keyframes playheadPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.playhead-indicator.playing .playhead-handle-top {
+  animation: playheadPulse 1s infinite;
+}
+
+/* Smooth transitions for all interactive elements */
+.timeline-shot,
+.track-header,
+.timeline-control-btn,
+.track-control-btn {
+  transition: all 200ms ease-in-out;
+}
+
+/* Track header transition for height changes */
+.track-header {
+  transition: background-color 200ms ease-in-out, height 150ms ease-out;
+}
+
+/* ============================================================================
+   Timeline Polish - Selection Feedback
+   ============================================================================ */
+
+/* Selected shot with pulse animation */
+.timeline-shot.selected {
+  z-index: 10;
+  box-shadow: 0 0 0 2px var(--accent-color, #4A90E2);
+  animation: selectedPulse 2s infinite;
+}
+
+@keyframes selectedPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px var(--accent-color, #4A90E2);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.5);
+  }
+}
+
+/* Selection glow effect */
+.timeline-shot.selected .shot-content {
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================================================
+   Timeline Polish - Snapping Indicator
+   ============================================================================ */
+
+/* Snapping active indicator */
+.snapping-active .playhead-line {
+  box-shadow: 0 0 12px var(--accent-color, #4A90E2), 0 0 4px var(--accent-color, #4A90E2);
+  transition: box-shadow 150ms ease-in-out;
+}
+
+/* Magnetic snap indicator line */
+.snap-indicator-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #2ECC71;
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+  pointer-events: none;
+  z-index: 99;
+  animation: snapLineFadeIn 150ms ease-out;
+}
+
+@keyframes snapLineFadeIn {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* Snap target indicator on shots */
+.shot.snap-target {
+  border: 2px dashed #2ECC71;
+  border-radius: 6px;
+  animation: snapTargetPulse 0.8s infinite;
+}
+
+@keyframes snapTargetPulse {
+  0%, 100% {
+    border-color: rgba(46, 204, 113, 0.6);
+  }
+  50% {
+    border-color: rgba(46, 204, 113, 1);
+  }
+}
+
+/* ============================================================================
+   Timeline Polish - Drag Ghost Effect
+   ============================================================================ */
+
+/* Drag ghost element */
+.drag-ghost {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.7;
+  transform: translate(-50%, -50%) scale(0.95);
+  transition: transform 100ms ease-out, opacity 100ms ease-out;
+  filter: blur(2px);
+}
+
+.drag-ghost.active {
+  opacity: 0.9;
+  transform: translate(-50%, -50%) scale(1);
+  filter: blur(0);
+}
+
+/* Ghost label */
+.drag-ghost-label {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-secondary, #2a2a2a);
+  color: var(--text-primary, #ffffff);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Drag preview on timeline */
+.drag-preview-active .timeline-content-area {
+  cursor: grabbing;
+}
+
+.drag-preview-active .timeline-shot {
+  transition: transform 100ms ease-in-out;
+}
+
+/* ============================================================================
+   Timeline Polish - Hover Effects
+   ============================================================================ */
+
+/* Enhanced hover state for shots */
+.timeline-shot:hover {
+  transform: scale(1.02);
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Track header enhanced hover */
+.track-header:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+}
+
+/* Track header drag handle visibility */
+.track-drag-handle {
+  opacity: 0;
+  transition: opacity 200ms ease-in-out, transform 200ms ease-out;
+  transform: translateX(-4px);
+}
+
+.track-header:hover .track-drag-handle {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ============================================================================
+   Timeline Polish - Playhead Enhancements
+   ============================================================================ */
+
+/* Playhead glow during playback */
+.playhead-indicator.playing .playhead-line {
+  box-shadow: 0 0 8px var(--accent-color, #4A90E2), 0 0 16px rgba(74, 144, 226, 0.4);
+  transition: box-shadow 200ms ease-in-out;
+}
+
+/* Playhead shadow for better visibility */
+.playhead-line {
+  box-shadow: 0 0 4px var(--accent-color, #4A90E2);
+  transition: box-shadow 150ms ease-in-out;
+}
+
+.playhead-indicator.dragging .playhead-line {
+  box-shadow: 0 0 12px var(--accent-color, #4A90E2), 0 0 24px rgba(74, 144, 226, 0.5);
+}
+
+/* Playhead handle enhanced hover */
+.playhead-handle {
+  transform: scale(1);
+  transition: transform 100ms ease-in-out;
+}
+
+.playhead-handle:hover {
+  transform: scale(1.1);
+}
+
+.playhead-handle.hovered {
+  transform: scale(1.15);
+}
+
+.playhead-indicator.dragging .playhead-handle {
+  transform: scale(1.2);
+}
+
+/* Smooth playhead position transition */
+.playhead-indicator {
+  transition: left 50ms linear;
+}
+
+.playhead-indicator.dragging {
+  transition: none;
+}
+
+/* ============================================================================
+   Timeline Polish - Track Header Polish
+   ============================================================================ */
+
+/* Lock/unlock animation */
+.track-control-btn.lock-btn {
+  transition: all 150ms ease-in-out;
+}
+
+.track-control-btn.lock-btn.locked {
+  color: #e74c3c;
+  animation: lockUnlock 300ms ease-out;
+}
+
+@keyframes lockUnlock {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Hide toggle animation */
+.track-control-btn.hide-btn {
+  transition: all 150ms ease-in-out;
+}
+
+.track-control-btn.hide-btn.hidden-active {
+  color: var(--text-muted, #666);
+  animation: hideToggle 300ms ease-out;
+}
+
+@keyframes hideToggle {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.8); }
+  100% { transform: scale(1); }
+}
+
+/* Track color indicator animation */
+.track-color-indicator {
+  transition: opacity 150ms ease-in-out;
+}
+
+.track-header:hover .track-color-indicator {
+  opacity: 0.8;
+}
+
+/* Resize handle enhanced visibility */
+.track-resize-handle {
+  opacity: 0;
+  transition: opacity 150ms ease-in-out, background-color 150ms ease-in-out;
+}
+
+.track-header:hover .track-resize-handle,
+.track-header.resizing .track-resize-handle {
+  opacity: 1;
+}
+
+.track-resize-handle.active {
+  background-color: var(--accent-color, #4A90E2);
+}
+
+/* ============================================================================
+   Timeline Polish - Shot Card Styling
+   ============================================================================ */
+
+/* Shot card with rounded corners */
+.timeline-shot {
+  border-radius: 6px;
+  overflow: hidden;
+  transition: transform 150ms ease-in-out, box-shadow 150ms ease-in-out, border-radius 150ms ease-in-out;
+}
+
+.timeline-shot:hover {
+  border-radius: 8px;
+}
+
+/* Shot duration badge */
+.shot-duration-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Prompt validation indicator */
+.prompt-validation-indicator {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--text-muted, #666);
+  border: 2px solid var(--bg-tertiary, #1e1e1e);
+}
+
+.prompt-validation-indicator.valid {
+  background-color: #2ECC71;
+  box-shadow: 0 0 6px rgba(46, 204, 113, 0.6);
+}
+
+.prompt-validation-indicator.invalid {
+  background-color: #e74c3c;
+  box-shadow: 0 0 6px rgba(231, 76, 60, 0.6);
+}
+
+.prompt-validation-indicator.pending {
+  background-color: #f1c40f;
+  animation: pendingPulse 1s infinite;
+}
+
+@keyframes pendingPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Shot gradient overlay for better text visibility */
+.shot-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), transparent);
+  pointer-events: none;
+}
+
+/* ============================================================================
+   Timeline Polish - Selection Box
+   ============================================================================ */
+
+/* Selection box marquee */
+.selection-box {
+  position: absolute;
+  border: 1px dashed var(--accent-color, #4A90E2);
+  background-color: rgba(74, 144, 226, 0.1);
+  pointer-events: none;
+  z-index: 1000;
+  animation: selectionBoxPulse 1s infinite;
+}
+
+@keyframes selectionBoxPulse {
+  0%, 100% {
+    border-color: rgba(74, 144, 226, 0.6);
+    background-color: rgba(74, 144, 226, 0.1);
+  }
+  50% {
+    border-color: rgba(74, 144, 226, 1);
+    background-color: rgba(74, 144, 226, 0.15);
+  }
+}
+
+/* Selection handle corners */
+.selection-box::before,
+.selection-box::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--accent-color, #4A90E2);
+}
+
+.selection-box::before {
+  top: -4px;
+  left: -4px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.selection-box::after {
+  bottom: -4px;
+  right: -4px;
+  border-left: none;
+  border-top: none;
+}
+
+/* ============================================================================
+   Timeline Polish - Multi-select Feedback
+   ============================================================================ */
+
+/* Multi-select indicator */
+.multi-select-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--accent-color, #4A90E2);
+  color: white;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  animation: multiSelectBounce 300ms ease-out;
+}
+
+@keyframes multiSelectBounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* ============================================================================
+   Timeline Polish - Keyboard Focus
+   ============================================================================ */
+
+/* Keyboard focus indicator for shots */
+.timeline-shot:focus {
+  outline: 2px solid var(--accent-color, #4A90E2);
+  outline-offset: 2px;
+}
+
+/* Keyboard focus for playhead */
+.playhead-indicator:focus {
+  outline: none;
+}
+
+.playhead-indicator:focus .playhead-handle {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.3);
+}
+
+/* ============================================================================
+   Timeline Polish - Empty State
+   ============================================================================ */
+
+/* Empty timeline placeholder */
+.timeline-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted, #666);
+  text-align: center;
+  padding: 2rem;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.timeline-empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.timeline-empty-state-text {
+  font-size: 14px;
+  margin-bottom: 0.5rem;
+}
+
+.timeline-empty-state-hint {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* ============================================================================
+   Timeline Polish - Loading State
+   ============================================================================ */
+
+/* Loading skeleton for shots */
+.shot-loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary, #1e1e1e) 25%,
+    var(--bg-hover, #3a3a3a) 50%,
+    var(--bg-tertiary, #1e1e1e) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite;
+}
+
+@keyframes skeletonLoading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Generation in progress indicator */
+.generation-progress-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    var(--accent-color, #4A90E2), 
+    transparent
+  );
+  animation: progressShimmer 1.5s infinite;
+}
+
+@keyframes progressShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ============================================================================
+   Performance Optimizations
+   ============================================================================ */
+
+/* GPU acceleration for smooth animations */
+.virtual-timeline-canvas,
+.timeline-track-list,
+.virtual-track-row {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Reduce paint operations */
+.track-canvas {
+  contain: layout paint;
+}
+
+/* Optimize for large timelines */
+@media (prefers-reduced-motion: reduce) {
+  .timeline-shot,
+  .track-header,
+  .timeline-control-btn,
+  .track-control-btn {
+    transition: none;
+  }
+  
+  .playhead-indicator.playing .playhead-handle-top {
+    animation: none;
+  }
+}
+
+/* ============================================================================
+   Drag and Drop Visual Feedback
+   ============================================================================ */
+
+.drag-preview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 2px solid var(--accent-color, #4A90E2);
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.drop-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--accent-color, #4A90E2);
+  pointer-events: none;
+}
+
+.drop-indicator.top {
+  top: -1px;
+}
+
+.drop-indicator.bottom {
+  bottom: -1px;
+}
+
+/* ============================================================================
+   Timeline Control Bar Enhancements for Task 4.4
+   ============================================================================ */
+
+/* Add Track Dropdown */
+.add-track-dropdown {
+  position: relative;
+}
+
+.add-track-dropdown:hover .add-track-menu {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+}
+
+.add-track-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 160px;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 150ms ease-out;
+}
+
+.add-track-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--text-primary, #ffffff);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 100ms ease-in-out;
+  text-align: left;
+}
+
+.add-track-menu-item:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.add-track-menu-item:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+.add-track-menu-item:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+}
+
+.track-type-icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+}
+
+.delete-track-btn {
+  color: #e74c3c !important;
+}
+
+.delete-track-btn:hover {
+  background-color: rgba(231, 76, 60, 0.2) !important;
+  border-color: #e74c3c !important;
+}
+
+.delete-track-btn:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+.delete-track-btn:disabled:hover {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.timeline-controls-group.timeline-track-controls {
+  border-right: 1px solid var(--border-color, #3a3a3a);
+  padding-right: 1rem;
+  margin-right: 0.5rem;
+}
+
+/* Toggle buttons with keyboard shortcuts */
+.timeline-control-btn.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--border-color, #3a3a3a);
+  background: transparent;
+  color: var(--text-secondary, #aaaaaa);
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  position: relative;
+}
+
+.timeline-control-btn.toggle-btn:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+  color: var(--text-primary, #ffffff);
+  border-color: var(--border-color, #4a4a4a);
+}
+
+.timeline-control-btn.toggle-btn.active {
+  background-color: var(--accent-color, #4A90E2);
+  border-color: var(--accent-color, #4A90E2);
+  color: #ffffff;
+}
+
+.timeline-control-btn.toggle-btn.active:hover {
+  background-color: var(--accent-color, #5A9FE8);
+  border-color: var(--accent-color, #5A9FE8);
+}
+
+.toggle-icon {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-label {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.toggle-shortcut {
+  font-size: 9px;
+  padding: 1px 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin-left: 0.25rem;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.timeline-control-btn.toggle-btn.active .toggle-shortcut {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Zoom controls enhancement */
+.zoom-level-display {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 11px;
+  color: var(--text-secondary, #aaaaaa);
+  min-width: 48px;
+  text-align: center;
+  background-color: var(--bg-tertiary, #1e1e1e);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color, #3a3a3a);
+}
+
+/* Layer count badge */
+.layer-count-badge {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  background-color: var(--accent-color, #4A90E2);
+  color: white;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  z-index: 10;
+}
+
+/* Snap to Grid indicator */
+.timeline-ruler.snap-grid-active .timeline-ruler-marker.minor {
+  border-left-color: rgba(74, 144, 226, 0.3);
+}
+
+.timeline-ruler.snap-grid-active .timeline-ruler-marker.major {
+  border-left-color: var(--accent-color, #4A90E2);
+}
+
+/* Ripple edit indicator */
+.timeline-content-area.ripple-active .timeline-shot {
+  transition: transform 100ms ease-in-out, left 100ms ease-in-out;
+}
+
+.timeline-content-area.ripple-active .timeline-shot.shifting {
+  animation: rippleShift 200ms ease-in-out;
+}
+
+@keyframes rippleShift {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+
+/* Magnetic timeline indicator */
+.magnetic-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background-color: rgba(74, 144, 226, 0.1);
+  border-left: 1px dashed rgba(74, 144, 226, 0.3);
+  border-right: 1px dashed rgba(74, 144, 226, 0.3);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.timeline-content-area.magnetic-active .magnetic-zone {
+  background-color: rgba(74, 144, 226, 0.2);
+  border-color: rgba(74, 144, 226, 0.5);
+}
+
+/* Playback button states */
+.timeline-control-btn.playback-btn.playing {
+  background-color: var(--accent-color, #4A90E2);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.timeline-control-btn.playback-btn.playing:hover {
+  background-color: var(--accent-color, #5A9FE8);
+  border-color: var(--accent-color, #5A9FE8);
+}
+
+/* Focus states for accessibility */
+.timeline-control-btn:focus-visible,
+.track-control-btn:focus-visible,
+.add-track-menu-item:focus-visible {
+  outline: 2px solid var(--accent-color, #4A90E2);
+  outline-offset: 2px;
+}
+
+/* Loading state for controls */
+.timeline-control-btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.timeline-control-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   Playhead Indicator Styles (Task 4.5 - Enhanced Scrubbing)
+   ============================================================================ */
+
+.playhead-indicator {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  pointer-events: none;
+  z-index: 100;
+  transition: opacity 100ms ease-in-out;
+}
+
+.playhead-indicator.dragging {
+  cursor: grabbing;
+  opacity: 1;
+}
+
+.playhead-indicator.hovered {
+  opacity: 1;
+}
+
+.playhead-indicator.playing .playhead-handle-top {
+  animation: playheadPulse 1s infinite;
+}
+
+.playhead-handle {
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: 18px;
+  height: 20px;
+  pointer-events: auto;
+  cursor: grab;
+  transition: transform 100ms ease-in-out;
+}
+
+.playhead-handle:hover {
+  transform: scale(1.1);
+}
+
+.playhead-handle.hovered {
+  transform: scale(1.15);
+}
+
+.playhead-indicator.dragging .playhead-handle {
+  cursor: grabbing;
+  transform: scale(1.2);
+}
+
+.playhead-handle-top {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 12px solid var(--accent-color, #4A90E2);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.playhead-line {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 2px;
+  bottom: 0;
+  background-color: var(--accent-color, #4A90E2);
+  box-shadow: 0 0 4px var(--accent-color, #4A90E2);
+  transition: box-shadow 100ms ease-in-out;
+}
+
+.playhead-indicator.dragging .playhead-line {
+  box-shadow: 0 0 8px var(--accent-color, #4A90E2);
+}
+
+/* Playhead line glow effect */
+.playhead-line-glow {
+  position: absolute;
+  top: 0;
+  left: -2px;
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(74, 144, 226, 0.3) 50%, 
+    transparent
+  );
+  pointer-events: none;
+}
+
+.playhead-timecode {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--accent-color, #4A90E2);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  white-space: nowrap;
+}
+
+.playhead-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--accent-color, #4A90E2);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Playhead tooltip - enhanced for scrubbing */
+.playhead-tooltip {
+  position: absolute;
+  top: -70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  padding: 0.5rem;
+  opacity: 1;
+  visibility: visible;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 200;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  animation: tooltipFadeIn 150ms ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.playhead-tooltip-timecode {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--accent-color, #4A90E2);
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.playhead-tooltip-info {
+  display: flex;
+  gap: 1rem;
+  font-size: 10px;
+  color: var(--text-secondary, #aaaaaa);
+  justify-content: center;
+}
+
+.playhead-tooltip-hint {
+  font-size: 9px;
+  color: var(--text-muted, #666);
+  text-align: center;
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--border-color, #3a3a3a);
+}
+
+/* Frame marker on playhead line */
+.playhead-frame-marker {
+  position: absolute;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-color, #4A90E2);
+  border-radius: 50%;
+  transform: translateY(50%);
+  box-shadow: 0 0 4px var(--accent-color, #4A90E2);
+}
+
+/* Playing indicator */
+.playhead-playing-indicator {
+  position: absolute;
+  top: 30px;
+  left: -20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background-color: var(--accent-color, #4A90E2);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: bold;
+  color: white;
+  animation: playheadPulse 1s infinite;
+}
+
+.playing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: white;
+  border-radius: 50%;
+  animation: blink 0.5s infinite;
+}
+
+/* Scrubbing indicator */
+.playhead-scrubbing-indicator {
+  position: absolute;
+  top: 30px;
+  left: -24px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background-color: #9B59B6;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: bold;
+  color: white;
+  box-shadow: 0 2px 8px rgba(155, 89, 182, 0.4);
+}
+
+.scrubbing-icon {
+  font-size: 10px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ============================================================================
+   Time Ruler Styles (Task 4.5 - Enhanced Click-to-Seek)
+   ============================================================================ */
+
+.timeline-ruler {
+  height: 30px;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background-color 100ms ease-in-out;
+}
+
+.timeline-ruler:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+}
+
+.timeline-ruler-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-left: 1px solid var(--border-color, #4a4a4a);
+  cursor: pointer;
+  transition: border-color 100ms ease-in-out;
+}
+
+.timeline-ruler-marker:hover {
+  border-left-color: var(--accent-color, #4A90E2);
+}
+
+.timeline-ruler-marker.major {
+  border-left-color: var(--text-secondary, #aaaaaa);
+}
+
+.timeline-ruler-marker.major:hover {
+  border-left-color: var(--accent-color, #4A90E2);
+}
+
+.timeline-ruler-label {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 10px;
+  color: var(--text-secondary, #aaaaaa);
+  white-space: nowrap;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  pointer-events: none;
+}
+
+/* Snap grid active state */
+.timeline-ruler.snap-grid-active .timeline-ruler-marker.minor {
+  border-left-color: rgba(74, 144, 226, 0.3);
+}
+
+.timeline-ruler.snap-grid-active .timeline-ruler-marker.major {
+  border-left-color: var(--accent-color, #4A90E2);
+}
+
+/* Ruler cursor line */
+.ruler-cursor-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--accent-color, #4A90E2);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Hover indicator for click-to-seek */
+.ruler-hover-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.ruler-hover-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background-color: var(--accent-color, #4A90E2);
+  opacity: 0.5;
+  box-shadow: 0 0 4px rgba(74, 144, 226, 0.5);
+}
+
+.ruler-hover-tooltip {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%);
+  background-color: var(--accent-color, #4A90E2);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Playhead position indicator on ruler */
+.ruler-playhead-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--accent-color, #4A90E2);
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 40;
+  box-shadow: 0 0 4px rgba(74, 144, 226, 0.5);
+}
+
+/* Format hint tooltip */
+.ruler-format-hint {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 10px;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 150ms ease-in-out;
+  padding: 2px 6px;
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border-radius: 3px;
+  border: 1px solid var(--border-color, #3a3a3a);
+  color: var(--text-secondary, #aaaaaa);
+  white-space: nowrap;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.ruler-format-hint:hover {
+  opacity: 1;
+  border-color: var(--accent-color, #4A90E2);
+  color: var(--text-primary, #ffffff);
+}
+
+/* ============================================================================
+   GoToTime Dialog Styles (Task 4.6)
+   ============================================================================ */
+
+.goto-time-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 150ms ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.goto-time-dialog {
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 8px;
+  padding: 1.5rem;
+  min-width: 320px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideUp 200ms ease-out;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.goto-time-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.goto-time-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #aaaaaa);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 150ms ease-in-out;
+}
+
+.close-btn:hover {
+  color: var(--text-primary, #ffffff);
+}
+
+.goto-time-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.goto-time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.goto-time-input-group label {
+  font-size: 12px;
+  color: var(--text-secondary, #aaaaaa);
+}
+
+.timecode-input {
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-size: 18px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  color: var(--text-primary, #ffffff);
+  text-align: center;
+  letter-spacing: 2px;
+  transition: all 150ms ease-in-out;
+}
+
+.timecode-input:focus {
+  outline: none;
+  border-color: var(--accent-color, #4A90E2);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.timecode-input.error {
+  border-color: #e74c3c;
+}
+
+.input-hint {
+  font-size: 10px;
+  color: var(--text-muted, #666);
+}
+
+.error-message {
+  font-size: 11px;
+  color: #e74c3c;
+}
+
+.quick-jump-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.quick-jump-label {
+  font-size: 11px;
+  color: var(--text-secondary, #aaaaaa);
+}
+
+.quick-jump-btn {
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  padding: 0.375rem 0.75rem;
+  font-size: 11px;
+  color: var(--text-primary, #ffffff);
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.quick-jump-btn:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.btn-primary {
+  background-color: var(--accent-color, #4A90E2);
+  border: 1px solid var(--accent-color, #4A90E2);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--accent-color, #5A9FE8);
+  border-color: var(--accent-color, #5A9FE8);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--border-color, #3a3a3a);
+  color: var(--text-primary, #ffffff);
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+}
+
+.keyboard-shortcuts-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 10px;
+  color: var(--text-muted, #666);
+}
+
+kbd {
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 9px;
+}
+
+/* ============================================================================
+   Zoom Slider Component (Task 4.5)
+   ============================================================================ */
+
+.zoom-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #3a3a3a);
+}
+
+.zoom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-primary, #ffffff);
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.zoom-btn:hover:not(:disabled) {
+  background-color: var(--bg-hover, #3a3a3a);
+  border-color: var(--border-color, #4a4a4a);
+}
+
+.zoom-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zoom-btn.fit-btn {
+  font-size: 12px;
+  width: 28px;
+}
+
+.zoom-percentage-display {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 11px;
+  color: var(--text-secondary, #aaaaaa);
+  min-width: 40px;
+  text-align: center;
+  padding: 0 0.25rem;
+}
+
+.zoom-slider-track {
+  position: relative;
+  width: 100px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.zoom-slider-input {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  z-index: 2;
+}
+
+.zoom-slider-input::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background-color: var(--accent-color, #4A90E2);
+  border-radius: 50%;
+  cursor: grab;
+  transition: transform 100ms ease-in-out;
+}
+
+.zoom-slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.zoom-slider-input::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.zoom-slider-track-fill {
+  position: absolute;
+  height: 4px;
+  background-color: var(--accent-color, #4A90E2);
+  border-radius: 2px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.zoom-slider-markers {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.zoom-slider-marker {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 8px;
+  background-color: var(--border-color, #3a3a3a);
+  transform: translateY(-50%);
+}
+
+/* ============================================================================
+   Minimap Component (Task 4.5)
+   ============================================================================ */
+
+.minimap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  min-width: 150px;
+}
+
+.minimap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-secondary, #aaaaaa);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.minimap-title {
+  font-weight: 600;
+}
+
+.minimap-info {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.minimap-canvas {
+  position: relative;
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.minimap-canvas.dragging {
+  cursor: grabbing;
+}
+
+.minimap-tracks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.minimap-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.minimap-shots {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.minimap-shot {
+  position: absolute;
+  height: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 150ms ease-in-out;
+}
+
+.minimap-shot.visible {
+  opacity: 1;
+}
+
+.minimap-shot:hover {
+  opacity: 0.9;
+}
+
+.minimap-viewport {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(74, 144, 226, 0.15);
+  border: 1px solid var(--accent-color, #4A90E2);
+  border-radius: 2px;
+  cursor: grab;
+  z-index: 10;
+  transition: background-color 150ms ease-in-out;
+}
+
+.minimap-viewport.dragging {
+  cursor: grabbing;
+  background-color: rgba(74, 144, 226, 0.25);
+}
+
+.minimap-viewport:hover {
+  background-color: rgba(74, 144, 226, 0.2);
+}
+
+.viewport-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  background: linear-gradient(to right, rgba(74, 144, 226, 0.3), transparent);
+}
+
+.viewport-handle.left {
+  left: 0;
+  border-radius: 2px 0 0 2px;
+}
+
+.viewport-handle.right {
+  right: 0;
+  background: linear-gradient(to left, rgba(74, 144, 226, 0.3), transparent);
+  border-radius: 0 2px 2px 0;
+}
+
+.viewport-handle:hover {
+  background-color: rgba(74, 144, 226, 0.5);
+}
+
+.viewport-fill {
+  position: absolute;
+  top: 0;
+  left: 6px;
+  right: 6px;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(74, 144, 226, 0.1) 20%, 
+    rgba(74, 144, 226, 0.1) 80%, 
+    transparent
+  );
+}
+
+.minimap-time-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--text-muted, #666);
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  padding: 0 0.25rem;
+}
+
+/* ============================================================================
+   Scrollbar Styling for Timeline
+   ============================================================================ */
+
+.timeline-horizontal-scrollbar {
+  height: 8px;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-top: 1px solid var(--border-color, #3a3a3a);
+}
+
+.timeline-horizontal-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.timeline-horizontal-scrollbar::-webkit-scrollbar-track {
+  background: var(--bg-secondary, #2a2a2a);
+}
+
+.timeline-horizontal-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-color, #3a3a3a);
+  border-radius: 4px;
+}
+
+.timeline-horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color, #4A90E2);
+}
+
+/* ============================================================================
+   Pan Cursor States
+   ============================================================================ */
+
+.timeline-container.panning {
+  cursor: grab;
+}
+
+.timeline-container.panning:active {
+  cursor: grabbing;
+}
+
+.timeline-content-area.panning {
+  cursor: grabbing;
+}
+
+/* ============================================================================
+   Zoom and Scroll Indicators
+   ============================================================================ */
+
+.zoom-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  color: var(--text-primary, #ffffff);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 200ms ease-in-out;
+  pointer-events: none;
+}
+
+.zoom-indicator.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.5rem 1rem;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 6px;
+  font-size: 14px;
+  color: white;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+}
+
+.scroll-indicator.visible {
+  opacity: 1;
+}
+
+/* ============================================================================
+   Timeline Footer with Zoom Slider and Minimap
+   ============================================================================ */
+
+.timeline-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-top: 1px solid var(--border-color, #3a3a3a);
+}
+
+.timeline-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-footer-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scroll-info {
+  font-size: 10px;
+  color: var(--text-muted, #666);
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+/* ============================================================================
+   Timeline Markers Styles (Task 4.7)
+   ============================================================================ */
+
+.timeline-markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.timeline-markers .timeline-marker {
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 100ms ease-in-out, box-shadow 100ms ease-in-out;
+  z-index: 50;
+}
+
+.timeline-markers .timeline-marker:hover {
+  transform: scaleX(1.5);
+  z-index: 60;
+}
+
+.timeline-markers .timeline-marker.selected {
+  transform: scaleX(2);
+  z-index: 70;
+}
+
+.timeline-markers .timeline-marker.dragging {
+  opacity: 0.8;
+  transform: scaleX(2);
+  cursor: grabbing;
+}
+
+.marker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+}
+
+.marker-icon {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 150ms ease-in-out;
+  white-space: nowrap;
+}
+
+.timeline-marker:hover .marker-icon {
+  opacity: 1;
+}
+
+.marker-label {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--text-primary, #ffffff);
+  background-color: var(--bg-secondary, #2a2a2a);
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 150ms ease-in-out;
+  pointer-events: none;
+}
+
+.timeline-marker:hover .marker-label {
+  opacity: 1;
+}
+
+.marker-resize-handle {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-color, #4A90E2);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 150ms ease-in-out;
+}
+
+.timeline-marker:hover .marker-resize-handle {
+  opacity: 1;
+}
+
+/* Marker tooltip */
+.timeline-marker-tooltip {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  padding: 0.5rem;
+  z-index: 200;
+  min-width: 120px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-icon {
+  font-size: 14px;
+}
+
+.tooltip-label {
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  font-size: 12px;
+}
+
+.tooltip-timecode {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 11px;
+  color: var(--text-secondary, #aaaaaa);
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-description {
+  font-size: 11px;
+  color: var(--text-secondary, #aaaaaa);
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-meta {
+  font-size: 10px;
+  color: var(--text-muted, #666);
+  text-transform: uppercase;
+}
+
+.tooltip-type {
+  background-color: var(--bg-tertiary, #1e1e1e);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Marker type colors */
+.timeline-marker.type-info {
+  background-color: #4A90E2;
+}
+
+.timeline-marker.type-warning {
+  background-color: #F1C40F;
+}
+
+.timeline-marker.type-error {
+  background-color: #E74C3C;
+}
+
+.timeline-marker.type-important {
+  background-color: #9B59B6;
+}
+
+.timeline-marker.type-bookmark {
+  background-color: #2ECC71;
+}
+
+.timeline-marker.type-custom {
+  background-color: #95A5A6;
+}
+
+/* ============================================================================
+   Timeline Regions Styles (Task 4.7)
+   ============================================================================ */
+
+.timeline-regions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.timeline-regions .timeline-region {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border: 1px solid;
+  border-radius: 4px;
+  cursor: move;
+  pointer-events: auto;
+  transition: opacity 100ms ease-in-out, box-shadow 100ms ease-in-out;
+  z-index: 40;
+}
+
+.timeline-regions .timeline-region:hover {
+  opacity: 0.9;
+  z-index: 45;
+}
+
+.timeline-regions .timeline-region.selected {
+  z-index: 55;
+  box-shadow: 0 0 0 2px var(--accent-color, #4A90E2);
+}
+
+.timeline-regions .timeline-region.dragging {
+  cursor: grabbing;
+  opacity: 0.8;
+}
+
+.timeline-regions .timeline-region.resizing {
+  cursor: ew-resize;
+}
+
+.region-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+  background: linear-gradient(to right, rgba(255,255,255,0.2), transparent);
+}
+
+.timeline-region:hover .region-resize-handle {
+  opacity: 1;
+}
+
+.region-resize-handle.start {
+  left: 0;
+  border-radius: 4px 0 0 4px;
+  background: linear-gradient(to right, rgba(255,255,255,0.3), transparent);
+}
+
+.region-resize-handle.end {
+  right: 0;
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(to left, rgba(255,255,255,0.3), transparent);
+}
+
+.region-content {
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.region-label {
+  font-size: 11px;
+  color: var(--text-primary, #ffffff);
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.region-description {
+  font-size: 10px;
+  color: var(--text-secondary, #aaaaaa);
+  margin-top: 0.25rem;
+}
+
+.region-locked-indicator {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Region type colors */
+.timeline-region.type-work {
+  background-color: rgba(74, 144, 226, 0.2);
+  border-color: rgba(74, 144, 226, 0.6);
+}
+
+.timeline-region.type-selection {
+  background-color: rgba(74, 144, 226, 0.3);
+  border-color: rgba(74, 144, 226, 0.8);
+}
+
+.timeline-region.type-gap {
+  background-color: rgba(150, 150, 150, 0.2);
+  border-color: rgba(150, 150, 150, 0.6);
+}
+
+.timeline-region.type-loop {
+  background-color: rgba(46, 204, 113, 0.2);
+  border-color: rgba(46, 204, 113, 0.6);
+}
+
+.timeline-region.type-highlight {
+  background-color: rgba(155, 89, 182, 0.2);
+  border-color: rgba(155, 89, 182, 0.6);
+}
+
+.timeline-region.type-comment {
+  background-color: rgba(241, 196, 15, 0.2);
+  border-color: rgba(241, 196, 15, 0.6);
+}
+
+/* ============================================================================
+   Chapter Points Styles (Task 4.7)
+   ============================================================================ */
+
+.timeline-chapters {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.chapter-marker {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 100ms ease-in-out;
+  z-index: 45;
+}
+
+.chapter-marker:hover {
+  transform: scaleX(2);
+  z-index: 55;
+}
+
+.chapter-marker.active {
+  background-color: var(--accent-color, #4A90E2);
+}
+
+.chapter-marker.hovered {
+  transform: scaleX(2.5);
+  z-index: 60;
+}
+
+.chapter-marker-head {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chapter-marker-icon {
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 150ms ease-in-out;
+  transform: translateY(4px);
+}
+
+.chapter-marker:hover .chapter-marker-icon,
+.chapter-marker.active .chapter-marker-icon {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chapter-marker-tooltip {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  padding: 0.5rem;
+  min-width: 100px;
+  z-index: 200;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.chapter-tooltip-title {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-primary, #ffffff);
+  margin-bottom: 0.25rem;
+}
+
+.chapter-tooltip-timecode {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 11px;
+  color: var(--text-secondary, #aaaaaa);
+}
+
+.chapter-tooltip-description {
+  font-size: 10px;
+  color: var(--text-muted, #666);
+  margin-top: 0.25rem;
+}
+
+.chapter-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: var(--accent-color, #4A90E2);
+  border-radius: 0 0 2px 2px;
+  transition: width 100ms ease-in-out;
+}
+
+/* Chapter menu */
+.chapter-menu-container {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+}
+
+.chapter-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-primary, #ffffff);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.chapter-menu-btn:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.chapter-menu-btn.open {
+  background-color: var(--accent-color, #4A90E2);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.chapter-count {
+  font-size: 10px;
+  background-color: var(--bg-tertiary, #1e1e1e);
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
+.chapter-menu-btn.open .chapter-count {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.chapter-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 200px;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.chapter-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #aaaaaa);
+  text-transform: uppercase;
+}
+
+.chapter-dropdown-empty {
+  padding: 1rem;
+  font-size: 12px;
+  color: var(--text-muted, #666);
+  text-align: center;
+}
+
+.chapter-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.chapter-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--text-primary, #ffffff);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 100ms ease-in-out;
+  text-align: left;
+}
+
+.chapter-list-item:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+}
+
+.chapter-list-item.active {
+  background-color: rgba(74, 144, 226, 0.2);
+}
+
+.chapter-list-number {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary, #aaaaaa);
+}
+
+.chapter-list-item.active .chapter-list-number {
+  background-color: var(--accent-color, #4A90E2);
+  color: white;
+}
+
+.chapter-thumbnail {
+  width: 40px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 3px;
+  background-color: var(--bg-tertiary, #1e1e1e);
+}
+
+.chapter-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chapter-list-title {
+  display: block;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chapter-list-timecode {
+  font-size: 10px;
+  color: var(--text-muted, #666);
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.chapter-list-indicator {
+  color: var(--accent-color, #4A90E2);
+  font-size: 12px;
+}
+
+/* ============================================================================
+   Annotation Panel Styles (Task 4.7 - Optional)
+   ============================================================================ */
+
+.annotation-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border-left: 1px solid var(--border-color, #3a3a3a);
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.annotation-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+}
+
+.annotation-panel-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.annotation-count {
+  font-size: 11px;
+  color: var(--text-secondary, #aaaaaa);
+  background-color: var(--bg-tertiary, #1e1e1e);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.annotation-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.annotation-item {
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  transition: border-color 150ms ease-in-out;
+}
+
+.annotation-item:hover {
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.annotation-item.resolved {
+  opacity: 0.6;
+}
+
+.annotation-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.annotation-target {
+  font-size: 10px;
+  color: var(--text-muted, #666);
+  text-transform: uppercase;
+}
+
+.annotation-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.annotation-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #aaaaaa);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px;
+  opacity: 0.7;
+  transition: opacity 150ms ease-in-out;
+}
+
+.annotation-action-btn:hover {
+  opacity: 1;
+}
+
+.annotation-content {
+  font-size: 12px;
+  color: var(--text-primary, #ffffff);
+  line-height: 1.4;
+}
+
+.annotation-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  font-size: 10px;
+  color: var(--text-muted, #666);
+}
+
+.annotation-author {
+  font-weight: 500;
+}
+
+.annotation-timestamp {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.add-annotation-btn {
+  margin: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border: 1px dashed var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  color: var(--text-secondary, #aaaaaa);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.add-annotation-btn:hover {
+  border-color: var(--accent-color, #4A90E2);
+  color: var(--text-primary, #ffffff);
+}
+
+
+
+
+/* ============================================================================
+   Drop Target Styles (Task 6.2)
+   ============================================================================ */
+
+/* Timeline drop target */
+.timeline-drop-target {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.timeline-drop-target.drop-ready {
+  cursor: copy;
+}
+
+.timeline-drop-target.drop-active {
+  background-color: rgba(74, 144, 226, 0.1);
+  border: 2px dashed var(--accent-color, #4A90E2);
+  animation: dropTargetPulse 1s infinite;
+}
+
+.timeline-drop-target.drop-invalid {
+  background-color: rgba(231, 76, 60, 0.1);
+  border: 2px dashed #e74c3c;
+  cursor: not-allowed;
+}
+
+/* Drop indicator overlay */
+.drop-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  pointer-events: none;
+  animation: dropIndicatorFadeIn 200ms ease-out;
+}
+
+.drop-indicator.invalid {
+  background-color: rgba(231, 76, 60, 0.2);
+}
+
+.drop-indicator-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 2px solid var(--accent-color, #4A90E2);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.drop-indicator.invalid .drop-indicator-content {
+  border-color: #e74c3c;
+}
+
+.drop-icon {
+  font-size: 32px;
+  animation: dropIconBounce 0.6s infinite;
+}
+
+.drop-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  text-align: center;
+}
+
+/* Drop target animations */
+@keyframes dropTargetPulse {
+  0%, 100% {
+    border-color: var(--accent-color, #4A90E2);
+    background-color: rgba(74, 144, 226, 0.1);
+  }
+  50% {
+    border-color: rgba(74, 144, 226, 0.6);
+    background-color: rgba(74, 144, 226, 0.15);
+  }
+}
+
+@keyframes dropIndicatorFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dropIconBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Drop position indicator line */
+.drop-position-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--accent-color, #4A90E2);
+  box-shadow: 0 0 8px var(--accent-color, #4A90E2);
+  pointer-events: none;
+  z-index: 999;
+  animation: dropPositionPulse 0.8s infinite;
+}
+
+@keyframes dropPositionPulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--accent-color, #4A90E2);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 16px var(--accent-color, #4A90E2);
+  }
+}

@@ -65,17 +65,23 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Enhanced neon glow effects for dark theme */
   .dark {
     /* Intense glow on interactive elements */
+    /* Intense glow on interactive elements - DISABLED for standard buttons to prevent blur
     button:hover,
     a:hover,
     .btn:hover,
     [role="button"]:hover {
+       transition: all 0.3s ease;
+    } 
+    */
+    
+    /* Only apply glow to specific neon classes */
+    .btn-neon:hover {
       text-shadow: 0 0 12px rgba(179, 102, 255, 0.8), 0 0 24px rgba(179, 102, 255, 0.4);
       box-shadow: 0 0 20px rgba(179, 102, 255, 0.3);
-      transition: all 0.3s ease;
     }
 
     /* Neon border glow with animation */
@@ -226,15 +232,6 @@
 .dark ::selection {
   background: hsl(var(--primary) / 0.3);
   color: hsl(var(--foreground));
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
 }
 
 /* Wizard accessibility and UX animations */

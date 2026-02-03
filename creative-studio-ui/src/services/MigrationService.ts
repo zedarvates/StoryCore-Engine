@@ -248,9 +248,8 @@ export class MigrationService {
             continue;
           }
 
-          // Pour les personnages, nous les sauvegardons comme des mondes
-          // (adaptation temporaire - devrait être amélioré)
-          const results = await persistenceService.saveWorld(character as any, projectPath);
+          // Sauvegarder le personnage avec le service de persistance
+          const results = await persistenceService.saveCharacter(character, projectPath);
           const successfulLayers = results.filter(r => r.success);
 
           if (successfulLayers.length > 0) {

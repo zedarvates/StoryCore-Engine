@@ -2,10 +2,13 @@
  * Type definitions for Electron API exposed to renderer process
  */
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ProjectData {
   name: string;
-  location: string;
+  location?: string;
   template?: string;
+  format?: any;
+  initialShots?: any[];
 }
 
 export interface Project {
@@ -24,6 +27,43 @@ export interface RecentProject {
   path: string;
   lastAccessed: Date;
   exists?: boolean;
+}
+
+export interface MergedProject {
+  id?: string;
+  name: string;
+  path: string;
+  lastModified: Date;
+  createdAt?: Date;
+  isRecent: boolean;
+  lastOpened?: Date;
+  exists?: boolean;
+}
+
+export interface DiscoveredProject {
+  name: string;
+  path: string;
+  lastModified: number;
+  isValid: boolean;
+  metadata?: {
+    schema_version: string;
+    project_name: string;
+    capabilities: Record<string, boolean>;
+  };
+  createdAt?: Date;
+  isRecent: boolean;
+}
+
+export interface DiscoveryResult {
+  projects: DiscoveredProject[];
+  scannedPath: string;
+  timestamp: number;
+  errors: Array<{ path: string; error: string }>;
+}
+
+export interface ScanProjectsOptions {
+  bypassCache?: boolean;
+  maxDepth?: number;
 }
 
 export interface ServerStatus {
@@ -70,6 +110,23 @@ export interface UpdateStatus {
   message?: string;
   error?: string;
   updateInfo?: UpdateInfo;
+}
+
+export interface RoverCommit {
+  id: string;
+  timestamp: string;
+  message: string;
+  author: string;
+  schema_version: string;
+  snapshot_path?: string;
+}
+
+export interface RoverHistory {
+  project_id: string;
+  created_at: string;
+  updated_at: string;
+  current_commit_id: string | null;
+  commits: RoverCommit[];
 }
 
 /**
@@ -196,6 +253,30 @@ export interface ElectronAPI {
      * @throws Error if removal fails
      */
     remove: (path: string) => Promise<void>;
+
+    /**
+     * Get merged list of discovered and recent projects
+     * @param options Optional scan options
+     * @returns Array of merged projects
+     * @throws Error if retrieval fails
+     */
+    getMergedList: (options?: ScanProjectsOptions) => Promise<MergedProject[]>;
+
+    /**
+     * Refresh project list (bypass cache)
+     * @returns Array of merged projects
+     * @throws Error if refresh fails
+     */
+    refresh: () => Promise<MergedProject[]>;
+  };
+
+  // Project discovery
+  projectDiscovery: {
+    /**
+     * Discover all valid StoryCore projects in the default projects directory
+     * @returns Discovery result with projects, scanned path, timestamp, and errors
+     */
+    discoverProjects: () => Promise<DiscoveryResult>;
   };
 
   // Server management
@@ -230,40 +311,37 @@ export interface ElectronAPI {
      * Show developer tools
      */
     showDevTools: () => void;
+
+    /**
+     * Open a folder in the file explorer
+     * @param path Path to the folder to open
+     * @throws Error if opening fails
+     */
+    openFolder: (path: string) => Promise<void>;
   };
 
   // ComfyUI integration
   comfyui: {
     /**
-     * Execute a ComfyUI workflow
-     * @param workflowData Workflow data to execute
-     * @returns Execution result
-     * @throws Error if execution fails
-     */
-    executeWorkflow: (workflowData: any) => Promise<any>;
-
-    /**
-     * Get ComfyUI queue status
-     * @returns Queue status information
+     * Get ComfyUI configuration
+     * @returns ComfyUI configuration
      * @throws Error if retrieval fails
      */
-    getQueueStatus: () => Promise<any>;
+    getConfig: () => Promise<any>;
 
     /**
-     * Upload media to ComfyUI
-     * @param mediaPath Path to media file
-     * @returns Upload result
-     * @throws Error if upload fails
+     * Update ComfyUI configuration
+     * @param config Configuration to update
+     * @returns Updated configuration
+     * @throws Error if update fails
      */
-    uploadMedia: (mediaPath: string) => Promise<any>;
+    updateConfig: (config: any) => Promise<any>;
 
     /**
-     * Download output from ComfyUI
-     * @param outputId ID of the output to download
-     * @returns Download result
-     * @throws Error if download fails
+     * Test ComfyUI connection
+     * @returns Connection test result
      */
-    downloadOutput: (outputId: string) => Promise<any>;
+    testConnection: () => Promise<{ success: boolean; message: string }>;
 
     /**
      * Get ComfyUI service status
@@ -285,6 +363,39 @@ export interface ElectronAPI {
      * @throws Error if stop fails
      */
     stopService: () => Promise<any>;
+
+    /**
+     * Execute a ComfyUI workflow
+     * @param workflow Workflow data to execute
+     * @returns Execution result
+     * @throws Error if execution fails
+     */
+    executeWorkflow: (workflow: any) => Promise<any>;
+
+    /**
+     * Get ComfyUI queue status
+     * @returns Queue status information
+     * @throws Error if retrieval fails
+     */
+    getQueueStatus: () => Promise<any>;
+
+    /**
+     * Upload media to ComfyUI
+     * @param filePath Path to media file
+     * @param filename Filename for the upload
+     * @returns Upload result with URL
+     * @throws Error if upload fails
+     */
+    uploadMedia: (filePath: string, filename: string) => Promise<any>;
+
+    /**
+     * Download output from ComfyUI
+     * @param filename Filename of the output
+     * @param outputPath Path to save the output
+     * @returns Path to downloaded file
+     * @throws Error if download fails
+     */
+    downloadOutput: (filename: string, outputPath: string) => Promise<any>;
   };
 
   // File system operations
@@ -350,6 +461,80 @@ export interface ElectronAPI {
      */
     unlink: (filePath: string) => Promise<void>;
   };
+
+  // Dialogs
+  dialog: {
+    /**
+     * Show save dialog
+     * @param options Save dialog options
+     * @returns Selected file path or canceled status
+     */
+    showSaveDialog: (options: Electron.SaveDialogOptions) => Promise<Electron.SaveDialogReturnValue>;
+  };
+
+  // LLM integration
+  llm: {
+    /**
+     * Get LLM configuration
+     * @returns LLM configuration
+     * @throws Error if retrieval fails
+     */
+    getConfig: () => Promise<any>;
+
+    /**
+     * Update LLM configuration
+     * @param config Configuration to update
+     * @returns Updated configuration
+     * @throws Error if update fails
+     */
+    updateConfig: (config: any) => Promise<any>;
+
+    /**
+     * Test LLM connection
+     * @param provider Provider to test
+     * @returns Connection test result
+     */
+    testConnection: (provider: any) => Promise<{ success: boolean; message: string }>;
+
+    /**
+     * Get available models
+     * @param provider Provider to get models for
+     * @returns List of available models
+     * @throws Error if retrieval fails
+     */
+    getModels: (provider: any) => Promise<any[]>;
+  };
+
+  // Rover (Persistent Memory Layer)
+  rover: {
+    /**
+     * Synchronize project state and create a commit
+     * @param projectPath Path to the project directory
+     * @param projectId ID of the project
+     * @param message Commit message
+     * @param data Snapshot data to save
+     * @returns Created commit
+     * @throws Error if sync fails
+     */
+    sync: (projectPath: string, projectId: string, message: string, data: any) => Promise<RoverCommit>;
+
+    /**
+     * Get project history
+     * @param projectPath Path to the project directory
+     * @returns Project history
+     * @throws Error if retrieval fails
+     */
+    getHistory: (projectPath: string) => Promise<RoverHistory>;
+
+    /**
+     * Restore project to a specific checkpoint
+     * @param projectPath Path to the project directory
+     * @param commitId ID of the commit to restore
+     * @returns Snapshot data from the checkpoint
+     * @throws Error if restoration fails
+     */
+    restoreCheckpoint: (projectPath: string, commitId: string) => Promise<any>;
+  };
 }
 
 /**
@@ -361,4 +546,4 @@ declare global {
   }
 }
 
-export {};
+export { };

@@ -1,0 +1,339 @@
+/**
+ * Camera Preset Library Styles
+ * 
+ * Styling for camera preset library with type filtering and grid display.
+ */
+
+.camera-preset-library {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Type Filter Tabs */
+.camera-preset-type-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: var(--color-bg-secondary, #1e1e1e);
+  border-radius: 8px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.camera-preset-type-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.camera-preset-type-tabs::-webkit-scrollbar-thumb {
+  background: var(--color-border, #333333);
+  border-radius: 2px;
+}
+
+.camera-preset-type-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--color-text-secondary, #999999);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.camera-preset-type-tab:hover {
+  background: var(--color-bg-hover, #2a2a2a);
+  color: var(--color-text-primary, #ffffff);
+}
+
+.camera-preset-type-tab.active {
+  background: var(--color-primary, #4A90E2);
+  border-color: var(--color-primary, #4A90E2);
+  color: #ffffff;
+}
+
+.camera-preset-type-icon {
+  font-size: 16px;
+}
+
+.camera-preset-type-label {
+  font-weight: 600;
+}
+
+.camera-preset-type-count {
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.camera-preset-type-tab.active .camera-preset-type-count {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Search Bar */
+.camera-preset-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.camera-preset-search-input {
+  flex: 1;
+  padding: 10px 36px 10px 12px;
+  background: var(--color-bg-secondary, #1e1e1e);
+  border: 1px solid var(--color-border, #333333);
+  border-radius: 6px;
+  color: var(--color-text-primary, #ffffff);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.camera-preset-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary, #4A90E2);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.camera-preset-search-input::placeholder {
+  color: var(--color-text-tertiary, #666666);
+}
+
+.camera-preset-search-clear {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary, #999999);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.camera-preset-search-clear:hover {
+  background: var(--color-bg-hover, #2a2a2a);
+  color: var(--color-text-primary, #ffffff);
+}
+
+/* Preset Grid */
+.camera-preset-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 4px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.camera-preset-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.camera-preset-grid::-webkit-scrollbar-thumb {
+  background: var(--color-border, #333333);
+  border-radius: 4px;
+}
+
+.camera-preset-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary, #666666);
+}
+
+/* Preset Card */
+.camera-preset-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-secondary, #1e1e1e);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.camera-preset-card:hover {
+  border-color: var(--color-primary, #4A90E2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.camera-preset-card.selected {
+  border-color: var(--color-primary, #4A90E2);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+.camera-preset-card-thumbnail {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--color-bg-tertiary, #0a0a0a);
+  overflow: hidden;
+}
+
+.camera-preset-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.camera-preset-card:hover .camera-preset-card-image {
+  transform: scale(1.05);
+}
+
+.camera-preset-card-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.camera-preset-card-placeholder-icon {
+  font-size: 32px;
+  opacity: 0.3;
+}
+
+.camera-preset-card-play-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.camera-preset-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+}
+
+.camera-preset-card-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary, #ffffff);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.camera-preset-card-description {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-secondary, #999999);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.camera-preset-card-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.camera-preset-card-meta-item {
+  padding: 2px 8px;
+  background: var(--color-bg-tertiary, #0a0a0a);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #999999);
+}
+
+/* Empty State */
+.camera-preset-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--color-text-secondary, #999999);
+}
+
+.camera-preset-empty-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.camera-preset-empty-text {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Preview Panel */
+.camera-preset-preview-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .camera-preset-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+
+  .camera-preset-type-tabs {
+    padding: 4px;
+  }
+
+  .camera-preset-type-tab {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .camera-preset-type-icon {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .camera-preset-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .camera-preset-type-label {
+    display: none;
+  }
+}

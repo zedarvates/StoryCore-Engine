@@ -1,0 +1,231 @@
+/* ChatPanel Animations and Styles */
+
+/* Panel Opening Animation */
+.chat-panel-opening {
+  animation: chatPanelOpen 300ms ease-out forwards;
+}
+
+@keyframes chatPanelOpen {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Panel Closing Animation */
+.chat-panel-closing {
+  animation: chatPanelClose 280ms ease-in forwards;
+}
+
+@keyframes chatPanelClose {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+}
+
+/* Panel Dragging State */
+.chat-panel-dragging {
+  transition: none;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Backdrop Overlay */
+.chat-backdrop {
+  animation: backdropFadeIn 200ms ease-out forwards;
+}
+
+@keyframes backdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.chat-backdrop-opening {
+  animation: backdropFadeIn 200ms ease-out forwards;
+}
+
+.chat-backdrop-closing {
+  animation: backdropFadeOut 200ms ease-in forwards;
+}
+
+@keyframes backdropFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Chat Panel Base Styles */
+.chat-panel {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.2s ease;
+}
+
+.chat-panel:hover {
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+}
+
+/* Header Styles */
+.chat-panel .chat-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* Button Hover Effects */
+.chat-btn {
+  transition: all 0.2s ease;
+}
+
+.chat-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+/* Resize Handle Animation */
+.chat-panel .resize-handle {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.chat-panel:hover .resize-handle {
+  opacity: 1;
+}
+
+/* Minimized State */
+.chat-panel-minimized {
+  height: 48px !important;
+}
+
+/* Pulse Animation for New Messages */
+@keyframes messagePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+  }
+}
+
+.chat-panel.new-message {
+  animation: messagePulse 1s ease-out;
+}
+
+/* Dragging Ghost Effect */
+.chat-panel-ghost {
+  opacity: 0.8;
+  transform: scale(1.02);
+  pointer-events: none;
+}
+
+/* Keyboard Shortcuts Highlight */
+.chat-panel kbd {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-size: 11px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .chat-panel {
+    max-width: calc(100vw - 32px) !important;
+    max-height: calc(100vh - 100px) !important;
+    left: 16px !important;
+    right: 16px !important;
+    bottom: 16px !important;
+    top: auto !important;
+  }
+  
+  .chat-panel-opening {
+    animation: chatPanelSlideUp 300ms ease-out forwards;
+  }
+  
+  @keyframes chatPanelSlideUp {
+    0% {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .chat-panel-closing {
+    animation: chatPanelSlideDown 280ms ease-in forwards;
+  }
+  
+  @keyframes chatPanelSlideDown {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .chat-panel {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .chat-panel .chat-header {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  }
+}
+
+/* Focus States for Accessibility */
+.chat-panel button:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Smooth Scroll for Chat Content */
+.chat-panel .chat-content {
+  scroll-behavior: smooth;
+}
+
+/* Loading State */
+.chat-panel-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.chat-panel-loading::after {
+  content: '';
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

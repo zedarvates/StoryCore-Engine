@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from ..memory_integration import log_project_export
 
 
 class ExportHandler(BaseHandler):
@@ -73,19 +74,30 @@ class ExportHandler(BaseHandler):
             exporter = Exporter()
             export_dir = exporter.export_project(str(project_path), args.output)
             
+            # Count exported files
+            export_path = Path(export_dir)
+            file_count = 0
+            if export_path.exists():
+                file_count = sum(1 for f in export_path.iterdir() if f.is_file())
+            
+            # Log to memory system if enabled
+            log_project_export(
+                project_path=project_path,
+                export_format=args.format,
+                export_location=str(export_dir),
+                file_count=file_count
+            )
+            
             # Display success message
             self.print_success("Project exported successfully")
             print(f"  Export location: {Path(export_dir).absolute()}")
             
             # List exported files
-            export_path = Path(export_dir)
             if export_path.exists():
                 print(f"  Files exported:")
-                file_count = 0
                 for file in export_path.iterdir():
                     if file.is_file():
                         print(f"    - {file.name}")
-                        file_count += 1
                 
                 if file_count == 0:
                     self.print_warning("No files found in export directory")

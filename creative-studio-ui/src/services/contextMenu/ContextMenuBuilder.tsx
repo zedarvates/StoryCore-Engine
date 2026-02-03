@@ -98,7 +98,7 @@ export const buildSingleShotMenu = (
         {
           id: 'export-image',
           label: 'Export as Image',
-          action: () => 
+          action: () => handlers.onExport?.([shot])
         }
       ]
     },
@@ -152,7 +152,7 @@ export const buildSingleShotMenu = (
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      action: () => 
+      action: () => handlers.onShowInfo?.(shot)
     }
   ];
 };
@@ -256,12 +256,12 @@ export const buildMultipleShotsMenu = (
         {
           id: 'export-images',
           label: 'Export as Images',
-          action: () => 
+          action: () => handlers.onExport?.(shots)
         },
         {
           id: 'export-video',
           label: 'Export as Video',
-          action: () => 
+          action: () => handlers.onExport?.(shots)
         }
       ]
     },
@@ -319,7 +319,7 @@ export const buildMultipleShotsMenu = (
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
       ),
-      action: () => 
+      action: () => handlers.onGroup?.(shots)
     }
   ];
 };
@@ -349,17 +349,17 @@ export const buildEmptyTimelineMenu = (
         {
           id: 'import-json',
           label: 'Import from JSON',
-          action: () => 
+          action: () => handlers.onImport?.()
         },
         {
           id: 'import-images',
           label: 'Import Images',
-          action: () => 
+          action: () => handlers.onImport?.()
         },
         {
           id: 'import-video',
           label: 'Import Video',
-          action: () => 
+          action: () => handlers.onImport?.()
         }
       ]
     },
@@ -392,17 +392,17 @@ export const buildEmptyTimelineMenu = (
         {
           id: 'template-intro',
           label: 'Intro Sequence',
-          action: () => 
+          action: () => handlers.onCreateFromTemplate?.('intro')
         },
         {
           id: 'template-montage',
           label: 'Montage',
-          action: () => 
+          action: () => handlers.onCreateFromTemplate?.('montage')
         },
         {
           id: 'template-credits',
           label: 'Credits',
-          action: () => 
+          action: () => handlers.onCreateFromTemplate?.('credits')
         }
       ]
     }

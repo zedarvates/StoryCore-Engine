@@ -2,235 +2,164 @@
 // MCP Addon React Hooks
 // ============================================================================
 
-import { useCallback, useEffect } from 'react';
-import { useAddonStore } from '@/stores/addonStore';
+import { useCallback, useSyncExternalStore } from 'react';
+import { MCPAddonManager } from './MCPAddonManager';
 import type { 
   MCPAddon, 
   MCPServerConfig, 
-  UseMCPAddonResult 
+  UseMCPAddonResult,
+  UseMCPServersResult,
+  UseMCPConfigResult,
+  UseMCPTestResult
 } from '@/types/addons';
+
+// Singleton instance of MCPAddonManager
+let mcpManager: MCPAddonManager | null = null;
+
+function getMCPManager(): MCPAddonManager {
+  if (!mcpManager) {
+    mcpManager = new MCPAddonManager();
+  }
+  return mcpManager;
+}
 
 /**
  * Hook for MCP addon management
  */
 export function useMCPAddon(): UseMCPAddonResult {
-  const {
-    mcpAddon,
-    isLoading,
-    globalError,
-    toggleMCPAddon,
-    addMCPServer,
-    updateMCPServer,
-    removeMCPServer,
-    testMCPServer,
-    setSelectedMCPServer,
-    updateMCPConfig,
-    clearError,
-  } = useAddonStore();
+  const manager = getMCPManager();
+  
+  // Subscribe to manager state changes
+  const state = useSyncExternalStore(
+    (callback) => manager.subscribe(callback),
+    () => manager.getState()
+  );
 
-  const addon = mcpAddon.addon;
+  const addon = state.addon;
 
   const enable = useCallback(async () => {
-    await toggleMCPAddon(true);
-  }, [toggleMCPAddon]);
+    await manager.toggleAddon(true);
+  }, [manager]);
 
   const disable = useCallback(async () => {
-    await toggleMPCAddon(false);
-  }, [toggleMCPAddon]);
+    await manager.toggleAddon(false);
+  }, [manager]);
 
   const updateConfig = useCallback(async (config: Partial<MCPAddon['config']>) => {
-    await updateMCPConfig(config);
-  }, [updateMCPConfig]);
+    await manager.updateConfig(config);
+  }, [manager]);
 
   return {
     addon,
-    isLoading,
-    error: globalError,
+    isLoading: state.isLoading,
+    error: state.error,
     enable,
     disable,
     updateConfig,
-    servers: mcpAddon.servers,
-    selectedServer: mcpAddon.selectedServer,
-    addServer: addMCPServer,
-    updateServer: updateMCPServer,
-    removeServer: removeMCPServer,
-    testServer: testMCPServer,
-    setSelectedServer: setSelectedMCPServer,
+    servers: state.servers,
+    selectedServer: state.selectedServer,
+    addServer: manager.addServer.bind(manager),
+    updateServer: manager.updateServer.bind(manager),
+    removeServer: manager.removeServer.bind(manager),
+    testServer: manager.testServer.bind(manager),
+    setSelectedServer: manager.setSelectedServer.bind(manager),
   };
 }
 
 /**
  * Hook for MCP server management
  */
-export function useMCPServers() {
-  const {
-    mcpAddon,
-    isLoading,
-    globalError,
-    addMCPServer,
-    updateMCPServer,
-    removeMCPServer,
-    testMCPServer,
-    setSelectedMCPServer,
-    clearError,
-  } = useAddonStore();
+export function useMCPServers(): UseMCPServersResult {
+  const manager = getMCPManager();
+  
+  const state = useSyncExternalStore(
+    (callback) => manager.subscribe(callback),
+    () => manager.getState()
+  );
+
+  const addServer = useCallback(async (config: MCPServerConfig) => {
+    await manager.addServer(config);
+  }, [manager]);
+
+  const updateServer = useCallback(async (id: string, updates: Partial<MCPServerConfig>) => {
+    await manager.updateServer(id, updates);
+  }, [manager]);
+
+  const removeServer = useCallback(async (id: string) => {
+    await manager.removeServer(id);
+  }, [manager]);
+
+  const testServer = useCallback(async (id: string) => {
+    return await manager.testServer(id);
+  }, [manager]);
+
+  const setSelectedServer = useCallback((id: string | null) => {
+    manager.setSelectedServer(id);
+  }, [manager]);
 
   return {
-    servers: mcpAddon.servers,
-    selectedServer: mcpAddon.selectedServer,
-    isLoading,
-    error: globalError,
-    addServer: addMCPServer,
-    updateServer: updateMCPServer,
-    removeServer: removeMCPServer,
-    testServer: testMCPServer,
-    setSelectedServer: setSelectedMCPServer,
-    clearError,
-    getServerById: (serverId: string) => 
-      mcpAddon.servers.find(s => s.id === serverId) || null,
-    getSelectedServer: () => 
-      mcpAddon.selectedServer 
-        ? mcpAddon.servers.find(s => s.id === mcpAddon.selectedServer) || null
-        : null,
-    getConnectedServers: () => 
-      mcpAddon.servers.filter(s => s.status === 'connected'),
-    getDisconnectedServers: () => 
-      mcpAddon.servers.filter(s => s.status === 'disconnected'),
-    getErrorServers: () => 
-      mcpAddon.servers.filter(s => s.status === 'error'),
+    servers: state.servers,
+    selectedServer: state.selectedServer,
+    isLoading: state.isLoading,
+    error: state.error,
+    addServer,
+    updateServer,
+    removeServer,
+    testServer,
+    setSelectedServer,
   };
 }
 
 /**
- * Hook for MCP addon configuration
+ * Hook for MCP configuration management
  */
-export function useMCPConfig() {
-  const {
-    mcpAddon,
-    isLoading,
-    globalError,
-    updateMCPConfig,
-    clearError,
-  } = useAddonStore();
+export function useMCPConfig(): UseMCPConfigResult {
+  const manager = getMCPManager();
+  
+  const state = useSyncExternalStore(
+    (callback) => manager.subscribe(callback),
+    () => manager.getState()
+  );
+
+  const updateConfig = useCallback(async (config: Partial<MCPAddon['config']>) => {
+    await manager.updateConfig(config);
+  }, [manager]);
 
   return {
-    config: mcpAddon.addon.config,
-    isLoading,
-    error: globalError,
-    updateConfig: updateMCPConfig,
-    clearError,
-    resetConfig: () => updateMCPConfig({}),
+    config: state.addon.config,
+    isLoading: state.isLoading,
+    error: state.error,
+    updateConfig,
   };
 }
 
 /**
  * Hook for MCP server testing
  */
-export function useMCPServerTesting() {
-  const {
-    mcpAddon,
-    isLoading,
-    globalError,
-    testMCPServer,
-    clearError,
-  } = useAddonStore();
+export function useMCPTest(): UseMCPTestResult {
+  const manager = getMCPManager();
+  
+  const state = useSyncExternalStore(
+    (callback) => manager.subscribe(callback),
+    () => manager.getState()
+  );
+
+  const testServer = useCallback(async (id: string) => {
+    return await manager.testServer(id);
+  }, [manager]);
+
+  const testAllServers = useCallback(async () => {
+    const results = await Promise.all(
+      state.servers.map(server => manager.testServer(server.id))
+    );
+    return results;
+  }, [manager, state.servers]);
 
   return {
-    testResults: mcpAddon.testResults,
-    isLoading,
-    error: globalError,
-    testServer: testMCPServer,
-    clearError,
-    getTestResult: (serverId: string) => 
-      mcpAddon.testResults.find(r => r.serverId === serverId) || null,
-    getLatestTestResult: (serverId: string) => {
-      const results = mcpAddon.testResults.filter(r => r.serverId === serverId);
-      return results.length > 0 ? results[results.length - 1] : null;
-    },
-    getSuccessfulTests: () => 
-      mcpAddon.testResults.filter(r => r.success),
-    getFailedTests: () => 
-      mcpAddon.testResults.filter(r => !r.success),
-  };
-}
-
-/**
- * Hook for MCP addon permissions
- */
-export function useMCPPermissions() {
-  const { mcpAddon } = useAddonStore();
-
-  const hasPermission = useCallback((permission: string) => {
-    return mcpAddon.addon.permissions.includes(permission as any);
-  }, [mcpAddon.addon.permissions]);
-
-  const hasPermissions = useCallback((permissions: string[]) => {
-    return permissions.every(permission => hasPermission(permission));
-  }, [hasPermission]);
-
-  const hasAnyPermission = useCallback((permissions: string[]) => {
-    return permissions.some(permission => hasPermission(permission));
-  }, [hasPermission]);
-
-  return {
-    permissions: mcpAddon.addon.permissions,
-    hasPermission,
-    hasPermissions,
-    hasAnyPermission,
-    requiredPermissions: [
-      'read:project',
-      'write:project',
-      'network:outbound',
-    ],
-    hasRequiredPermissions: hasPermissions([
-      'read:project',
-      'write:project',
-      'network:outbound',
-    ]),
-  };
-}
-
-/**
- * Hook for MCP addon metadata
- */
-export function useMCPMetadata() {
-  const { mcpAddon } = useAddonStore();
-
-  return {
-    metadata: mcpAddon.addon.metadata,
-    version: mcpAddon.addon.version,
-    author: mcpAddon.addon.author,
-    description: mcpAddon.addon.description,
-    category: mcpAddon.addon.metadata.category,
-    tags: mcpAddon.addon.metadata.tags,
-    icon: mcpAddon.addon.metadata.icon,
-    website: mcpAddon.addon.metadata.website,
-    documentation: mcpAddon.addon.metadata.documentation,
-    createdAt: mcpAddon.addon.metadata.createdAt,
-    updatedAt: mcpAddon.addon.metadata.updatedAt,
-  };
-}
-
-/**
- * Hook for MCP addon error handling
- */
-export function useMCPError() {
-  const { globalError, clearError } = useAddonStore();
-
-  useEffect(() => {
-    if (globalError) {
-      // Auto-clear error after 5 seconds
-      const timer = setTimeout(() => {
-        clearError();
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [globalError, clearError]);
-
-  return {
-    error: globalError,
-    clearError,
-    hasError: Boolean(globalError),
+    testResults: state.testResults,
+    isLoading: state.isLoading,
+    error: state.error,
+    testServer,
+    testAllServers,
   };
 }

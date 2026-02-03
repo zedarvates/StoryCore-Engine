@@ -1,0 +1,364 @@
+/**
+ * ReconnectionPrompt Styles
+ * 
+ * Modal-style notification for reconnection prompting.
+ */
+
+.reconnection-prompt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: reconnection-overlay-enter 0.3s ease-out;
+}
+
+.reconnection-prompt-overlay.exiting {
+  animation: reconnection-overlay-exit 0.2s ease-in;
+}
+
+.reconnection-prompt {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: auto;
+  animation: reconnection-prompt-enter 0.3s ease-out;
+}
+
+.reconnection-prompt.exiting {
+  animation: reconnection-prompt-exit 0.2s ease-in;
+}
+
+.reconnection-prompt-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  position: relative;
+}
+
+.reconnection-prompt-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reconnection-prompt-icon-symbol {
+  font-size: 28px;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.reconnection-prompt-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  flex: 1;
+}
+
+.reconnection-prompt-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reconnection-prompt-close:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.reconnection-prompt-close:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.reconnection-prompt-content {
+  padding: 24px;
+}
+
+.reconnection-prompt-message {
+  font-size: 16px;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.reconnection-prompt-details {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.reconnection-prompt-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.reconnection-prompt-detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.reconnection-prompt-detail-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 80px;
+}
+
+.reconnection-prompt-detail-value {
+  font-size: 14px;
+  color: #1f2937;
+  font-family: 'Courier New', monospace;
+}
+
+.reconnection-prompt-question {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0;
+}
+
+.reconnection-prompt-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.reconnection-prompt-button {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reconnection-prompt-button.primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+}
+
+.reconnection-prompt-button.primary:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.reconnection-prompt-button.primary:active {
+  transform: translateY(0);
+}
+
+.reconnection-prompt-button.primary:focus {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+.reconnection-prompt-button.secondary {
+  background: #ffffff;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.reconnection-prompt-button.secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.reconnection-prompt-button.secondary:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes reconnection-overlay-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes reconnection-overlay-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes reconnection-prompt-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes reconnection-prompt-exit {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .reconnection-prompt {
+    background: #1f2937;
+  }
+
+  .reconnection-prompt-header {
+    border-bottom-color: #374151;
+  }
+
+  .reconnection-prompt-title {
+    color: #f9fafb;
+  }
+
+  .reconnection-prompt-close {
+    color: #9ca3af;
+  }
+
+  .reconnection-prompt-close:hover {
+    background: #374151;
+    color: #f9fafb;
+  }
+
+  .reconnection-prompt-message,
+  .reconnection-prompt-question {
+    color: #e5e7eb;
+  }
+
+  .reconnection-prompt-details {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  .reconnection-prompt-detail-label {
+    color: #9ca3af;
+  }
+
+  .reconnection-prompt-detail-value {
+    color: #f9fafb;
+  }
+
+  .reconnection-prompt-actions {
+    border-top-color: #374151;
+  }
+
+  .reconnection-prompt-button.secondary {
+    background: #374151;
+    color: #e5e7eb;
+    border-color: #4b5563;
+  }
+
+  .reconnection-prompt-button.secondary:hover {
+    background: #4b5563;
+    border-color: #6b7280;
+    color: #f9fafb;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .reconnection-prompt {
+    width: 95%;
+    max-width: none;
+  }
+
+  .reconnection-prompt-header {
+    padding: 20px 20px 12px;
+  }
+
+  .reconnection-prompt-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .reconnection-prompt-icon-symbol {
+    font-size: 24px;
+  }
+
+  .reconnection-prompt-title {
+    font-size: 18px;
+  }
+
+  .reconnection-prompt-content {
+    padding: 20px;
+  }
+
+  .reconnection-prompt-message {
+    font-size: 15px;
+  }
+
+  .reconnection-prompt-actions {
+    flex-direction: column;
+    padding: 12px 20px 20px;
+  }
+
+  .reconnection-prompt-button {
+    width: 100%;
+  }
+}
+
+/* Accessibility */
+.reconnection-prompt:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .reconnection-prompt {
+    border: 2px solid currentColor;
+  }
+
+  .reconnection-prompt-button {
+    border-width: 2px;
+  }
+}

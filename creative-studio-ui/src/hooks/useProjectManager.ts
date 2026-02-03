@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useStore } from '@/store';
 import {
   createEmptyProject,
+  createProjectOnDisk,
   loadProjectFromFile,
   downloadProject,
   addRecentProject,
@@ -17,20 +18,36 @@ export function useProjectManager() {
   const assets = useStore((state) => state.assets);
 
   /**
-   * Creates a new empty project
+   * Creates a new empty project and saves it to disk
    */
   const createProject = useCallback(
-    (name: string) => {
-      const newProject = createEmptyProject(name);
-      setProject(newProject);
+    async (name: string) => {
+      try {
+        // First, create the project on disk via Electron IPC
+        const createdProject = await createProjectOnDisk({ name });
 
-      // Add to recent projects
-      addRecentProject({
-        name,
-        lastOpened: new Date().toISOString(),
-      });
+        console.log('[useProjectManager] Project created on disk:', createdProject.path);
 
-      return newProject;
+        // Then create the in-memory representation
+        const newProject = createEmptyProject(name);
+        setProject(newProject);
+
+        // Add to recent projects with the actual disk path
+        addRecentProject({
+          id: createdProject.id,
+          name: createdProject.name,
+          path: createdProject.path,
+        });
+
+        return createdProject;
+      } catch (error) {
+        console.error('[useProjectManager] Failed to create project:', error);
+        // Still create the in-memory project even if disk creation fails
+        // (useful for development mode)
+        const newProject = createEmptyProject(name);
+        setProject(newProject);
+        throw error;
+      }
     },
     [setProject]
   );
@@ -47,7 +64,7 @@ export function useProjectManager() {
         // Add to recent projects
         addRecentProject({
           name: loadedProject.project_name,
-          lastOpened: new Date().toISOString(),
+          path: '', // Will be updated when project is saved to disk
         });
 
         return loadedProject;
@@ -80,10 +97,10 @@ export function useProjectManager() {
 
     downloadProject(updatedProject);
 
-    // Update recent projects
+    // Update recent projects (path will be empty since we're just downloading)
     addRecentProject({
       name: project.project_name,
-      lastOpened: new Date().toISOString(),
+      path: '',
     });
   }, [project, shots, assets]);
 
@@ -102,3 +119,4 @@ export function useProjectManager() {
     closeProject,
   };
 }
+

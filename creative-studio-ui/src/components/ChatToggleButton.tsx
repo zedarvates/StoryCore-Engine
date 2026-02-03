@@ -35,14 +35,14 @@ export const ChatToggleButton: React.FC<ChatToggleButtonProps> = ({ className = 
 
   // Get visual state classes
   const getVisualStateClasses = () => {
-    let stateClasses = 'bg-purple-600 hover:bg-purple-700 hover:scale-110';
+    let stateClasses = 'bg-purple-600 hover:bg-purple-700 chat-toggle-btn';
     
     if (showChat) {
-      stateClasses = 'bg-green-600 hover:bg-green-700 hover:scale-110';
+      stateClasses = 'bg-green-600 hover:bg-green-700 chat-toggle-btn';
     }
     
     if (unreadCount > 0) {
-      stateClasses += ' animate-pulse';
+      stateClasses += ' chat-unread-indicator';
     }
     
     return stateClasses;
@@ -57,14 +57,14 @@ export const ChatToggleButton: React.FC<ChatToggleButtonProps> = ({ className = 
       onMouseLeave={() => setIsHovered(false)}
       className={`flex items-center justify-center w-14 h-14 text-white rounded-full shadow-lg transition-all duration-200 ${visualStateClasses} ${positionClasses} ${className} z-50`}
       aria-label={showChat ? 'Close chat' : 'Open chat'}
-      title={showChat ? 'Close chat' : 'Open chat assistant'}
+      title={showChat ? 'Close chat assistant' : 'Open chat assistant'}
       data-state={showChat ? 'active' : 'inactive'}
     >
       {showChat ? (
-        <X className="w-6 h-6" />
+        <X className="w-6 h-6 chat-toggle-icon" />
       ) : (
         <>
-          <MessageSquare className="w-6 h-6" />
+          <MessageSquare className="w-6 h-6 chat-toggle-icon" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold bg-red-500 rounded-full animate-bounce">
               {unreadCount > 9 ? '9+' : unreadCount}

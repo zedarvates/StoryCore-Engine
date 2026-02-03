@@ -1,0 +1,50 @@
+# StoryCore Asset Generator - Instructions
+
+## Problem: ComfyUI not found
+
+The script `start_comfyui_port8000.bat` cannot find your ComfyUI installation.
+
+## Solutions:
+
+### Option 1: Find your ComfyUI installation
+
+Check where ComfyUI is installed:
+```powershell
+where /r C:\Users main.py
+```
+
+Or look in common locations:
+- `C:\ComfyUI\main.py`
+- `C:\Users\redga\Documents\ComfyUI\main.py`
+- `C:\Program Files\ComfyUI\main.py`
+
+### Option 2: Run ComfyUI manually
+
+If you have ComfyUI installed elsewhere, run it manually:
+
+```powershell
+cd C:\[YOUR_COMFYUI_PATH]
+python main.py --port 8000 --listen 0.0.0.0 --cors --cors-allow-origins "*"
+```
+
+### Option 3: Update the batch file
+
+Edit `start_comfyui_port8000.bat` and set your path:
+```batch
+set COMFYUI_PATH=C:\[YOUR_PATH]
+```
+
+## After ComfyUI is running:
+
+1. Verify ComfyUI is accessible:
+```powershell
+curl http://127.0.0.1:8000/
+```
+
+2. Generate assets:
+```bash
+python generate_assets_qwen.py
+```
+
+## Asset Output:
+Generated assets will be saved to: `assets/generated/`

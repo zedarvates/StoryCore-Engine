@@ -1,0 +1,98 @@
+ PROMPT TEST — Bande‑annonce “Blanche‑Neige Cyberpunk 2048”
+
+Crée une bande‑annonce intense et cinématographique pour une réinterprétation cyberpunk de Blanche‑Neige, située en 2048. Ton doit être sombre, nerveux, futuriste. Mélange narration dramatique, scènes d’action, tension émotionnelle et punchlines mémorables. Inclure : mégalopole néon, IA corrompue en reine, Blanche‑Neige hackeuse recherchée, sept mercenaires augmentés, drones de surveillance, poursuites dans les ruelles, climax explosif. Style : trailer hollywoodien, rythme crescendo, phrases courtes, voix off percutante.
+
+ Version PRO — Optimisée pour StoryCore LLM
+(Modulaire, claire, parfaite pour un moteur narratif ou un pipeline multimédia)
+TASK: Générer une bande-annonce complète pour "Blanche-Neige 2048", réécriture cyberpunk du conte classique.
+
+TONE & STYLE:
+- Trailer hollywoodien, rythme crescendo.
+- Atmosphère néon, dystopique, technologique.
+- Voix off grave, phrases courtes, impact émotionnel.
+- Alternance narration / scènes d’action / punchlines.
+
+SETTING:
+- Mégapole verticale saturée de néons.
+- Reine = IA souveraine corrompue contrôlant la ville.
+- Blanche-Neige = hackeuse rebelle, recherchée pour avoir volé un code interdit.
+- Les “Sept” = groupe de mercenaires augmentés, chacun avec une spécialité cybernétique.
+- Présence de drones, écrans géants, pluie acide, ruelles étroites, mégatours.
+
+STRUCTURE DU TRAILER:
+1. **Ouverture lente** : voix off + plans larges de la ville.
+2. **Révélation du conflit** : la Reine‑IA traque Blanche‑Neige.
+3. **Montée en tension** : scènes d’action rapides, hacking, poursuites.
+4. **Présentation des Sept** : silhouettes, capacités, répliques.
+5. **Climax** : explosion, confrontation finale, choix moral.
+6. **Punchline finale** : tagline mémorable.
+7. **Titre + date fictive**.
+
+OUTPUT FORMAT:
+- Script de trailer en plusieurs séquences.
+- Dialogues brefs.
+- Indications visuelles et sonores.
+- Style immersif, dynamique, cinématique.
+
+
+ PACK 1 — Contes remixés en genres extrêmes
+
+1. Le Petit Chaperon Rouge × Western post‑apo
+
+Crée une bande-annonce western post-apocalyptique inspirée du Petit Chaperon Rouge. Désert toxique, cowboys mutants, caravane nomade, fusillades au ralenti. Le Loup = chef de gang cyber-mutant. Chaperon = messagère armée d’un fusil plasma. Ton brutal, poussiéreux, mythique.
+
+
+2. Cendrillon × Thriller techno‑paranoïaque
+
+Génère un trailer paranoïaque où Cendrillon devient une hackeuse infiltrée dans un bal corporatiste. Minuit = extinction réseau. La Marâtre = PDG d’une mégacorp. Ambiance froide, tension psychologique, musique glitch.
+
+
+3. Le Livre de la Jungle × Space Opera
+
+Crée une bande-annonce space opera où Mowgli est un enfant élevé par une faction alien. Shere Khan = seigneur de guerre interstellaire. Planètes luxuriantes, batailles spatiales, prophétie cosmique.
+
+
+ PACK 2 — Histoire remixée en SF, horreur ou fantasy
+
+4. Napoléon × Cyberpunk noir
+Génère un trailer noir cyberpunk où Napoléon est un stratège augmenté dirigeant une armée de drones. Paris = mégalopole verticale. Intrigues politiques, trahisons, ambiance pluie acide.
+
+5. Égypte antique × Horreur lovecraftienne
+Crée une bande-annonce horrifique où les pyramides sont des antennes dimensionnelles. Pharaon = avatar d’une entité cosmique. Archéologues piégés, visions interdites, crescendo de terreur.
+
+6. Vikings × Fantasy céleste
+Génère un trailer épique où des Vikings naviguent non pas sur la mer, mais dans le ciel, sur des drakkars volants. Géants de tempête, runes lumineuses, batailles aériennes.
+
+ PACK 3 — Mélanges absurdes, fun ou expérimentaux
+
+7. Sherlock Holmes × Comédie musicale futuriste
+Crée une bande-annonce comédie musicale futuriste où Sherlock Holmes résout des crimes en chantant. Londres néon, chorégraphies de drones, Watson DJ. Ton décalé mais stylé.
+
+
+8. Alien × Film romantique
+Génère un trailer romantique dans un vaisseau isolé. Deux survivants se rapprochent tandis qu’une créature alien rôde. Mélange tension, douceur, claustrophobie et poésie.
+
+
+9. Gladiateurs × Cyber‑fantasy japonaise
+Crée une bande-annonce où des gladiateurs affrontent des esprits technologiques dans une arène holographique inspirée du Japon mythologique. Katana plasma, masques oni numériques, combats stylisés.
+
+
+
+ PACK 4 — Ultra‑hybrides (3 genres ou plus)
+
+10. Pirates × Steampunk × Horreur aquatique
+Génère un trailer où des pirates steampunk explorent un océan noir rempli de créatures abyssales. Sous-marins à vapeur, harpons mécaniques, tension lovecraftienne.
+
+11. Chevaliers × Cyberpunk × Kaiju
+
+Crée une bande-annonce où des chevaliers augmentés affrontent des monstres géants dans une cité néon. Mélange médiéval, futuriste et titanesque.
+
+
+12. Western × Fantasy arthurienne × Mechas
+Génère un trailer où Excalibur est un mécha légendaire enfoui sous le désert. Cowboys, magie, robots colossaux, duel final mythique.
+
+
+
+
+
+

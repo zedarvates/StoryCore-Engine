@@ -133,7 +133,8 @@ export function Step4_CharacterCreation({
     if (characters.length > 0) {
       onUpdate(characters);
     }
-  }, [characters, onUpdate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [characters]); // Only depend on characters, not onUpdate
 
   // Handle character dialog open
   const handleAddCharacter = () => {
@@ -447,7 +448,7 @@ export function Step4_CharacterCreation({
                   <SelectTrigger id="characterRole">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[9999]">
                     {CHARACTER_ROLE_OPTIONS.map((role) => (
                       <SelectItem key={role.value} value={role.value}>
                         <div className="flex items-center gap-2">
@@ -554,7 +555,7 @@ export function Step4_CharacterCreation({
                 <SelectTrigger id="dialogueStyle">
                   <SelectValue placeholder="Select dialogue style" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[9999]">
                   {DIALOGUE_STYLE_OPTIONS.map((style) => (
                     <SelectItem key={style.value} value={style.value}>
                       <div>

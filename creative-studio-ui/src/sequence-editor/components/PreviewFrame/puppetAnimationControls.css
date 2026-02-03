@@ -1,0 +1,425 @@
+/**
+ * Puppet Animation Controls Styles
+ * 
+ * CSS for timeline-synced puppet animation controls.
+ * Requirements: 9.1, 9.2
+ */
+
+/* ============================================================================
+   Main Container
+   ============================================================================ */
+
+.puppet-animation-controls {
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  width: 280px;
+  max-height: calc(100% - 140px);
+  overflow-y: auto;
+  padding: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.85);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.puppet-animation-controls h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 13px;
+  color: var(--text-primary, #ffffff);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   Control Sections
+   ============================================================================ */
+
+.control-section {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+}
+
+.control-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.section-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 11px;
+  color: var(--text-muted, #666666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   Keyframe Controls
+   ============================================================================ */
+
+.keyframe-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.keyframe-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(74, 144, 226, 0.1);
+  border: 1px solid var(--accent-color, #4A90E2);
+  border-radius: 4px;
+}
+
+.keyframe-indicator {
+  color: var(--accent-color, #4A90E2);
+  font-size: 16px;
+}
+
+.keyframe-pose {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-primary, #ffffff);
+  font-weight: 500;
+}
+
+.keyframe-btn {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease-in-out;
+}
+
+.keyframe-btn.add {
+  background-color: var(--accent-color, #4A90E2);
+  border-color: var(--accent-color, #4A90E2);
+  color: #ffffff;
+}
+
+.keyframe-btn.add:hover {
+  background-color: #3a7bc8;
+  border-color: #3a7bc8;
+}
+
+.keyframe-btn.remove {
+  background-color: transparent;
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.keyframe-btn.remove:hover {
+  background-color: rgba(231, 76, 60, 0.1);
+}
+
+/* ============================================================================
+   Pose Presets
+   ============================================================================ */
+
+.pose-preset-select,
+.expression-select {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: var(--bg-primary, #1a1a1a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-secondary, #aaaaaa);
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+  transition: all 200ms ease-in-out;
+}
+
+.pose-preset-select:focus,
+.expression-select:focus {
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.pose-preset-select option,
+.expression-select option {
+  background-color: var(--bg-panel, #252525);
+  color: var(--text-primary, #ffffff);
+}
+
+/* ============================================================================
+   Animation Templates
+   ============================================================================ */
+
+.template-toggle-btn {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg-primary, #1a1a1a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-secondary, #aaaaaa);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease-in-out;
+}
+
+.template-toggle-btn:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+  border-color: var(--accent-color, #4A90E2);
+  color: var(--text-primary, #ffffff);
+}
+
+.template-list {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.template-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+}
+
+.template-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.template-name {
+  font-size: 12px;
+  color: var(--text-primary, #ffffff);
+  font-weight: 500;
+}
+
+.template-description {
+  font-size: 10px;
+  color: var(--text-muted, #666666);
+}
+
+.template-apply-btn {
+  padding: 0.375rem 0.75rem;
+  background-color: var(--accent-color, #4A90E2);
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease-in-out;
+}
+
+.template-apply-btn:hover {
+  background-color: #3a7bc8;
+}
+
+/* ============================================================================
+   Facial Expression Controls
+   ============================================================================ */
+
+.expression-intensity {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.expression-intensity label {
+  flex: 0 0 70px;
+  font-size: 11px;
+  color: var(--text-secondary, #aaaaaa);
+}
+
+.expression-intensity input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  background-color: var(--border-color, #3a3a3a);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.expression-intensity input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background-color: var(--accent-color, #4A90E2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 200ms ease-in-out;
+}
+
+.expression-intensity input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.expression-intensity input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background-color: var(--accent-color, #4A90E2);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 200ms ease-in-out;
+}
+
+.expression-intensity input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.intensity-value {
+  flex: 0 0 40px;
+  font-size: 11px;
+  color: var(--text-muted, #666666);
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  text-align: right;
+}
+
+/* ============================================================================
+   Keyframe Timeline
+   ============================================================================ */
+
+.keyframe-timeline {
+  margin-top: 0.5rem;
+}
+
+.no-keyframes {
+  padding: 1rem;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted, #666666);
+  font-style: italic;
+}
+
+.keyframe-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.keyframe-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  transition: all 200ms ease-in-out;
+}
+
+.keyframe-item.current {
+  background-color: rgba(74, 144, 226, 0.1);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.keyframe-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.keyframe-frame {
+  flex: 0 0 70px;
+  font-size: 10px;
+  color: var(--text-muted, #666666);
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.keyframe-pose-name {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-secondary, #aaaaaa);
+}
+
+.keyframe-remove-btn {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted, #666666);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 200ms ease-in-out;
+}
+
+.keyframe-remove-btn:hover {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+}
+
+/* ============================================================================
+   Scrollbar Styling
+   ============================================================================ */
+
+.puppet-animation-controls::-webkit-scrollbar,
+.keyframe-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.puppet-animation-controls::-webkit-scrollbar-track,
+.keyframe-list::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.puppet-animation-controls::-webkit-scrollbar-thumb,
+.keyframe-list::-webkit-scrollbar-thumb {
+  background-color: var(--border-color, #3a3a3a);
+  border-radius: 3px;
+}
+
+.puppet-animation-controls::-webkit-scrollbar-thumb:hover,
+.keyframe-list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent-color, #4A90E2);
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .puppet-animation-controls {
+    width: 240px;
+    padding: 0.5rem;
+  }
+  
+  .template-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .template-apply-btn {
+    width: 100%;
+  }
+}
+
+/* ============================================================================
+   Focus Styles for Accessibility
+   ============================================================================ */
+
+.keyframe-btn:focus-visible,
+.template-toggle-btn:focus-visible,
+.template-apply-btn:focus-visible,
+.pose-preset-select:focus-visible,
+.expression-select:focus-visible,
+.keyframe-remove-btn:focus-visible {
+  outline: 2px solid var(--accent-color, #4A90E2);
+  outline-offset: 2px;
+}

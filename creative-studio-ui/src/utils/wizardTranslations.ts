@@ -580,8 +580,8 @@ export const wizardTranslations: Record<string, WizardTranslations> = {
 // Helper function to get translations
 // ============================================================================
 
-export function getWizardTranslations(language: string = 'fr'): WizardTranslations {
-  return wizardTranslations[language] || fr;
+export function getWizardTranslations(language: string = 'en'): WizardTranslations {
+  return wizardTranslations[language] || en;
 }
 
 // ============================================================================

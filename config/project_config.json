@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "project_name": "Default StoryCore Project",
+  "project_type": "video",
+  "creation_timestamp": "2026-01-26T16:03:00Z",
+  "objectives": [
+    "Create high-quality video content",
+    "Integrate LLM memory system",
+    "Ensure asset tracking and logging"
+  ],
+  "memory_system_enabled": true,
+  "memory_system_config": {
+    "auto_summarize": true,
+    "summarization_threshold_kb": 50,
+    "auto_translate": true,
+    "target_languages": ["en", "fr"],
+    "error_detection_enabled": true,
+    "auto_recovery_enabled": true,
+    "max_recovery_attempts": 3
+  }
+}

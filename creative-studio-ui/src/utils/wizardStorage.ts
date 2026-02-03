@@ -5,6 +5,7 @@
 export type WizardType = 
   | 'world' 
   | 'character'
+  | 'storyteller'
   | 'dialogue-writer'
   | 'scene-generator'
   | 'storyboard-creator'
@@ -264,6 +265,7 @@ function isValidWizardState(state: any): state is WizardAutoSaveState<any> {
   const validWizardTypes: WizardType[] = [
     'world',
     'character',
+    'storyteller',
     'dialogue-writer',
     'scene-generator',
     'storyboard-creator',
@@ -347,6 +349,7 @@ export function clearAllWizardStates(): void {
   const wizardTypes: WizardType[] = [
     'world',
     'character',
+    'storyteller',
     'dialogue-writer',
     'scene-generator',
     'storyboard-creator',
@@ -426,6 +429,7 @@ export function enableAutoExportOnError(): void {
   const wizardTypes: WizardType[] = [
     'world',
     'character',
+    'storyteller',
     'dialogue-writer',
     'scene-generator',
     'storyboard-creator',

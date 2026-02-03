@@ -20,12 +20,7 @@ export const BasicToolbarExample: React.FC = () => {
   return (
     <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Toolbar at the top */}
-      <Toolbar
-        gridBounds={gridBounds}
-        onToolChange={(tool) => {
-          ;
-        }}
-      />
+      <Toolbar gridBounds={gridBounds} />
 
       {/* Grid editor content */}
       <div style={{ flex: 1, backgroundColor: '#1a1a1a', position: 'relative' }}>
@@ -51,15 +46,14 @@ export const ToolbarWithKeyboardShortcutsExample: React.FC = () => {
     enabled: true,
     gridBounds,
     onShortcut: (action, key) => {
-      `);
       setLastShortcut(`${action} (${key})`);
     },
     onDelete: () => {
-      ;
+      console.log('Delete action');
       // Implement delete logic here
     },
     onDuplicate: () => {
-      ;
+      console.log('Duplicate action');
       // Implement duplicate logic here
     },
   });
@@ -111,11 +105,11 @@ export const CompleteGridEditorExample: React.FC = () => {
     enabled: true,
     gridBounds,
     onShortcut: (action, key) => {
-      `);
+      console.log(`Shortcut: ${action} (${key})`);
     },
     onDelete: () => {
       if (selectedPanelIds.length > 0) {
-        ;
+        console.log('Deleting panels:', selectedPanelIds);
         // Implement delete logic
         // Example: Clear layers from selected panels
         selectedPanelIds.forEach((panelId) => {
@@ -131,7 +125,7 @@ export const CompleteGridEditorExample: React.FC = () => {
     onDuplicate: () => {
       if (selectedPanelIds.length === 1) {
         const sourcePanelId = selectedPanelIds[0];
-        ;
+        console.log('Duplicating panel:', sourcePanelId);
         // Implement duplicate logic
         // Example: Copy to clipboard
         useGridStore.getState().copyPanel(sourcePanelId);
@@ -195,7 +189,7 @@ export const ConditionalShortcutsExample: React.FC = () => {
     enabled: shortcutsEnabled,
     gridBounds,
     onShortcut: (action, key) => {
-      `);
+      console.log(`Shortcut: ${action} (${key})`);
     },
   });
 

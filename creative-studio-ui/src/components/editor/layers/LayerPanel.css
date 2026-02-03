@@ -257,6 +257,27 @@
   border-left: 1px solid #2a2a2a;
 }
 
+/* Layer depth indentation classes for accessibility (replaces inline styles) */
+.layer-depth-0 {
+  padding-left: 16px;
+}
+
+.layer-depth-1 {
+  padding-left: 36px;
+}
+
+.layer-depth-2 {
+  padding-left: 56px;
+}
+
+.layer-depth-3 {
+  padding-left: 76px;
+}
+
+.layer-depth-4 {
+  padding-left: 96px;
+}
+
 .no-layers {
   display: flex;
   flex-direction: column;

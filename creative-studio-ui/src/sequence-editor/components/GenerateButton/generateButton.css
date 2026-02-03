@@ -1,0 +1,213 @@
+/**
+ * GenerateButton Styles
+ */
+
+/* ============================================================================
+   Main Container
+   ============================================================================ */
+
+.generate-button-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+/* ============================================================================
+   Generate Button
+   ============================================================================ */
+
+.generate-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.generate-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5A9FE8 0%, #4A90E2 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+}
+
+.generate-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.generate-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.generate-button.processing {
+  background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%);
+  animation: processingPulse 2s ease-in-out infinite;
+}
+
+.generate-button.complete {
+  background: linear-gradient(135deg, #27AE60 0%, #219A52 100%);
+}
+
+.generate-button.error {
+  background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
+}
+
+@keyframes processingPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+/* ============================================================================
+   Button Icon
+   ============================================================================ */
+
+.button-icon {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+   Progress Bar
+   ============================================================================ */
+
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #FFFFFF;
+  transition: width 300ms ease-in-out;
+  animation: progressPulse 1s infinite;
+}
+
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ============================================================================
+   Cancel Button
+   ============================================================================ */
+
+.cancel-button {
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-secondary, #aaaaaa);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.cancel-button:hover {
+  background-color: var(--bg-hover, #3a3a3a);
+  border-color: var(--text-secondary, #aaaaaa);
+  color: var(--text-primary, #ffffff);
+}
+
+/* ============================================================================
+   Generation Status
+   ============================================================================ */
+
+.generation-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg-tertiary, #1e1e1e);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.status-step {
+  color: var(--text-secondary, #aaaaaa);
+}
+
+.status-progress {
+  color: var(--accent-color, #4A90E2);
+  font-weight: 600;
+  min-width: 40px;
+}
+
+/* ============================================================================
+   Hint Text
+   ============================================================================ */
+
+.generate-hint {
+  font-size: 11px;
+  color: var(--text-muted, #666);
+  padding: 0.25rem 0.5rem;
+}
+
+/* ============================================================================
+   Error Display
+   ============================================================================ */
+
+.generate-error {
+  font-size: 11px;
+  color: #E74C3C;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(231, 76, 60, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid #E74C3C;
+}
+
+/* ============================================================================
+   Loading Spinner
+   ============================================================================ */
+
+.generate-button.loading .button-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   Accessibility
+   ============================================================================ */
+
+.generate-button:focus-visible {
+  outline: 2px solid var(--accent-color, #4A90E2);
+  outline-offset: 2px;
+}
+
+.generate-button[aria-busy="true"] {
+  cursor: wait;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .generate-button {
+    padding: 0.5rem 1rem;
+    font-size: 13px;
+  }
+  
+  .generate-hint {
+    display: none;
+  }
+}

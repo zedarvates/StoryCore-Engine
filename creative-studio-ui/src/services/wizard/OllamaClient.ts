@@ -18,6 +18,7 @@ export interface OllamaGenerationOptions {
   temperature?: number;
   top_p?: number;
   max_tokens?: number;
+  num_predict?: number;
   seed?: number;
   stream?: boolean;
 }

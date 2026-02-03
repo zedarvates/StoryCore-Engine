@@ -287,7 +287,7 @@ export function Step5ShotPreview({
             <SelectTrigger className="w-20">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[9999]">
               <SelectItem value="0.25">0.25x</SelectItem>
               <SelectItem value="0.5">0.5x</SelectItem>
               <SelectItem value="1">1x</SelectItem>

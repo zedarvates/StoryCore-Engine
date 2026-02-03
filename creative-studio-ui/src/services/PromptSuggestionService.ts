@@ -735,8 +735,8 @@ export class PromptSuggestionService {
   /**
    * Obtient les suggestions statiques par défaut (pour compatibilité)
    */
-  getDefaultSuggestions(language: LanguageCode = 'fr'): PromptSuggestion[] {
-    const templates = this.suggestionTemplates[language] || this.suggestionTemplates.fr;
+  getDefaultSuggestions(language: LanguageCode = 'en'): PromptSuggestion[] {
+    const templates = this.suggestionTemplates[language] || this.suggestionTemplates.en;
 
     return [
       // Top Ghost Tracker recommendations
@@ -791,8 +791,8 @@ export class PromptSuggestionService {
   /**
    * Génère des suggestions rafraîchies avec de nouvelles idées (pour le bouton "improve")
    */
-  getRefreshedSuggestions(language: LanguageCode = 'fr'): PromptSuggestion[] {
-    const templates = this.suggestionTemplates[language] || this.suggestionTemplates.fr;
+  getRefreshedSuggestions(language: LanguageCode = 'en'): PromptSuggestion[] {
+    const templates = this.suggestionTemplates[language] || this.suggestionTemplates.en;
     const timestamp = Date.now();
 
     return [

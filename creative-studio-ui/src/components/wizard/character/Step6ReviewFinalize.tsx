@@ -6,12 +6,17 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Edit } from 'lucide-react';
 import type { Character } from '@/types/character';
+import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 6: Review and Finalize
 // ============================================================================
 
-export function Step6ReviewFinalize() {
+interface Step6ReviewFinalizeProps {
+  storyContext?: StoryContext;
+}
+
+export function Step6ReviewFinalize({ storyContext }: Step6ReviewFinalizeProps = {}) {
   const { formData, goToStep, previousStep, submitWizard, isSubmitting } =
     useWizard<Character>();
 

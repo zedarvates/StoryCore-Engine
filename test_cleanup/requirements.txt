@@ -1,0 +1,14 @@
+# Test Cleanup Tool Dependencies
+
+# Testing frameworks
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-xdist>=3.0.0
+hypothesis>=6.0.0
+
+# Code analysis
+coverage>=7.0.0
+astroid>=2.0.0
+
+# Utilities
+pathlib2>=2.3.0

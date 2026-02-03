@@ -521,7 +521,7 @@ function SceneEditorDialog({
               <SelectTrigger>
                 <SelectValue placeholder="Select a location..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[9999]">
                 {locations.map(location => (
                   <SelectItem key={location.id} value={location.id}>
                     {location.name}

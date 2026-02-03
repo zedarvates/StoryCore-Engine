@@ -1,499 +1,709 @@
-#!/usr/bin/env python3
 """
-Test suite for Model Manager - AI model lifecycle and resource management.
-
-This test validates model loading, caching, GPU memory management,
-and resource optimization functionality.
+Tests for ModelManager class.
 """
 
 import pytest
 import asyncio
-import tempfile
-import json
+import time
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-
-# Import Model Manager components
-from src.model_manager import (
+from unittest.mock import Mock, patch, AsyncMock
+from src.end_to_end.model_manager import (
     ModelManager,
-    ModelRegistry,
-    GPUMemoryManager,
-    ModelLoadResult,
-    ModelCacheEntry
-)
-from src.ai_enhancement_engine import (
-    ModelConfig,
     ModelInfo,
     ModelType,
-    GPUResourceStatus
+    DownloadProgress
 )
 
 
-class TestModelRegistry:
-    """Test suite for Model Registry."""
-    
-    def setup_method(self):
-        """Set up test environment."""
-        self.temp_dir = tempfile.mkdtemp()
-        self.registry = ModelRegistry(self.temp_dir)
-    
-    def test_registry_initialization(self):
-        """Test model registry initialization."""
-        assert self.registry.registry_path.exists()
-        assert len(self.registry.models) >= 4  # Should have default models
-        
-        # Check default models are present
-        model_ids = list(self.registry.models.keys())
-        assert "style_transfer_v1" in model_ids
-        assert "super_resolution_v2" in model_ids
-        assert "interpolation_v1" in model_ids
-        assert "quality_assessment_v1" in model_ids
-    
-    def test_get_model_info(self):
-        """Test getting model information."""
-        model_info = self.registry.get_model_info("style_transfer_v1")
-        assert model_info is not None
-        assert model_info.model_id == "style_transfer_v1"
-        assert model_info.model_type == ModelType.STYLE_TRANSFER
-        assert model_info.version == "1.0.0"
-        assert model_info.size_mb > 0
-        assert model_info.gpu_memory_required > 0
-        assert len(model_info.supported_operations) > 0
-        
-        # Test non-existent model
-        assert self.registry.get_model_info("non_existent") is None
-    
-    def test_list_models(self):
-        """Test listing models with optional filtering."""
-        # List all models
-        all_models = self.registry.list_models()
-        assert len(all_models) >= 4
-        
-        # List by type
-        style_models = self.registry.list_models(ModelType.STYLE_TRANSFER)
-        assert len(style_models) >= 1
-        assert all(m.model_type == ModelType.STYLE_TRANSFER for m in style_models)
-        
-        super_res_models = self.registry.list_models(ModelType.SUPER_RESOLUTION)
-        assert len(super_res_models) >= 1
-        assert all(m.model_type == ModelType.SUPER_RESOLUTION for m in super_res_models)
-    
-    def test_register_unregister_model(self):
-        """Test registering and unregistering models."""
-        # Create test model
-        test_model = ModelInfo(
-            model_id="test_model_v1",
-            model_type=ModelType.NOISE_REDUCTION,
-            version="1.0.0",
-            size_mb=100.0,
-            gpu_memory_required=256,
-            supported_operations=["noise_reduction"],
-            performance_characteristics={"speed": 0.8}
-        )
-        
-        # Register model
-        initial_count = len(self.registry.models)
-        self.registry.register_model(test_model)
-        assert len(self.registry.models) == initial_count + 1
-        assert "test_model_v1" in self.registry.models
-        
-        # Verify model info
-        retrieved_model = self.registry.get_model_info("test_model_v1")
-        assert retrieved_model.model_id == test_model.model_id
-        assert retrieved_model.model_type == test_model.model_type
-        
-        # Unregister model
-        success = self.registry.unregister_model("test_model_v1")
-        assert success is True
-        assert len(self.registry.models) == initial_count
-        assert "test_model_v1" not in self.registry.models
-        
-        # Try to unregister non-existent model
-        success = self.registry.unregister_model("non_existent")
-        assert success is False
-    
-    def test_registry_persistence(self):
-        """Test registry persistence to file."""
-        # Create new registry in same directory
-        registry2 = ModelRegistry(self.temp_dir)
-        
-        # Should load existing models
-        assert len(registry2.models) == len(self.registry.models)
-        
-        # Add a model to first registry
-        test_model = ModelInfo(
-            model_id="persistence_test",
-            model_type=ModelType.COLOR_ENHANCEMENT,
-            version="1.0.0",
-            size_mb=50.0,
-            gpu_memory_required=128,
-            supported_operations=["color_enhancement"],
-            performance_characteristics={"speed": 0.9}
-        )
-        
-        self.registry.register_model(test_model)
-        
-        # Create third registry - should load the new model
-        registry3 = ModelRegistry(self.temp_dir)
-        assert "persistence_test" in registry3.models
-        retrieved_model = registry3.get_model_info("persistence_test")
-        assert retrieved_model.model_id == "persistence_test"
+@pytest.fixture
+def temp_models_dir(tmp_path):
+    """Create a temporary models directory"""
+    models_dir = tmp_path / "models"
+    models_dir.mkdir()
+    return models_dir
 
 
-class TestGPUMemoryManager:
-    """Test suite for GPU Memory Manager."""
+@pytest.fixture
+def model_manager(temp_models_dir):
+    """Create a ModelManager instance"""
+    return ModelManager(temp_models_dir)
+
+
+@pytest.fixture
+def sample_model_info():
+    """Create a sample ModelInfo"""
+    return ModelInfo(
+        name="Test Model",
+        type=ModelType.CHECKPOINT,
+        url="https://example.com/model.safetensors",
+        file_size=1000000,  # 1MB
+        sha256_hash="abc123",
+        priority=1,
+        required=True,
+        description="Test model",
+        filename="test_model.safetensors"
+    )
+
+
+class TestModelInfo:
+    """Tests for ModelInfo dataclass"""
     
-    def setup_method(self):
-        """Set up test environment."""
-        self.gpu_manager = GPUMemoryManager()
+    def test_model_info_creation(self):
+        """Test ModelInfo creation with all fields"""
+        model = ModelInfo(
+            name="FLUX Dev",
+            type=ModelType.CHECKPOINT,
+            url="https://example.com/flux.safetensors",
+            file_size=11900000000,
+            sha256_hash="hash123",
+            priority=1,
+            required=True,
+            description="FLUX Dev model",
+            filename="flux.safetensors"
+        )
+        
+        assert model.name == "FLUX Dev"
+        assert model.type == ModelType.CHECKPOINT
+        assert model.file_size == 11900000000
+        assert model.priority == 1
+        assert model.required is True
     
-    def test_gpu_status_reporting(self):
-        """Test GPU status reporting."""
-        status = self.gpu_manager.get_gpu_status()
-        assert isinstance(status, GPUResourceStatus)
-        assert status.total_memory >= 0
-        assert status.available_memory >= 0
-        assert 0 <= status.utilization_percent <= 100
-        assert status.temperature >= 0
-        assert status.active_jobs >= 0
-        assert status.queue_depth >= 0
-        assert isinstance(status.device_name, str)
+    def test_model_info_filename_derivation(self):
+        """Test that filename is derived from URL if not provided"""
+        model = ModelInfo(
+            name="Test",
+            type=ModelType.VAE,
+            url="https://example.com/path/to/model.safetensors",
+            file_size=1000,
+            sha256_hash="hash",
+            priority=1,
+            required=True,
+            description="Test"
+        )
+        
+        assert model.filename == "model.safetensors"
+
+
+class TestDownloadProgress:
+    """Tests for DownloadProgress dataclass"""
     
-    def test_memory_allocation_deallocation(self):
-        """Test memory allocation and deallocation."""
-        if not self.gpu_manager.gpu_available:
-            pytest.skip("GPU not available for testing")
+    def test_download_progress_percentage(self):
+        """Test percentage calculation"""
+        progress = DownloadProgress(
+            model_name="Test",
+            total_bytes=1000,
+            downloaded_bytes=250,
+            speed_mbps=1.0,
+            eta_seconds=10,
+            status="downloading"
+        )
         
-        # Test allocation
-        allocation_id = "test_allocation_1"
-        memory_mb = 512.0
-        
-        # Check if allocation is possible
-        can_allocate = self.gpu_manager.can_allocate(memory_mb)
-        
-        if can_allocate:
-            # Allocate memory
-            success = self.gpu_manager.allocate_memory(allocation_id, memory_mb)
-            assert success is True
-            
-            # Check status reflects allocation
-            status = self.gpu_manager.get_gpu_status()
-            assert allocation_id in self.gpu_manager.memory_allocations
-            assert self.gpu_manager.memory_allocations[allocation_id] == memory_mb
-            
-            # Deallocate memory
-            self.gpu_manager.deallocate_memory(allocation_id)
-            assert allocation_id not in self.gpu_manager.memory_allocations
+        assert progress.percentage == 25.0
     
-    def test_optimal_device_selection(self):
-        """Test optimal device selection."""
-        # Test with small memory requirement
-        device = self.gpu_manager.get_optimal_device(100.0)
-        assert device in ["cuda", "cpu"]
+    def test_download_progress_percentage_zero_total(self):
+        """Test percentage with zero total bytes"""
+        progress = DownloadProgress(
+            model_name="Test",
+            total_bytes=0,
+            downloaded_bytes=0,
+            speed_mbps=0.0,
+            eta_seconds=0,
+            status="downloading"
+        )
         
-        # Test with large memory requirement (should fallback to CPU)
-        device = self.gpu_manager.get_optimal_device(99999.0)
-        assert device == "cpu"
-    
-    def test_memory_allocation_limits(self):
-        """Test memory allocation limits and failures."""
-        if not self.gpu_manager.gpu_available:
-            pytest.skip("GPU not available for testing")
-        
-        # Try to allocate more memory than available
-        large_allocation = 99999.0
-        can_allocate = self.gpu_manager.can_allocate(large_allocation)
-        assert can_allocate is False
-        
-        success = self.gpu_manager.allocate_memory("large_test", large_allocation)
-        assert success is False
+        assert progress.percentage == 0.0
 
 
 class TestModelManager:
-    """Test suite for Model Manager."""
+    """Tests for ModelManager class"""
     
-    def setup_method(self):
-        """Set up test environment."""
-        self.temp_dir = tempfile.mkdtemp()
-        self.config = ModelConfig(
-            model_registry_path=self.temp_dir,
-            model_cache_size=3,
-            gpu_memory_limit_mb=4096,
-            cpu_fallback_enabled=True,
-            model_download_enabled=True
+    def test_initialization(self, model_manager, temp_models_dir):
+        """Test ModelManager initialization"""
+        assert model_manager.models_dir == temp_models_dir
+        assert isinstance(model_manager.downloads, dict)
+        assert len(model_manager.downloads) == 0
+        
+        # Check that subdirectories were created
+        assert (temp_models_dir / "checkpoints").exists()
+        assert (temp_models_dir / "vae").exists()
+        assert (temp_models_dir / "text_encoders").exists()
+        assert (temp_models_dir / "clip").exists()
+    
+    def test_required_models_registry(self):
+        """Test that required models registry is properly defined"""
+        models = ModelManager.REQUIRED_MODELS
+        
+        assert len(models) > 0
+        
+        # Check FLUX Dev is first priority
+        flux_dev = next((m for m in models if m.name == "FLUX Dev"), None)
+        assert flux_dev is not None
+        assert flux_dev.priority == 1
+        assert flux_dev.required is True
+        
+        # Check T5XXL is second priority
+        t5xxl = next((m for m in models if m.name == "T5XXL"), None)
+        assert t5xxl is not None
+        assert t5xxl.priority == 2
+        assert t5xxl.required is True
+        
+        # Check optional models exist
+        sdxl = next((m for m in models if m.name == "SDXL Base"), None)
+        assert sdxl is not None
+        assert sdxl.required is False
+    
+    def test_check_required_models_all_missing(self, model_manager):
+        """Test checking for required models when all are missing"""
+        missing = model_manager.check_required_models()
+        
+        # Should return all required models
+        required_count = sum(1 for m in ModelManager.REQUIRED_MODELS if m.required)
+        assert len(missing) == required_count
+        
+        # All should be required
+        for model in missing:
+            assert model.required is True
+    
+    def test_check_required_models_some_present(self, model_manager, temp_models_dir):
+        """Test checking for required models when some are present"""
+        # Create a fake model file
+        checkpoints_dir = temp_models_dir / "checkpoints"
+        fake_model = checkpoints_dir / "flux1-dev.safetensors"
+        fake_model.write_text("fake model data")
+        
+        missing = model_manager.check_required_models()
+        
+        # Should not include the model we created
+        missing_names = [m.name for m in missing]
+        assert "FLUX Dev" not in missing_names
+    
+    def test_get_model_path(self, model_manager, temp_models_dir):
+        """Test getting model path for different model types"""
+        checkpoint_model = ModelInfo(
+            name="Test Checkpoint",
+            type=ModelType.CHECKPOINT,
+            url="https://example.com/model.safetensors",
+            file_size=1000,
+            sha256_hash="hash",
+            priority=1,
+            required=True,
+            description="Test",
+            filename="test.safetensors"
         )
-        self.model_manager = ModelManager(self.config)
+        
+        path = model_manager._get_model_path(checkpoint_model)
+        assert path == temp_models_dir / "checkpoints" / "test.safetensors"
+        
+        vae_model = ModelInfo(
+            name="Test VAE",
+            type=ModelType.VAE,
+            url="https://example.com/vae.safetensors",
+            file_size=1000,
+            sha256_hash="hash",
+            priority=1,
+            required=True,
+            description="Test",
+            filename="vae.safetensors"
+        )
+        
+        path = model_manager._get_model_path(vae_model)
+        assert path == temp_models_dir / "vae" / "vae.safetensors"
+    
+    def test_get_download_progress(self, model_manager):
+        """Test getting download progress"""
+        # No progress initially
+        assert model_manager.get_download_progress("Test Model") is None
+        
+        # Add progress
+        progress = DownloadProgress(
+            model_name="Test Model",
+            total_bytes=1000,
+            downloaded_bytes=500,
+            speed_mbps=1.0,
+            eta_seconds=10,
+            status="downloading"
+        )
+        model_manager.downloads["Test Model"] = progress
+        
+        # Should return progress
+        retrieved = model_manager.get_download_progress("Test Model")
+        assert retrieved is not None
+        assert retrieved.model_name == "Test Model"
+        assert retrieved.downloaded_bytes == 500
     
     @pytest.mark.asyncio
-    async def test_model_manager_initialization(self):
-        """Test model manager initialization."""
-        assert self.model_manager.config == self.config
-        assert self.model_manager.model_registry is not None
-        assert self.model_manager.gpu_memory_manager is not None
-        assert len(self.model_manager.model_cache) == 0
-        assert self.model_manager.load_stats["total_loads"] == 0
+    async def test_pause_resume_download(self, model_manager):
+        """Test pausing and resuming downloads"""
+        model_name = "Test Model"
+        
+        # Create pause event
+        pause_event = asyncio.Event()
+        pause_event.set()
+        model_manager._pause_events[model_name] = pause_event
+        
+        # Create progress
+        progress = DownloadProgress(
+            model_name=model_name,
+            total_bytes=1000,
+            downloaded_bytes=500,
+            speed_mbps=1.0,
+            eta_seconds=10,
+            status="downloading"
+        )
+        model_manager.downloads[model_name] = progress
+        
+        # Pause
+        await model_manager.pause_download(model_name)
+        assert not pause_event.is_set()
+        assert progress.status == "paused"
+        
+        # Resume
+        await model_manager.resume_download(model_name)
+        assert pause_event.is_set()
+        assert progress.status == "downloading"
     
     @pytest.mark.asyncio
-    async def test_model_loading_from_cache(self):
-        """Test model loading and caching."""
-        model_id = "style_transfer_v1"
+    async def test_validate_model_file_not_exists(self, model_manager, temp_models_dir):
+        """Test model validation when file doesn't exist"""
+        model_path = temp_models_dir / "nonexistent.safetensors"
         
-        # First load - should be cache miss
-        result1 = await self.model_manager.load_model(model_id)
-        assert result1.success is True
-        assert result1.model is not None
-        assert result1.device in ["cuda", "cpu"]
-        assert result1.memory_used_mb > 0
-        assert result1.load_time_ms > 0
-        
-        # Verify model is cached
-        cached_models = self.model_manager.get_cached_models()
-        assert model_id in cached_models
-        
-        # Second load - should be cache hit
-        result2 = await self.model_manager.load_model(model_id)
-        assert result2.success is True
-        assert result2.model is not None
-        assert result2.load_time_ms < result1.load_time_ms  # Should be faster from cache
-        
-        # Verify statistics
-        stats = self.model_manager.load_stats
-        assert stats["total_loads"] == 2
-        assert stats["successful_loads"] == 2
-        assert stats["cache_hits"] == 1
-        assert stats["cache_misses"] == 1
+        result = await model_manager.validate_model(model_path, "hash123")
+        assert result is False
     
     @pytest.mark.asyncio
-    async def test_model_loading_with_device_selection(self):
-        """Test model loading with specific device selection."""
-        model_id = "super_resolution_v2"
+    async def test_validate_model_no_hash(self, model_manager, temp_models_dir):
+        """Test model validation with no hash provided"""
+        model_path = temp_models_dir / "test.safetensors"
+        model_path.write_text("test data")
         
-        # Test auto device selection
-        result_auto = await self.model_manager.load_model(model_id, device="auto")
-        assert result_auto.success is True
-        assert result_auto.device in ["cuda", "cpu"]
-        
-        # Clear cache
-        await self.model_manager.unload_model(model_id)
-        
-        # Test CPU device selection
-        result_cpu = await self.model_manager.load_model(model_id, device="cpu")
-        assert result_cpu.success is True
-        assert result_cpu.device == "cpu"
+        result = await model_manager.validate_model(model_path, "")
+        assert result is True  # Should pass when no hash provided
     
     @pytest.mark.asyncio
-    async def test_model_unloading(self):
-        """Test model unloading."""
-        model_id = "interpolation_v1"
+    async def test_validate_model_with_hash(self, model_manager, temp_models_dir):
+        """Test model validation with hash checking"""
+        import hashlib
         
-        # Load model
-        result = await self.model_manager.load_model(model_id)
-        assert result.success is True
-        assert model_id in self.model_manager.get_cached_models()
+        # Create a test file
+        model_path = temp_models_dir / "test.safetensors"
+        test_data = b"test model data"
+        model_path.write_bytes(test_data)
         
-        # Unload model
-        success = await self.model_manager.unload_model(model_id)
-        assert success is True
-        assert model_id not in self.model_manager.get_cached_models()
+        # Calculate correct hash
+        correct_hash = hashlib.sha256(test_data).hexdigest()
         
-        # Try to unload non-existent model
-        success = await self.model_manager.unload_model("non_existent")
-        assert success is False
+        # Should pass with correct hash
+        result = await model_manager.validate_model(model_path, correct_hash)
+        assert result is True
+        
+        # Should fail with incorrect hash
+        result = await model_manager.validate_model(model_path, "wrong_hash")
+        assert result is False
     
     @pytest.mark.asyncio
-    async def test_cache_eviction(self):
-        """Test LRU cache eviction when cache is full."""
-        # Load models up to cache limit
-        model_ids = ["style_transfer_v1", "super_resolution_v2", "interpolation_v1"]
+    async def test_validate_model_file_size_check(self, model_manager, temp_models_dir):
+        """Test that file size is checked during validation"""
+        model_path = temp_models_dir / "test.safetensors"
+        test_data = b"x" * 1000  # 1000 bytes
+        model_path.write_bytes(test_data)
         
-        for model_id in model_ids:
-            result = await self.model_manager.load_model(model_id)
-            assert result.success is True
+        # Validation should work (file exists and has size)
+        result = await model_manager.validate_model(model_path, "")
+        assert result is True
         
-        # Cache should be full
-        assert len(self.model_manager.get_cached_models()) == 3
-        
-        # Load another model - should evict LRU
-        result = await self.model_manager.load_model("quality_assessment_v1")
-        assert result.success is True
-        
-        # Cache should still have 3 models, but first one should be evicted
-        cached_models = self.model_manager.get_cached_models()
-        assert len(cached_models) == 3
-        assert "style_transfer_v1" not in cached_models  # Should be evicted (LRU)
-        assert "quality_assessment_v1" in cached_models
+        # Verify file size is logged (check that stat() is called)
+        file_size = model_path.stat().st_size
+        assert file_size == 1000
     
     @pytest.mark.asyncio
-    async def test_model_loading_failure(self):
-        """Test model loading failure scenarios."""
-        # Test loading non-existent model
-        result = await self.model_manager.load_model("non_existent_model")
-        assert result.success is False
-        assert result.error_message is not None
-        assert "not found in registry" in result.error_message
+    async def test_corrupted_download_detection(self, model_manager, sample_model_info, temp_models_dir):
+        """Test that corrupted downloads are detected via hash mismatch"""
+        import hashlib
         
-        # Verify failure statistics
-        stats = self.model_manager.load_stats
-        assert stats["failed_loads"] >= 1
-    
-    def test_model_info_retrieval(self):
-        """Test model information retrieval."""
-        # Test existing model
-        model_info = self.model_manager.get_model_info("style_transfer_v1")
-        assert model_info is not None
-        assert model_info.model_id == "style_transfer_v1"
+        # Simulate a corrupted download
+        model_path = model_manager._get_model_path(sample_model_info)
+        model_path.parent.mkdir(parents=True, exist_ok=True)
+        corrupted_data = b"corrupted data"
+        model_path.write_bytes(corrupted_data)
         
-        # Test non-existent model
-        model_info = self.model_manager.get_model_info("non_existent")
-        assert model_info is None
-    
-    def test_available_models_listing(self):
-        """Test listing available models."""
-        # List all models
-        all_models = self.model_manager.list_available_models()
-        assert len(all_models) >= 4
+        # Calculate what the hash would be
+        actual_hash = hashlib.sha256(corrupted_data).hexdigest()
+        expected_hash = "expected_different_hash"
         
-        # List by type
-        style_models = self.model_manager.list_available_models(ModelType.STYLE_TRANSFER)
-        assert len(style_models) >= 1
-        assert all(m.model_type == ModelType.STYLE_TRANSFER for m in style_models)
-    
-    @pytest.mark.asyncio
-    async def test_cache_status_reporting(self):
-        """Test cache status and statistics reporting."""
-        # Load some models
-        await self.model_manager.load_model("style_transfer_v1")
-        await self.model_manager.load_model("super_resolution_v2")
-        
-        # Get cache status
-        cache_status = self.model_manager.get_cache_status()
-        
-        assert cache_status["cached_models"] == 2
-        assert cache_status["total_memory_mb"] > 0
-        assert cache_status["max_cache_size"] == 3
-        assert len(cache_status["cache_entries"]) == 2
-        assert "load_statistics" in cache_status
-        
-        # Verify cache entries have required fields
-        for entry in cache_status["cache_entries"]:
-            assert "model_id" in entry
-            assert "device" in entry
-            assert "memory_mb" in entry
-            assert "last_accessed" in entry
-            assert "access_count" in entry
-            assert "load_time_ms" in entry
-    
-    @pytest.mark.asyncio
-    async def test_optimization_analysis(self):
-        """Test model loading optimization analysis."""
-        # Load some models to generate statistics
-        await self.model_manager.load_model("style_transfer_v1")
-        await self.model_manager.load_model("style_transfer_v1")  # Cache hit
-        await self.model_manager.load_model("super_resolution_v2")
-        
-        # Get optimization report
-        optimization = self.model_manager.optimize_model_loading()
-        
-        assert "cache_hit_rate" in optimization
-        assert "gpu_utilization_rate" in optimization
-        assert "average_load_time_ms" in optimization
-        assert "recommendations" in optimization
-        assert "gpu_status" in optimization
-        
-        # Verify metrics are reasonable
-        assert 0 <= optimization["cache_hit_rate"] <= 1
-        assert 0 <= optimization["gpu_utilization_rate"] <= 1
-        assert optimization["average_load_time_ms"] >= 0
-        assert isinstance(optimization["recommendations"], list)
-    
-    @pytest.mark.asyncio
-    async def test_model_manager_shutdown(self):
-        """Test model manager shutdown and cleanup."""
-        # Load some models
-        await self.model_manager.load_model("style_transfer_v1")
-        await self.model_manager.load_model("super_resolution_v2")
-        
-        # Verify models are cached
-        assert len(self.model_manager.get_cached_models()) == 2
-        
-        # Shutdown
-        await self.model_manager.shutdown()
-        
-        # Verify all models are unloaded
-        assert len(self.model_manager.get_cached_models()) == 0
+        # Validation should fail
+        result = await model_manager.validate_model(model_path, expected_hash)
+        assert result is False
 
 
-class TestModelLoadResult:
-    """Test suite for ModelLoadResult data structure."""
+class TestModelDownload:
+    """Tests for model download functionality"""
     
-    def test_successful_load_result(self):
-        """Test successful model load result."""
-        mock_model = {"model_id": "test", "type": "style_transfer"}
-        result = ModelLoadResult(
-            success=True,
-            model=mock_model,
-            device="cuda",
-            memory_used_mb=256.0,
-            load_time_ms=500.0
-        )
+    @pytest.mark.asyncio
+    async def test_download_model_success(self, model_manager, sample_model_info, temp_models_dir):
+        """Test successful model download"""
+        # Mock aiohttp session
+        mock_response = AsyncMock()
+        mock_response.status = 200
         
-        assert result.success is True
-        assert result.model == mock_model
-        assert result.device == "cuda"
-        assert result.memory_used_mb == 256.0
-        assert result.load_time_ms == 500.0
-        assert result.error_message is None
+        async def chunk_generator():
+            yield b"test data chunk"
+        
+        mock_response.content.iter_chunked = lambda size: chunk_generator()
+        
+        # Create a proper async context manager mock
+        class MockGet:
+            async def __aenter__(self):
+                return mock_response
+            async def __aexit__(self, *args):
+                pass
+        
+        mock_session = AsyncMock()
+        mock_session.get = Mock(return_value=MockGet())
+        
+        class MockClientSession:
+            async def __aenter__(self):
+                return mock_session
+            async def __aexit__(self, *args):
+                pass
+        
+        with patch('aiohttp.ClientSession', return_value=MockClientSession()):
+            # Track progress callbacks
+            progress_updates = []
+            
+            def progress_callback(progress):
+                progress_updates.append(progress)
+            
+            result = await model_manager.download_model(sample_model_info, progress_callback)
+            
+            assert result is True
+            assert len(progress_updates) > 0
+            
+            # Check final progress
+            final_progress = progress_updates[-1]
+            assert final_progress.status == "completed"
+            assert final_progress.model_name == sample_model_info.name
     
-    def test_failed_load_result(self):
-        """Test failed model load result."""
-        result = ModelLoadResult(
-            success=False,
-            error_message="Model not found"
-        )
+    @pytest.mark.asyncio
+    async def test_download_model_http_error(self, model_manager, sample_model_info):
+        """Test download with HTTP error"""
+        mock_response = AsyncMock()
+        mock_response.status = 404
         
-        assert result.success is False
-        assert result.model is None
-        assert result.error_message == "Model not found"
-        assert result.device == "cpu"  # Default
-        assert result.memory_used_mb == 0.0  # Default
-        assert result.load_time_ms == 0.0  # Default
+        class MockGet:
+            async def __aenter__(self):
+                return mock_response
+            async def __aexit__(self, *args):
+                pass
+        
+        mock_session = AsyncMock()
+        mock_session.get = Mock(return_value=MockGet())
+        
+        class MockClientSession:
+            async def __aenter__(self):
+                return mock_session
+            async def __aexit__(self, *args):
+                pass
+        
+        with patch('aiohttp.ClientSession', return_value=MockClientSession()):
+            result = await model_manager.download_model(sample_model_info)
+            
+            assert result is False
+            
+            # Check progress status
+            progress = model_manager.get_download_progress(sample_model_info.name)
+            assert progress is not None
+            assert progress.status == "failed"
+            assert "404" in progress.error_message
+    
+    @pytest.mark.asyncio
+    async def test_download_model_exception(self, model_manager, sample_model_info):
+        """Test download with exception"""
+        with patch('aiohttp.ClientSession') as mock_session:
+            mock_session.return_value.__aenter__.side_effect = Exception("Network error")
+            
+            result = await model_manager.download_model(sample_model_info)
+            
+            assert result is False
+            
+            # Check progress status
+            progress = model_manager.get_download_progress(sample_model_info.name)
+            assert progress is not None
+            assert progress.status == "failed"
+            assert "Network error" in progress.error_message
+    
+    @pytest.mark.asyncio
+    async def test_download_model_progress_tracking(self, model_manager, sample_model_info):
+        """Test that progress is tracked correctly during download"""
+        # Create chunks that simulate a download
+        chunks = [b"x" * 1024 * 1024 for _ in range(5)]  # 5MB in 1MB chunks
+        
+        mock_response = AsyncMock()
+        mock_response.status = 200
+        
+        async def chunk_generator():
+            for chunk in chunks:
+                yield chunk
+        
+        mock_response.content.iter_chunked = lambda size: chunk_generator()
+        
+        class MockGet:
+            async def __aenter__(self):
+                return mock_response
+            async def __aexit__(self, *args):
+                pass
+        
+        mock_session = AsyncMock()
+        mock_session.get = Mock(return_value=MockGet())
+        
+        class MockClientSession:
+            async def __aenter__(self):
+                return mock_session
+            async def __aexit__(self, *args):
+                pass
+        
+        with patch('aiohttp.ClientSession', return_value=MockClientSession()):
+            progress_updates = []
+            
+            def progress_callback(progress):
+                progress_updates.append(progress)
+            
+            result = await model_manager.download_model(sample_model_info, progress_callback)
+            
+            assert result is True
+            
+            # Verify progress was tracked
+            assert sample_model_info.name in model_manager.downloads
+            progress = model_manager.downloads[sample_model_info.name]
+            assert progress.status == "completed"
+    
+    @pytest.mark.asyncio
+    async def test_download_with_pause_resume(self, model_manager, sample_model_info):
+        """Test pausing and resuming during download"""
+        # This is a simplified test - in reality, pause/resume would need
+        # more complex mocking to test properly
+        
+        # Create pause event
+        pause_event = asyncio.Event()
+        pause_event.set()
+        model_manager._pause_events[sample_model_info.name] = pause_event
+        
+        # Verify pause/resume works
+        await model_manager.pause_download(sample_model_info.name)
+        assert not pause_event.is_set()
+        
+        await model_manager.resume_download(sample_model_info.name)
+        assert pause_event.is_set()
 
 
-class TestModelCacheEntry:
-    """Test suite for ModelCacheEntry data structure."""
+class TestSequentialDownload:
+    """Tests for sequential download with priority ordering"""
     
-    def test_cache_entry_creation(self):
-        """Test cache entry creation and fields."""
-        mock_model = {"model_id": "test"}
-        model_info = ModelInfo(
-            model_id="test_model",
-            model_type=ModelType.STYLE_TRANSFER,
-            version="1.0.0",
-            size_mb=128.0,
-            gpu_memory_required=512,
-            supported_operations=["style_transfer"],
-            performance_characteristics={"speed": 0.8}
-        )
+    @pytest.mark.asyncio
+    async def test_download_all_missing_empty(self, model_manager, temp_models_dir):
+        """Test download_all_missing when all models are present"""
+        # Create all required model files
+        for model_info in ModelManager.REQUIRED_MODELS:
+            if model_info.required:
+                model_path = model_manager._get_model_path(model_info)
+                model_path.parent.mkdir(parents=True, exist_ok=True)
+                model_path.write_text("fake model")
         
-        entry = ModelCacheEntry(
-            model=mock_model,
-            model_info=model_info,
-            device="cuda",
-            memory_used_mb=128.0,
-            last_accessed=1234567890.0,
-            access_count=5,
-            load_time_ms=300.0
-        )
+        results = await model_manager.download_all_missing()
         
-        assert entry.model == mock_model
-        assert entry.model_info == model_info
-        assert entry.device == "cuda"
-        assert entry.memory_used_mb == 128.0
-        assert entry.last_accessed == 1234567890.0
-        assert entry.access_count == 5
-        assert entry.load_time_ms == 300.0
+        assert len(results) == 0
+    
+    @pytest.mark.asyncio
+    async def test_download_all_missing_priority_order(self, model_manager):
+        """Test that models are downloaded in priority order"""
+        downloaded_order = []
+        
+        async def mock_download(model_info, callback=None):
+            downloaded_order.append((model_info.name, model_info.priority))
+            return True
+        
+        # Patch download_model to track order
+        with patch.object(model_manager, 'download_model', side_effect=mock_download):
+            await model_manager.download_all_missing()
+        
+        # Verify downloads happened in priority order
+        assert len(downloaded_order) > 0
+        priorities = [priority for _, priority in downloaded_order]
+        assert priorities == sorted(priorities), "Models should be downloaded in priority order"
+    
+    @pytest.mark.asyncio
+    async def test_download_all_missing_with_failures(self, model_manager):
+        """Test that download continues even if some models fail"""
+        download_attempts = []
+        
+        async def mock_download(model_info, callback=None):
+            download_attempts.append(model_info.name)
+            # Fail every other download
+            return len(download_attempts) % 2 == 0
+        
+        with patch.object(model_manager, 'download_model', side_effect=mock_download):
+            results = await model_manager.download_all_missing()
+        
+        # Should have attempted all required models
+        required_count = sum(1 for m in ModelManager.REQUIRED_MODELS if m.required)
+        assert len(download_attempts) == required_count
+        
+        # Results should show success/failure for each
+        assert len(results) == required_count
+        assert True in results.values()
+        assert False in results.values()
+    
+    @pytest.mark.asyncio
+    async def test_download_all_missing_progress_callback(self, model_manager):
+        """Test that progress callbacks are called for each model"""
+        progress_updates = []
+        
+        async def mock_download(model_info, callback=None):
+            if callback:
+                # Simulate progress update
+                progress = DownloadProgress(
+                    model_name=model_info.name,
+                    total_bytes=1000,
+                    downloaded_bytes=500,
+                    speed_mbps=1.0,
+                    eta_seconds=10,
+                    status="downloading"
+                )
+                callback(progress)
+            return True
+        
+        def progress_callback(model_name, progress):
+            progress_updates.append((model_name, progress))
+        
+        with patch.object(model_manager, 'download_model', side_effect=mock_download):
+            await model_manager.download_all_missing(progress_callback)
+        
+        # Should have received progress updates
+        assert len(progress_updates) > 0
 
 
 if __name__ == "__main__":
-    # Run tests
     pytest.main([__file__, "-v"])
+
+
+class TestRetryLogic:
+    """Tests for download retry logic with exponential backoff"""
+    
+    @pytest.mark.asyncio
+    async def test_download_succeeds_first_attempt(self, model_manager, sample_model_info):
+        """Test that successful download doesn't retry"""
+        attempt_count = [0]
+        
+        async def mock_attempt(model_info, callback, attempt_num):
+            attempt_count[0] += 1
+            return True
+        
+        with patch.object(model_manager, '_download_model_attempt', side_effect=mock_attempt):
+            result = await model_manager.download_model(sample_model_info)
+        
+        assert result is True
+        assert attempt_count[0] == 1  # Only one attempt needed
+    
+    @pytest.mark.asyncio
+    async def test_download_retries_on_failure(self, model_manager, sample_model_info):
+        """Test that failed downloads are retried"""
+        attempt_count = [0]
+        
+        async def mock_attempt(model_info, callback, attempt_num):
+            attempt_count[0] += 1
+            # Fail first two attempts, succeed on third
+            return attempt_count[0] >= 3
+        
+        with patch.object(model_manager, '_download_model_attempt', side_effect=mock_attempt):
+            result = await model_manager.download_model(sample_model_info, max_retries=3)
+        
+        assert result is True
+        assert attempt_count[0] == 3  # Should have retried twice
+    
+    @pytest.mark.asyncio
+    async def test_download_exhausts_retries(self, model_manager, sample_model_info):
+        """Test that download fails after max retries"""
+        attempt_count = [0]
+        
+        async def mock_attempt(model_info, callback, attempt_num):
+            attempt_count[0] += 1
+            return False  # Always fail
+        
+        with patch.object(model_manager, '_download_model_attempt', side_effect=mock_attempt):
+            result = await model_manager.download_model(sample_model_info, max_retries=3)
+        
+        assert result is False
+        assert attempt_count[0] == 3  # Should have tried 3 times
+    
+    @pytest.mark.asyncio
+    async def test_exponential_backoff_timing(self, model_manager, sample_model_info):
+        """Test that exponential backoff is applied between retries"""
+        attempt_times = []
+        
+        async def mock_attempt(model_info, callback, attempt_num):
+            attempt_times.append(time.time())
+            return False  # Always fail to trigger retries
+        
+        with patch.object(model_manager, '_download_model_attempt', side_effect=mock_attempt):
+            start_time = time.time()
+            result = await model_manager.download_model(sample_model_info, max_retries=3)
+            total_time = time.time() - start_time
+        
+        assert result is False
+        assert len(attempt_times) == 3
+        
+        # Check that backoff was applied (2^0 + 2^1 = 3 seconds minimum)
+        # Allow some tolerance for execution time
+        assert total_time >= 3.0, f"Expected at least 3 seconds of backoff, got {total_time}"
+    
+    @pytest.mark.asyncio
+    async def test_retry_with_exception(self, model_manager, sample_model_info):
+        """Test that exceptions trigger retries"""
+        attempt_count = [0]
+        
+        async def mock_attempt(model_info, callback, attempt_num):
+            attempt_count[0] += 1
+            if attempt_count[0] < 3:
+                raise Exception("Network error")
+            return True  # Succeed on third attempt
+        
+        with patch.object(model_manager, '_download_model_attempt', side_effect=mock_attempt):
+            result = await model_manager.download_model(sample_model_info, max_retries=3)
+        
+        assert result is True
+        assert attempt_count[0] == 3
+    
+    @pytest.mark.asyncio
+    async def test_retry_logging(self, model_manager, sample_model_info):
+        """Test that retry attempts are logged"""
+        attempt_count = [0]
+        
+        async def mock_attempt(model_info, callback, attempt_num):
+            attempt_count[0] += 1
+            return attempt_count[0] >= 2  # Fail first, succeed second
+        
+        with patch.object(model_manager, '_download_model_attempt', side_effect=mock_attempt):
+            with patch('src.end_to_end.model_manager.logger') as mock_logger:
+                result = await model_manager.download_model(sample_model_info, max_retries=3)
+                
+                # Verify warning was logged for retry
+                assert mock_logger.warning.called
+                warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
+                assert any("Retrying" in str(call) for call in warning_calls)
+        
+        assert result is True
+    
+    @pytest.mark.asyncio
+    async def test_max_retries_parameter(self, model_manager, sample_model_info):
+        """Test that max_retries parameter is respected"""
+        attempt_count = [0]
+        
+        async def mock_attempt(model_info, callback, attempt_num):
+            attempt_count[0] += 1
+            return False  # Always fail
+        
+        # Test with different max_retries values
+        with patch.object(model_manager, '_download_model_attempt', side_effect=mock_attempt):
+            result = await model_manager.download_model(sample_model_info, max_retries=5)
+        
+        assert result is False
+        assert attempt_count[0] == 5  # Should respect custom max_retries

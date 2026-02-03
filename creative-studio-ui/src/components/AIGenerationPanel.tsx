@@ -27,11 +27,34 @@ const AIGenerationPanel: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentJob, setCurrentJob] = useState<JobStatus | null>(null);
   const [generatedContent, setGeneratedContent] = useState<string[]>([]);
+  const [comfyUIUrl, setComfyUIUrl] = useState<string | null>(null);
 
   // System maintenance states
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<string>('');
+
+  // Check for configured ComfyUI server on mount
+  useEffect(() => {
+    const checkComfyUIConfig = async () => {
+      try {
+        const { getComfyUIServersService } = await import('@/services/comfyuiServersService');
+        const service = getComfyUIServersService();
+        const activeServer = service.getActiveServer();
+        
+        if (activeServer) {
+          setComfyUIUrl(activeServer.serverUrl.replace(/\/$/, ''));
+        } else {
+          setComfyUIUrl(null);
+        }
+      } catch (error) {
+        console.error('[AIGenerationPanel] Failed to check ComfyUI config:', error);
+        setComfyUIUrl(null);
+      }
+    };
+
+    checkComfyUIConfig();
+  }, []);
 
   // Image generation parameters
   const [imageParams, setImageParams] = useState<GenerationParams>({
@@ -60,10 +83,15 @@ const AIGenerationPanel: React.FC = () => {
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
+    // Only check job status if ComfyUI is configured
+    if (!comfyUIUrl) {
+      return;
+    }
+
     if (currentJob && (currentJob.status === 'queued' || currentJob.status === 'running')) {
       interval = setInterval(async () => {
         try {
-          const response = await fetch(`http://localhost:8000/job/${currentJob.job_id}`);
+          const response = await fetch(`${comfyUIUrl}/job/${currentJob.job_id}`);
           const jobStatus = await response.json();
 
           setCurrentJob(jobStatus);
@@ -77,7 +105,7 @@ const AIGenerationPanel: React.FC = () => {
                 if (output.images) {
                   output.images.forEach((img: any) => {
                     if (img.filename) {
-                      urls.push(`http://127.0.0.1:8188/view?filename=${img.filename}&subfolder=${img.subfolder || ''}&type=${img.type || 'output'}`);
+                      urls.push(`${comfyUIUrl}/view?filename=${img.filename}&subfolder=${img.subfolder || ''}&type=${img.type || 'output'}`);
                     }
                   });
                 }
@@ -97,9 +125,14 @@ const AIGenerationPanel: React.FC = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [currentJob]);
+  }, [currentJob, comfyUIUrl]);
 
   const generateImage = async () => {
+    if (!comfyUIUrl) {
+      alert('ComfyUI is not configured. Please configure a ComfyUI server in Settings before generating images.');
+      return;
+    }
+
     if (!imageParams.prompt.trim()) {
       alert('Please enter a prompt for image generation');
       return;
@@ -109,7 +142,7 @@ const AIGenerationPanel: React.FC = () => {
     setGeneratedContent([]);
 
     try {
-      const response = await fetch('http://localhost:8000/generate/image', {
+      const response = await fetch(`${comfyUIUrl}/generate/image`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,12 +166,17 @@ const AIGenerationPanel: React.FC = () => {
       }
     } catch (error) {
       console.error('Error starting image generation:', error);
-      alert('Failed to start image generation');
+      alert('Failed to start image generation. Make sure ComfyUI server is running.');
       setIsGenerating(false);
     }
   };
 
   const generateVideo = async () => {
+    if (!comfyUIUrl) {
+      alert('ComfyUI is not configured. Please configure a ComfyUI server in Settings before generating videos.');
+      return;
+    }
+
     if (!videoParams.prompt.trim()) {
       alert('Please enter a prompt for video generation');
       return;
@@ -148,7 +186,7 @@ const AIGenerationPanel: React.FC = () => {
     setGeneratedContent([]);
 
     try {
-      const response = await fetch('http://localhost:8000/generate/video', {
+      const response = await fetch(`${comfyUIUrl}/generate/video`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -172,7 +210,7 @@ const AIGenerationPanel: React.FC = () => {
       }
     } catch (error) {
       console.error('Error starting video generation:', error);
-      alert('Failed to start video generation');
+      alert('Failed to start video generation. Make sure ComfyUI server is running.');
       setIsGenerating(false);
     }
   };
@@ -266,6 +304,18 @@ const AIGenerationPanel: React.FC = () => {
     <div className="ai-generation-panel">
       <div className="panel-header">
         <h2>🎨 AI Content Generation</h2>
+        {!comfyUIUrl && (
+          <div style={{
+            padding: '8px 12px',
+            backgroundColor: '#ff9800',
+            color: 'white',
+            borderRadius: '4px',
+            fontSize: '14px',
+            marginTop: '8px'
+          }}>
+            ⚠️ ComfyUI not configured. Please configure a ComfyUI server in Settings to use this feature.
+          </div>
+        )}
         <div className="tab-buttons">
           <button
             className={`tab-button ${activeTab === 'image' ? 'active' : ''}`}
@@ -508,7 +558,7 @@ const AIGenerationPanel: React.FC = () => {
           <button
             className="generate-btn"
             onClick={activeTab === 'image' ? generateImage : generateVideo}
-            disabled={isGenerating}
+            disabled={isGenerating || !comfyUIUrl}
           >
             {isGenerating ? '⏳ Generating...' : (activeTab === 'image' ? '🎨 Generate Image' : '🎬 Generate Video')}
           </button>

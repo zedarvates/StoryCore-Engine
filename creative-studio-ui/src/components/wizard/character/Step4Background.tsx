@@ -10,6 +10,7 @@ import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
+import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 4: Background
@@ -17,6 +18,7 @@ import type { World } from '@/types/world';
 
 interface Step4BackgroundProps {
   worldContext?: World;
+  storyContext?: StoryContext;
 }
 
 export function Step4Background({ worldContext }: Step4BackgroundProps) {

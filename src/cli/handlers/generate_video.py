@@ -121,6 +121,30 @@ class GenerateVideoHandler(BaseHandler):
             print(f"  Total duration: {result['total_duration']:.1f} seconds")
             print(f"  Processing time: {result['processing_time']:.1f} seconds")
             
+            # Index generated assets in memory system
+            if result.get('generated_videos'):
+                from ..memory_integration import index_generated_assets
+                
+                # Extract asset paths
+                asset_paths = [video['path'] for video in result['generated_videos']]
+                
+                # Index assets with context
+                indexed = index_generated_assets(
+                    project_path=project_path,
+                    asset_paths=asset_paths,
+                    asset_type="video",
+                    generation_context={
+                        "workflow": args.workflow,
+                        "comfyui_url": args.comfyui_url,
+                        "fps": args.fps,
+                        "duration": args.duration,
+                        "mock_mode": args.mock
+                    }
+                )
+                
+                if indexed:
+                    print(f"  Indexed {len(asset_paths)} videos in memory system")
+            
             # Show generation details
             if result.get('generated_videos'):
                 print(f"\n  Generated videos:")

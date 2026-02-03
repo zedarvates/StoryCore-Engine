@@ -4,6 +4,8 @@
  */
 
 import { promptLibrary, PromptTemplate } from '../library/PromptLibraryService';
+import { ollamaClient } from './llm/OllamaClient';
+import { useAppStore } from '../stores/useAppStore';
 
 export interface ProjectPromptData {
   name: string;
@@ -95,28 +97,28 @@ export class PromptGenerationService {
     const genreTemplate = await promptLibrary.loadPrompt(
       `02-genres/${sceneData.genre}.json`
     );
-    
+
     const shotTemplate = await promptLibrary.loadPrompt(
       `03-shot-types/${sceneData.shotType}.json`
     );
-    
+
     const lightingTemplate = await promptLibrary.loadPrompt(
       `04-lighting/${sceneData.lighting}.json`
     );
 
     // Generate each part
     const genrePrompt = promptLibrary.fillPrompt(
-      genreTemplate, 
+      genreTemplate,
       sceneData.genreValues || {}
     );
-    
+
     const shotPrompt = promptLibrary.fillPrompt(
-      shotTemplate, 
+      shotTemplate,
       sceneData.shotValues || {}
     );
-    
+
     const lightingPrompt = promptLibrary.fillPrompt(
-      lightingTemplate, 
+      lightingTemplate,
       sceneData.lightingValues || {}
     );
 
@@ -152,11 +154,44 @@ export class PromptGenerationService {
    * Validate prompt values before generation
    */
   async validatePromptData(
-    templatePath: string, 
+    templatePath: string,
     values: Record<string, string | number>
   ): Promise<{ valid: boolean; errors: string[] }> {
     const template = await promptLibrary.loadPrompt(templatePath);
     return promptLibrary.validateValues(template, values);
+  }
+
+  /**
+   * Enhanced prompt generation using Ollama (if available)
+   */
+  async generateAIEnhancedPrompt(basePrompt: string, context: string): Promise<string> {
+    const ollamaStatus = useAppStore.getState().ollamaStatus;
+
+    if (ollamaStatus !== 'connected') {
+      console.warn('⚠️ [PromptGenerationService] Ollama not connected, returning base prompt');
+      return basePrompt;
+    }
+
+    try {
+      // Find a suitable model (prefer llama3 or similar)
+      const models = await ollamaClient.listModels();
+      const model = models.find(m => m.category === 'storytelling' || m.name.includes('llama'))?.name || models[0]?.name;
+
+      if (!model) {
+        return basePrompt;
+      }
+
+      const systemPrompt = `You are a creative writing assistant for StoryCore. 
+      Your goal is to take a base prompt for image generation and enhance it with more descriptive detail, 
+sensory information, and artistic style while maintaining the original intent.
+      Keep the final output concise and optimized for Flux/Stable Diffusion.`;
+
+      const response = await ollamaClient.generate(model, `${systemPrompt}\n\nContext: ${context}\nBase Prompt: ${basePrompt}`);
+      return response || basePrompt;
+    } catch (error) {
+      console.error('❌ [PromptGenerationService] AI Enhancement failed:', error);
+      return basePrompt;
+    }
   }
 }
 

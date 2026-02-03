@@ -1,7 +1,7 @@
 # 🎬 StoryCore-Engine
 ### The Self-Correcting Multimodal Production Pipeline
 
-**From Script to Screen in 5 Minutes — With Guaranteed Visual Coherence**
+**From Script to Screen in less 1h — With  Visual Coherence**
 
 ![Hackathon 2026](https://img.shields.io/badge/Hackathon-2026-blue) ![Python](https://img.shields.io/badge/Python-3.9+-green) ![React](https://img.shields.io/badge/React-18+-blue) ![ComfyUI](https://img.shields.io/badge/ComfyUI-Ready-orange) ![Deterministic AI](https://img.shields.io/badge/Deterministic-AI-purple) ![Security](https://img.shields.io/badge/Security-Validated-green) ![Resilience](https://img.shields.io/badge/Resilience-Enterprise-blue)
 
@@ -20,6 +20,58 @@
 > In short, I wanted to build a bridge between yesterday and today: the rigor and poetry of traditional methods, combined with the speed and power of modern tools. A tool that accelerates production, secures your workflow, and frees creativity.
 
 ---
+i know they are a lot of problems in the UI but i can do more in time for the competition 
+---------------------------------------------------------------------------------------
+you must
+---------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
+
+SETUP FOR THE USER:
+
+win11:
+
+1. Install Ollama:
+2. Install ComfyUI desktop CORS and enable it ( others may not work actually )
+3. Install StoryCore with the setup
+4. Launch ComfyUI on port 8000 with CORS * and install the correction flow plugin, enable automatic model download, and if possible, download the models in advance
+5. Launch StoryCore
+
+---------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
+
+Minimal Hardware:
+
+1 screen, 1 mouse, 1 keyboard, optionnal microphone 
+GPU : 3060 12 go rtx 
+cuda / pytorch / pythons (3.11 +) / drivers / ....
+Pc ram : 32 go
+Espace disque : need to be defined but more or less  500GO with models in comfyui
+
+---------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
+
+In the Future Roadmaps :
+
+MCP ui render in the storycore assistant
+Upscalling Boutons in the user's UI
+Embedded Boutons  in the user's UI
+Regenerated Boutons assets by selection 
+Brutal AI images corrections ( paint tool )
+World API (3d scene construction with one image)
+3d characters puppet 
+3d assets 
+3d video Sprites for Anime
+Characters pose en "cliché" bank 
+Auto asset generators 
+Auto real photo exploitations 
+Clawdbot facilitator (reduces capacity consumption, quickest as possible, skills, logics integrations)
+Your Second Brain Obsidian inspiration to story
+Community Bank Assets 
+Layerings optimization (statics and animed)
+Video loop optimizations (First and last images with auto caption, first frame and last frame)
+
+Fixes and Ameliorations : mixing audio video and story , workfows , goal user identification, improve  fact checker, UI...... more comfyui workflows like 1st image to end image flux.2 Klein, add more possibilities in user UI allready in scripted in .py
+
 
 ## 🚀 Quick Start
 
@@ -76,6 +128,7 @@ python storycore.py promote --project my-project
 ## ✨ Key Features
 
 - **Visual Coherence System** - Master Coherence Sheet ensures consistent style across all frames
+- **Story builder System** - Master story ensures  coherences across video
 - **Self-Correcting Pipeline** - Automatic quality detection and fixing during generation
 - **Deterministic Output** - Reproducible results with seed control
 - **Complete Local Processing** - No cloud dependencies, all data stays on your machine
@@ -161,40 +214,6 @@ npm run package:linux # Linux
 
 **For detailed build information, see:** [BUILD_REPORT.md](BUILD_REPORT.md)
 
-### Icon Generation
-
-The application uses `StorycoreIconeV2.png` as the source icon. Platform-specific formats are automatically generated using `electron-icon-builder`.
-
-**Generate icons:**
-```bash
-npm run icons:generate
-```
-
-This creates:
-- `build/icon.ico` - Windows icon bundle (16x16 to 256x256)
-- `build/icon.icns` - macOS icon bundle (up to 1024x1024)
-- `build/icons/` - Individual PNG files at various resolutions
-
-**For detailed icon documentation, see:** [build/README.md](build/README.md)
-
-### Testing
-
-```bash
-# Run all tests
-npm run test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with UI
-npm run test:ui
-```
-
-**Test Status:** ⚠️ 50% passing (development in progress)
-- Critical functionality: ✅ Working
-- Test cleanup: 🔄 In progress
-
-**For test fixes and status, see:** [FIX_TESTS.md](FIX_TESTS.md)
 
 ---
 
@@ -224,6 +243,7 @@ Professional Studio Integration: Enterprise deployment and scaling
 - [Build Success Summary](BUILD_SUCCESS_SUMMARY.md) - ✅ Latest build status (Jan 23, 2026)
 - [Build Report](BUILD_REPORT.md) - Detailed build analysis and metrics
 - [Test Fixes](FIX_TESTS.md) - Test improvements and known issues
+- [TODO List](TODO.md) - Master TODO and task tracking
 - [Release Notes](RELEASE_NOTES_2026_01_23.md) - Latest release information
 - [Changelog](CHANGELOG.md) - Version history
 
@@ -241,6 +261,6 @@ Professional Studio Integration: Enterprise deployment and scaling
 Team: StoryCore-Engine Development Team
 Duration: + 210 hours
 Focus: Coherence-first, measurable multimodal pipeline
-Result: Production-ready system with interfaces
+Result: Production Marquette-ready system with interfaces
 
 Redefining how creators interact with multimodal AI through guaranteed visual coherence and autonomous quality control.

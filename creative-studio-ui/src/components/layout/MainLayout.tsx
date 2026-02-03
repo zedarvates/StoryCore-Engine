@@ -4,35 +4,38 @@
  */
 
 import React, { useState } from 'react';
-import { MainSidebar } from './MainSidebar';
+import { MainSidebar } from '../navigation/MainSidebar';
 import { Toaster } from '@/components/ui/toaster';
-import { ProjectDashboardNew } from '@/components/ProjectDashboardNew';
-import { WizardLauncher } from '@/components/wizards/WizardLauncher';
+import { ProjectDashboardNew } from '@/components/workspace/ProjectDashboardNew';
+import { WizardLauncher } from '../wizard/WizardLauncher';
+import { LocalAIPanel } from '../workspace/LocalAIPanel';
 import { EditorLayout } from '@/components/EditorLayout';
 import { useAppStore } from '@/stores/useAppStore';
-import { useWizardDefinitions } from '@/hooks/useWizardDefinitions';
+import { getEnabledWizards } from '@/data/wizardDefinitions';
+import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { FolderOpen, Wand2, Settings, Image, X } from 'lucide-react';
+import { FolderOpen, Settings, Image } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
   className?: string;
 }
 
-type ViewType = 'dashboard' | 'projects' | 'wizards' | 'media' | 'settings';
+type ViewType = 'dashboard' | 'projects' | 'wizards' | 'media' | 'settings' | 'ai-services';
 
 export function MainLayout({ children, className }: MainLayoutProps) {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Get wizard definitions
-  const { availableWizards } = useWizardDefinitions();
+  const availableWizards = useMemo(() => getEnabledWizards(), []);
 
   // Mock project data
   const project = useAppStore((state) => state.project);
 
-  const handleViewChange = (view: ViewType) => {
-    setActiveView(view);
+  const handleViewChange = (view: string) => {
+    setActiveView(view as ViewType);
   };
 
   const renderContent = () => {
@@ -40,10 +43,14 @@ export function MainLayout({ children, className }: MainLayoutProps) {
       case 'dashboard':
         return (
           <div className="h-full overflow-auto">
-            <ProjectDashboardNew />
+            <ProjectDashboardNew onOpenEditor={(sequenceId) => {
+              // Handle editor opening logic
+              console.log("Open editor for sequence", sequenceId);
+              // You might want to switch view to 'editor' or similar if implemented
+            }} />
           </div>
         );
-      
+
       case 'projects':
         return (
           <div className="h-full p-6 overflow-auto">
@@ -61,7 +68,7 @@ export function MainLayout({ children, className }: MainLayoutProps) {
             </div>
           </div>
         );
-      
+
       case 'wizards':
         return (
           <div className="h-full overflow-auto">
@@ -73,7 +80,7 @@ export function MainLayout({ children, className }: MainLayoutProps) {
             />
           </div>
         );
-      
+
       case 'media':
         return (
           <div className="h-full p-6 overflow-auto">
@@ -84,12 +91,19 @@ export function MainLayout({ children, className }: MainLayoutProps) {
                 title="Importer des médias"
                 description="Ajoutez des images, vidéos et fichiers audio"
                 actionLabel="Importer"
-                onAction={() => {}}
+                onAction={() => { }}
               />
             </div>
           </div>
         );
-      
+
+      case 'ai-services':
+        return (
+          <div className="h-full overflow-auto">
+            <LocalAIPanel />
+          </div>
+        );
+
       case 'settings':
         return (
           <div className="h-full p-6 overflow-auto">
@@ -100,12 +114,12 @@ export function MainLayout({ children, className }: MainLayoutProps) {
                 title="Configuration"
                 description="Gérez les paramètres de l'application"
                 actionLabel="Ouvrir les réglages"
-                onAction={() => {}}
+                onAction={() => { }}
               />
             </div>
           </div>
         );
-      
+
       default:
         return null;
     }
@@ -129,11 +143,11 @@ export function MainLayout({ children, className }: MainLayoutProps) {
             <h2 className="font-semibold capitalize">{activeView}</h2>
             {project && (
               <span className="text-sm text-muted-foreground">
-                {project.name}
+                {project.project_name}
               </span>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2">
             {/* Quick actions could go here */}
           </div>
@@ -141,9 +155,18 @@ export function MainLayout({ children, className }: MainLayoutProps) {
 
         {/* Content */}
         <main className="flex-1 overflow-hidden flex">
-          <div className="flex-1 overflow-hidden">
-            {children || renderContent()}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeView}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="flex-1 overflow-hidden"
+            >
+              {children || renderContent()}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 
@@ -224,10 +247,10 @@ export function ResizablePanelContainer({
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
-    
+
     const newWidth = e.clientX;
     const containerWidth = window.innerWidth;
-    
+
     if (newWidth >= minLeftWidth && newWidth <= containerWidth - minRightWidth) {
       setCurrentLeftWidth(newWidth);
     }
@@ -266,7 +289,11 @@ export function ResizablePanelContainer({
       />
 
       <div className="flex-1 overflow-hidden">
-        <EditorLayout />
+        <EditorLayout>
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            Editor Content Placeholder
+          </div>
+        </EditorLayout>
       </div>
 
       {rightPanel && (
@@ -278,7 +305,7 @@ export function ResizablePanelContainer({
             )}
             onMouseDown={handleMouseDown}
           />
-          
+
           <div
             style={{ width: currentRightWidth }}
             className="border-l border-border overflow-hidden"

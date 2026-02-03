@@ -52,7 +52,7 @@ export const comfyUIServerSchema: ModalSchema = {
       label: 'URL du serveur',
       type: 'url',
       required: true,
-      placeholder: 'http://localhost:8188',
+      placeholder: 'http://localhost:8000', // ComfyUI Desktop default
       validation: [
         { type: 'required', message: 'L\'URL du serveur est requise' },
         { type: 'url', message: 'Format d\'URL invalide' },

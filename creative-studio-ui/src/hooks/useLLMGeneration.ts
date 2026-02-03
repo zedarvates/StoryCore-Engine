@@ -82,7 +82,9 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
   const generate = useCallback(
     async (request: LLMRequest) => {
       if (!llmService) {
-        console.error('[useLLMGeneration] No LLM service available');
+        const error = new Error('LLM service not initialized. Please configure your LLM settings first.');
+        error.name = 'LLMServiceNotInitialized';
+        handleError(error);
         return;
       }
 
@@ -132,7 +134,9 @@ export function useLLMGeneration(options: UseLLMGenerationOptions = {}) {
   const generateStreaming = useCallback(
     async (request: LLMRequest) => {
       if (!llmService) {
-        console.error('[useLLMGeneration] No LLM service available');
+        const error = new Error('LLM service not initialized. Please configure your LLM settings first.');
+        error.name = 'LLMServiceNotInitialized';
+        handleError(error);
         return;
       }
 

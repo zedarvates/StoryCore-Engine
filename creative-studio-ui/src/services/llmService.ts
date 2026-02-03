@@ -5,6 +5,8 @@
  * Supports streaming responses, retry logic, and error handling
  */
 
+import { ollamaClient } from './llm/OllamaClient';
+
 /**
  * Supported LLM providers
  */
@@ -383,11 +385,11 @@ class OpenAIProvider extends LLMProviderBase {
 
     return {
       content: choice.message.content,
-      finishReason: choice.finish_reason,
+      finish_reason: choice.finish_reason,
       usage: {
-        promptTokens: data.usage.prompt_tokens,
-        completionTokens: data.usage.completion_tokens,
-        totalTokens: data.usage.total_tokens,
+        prompt_tokens: data.usage.prompt_tokens,
+        completion_tokens: data.usage.completion_tokens,
+        total_tokens: data.usage.total_tokens,
       },
     };
   }
@@ -441,7 +443,7 @@ class OpenAIProvider extends LLMProviderBase {
 
     const decoder = new TextDecoder();
     let fullContent = '';
-    let finishReason: LLMResponse['finishReason'] = 'stop';
+    let finish_reason: LLMResponse['finish_reason'] = 'stop';
 
     try {
       while (true) {
@@ -463,7 +465,7 @@ class OpenAIProvider extends LLMProviderBase {
               onChunk(delta);
             }
             if (parsed.choices[0]?.finish_reason) {
-              finishReason = parsed.choices[0].finish_reason;
+              finish_reason = parsed.choices[0].finish_reason;
             }
           } catch (e) {
             // Skip invalid JSON chunks
@@ -476,7 +478,7 @@ class OpenAIProvider extends LLMProviderBase {
 
     return {
       content: fullContent,
-      finishReason,
+      finish_reason,
     };
   }
 
@@ -586,11 +588,11 @@ class AnthropicProvider extends LLMProviderBase {
 
     return {
       content: data.content[0].text,
-      finishReason: data.stop_reason === 'end_turn' ? 'stop' : data.stop_reason,
+      finish_reason: data.stop_reason === 'end_turn' ? 'stop' : data.stop_reason,
       usage: {
-        promptTokens: data.usage.input_tokens,
-        completionTokens: data.usage.output_tokens,
-        totalTokens: data.usage.input_tokens + data.usage.output_tokens,
+        prompt_tokens: data.usage.input_tokens,
+        completion_tokens: data.usage.output_tokens,
+        total_tokens: data.usage.input_tokens + data.usage.output_tokens,
       },
     };
   }
@@ -642,7 +644,7 @@ class AnthropicProvider extends LLMProviderBase {
 
     const decoder = new TextDecoder();
     let fullContent = '';
-    let finishReason: LLMResponse['finishReason'] = 'stop';
+    let finish_reason: LLMResponse['finish_reason'] = 'stop';
 
     try {
       while (true) {
@@ -657,15 +659,15 @@ class AnthropicProvider extends LLMProviderBase {
 
           try {
             const parsed = JSON.parse(data);
-            
+
             if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
               const text = parsed.delta.text;
               fullContent += text;
               onChunk(text);
             }
-            
+
             if (parsed.type === 'message_stop') {
-              finishReason = 'stop';
+              finish_reason = 'stop';
             }
           } catch (e) {
             // Skip invalid JSON chunks
@@ -678,7 +680,7 @@ class AnthropicProvider extends LLMProviderBase {
 
     return {
       content: fullContent,
-      finishReason,
+      finish_reason: finish_reason,
     };
   }
 
@@ -716,57 +718,26 @@ class CustomProvider extends LLMProviderBase {
 
   async generateCompletion(request: LLMRequest): Promise<LLMResponse> {
     const endpoint = this.config.apiEndpoint || 'http://localhost:11434';
-    
+
     try {
       // Use Ollama's native API format
-      const response = await fetch(`${endpoint}/api/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: this.config.model,
-          prompt: request.systemPrompt 
-            ? `${request.systemPrompt}\n\n${request.prompt}`
-            : request.prompt,
-          stream: false,
-          options: {
-            temperature: request.temperature ?? this.config.parameters.temperature,
-            num_predict: request.maxTokens ?? this.config.parameters.maxTokens,
-          },
-        }),
+      // Note: For models with extended thinking (like Qwen 3 VL), we need higher token limits
+      // because thinking tokens are included in the count
+      const maxTokens = request.maxTokens ?? this.config.parameters.maxTokens;
+      const numPredict = Math.max(maxTokens * 2, 500);
+
+      const prompt = request.systemPrompt
+        ? `${request.systemPrompt}\n\n${request.prompt}`
+        : request.prompt;
+
+      const response = await ollamaClient.generate(this.config.model, prompt, {
+        temperature: request.temperature ?? this.config.parameters.temperature,
+        maxTokens: numPredict,
       });
 
-      if (!response.ok) {
-        // Handle specific error cases
-        if (response.status === 404) {
-          throw new LLMError(
-            'Ollama service not found. Please ensure Ollama is running and accessible at ' + endpoint,
-            'connection',
-            true,
-            { endpoint, status: 404 }
-          );
-        }
-        
-        const error = await response.json().catch(() => ({}));
-        throw new LLMError(
-          error.error || `Ollama request failed with status ${response.status}`,
-          'api_error',
-          response.status === 429 || response.status >= 500,
-          error
-        );
-      }
-
-      const data = await response.json();
-
       return {
-        content: data.response || '',
-        finishReason: data.done ? 'stop' : 'length',
-        usage: data.prompt_eval_count ? {
-          promptTokens: data.prompt_eval_count || 0,
-          completionTokens: data.eval_count || 0,
-          totalTokens: (data.prompt_eval_count || 0) + (data.eval_count || 0),
-        } : undefined,
+        content: response || '',
+        finish_reason: 'stop',
       };
     } catch (error) {
       // Handle network errors
@@ -778,12 +749,12 @@ class CustomProvider extends LLMProviderBase {
           { endpoint, originalError: error.message }
         );
       }
-      
+
       // Re-throw LLMError as-is
       if (error instanceof LLMError) {
         throw error;
       }
-      
+
       // Wrap other errors
       throw new LLMError(
         error instanceof Error ? error.message : 'Unknown error occurred',
@@ -799,9 +770,14 @@ class CustomProvider extends LLMProviderBase {
     onChunk: StreamChunkCallback
   ): Promise<LLMResponse> {
     const endpoint = this.config.apiEndpoint || 'http://localhost:11434';
-    
+
     try {
       // Use Ollama's native API format with streaming
+      // Note: For models with extended thinking (like Qwen 3 VL), we need higher token limits
+      // because thinking tokens are included in the count
+      const maxTokens = request.maxTokens ?? this.config.parameters.maxTokens;
+      const numPredict = Math.max(maxTokens * 2, 500); // Double the tokens to account for thinking
+
       const response = await fetch(`${endpoint}/api/generate`, {
         method: 'POST',
         headers: {
@@ -809,13 +785,13 @@ class CustomProvider extends LLMProviderBase {
         },
         body: JSON.stringify({
           model: this.config.model,
-          prompt: request.systemPrompt 
+          prompt: request.systemPrompt
             ? `${request.systemPrompt}\n\n${request.prompt}`
             : request.prompt,
           stream: true,
           options: {
             temperature: request.temperature ?? this.config.parameters.temperature,
-            num_predict: request.maxTokens ?? this.config.parameters.maxTokens,
+            num_predict: numPredict,
           },
         }),
       });
@@ -830,7 +806,7 @@ class CustomProvider extends LLMProviderBase {
             { endpoint, status: 404 }
           );
         }
-        
+
         const error = await response.json().catch(() => ({}));
         throw new LLMError(
           error.error || `Ollama request failed with status ${response.status}`,
@@ -851,12 +827,12 @@ class CustomProvider extends LLMProviderBase {
           { endpoint, originalError: error.message }
         );
       }
-      
+
       // Re-throw LLMError as-is
       if (error instanceof LLMError) {
         throw error;
       }
-      
+
       // Wrap other errors
       throw new LLMError(
         error instanceof Error ? error.message : 'Unknown error occurred',
@@ -878,7 +854,7 @@ class CustomProvider extends LLMProviderBase {
 
     const decoder = new TextDecoder();
     let fullContent = '';
-    let finishReason: LLMResponse['finishReason'] = 'stop';
+    let finish_reason: LLMResponse['finish_reason'] = 'stop';
 
     try {
       while (true) {
@@ -898,7 +874,7 @@ class CustomProvider extends LLMProviderBase {
               onChunk(content);
             }
             if (parsed.done) {
-              finishReason = 'stop';
+              finish_reason = 'stop';
             }
           } catch (e) {
             // Skip invalid JSON chunks
@@ -911,7 +887,7 @@ class CustomProvider extends LLMProviderBase {
 
     return {
       content: fullContent,
-      finishReason,
+      finish_reason,
     };
   }
   private async processStream(
@@ -925,7 +901,7 @@ class CustomProvider extends LLMProviderBase {
 
     const decoder = new TextDecoder();
     let fullContent = '';
-    let finishReason: LLMResponse['finishReason'] = 'stop';
+    let finish_reason: LLMResponse['finish_reason'] = 'stop';
 
     try {
       while (true) {
@@ -947,7 +923,7 @@ class CustomProvider extends LLMProviderBase {
               onChunk(delta);
             }
             if (parsed.choices[0]?.finish_reason) {
-              finishReason = parsed.choices[0].finish_reason;
+              finish_reason = parsed.choices[0].finish_reason;
             }
           } catch (e) {
             // Skip invalid JSON chunks
@@ -960,7 +936,7 @@ class CustomProvider extends LLMProviderBase {
 
     return {
       content: fullContent,
-      finishReason,
+      finish_reason,
     };
   }
 
@@ -1031,6 +1007,13 @@ export class LLMService {
           data: response,
         };
       });
+    } catch (error) {
+      console.error('[LLMService] Generate completion failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        code: error instanceof LLMError ? error.code : 'unknown',
+      };
     } finally {
       this.abortControllers.delete(id);
     }
@@ -1089,6 +1072,13 @@ export class LLMService {
           data: response,
         };
       });
+    } catch (error) {
+      console.error('[LLMService] Generate streaming completion failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        code: error instanceof LLMError ? error.code : 'unknown',
+      };
     } finally {
       this.abortControllers.delete(id);
     }
@@ -1136,9 +1126,11 @@ export class LLMService {
         data: isValid,
       };
     } catch (error) {
+      console.error('[LLMService] Connection validation failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Connection validation failed',
+        code: error instanceof LLMError ? error.code : 'validation_error',
       };
     }
   }
@@ -1159,6 +1151,7 @@ export class LLMService {
 
         // Don't retry if error is not retryable
         if (error instanceof LLMError && !error.retryable) {
+          console.warn(`[LLMService] Non-retryable error on attempt ${attempt + 1}:`, error.message);
           return {
             success: false,
             error: error.message,
@@ -1173,10 +1166,12 @@ export class LLMService {
 
         // Exponential backoff: 1s, 2s, 4s, 8s, etc.
         const delayMs = Math.pow(2, attempt) * 1000;
+        console.log(`[LLMService] Retrying in ${delayMs}ms (attempt ${attempt + 1}/${this.config.retryAttempts})`);
         await this.delay(delayMs);
       }
     }
 
+    console.error('[LLMService] Request failed after all retry attempts');
     return {
       success: false,
       error: lastError?.message || 'Request failed after retries',
@@ -1217,7 +1212,7 @@ export class LLMService {
    */
   updateConfig(config: Partial<LLMConfig>): void {
     this.config = { ...this.config, ...config };
-    
+
     // Recreate provider if provider type changed
     if (config.provider && config.provider !== this.provider.getProviderName().toLowerCase()) {
       this.provider = this.createProvider(this.config);
@@ -1341,10 +1336,38 @@ let defaultService: LLMService | null = null;
 
 /**
  * Get or create default LLM service instance
+ * Uses ConfigManager to get proper configuration
  */
 export function getLLMService(): LLMService {
   if (!defaultService) {
-    defaultService = new LLMService();
+    // Try to load config from ConfigManager if available
+    try {
+      // Dynamic import to avoid circular dependency
+      const configModule = require('./llm/ConfigManager');
+      if (configModule && configModule.ConfigManager) {
+        const config = configModule.ConfigManager.getLLMConfig();
+        // Convert ConfigManager config to LLMService config
+        const llmConfig: Partial<LLMConfig> = {
+          provider: config.provider as LLMProvider,
+          apiKey: '', // ConfigManager doesn't store API keys for local
+          apiEndpoint: config.apiEndpoint,
+          model: config.model,
+          parameters: config.parameters,
+          streamingEnabled: config.streamingEnabled,
+          systemPrompts: config.systemPrompts || {
+            worldGeneration: 'You are a creative world-building assistant...',
+            characterGeneration: 'You are a character development expert...',
+            dialogueGeneration: 'You are a dialogue writing specialist...',
+          },
+        };
+        defaultService = new LLMService(llmConfig);
+      } else {
+        defaultService = new LLMService();
+      }
+    } catch (error) {
+      console.warn('Could not load ConfigManager, using default LLM config:', error);
+      defaultService = new LLMService();
+    }
   }
   return defaultService;
 }
@@ -1535,9 +1558,9 @@ export function getAvailableProviders(): LLMProviderInfo[] {
 export function getDefaultSystemPrompts() {
   return {
     worldGeneration: `You are a creative world-building assistant for storytelling and visual content creation. Generate rich, coherent, and detailed world descriptions that are internally consistent and visually compelling. Consider genre conventions, cultural elements, visual aesthetics, color palettes, and narrative potential. Provide specific, vivid details that help creators visualize and understand the world. When describing visual elements, be precise about composition, lighting, atmosphere, and mood.`,
-    
+
     characterGeneration: `You are a character development expert for storytelling and visual media. Create well-rounded, believable characters with consistent traits, motivations, backgrounds, and distinctive visual appearances. Ensure that physical appearance, personality, and backstory align logically. Consider character archetypes, narrative roles, relationship dynamics, and visual design elements like costume, color schemes, and distinctive features. Provide detailed visual descriptions that can guide character design and illustration.`,
-    
+
     dialogueGeneration: `You are a dialogue writing specialist for narrative content. Create natural, character-appropriate dialogue that reveals personality, advances plot, maintains consistent voice, and feels authentic to the character's background and emotional state. Consider subtext, pacing, and how dialogue can convey visual actions and reactions. Ensure dialogue works well for both text and potential voice acting or animation.`,
   };
 }

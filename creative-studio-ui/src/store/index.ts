@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import { StorageManager } from '../utils/storageManager';
+import { Logger } from '../utils/logger';
+import { debounce } from '../utils/debounce';
 import type {
   AppState,
   Shot,
@@ -16,6 +19,7 @@ import type {
   World,
 } from '../types';
 import type { Character } from '../types/character';
+import type { Story, StoryVersion } from '../types/story';
 import type { WizardOutput } from '../services/wizard/types';
 import { getWizardService } from '../services/wizard/WizardService';
 import { eventEmitter, WizardEventType } from '../services/eventEmitter';
@@ -63,6 +67,19 @@ interface StoreActions {
   deleteCharacter: (id: string) => void;
   getCharacterById: (id: string) => Character | undefined;
   getAllCharacters: () => Character[];
+  setCharacters: (characters: Character[]) => void; // Bulk set for project loading
+  
+  // Story actions
+  addStory: (story: Story) => void;
+  updateStory: (id: string, updates: Partial<Story>) => void;
+  deleteStory: (id: string) => void;
+  getStoryById: (id: string) => Story | undefined;
+  getAllStories: () => Story[];
+  
+  // Story version actions
+  createVersion: (storyId: string, changes: string) => void;
+  getVersionsByStoryId: (storyId: string) => StoryVersion[];
+  loadVersion: (versionId: string) => void;
   
   // Wizard integration actions
   completeWizard: (output: WizardOutput, projectPath: string) => Promise<void>;
@@ -159,6 +176,8 @@ export const useStore = create<Store>()(
         worlds: [],
         selectedWorldId: null,
         characters: [],
+        stories: [],
+        storyVersions: [],
         selectedShotId: null,
         currentTime: 0,
         showChat: false,
@@ -184,12 +203,49 @@ export const useStore = create<Store>()(
         // ====================================================================
         // Project Actions
         // ====================================================================
-        setProject: (project) => set({ project }),
+        setProject: (project) => set((state) => {
+          // When setting a project, also sync its characters to the store's characters state
+          const characters = project?.characters || [];
+          Logger.info(`📦 [Store] Setting project with ${characters.length} characters`);
+          return { 
+            project,
+            characters: characters as Character[]
+          };
+        }),
         
         updateProject: (updates) =>
-          set((state) => ({
-            project: state.project ? { ...state.project, ...updates } : null,
-          })),
+          set((state) => {
+            if (!state.project) return { project: null };
+            
+            const updatedProject = { ...state.project, ...updates };
+            
+            // Synchroniser les arrays si le projet a changé
+            const newState: Partial<AppState> = {
+              project: updatedProject,
+            };
+            
+            // Si les caractères ont changé dans le projet
+            if (updates.characters) {
+              newState.characters = updates.characters as Character[];
+            }
+            
+            // Si les mondes ont changé dans le projet
+            if (updates.worlds) {
+              newState.worlds = updates.worlds as World[];
+            }
+            
+            // Si les histoires ont changé dans le projet
+            if (updates.stories) {
+              newState.stories = updates.stories as Story[];
+            }
+            
+            // Si les shots ont changé dans le projet
+            if (updates.shots) {
+              newState.shots = updates.shots as Shot[];
+            }
+            
+            return newState;
+          }),
 
         // ====================================================================
         // Shot Actions
@@ -256,12 +312,12 @@ export const useStore = create<Store>()(
             // Persist to localStorage
             if (updatedProject) {
               try {
-                localStorage.setItem(
+                StorageManager.setItem(
                   `project-${updatedProject.project_name}-worlds`,
                   JSON.stringify(newWorlds)
                 );
               } catch (error) {
-                console.error('Failed to persist worlds to localStorage:', error);
+                Logger.error('Failed to persist worlds to storage:', error);
               }
             }
 
@@ -297,12 +353,12 @@ export const useStore = create<Store>()(
             // Persist to localStorage
             if (updatedProject) {
               try {
-                localStorage.setItem(
+                StorageManager.setItem(
                   `project-${updatedProject.project_name}-worlds`,
                   JSON.stringify(updatedWorlds)
                 );
               } catch (error) {
-                console.error('Failed to persist worlds to localStorage:', error);
+                Logger.error('Failed to persist worlds to storage:', error);
               }
             }
 
@@ -341,12 +397,12 @@ export const useStore = create<Store>()(
             // Persist to localStorage
             if (updatedProject) {
               try {
-                localStorage.setItem(
+                StorageManager.setItem(
                   `project-${updatedProject.project_name}-worlds`,
                   JSON.stringify(filteredWorlds)
                 );
               } catch (error) {
-                console.error('Failed to persist worlds to localStorage:', error);
+                Logger.error('Failed to persist worlds to storage:', error);
               }
             }
 
@@ -405,15 +461,21 @@ export const useStore = create<Store>()(
           set((state) => {
             const newCharacters = [...state.characters, character];
             
+            // Also update the project's characters array
+            const updatedProject = state.project ? {
+              ...state.project,
+              characters: newCharacters
+            } : null;
+            
             // Persist to localStorage
             if (state.project) {
               try {
-                localStorage.setItem(
+                StorageManager.setItem(
                   `project-${state.project.project_name}-characters`,
                   JSON.stringify(newCharacters)
                 );
               } catch (error) {
-                console.error('Failed to persist characters to localStorage:', error);
+                Logger.error('Failed to persist to storage:', error);
               }
             }
 
@@ -427,6 +489,7 @@ export const useStore = create<Store>()(
 
             return {
               characters: newCharacters,
+              project: updatedProject,
             };
           }),
 
@@ -439,15 +502,21 @@ export const useStore = create<Store>()(
                 : character
             );
 
+            // Also update the project's characters array
+            const updatedProject = state.project ? {
+              ...state.project,
+              characters: updatedCharacters
+            } : null;
+
             // Persist to localStorage
             if (state.project) {
               try {
-                localStorage.setItem(
+                StorageManager.setItem(
                   `project-${state.project.project_name}-characters`,
                   JSON.stringify(updatedCharacters)
                 );
               } catch (error) {
-                console.error('Failed to persist characters to localStorage:', error);
+                Logger.error('Failed to persist to storage:', error);
               }
             }
 
@@ -462,6 +531,7 @@ export const useStore = create<Store>()(
 
             return {
               characters: updatedCharacters,
+              project: updatedProject,
             };
           }),
 
@@ -472,15 +542,21 @@ export const useStore = create<Store>()(
               (character) => character.character_id !== id
             );
             
+            // Also update the project's characters array
+            const updatedProject = state.project ? {
+              ...state.project,
+              characters: filteredCharacters
+            } : null;
+            
             // Persist to localStorage
             if (state.project) {
               try {
-                localStorage.setItem(
+                StorageManager.setItem(
                   `project-${state.project.project_name}-characters`,
                   JSON.stringify(filteredCharacters)
                 );
               } catch (error) {
-                console.error('Failed to persist characters to localStorage:', error);
+                Logger.error('Failed to persist to storage:', error);
               }
             }
 
@@ -496,6 +572,7 @@ export const useStore = create<Store>()(
 
             return {
               characters: filteredCharacters,
+              project: updatedProject,
             };
           }),
 
@@ -509,6 +586,229 @@ export const useStore = create<Store>()(
           return state.characters;
         },
 
+        // Bulk set characters for project loading
+        // Ensures single source of truth: store.characters is the source
+        setCharacters: (characters) =>
+          set((state) => {
+            // Also update the project's characters array
+            const updatedProject = state.project
+              ? { ...state.project, characters }
+              : null;
+
+            Logger.info(`📦 [Store] Setting ${characters.length} characters`);
+
+            return {
+              characters,
+              project: updatedProject,
+            };
+          }),
+
+        // ====================================================================
+        // Story Actions
+        // ====================================================================
+        addStory: (story) =>
+          set((state) => {
+            const newStories = [...state.stories, story];
+            
+            // Persist to localStorage
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-stories`,
+                  JSON.stringify(newStories)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist to storage:', error);
+              }
+            }
+
+            return {
+              stories: newStories,
+            };
+          }),
+
+        updateStory: (id, updates) =>
+          set((state) => {
+            const originalStory = state.stories.find((s) => s.id === id);
+            
+            // Check if content or summary is being modified
+            const isContentModified = 
+              (updates.content && updates.content !== originalStory?.content) ||
+              (updates.summary && updates.summary !== originalStory?.summary);
+
+            // Create version snapshot before updating if content changed
+            let newVersions = state.storyVersions;
+            if (isContentModified && originalStory) {
+              const versionSnapshot: StoryVersion = {
+                id: crypto.randomUUID(),
+                storyId: id,
+                versionNumber: originalStory.version,
+                content: originalStory.content,
+                summary: originalStory.summary,
+                createdAt: new Date(),
+                changes: 'Content modified',
+              };
+              newVersions = [...state.storyVersions, versionSnapshot];
+
+              // Persist versions to localStorage
+              if (state.project) {
+                try {
+                  StorageManager.setItem(
+                    `project-${state.project.project_name}-story-versions`,
+                    JSON.stringify(newVersions)
+                  );
+                } catch (error) {
+                  Logger.error('Failed to persist to storage:', error);
+                }
+              }
+            }
+
+            // Update story with incremented version if content changed
+            const updatedStories = state.stories.map((story) =>
+              story.id === id
+                ? { 
+                    ...story, 
+                    ...updates, 
+                    updatedAt: new Date(),
+                    version: isContentModified ? story.version + 1 : story.version,
+                  }
+                : story
+            );
+
+            // Persist stories to localStorage
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-stories`,
+                  JSON.stringify(updatedStories)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist to storage:', error);
+              }
+            }
+
+            return {
+              stories: updatedStories,
+              storyVersions: newVersions,
+            };
+          }),
+
+        deleteStory: (id) =>
+          set((state) => {
+            const filteredStories = state.stories.filter(
+              (story) => story.id !== id
+            );
+            
+            // Persist to localStorage
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-stories`,
+                  JSON.stringify(filteredStories)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist to storage:', error);
+              }
+            }
+
+            return {
+              stories: filteredStories,
+            };
+          }),
+
+        getStoryById: (id) => {
+          const state = get();
+          return state.stories.find((story) => story.id === id);
+        },
+
+        getAllStories: () => {
+          const state = get();
+          return state.stories;
+        },
+
+        // ====================================================================
+        // Story Version Actions
+        // ====================================================================
+        createVersion: (storyId, changes) =>
+          set((state) => {
+            const story = state.stories.find((s) => s.id === storyId);
+            if (!story) {
+              Logger.error(`Story with id ${storyId} not found`);
+              return state;
+            }
+
+            const newVersion: StoryVersion = {
+              id: crypto.randomUUID(),
+              storyId,
+              versionNumber: story.version,
+              content: story.content,
+              summary: story.summary,
+              createdAt: new Date(),
+              changes,
+            };
+
+            const newVersions = [...state.storyVersions, newVersion];
+
+            // Persist to localStorage
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-story-versions`,
+                  JSON.stringify(newVersions)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist to storage:', error);
+              }
+            }
+
+            return {
+              storyVersions: newVersions,
+            };
+          }),
+
+        getVersionsByStoryId: (storyId) => {
+          const state = get();
+          return state.storyVersions
+            .filter((version) => version.storyId === storyId)
+            .sort((a, b) => b.versionNumber - a.versionNumber);
+        },
+
+        loadVersion: (versionId) =>
+          set((state) => {
+            const version = state.storyVersions.find((v) => v.id === versionId);
+            if (!version) {
+              Logger.error(`Version with id ${versionId} not found`);
+              return state;
+            }
+
+            const updatedStories = state.stories.map((story) =>
+              story.id === version.storyId
+                ? {
+                    ...story,
+                    content: version.content,
+                    summary: version.summary,
+                    updatedAt: new Date(),
+                  }
+                : story
+            );
+
+            // Persist to localStorage
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-stories`,
+                  JSON.stringify(updatedStories)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist to storage:', error);
+              }
+            }
+
+            return {
+              stories: updatedStories,
+            };
+          }),
+
         // ====================================================================
         // Wizard Integration Actions
         // ====================================================================
@@ -516,6 +816,23 @@ export const useStore = create<Store>()(
           const wizardService = getWizardService();
           
           try {
+            // Validation 1: Vérifier output
+            if (!output || !output.type || !output.data) {
+              throw new Error('Invalid wizard output: missing required fields (type, data)');
+            }
+            
+            // Validation 2: Vérifier projectPath
+            if (!projectPath || typeof projectPath !== 'string') {
+              throw new Error('Invalid project path: must be a non-empty string');
+            }
+            
+            // Validation 3: Vérifier les données spécifiques par type
+            if (output.type === 'character') {
+              if (!output.data.id || !output.data.name) {
+                throw new Error('Invalid character data: missing id or name');
+              }
+            }
+            
             // Save wizard output to file system
             await wizardService.saveWizardOutput(output, projectPath);
             
@@ -778,7 +1095,7 @@ export const useStore = create<Store>()(
             
             // Wizard completion handled - capabilities already set in project
           } catch (error) {
-            console.error('Failed to complete wizard:', error);
+            Logger.error('Failed to complete wizard:', error);
             throw error;
           }
         },
@@ -1159,6 +1476,17 @@ export const useCharactersByIds = (ids: string[]) => {
   return characters.filter((character) => ids.includes(character.character_id));
 };
 
+// Story selectors (Requirements: 6.1, 6.2)
+export const useStories = () => useStore((state) => state.stories);
+export const useStoryById = (id: string) => {
+  const stories = useStore((state) => state.stories);
+  return stories.find((story) => story.id === id) || null;
+};
+export const useStoriesByWorldId = (worldId: string) => {
+  const stories = useStore((state) => state.stories);
+  return stories.filter((story) => story.worldId === worldId);
+};
+
 // Task queue selectors
 export const useTaskQueue = () => useStore((state) => state.taskQueue);
 export const useTaskById = (id: string) => {
@@ -1181,3 +1509,5 @@ export const useProject = () => useStore((state) => state.project);
 
 // Generation status selector
 export const useGenerationStatus = () => useStore((state) => state.generationStatus);
+
+

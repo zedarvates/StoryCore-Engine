@@ -1,0 +1,261 @@
+/**
+ * Wizard Auto-Save Hook
+ * 
+ * Provides auto-save functionality for wizards with crash recovery support.
+ */
+
+import { useState, useCallback, useEffect, useRef } from 'react';
+import type { WizardType } from '../../utils/wizardStorage';
+
+export interface UseWizardAutoSaveResult<T> {
+  isSaving: boolean;
+  isDirty: boolean;
+  lastSaved: Date | null;
+  draftId: string | null;
+  save: () => Promise<void>;
+  clear: () => Promise<void>;
+  listDrafts: () => Promise<Array<{ id: string; timestamp: Date; name: string }>>;
+  recover: (draftId: string) => Promise<T | null>;
+}
+
+interface DraftData {
+  wizardType: WizardType;
+  timestamp: number;
+  data: Record<string, unknown>;
+  name?: string;
+}
+
+const STORAGE_KEY = 'wizard_drafts';
+const MAX_DRAFTS = 10;
+const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function generateDraftId(): string {
+  return `draft_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+}
+
+function getStorageKey(wizardType: WizardType): string {
+  return `${STORAGE_KEY}_${wizardType}`;
+}
+
+export function useWizardAutoSave<T>(
+  getState: () => T,
+  options: {
+    wizardType: WizardType;
+    intervalMs?: number;
+    enabled?: boolean;
+  }
+): UseWizardAutoSaveResult<T> {
+  const { wizardType, intervalMs = 30000, enabled = true } = options;
+  
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(null);
+  
+  const stateRef = useRef<T>(getState());
+  const dirtyRef = useRef(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Update state ref when state changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setLastSaved(prev => prev ? new Date(prev.getTime()) : null);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const save = useCallback(async () => {
+    const state = stateRef.current;
+    const storageKey = getStorageKey(wizardType);
+    
+    setIsSaving(true);
+    setIsDirty(false);
+    dirtyRef.current = false;
+    
+    try {
+      const draftData: DraftData = {
+        wizardType,
+        timestamp: Date.now(),
+        data: state as unknown as Record<string, unknown>,
+        name: (state as Record<string, unknown>)?.name as string || 'Untitled',
+      };
+      
+      const currentDraftId = draftId || generateDraftId();
+      localStorage.setItem(storageKey, JSON.stringify({
+        id: currentDraftId,
+        ...draftData,
+      }));
+      
+      setDraftId(currentDraftId);
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('Failed to save wizard draft:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [wizardType, draftId]);
+
+  const clear = useCallback(async () => {
+    const storageKey = getStorageKey(wizardType);
+    
+    try {
+      localStorage.removeItem(storageKey);
+      setDraftId(null);
+      setLastSaved(null);
+      setIsDirty(false);
+      dirtyRef.current = false;
+    } catch (error) {
+      console.error('Failed to clear wizard draft:', error);
+    }
+  }, [wizardType]);
+
+  const listDrafts = useCallback(async () => {
+    const drafts: Array<{ id: string; timestamp: Date; name: string }> = [];
+    const now = Date.now();
+    
+    try {
+      const storageKey = getStorageKey(wizardType);
+      const storedData = localStorage.getItem(storageKey);
+      
+      if (storedData) {
+        const draft = JSON.parse(storedData) as DraftData & { id: string };
+        if (now - draft.timestamp < MAX_AGE_MS) {
+          drafts.push({
+            id: draft.id,
+            timestamp: new Date(draft.timestamp),
+            name: draft.name || 'Untitled',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to list wizard drafts:', error);
+    }
+    
+    return drafts;
+  }, [wizardType]);
+
+  const recover = useCallback(async (recoverDraftId: string): Promise<T | null> => {
+    const storageKey = getStorageKey(wizardType);
+    
+    try {
+      const storedData = localStorage.getItem(storageKey);
+      if (!storedData) return null;
+      
+      const draft = JSON.parse(storedData) as DraftData & { id: string };
+      
+      if (draft.id === recoverDraftId) {
+        setDraftId(draft.id);
+        setLastSaved(new Date(draft.timestamp));
+        return draft.data as unknown as T;
+      }
+    } catch (error) {
+      console.error('Failed to recover wizard draft:', error);
+    }
+    
+    return null;
+  }, [wizardType]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    
+    const handleStateChange = () => {
+      if (!dirtyRef.current) {
+        setIsDirty(true);
+        dirtyRef.current = true;
+      }
+      stateRef.current = getState();
+    };
+    
+    intervalRef.current = setInterval(() => {
+      if (dirtyRef.current) {
+        save();
+      }
+    }, intervalMs);
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [enabled, intervalMs, getState, save]);
+
+  return {
+    isSaving,
+    isDirty,
+    lastSaved,
+    draftId,
+    save,
+    clear,
+    listDrafts,
+    recover,
+  };
+}
+
+export function useWizardCrashRecovery<T>(
+  wizardType: WizardType,
+  options?: {
+    maxAgeMs?: number;
+    onRecoveryFound?: (drafts: Array<{ id: string; timestamp: Date; name: string }>) => void;
+  }
+) {
+  const [pendingRecovery, setPendingRecovery] = useState<boolean>(false);
+  const [drafts, setDrafts] = useState<Array<{ id: string; timestamp: Date; name: string }>>([]);
+  
+  const { maxAgeMs = MAX_AGE_MS, onRecoveryFound } = options || {};
+  
+  useEffect(() => {
+    const checkForRecovery = async () => {
+      const storageKey = getStorageKey(wizardType);
+      const now = Date.now();
+      
+      try {
+        const storedData = localStorage.getItem(storageKey);
+        
+        if (storedData) {
+          const draft = JSON.parse(storedData) as DraftData & { id: string };
+          
+          if (now - draft.timestamp < maxAgeMs) {
+            setDrafts([{
+              id: draft.id,
+              timestamp: new Date(draft.timestamp),
+              name: draft.name || 'Untitled',
+            }]);
+            setPendingRecovery(true);
+            onRecoveryFound?.([{
+              id: draft.id,
+              timestamp: new Date(draft.timestamp),
+              name: draft.name || 'Untitled',
+            }]);
+          } else {
+            localStorage.removeItem(storageKey);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check for wizard recovery:', error);
+      }
+    };
+    
+    checkForRecovery();
+  }, [wizardType, maxAgeMs, onRecoveryFound]);
+
+  const acceptRecovery = useCallback((draftId: string) => {
+    setPendingRecovery(false);
+    return draftId;
+  }, []);
+
+  const discardRecovery = useCallback(async () => {
+    const storageKey = getStorageKey(wizardType);
+    localStorage.removeItem(storageKey);
+    setPendingRecovery(false);
+    setDrafts([]);
+  }, [wizardType]);
+
+  return {
+    pendingRecovery,
+    drafts,
+    acceptRecovery,
+    discardRecovery,
+  };
+}

@@ -81,27 +81,27 @@ export class WizardErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center p-8 min-h-[400px]">
-          <AlertCircle className="h-16 w-16 text-destructive mb-4" aria-hidden="true" />
+        <div className="flex flex-col items-center justify-center p-8 min-h-[400px]" role="alert">
+          <AlertCircle className="h-16 w-16 text-red-500 mb-4" aria-hidden="true" />
           
-          <h2 className="text-2xl font-bold mb-2">Wizard Error</h2>
+          <h2 className="text-2xl font-bold mb-2 text-gray-900">Wizard Error</h2>
           
-          <p className="text-muted-foreground mb-4 text-center max-w-md">
+          <p className="text-gray-600 mb-4 text-center max-w-md">
             An unexpected error occurred in the wizard. 
             {this.state.dataExported && ' Your data has been automatically exported.'}
           </p>
 
           {this.state.error && (
-            <div className="mb-4 p-4 bg-muted rounded-md max-w-2xl w-full">
-              <p className="text-sm font-mono text-destructive">
+            <div className="mb-4 p-4 bg-gray-100 rounded-md max-w-2xl w-full border border-gray-200">
+              <p className="text-sm font-medium text-red-700">
                 {this.state.error.message}
               </p>
               {process.env.NODE_ENV === 'development' && this.state.error.stack && (
                 <details className="mt-2">
-                  <summary className="text-xs text-muted-foreground cursor-pointer">
+                  <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
                     Stack trace
                   </summary>
-                  <pre className="text-xs mt-2 overflow-auto max-h-40">
+                  <pre className="text-xs mt-2 overflow-auto max-h-40 bg-gray-50 p-2 rounded">
                     {this.state.error.stack}
                   </pre>
                 </details>
@@ -110,7 +110,7 @@ export class WizardErrorBoundary extends Component<Props, State> {
           )}
 
           <div className="flex gap-2 flex-wrap justify-center">
-            <Button onClick={this.handleReset} variant="default">
+            <Button onClick={this.handleReset} variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
               <RefreshCw className="mr-2 h-4 w-4" />
               Try Again
             </Button>
@@ -128,7 +128,7 @@ export class WizardErrorBoundary extends Component<Props, State> {
           </div>
 
           {this.state.dataExported && (
-            <p className="text-xs text-muted-foreground mt-4">
+            <p className="text-xs text-gray-500 mt-4">
               Your wizard data has been saved to your downloads folder.
             </p>
           )}

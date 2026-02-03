@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Wand2, Save, Eye, Volume2 } from 'lucide-react';
 import { LLMService } from '../../../services/llmService';
 import { ttsService } from '../../../services/ttsService';
+import { EnhancedCharacterAssistant } from '../../wizard/character-creator/EnhancedCharacterAssistant';
+import { ConfigManager } from '../../../services/llm/ConfigManager';
 
 export interface CharacterCreatorWizardProps {
   isOpen: boolean;
@@ -211,18 +213,44 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
     setDraftData(null);
   };
 
+  const getGenreString = (genre: any): string => {
+    // Handle different cases safely
+    if (!genre) {
+      return 'fantastique';
+    }
+
+    if (typeof genre === 'string') {
+      return genre;
+    }
+
+    if (Array.isArray(genre)) {
+      return genre.join(', ');
+    }
+
+    return String(genre);
+  };
+
   const generateLlmSuggestions = async () => {
     if (!worldContext) return;
 
     try {
-      const llmService = new LLMService();
+      // Get properly configured LLM service from ConfigManager
+      const llmConfig = ConfigManager.getLLMConfig();
+      // Cast to required type to fix type mismatch
+      const llmService = new LLMService(llmConfig as any);
+
+      // Safely get genre string with proper error handling
+      const genreString = getGenreString(worldContext.genre);
+      const rulesString = worldContext.rules && Array.isArray(worldContext.rules)
+        ? worldContext.rules.map((r: any) => r.rule).join(', ')
+        : 'magie et technologie';
 
       // Enhanced prompts with more world context
-      const namePrompt = `Pour un monde ${worldContext.genre?.join(', ')} avec ces caractéristiques: ${worldContext.description || 'monde fantastique'}, génère 5 noms de personnages originaux et immersifs. Les noms doivent être cohérents avec le genre et l'ambiance du monde. Format: nom1, nom2, nom3, nom4, nom5`;
+      const namePrompt = `Pour un monde ${genreString} avec ces caractéristiques: ${worldContext.description || 'monde fantastique'}, génère 5 noms de personnages originaux et immersifs. Les noms doivent être cohérents avec le genre et l'ambiance du monde. Format: nom1, nom2, nom3, nom4, nom5`;
 
-      const personalityPrompt = `Dans un monde ${worldContext.genre?.join(', ')} (${worldContext.atmosphere || 'mystérieux'}), décris 4 traits de personnalité complexes et intéressants pour des personnages. Chaque trait doit être unique et adapté au contexte du monde. Format: trait1, trait2, trait3, trait4`;
+      const personalityPrompt = `Dans un monde ${genreString} (${worldContext.atmosphere || 'mystérieux'}), décris 4 traits de personnalité complexes et intéressants pour des personnages. Chaque trait doit être unique et adapté au contexte du monde. Format: trait1, trait2, trait3, trait4`;
 
-      const abilityPrompt = `Pour un monde ${worldContext.genre?.join(', ')} avec ces règles: ${worldContext.rules?.map((r: any) => r.rule).join(', ') || 'magie et technologie'}, quelles seraient 4 capacités ou pouvoirs uniques et équilibrés ? Chaque capacité doit être cohérente avec les règles du monde. Format: capacité1, capacité2, capacité3, capacité4`;
+      const abilityPrompt = `Pour un monde ${genreString} avec ces règles: ${rulesString}, quelles seraient 4 capacités ou pouvoirs uniques et équilibrés ? Chaque capacité doit être cohérente avec les règles du monde. Format: capacité1, capacité2, capacité3, capacité4`;
 
       const backstoryPrompt = `Génère 3 concepts d'histoire personnelle courte pour un personnage dans ce monde: ${worldContext.description || 'monde fantastique'}. Chaque backstory doit être intrigante et liée aux éléments culturels du monde. Format: histoire1 | histoire2 | histoire3`;
 
@@ -499,39 +527,19 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Nom</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={character.name}
-                    onChange={(e) => updateCharacter('name', e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-md shadow-sm p-2"
-                    placeholder="Entrez le nom du personnage"
-                  />
-                  <button
-                    onClick={() => generateLlmSuggestions()}
-                    className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400 flex items-center gap-1"
-                    title="Générer des suggestions avec IA"
-                  >
-                    <Wand2 size={16} />
-                    IA
-                  </button>
-                </div>
-                {llmSuggestions.name && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600">Suggestions LLM:</p>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {llmSuggestions.name.map((name: string) => (
-                        <button
-                          key={name}
-                          onClick={() => updateCharacter('name', name)}
-                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200"
-                        >
-                          {name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <input
+                  type="text"
+                  value={character.name}
+                  onChange={(e) => updateCharacter('name', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md shadow-sm p-2 mb-2"
+                  placeholder="Entrez le nom du personnage"
+                />
+                <EnhancedCharacterAssistant
+                  worldContext={worldContext}
+                  characterData={character}
+                  onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
+                  suggestionType="name"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700" htmlFor="gender">Genre</label>
@@ -563,95 +571,11 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
             </div>
           )}
 
-          {currentStep === 1 && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Nom</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={character.name}
-                    onChange={(e) => updateCharacter('name', e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-md shadow-sm p-2"
-                    placeholder="Entrez le nom du personnage"
-                  />
-                  <button
-                    onClick={() => generateLlmSuggestions()}
-                    className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400 flex items-center gap-1"
-                    title="Générer des suggestions avec IA"
-                  >
-                    <Wand2 size={16} />
-                    IA
-                  </button>
-                </div>
-                {llmSuggestions.name && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600">Suggestions LLM:</p>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {llmSuggestions.name.map((name: string) => (
-                        <button
-                          key={name}
-                          onClick={() => updateCharacter('name', name)}
-                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200"
-                        >
-                          {name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700" htmlFor="gender2">Genre</label>
-                <select
-                  id="gender2"
-                  value={character.gender}
-                  onChange={(e) => updateCharacter('gender', e.target.value as any)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  title="Sélectionnez le genre du personnage"
-                >
-                  <option value="male">Masculin</option>
-                  <option value="female">Féminin</option>
-                  <option value="other">Autre</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700" htmlFor="age2">Âge</label>
-                <input
-                  id="age2"
-                  type="number"
-                  value={character.age}
-                  onChange={(e) => updateCharacter('age', parseInt(e.target.value))}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  min="1"
-                  max="200"
-                  placeholder="Entrez l'âge"
-                />
-              </div>
-            </div>
-          )}
-
           {currentStep === 2 && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Traits de Personnalité</label>
                 <div className="mt-2 space-y-2">
-                  {llmSuggestions.personality && (
-                    <div>
-                      <p className="text-sm text-gray-600">Suggestions LLM:</p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {llmSuggestions.personality.map((trait: string) => (
-                          <button
-                            key={trait}
-                            onClick={() => updateCharacter('personality', [...character.personality, trait])}
-                            className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm hover:bg-green-200"
-                          >
-                            + {trait}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                   <div className="flex flex-wrap gap-2">
                     {character.personality.map((trait, index) => (
                       <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
@@ -665,35 +589,29 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
                       </span>
                     ))}
                   </div>
+                  <EnhancedCharacterAssistant
+                    worldContext={worldContext}
+                    characterData={character}
+                    onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
+                    suggestionType="personality"
+                  />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Apparence Physique</label>
-                <div className="flex gap-2 mb-2">
-                  <textarea
-                    value={character.appearance}
-                    onChange={(e) => updateCharacter('appearance', e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-md shadow-sm p-2"
-                    rows={3}
-                    placeholder="Décrivez l'apparence du personnage"
-                  />
-                  <button
-                    onClick={async () => {
-                      try {
-                        const llmService = new LLMService();
-                        const prompt = `Décris l'apparence physique d'un personnage ${character.gender} nommé ${character.name || 'sans nom'} dans un monde ${worldContext?.genre || 'fantastique'}. Sois détaillé et visuel.`;
-                        const response = await llmService.generateText(prompt, { temperature: 0.8, maxTokens: 200 });
-                        updateCharacter('appearance', response);
-                      } catch (error) {
-                        console.error('Erreur génération apparence:', error);
-                      }
-                    }}
-                    className="px-3 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 flex items-center gap-1"
-                  >
-                    <Wand2 size={16} />
-                    IA
-                  </button>
-                </div>
+                <textarea
+                  value={character.appearance}
+                  onChange={(e) => updateCharacter('appearance', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md shadow-sm p-2 mb-2"
+                  rows={3}
+                  placeholder="Décrivez l'apparence du personnage"
+                />
+                <EnhancedCharacterAssistant
+                  worldContext={worldContext}
+                  characterData={character}
+                  onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
+                  suggestionType="appearance"
+                />
               </div>
             </div>
           )}
@@ -702,47 +620,19 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Histoire Personnelle</label>
-                <div className="flex gap-2 mb-2">
-                  <textarea
-                    value={character.backstory}
-                    onChange={(e) => updateCharacter('backstory', e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-md shadow-sm p-2"
-                    rows={4}
-                    placeholder="Racontez l'histoire du personnage"
-                  />
-                  <button
-                    onClick={async () => {
-                      try {
-                        const llmService = new LLMService();
-                        const prompt = `Écris une histoire personnelle cohérente pour un personnage nommé ${character.name || 'sans nom'}, ${character.gender}, âge ${character.age}, avec les traits ${character.personality.join(', ')} dans un monde ${worldContext?.genre || 'fantastique'}.`;
-                        const response = await llmService.generateText(prompt, { temperature: 0.8, maxTokens: 300 });
-                        updateCharacter('backstory', response);
-                      } catch (error) {
-                        console.error('Erreur génération backstory:', error);
-                      }
-                    }}
-                    className="px-3 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 flex items-center gap-1"
-                  >
-                    <Wand2 size={16} />
-                    IA
-                  </button>
-                </div>
-                {llmSuggestions.backstory && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600">Suggestions d'histoires:</p>
-                    <div className="space-y-2 mt-1">
-                      {llmSuggestions.backstory.map((story: string, index: number) => (
-                        <button
-                          key={index}
-                          onClick={() => updateCharacter('backstory', story)}
-                          className="w-full text-left p-3 bg-yellow-50 border border-yellow-200 rounded-md hover:bg-yellow-100 text-sm"
-                        >
-                          {story}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <textarea
+                  value={character.backstory}
+                  onChange={(e) => updateCharacter('backstory', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md shadow-sm p-2 mb-2"
+                  rows={4}
+                  placeholder="Racontez l'histoire du personnage"
+                />
+                <EnhancedCharacterAssistant
+                  worldContext={worldContext}
+                  characterData={character}
+                  onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
+                  suggestionType="backstory"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Relation au Monde du Projet</label>
@@ -755,7 +645,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
                 />
                 {worldContext && (
                   <p className="text-sm text-gray-600 mt-2">
-                    Monde détecté: {worldContext.genre} - {worldContext.description}
+                    Monde détecté: {getGenreString(worldContext.genre)} - {worldContext.description}
                   </p>
                 )}
               </div>
@@ -767,22 +657,6 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700">Capacités/Pouvoirs</label>
                 <div className="mt-2 space-y-2">
-                  {llmSuggestions.abilities && (
-                    <div>
-                      <p className="text-sm text-gray-600">Suggestions LLM basées sur le monde:</p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {llmSuggestions.abilities.map((ability: string) => (
-                          <button
-                            key={ability}
-                            onClick={() => updateCharacter('abilities', [...character.abilities, ability])}
-                            className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm hover:bg-purple-200"
-                          >
-                            + {ability}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                   <div className="flex flex-wrap gap-2">
                     {character.abilities.map((ability, index) => (
                       <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
@@ -796,6 +670,12 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
                       </span>
                     ))}
                   </div>
+                  <EnhancedCharacterAssistant
+                    worldContext={worldContext}
+                    characterData={character}
+                    onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
+                    suggestionType="abilities"
+                  />
                 </div>
               </div>
               <div>
@@ -906,7 +786,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
                       </p>
                       {worldContext && (
                         <p className="text-xs text-gray-500 mt-1">
-                          Monde: {worldContext.genre?.join(', ')} - {worldContext.description}
+                          Monde: {getGenreString(worldContext.genre)} - {worldContext.description}
                         </p>
                       )}
                     </div>

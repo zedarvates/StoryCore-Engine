@@ -3,7 +3,7 @@
   "context": "Un youtubeur animant un quiz interactif pour engager l'audience.",
   "visual_elements": {
     "background": "assets/jpg_files/file_20_1.jpg",
-    "logo": "assets/library/StorycoreIcone.png",
+    "logo": "assets/library/StorycoreIconeV2.png",
     "animated_text": {
       "title": "Testez vos connaissances !",
       "subtitle": "Quiz interactif et divertissant."

@@ -2,17 +2,18 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/storycore-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/storycore-icon.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/storycore-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval';
-      style-src 'self' 'unsafe-inline';
-      img-src 'self' data: blob:;
-      font-src 'self' data:;
+      default-src 'self' file:;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' file:;
+      style-src 'self' 'unsafe-inline' file:;
+      img-src 'self' data: blob: http://localhost:8000 http://127.0.0.1:8000 file:;
+      font-src 'self' data: file:;
       connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://api.openai.com https://api.anthropic.com;
-      worker-src 'self' blob:;
-      child-src 'self' blob:;
+      worker-src 'self' blob: file:;
+      child-src 'self' blob: file:;
     ">
     <title>StoryCore Creative Studio</title>
     <style>

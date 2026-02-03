@@ -18,7 +18,136 @@ import {
   Zap,
   Film,
   Layers,
+  Settings,
+  Trash2,
+  Copy,
+  Clock,
+  Music,
+  Volume2,
+  VolumeX,
+  Play,
+  MoreVertical,
+  CheckCircle,
+  AlertCircle,
+  Timer,
 } from 'lucide-react';
+
+// Placeholder components for effects system
+const EffectLibrary = ({ onEffectApply }: { onEffectApply: (effect: any) => void }) => (
+  <div className="p-4">
+    <h3 className="text-sm font-semibold mb-4">Effect Library</h3>
+    <div className="space-y-2">
+      <button
+        onClick={() => onEffectApply({ id: 'blur', name: 'Blur', type: 'filter' })}
+        className="w-full text-left p-2 hover:bg-muted rounded"
+      >
+        Blur Effect
+      </button>
+      <button
+        onClick={() => onEffectApply({ id: 'brightness', name: 'Brightness', type: 'adjustment' })}
+        className="w-full text-left p-2 hover:bg-muted rounded"
+      >
+        Brightness
+      </button>
+    </div>
+  </div>
+);
+
+const EffectStack = ({
+  effects,
+  onEffectsChange,
+  onEffectSelect,
+  selectedEffectId
+}: {
+  effects: any[];
+  onEffectsChange: (effects: any[]) => void;
+  onEffectSelect: (effect: any) => void;
+  selectedEffectId?: string;
+}) => (
+  <div className="p-4">
+    <h3 className="text-sm font-semibold mb-4">Effect Stack</h3>
+    <div className="space-y-2">
+      {effects.map((effect) => (
+        <div
+          key={effect.id}
+          onClick={() => onEffectSelect(effect)}
+          className={`p-2 rounded cursor-pointer ${
+            selectedEffectId === effect.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+          }`}
+        >
+          {effect.name}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const EffectControls = ({
+  selectedEffect,
+  onEffectChange,
+  onEffectDelete,
+  onEffectDuplicate,
+  onEffectToggle
+}: {
+  selectedEffect?: any;
+  onEffectChange: (effect: any) => void;
+  onEffectDelete: (effectId: string) => void;
+  onEffectDuplicate: (effectId: string) => void;
+  onEffectToggle: (effectId: string) => void;
+}) => (
+  <div className="p-4">
+    <h3 className="text-sm font-semibold mb-4">Effect Controls</h3>
+    {selectedEffect ? (
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="intensity-slider" className="text-sm font-medium">Intensity</label>
+          <input
+            id="intensity-slider"
+            type="range"
+            aria-label="Effect intensity"
+            title="Adjust effect intensity"
+            min="0"
+            max="100"
+            value={selectedEffect.intensity || 50}
+            onChange={(e) => onEffectChange({
+              ...selectedEffect,
+              intensity: parseInt(e.target.value)
+            })}
+            className="w-full"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onEffectToggle(selectedEffect.id)}
+            className="px-3 py-1 text-sm bg-secondary rounded"
+            aria-label={selectedEffect.enabled ? 'Disable effect' : 'Enable effect'}
+            title={selectedEffect.enabled ? 'Disable effect' : 'Enable effect'}
+          >
+            {selectedEffect.enabled ? 'Disable' : 'Enable'}
+          </button>
+          <button
+            onClick={() => onEffectDuplicate(selectedEffect.id)}
+            className="px-3 py-1 text-sm bg-secondary rounded"
+            aria-label="Duplicate effect"
+            title="Duplicate effect"
+          >
+            <Copy className="w-4 h-4" aria-hidden="true" />
+          </button>
+          <button
+            onClick={() => onEffectDelete(selectedEffect.id)}
+            className="px-3 py-1 text-sm bg-red-600 text-white rounded"
+            aria-label="Delete effect"
+            title="Delete effect"
+          >
+            <Trash2 className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    ) : (
+      <p className="text-sm text-muted-foreground">Select an effect to edit</p>
+    )}
+  </div>
+);
 
 interface CanvasAreaProps {
   onBackToDashboard: () => void;
@@ -144,12 +273,25 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
         <div className="flex items-center gap-2">
           <button
             onClick={onBackToDashboard}
-            className="p-2 hover:bg-muted rounded-md mr-2"
+            className="flex items-center gap-2 px-3 py-1.5 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md mr-2 transition-colors"
             title="Back to Dashboard"
             aria-label="Back to Dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-medium">Dashboard</span>
           </button>
+          
+          {/* Project Info */}
+          {project && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-md">
+              <span className="text-sm font-medium truncate max-w-[200px]">
+                {project.project_name}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {shots.length} shot{shots.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
           <button
             onClick={() => setActiveView('storyboard')}
             className={`px-3 py-1.5 text-sm rounded-md ${
@@ -291,7 +433,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
             {/* GPU-Accelerated Preview */}
             <div className="flex-1">
               <EffectPreviewRenderer
-                videoSrc={selectedShotId ? undefined : undefined} // TODO: Get video source from selected shot
+                videoSrc={selectedShotId ? shots.find(s => s.id === selectedShotId)?.image : undefined}
                 effects={appliedEffects[selectedShotId || ''] || []}
                 width={640}
                 height={360}
@@ -416,65 +558,153 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                   </div>
                 </div>
               ) : (
-                shots.map((shot) => (
-                  <div
-                    key={shot.id}
-                    onClick={() => selectShot(shot.id)}
-                    className={`group bg-card border-2 rounded-lg overflow-hidden cursor-pointer transition-all ${
-                      selectedShotId === shot.id
-                        ? 'border-primary shadow-lg shadow-primary/20'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                    aria-label={`Select shot ${shot.title}`}
-                  >
-                    {/* Shot Preview */}
-                    <div className="aspect-video bg-muted flex items-center justify-center relative">
-                      {shot.image ? (
-                        <img src={shot.image} alt={shot.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <ImageIcon className="w-12 h-12 text-muted-foreground" />
-                      )}
-                      <div className="absolute top-2 left-2 bg-black/70 px-2 py-1 rounded text-xs">
-                        {(shot.position != null ? shot.position : 0) + 1}
+                shots.map((shot) => {
+                  const audioCount = shot.audioTracks?.length || 0;
+                  const effectsCount = shot.effects?.length || 0;
+                  const hasImage = !!shot.image;
+                  const shotNumber = (shot.position != null ? shot.position : 0) + 1;
+                  
+                  return (
+                    <div
+                      key={shot.id}
+                      onClick={() => selectShot(shot.id)}
+                      className={`group bg-card border-2 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 ${
+                        selectedShotId === shot.id
+                          ? 'border-primary shadow-lg shadow-primary/20'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      aria-label={`Select shot ${shot.title}`}
+                    >
+                      {/* Shot Preview with Overlay */}
+                      <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center relative overflow-hidden">
+                        {shot.image ? (
+                          <>
+                            <img 
+                              src={shot.image} 
+                              alt={shot.title} 
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                          </>
+                        ) : (
+                          <ImageIcon className="w-14 h-14 text-muted-foreground/50" />
+                        )}
+                        
+                        {/* Shot Number Badge */}
+                        <div className="absolute top-3 left-3 bg-primary/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-sm font-bold text-primary-foreground shadow-lg">
+                          #{shotNumber}
+                        </div>
+                        
+                        {/* Status Badge */}
+                        <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${
+                          hasImage 
+                            ? 'bg-green-500/80 text-white' 
+                            : 'bg-amber-500/80 text-white'
+                        }`}>
+                          {hasImage ? '✓ Ready' : '⚠ Draft'}
+                        </div>
+                        
+                        {/* Duration Badge */}
+                        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs text-white font-medium">
+                          <Clock className="w-3.5 h-3.5" />
+                          {shot.duration != null ? `${shot.duration}s` : 'N/A'}
+                        </div>
+
+                        {/* Hover Overlay with Quick Actions */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openShotWizard({
+                                mode: 'edit',
+                                sourceLocation: 'shot-card',
+                                shotNumber,
+                              });
+                            }}
+                            className="p-2.5 bg-white/90 hover:bg-white rounded-full transition-colors shadow-lg"
+                            title="Edit shot"
+                            aria-label={`Edit shot ${shot.title}`}
+                          >
+                            <Edit className="w-5 h-5 text-gray-800" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Play preview action
+                            }}
+                            className="p-2.5 bg-white/90 hover:bg-white rounded-full transition-colors shadow-lg"
+                            title="Preview shot"
+                            aria-label="Preview shot"
+                          >
+                            <Play className="w-5 h-5 text-gray-800" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // More options action
+                            }}
+                            className="p-2.5 bg-white/90 hover:bg-white rounded-full transition-colors shadow-lg"
+                            title="More options"
+                            aria-label="More options"
+                          >
+                            <MoreVertical className="w-5 h-5 text-gray-800" />
+                          </button>
+                        </div>
                       </div>
-                      {/* Edit button overlay */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openShotWizard({
-                            mode: 'edit',
-                            sourceLocation: 'shot-card',
-                            shotNumber: (shot.position != null ? shot.position : 0) + 1,
-                          });
-                        }}
-                        className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black/90 rounded transition-colors opacity-0 group-hover:opacity-100"
-                        title="Edit shot"
-                        aria-label={`Edit shot ${shot.title}`}
-                      >
-                        <Edit className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
 
-                    {/* Shot Info */}
-                    <div className="p-3">
-                      <h4 className="font-semibold text-sm mb-1 truncate">{shot.title}</h4>
-                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                        {shot.description}
-                      </p>
-
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">
-                          Duration: {shot.duration != null ? `${shot.duration}s` : 'N/A'}
-                        </span>
-                        <div className="flex gap-1">
-                          {shot.audioTracks?.length > 0 && (
-                            <span className="text-primary">{shot.audioTracks.length} 🎵</span>
+                      {/* Shot Info */}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-semibold text-base truncate flex-1">{shot.title}</h4>
+                          {selectedShotId === shot.id && (
+                            <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                           )}
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3 min-h-[2.5rem]">
+                          {shot.description || 'No description'}
+                        </p>
+
+                        {/* Shot Stats */}
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-3">
+                            {/* Audio indicator */}
+                            {audioCount > 0 && (
+                              <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                                <Music className="w-3.5 h-3.5" />
+                                <span className="font-medium">{audioCount}</span>
+                              </div>
+                            )}
+                            
+                            {/* Effects indicator */}
+                            {effectsCount > 0 && (
+                              <div className="flex items-center gap-1.5 text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span className="font-medium">{effectsCount}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Quick action button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openShotWizard({
+                                mode: 'edit',
+                                sourceLocation: 'shot-card',
+                                shotNumber,
+                              });
+                            }}
+                            className="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+                            title="Quick edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

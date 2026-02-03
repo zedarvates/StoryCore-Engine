@@ -10,12 +10,13 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from 'react';
 import type {
-  Project,
-  Shot,
+  Project as DashboardProject,
+  Shot as DashboardShot,
   DialoguePhrase,
-  GenerationStatus,
+  GenerationStatus as DashboardGenerationStatus,
   GenerationResults,
 } from '../types/projectDashboard';
+import type { Project, Shot } from '../types';
 import { memoizedValidatePrompt } from '../utils/performanceOptimizations';
 import {
   projectPersistence,
@@ -36,9 +37,9 @@ import {
  */
 export interface ProjectContextValue {
   // State
-  project: Project | null;
-  selectedShot: Shot | null;
-  generationStatus: GenerationStatus;
+  project: DashboardProject | null;
+  selectedShot: DashboardShot | null;
+  generationStatus: DashboardGenerationStatus;
   isGenerating: boolean;
   isLoading: boolean;
   isSaving: boolean;
@@ -48,23 +49,23 @@ export interface ProjectContextValue {
   // Project Management
   loadProject: (projectId: string) => Promise<void>;
   saveProject: () => Promise<void>;
-  
+
   // Shot Management (Task 3.2)
   updateShot: (shotId: string, updates: Partial<Shot>) => void;
   deleteShot: (shotId: string, deletePhrases: boolean) => void;
   validateAllShots: () => { valid: boolean; invalidShots: Shot[] };
   getPromptCompletionStatus: () => { complete: number; incomplete: number; total: number };
-  
+
   // Dialogue Phrase Management (Task 3.3)
   addDialoguePhrase: (phrase: Omit<DialoguePhrase, 'id'>) => void;
   updateDialoguePhrase: (phraseId: string, updates: Partial<DialoguePhrase>) => void;
   deleteDialoguePhrase: (phraseId: string) => void;
   linkPhraseToShot: (phraseId: string, shotId: string) => void;
-  
+
   // Generation Management
   generateSequence: () => Promise<GenerationResults | null>;
   cancelGeneration: () => void;
-  
+
   // Selection Management
   selectShot: (shot: Shot | null) => void;
 }
@@ -104,9 +105,9 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
   // State
   // ============================================================================
 
-  const [project, setProject] = useState<Project | null>(null);
-  const [selectedShot, setSelectedShot] = useState<Shot | null>(null);
-  const [generationStatus, setGenerationStatus] = useState<GenerationStatus>({
+  const [project, setProject] = useState<DashboardProject | null>(null);
+  const [selectedShot, setSelectedShot] = useState<DashboardShot | null>(null);
+  const [generationStatus, setGenerationStatus] = useState<DashboardGenerationStatus>({
     stage: 'idle',
     progress: 0,
   });
@@ -133,11 +134,16 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
       const result: LoadResult = await projectPersistence.loadProject(id);
 
       if (result.success && result.project) {
-        setProject(result.project);
+        // If the project has a local path, initialize Rover backend for persistent memory
+        if (result.project.path) {
+          projectPersistence.useRover(result.project.path);
+        }
+
+        setProject(result.project as unknown as DashboardProject);
         setIsLoading(false);
       } else {
         // Project not found or failed to load - create new project
-        const newProject: Project = {
+        const newProject: DashboardProject = {
           id,
           name: `Project ${id}`,
           schemaVersion: '1.0',
@@ -158,13 +164,13 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         setIsLoading(false);
 
         // Save the new project
-        await projectPersistence.saveProject(newProject);
+        await projectPersistence.saveProject(newProject as unknown as Project);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load project';
       setError(errorMessage);
       setIsLoading(false);
-      
+
       // Log error for debugging in development only
       if (process.env.NODE_ENV === 'development') {
         console.error('Failed to load project:', err);
@@ -185,7 +191,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
       setError(null);
 
       // Save project using persistence service
-      const result: SaveResult = await projectPersistence.saveProject(project);
+      const result: SaveResult = await projectPersistence.saveProject(project as unknown as Project);
 
       if (result.success) {
         setSaveStatus('saved');
@@ -218,7 +224,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
       setError(errorMessage);
       setSaveStatus('error');
       setIsSaving(false);
-      
+
       // Log error for debugging in development only
       if (process.env.NODE_ENV === 'development') {
         console.error('Failed to save project:', err);
@@ -230,7 +236,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
   useEffect(() => {
     if (project) {
       // Schedule auto-save using persistence service
-      projectPersistence.scheduleAutoSave(project);
+      projectPersistence.scheduleAutoSave(project as unknown as Project);
     }
 
     // Cleanup on unmount
@@ -257,12 +263,12 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
       const updatedShots = prev.shots.map(shot => {
         if (shot.id === shotId) {
           const updatedShot = { ...shot, ...updates };
-          
+
           // If prompt was updated, validate it using memoized validation
           if (updates.prompt !== undefined) {
             updatedShot.promptValidation = memoizedValidatePrompt(updates.prompt);
           }
-          
+
           return updatedShot;
         }
         return shot;
@@ -301,11 +307,11 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 
       // Handle associated phrases
       let updatedPhrases: DialoguePhrase[];
-      
+
       if (deletePhrases) {
         // Delete all phrases linked to this shot
         updatedPhrases = prev.audioPhrases.filter(phrase => phrase.shotId !== shotId);
-        
+
         // Log for debugging in development only
         if (process.env.NODE_ENV === 'development') {
           ;
@@ -318,7 +324,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
             ? { ...phrase, shotId: '' }
             : phrase
         );
-        
+
         // Log for debugging in development only
         if (process.env.NODE_ENV === 'development') {
           ;
@@ -401,7 +407,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 
       // Generate unique ID
       const id = `phrase-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
+
       const newPhrase: DialoguePhrase = {
         ...phrase,
         id,
@@ -531,12 +537,12 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
           progress: 100,
         });
         setIsGenerating(false);
-        
+
         // Mark generation as complete in persistence
         if (project) {
           await generationStatePersistence.completeGeneration(project.id);
         }
-        
+
         onGenerationComplete?.(results);
         return results;
       } else {
@@ -546,12 +552,12 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
           progress: 0,
         });
         setIsGenerating(false);
-        
+
         // Mark generation as complete in persistence
         if (project) {
           await generationStatePersistence.completeGeneration(project.id);
         }
-        
+
         return null;
       }
     } catch (err) {
@@ -563,12 +569,12 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         error: errorMessage,
       });
       setIsGenerating(false);
-      
+
       // Mark generation as complete in persistence
       if (project) {
         await generationStatePersistence.completeGeneration(project.id);
       }
-      
+
       return null;
     }
   }, [project, validateAllShots, onGenerationComplete]);
@@ -580,16 +586,16 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
   const cancelGeneration = useCallback(async () => {
     // Import sequence generation service dynamically
     const { sequenceGenerationService } = await import('../services/sequenceGenerationService');
-    
+
     // Cancel the generation
     sequenceGenerationService.cancel();
-    
+
     setIsGenerating(false);
     setGenerationStatus({
       stage: 'idle',
       progress: 0,
     });
-    
+
     // Mark generation as complete in persistence
     if (project) {
       await generationStatePersistence.completeGeneration(project.id);
@@ -630,7 +636,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
           // Restore generation status
           setGenerationStatus(state.status);
           setIsGenerating(true);
-          
+
           // Log restoration for debugging in development only
           if (process.env.NODE_ENV === 'development') {
             ;

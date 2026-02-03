@@ -54,6 +54,7 @@ interface LandingChatBoxProps {
   placeholder?: string;
   height?: number;
   onLaunchWizard?: (wizardType: string) => void;
+  context?: 'landing' | 'project'; // NEW: Context to adapt suggestions
 }
 
 // ============================================================================
@@ -64,12 +65,17 @@ export function LandingChatBox({
   onSendMessage,
   placeholder = "Décrivez votre projet ou posez une question...",
   height,
+  context, // Will be undefined if not provided
 }: LandingChatBoxProps) {
   // Use unified LLM configuration service
   const { config: llmConfig, service: llmService, isConfigured } = useLLMConfig();
   
-  // Use global store to open LLM settings modal
+  // Use global store to open LLM settings modal and check if project is loaded
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+  const project = useAppStore((state) => state.project);
+  
+  // Auto-detect context if not provided: 'landing' if no project, 'project' if project loaded
+  const effectiveContext = context || (project ? 'project' : 'landing');
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -218,6 +224,44 @@ export function LandingChatBox({
 
   // Génère des suggestions dynamiques basées sur la conversation
   const updateDynamicSuggestions = useCallback(() => {
+    // Si on est sur la landing page (pas de projet), afficher des suggestions spécifiques
+    if (effectiveContext === 'landing' && messages.length <= 1) {
+      const landingSuggestions: PromptSuggestion[] = [
+        {
+          text: currentLanguage === 'fr' ? '🆕 Créer un nouveau projet' : '🆕 Create a new project',
+          category: 'project',
+          confidence: 100,
+          icon: '🆕'
+        },
+        {
+          text: currentLanguage === 'fr' ? '📂 Ouvrir un projet existant' : '📂 Open an existing project',
+          category: 'project',
+          confidence: 95,
+          icon: '📂'
+        },
+        {
+          text: currentLanguage === 'fr' ? '🔄 Reprendre le dernier projet' : '🔄 Resume last project',
+          category: 'project',
+          confidence: 90,
+          icon: '🔄'
+        },
+        {
+          text: currentLanguage === 'fr' ? '📋 Voir mes projets récents' : '📋 View recent projects',
+          category: 'project',
+          confidence: 85,
+          icon: '📋'
+        },
+        {
+          text: currentLanguage === 'fr' ? '❓ Comment utiliser StoryCore?' : '❓ How to use StoryCore?',
+          category: 'help',
+          confidence: 80,
+          icon: '❓'
+        }
+      ];
+      setDynamicSuggestions(landingSuggestions);
+      return;
+    }
+    
     if (inputValue.trim().length > 0) {
       const suggestions = promptSuggestionService.generateSuggestions(
         messages,
@@ -238,7 +282,7 @@ export function LandingChatBox({
       const defaultSuggestions = promptSuggestionService.getDefaultSuggestions(currentLanguage);
       setDynamicSuggestions(defaultSuggestions);
     }
-  }, [messages, currentLanguage, inputValue]);
+  }, [messages, currentLanguage, inputValue, effectiveContext]);
 
   // Met à jour les suggestions quand le texte change ou la langue change
   useEffect(() => {

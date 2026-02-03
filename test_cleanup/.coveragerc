@@ -1,0 +1,21 @@
+[run]
+# Coverage configuration for test cleanup tool
+source = test_cleanup
+omit = 
+    */tests/*
+    */test_*
+    */__pycache__/*
+    */site-packages/*
+    */cli.py
+    */setup.py
+
+[report]
+# Reporting options
+precision = 2
+show_missing = True
+skip_covered = False
+
+[html]
+# HTML report options
+directory = htmlcov
+title = Test Cleanup Tool Coverage Report

@@ -224,6 +224,67 @@ export function createEmptyProject(name: string): Project {
   };
 }
 
+/**
+ * Creates a new project on disk via Electron IPC
+ * This is the main function that creates the actual project files
+ * 
+ * @param data - Project creation data (name is required, location defaults to Documents/StoryCore Projects)
+ * @returns Promise resolving to created project info
+ * @throws Error if project creation fails
+ */
+export async function createProjectOnDisk(data: {
+  name: string;
+  location?: string;
+  format?: any;
+  initialShots?: any[];
+}): Promise<{
+  id: string;
+  name: string;
+  path: string;
+  version: string;
+}> {
+  // Check if we're running in Electron environment
+  if (!window.electronAPI?.project?.create) {
+    console.warn('[projectManager] Not running in Electron environment, project will not be saved to disk');
+    throw new Error('Not running in Electron environment');
+  }
+
+  console.log('[projectManager] Creating project on disk via IPC:', data);
+
+  try {
+    // Prepare project data - only include defined properties
+    // Use type assertion to avoid TypeScript strict optional type checking issues
+    const projectData = {
+      name: data.name,
+      ...(data.location && { location: data.location }),
+      ...(data.format && { format: data.format }),
+      ...(data.initialShots && { initialShots: data.initialShots }),
+    };
+
+    const project = await window.electronAPI.project.create(projectData as any);
+    console.log('[projectManager] Project created successfully on disk:', project.path);
+    return project;
+  } catch (error) {
+    console.error('[projectManager] Failed to create project on disk:', error);
+    throw new Error(`Failed to create project: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+/**
+ * Get the default projects directory path
+ * @returns Promise resolving to the default projects directory path
+ */
+export async function getDefaultProjectsDirectory(): Promise<string> {
+  if (!window.electronAPI?.project?.selectDirectory) {
+    // Fallback to common path if not in Electron
+    return 'C:\\Users\\redga\\Documents\\StoryCore Projects';
+  }
+
+  // Select directory using the file picker
+  const path = await window.electronAPI.project.selectDirectory();
+  return path || 'C:\\Users\\redga\\Documents\\StoryCore Projects';
+}
+
 // ============================================================================
 // Local Storage Helpers
 // ============================================================================
@@ -261,12 +322,18 @@ export function getRecentProjects(): RecentProject[] {
 /**
  * Adds a project to the recent projects list
  */
-export function addRecentProject(project: Omit<RecentProject, 'lastAccessed' | 'exists'>): void {
+export function addRecentProject(project: {
+  id?: string;
+  name: string;
+  path: string;
+}): void {
   try {
     const recent = getRecentProjects();
     const filtered = recent.filter((p) => p.path !== project.path);
     const newProject: RecentProject = {
-      ...project,
+      id: project.id || crypto.randomUUID(),
+      name: project.name,
+      path: project.path,
       lastAccessed: new Date(),
       exists: true,
     };
@@ -287,3 +354,4 @@ export function clearRecentProjects(): void {
     console.error('Failed to clear recent projects:', error);
   }
 }
+

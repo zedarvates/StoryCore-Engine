@@ -1,0 +1,376 @@
+/**
+ * Editor Section Styles
+ * Shared styles for all editor sections
+ */
+
+.editor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.editor-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.editor-section__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text, #111827);
+  margin: 0 0 16px;
+}
+
+.editor-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* Form fields */
+.editor-section__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editor-section__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text, #111827);
+}
+
+.editor-section__required {
+  color: var(--color-danger, #ef4444);
+}
+
+.editor-section__input,
+.editor-section__select,
+.editor-section__textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--color-text, #111827);
+  background: var(--color-surface, #ffffff);
+  transition: all 0.2s ease;
+}
+
+.editor-section__input:focus,
+.editor-section__select:focus,
+.editor-section__textarea:focus {
+  outline: none;
+  border-color: var(--color-primary, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.editor-section__input--error,
+.editor-section__select--error,
+.editor-section__textarea--error {
+  border-color: var(--color-danger, #ef4444);
+}
+
+.editor-section__textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.editor-section__hint {
+  font-size: 12px;
+  color: var(--color-text-muted, #9ca3af);
+  margin: 0;
+}
+
+.editor-section__error {
+  font-size: 13px;
+  color: var(--color-danger, #ef4444);
+}
+
+.editor-section__error p {
+  margin: 0;
+}
+
+/* Buttons */
+.editor-section__add-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-primary, #3b82f6);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-primary, #3b82f6);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editor-section__add-button:hover {
+  background: var(--color-primary, #3b82f6);
+  color: white;
+}
+
+.editor-section__add-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.editor-section__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editor-section__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.editor-section__button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.editor-section__button--primary {
+  background: var(--color-primary, #3b82f6);
+  border-color: var(--color-primary, #3b82f6);
+  color: white;
+}
+
+.editor-section__button--primary:hover:not(:disabled) {
+  background: var(--color-primary-dark, #2563eb);
+  border-color: var(--color-primary-dark, #2563eb);
+}
+
+.editor-section__button--secondary {
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.editor-section__button--secondary:hover:not(:disabled) {
+  background: var(--color-muted, #f3f4f6);
+  color: var(--color-text, #111827);
+}
+
+.editor-section__icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editor-section__icon-button:hover {
+  background: var(--color-muted, #f3f4f6);
+  color: var(--color-text, #111827);
+}
+
+.editor-section__icon-button--danger:hover {
+  border-color: var(--color-danger, #ef4444);
+  color: var(--color-danger, #ef4444);
+}
+
+.editor-section__icon-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Relationships */
+.editor-section__relationships {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-section__relationship-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--color-muted, #f3f4f6);
+}
+
+.editor-section__relationship-card--new {
+  flex-direction: column;
+  background: var(--color-surface, #ffffff);
+}
+
+.editor-section__relationship-card h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text, #111827);
+  margin: 0 0 8px;
+}
+
+.editor-section__relationship-content {
+  flex: 1;
+}
+
+.editor-section__relationship-type {
+  font-size: 14px;
+  color: var(--color-primary, #3b82f6);
+  font-weight: 500;
+  margin: 0 0 8px;
+  text-transform: capitalize;
+}
+
+.editor-section__relationship-description {
+  font-size: 14px;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0 0 4px;
+}
+
+.editor-section__relationship-dynamic {
+  font-size: 13px;
+  color: var(--color-text-muted, #9ca3af);
+  margin: 0;
+}
+
+.editor-section__relationship-dynamic strong {
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.editor-section__relationship-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.editor-section__relationship-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Empty state */
+.editor-section__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  border: 2px dashed var(--color-border, #e5e7eb);
+  border-radius: 8px;
+}
+
+.editor-section__empty p {
+  font-size: 14px;
+  color: var(--color-text-muted, #9ca3af);
+  margin: 0 0 16px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .editor-section__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-section__relationship-card {
+    flex-direction: column;
+  }
+
+  .editor-section__relationship-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .editor-section__title {
+    color: var(--color-text-dark, #f9fafb);
+  }
+
+  .editor-section__label {
+    color: var(--color-text-dark, #f9fafb);
+  }
+
+  .editor-section__input,
+  .editor-section__select,
+  .editor-section__textarea {
+    background: var(--color-surface-dark, #1f2937);
+    border-color: var(--color-border-dark, #374151);
+    color: var(--color-text-dark, #f9fafb);
+  }
+
+  .editor-section__hint {
+    color: var(--color-text-muted-dark, #9ca3af);
+  }
+
+  .editor-section__relationship-card {
+    background: var(--color-muted-dark, #374151);
+    border-color: var(--color-border-dark, #374151);
+  }
+
+  .editor-section__relationship-card--new {
+    background: var(--color-surface-dark, #1f2937);
+  }
+
+  .editor-section__relationship-card h4 {
+    color: var(--color-text-dark, #f9fafb);
+  }
+
+  .editor-section__relationship-description {
+    color: var(--color-text-secondary-dark, #d1d5db);
+  }
+
+  .editor-section__relationship-dynamic {
+    color: var(--color-text-muted-dark, #9ca3af);
+  }
+
+  .editor-section__relationship-dynamic strong {
+    color: var(--color-text-secondary-dark, #d1d5db);
+  }
+
+  .editor-section__button--secondary {
+    background: var(--color-surface-dark, #1f2937);
+    border-color: var(--color-border-dark, #374151);
+    color: var(--color-text-secondary-dark, #d1d5db);
+  }
+
+  .editor-section__button--secondary:hover:not(:disabled) {
+    background: var(--color-muted-dark, #374151);
+    color: var(--color-text-dark, #f9fafb);
+  }
+
+  .editor-section__icon-button {
+    border-color: var(--color-border-dark, #374151);
+    color: var(--color-text-secondary-dark, #d1d5db);
+  }
+
+  .editor-section__icon-button:hover {
+    background: var(--color-muted-dark, #374151);
+    color: var(--color-text-dark, #f9fafb);
+  }
+
+  .editor-section__empty {
+    border-color: var(--color-border-dark, #374151);
+  }
+
+  .editor-section__empty p {
+    color: var(--color-text-muted-dark, #9ca3af);
+  }
+}

@@ -49,7 +49,8 @@ export default defineConfig({
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
   },
   // Electron-specific configuration
-  base: process.env.ELECTRON === 'true' ? './' : '/',
+  // Use relative paths for Electron (file:// protocol)
+  base: './',
   // Web Worker configuration
   worker: {
     format: 'es',

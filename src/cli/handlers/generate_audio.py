@@ -125,6 +125,31 @@ class GenerateAudioHandler(BaseHandler):
             print(f"  Total duration: {result['total_duration']:.1f} seconds")
             print(f"  Processing time: {result['processing_time']:.1f} seconds")
             
+            # Index generated assets in memory system
+            if result.get('generated_audio'):
+                from ..memory_integration import index_generated_assets
+                
+                # Extract asset paths
+                asset_paths = [audio['path'] for audio in result['generated_audio']]
+                
+                # Index assets with context
+                indexed = index_generated_assets(
+                    project_path=project_path,
+                    asset_paths=asset_paths,
+                    asset_type="audio",
+                    generation_context={
+                        "audio_type": args.type,
+                        "workflow": args.workflow,
+                        "comfyui_url": args.comfyui_url,
+                        "voice": args.voice,
+                        "music_style": args.music_style,
+                        "mock_mode": args.mock
+                    }
+                )
+                
+                if indexed:
+                    print(f"  Indexed {len(asset_paths)} audio files in memory system")
+            
             # Show generation details
             if result.get('generated_audio'):
                 print(f"\n  Generated audio files:")

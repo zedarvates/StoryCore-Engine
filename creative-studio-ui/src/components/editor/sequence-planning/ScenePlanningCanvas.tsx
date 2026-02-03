@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   Move,
   RotateCw,
@@ -11,9 +11,9 @@ import {
   Box,
   Camera,
   Sun,
-  Zap
+  Zap,
+  Users
 } from 'lucide-react';
-import { Scene } from '@/types/sequencePlan';
 import { CanvasElement, SceneData, ViewMode } from './types';
 import './ScenePlanningCanvas.css';
 
@@ -34,7 +34,7 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
   selectedElement,
   onElementSelect,
   onElementUpdate,
-  showGrid = true,
+  showGrid: initialShowGrid = true,
   showGizmos = true,
   className = ''
 }) => {
@@ -42,6 +42,7 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
   const [transformMode, setTransformMode] = useState<'move' | 'rotate' | 'scale'>('move');
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [showGrid, setShowGrid] = useState(initialShowGrid);
 
   const handleElementClick = useCallback((element: CanvasElement, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -56,12 +57,13 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
   const handleDragEnd = useCallback((elementId: string, event: React.DragEvent) => {
     if (!isDragging) return;
 
-    const deltaX = (event.clientX - dragStart.x) / 10; // Convert to scene units
+    const deltaX = (event.clientX - dragStart.x) / 10;
     const deltaY = (event.clientY - dragStart.y) / 10;
 
-    const element = scene.elements.find(el => el.id === elementId);
+    const elements = scene.elements || [];
+    const element = elements.find((el: CanvasElement) => el.id === elementId);
     if (element) {
-      updateElement(elementId, {
+      onElementUpdate(elementId, {
         position: {
           ...element.position,
           x: element.position.x + deltaX,
@@ -71,32 +73,7 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
     }
 
     setIsDragging(false);
-  }, [isDragging, dragStart, scene.elements, updateElement]);
-
-  const handleDragEnd = useCallback((elementId: string, event: React.DragEvent) => {
-    if (!isDragging) return;
-
-    const deltaX = event.clientX - dragStart.x;
-    const deltaY = event.clientY - dragStart.y;
-
-    setCanvasData(prev => ({
-      ...prev,
-      elements: prev.elements.map(el =>
-        el.id === elementId
-          ? {
-              ...el,
-              position: {
-                ...el.position,
-                x: el.position.x + deltaX * 0.01,
-                y: el.position.y - deltaY * 0.01
-              }
-            }
-          : el
-      )
-    }));
-
-    setIsDragging(false);
-  }, [isDragging, dragStart]);
+  }, [isDragging, dragStart, scene.elements, onElementUpdate]);
 
   const addElement = useCallback((element: Omit<CanvasElement, 'id'>) => {
     const newElement: CanvasElement = {
@@ -106,7 +83,7 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
 
     const updatedScene = {
       ...scene,
-      elements: [...scene.elements, newElement]
+      elements: [...(scene.elements || []), newElement]
     };
     // TODO: Update scene through props
   }, [scene]);
@@ -116,12 +93,39 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
   }, [onElementUpdate]);
 
   const deleteElement = useCallback((elementId: string) => {
-    const updatedElements = scene.elements.filter(el => el.id !== elementId);
+    const elements = scene.elements || [];
+    const updatedElements = elements.filter((el: CanvasElement) => el.id !== elementId);
     // TODO: Update scene through props
     if (selectedElement?.id === elementId) {
       onElementSelect(null);
     }
   }, [scene.elements, selectedElement, onElementSelect]);
+
+  const getElementIcon = (type: string) => {
+    switch (type) {
+      case 'puppet': return <Users size={32} />;
+      case 'prop': return <Box size={32} />;
+      case 'environment': return <Sun size={32} />;
+      case 'camera': return <Camera size={32} />;
+      case 'light': return <Zap size={32} />;
+      default: return <Box size={32} />;
+    }
+  };
+
+  const getSpeakerLabel = (assignment?: string) => {
+    const labels: Record<string, string> = {
+      'front-left': 'FL',
+      'front-center': 'FC',
+      'front-right': 'FR',
+      'surround-left': 'SL',
+      'surround-right': 'SR',
+      'back-left': 'BL',
+      'back-right': 'BR',
+      'lfe': 'LFE',
+      'auto': 'AUTO'
+    };
+    return assignment ? labels[assignment] || assignment : '';
+  };
 
   return (
     <div className={`scene-planning-canvas ${className}`}>
@@ -207,8 +211,12 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
         onDrop={(e) => {
           e.preventDefault();
           // Handle element drop from library
-          const elementData = JSON.parse(e.dataTransfer.getData('application/json'));
-          addElement(elementData);
+          try {
+            const elementData = JSON.parse(e.dataTransfer.getData('application/json'));
+            addElement(elementData);
+          } catch (err) {
+            console.error('Failed to parse dropped element:', err);
+          }
         }}
         onDragOver={(e) => e.preventDefault()}
       >
@@ -225,14 +233,14 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
         )}
 
         {/* Canvas Elements */}
-        {scene.elements.map(element => (
+        {(scene.elements || []).map((element: CanvasElement) => (
           <div
             key={element.id}
             className={`canvas-element ${element.type} ${selectedElement?.id === element.id ? 'selected' : ''} ${element.visible ? 'visible' : 'hidden'}`}
             style={{
-              left: `${50 + element.position.x * 10}%`,
-              top: `${50 + element.position.y * 10}%`,
-              transform: `translate(-50%, -50%) rotate(${element.rotation.z}deg) scale(${element.scale.x})`
+              left: `${50 + (element.position?.x || 0) * 10}%`,
+              top: `${50 + (element.position?.y || 0) * 10}%`,
+              transform: `translate(-50%, -50%) rotate(${(element.rotation?.z || 0)}deg) scale(${(element.scale?.x || 1)})`
             }}
             onClick={(e) => handleElementClick(element, e)}
             draggable
@@ -240,17 +248,12 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
             onDragEnd={(e) => handleDragEnd(element.id, e)}
           >
             <div className="element-content">
-              {element.type === 'puppet' && <Users size={32} />}
-              {element.type === 'prop' && <Box size={32} />}
-              {element.type === 'environment' && <Sun size={32} />}
-              {element.type === 'camera' && <Camera size={32} />}
-              {element.type === 'light' && <Zap size={32} />}
+              {getElementIcon(element.type)}
             </div>
             <div className="element-label">{element.name}</div>
 
             {selectedElement?.id === element.id && showGizmos && (
               <div className="element-gizmo">
-                {/* Transform gizmos would go here */}
                 <div className="gizmo-handle move" />
                 <div className="gizmo-handle rotate" />
                 <div className="gizmo-handle scale" />
@@ -261,19 +264,11 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
             {element.audio?.enabled && element.audio.spatialization && (
               <div className="audio-indicator">
                 <div className="speaker-icon">
-                  {element.audio.speakerAssignment === 'front-left' && 'FL'}
-                  {element.audio.speakerAssignment === 'front-center' && 'FC'}
-                  {element.audio.speakerAssignment === 'front-right' && 'FR'}
-                  {element.audio.speakerAssignment === 'surround-left' && 'SL'}
-                  {element.audio.speakerAssignment === 'surround-right' && 'SR'}
-                  {element.audio.speakerAssignment === 'back-left' && 'BL'}
-                  {element.audio.speakerAssignment === 'back-right' && 'BR'}
-                  {element.audio.speakerAssignment === 'lfe' && 'LFE'}
-                  {element.audio.speakerAssignment === 'auto' && 'AUTO'}
+                  {getSpeakerLabel(element.audio.speakerAssignment)}
                 </div>
                 <div
                   className="volume-indicator"
-                  style={{ opacity: element.audio.volume }}
+                  style={{ opacity: element.audio.volume || 1 }}
                 />
               </div>
             )}
@@ -292,7 +287,7 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
       <div className="canvas-info">
         <div className="info-item">
           <span className="label">Éléments:</span>
-          <span className="value">{scene.elements.length}</span>
+          <span className="value">{(scene.elements || []).length}</span>
         </div>
         <div className="info-item">
           <span className="label">Mode:</span>
@@ -306,3 +301,4 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
     </div>
   );
 };
+

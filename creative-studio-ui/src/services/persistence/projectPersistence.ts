@@ -7,8 +7,45 @@
  * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5
  */
 
-import type { Project } from '../../types/projectDashboard';
-import { ProjectSchema } from '../../types/projectDashboard';
+import type { Project } from '../../types';
+import { z } from 'zod';
+import { RoverBackend } from './RoverBackend';
+
+// ============================================================================
+// Project Schema for Validation
+// ============================================================================
+
+const ProjectSchema = z.object({
+  id: z.string(),
+  schema_version: z.string(),
+  project_name: z.string(),
+  shots: z.array(z.any()),
+  assets: z.array(z.any()),
+  worlds: z.array(z.any()).optional(),
+  selectedWorldId: z.string().nullable().optional(),
+  characters: z.array(z.any()).optional(),
+  capabilities: z.object({
+    grid_generation: z.boolean(),
+    promotion_engine: z.boolean(),
+    qa_engine: z.boolean(),
+    autofix_engine: z.boolean(),
+    character_casting: z.boolean().optional(),
+  }),
+  generation_status: z.object({
+    grid: z.enum(['pending', 'done', 'failed', 'passed']),
+    promotion: z.enum(['pending', 'done', 'failed', 'passed']),
+  }),
+  casting: z.object({
+    version: z.string(),
+    assignments: z.array(z.object({
+      character_id: z.string(),
+      avatar_id: z.string(),
+      assigned_at: z.string(),
+    })),
+    last_modified: z.string(),
+  }).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
+});
 
 // ============================================================================
 // Constants
@@ -130,13 +167,27 @@ export class ProjectPersistenceService {
       autoSaveDelay: options.autoSaveDelay ?? AUTO_SAVE_DELAY_MS,
       maxRetries: options.maxRetries ?? MAX_RETRY_ATTEMPTS,
       retryDelay: options.retryDelay ?? RETRY_DELAY_MS,
-      onSaveSuccess: options.onSaveSuccess ?? (() => {}),
-      onSaveError: options.onSaveError ?? (() => {}),
-      onLoadSuccess: options.onLoadSuccess ?? (() => {}),
-      onLoadError: options.onLoadError ?? (() => {}),
+      onSaveSuccess: options.onSaveSuccess ?? (() => { }),
+      onSaveError: options.onSaveError ?? (() => { }),
+      onLoadSuccess: options.onLoadSuccess ?? (() => { }),
+      onLoadError: options.onLoadError ?? (() => { }),
     };
     this.autoSaveTimers = new Map();
     this.saveInProgress = new Map();
+  }
+
+  /**
+   * Set the storage backend dynamically
+   */
+  setBackend(backend: StorageBackend): void {
+    this.backend = backend;
+  }
+
+  /**
+   * Helper to switch to Rover backend for a specific project path
+   */
+  useRover(projectPath: string): void {
+    this.setBackend(new RoverBackend(projectPath));
   }
 
   /**
@@ -290,7 +341,7 @@ export class ProjectPersistenceService {
         };
       }
 
-      const project = validationResult.data;
+      const project = validationResult.data as unknown as Project;
       this.options.onLoadSuccess(project);
 
       return {

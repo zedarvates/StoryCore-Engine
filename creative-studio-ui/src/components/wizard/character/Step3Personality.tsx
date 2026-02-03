@@ -9,13 +9,19 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, X } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
+import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import type { Character } from '@/types/character';
+import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 3: Personality
 // ============================================================================
 
-export function Step3Personality() {
+interface Step3PersonalityProps {
+  storyContext?: StoryContext;
+}
+
+export function Step3Personality({ storyContext }: Step3PersonalityProps = {}) {
   const { formData, updateFormData, validationErrors } =
     useWizard<Character>();
 
@@ -25,6 +31,9 @@ export function Step3Personality() {
   const [newDesire, setNewDesire] = useState('');
   const [newFlaw, setNewFlaw] = useState('');
   const [newStrength, setNewStrength] = useState('');
+
+  // Check if LLM service is configured
+  const { llmConfigured, llmChecking } = useServiceStatus();
 
   // LLM generation for personality suggestions
   const {
@@ -279,13 +288,34 @@ Example:
             </div>
             <Button
               onClick={handleGeneratePersonality}
-              disabled={isLoading || !formData.role?.archetype}
+              disabled={isLoading || llmChecking || !formData.role?.archetype || !llmConfigured}
               className="gap-2"
             >
               <Sparkles className="h-4 w-4" />
-              {isLoading ? 'Generating...' : 'Generate Personality'}
+              {isLoading ? 'Generating...' : llmChecking ? 'Checking...' : 'Generate Personality'}
             </Button>
           </div>
+
+          {/* Checking State */}
+          {llmChecking && (
+            <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+              <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+              <span className="text-sm text-blue-700 dark:text-blue-300">
+                Checking LLM service configuration...
+              </span>
+            </div>
+          )}
+
+          {/* Service Warning */}
+          {!llmChecking && !llmConfigured && (
+            <ServiceWarning
+              service="llm"
+              onConfigure={() => {
+                // Open settings or configuration
+                window.dispatchEvent(new CustomEvent('open-llm-settings'));
+              }}
+            />
+          )}
 
           {/* Loading State */}
           {isLoading && (
@@ -294,11 +324,19 @@ Example:
 
           {/* Error Display */}
           {llmError && (
-            <LLMErrorDisplay
-              error={llmError}
-              onRetry={handleGeneratePersonality}
-              onDismiss={clearError}
-            />
+            <div className="space-y-3">
+              <LLMErrorDisplay
+                error={llmError}
+                onRetry={handleGeneratePersonality}
+                onDismiss={clearError}
+              />
+              {/* Fallback to manual entry */}
+              <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  You can also enter personality details manually below
+                </p>
+              </div>
+            </div>
           )}
         </div>
 

@@ -36,7 +36,17 @@ export const WIZARD_DEFINITIONS: WizardDefinition[] = [
     description: 'Design detailed characters with personalities, backgrounds, and visual descriptions',
     icon: '👤',
     enabled: true,
-    requiredConfig: ['llm', 'comfyui'],
+    requiredConfig: ['llm'], // ComfyUI optional - only for image tile generation
+    requiresCharacters: false,
+    requiresShots: false,
+  },
+  {
+    id: 'storyteller-wizard',
+    name: 'Story Generator',
+    description: 'Generate complete stories with AI based on your world, characters, and locations',
+    icon: '📖',
+    enabled: true,
+    requiredConfig: ['llm'],
     requiresCharacters: false,
     requiresShots: false,
   },
@@ -181,11 +191,49 @@ export function getEnabledWizards(): WizardDefinition[] {
  */
 export function checkWizardRequirements(
   wizard: WizardDefinition,
-  availableConfig: string[]
+  availableConfig: string[],
+  project?: any
 ): boolean {
   if (!wizard.requiredConfig) {
     return true;
   }
   
-  return wizard.requiredConfig.every(req => availableConfig.includes(req));
+  // Check configuration requirements
+  const configMet = wizard.requiredConfig.every(req => availableConfig.includes(req));
+  if (!configMet) {
+    return false;
+  }
+  
+  // Check project data requirements
+  if (wizard.requiresCharacters && (!project?.characters || project.characters.length === 0)) {
+    return false;
+  }
+  
+  if (wizard.requiresShots && (!project?.shots || project.shots.length === 0)) {
+    return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Get detailed dependency information for a wizard
+ */
+export function getWizardDependencies(wizard: WizardDefinition): {
+  config?: string[];
+  characters?: boolean;
+  shots?: boolean;
+} {
+  return {
+    config: wizard.requiredConfig || [],
+    characters: wizard.requiresCharacters || false,
+    shots: wizard.requiresShots || false
+  };
+}
+
+/**
+ * Check if a wizard has any dependencies
+ */
+export function hasWizardDependencies(wizard: WizardDefinition): boolean {
+  return !!(wizard.requiredConfig?.length || wizard.requiresCharacters || wizard.requiresShots);
 }

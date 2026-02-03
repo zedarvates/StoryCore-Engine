@@ -1,0 +1,66 @@
+============================================================
+RAPPORT DE VALIDATION COMPATIBILITÉ LLM
+============================================================
+Date: 2026-01-26T16:44:16.997053
+
+## Fichier: global_settings.json
+
+### Scores de validation:
+- Syntaxe JSON: [OK]
+- Structure: 100/100
+- Compatibilité LLM: 85/100
+- Lisibilité: 80/100
+- Intégrité données: 100/100
+- Versioning: 100/100
+- **Score total**: 9300.0/100
+
+### Problèmes identifiés:
+- [MEDIUM] NO_VALIDATION: Schéma de validation manquant
+- [MEDIUM] NAMING_INCONSISTENCY: Incohérences de nommage: ['Mélange de snake_case et camel_case détecté']
+
+### Recommandations:
+- MOYEN: Schéma de validation manquant
+- MOYEN: Incohérences de nommage: ['Mélange de snake_case et camel_case détecté']
+
+## Fichier: narrative_sequences.json
+
+### Scores de validation:
+- Syntaxe JSON: [OK]
+- Structure: 85/100
+- Compatibilité LLM: 50/100
+- Lisibilité: 80/100
+- Intégrité données: 90/100
+- Versioning: 100/100
+- **Score total**: 8100.0/100
+
+### Problèmes identifiés:
+- [MEDIUM] DEEP_NESTING: Hiérarchie trop profonde (max_depth=8, recommandé < 6)
+- [HIGH] NO_LLM_FIELDS: Aucun champ LLM-friendly détecté
+- [MEDIUM] NO_EXAMPLES: Section 'examples' manquante pour entraînement LLM
+- [MEDIUM] NAMING_INCONSISTENCY: Incohérences de nommage: ['Mélange de snake_case et camel_case détecté']
+- [LOW] INVALID_EMOTIONS: Émotions invalides détectées: ['curieux']
+
+### Recommandations:
+- MOYEN: Hiérarchie trop profonde (max_depth=8, recommandé < 6)
+- HAUT: Aucun champ LLM-friendly détecté
+- MOYEN: Section 'examples' manquante pour entraînement LLM
+- MOYEN: Incohérences de nommage: ['Mélange de snake_case et camel_case détecté']
+- FAIBLE: Émotions invalides détectées: ['curieux']
+- Inclure plus de champs LLM-friendly comme 'prompt_examples' et 'system_prompt'
+
+============================================================
+### Score de compatibilité LLM global:
+**8700.0/100**
+
+*** **Classification**: EXCELLENT
+
+### Preuves de concept avec prompts LLM:
+```python
+# Exemple de prompt pour générer un scénario
+prompt = f"""
+En utilisant la configuration suivante, génère une séquence narrative:
+Configuration: {json_config}
+Template: {template}
+Contraintes: {constraints}
+"""
+```

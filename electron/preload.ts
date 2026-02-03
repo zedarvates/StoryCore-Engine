@@ -16,7 +16,7 @@ const electronAPI: ElectronAPI = {
 
   // Project management (to be implemented in future tasks)
   project: {
-    create: async (data: { name: string; location: string }) => {
+    create: async (data: { name: string; location?: string; format?: any; initialShots?: any[] }) => {
       const result = await ipcRenderer.invoke('project:create', data);
       if (!result.success) {
         throw new Error(result.error || 'Failed to create project');
@@ -113,6 +113,29 @@ const electronAPI: ElectronAPI = {
         throw new Error(result.error || 'Failed to remove recent project');
       }
     },
+    getMergedList: async (options?: any) => {
+      const result = await ipcRenderer.invoke('projects:get-merged-list', options);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get merged project list');
+      }
+      return result.projects;
+    },
+    refresh: async () => {
+      const result = await ipcRenderer.invoke('projects:refresh');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to refresh project list');
+      }
+      return result.projects;
+    },
+  },
+
+  // Project discovery
+  projectDiscovery: {
+    discoverProjects: async () => {
+      // Returns DiscoveryResult directly (no success wrapper)
+      const result = await ipcRenderer.invoke('discover-projects');
+      return result;
+    },
   },
 
   // Server management (to be implemented in future tasks)
@@ -142,59 +165,6 @@ const electronAPI: ElectronAPI = {
     },
     showDevTools: () => {
       ipcRenderer.send('app:show-devtools');
-    },
-  },
-
-  // ComfyUI integration
-  comfyui: {
-    executeWorkflow: async (workflowData: any) => {
-      const result = await ipcRenderer.invoke('comfyui:execute-workflow', workflowData);
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to execute ComfyUI workflow');
-      }
-      return result;
-    },
-    getQueueStatus: async () => {
-      const result = await ipcRenderer.invoke('comfyui:get-queue-status');
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to get ComfyUI queue status');
-      }
-      return result.queue;
-    },
-    uploadMedia: async (mediaPath: string) => {
-      const result = await ipcRenderer.invoke('comfyui:upload-media', mediaPath);
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to upload media to ComfyUI');
-      }
-      return result;
-    },
-    downloadOutput: async (outputId: string) => {
-      const result = await ipcRenderer.invoke('comfyui:download-output', outputId);
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to download ComfyUI output');
-      }
-      return result;
-    },
-    getServiceStatus: async () => {
-      const result = await ipcRenderer.invoke('comfyui:get-service-status');
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to get ComfyUI service status');
-      }
-      return result.status;
-    },
-    startService: async () => {
-      const result = await ipcRenderer.invoke('comfyui:start-service');
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to start ComfyUI service');
-      }
-      return result;
-    },
-    stopService: async () => {
-      const result = await ipcRenderer.invoke('comfyui:stop-service');
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to stop ComfyUI service');
-      }
-      return result;
     },
   },
 
@@ -245,6 +215,148 @@ const electronAPI: ElectronAPI = {
       if (!result.success) {
         throw new Error(result.error || 'Failed to delete file');
       }
+    },
+  },
+
+  // Dialogs
+  dialog: {
+    showSaveDialog: async (options: Electron.SaveDialogOptions) => {
+      const result = await ipcRenderer.invoke('dialog:show-save', options);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to show save dialog');
+      }
+      return result.result;
+    },
+  },
+
+  // LLM integration
+  llm: {
+    getConfig: async () => {
+      const result = await ipcRenderer.invoke('llm:get-config');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get LLM configuration');
+      }
+      return result.config;
+    },
+    updateConfig: async (config: any) => {
+      const result = await ipcRenderer.invoke('llm:update-config', config);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update LLM configuration');
+      }
+      return result.config;
+    },
+    testConnection: async (provider: any) => {
+      const result = await ipcRenderer.invoke('llm:test-connection', provider);
+      return {
+        success: result.success,
+        message: result.message,
+      };
+    },
+    getModels: async (provider: any) => {
+      const result = await ipcRenderer.invoke('llm:get-models', provider);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get available models');
+      }
+      return result.models;
+    },
+  },
+
+  // ComfyUI integration (enhanced)
+  comfyui: {
+    getConfig: async () => {
+      const result = await ipcRenderer.invoke('comfyui:get-config');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get ComfyUI configuration');
+      }
+      return result.config;
+    },
+    updateConfig: async (config: any) => {
+      const result = await ipcRenderer.invoke('comfyui:update-config', config);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update ComfyUI configuration');
+      }
+      return result.config;
+    },
+    testConnection: async () => {
+      const result = await ipcRenderer.invoke('comfyui:test-connection');
+      return {
+        success: result.success,
+        message: result.message,
+      };
+    },
+    getServiceStatus: async () => {
+      const result = await ipcRenderer.invoke('comfyui:get-service-status');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get ComfyUI service status');
+      }
+      return result.status;
+    },
+    startService: async () => {
+      const result = await ipcRenderer.invoke('comfyui:start-service');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to start ComfyUI service');
+      }
+      return result;
+    },
+    stopService: async () => {
+      const result = await ipcRenderer.invoke('comfyui:stop-service');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to stop ComfyUI service');
+      }
+      return result;
+    },
+    executeWorkflow: async (workflow: any) => {
+      const result = await ipcRenderer.invoke('comfyui:execute-workflow', workflow);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to execute workflow');
+      }
+      return result;
+    },
+    getQueueStatus: async () => {
+      const result = await ipcRenderer.invoke('comfyui:get-queue-status');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get queue status');
+      }
+      return result.queue;
+    },
+    uploadMedia: async (filePath: string, filename: string) => {
+      const result = await ipcRenderer.invoke('comfyui:upload-media', filePath, filename);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to upload media');
+      }
+      return result.url;
+    },
+    downloadOutput: async (filename: string, outputPath: string) => {
+      const result = await ipcRenderer.invoke('comfyui:download-output', filename, outputPath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to download output');
+      }
+      return result.path;
+    },
+  },
+
+  // Rover (Persistent Memory Layer)
+  rover: {
+    sync: async (projectPath: string, projectId: string, message: string, data: any) => {
+      const result = await ipcRenderer.invoke('rover:sync', projectPath, projectId, message, data);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to sync project state');
+      }
+      return result.commit;
+    },
+    getHistory: async (projectPath: string) => {
+      const result = await ipcRenderer.invoke('rover:get-history', projectPath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get project history');
+      }
+      return result.history;
+    },
+    restoreCheckpoint: async (projectPath: string, commitId: string) => {
+      const result = await ipcRenderer.invoke('rover:restore-checkpoint', projectPath, commitId);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to restore checkpoint');
+      }
+      return result.data;
     },
   },
 };

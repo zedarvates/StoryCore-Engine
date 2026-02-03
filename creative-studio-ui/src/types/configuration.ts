@@ -339,7 +339,7 @@ export const DEFAULT_COMFYUI_CONFIG: ComfyUIConfiguration = {
   servers: [{
     id: 'default-localhost',
     name: 'Localhost',
-    serverUrl: 'http://localhost:8188',
+    serverUrl: 'http://localhost:8000', // ComfyUI Desktop default port
     timeout: 60000,
     enableQueueMonitoring: true,
   }],

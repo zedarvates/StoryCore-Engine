@@ -1,0 +1,2105 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "StoryCore AI Assistant API",
+    "description": "\n    ## Natural Language Interface for StoryCore Project Generation\n    \n    The StoryCore AI Assistant API provides a RESTful interface for creating, managing, \n    and modifying StoryCore projects through natural language commands.\n    \n    ### Key Features\n    \n    * **Natural Language Project Generation**: Create complete projects from creative prompts\n    * **Secure Authentication**: JWT-based authentication with token refresh\n    * **Rate Limiting**: Fair usage enforcement (100 requests/minute)\n    * **Project Management**: Open, close, list, and delete projects\n    * **Project Modifications**: Update scenes, characters, and sequences\n    * **Storage Monitoring**: Track storage usage and enforce limits\n    * **Usage Analytics**: Detailed API usage statistics\n    \n    ### Getting Started\n    \n    1. **Authenticate**: POST to `/auth/login` with credentials\n    2. **Generate Project**: POST to `/generate/project` with a creative prompt\n    3. **Finalize Project**: POST to `/generate/finalize` to save the project\n    4. **Manage Projects**: Use project management endpoints to open and modify\n    \n    ### Rate Limiting\n    \n    All endpoints are rate limited to 100 requests per minute per user. \n    Rate limit information is included in response headers:\n    \n    * `X-RateLimit-Limit`: Maximum requests allowed\n    * `X-RateLimit-Remaining`: Requests remaining in current window\n    * `X-RateLimit-Reset`: Unix timestamp when limit resets\n    \n    ### Authentication\n    \n    Most endpoints require authentication. Include your access token in the Authorization header:\n    \n    ```\n    Authorization: Bearer <your_access_token>\n    ```\n    \n    Access tokens expire after 1 hour. Use the `/auth/refresh` endpoint to obtain a new token.\n    \n    ### Documentation\n    \n    * [Complete API Documentation](../docs/API_DOCUMENTATION.md)\n    * [Authentication Guide](../docs/AUTHENTICATION_GUIDE.md)\n    * [Rate Limiting Guide](../docs/RATE_LIMITING_GUIDE.md)\n    ",
+    "termsOfService": "https://storycore.example.com/terms",
+    "contact": {
+      "name": "StoryCore Support",
+      "url": "https://github.com/your-org/storycore-engine",
+      "email": "support@storycore.example.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Health check endpoint.\n\nReturns system status and basic statistics.",
+        "operationId": "health_check_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login",
+        "description": "Authenticate user and return access and refresh tokens.\n\nArgs:\n    request: Login credentials\n    \nReturns:\n    Access and refresh tokens\n    \nRaises:\n    HTTPException: If authentication fails",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Refresh Token",
+        "description": "Refresh an access token using a refresh token.\n\nArgs:\n    request: Refresh token\n    \nReturns:\n    New access token\n    \nRaises:\n    HTTPException: If refresh token is invalid",
+        "operationId": "refresh_token_api_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/usage/stats": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get Usage Stats",
+        "description": "Get usage statistics for the authenticated user.\n\nArgs:\n    user: Authenticated user (from dependency)\n    \nReturns:\n    Usage statistics",
+        "operationId": "get_usage_stats_api_v1_auth_usage_stats_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageStatsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/open": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Open Project",
+        "description": "Open an existing project.\n\nArgs:\n    request: Project name to open\n    user: Authenticated user\n    \nReturns:\n    Project information\n    \nRaises:\n    HTTPException: If project not found or cannot be opened",
+        "operationId": "open_project_api_v1_projects_open_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenProjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenProjectResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/close": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Close Project",
+        "description": "Close the active project.\n\nArgs:\n    request: Close options (save flag)\n    user: Authenticated user\n    \nReturns:\n    Confirmation message\n    \nRaises:\n    HTTPException: If no active project or close fails",
+        "operationId": "close_project_api_v1_projects_close_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseProjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloseProjectResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/list": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "List Projects",
+        "description": "List all available projects.\n\nArgs:\n    user: Authenticated user\n    \nReturns:\n    List of project names",
+        "operationId": "list_projects_api_v1_projects_list_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListProjectsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_name}": {
+      "delete": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Delete Project",
+        "description": "Delete a project.\n\nArgs:\n    project_name: Name of project to delete\n    confirmed: Confirmation flag\n    user: Authenticated user\n    \nReturns:\n    Confirmation message\n    \nRaises:\n    HTTPException: If project not found or deletion fails",
+        "operationId": "delete_project_api_v1_projects__project_name__delete",
+        "parameters": [
+          {
+            "name": "project_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Name"
+            }
+          },
+          {
+            "name": "confirmed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Confirmed"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteProjectResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/project": {
+      "post": {
+        "tags": [
+          "Generation"
+        ],
+        "summary": "Generate Project",
+        "description": "Generate a new project from a natural language prompt.\n\nCreates a preview that can be reviewed before finalization.\n\nArgs:\n    request: Generation request with prompt and preferences\n    user: Authenticated user\n    \nReturns:\n    Project preview with generated content\n    \nRaises:\n    HTTPException: If generation fails",
+        "operationId": "generate_project_api_v1_generate_project_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateProjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateProjectResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/finalize": {
+      "post": {
+        "tags": [
+          "Generation"
+        ],
+        "summary": "Finalize Project",
+        "description": "Finalize a project preview and save it to disk.\n\nArgs:\n    request: Preview ID to finalize\n    user: Authenticated user\n    \nReturns:\n    Finalized project information\n    \nRaises:\n    HTTPException: If preview not found or finalization fails",
+        "operationId": "finalize_project_api_v1_generate_finalize_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizeProjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinalizeProjectResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_id}/scenes/{scene_id}": {
+      "patch": {
+        "tags": [
+          "Modifications"
+        ],
+        "summary": "Modify Scene",
+        "description": "Modify a scene in the active project.\n\nArgs:\n    project_id: Project identifier (currently unused, uses active project)\n    scene_id: Scene ID to modify\n    request: Scene modifications\n    user: Authenticated user\n    \nReturns:\n    Confirmation message\n    \nRaises:\n    HTTPException: If no active project or modification fails",
+        "operationId": "modify_scene_api_v1_projects__project_id__scenes__scene_id__patch",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "scene_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scene Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifySceneRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Modifications"
+        ],
+        "summary": "Remove Scene",
+        "description": "Remove a scene from the active project.\n\nArgs:\n    project_id: Project identifier (currently unused, uses active project)\n    scene_id: Scene ID to remove\n    confirmed: Confirmation flag\n    user: Authenticated user\n    \nReturns:\n    Confirmation message\n    \nRaises:\n    HTTPException: If no active project or removal fails",
+        "operationId": "remove_scene_api_v1_projects__project_id__scenes__scene_id__delete",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "scene_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scene Id"
+            }
+          },
+          {
+            "name": "confirmed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Confirmed"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_id}/characters/{character_id}": {
+      "patch": {
+        "tags": [
+          "Modifications"
+        ],
+        "summary": "Modify Character",
+        "description": "Modify a character in the active project.\n\nArgs:\n    project_id: Project identifier (currently unused, uses active project)\n    character_id: Character ID to modify\n    request: Character modifications\n    user: Authenticated user\n    \nReturns:\n    Confirmation message\n    \nRaises:\n    HTTPException: If no active project or modification fails",
+        "operationId": "modify_character_api_v1_projects__project_id__characters__character_id__patch",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "character_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Character Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifyCharacterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_id}/sequences/{sequence_id}": {
+      "patch": {
+        "tags": [
+          "Modifications"
+        ],
+        "summary": "Modify Sequence",
+        "description": "Modify a sequence in the active project.\n\nArgs:\n    project_id: Project identifier (currently unused, uses active project)\n    sequence_id: Sequence ID to modify\n    request: Sequence modifications\n    user: Authenticated user\n    \nReturns:\n    Confirmation message\n    \nRaises:\n    HTTPException: If no active project or modification fails",
+        "operationId": "modify_sequence_api_v1_projects__project_id__sequences__sequence_id__patch",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "sequence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sequence Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifySequenceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_id}/scenes": {
+      "post": {
+        "tags": [
+          "Modifications"
+        ],
+        "summary": "Add Scene",
+        "description": "Add a new scene to the active project.\n\nArgs:\n    project_id: Project identifier (currently unused, uses active project)\n    request: Scene data\n    user: Authenticated user\n    \nReturns:\n    Confirmation message\n    \nRaises:\n    HTTPException: If no active project or addition fails",
+        "operationId": "add_scene_api_v1_projects__project_id__scenes_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSceneRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/stats": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "Get Storage Stats",
+        "description": "Get current storage statistics.\n\nArgs:\n    user: Authenticated user\n    \nReturns:\n    Storage usage statistics",
+        "operationId": "get_storage_stats_api_v1_storage_stats_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageStatsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/usage": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "Get Storage Usage",
+        "description": "Get current storage usage (alias for /stats).\n\nArgs:\n    user: Authenticated user\n    \nReturns:\n    Storage usage statistics",
+        "operationId": "get_storage_usage_api_v1_storage_usage_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageStatsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddSceneRequest": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "time_of_day": {
+            "type": "string",
+            "title": "Time Of Day"
+          },
+          "duration": {
+            "type": "number",
+            "title": "Duration"
+          },
+          "characters": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Characters"
+          },
+          "key_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Key Actions"
+          },
+          "visual_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visual Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "title",
+          "description",
+          "location",
+          "time_of_day",
+          "duration",
+          "characters",
+          "key_actions"
+        ],
+        "title": "AddSceneRequest",
+        "description": "Request to add a new scene"
+      },
+      "CharacterPreview": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "appearance": {
+            "type": "string",
+            "title": "Appearance"
+          },
+          "personality": {
+            "type": "string",
+            "title": "Personality"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "role",
+          "description",
+          "appearance",
+          "personality"
+        ],
+        "title": "CharacterPreview",
+        "description": "Character preview in generated project"
+      },
+      "CloseProjectRequest": {
+        "properties": {
+          "save": {
+            "type": "boolean",
+            "title": "Save",
+            "description": "Whether to save before closing",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "CloseProjectRequest",
+        "description": "Request to close active project"
+      },
+      "CloseProjectResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Confirmation message"
+          },
+          "saved": {
+            "type": "boolean",
+            "title": "Saved",
+            "description": "Whether project was saved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "saved"
+        ],
+        "title": "CloseProjectResponse",
+        "description": "Response after closing project"
+      },
+      "DeleteProjectResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Confirmation message"
+          },
+          "deleted_project": {
+            "type": "string",
+            "title": "Deleted Project",
+            "description": "Name of deleted project"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "deleted_project"
+        ],
+        "title": "DeleteProjectResponse",
+        "description": "Response after deleting project"
+      },
+      "FinalizeProjectRequest": {
+        "properties": {
+          "preview_id": {
+            "type": "string",
+            "title": "Preview Id",
+            "description": "Preview ID to finalize"
+          }
+        },
+        "type": "object",
+        "required": [
+          "preview_id"
+        ],
+        "title": "FinalizeProjectRequest",
+        "description": "Request to finalize a project preview"
+      },
+      "FinalizeProjectResponse": {
+        "properties": {
+          "project_name": {
+            "type": "string",
+            "title": "Project Name",
+            "description": "Finalized project name"
+          },
+          "project_path": {
+            "type": "string",
+            "title": "Project Path",
+            "description": "Project directory path"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "project_name",
+          "project_path",
+          "created_at"
+        ],
+        "title": "FinalizeProjectResponse",
+        "description": "Response after finalizing project"
+      },
+      "GenerateProjectRequest": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "Natural language project description"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "description": "Language code (en, fr, es, etc.)",
+            "default": "en"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferences",
+            "description": "Optional preferences (sceneCount, duration, style)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt"
+        ],
+        "title": "GenerateProjectRequest",
+        "description": "Request to generate a new project"
+      },
+      "GenerateProjectResponse": {
+        "properties": {
+          "preview_id": {
+            "type": "string",
+            "title": "Preview Id",
+            "description": "Unique preview identifier"
+          },
+          "project_name": {
+            "type": "string",
+            "title": "Project Name",
+            "description": "Generated project name"
+          },
+          "scenes": {
+            "items": {
+              "$ref": "#/components/schemas/ScenePreview"
+            },
+            "type": "array",
+            "title": "Scenes",
+            "description": "Generated scenes"
+          },
+          "characters": {
+            "items": {
+              "$ref": "#/components/schemas/CharacterPreview"
+            },
+            "type": "array",
+            "title": "Characters",
+            "description": "Generated characters"
+          },
+          "sequences": {
+            "items": {
+              "$ref": "#/components/schemas/SequencePreview"
+            },
+            "type": "array",
+            "title": "Sequences",
+            "description": "Generated sequences"
+          },
+          "estimated_size_mb": {
+            "type": "number",
+            "title": "Estimated Size Mb",
+            "description": "Estimated project size in MB"
+          },
+          "estimated_file_count": {
+            "type": "integer",
+            "title": "Estimated File Count",
+            "description": "Estimated number of files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "preview_id",
+          "project_name",
+          "scenes",
+          "characters",
+          "sequences",
+          "estimated_size_mb",
+          "estimated_file_count"
+        ],
+        "title": "GenerateProjectResponse",
+        "description": "Response with generated project preview"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "System status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "API version"
+          },
+          "storage_usage_gb": {
+            "type": "number",
+            "title": "Storage Usage Gb",
+            "description": "Current storage usage in GB"
+          },
+          "storage_limit_gb": {
+            "type": "number",
+            "title": "Storage Limit Gb",
+            "description": "Storage limit in GB"
+          },
+          "file_count": {
+            "type": "integer",
+            "title": "File Count",
+            "description": "Current file count"
+          },
+          "file_limit": {
+            "type": "integer",
+            "title": "File Limit",
+            "description": "File count limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "storage_usage_gb",
+          "storage_limit_gb",
+          "file_count",
+          "file_limit"
+        ],
+        "title": "HealthResponse",
+        "description": "Health check response"
+      },
+      "ListProjectsResponse": {
+        "properties": {
+          "projects": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Projects",
+            "description": "List of project names"
+          },
+          "total_count": {
+            "type": "integer",
+            "title": "Total Count",
+            "description": "Total number of projects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "projects",
+          "total_count"
+        ],
+        "title": "ListProjectsResponse",
+        "description": "Response with list of projects"
+      },
+      "LoginRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username",
+            "description": "Username"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password",
+            "description": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "description": "Login request"
+      },
+      "LoginResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token",
+            "description": "JWT access token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token",
+            "description": "JWT refresh token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "description": "Token type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "description": "Token expiration in seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in"
+        ],
+        "title": "LoginResponse",
+        "description": "Login response"
+      },
+      "ModificationResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Confirmation message"
+          },
+          "modified_element_id": {
+            "type": "string",
+            "title": "Modified Element Id",
+            "description": "ID of modified element"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "modified_element_id"
+        ],
+        "title": "ModificationResponse",
+        "description": "Generic response for modification operations"
+      },
+      "ModifyCharacterRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "appearance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appearance"
+          },
+          "personality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personality"
+          }
+        },
+        "type": "object",
+        "title": "ModifyCharacterRequest",
+        "description": "Request to modify a character"
+      },
+      "ModifySceneRequest": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "time_of_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Of Day"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "characters": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Characters"
+          },
+          "key_actions": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Actions"
+          },
+          "visual_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visual Notes"
+          }
+        },
+        "type": "object",
+        "title": "ModifySceneRequest",
+        "description": "Request to modify a scene"
+      },
+      "ModifySequenceRequest": {
+        "properties": {
+          "total_duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Duration"
+          },
+          "shots": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shots"
+          }
+        },
+        "type": "object",
+        "title": "ModifySequenceRequest",
+        "description": "Request to modify a sequence"
+      },
+      "OpenProjectRequest": {
+        "properties": {
+          "project_name": {
+            "type": "string",
+            "title": "Project Name",
+            "description": "Name of project to open"
+          }
+        },
+        "type": "object",
+        "required": [
+          "project_name"
+        ],
+        "title": "OpenProjectRequest",
+        "description": "Request to open a project"
+      },
+      "OpenProjectResponse": {
+        "properties": {
+          "project_name": {
+            "type": "string",
+            "title": "Project Name"
+          },
+          "scene_count": {
+            "type": "integer",
+            "title": "Scene Count"
+          },
+          "character_count": {
+            "type": "integer",
+            "title": "Character Count"
+          },
+          "sequence_count": {
+            "type": "integer",
+            "title": "Sequence Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "modified_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Modified At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "project_name",
+          "scene_count",
+          "character_count",
+          "sequence_count",
+          "created_at",
+          "modified_at"
+        ],
+        "title": "OpenProjectResponse",
+        "description": "Response after opening project"
+      },
+      "RefreshTokenRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token",
+            "description": "Refresh token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshTokenRequest",
+        "description": "Refresh token request"
+      },
+      "RefreshTokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token",
+            "description": "New JWT access token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "description": "Token type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "description": "Token expiration in seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in"
+        ],
+        "title": "RefreshTokenResponse",
+        "description": "Refresh token response"
+      },
+      "ScenePreview": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "time_of_day": {
+            "type": "string",
+            "title": "Time Of Day"
+          },
+          "duration": {
+            "type": "number",
+            "title": "Duration"
+          },
+          "characters": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Characters"
+          },
+          "key_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Key Actions"
+          },
+          "visual_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visual Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "title",
+          "description",
+          "location",
+          "time_of_day",
+          "duration",
+          "characters",
+          "key_actions"
+        ],
+        "title": "ScenePreview",
+        "description": "Scene preview in generated project"
+      },
+      "SequencePreview": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "scene_id": {
+            "type": "string",
+            "title": "Scene Id"
+          },
+          "total_duration": {
+            "type": "number",
+            "title": "Total Duration"
+          },
+          "shots": {
+            "items": {
+              "$ref": "#/components/schemas/ShotPreview"
+            },
+            "type": "array",
+            "title": "Shots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "scene_id",
+          "total_duration",
+          "shots"
+        ],
+        "title": "SequencePreview",
+        "description": "Sequence preview in generated project"
+      },
+      "ShotPreview": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "camera_movement": {
+            "type": "string",
+            "title": "Camera Movement"
+          },
+          "duration": {
+            "type": "number",
+            "title": "Duration"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "visual_style": {
+            "type": "string",
+            "title": "Visual Style"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "type",
+          "camera_movement",
+          "duration",
+          "description",
+          "visual_style"
+        ],
+        "title": "ShotPreview",
+        "description": "Shot preview in sequence"
+      },
+      "StorageStatsResponse": {
+        "properties": {
+          "total_bytes": {
+            "type": "integer",
+            "title": "Total Bytes"
+          },
+          "total_gb": {
+            "type": "number",
+            "title": "Total Gb"
+          },
+          "file_count": {
+            "type": "integer",
+            "title": "File Count"
+          },
+          "limit_bytes": {
+            "type": "integer",
+            "title": "Limit Bytes"
+          },
+          "limit_gb": {
+            "type": "number",
+            "title": "Limit Gb"
+          },
+          "file_limit": {
+            "type": "integer",
+            "title": "File Limit"
+          },
+          "usage_percent": {
+            "type": "number",
+            "title": "Usage Percent"
+          },
+          "file_usage_percent": {
+            "type": "number",
+            "title": "File Usage Percent"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_bytes",
+          "total_gb",
+          "file_count",
+          "limit_bytes",
+          "limit_gb",
+          "file_limit",
+          "usage_percent",
+          "file_usage_percent"
+        ],
+        "title": "StorageStatsResponse",
+        "description": "Response with storage statistics"
+      },
+      "UsageStatsResponse": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "total_requests": {
+            "type": "integer",
+            "title": "Total Requests"
+          },
+          "successful_requests": {
+            "type": "integer",
+            "title": "Successful Requests"
+          },
+          "failed_requests": {
+            "type": "integer",
+            "title": "Failed Requests"
+          },
+          "total_data_transferred_mb": {
+            "type": "number",
+            "title": "Total Data Transferred Mb"
+          },
+          "average_response_time_ms": {
+            "type": "number",
+            "title": "Average Response Time Ms"
+          },
+          "operation_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Operation Counts"
+          },
+          "endpoint_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Endpoint Counts"
+          },
+          "first_request_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Request Time"
+          },
+          "last_request_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Request Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "total_requests",
+          "successful_requests",
+          "failed_requests",
+          "total_data_transferred_mb",
+          "average_response_time_ms",
+          "operation_counts",
+          "endpoint_counts"
+        ],
+        "title": "UsageStatsResponse",
+        "description": "Response with usage statistics"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "JWT-based authentication and token management"
+    },
+    {
+      "name": "Generation",
+      "description": "Natural language project generation from creative prompts"
+    },
+    {
+      "name": "Projects",
+      "description": "Project management operations (open, close, list, delete)"
+    },
+    {
+      "name": "Modifications",
+      "description": "Modify project elements (scenes, characters, sequences)"
+    },
+    {
+      "name": "Storage",
+      "description": "Storage monitoring and usage statistics"
+    }
+  ]
+}

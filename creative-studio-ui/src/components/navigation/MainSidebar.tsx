@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
-import { useTheme } from '@/hooks/use-theme';
+import { useTheme } from '@/hooks/useTheme';
 import {
   LayoutDashboard,
   FolderOpen,
@@ -52,7 +52,7 @@ export function MainSidebar({
 }: MainSidebarProps) {
   const { theme, setTheme } = useTheme();
   const [notifications] = useState(3); // Mock notifications count
-  
+
   // Get service status from store
   const isOllamaConnected = useAppStore((state) => state.ollamaStatus === 'connected');
   const isComfyUIConnected = useAppStore((state) => state.comfyuiStatus === 'connected');
@@ -74,6 +74,11 @@ export function MainSidebar({
       icon: <Wand2 className="w-5 h-5" />,
       badge: '6',
       badgeColor: 'info',
+    },
+    {
+      id: 'ai-services',
+      label: 'Local AI',
+      icon: <Sparkles className="w-5 h-5" />,
     },
     {
       id: 'media',
@@ -208,12 +213,12 @@ export function MainSidebar({
                     activeView === item.id
                       ? 'bg-primary-foreground/20 text-primary-foreground'
                       : cn(
-                          'bg-primary/10 text-primary',
-                          item.badgeColor === 'success' && 'bg-green-500/10 text-green-600',
-                          item.badgeColor === 'warning' && 'bg-yellow-500/10 text-yellow-600',
-                          item.badgeColor === 'error' && 'bg-red-500/10 text-red-600',
-                          item.badgeColor === 'info' && 'bg-blue-500/10 text-blue-600'
-                        )
+                        'bg-primary/10 text-primary',
+                        item.badgeColor === 'success' && 'bg-green-500/10 text-green-600',
+                        item.badgeColor === 'warning' && 'bg-yellow-500/10 text-yellow-600',
+                        item.badgeColor === 'error' && 'bg-red-500/10 text-red-600',
+                        item.badgeColor === 'info' && 'bg-blue-500/10 text-blue-600'
+                      )
                   )}>
                     {item.badge}
                   </span>

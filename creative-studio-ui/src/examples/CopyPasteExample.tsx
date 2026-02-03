@@ -67,14 +67,14 @@ export const CopyPasteExample: React.FC = () => {
   const handleCopy = () => {
     if (selectedShots.length > 0) {
       copy(selectedShots, sequenceId);
-      `);
+      console.log('Copied shots:', selectedShots);
     }
   };
 
   const handleCut = () => {
     if (selectedShots.length > 0) {
       cut(selectedShots, sequenceId);
-      `);
+      console.log('Cut shots:', selectedShots);
       
       // Remove cut shots from the list
       setShots(shots.filter(shot => !selectedShotIds.includes(shot.id)));
@@ -96,7 +96,7 @@ export const CopyPasteExample: React.FC = () => {
       }));
       
       setShots([...shots, ...newShots]);
-      `);
+      console.log('Pasted shots:', newShots);
       
       // Select the pasted shots
       setSelectedShotIds(newShots.map(s => s.id));

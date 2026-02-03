@@ -6,6 +6,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { ProjectProvider, useProject } from '../contexts/ProjectContext';
 import type { Shot, DialoguePhrase } from '../types/projectDashboard';
+import { createTestShot } from './helpers/shotFactory';
 
 // Helper to create wrapper with ProjectProvider
 const createWrapper = (projectId?: string) => {
@@ -81,14 +82,14 @@ describe('ProjectContext', () => {
       // Add a shot to the project
       act(() => {
         if (result.current.project) {
-          const shot: Shot = {
+          const shot = createTestShot({
             id: 'shot-1',
             sequenceId: 'seq-1',
             startTime: 0,
             duration: 5,
             prompt: 'A beautiful sunset over the ocean',
-            metadata: {},
-          };
+            position: 0,
+          });
           result.current.project.shots.push(shot);
         }
       });
@@ -119,22 +120,22 @@ describe('ProjectContext', () => {
       act(() => {
         if (result.current.project) {
           result.current.project.shots = [
-            {
+            createTestShot({
               id: 'shot-1',
               sequenceId: 'seq-1',
               startTime: 0,
               duration: 5,
               prompt: 'Valid prompt with enough characters',
-              metadata: {},
-            },
-            {
+              position: 0,
+            }),
+            createTestShot({
               id: 'shot-2',
               sequenceId: 'seq-1',
               startTime: 5,
               duration: 5,
               prompt: 'Short', // Too short
-              metadata: {},
-            },
+              position: 1,
+            }),
           ];
         }
       });
@@ -162,30 +163,30 @@ describe('ProjectContext', () => {
       act(() => {
         if (result.current.project) {
           result.current.project.shots = [
-            {
+            createTestShot({
               id: 'shot-1',
               sequenceId: 'seq-1',
               startTime: 0,
               duration: 5,
               prompt: 'Valid prompt with enough characters',
-              metadata: {},
-            },
-            {
+              position: 0,
+            }),
+            createTestShot({
               id: 'shot-2',
               sequenceId: 'seq-1',
               startTime: 5,
               duration: 5,
               prompt: 'Another valid prompt with sufficient length',
-              metadata: {},
-            },
-            {
+              position: 1,
+            }),
+            createTestShot({
               id: 'shot-3',
               sequenceId: 'seq-1',
               startTime: 10,
               duration: 5,
               prompt: '', // Invalid
-              metadata: {},
-            },
+              position: 2,
+            }),
           ];
         }
       });
@@ -307,22 +308,22 @@ describe('ProjectContext', () => {
       act(() => {
         if (result.current.project) {
           result.current.project.shots = [
-            {
+            createTestShot({
               id: 'shot-1',
               sequenceId: 'seq-1',
               startTime: 0,
               duration: 5,
               prompt: 'Shot 1',
-              metadata: {},
-            },
-            {
+              position: 0,
+            }),
+            createTestShot({
               id: 'shot-2',
               sequenceId: 'seq-1',
               startTime: 5,
               duration: 5,
               prompt: 'Shot 2',
-              metadata: {},
-            },
+              position: 1,
+            }),
           ];
         }
       });
@@ -360,14 +361,14 @@ describe('ProjectContext', () => {
         expect(result.current.project).not.toBeNull();
       });
 
-      const shot: Shot = {
+      const shot = createTestShot({
         id: 'shot-1',
         sequenceId: 'seq-1',
         startTime: 0,
         duration: 5,
         prompt: 'Test shot',
-        metadata: {},
-      };
+        position: 0,
+      });
 
       expect(result.current.selectedShot).toBeNull();
 

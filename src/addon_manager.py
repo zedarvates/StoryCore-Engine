@@ -378,6 +378,255 @@ class AddonManager:
         return [name for name, info in self.addons.items()
                 if info.manifest.type == addon_type]
 
+    async def install_addon(self, source: Path, category: str = "community") -> bool:
+        """
+        Installe un add-on depuis un fichier source
+        
+        Args:
+            source: Chemin vers le fichier .zip de l'add-on
+            category: Catégorie (official, community)
+            
+        Returns:
+            True si installation réussie
+        """
+        import zipfile
+        import shutil
+        
+        try:
+            # Vérifier que le fichier existe
+            if not source.exists():
+                self.logger.error(f"Fichier source introuvable: {source}")
+                return False
+                
+            # Créer un répertoire temporaire pour l'extraction
+            temp_dir = self.addons_path / "temp" / source.stem
+            temp_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Extraire l'archive
+            with zipfile.ZipFile(source, 'r') as zip_ref:
+                zip_ref.extractall(temp_dir)
+            
+            # Charger et valider le manifest
+            manifest = await self.load_addon_manifest(temp_dir)
+            if not manifest:
+                shutil.rmtree(temp_dir)
+                return False
+            
+            # Vérifier si l'add-on existe déjà
+            target_path = self.addons_path / category / manifest.name
+            if target_path.exists():
+                self.logger.error(f"Add-on {manifest.name} déjà installé")
+                shutil.rmtree(temp_dir)
+                return False
+            
+            # Valider l'add-on
+            if not await self.validate_addon(manifest, temp_dir):
+                self.logger.error(f"Validation échouée pour {manifest.name}")
+                shutil.rmtree(temp_dir)
+                return False
+            
+            # Déplacer vers le répertoire final
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(temp_dir), str(target_path))
+            
+            # Charger l'add-on
+            addon_info = await self.load_addon(target_path)
+            if addon_info:
+                self.addons[manifest.name] = addon_info
+                self.logger.info(f"Add-on {manifest.name} installé avec succès")
+                return True
+            
+            return False
+            
+        except Exception as e:
+            self.logger.error(f"Erreur lors de l'installation: {e}")
+            return False
+    
+    async def uninstall_addon(self, addon_name: str) -> bool:
+        """
+        Désinstalle un add-on
+        
+        Args:
+            addon_name: Nom de l'add-on
+            
+        Returns:
+            True si désinstallation réussie
+        """
+        import shutil
+        
+        if addon_name not in self.addons:
+            self.logger.error(f"Add-on inconnu: {addon_name}")
+            return False
+        
+        addon_info = self.addons[addon_name]
+        
+        try:
+            # Désactiver l'add-on s'il est activé
+            if addon_info.state == AddonState.ENABLED:
+                await self.disable_addon(addon_name)
+            
+            # Supprimer le répertoire
+            if addon_info.path.exists():
+                shutil.rmtree(addon_info.path)
+            
+            # Retirer du registre
+            del self.addons[addon_name]
+            
+            self.logger.info(f"Add-on {addon_name} désinstallé")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Erreur lors de la désinstallation de {addon_name}: {e}")
+            return False
+    
+    async def update_addon(self, addon_name: str, source: Path) -> bool:
+        """
+        Met à jour un add-on existant
+        
+        Args:
+            addon_name: Nom de l'add-on
+            source: Chemin vers la nouvelle version
+            
+        Returns:
+            True si mise à jour réussie
+        """
+        if addon_name not in self.addons:
+            self.logger.error(f"Add-on inconnu: {addon_name}")
+            return False
+        
+        addon_info = self.addons[addon_name]
+        category = "official" if "official" in str(addon_info.path) else "community"
+        
+        try:
+            # Désinstaller l'ancienne version
+            if not await self.uninstall_addon(addon_name):
+                return False
+            
+            # Installer la nouvelle version
+            return await self.install_addon(source, category)
+            
+        except Exception as e:
+            self.logger.error(f"Erreur lors de la mise à jour de {addon_name}: {e}")
+            return False
+    
+    def get_addon_dependencies(self, addon_name: str) -> List[str]:
+        """
+        Retourne les dépendances d'un add-on
+        
+        Args:
+            addon_name: Nom de l'add-on
+            
+        Returns:
+            Liste des noms de dépendances
+        """
+        if addon_name not in self.addons:
+            return []
+        
+        addon_info = self.addons[addon_name]
+        return list(addon_info.manifest.dependencies.keys())
+    
+    async def check_compatibility(self, addon_name: str) -> Dict[str, Any]:
+        """
+        Vérifie la compatibilité d'un add-on
+        
+        Args:
+            addon_name: Nom de l'add-on
+            
+        Returns:
+            Rapport de compatibilité
+        """
+        if addon_name not in self.addons:
+            return {"compatible": False, "reason": "Add-on inconnu"}
+        
+        addon_info = self.addons[addon_name]
+        manifest = addon_info.manifest
+        
+        result = {
+            "compatible": True,
+            "engine_version_ok": True,
+            "python_version_ok": True,
+            "dependencies_ok": True,
+            "conflicts": []
+        }
+        
+        # Vérifier la version du moteur
+        engine_version = "2.0.0"
+        if "engine_version" in manifest.compatibility:
+            required = manifest.compatibility["engine_version"]
+            if not self._check_version_compatibility(engine_version, required):
+                result["engine_version_ok"] = False
+                result["compatible"] = False
+                result["conflicts"].append(f"Version moteur incompatible: {required}")
+        
+        # Vérifier les dépendances
+        for dep, version_req in manifest.dependencies.items():
+            if dep not in self.addons:
+                result["dependencies_ok"] = False
+                result["compatible"] = False
+                result["conflicts"].append(f"Dépendance manquante: {dep}")
+        
+        return result
+    
+    def search_addons(self, query: str, filters: Optional[Dict] = None) -> List[str]:
+        """
+        Recherche des add-ons par nom ou description
+        
+        Args:
+            query: Terme de recherche
+            filters: Filtres optionnels (type, category, status)
+            
+        Returns:
+            Liste des noms d'add-ons correspondants
+        """
+        results = []
+        query_lower = query.lower()
+        
+        for name, info in self.addons.items():
+            # Recherche dans le nom et la description
+            if (query_lower in name.lower() or 
+                query_lower in info.manifest.description.lower()):
+                
+                # Appliquer les filtres
+                if filters:
+                    if "type" in filters and info.manifest.type.value != filters["type"]:
+                        continue
+                    if "status" in filters:
+                        if filters["status"] == "enabled" and name not in self.enabled_addons:
+                            continue
+                        if filters["status"] == "disabled" and name in self.enabled_addons:
+                            continue
+                
+                results.append(name)
+        
+        return results
+    
+    def get_addons_by_category(self, category: str) -> List[str]:
+        """
+        Retourne les add-ons d'une catégorie
+        
+        Args:
+            category: Catégorie (official, community)
+            
+        Returns:
+            Liste des noms d'add-ons
+        """
+        results = []
+        for name, info in self.addons.items():
+            if category in str(info.path):
+                results.append(name)
+        return results
+    
+    def get_addon_updates(self) -> List[Dict[str, Any]]:
+        """
+        Vérifie les mises à jour disponibles
+        
+        Returns:
+            Liste des add-ons avec mises à jour disponibles
+        """
+        # Pour l'instant, retourne une liste vide
+        # À implémenter avec un système de registry distant
+        return []
+
     # Méthodes privées
 
     def _check_version_compatibility(self, current: str, required: str) -> bool:

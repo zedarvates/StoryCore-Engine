@@ -9,6 +9,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { llmConfigService, initializeLLMConfigService } from '@/services/llmConfigService';
 import type { LLMService, LLMConfig } from '@/services/llmService';
+import { checkOllamaStatus } from '@/services/ollamaConfig';
 
 // ============================================================================
 // Types
@@ -59,19 +60,14 @@ export function LLMProvider({ children }: LLMProviderProps) {
         
         // If config exists and provider is local/ollama, verify Ollama is running
         if (config && (config.provider === 'local' || config.provider === 'ollama')) {
-          const endpoint = config.apiEndpoint || 'http://localhost:11434';
           try {
-            const response = await fetch(`${endpoint}/api/tags`, {
-              method: 'GET',
-              signal: AbortSignal.timeout(3000), // 3 second timeout
-            });
-
-            if (!response.ok) {
-              console.warn('[LLMProvider] Ollama is not responding correctly');
+            const isAvailable = await checkOllamaStatus();
+            if (!isAvailable) {
+              console.warn('[LLMProvider] Ollama is not available');
               // Don't fail initialization, just warn
             }
           } catch (ollamaError) {
-            console.warn('[LLMProvider] Ollama is not running or not accessible:', ollamaError);
+            console.warn('[LLMProvider] Ollama status check failed:', ollamaError);
             // Don't fail initialization, the banner will show the user they need to configure
           }
         }

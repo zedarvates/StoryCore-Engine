@@ -33,7 +33,7 @@ import type {
   ConnectionStatus,
 } from '../services/wizard/types';
 import { WizardService } from '../services/wizard/WizardService';
-import { AssetService } from '../services/asset/AssetService';
+import { AssetService } from '../services/assets/AssetService';
 import { ProjectService } from '../services/project/ProjectService';
 
 /**
@@ -263,12 +263,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set((state) => ({
       activeWizard: state.activeWizard
         ? {
-            ...state.activeWizard,
-            connectionStatus: {
-              ...state.activeWizard.connectionStatus,
-              [service]: status,
-            },
-          }
+          ...state.activeWizard,
+          connectionStatus: {
+            ...state.activeWizard.connectionStatus,
+            [service]: status,
+          },
+        }
         : null,
     }));
   },
@@ -277,12 +277,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set((state) => ({
       activeWizard: state.activeWizard
         ? {
-            ...state.activeWizard,
-            generationStatus: {
-              ...state.activeWizard.generationStatus,
-              ...status,
-            },
-          }
+          ...state.activeWizard,
+          generationStatus: {
+            ...state.activeWizard.generationStatus,
+            ...status,
+          },
+        }
         : null,
     }));
   },
@@ -532,13 +532,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       // If we have a projectPath, use the service to persist
       if (projectPath) {
         const shot = await projectService.createShot(projectPath, shotData);
-        
+
         // Refresh shots
         await get().refreshShots();
-        
+
         // Auto-select new shot
         set({ selectedShotId: shot.id });
-        
+
         return shot;
       } else {
         // For in-memory projects (JSON-loaded), create shot directly
@@ -554,19 +554,19 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           dialogue: shotData.dialogue,
           created_at: new Date().toISOString(),
         };
-        
+
         // Update current project
         const updatedProject = {
           ...currentProject,
           storyboard: [...(currentProject.storyboard || []), shot],
         };
-        
+
         set({
           currentProject: updatedProject,
           shots: updatedProject.storyboard || [],
           selectedShotId: shot.id,
         });
-        
+
         return shot;
       }
     } catch (error) {
@@ -587,11 +587,11 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       if (projectPath) {
         // Find the shot to get its sequence ID
         const shot = shots.find(s => s.id === shotId);
-        
+
         if (shot && (shot as any).sequencePlanId) {
           // This is a ProductionShot with sequence information
           const sequenceId = (shot as any).sequencePlanId;
-          
+
           // Use the new sequence IPC method to update the shot in its sequence file
           if (window.electronAPI?.sequence) {
             try {
@@ -608,7 +608,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           // Regular shot without sequence information, use old method
           await projectService.updateShot(projectPath, shotId, updates);
         }
-        
+
         // Refresh shots
         await get().refreshShots();
       } else {
@@ -616,17 +616,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         const updatedStoryboard = (currentProject.storyboard || []).map(shot =>
           shot.id === shotId ? { ...shot, ...updates } : shot
         );
-        
+
         const updatedProject = {
           ...currentProject,
           storyboard: updatedStoryboard,
         };
-        
+
         set({
           currentProject: updatedProject,
           shots: updatedStoryboard,
         });
-        
+
       }
     } catch (error) {
       console.error('Failed to update shot:', error);
@@ -645,7 +645,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       // If we have a projectPath, use the service to persist
       if (projectPath) {
         await projectService.deleteShot(projectPath, shotId);
-        
+
         // Refresh shots
         await get().refreshShots();
       } else {
@@ -653,18 +653,18 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         const updatedStoryboard = (currentProject.storyboard || []).filter(
           shot => shot.id !== shotId
         );
-        
+
         const updatedProject = {
           ...currentProject,
           storyboard: updatedStoryboard,
         };
-        
+
         set({
           currentProject: updatedProject,
           shots: updatedStoryboard,
           selectedShotId: selectedShotId === shotId ? null : selectedShotId,
         });
-        
+
       }
     } catch (error) {
       console.error('Failed to delete shot:', error);
@@ -687,7 +687,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       // If we have a projectPath, use the service to persist
       if (projectPath) {
         await projectService.reorderShots(projectPath, shotIds);
-        
+
         // Refresh shots
         await get().refreshShots();
       } else {
@@ -696,17 +696,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         const reorderedStoryboard = shotIds
           .map(id => shotMap.get(id))
           .filter((shot): shot is Shot => shot !== undefined);
-        
+
         const updatedProject = {
           ...currentProject,
           storyboard: reorderedStoryboard,
         };
-        
+
         set({
           currentProject: updatedProject,
           shots: reorderedStoryboard,
         });
-        
+
       }
     } catch (error) {
       console.error('Failed to reorder shots:', error);

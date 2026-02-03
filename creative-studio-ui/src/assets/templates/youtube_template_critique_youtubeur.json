@@ -3,7 +3,7 @@
   "context": "Un youtubeur analysant et critiquant le contenu d'autres créateurs YouTube.",
   "visual_elements": {
     "background": "assets/jpg_files/file_42_1.jpg",
-    "logo": "assets/library/StorycoreIcone.png",
+    "logo": "assets/library/StorycoreIconeV2.png",
     "animated_text": {
       "title": "Analyse de YouTubeurs !",
       "subtitle": "Critique constructive et honnête."

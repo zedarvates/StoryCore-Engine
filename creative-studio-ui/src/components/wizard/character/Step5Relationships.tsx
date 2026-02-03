@@ -17,10 +17,15 @@ import { Plus, Trash2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCharacters } from '@/store';
 import type { Character, CharacterRelationship } from '@/types/character';
+import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 5: Relationships
 // ============================================================================
+
+interface Step5RelationshipsProps {
+  storyContext?: StoryContext;
+}
 
 const RELATIONSHIP_TYPES = [
   'Family',
@@ -49,7 +54,7 @@ const RELATIONSHIP_DYNAMICS = [
   'Independent',
 ];
 
-export function Step5Relationships() {
+export function Step5Relationships({ storyContext }: Step5RelationshipsProps = {}) {
   const { formData, updateFormData, validationErrors, nextStep, previousStep } =
     useWizard<Character>();
   
@@ -274,7 +279,7 @@ export function Step5Relationships() {
                   <SelectTrigger id="existing-character" aria-required="true">
                     <SelectValue placeholder="Select a character" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[9999]">
                     {existingCharacters
                       .filter((char) => char.character_id !== formData.character_id) // Don't show current character
                       .map((character) => (
@@ -334,7 +339,7 @@ export function Step5Relationships() {
                 <SelectTrigger id="relationship-type" aria-required="true">
                   <SelectValue placeholder="Select relationship type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[9999]">
                   {RELATIONSHIP_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
@@ -359,7 +364,7 @@ export function Step5Relationships() {
                 <SelectTrigger id="dynamic">
                   <SelectValue placeholder="Select dynamic (optional)" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[9999]">
                   {RELATIONSHIP_DYNAMICS.map((dynamic) => (
                     <SelectItem key={dynamic} value={dynamic}>
                       {dynamic}

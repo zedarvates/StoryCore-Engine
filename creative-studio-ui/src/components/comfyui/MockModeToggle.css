@@ -1,0 +1,203 @@
+/**
+ * MockModeToggle Styles
+ * 
+ * Provides a modern toggle switch for mock mode control.
+ */
+
+.mock-mode-toggle-container {
+  margin: 12px 0;
+}
+
+.mock-mode-toggle {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.mock-mode-toggle:hover:not(.disabled) {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.mock-mode-toggle:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.mock-mode-toggle.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mock-mode-toggle.transitioning {
+  pointer-events: none;
+}
+
+.mock-mode-toggle-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mock-mode-toggle-label-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.mock-mode-toggle-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.mock-mode-toggle-description {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.mock-mode-toggle-switch-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mock-mode-toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.mock-mode-toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mock-mode-toggle-status {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 32px;
+  text-align: right;
+}
+
+.mock-mode-toggle-warning {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mock-mode-toggle {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .mock-mode-toggle:hover:not(.disabled) {
+    border-color: #4b5563;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .mock-mode-toggle-label {
+    color: #f9fafb;
+  }
+
+  .mock-mode-toggle-description {
+    color: #9ca3af;
+  }
+
+  .mock-mode-toggle-warning {
+    background: #78350f;
+    border-color: #f59e0b;
+    color: #fef3c7;
+  }
+}
+
+/* Animation for transitioning state */
+@keyframes toggle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.mock-mode-toggle.transitioning {
+  animation: toggle-pulse 0.3s ease-in-out;
+}
+
+/* Accessibility */
+.mock-mode-toggle:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+.mock-mode-toggle[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .mock-mode-toggle {
+    padding: 12px;
+  }
+
+  .mock-mode-toggle-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .mock-mode-toggle-switch-section {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .mock-mode-toggle-label {
+    font-size: 15px;
+  }
+
+  .mock-mode-toggle-description {
+    font-size: 12px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mock-mode-toggle {
+    border-width: 2px;
+  }
+
+  .mock-mode-toggle:focus {
+    outline-width: 3px;
+  }
+
+  .mock-mode-toggle-switch {
+    border: 2px solid currentColor;
+  }
+}

@@ -1,0 +1,92 @@
+/**
+ * Generation Button Toolbar Styles
+ * 
+ * Styles for the generation button toolbar in editor and dashboard contexts.
+ */
+
+.generation-button-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.toolbar-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Editor Context Styles */
+.generation-toolbar-editor {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.generation-toolbar-editor .toolbar-buttons {
+  justify-content: flex-start;
+}
+
+/* Dashboard Context Styles */
+.generation-toolbar-dashboard {
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.generation-toolbar-dashboard .toolbar-buttons {
+  justify-content: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .generation-button-toolbar {
+    padding: 0.5rem;
+  }
+  
+  .toolbar-buttons {
+    gap: 0.25rem;
+  }
+  
+  .generation-toolbar-editor {
+    position: relative;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .generation-button-toolbar {
+    background-color: hsl(var(--background));
+    border-bottom-color: hsl(var(--border));
+  }
+  
+  .generation-toolbar-dashboard {
+    border-color: hsl(var(--border));
+  }
+}
+
+/* Lazy Loading States */
+.dialog-loading,
+.modal-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

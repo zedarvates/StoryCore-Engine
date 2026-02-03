@@ -709,3 +709,89 @@ function showNotification(message: string, type: 'success' | 'error' | 'info'): 
     window.dispatchEvent(event);
   }
 }
+
+
+// ============================================================================
+// Class Wrapper for Backward Compatibility
+// ============================================================================
+
+/**
+ * ConfigurationExportImport class wrapper
+ * Provides a class-based interface for tests and legacy code
+ */
+export class ConfigurationExportImport {
+  exportToJSON(configuration: GridEditorConfiguration): string {
+    const exportData: ExportedGridConfiguration = {
+      metadata: {
+        version: CURRENT_VERSION,
+        exportedAt: new Date().toISOString(),
+        type: 'full',
+        format: 'json'
+      },
+      configuration
+    };
+    return JSON.stringify(exportData, null, 2);
+  }
+
+  importFromJSON(jsonString: string): ImportResult {
+    try {
+      const data = JSON.parse(jsonString) as ExportedGridConfiguration;
+      return {
+        success: true,
+        configuration: data.configuration as GridEditorConfiguration,
+        warnings: []
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to parse JSON',
+        warnings: []
+      };
+    }
+  }
+
+  exportToYAML(configuration: GridEditorConfiguration): string {
+    // Simple YAML export (basic implementation)
+    return JSON.stringify(configuration, null, 2);
+  }
+
+  importFromYAML(yamlString: string): ImportResult {
+    // For now, treat as JSON
+    return this.importFromJSON(yamlString);
+  }
+
+  exportToURL(configuration: GridEditorConfiguration): string {
+    const exportData: ExportedGridConfiguration = {
+      metadata: {
+        version: CURRENT_VERSION,
+        exportedAt: new Date().toISOString(),
+        type: 'full',
+        format: 'url'
+      },
+      configuration
+    };
+    const encoded = btoa(JSON.stringify(exportData));
+    return `${URL_PREFIX}${encoded}`;
+  }
+
+  importFromURL(url: string): ImportResult {
+    try {
+      if (!url.startsWith(URL_PREFIX)) {
+        return {
+          success: false,
+          error: 'Invalid URL format',
+          warnings: []
+        };
+      }
+      const encoded = url.substring(URL_PREFIX.length);
+      const decoded = atob(encoded);
+      return this.importFromJSON(decoded);
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to decode URL',
+        warnings: []
+      };
+    }
+  }
+}

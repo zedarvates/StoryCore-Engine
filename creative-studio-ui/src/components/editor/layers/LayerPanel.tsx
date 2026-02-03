@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import './LayerPanel.css';
 
-interface Layer {
+export interface Layer {
   id: string;
   name: string;
   type: 'video' | 'audio' | 'text' | 'image' | 'effect' | 'adjustment';
@@ -169,8 +169,7 @@ export function LayerPanel({
     return (
       <div
         key={layer.id}
-        className={`layer-item ${isSelected ? 'selected' : ''} ${dragOverLayer === layer.id ? 'drag-over' : ''} ${hasParent ? 'child' : ''}`}
-        style={{ paddingLeft: `${16 + depth * 20}px` }}
+        className={`layer-item ${isSelected ? 'selected' : ''} ${dragOverLayer === layer.id ? 'drag-over' : ''} ${hasParent ? 'child' : ''} layer-depth-${depth}`}
         draggable={!layer.locked}
         onDragStart={(e) => handleDragStart(e, layer.id)}
         onDragOver={(e) => handleDragOver(e, layer.id)}
@@ -360,6 +359,8 @@ export function LayerPanel({
                     type="text"
                     value={layer.name}
                     onChange={(e) => onLayerUpdate(layer.id, { name: e.target.value })}
+                    aria-label="Layer Name"
+                    title="Layer Name"
                   />
                 </div>
 
@@ -372,6 +373,8 @@ export function LayerPanel({
                     step="0.01"
                     value={layer.opacity}
                     onChange={(e) => onLayerUpdate(layer.id, { opacity: parseFloat(e.target.value) })}
+                    aria-label="Layer Opacity"
+                    title={`Layer Opacity: ${Math.round(layer.opacity * 100)}%`}
                   />
                   <span>{Math.round(layer.opacity * 100)}%</span>
                 </div>
@@ -385,6 +388,8 @@ export function LayerPanel({
                       position: { ...layer.position, x: parseInt(e.target.value) }
                     })}
                     placeholder="X"
+                    aria-label="Position X"
+                    title="Position X"
                   />
                   <input
                     type="number"
@@ -393,6 +398,8 @@ export function LayerPanel({
                       position: { ...layer.position, y: parseInt(e.target.value) }
                     })}
                     placeholder="Y"
+                    aria-label="Position Y"
+                    title="Position Y"
                   />
                 </div>
               </div>

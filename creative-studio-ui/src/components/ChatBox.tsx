@@ -94,22 +94,22 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
     <div className={`flex flex-col h-full bg-background ${className}`}>
       {/* Header */}
       <div className="flex items-center gap-2 p-4 border-b border-border">
-        <Sparkles className="w-5 h-5 text-purple-600" />
-        <h2 className="text-lg font-semibold text-foreground">AI Assistant</h2>
+        <Sparkles className="w-5 h-5 text-purple-400" />
+        <h2 className="text-lg font-semibold text-foreground">StoryCore AI Assistant</h2>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Ollama Warning Banner */}
         {isOllamaAvailable === false && (
-          <div className="rounded-lg border-2 border-orange-200 bg-orange-50 p-4">
+          <div className="rounded-lg border-2 border-orange-600 bg-orange-900/20 p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h3 className="font-semibold text-orange-900 mb-1">
+                <h3 className="font-semibold text-orange-300 mb-1">
                   Ollama n'est pas détecté
                 </h3>
-                <p className="text-sm text-orange-800 mb-3">
+                <p className="text-sm text-orange-200 mb-3">
                   L'assistant AI nécessite Ollama pour fonctionner. Veuillez installer ou démarrer Ollama pour utiliser les fonctionnalités d'intelligence artificielle.
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -135,12 +135,12 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
                         });
                       }
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white text-orange-600 text-sm rounded-md border border-orange-300 hover:bg-orange-50 transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-800 text-orange-100 text-sm rounded-md border border-orange-600 hover:bg-orange-700 transition-colors"
                   >
                     Vérifier à nouveau
                   </button>
                 </div>
-                <p className="text-xs text-orange-700 mt-3">
+                <p className="text-xs text-orange-300 mt-3">
                   💡 Après installation, lancez Ollama et cliquez sur "Vérifier à nouveau"
                 </p>
               </div>
@@ -182,7 +182,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
               className={`max-w-[80%] rounded-lg px-4 py-2 ${
                 message.role === 'user'
                   ? 'bg-purple-600 text-white'
-                  : 'bg-muted text-foreground'
+                  : 'bg-gray-200 dark:bg-gray-800 text-foreground'
               }`}
             >
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -192,7 +192,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
                     <button
                       key={index}
                       onClick={() => handleSuggestionClick(suggestion)}
-                      className="block w-full text-left px-2 py-1 text-xs bg-background/50 hover:bg-background/70 rounded transition-colors"
+                      className="block w-full text-left px-2 py-1 text-xs bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                     >
                       {suggestion}
                     </button>

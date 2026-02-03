@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from ..memory_integration import log_grid_generation
 
 
 class GridHandler(BaseHandler):
@@ -43,6 +44,19 @@ class GridHandler(BaseHandler):
             type=int,
             default=512,
             help="Cell size in pixels (default: 512)"
+        )
+        
+        # ComfyUI integration flags (Validates: Requirements 1.4, 11.7)
+        parser.add_argument(
+            "--mock",
+            action="store_true",
+            help="Force mock mode (disable real backend generation)"
+        )
+        
+        parser.add_argument(
+            "--backend-url",
+            type=str,
+            help="Override ComfyUI backend URL (default: http://localhost:8000)"
         )
     
     def execute(self, args: argparse.Namespace) -> int:
@@ -83,6 +97,14 @@ class GridHandler(BaseHandler):
             print(f"Generating {args.grid} grid for project: {project_path.absolute()}")
             print(f"Cell size: {args.cell_size}px")
             
+            # Show backend mode
+            if args.mock:
+                print(f"Backend mode: Mock (forced)")
+            elif args.backend_url:
+                print(f"Backend URL: {args.backend_url}")
+            else:
+                print(f"Backend mode: Auto (will use ComfyUI if available)")
+            
             # Show cell dimensions for non-square grids
             if args.grid in ["1x2", "1x4"]:
                 cell_width = round(args.cell_size * 16 / 9)
@@ -90,16 +112,34 @@ class GridHandler(BaseHandler):
             
             # Generate grid
             generator = GridGenerator()
+            
+            # Pass backend configuration if provided
+            backend_config = {}
+            if args.mock:
+                backend_config['force_mock'] = True
+            if args.backend_url:
+                backend_config['backend_url'] = args.backend_url
+            
             grid_path = generator.generate_grid(
                 str(project_path),
                 args.grid,
                 args.out,
-                args.cell_size
+                args.cell_size,
+                **backend_config
             )
             
             # Calculate number of panels
             cols, rows = map(int, args.grid.split('x'))
             total_panels = cols * rows
+            
+            # Log to memory system if enabled
+            log_grid_generation(
+                project_path=project_path,
+                grid_spec=args.grid,
+                grid_path=str(grid_path),
+                panel_count=total_panels,
+                cell_size=args.cell_size
+            )
             
             # Display success message
             self.print_success("Grid generated successfully")

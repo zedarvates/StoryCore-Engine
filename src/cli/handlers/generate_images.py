@@ -112,6 +112,29 @@ class GenerateImagesHandler(BaseHandler):
             print(f"  Failed: {result['failed']}")
             print(f"  Processing time: {result['processing_time']:.1f} seconds")
             
+            # Index generated assets in memory system
+            if result.get('generated_images'):
+                from ..memory_integration import index_generated_assets
+                
+                # Extract asset paths
+                asset_paths = [img['path'] for img in result['generated_images']]
+                
+                # Index assets with context
+                indexed = index_generated_assets(
+                    project_path=project_path,
+                    asset_paths=asset_paths,
+                    asset_type="image",
+                    generation_context={
+                        "workflow": args.workflow,
+                        "comfyui_url": args.comfyui_url,
+                        "batch_size": args.batch_size,
+                        "mock_mode": args.mock
+                    }
+                )
+                
+                if indexed:
+                    print(f"  Indexed {len(asset_paths)} images in memory system")
+            
             # Show generation details
             if result.get('generated_images'):
                 print(f"\n  Generated images:")

@@ -115,7 +115,8 @@ export function Step1_ProjectType({ data, onUpdate, errors = {} }: Step1_Project
         });
       }
     }
-  }, [selectedType, onUpdate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedType]); // Only depend on selectedType, not onUpdate
 
   // Handle project type selection
   const handleTypeSelect = (type: ProjectType) => {

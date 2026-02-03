@@ -17,9 +17,12 @@ import {
   Search,
   Filter,
   RefreshCw,
-  Info
+  Info,
+  Save,
+  Upload
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 export interface AddonsPanelProps {
   className?: string;
@@ -32,6 +35,7 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<AddonInfo['category'] | 'all'>('all');
   const [togglingAddon, setTogglingAddon] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     initializeAddons();
@@ -63,6 +67,49 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
       console.error('Error toggling addon:', error);
     } finally {
       setTogglingAddon(null);
+    }
+  };
+
+  /**
+   * Exporte la configuration des add-ons vers un fichier
+   */
+  const handleExportConfig = async () => {
+    try {
+      await addonManager.saveToFile();
+      toast({
+        title: 'Succès',
+        description: 'Configuration sauvegardée avec succès',
+        variant: 'default'
+      });
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: `Échec de la sauvegarde: ${error.message}`,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  /**
+   * Importe la configuration des add-ons depuis un fichier
+   */
+  const handleImportConfig = async () => {
+    try {
+      await addonManager.loadFromFile();
+      // Rafraîchir la liste des add-ons
+      setAddons(addonManager.getAddons());
+      
+      toast({
+        title: 'Succès',
+        description: 'Configuration restaurée avec succès',
+        variant: 'default'
+      });
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: `Échec de la restauration: ${error.message}`,
+        variant: 'destructive'
+      });
     }
   };
 
@@ -197,6 +244,30 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
             <RefreshCw className="w-4 h-4" />
             Actualiser
           </Button>
+          
+          {/* Boutons d'export/import */}
+          <div className="flex gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportConfig}
+              className="flex items-center gap-2"
+              title="Exporter la configuration"
+            >
+              <Save className="w-4 h-4" />
+              Exporter
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleImportConfig}
+              className="flex items-center gap-2"
+              title="Importer la configuration"
+            >
+              <Upload className="w-4 h-4" />
+              Importer
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -67,6 +67,9 @@ temp_*/
 # Build artifacts
 dist/
 build/
+!build/icon.ico
+!build/icon.icns
+!build/README.md
 *.egg-info/
 release/
 dist-electron/

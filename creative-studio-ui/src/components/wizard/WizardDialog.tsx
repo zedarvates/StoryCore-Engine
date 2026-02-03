@@ -10,7 +10,7 @@
  * Requirements: 2.1, 2.4, 2.6, 2.8, 2.9, 2.10
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { X, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { WizardStepIndicator, WizardStep } from './WizardStepIndicator';
 import { WizardNavigation } from './WizardNavigation';
@@ -118,6 +118,19 @@ export function WizardDialog({
       success: false,
     });
   }, []);
+
+  // Listen for wizard-submit event from WizardNavigation
+  useEffect(() => {
+    const handleSubmitEvent = () => {
+      console.log('[WizardDialog] Received wizard-submit event, calling handleGenerate');
+      handleGenerate();
+    };
+
+    window.addEventListener('wizard-submit', handleSubmitEvent);
+    return () => {
+      window.removeEventListener('wizard-submit', handleSubmitEvent);
+    };
+  }, [handleGenerate]);
 
   if (!isOpen) {
     return null;

@@ -204,7 +204,8 @@ export function Step5_StoryStructure({
   // Update parent when story structure changes
   useEffect(() => {
     onUpdate(storyStructure);
-  }, [storyStructure, onUpdate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storyStructure]); // Only depend on storyStructure, not onUpdate
 
   // Handle act structure change
   const handleActStructureChange = (value: ActStructure) => {
@@ -438,7 +439,7 @@ export function Step5_StoryStructure({
             <SelectTrigger id="actStructure">
               <SelectValue placeholder="Select act structure" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[9999]">
               {ACT_STRUCTURE_OPTIONS.map((structure) => (
                 <SelectItem key={structure.value} value={structure.value}>
                   <div>
@@ -638,7 +639,7 @@ export function Step5_StoryStructure({
             <SelectTrigger id="narrativePerspective">
               <SelectValue placeholder="Select narrative perspective" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[9999]">
               {NARRATIVE_PERSPECTIVE_OPTIONS.map((perspective) => (
                 <SelectItem key={perspective.value} value={perspective.value}>
                   <div>

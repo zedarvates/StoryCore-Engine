@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryCore LLM Assistant - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00ff9d, #00bfff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .section h2 {
+            color: #00ff9d;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .prompt-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #ff00ff;
+            font-style: italic;
+            line-height: 1.6;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .step:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #00ff9d, #00bfff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: #00ff9d;
+            margin-bottom: 5px;
+        }
+        
+        .step-desc {
+            color: #aaa;
+            font-size: 0.95em;
+        }
+        
+        .parsed-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-card {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .info-label {
+            color: #00bfff;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .confirmation-box {
+            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.1));
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .confirmation-question {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn-yes {
+            background: linear-gradient(135deg, #00ff9d, #00bfff);
+            color: #000;
+        }
+        
+        .btn-yes:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0,255,157,0.5);
+        }
+        
+        .project-structure {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .folder {
+            color: #ffd700;
+        }
+        
+        .file {
+            color: #00ff9d;
+        }
+        
+        .success-message {
+            background: linear-gradient(135deg, rgba(0,255,157,0.2), rgba(0,191,255,0.2));
+            border: 2px solid #00ff9d;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .success-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .workflow-diagram {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 20px 0;
+        }
+        
+        .workflow-item {
+            text-align: center;
+            padding: 15px;
+            flex: 1;
+            min-width: 100px;
+        }
+        
+        .workflow-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00ff9d, #00bfff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 1.5em;
+        }
+        
+        .workflow-arrow {
+            font-size: 1.5em;
+            color: #666;
+        }
+        
+        @media (max-width: 600px) {
+            .workflow-arrow {
+                display: none;
+            }
+            .workflow-diagram {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>StoryCore LLM Assistant</h1>
+            <p class="subtitle">Demonstration du flux de creation de projet</p>
+        </header>
+        
+        <!-- Diagramme du workflow -->
+        <section class="section">
+            <h2>Workflow</h2>
+            <div class="workflow-diagram">
+                <div class="workflow-item">
+                    <div class="workflow-icon">📝</div>
+                    <div>Parse Prompt</div>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-item">
+                    <div class="workflow-icon">📛</div>
+                    <div>Generate Name</div>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-item">
+                    <div class="workflow-icon">❓</div>
+                    <div>Confirm</div>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-item">
+                    <div class="workflow-icon">⚙️</div>
+                    <div>Generate</div>
+                </div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-item">
+                    <div class="workflow-icon">✅</div>
+                    <div>Create</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Exemple: Blanche-Neige 2048 -->
+        <section class="section">
+            <h2>Exemple: Blanche-Neige 2048</h2>
+            
+            <div class="prompt-box">
+                "Crée une bande-annonce intense et cinématographique pour une réinterprétation 
+                cyberpunk de Blanche-Neige, située en 2048. Ton doit être sombre, nerveux, futuriste. 
+                Mélange narration dramatique, scènes d'action, tension émotionnelle..."
+            </div>
+            
+            <!-- Step 1: Parse -->
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">Parsing du Prompt</div>
+                    <div class="step-desc">Extraction des elements cles du prompt utilisateur</div>
+                    <div class="parsed-info">
+                        <div class="info-card">
+                            <div class="info-label">Genre</div>
+                            <div class="info-value">Cyberpunk</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Mood</div>
+                            <div class="info-value">Sombre, Nerveux, Intense</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Periode</div>
+                            <div class="info-value">2048</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Video Type</div>
+                            <div class="info-value">Trailer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 2: Generate Name -->
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">Generation du Nom</div>
+                    <div class="step-desc">Suggestion: <strong>"Blanche-Neige 2048"</strong></div>
+                    <div class="parsed-info">
+                        <div class="info-card">
+                            <div class="info-label">Verif. Doublon</div>
+                            <div class="info-value">Aucun trouve</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Version</div>
+                            <div class="info-value">V1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 3: Confirmation -->
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">Confirmation Utilisateur</div>
+                    <div class="confirmation-box">
+                        <div class="confirmation-question">
+                            Voulez-vous créer le projet "Blanche-Neige 2048" ?
+                        </div>
+                        <button class="btn btn-yes" onclick="showSuccess()">Oui, créer le projet</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 4: Generate Components -->
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div class="step-title">Generation des Composants</div>
+                    <div class="step-desc">Creation de tous les fichiers de configuration</div>
+                    <div class="parsed-info">
+                        <div class="info-card">
+                            <div class="info-label">World Config</div>
+                            <div class="info-value">✓ Cyberpunk Neon City</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Characters</div>
+                            <div class="info-value">✓ 3 personnages</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Story</div>
+                            <div class="info-value">✓ Structure 3 actes</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Sequences</div>
+                            <div class="info-value">✓ 6 scenes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 5: Create Project -->
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div class="step-title">Creation du Projet</div>
+                    <div class="project-structure">
+                        <div><span class="folder">📁 Blanche-Neige_2048/</span></div>
+                        <div style="margin-left: 20px;"><span class="folder">📁 assets/</span></div>
+                        <div style="margin-left: 20px;"><span class="file">📄 project.json</span></div>
+                        <div style="margin-left: 20px;"><span class="file">📄 project_template.json</span></div>
+                        <div style="margin-left: 20px;"><span class="file">📄 world_config.json</span></div>
+                        <div style="margin-left: 20px;"><span class="file">📄 characters.json</span></div>
+                        <div style="margin-left: 20px;"><span class="file">📄 story_structure.json</span></div>
+                        <div style="margin-left: 20px;"><span class="file">📄 sequence_plan.json</span></div>
+                        <div style="margin-left: 20px;"><span class="file">📄 music_description.json</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="success" class="success-message" style="display: none;">
+                <div class="success-icon">🎉</div>
+                <h3>Projet "Blanche-Neige 2048" cree avec succes!</h3>
+                <p>Tous les fichiers ont ete pre-configures selon votre prompt.</p>
+            </div>
+        </section>
+        
+        <footer style="text-align: center; padding: 20px; color: #666;">
+            <p>StoryCore LLM Assistant - Tous droits reserves</p>
+        </footer>
+    </div>
+    
+    <script>
+        function showSuccess() {
+            document.getElementById('success').style.display = 'block';
+            document.getElementById('success').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
+

@@ -331,8 +331,8 @@ The implementation follows Data Contract v1 format:
       "locations": [...],
       "rules": [...],
       "culturalElements": {...},
-      "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z"
+      "createdAt": "2026-01-26T00:00:00.000Z",
+      "updatedAt": "2026-01-26T00:00:00.000Z"
     }
   ],
   "selectedWorldId": "uuid"

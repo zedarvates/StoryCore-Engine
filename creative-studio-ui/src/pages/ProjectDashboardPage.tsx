@@ -6,10 +6,7 @@
  */
 
 import { ProjectDashboardNew } from '@/components/workspace/ProjectDashboardNew';
-import { ChatPanel } from '@/components/ChatPanel';
-import { ChatToggleButton } from '@/components/ChatToggleButton';
 import { useAppStore } from '@/stores/useAppStore';
-import { Film } from 'lucide-react';
 
 interface ProjectDashboardPageProps {
   onOpenEditor: (sequenceId?: string) => void;
@@ -17,7 +14,6 @@ interface ProjectDashboardPageProps {
 
 export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps) {
   const { project } = useAppStore();
-  const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
 
   // If no project is loaded, show error
   if (!project) {
@@ -41,14 +37,7 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
         </div>
         
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => openSequencePlanWizard({ mode: 'create', sourceLocation: 'dashboard' })}
-            className="px-4 py-1.5 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 flex items-center gap-2"
-            title="Créer un nouveau plan de séquence"
-          >
-            <Film className="w-4 h-4" />
-            Nouveau Plan
-          </button>
+          {/* Nouveau Plan button moved to Plan Sequences section in ProjectDashboardNew */}
           {/* Open Editor button commented out - sequences now open editor directly
           <button
             onClick={() => onOpenEditor()}
@@ -69,12 +58,6 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
           onOpenEditor={onOpenEditor}
         />
       </div>
-
-      {/* Chat Toggle Button */}
-      <ChatToggleButton />
-
-      {/* Chat Panel */}
-      <ChatPanel />
     </div>
   );
 }

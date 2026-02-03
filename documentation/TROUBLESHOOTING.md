@@ -1,622 +1,812 @@
-# Troubleshooting Guide: Modular CLI Architecture
+# Troubleshooting Guide - StoryCore
 
-This guide helps you diagnose and resolve common issues with the modular CLI architecture.
-
-**Requirements: 10.3, 9.5**
+This comprehensive troubleshooting guide covers common issues, their diagnosis, and solutions for StoryCore-Engine.
 
 ## Table of Contents
 
 1. [Quick Diagnostics](#quick-diagnostics)
-2. [Import Errors](#import-errors)
-3. [Command Registration Issues](#command-registration-issues)
-4. [Handler Errors](#handler-errors)
-5. [Performance Issues](#performance-issues)
-6. [Testing Issues](#testing-issues)
-7. [Packaging and Deployment](#packaging-and-deployment)
-8. [Getting Help](#getting-help)
+2. [Installation Issues](#installation-issues)
+3. [Configuration Problems](#configuration-problems)
+4. [Performance Issues](#performance-issues)
+5. [Memory and Resource Problems](#memory-and-resource-problems)
+6. [Video Engine Issues](#video-engine-issues)
+7. [AI Model Issues](#ai-model-issues)
+8. [ComfyUI Issues](#comfyui-issues)
+9. [Network and Connection Issues](#network-and-connection-issues)
+10. [Security Issues](#security-issues)
+11. [Diagnostic Scripts](#diagnostic-scripts)
+
+---
 
 ## Quick Diagnostics
 
-### Run Validation Script
-
-The validation script checks for common issues:
+### System Health Check
 
 ```bash
-python scripts/validate_modularization.py --export report.json
+# Check overall system health
+storycore health-check
+
+# Check version information
+storycore version
+
+# Run full diagnostic
+storycore diagnose
+
+# Generate diagnostic report
+storycore diagnose --output report.json
+
+# Check logs
+storycore logs
 ```
 
-This checks:
-- ✓ Directory structure
-- ✓ Module size constraints
-- ✓ Handler registration
-- ✓ Import structure
-- ✓ Documentation
-- ✓ Test structure
-
-### Check CLI Installation
+### CLI Diagnostics
 
 ```bash
-# Verify CLI is installed
-which storycore  # Unix/Mac
+# Verify CLI installation
 where storycore  # Windows
+which storycore  # Unix/Mac
 
 # Test basic functionality
 storycore --help
 
-# Check version
-python -c "import src.cli; print(src.cli.__file__)"
+# Verify Python environment
+python --version
+pip list | grep storycore
 ```
 
-### Verify Python Environment
+---
 
+## Installation Issues
+
+### 1. Installation Fails
+
+**Symptoms**: Installation process fails with an error
+
+**Diagnosis**:
 ```bash
 # Check Python version (requires 3.8+)
 python --version
 
-# Check installed packages
-pip list | grep storycore
+# Check Node.js version (requires 16+)
+node --version
 
-# Verify dependencies
-pip check
+# Check disk space
+df -h
 ```
 
-## Import Errors
+**Solutions**:
 
-### Error: `ModuleNotFoundError: No module named 'cli'`
-
-**Cause:** Python can't find the `cli` module.
-
-**Solutions:**
-
-1. **Ensure correct working directory:**
-   ```bash
-   # Must run from project root
-   cd /path/to/storycore-engine
-   python -m src.storycore_cli
-   ```
-
-2. **Check directory structure:**
-   ```bash
-   # Verify cli directory exists
-   ls -la src/cli/
-   
-   # Should show:
-   # - __init__.py
-   # - core.py
-   # - registry.py
-   # - handlers/
-   # - utils/
-   ```
-
-3. **Reinstall package:**
-   ```bash
-   pip uninstall storycore-engine
-   pip install -e .
-   ```
-
-### Error: `ImportError: cannot import name 'InitHandler'`
-
-**Cause:** Trying to import handler from old monolithic module.
-
-**Solution:** Update import path:
-
-```python
-# ❌ Old (incorrect)
-from storycore_cli import InitHandler
-
-# ✅ New (correct)
-from src.cli.handlers.init import InitHandler
-```
-
-**Automated fix:**
+#### Verify Prerequisites
 ```bash
-python scripts/migrate_to_modular_cli.py --dir .
+# Ubuntu/Debian
+sudo apt update
+sudo apt install python3.9 python3.9-venv python3-pip git nodejs npm
+
+# macOS
+brew install python@3.9 nodejs npm git
+
+# Windows (using Chocolatey)
+choco install python nodejs git
 ```
 
-### Error: `ImportError: attempted relative import with no known parent package`
-
-**Cause:** Running module directly instead of as package.
-
-**Solution:**
-
+#### Fix Permissions
 ```bash
-# ❌ Don't do this
-python src/cli/handlers/init.py
+# Windows: Run as administrator
 
-# ✅ Do this instead
-python -m src.storycore_cli init my-project
+# Linux/macOS
+sudo chmod +x storycore-installer.sh
+sudo ./storycore-installer.sh
 ```
 
-### Error: `ModuleNotFoundError: No module named 'src'`
-
-**Cause:** Python path not configured correctly.
-
-**Solutions:**
-
-1. **Install in development mode:**
-   ```bash
-   pip install -e .
-   ```
-
-2. **Add to PYTHONPATH:**
-   ```bash
-   export PYTHONPATH="${PYTHONPATH}:$(pwd)"  # Unix/Mac
-   set PYTHONPATH=%PYTHONPATH%;%CD%          # Windows
-   ```
-
-3. **Use absolute imports:**
-   ```python
-   import sys
-   from pathlib import Path
-   sys.path.insert(0, str(Path(__file__).parent.parent))
-   ```
-
-## Command Registration Issues
-
-### Error: Command not found
-
-**Symptoms:**
+#### Reinstall Dependencies
 ```bash
-$ storycore mycommand
-Error: Unknown command 'mycommand'
+# Reinstall Python dependencies
+pip install -r requirements.txt --force-reinstall
+
+# Reinstall Node.js
+npm install --force
 ```
 
-**Diagnosis:**
+### 2. Startup Problems
 
-1. **Check handler file exists:**
-   ```bash
-   ls src/cli/handlers/mycommand.py
-   ```
+**Symptoms**: StoryCore doesn't start properly
 
-2. **Verify handler class:**
-   ```python
-   # Handler must inherit from BaseHandler
-   from src.cli.base import BaseHandler
-   
-   class MyCommandHandler(BaseHandler):
-       command_name = "mycommand"  # Must match
-       description = "My command description"
-   ```
-
-3. **Check handler registration:**
-   ```bash
-   python -c "from src.cli.registry import CommandRegistry; \
-              from argparse import ArgumentParser; \
-              r = CommandRegistry(ArgumentParser()); \
-              print(r.list_commands())"
-   ```
-
-**Solutions:**
-
-1. **Ensure handler has required attributes:**
-   ```python
-   class MyCommandHandler(BaseHandler):
-       command_name = "mycommand"  # Required
-       description = "Description"  # Required
-       
-       def setup_parser(self, parser):  # Required
-           pass
-       
-       def execute(self, args):  # Required
-           return 0
-   ```
-
-2. **Verify file naming:**
-   - File: `src/cli/handlers/mycommand.py`
-   - Class: `MyCommandHandler`
-   - Command: `mycommand`
-
-3. **Check for syntax errors:**
-   ```bash
-   python -m py_compile src/cli/handlers/mycommand.py
-   ```
-
-### Error: Multiple handlers for same command
-
-**Symptoms:**
-```
-Warning: Multiple handlers registered for command 'init'
-```
-
-**Cause:** Duplicate handler files or classes.
-
-**Solution:**
-
-1. **Find duplicates:**
-   ```bash
-   grep -r "command_name = \"init\"" src/cli/handlers/
-   ```
-
-2. **Remove or rename duplicate:**
-   ```bash
-   # Rename duplicate
-   mv src/cli/handlers/init_old.py src/cli/handlers/init_backup.py.bak
-   ```
-
-## Handler Errors
-
-### Error: Handler execution fails
-
-**Symptoms:**
+**Diagnosis**:
 ```bash
-$ storycore grid --project test
-✗ Error executing command: 'NoneType' object has no attribute 'get'
+# Check port usage
+netstat -an | findstr :3000  # Windows
+lsof -i :3000  # Linux/macOS
+
+# Check configuration file
+cat ~/.storycore/config.json
+
+# Check error logs
+tail -f ~/.storycore/logs/app.log  # Linux/macOS
+Get-Content ~\.storycore\logs\app.log -Wait  # Windows
 ```
 
-**Diagnosis:**
-
-1. **Enable debug logging:**
-   ```bash
-   export STORYCORE_LOG_LEVEL=DEBUG
-   storycore grid --project test
-   ```
-
-2. **Check handler implementation:**
-   ```python
-   # Add debug prints
-   def execute(self, args):
-       print(f"DEBUG: args = {args}")
-       print(f"DEBUG: project = {args.project}")
-       # ... rest of implementation
-   ```
-
-3. **Validate arguments:**
-   ```bash
-   storycore grid --help  # Check required arguments
-   ```
-
-**Solutions:**
-
-1. **Add error handling:**
-   ```python
-   def execute(self, args):
-       try:
-           # Handler logic
-           return 0
-       except Exception as e:
-           self.print_error(f"Handler error: {e}")
-           return 1
-   ```
-
-2. **Validate inputs:**
-   ```python
-   def execute(self, args):
-       if not args.project:
-           self.print_error("Project path required")
-           return 1
-       
-       if not Path(args.project).exists():
-           self.print_error(f"Project not found: {args.project}")
-           return 1
-   ```
-
-### Error: Project loading fails
-
-**Symptoms:**
-```
-✗ Error: Could not load project configuration
-```
-
-**Solutions:**
-
-1. **Check project structure:**
-   ```bash
-   # Verify project.json exists
-   ls -la my-project/project.json
-   
-   # Validate JSON syntax
-   python -m json.tool my-project/project.json
-   ```
-
-2. **Use utility functions:**
-   ```python
-   from src.cli.utils.project import load_project_config, validate_project_structure
-   
-   # Load with error handling
-   try:
-       config = load_project_config(project_path)
-   except Exception as e:
-       print(f"Error loading project: {e}")
-   
-   # Validate structure
-   is_valid, errors = validate_project_structure(project_path)
-   if not is_valid:
-       print(f"Invalid project: {errors}")
-   ```
-
-## Performance Issues
-
-### Issue: Slow CLI startup
-
-**Symptoms:** CLI takes >1 second to start.
-
-**Diagnosis:**
-
+**Solutions**:
 ```bash
-# Time CLI startup
-time storycore --help
+# Reset configuration
+storycore config reset
 
-# Profile imports
-python -X importtime -m src.storycore_cli --help 2>&1 | grep "import time"
+# Restore defaults
+storycore config restore-default
+
+# Restart service
+storycore restart
 ```
-
-**Solutions:**
-
-1. **Use lazy imports:**
-   ```python
-   # ❌ Don't import at module level
-   from src.engines.grid_generator import GridGenerator
-   
-   # ✅ Import in method
-   def execute(self, args):
-       from src.engines.grid_generator import GridGenerator
-       generator = GridGenerator()
-   ```
-
-2. **Check for heavy dependencies:**
-   ```bash
-   # Find slow imports
-   python -X importtime -m src.storycore_cli 2>&1 | sort -n -k 2
-   ```
-
-3. **Optimize handler registration:**
-   ```python
-   # Registry should use lazy loading
-   def get_handler(self, command):
-       if command not in self._handlers:
-           self._load_handler(command)  # Load on demand
-       return self._handlers[command]
-   ```
-
-### Issue: High memory usage
-
-**Symptoms:** CLI uses excessive memory.
-
-**Diagnosis:**
-
-```bash
-# Monitor memory usage
-python -m memory_profiler src/storycore_cli.py grid --project test
-```
-
-**Solutions:**
-
-1. **Use generators instead of lists:**
-   ```python
-   # ❌ Loads all into memory
-   files = [f for f in Path(dir).rglob('*.py')]
-   
-   # ✅ Processes one at a time
-   for file in Path(dir).rglob('*.py'):
-       process(file)
-   ```
-
-2. **Clean up resources:**
-   ```python
-   def execute(self, args):
-       try:
-           # Process data
-           result = process_large_file(args.input)
-           return 0
-       finally:
-           # Clean up
-           del result
-           gc.collect()
-   ```
-
-## Testing Issues
-
-### Error: Tests fail after migration
-
-**Symptoms:**
-```bash
-$ pytest tests/
-ImportError: cannot import name 'GridHandler'
-```
-
-**Solutions:**
-
-1. **Update test imports:**
-   ```python
-   # ❌ Old
-   from storycore_cli import GridHandler
-   
-   # ✅ New
-   from src.cli.handlers.grid import GridHandler
-   ```
-
-2. **Run migration on tests:**
-   ```bash
-   python scripts/migrate_to_modular_cli.py --dir tests/
-   ```
-
-3. **Update test fixtures:**
-   ```python
-   # Update fixture imports
-   @pytest.fixture
-   def cli_core():
-       from src.cli.core import CLICore
-       return CLICore()
-   ```
-
-### Error: Coverage reports incorrect
-
-**Symptoms:** Coverage shows 0% despite tests passing.
-
-**Solutions:**
-
-1. **Configure coverage correctly:**
-   ```bash
-   # .coveragerc or pyproject.toml
-   [tool.coverage.run]
-   source = ["src/cli"]
-   omit = ["*/tests/*", "*/__pycache__/*"]
-   ```
-
-2. **Run with correct source:**
-   ```bash
-   pytest --cov=src/cli --cov-report=html tests/
-   ```
-
-3. **Check coverage report:**
-   ```bash
-   coverage report -m
-   coverage html
-   open htmlcov/index.html
-   ```
-
-## Packaging and Deployment
-
-### Error: Package build fails
-
-**Symptoms:**
-```bash
-$ python -m build
-ERROR: Could not find module 'src.cli'
-```
-
-**Solutions:**
-
-1. **Check MANIFEST.in:**
-   ```
-   recursive-include src *.py
-   recursive-include src/cli *.py
-   ```
-
-2. **Verify setup.py:**
-   ```python
-   packages=find_packages(where="."),
-   package_dir={"": "."},
-   ```
-
-3. **Clean build artifacts:**
-   ```bash
-   rm -rf build/ dist/ *.egg-info
-   python -m build
-   ```
-
-### Error: Installed package missing modules
-
-**Symptoms:**
-```bash
-$ pip install dist/storycore-engine-0.1.0.tar.gz
-$ storycore --help
-ModuleNotFoundError: No module named 'cli'
-```
-
-**Solutions:**
-
-1. **Check package contents:**
-   ```bash
-   tar -tzf dist/storycore-engine-0.1.0.tar.gz | grep cli
-   ```
-
-2. **Verify __init__.py files:**
-   ```bash
-   # Each directory needs __init__.py
-   touch src/cli/__init__.py
-   touch src/cli/handlers/__init__.py
-   touch src/cli/utils/__init__.py
-   ```
-
-3. **Reinstall in development mode:**
-   ```bash
-   pip uninstall storycore-engine
-   pip install -e .
-   ```
-
-### Error: Entry point not found
-
-**Symptoms:**
-```bash
-$ storycore
-bash: storycore: command not found
-```
-
-**Solutions:**
-
-1. **Check entry point configuration:**
-   ```python
-   # setup.py or pyproject.toml
-   entry_points={
-       "console_scripts": [
-           "storycore=src.storycore_cli:main",
-       ],
-   }
-   ```
-
-2. **Reinstall package:**
-   ```bash
-   pip uninstall storycore-engine
-   pip install -e .
-   ```
-
-3. **Check PATH:**
-   ```bash
-   # Unix/Mac
-   echo $PATH | grep -o "[^:]*bin"
-   
-   # Windows
-   echo %PATH%
-   ```
-
-## Getting Help
-
-### Self-Service Resources
-
-1. **Run validation:**
-   ```bash
-   python scripts/validate_modularization.py --export report.json
-   ```
-
-2. **Check documentation:**
-   - [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)
-   - [CLI_ARCHITECTURE.md](./CLI_ARCHITECTURE.md)
-   - [CLI_EXTENSIBILITY.md](./CLI_EXTENSIBILITY.md)
-
-3. **Search issues:**
-   - [GitHub Issues](https://github.com/storycore/storycore-engine/issues)
-
-### Reporting Issues
-
-When reporting issues, include:
-
-1. **System information:**
-   ```bash
-   python --version
-   pip list | grep storycore
-   uname -a  # Unix/Mac
-   systeminfo  # Windows
-   ```
-
-2. **Validation report:**
-   ```bash
-   python scripts/validate_modularization.py --export report.json
-   # Attach report.json
-   ```
-
-3. **Error output:**
-   ```bash
-   # Run with debug logging
-   export STORYCORE_LOG_LEVEL=DEBUG
-   storycore <command> 2>&1 | tee error.log
-   # Attach error.log
-   ```
-
-4. **Minimal reproduction:**
-   ```bash
-   # Provide exact commands to reproduce
-   storycore init test-project
-   storycore grid --project test-project
-   # Error occurs here
-   ```
-
-### Community Support
-
-- **GitHub Discussions:** Ask questions and share solutions
-- **Issue Tracker:** Report bugs and request features
-- **Documentation:** Contribute improvements
 
 ---
 
-**Still having issues?** Open an issue with the information above, and we'll help you resolve it!
+## Configuration Problems
+
+### 1. Invalid Configuration Parameters
+
+**Symptoms**: Configuration validation fails with "Invalid frame rate" or "Invalid resolution" errors
+
+**Diagnosis**:
+```bash
+# Validate configuration
+storycore config validate
+```
+
+**Solutions**:
+
+#### Use Configuration Validation
+```python
+from video_engine import VideoConfig, VideoEngine
+
+def create_safe_config(**kwargs):
+    try:
+        config = VideoConfig(**kwargs)
+        temp_engine = VideoEngine(config)
+        is_valid, issues = temp_engine.validate_configuration()
+        
+        if not is_valid:
+            print(f"Configuration issues: {issues}")
+        
+        return config
+    except Exception as e:
+        print(f"Configuration creation failed: {e}")
+        return VideoConfig()  # Return default config
+
+# Safe configuration creation
+config = create_safe_config(
+    frame_rate=24,
+    resolution=(1920, 1080),
+    quality="high"
+)
+```
+
+#### Use Preset Configurations
+```python
+from video_configuration_manager import VideoConfigurationManager
+
+config_manager = VideoConfigurationManager()
+
+# Load tested preset
+config = config_manager.load_preset("cinematic")
+is_valid, issues = config_manager.validate_configuration(config)
+```
+
+### 2. Configuration File Issues
+
+**Symptoms**: Configuration changes not being applied
+
+**Solutions**:
+```bash
+# Validate JSON syntax
+cat ~/.storycore/config.json | python -m json.tool
+
+# Fix permissions
+chmod 644 ~/.storycore/config.json  # Linux/macOS
+
+# Reset to defaults
+storycore config reset
+```
+
+---
+
+## Performance Issues
+
+### 1. Slow Performance
+
+**Symptoms**: Application runs slowly, processing takes too long
+
+**Diagnosis**:
+```bash
+# Check CPU usage
+top
+
+# Check memory usage
+free -h
+
+# Check disk I/O
+df -h
+
+# Monitor network
+iftop
+
+# Check GPU usage
+nvidia-smi
+```
+
+**Solutions**:
+```bash
+# Optimize configuration
+storycore config set performance.optimization true
+
+# Clear cache
+storycore cache clean
+
+# Restart service
+storycore restart
+
+# Configure GPU
+storycore config set rendering.gpu true
+storycore config set rendering.gpu_memory 0.8
+```
+
+### 2. Performance Diagnosis Code
+
+```python
+import time
+import psutil
+from video_engine import VideoEngine, VideoConfig
+
+def diagnose_performance(project_path: str, shot_id: str):
+    """Diagnose performance issues"""
+    
+    configs = {
+        "basic": VideoConfig(quality="low", gpu_acceleration=False),
+        "gpu": VideoConfig(quality="medium", gpu_acceleration=True),
+        "parallel": VideoConfig(quality="medium", parallel_processing=True),
+        "optimized": VideoConfig(
+            quality="medium",
+            gpu_acceleration=True,
+            parallel_processing=True
+        )
+    }
+    
+    results = {}
+    
+    for name, config in configs.items():
+        try:
+            engine = VideoEngine(config)
+            engine.load_project(project_path)
+            
+            start_time = time.time()
+            result = engine.generate_video_sequence(shot_id)
+            end_time = time.time()
+            
+            if result.success:
+                fps = result.frame_count / (end_time - start_time)
+                results[name] = {
+                    "success": True,
+                    "duration": end_time - start_time,
+                    "fps": fps
+                }
+        
+        except Exception as e:
+            results[name] = {"success": False, "error": str(e)}
+    
+    return results
+```
+
+---
+
+## Memory and Resource Problems
+
+### 1. Out of Memory Errors
+
+**Symptoms**: "Out of memory" errors, system becomes unresponsive
+
+**Diagnosis**:
+```python
+import psutil
+import gc
+
+def diagnose_memory_usage():
+    process = psutil.Process()
+    memory = psutil.virtual_memory()
+    
+    print(f"System Memory:")
+    print(f"  Total: {memory.total / 1024**3:.1f} GB")
+    print(f"  Available: {memory.available / 1024**3:.1f} GB")
+    print(f"  Used: {memory.percent:.1f}%")
+    
+    process_memory = process.memory_info()
+    print(f"Process Memory:")
+    print(f"  RSS: {process_memory.rss / 1024**2:.1f} MB")
+    
+    return {
+        "system_available_gb": memory.available / 1024**3,
+        "process_rss_mb": process_memory.rss / 1024**2
+    }
+```
+
+**Solutions**:
+
+#### Memory-Efficient Processing
+```python
+import gc
+from video_engine import VideoEngine, VideoConfig
+
+class MemoryEfficientEngine:
+    def __init__(self, memory_limit_gb=4.0):
+        self.memory_limit_gb = memory_limit_gb
+        self.config = VideoConfig(
+            frame_rate=24,
+            resolution=(1280, 720),
+            quality="medium",
+            parallel_processing=False,
+            gpu_acceleration=True
+        )
+        self.engine = VideoEngine(self.config)
+    
+    def process_shot_memory_safe(self, project_path: str, shot_id: str):
+        memory = psutil.virtual_memory()
+        available_gb = memory.available / 1024**3
+        
+        if available_gb < self.memory_limit_gb:
+            print(f"Low memory: {available_gb:.1f} GB available")
+            gc.collect()
+        
+        self.engine.load_project(project_path)
+        result = self.engine.generate_video_sequence(shot_id)
+        gc.collect()
+        return result
+```
+
+#### Batch Processing
+```python
+def process_large_project_safely(project_path: str, shot_ids: list):
+    config = VideoConfig(
+        resolution=(1280, 720),
+        quality="medium",
+        parallel_processing=False
+    )
+    
+    engine = VideoEngine(config)
+    engine.load_project(project_path)
+    
+    results = []
+    
+    for shot_id in shot_ids:
+        memory = psutil.virtual_memory()
+        available_gb = memory.available / 1024**3
+        
+        if available_gb < 2.0:
+            print("Low memory, forcing cleanup...")
+            gc.collect()
+        
+        try:
+            result = engine.generate_video_sequence(shot_id)
+            results.append({
+                "shot_id": shot_id,
+                "success": result.success
+            })
+        except Exception as e:
+            results.append({
+                "shot_id": shot_id,
+                "success": False,
+                "error": str(e)
+            })
+        
+        gc.collect()
+    
+    return results
+```
+
+### 2. GPU Memory Issues
+
+**Symptoms**: CUDA out of memory errors, GPU processing falls back to CPU
+
+**Diagnosis**:
+```python
+def diagnose_gpu_memory():
+    try:
+        import torch
+        if torch.cuda.is_available():
+            device = torch.cuda.current_device()
+            gpu_memory = torch.cuda.get_device_properties(device).total_memory
+            gpu_reserved = torch.cuda.memory_reserved(device)
+            
+            print(f"GPU Memory:")
+            print(f"  Total: {gpu_memory / 1024**3:.1f} GB")
+            print(f"  Reserved: {gpu_reserved / 1024**3:.1f} GB")
+            print(f"  Available: {(gpu_memory - gpu_reserved) / 1024**3:.1f} GB")
+            
+            return {"available_gb": (gpu_memory - gpu_reserved) / 1024**3}
+    except ImportError:
+        print("PyTorch not available for GPU diagnosis")
+    return None
+```
+
+**Solutions**:
+```python
+def create_gpu_optimized_config(available_gpu_memory_gb):
+    if available_gpu_memory_gb >= 8.0:
+        return VideoConfig(
+            resolution=(1920, 1080),
+            quality="high",
+            gpu_acceleration=True,
+            parallel_processing=True
+        )
+    elif available_gpu_memory_gb >= 4.0:
+        return VideoConfig(
+            resolution=(1280, 720),
+            quality="medium",
+            gpu_acceleration=True,
+            parallel_processing=True
+        )
+    else:
+        return VideoConfig(
+            resolution=(854, 480),
+            quality="medium",
+            gpu_acceleration=False,
+            parallel_processing=True
+        )
+
+def cleanup_gpu_memory():
+    try:
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+    except ImportError:
+        pass
+    gc.collect()
+```
+
+---
+
+## Video Engine Issues
+
+### 1. Video Engine Fails to Initialize
+
+**Symptoms**: ImportError, "Module not found" errors
+
+**Diagnosis**:
+```python
+try:
+    from video_engine import VideoEngine, VideoConfig
+    print("Basic imports successful")
+except ImportError as e:
+    print(f"Import error: {e}")
+```
+
+**Solutions**:
+```bash
+# Install core dependencies
+pip install numpy>=1.19.0
+pip install opencv-python>=4.5.0
+pip install Pillow>=8.0.0
+
+# For advanced features
+pip install scipy>=1.7.0
+pip install scikit-image>=0.18.0
+```
+
+### 2. GPU Acceleration Not Working
+
+**Symptoms**: GPU acceleration setting ignored, processing falls back to CPU
+
+**Diagnosis**:
+```python
+import cv2
+import torch
+
+print(f"OpenCV version: {cv2.__version__}")
+print(f"CUDA support: {cv2.cuda.getCudaEnabledDeviceCount() > 0}")
+print(f"PyTorch CUDA available: {torch.cuda.is_available()}")
+```
+
+**Solutions**:
+```bash
+# Install GPU-enabled OpenCV
+pip uninstall opencv-python
+pip install opencv-contrib-python
+
+# Verify GPU drivers
+nvidia-smi
+nvcc --version
+```
+
+### 3. Poor Interpolation Quality
+
+**Symptoms**: Visible artifacts, jerky motion, character inconsistency
+
+**Solutions**:
+```python
+from advanced_interpolation_engine import (
+    AdvancedInterpolationEngine,
+    create_cinematic_preset,
+    InterpolationMethod
+)
+
+def create_quality_optimized_config():
+    config = create_cinematic_preset("cinematic")
+    config.method = InterpolationMethod.OPTICAL_FLOW
+    config.quality_vs_speed = 0.9
+    return config
+
+engine = AdvancedInterpolationEngine(create_quality_optimized_config())
+```
+
+---
+
+## AI Model Issues
+
+### 1. Model Loading Issues
+
+**Symptoms**: Models not loaded, errors during processing
+
+**Solutions**:
+```bash
+# List installed models
+storycore model list
+
+# Verify model paths
+ls -la ~/.storycore/models/
+
+# Force model download
+storycore model download --force gemma3:latest
+
+# Check disk space
+df -h ~/.storycore/models/
+
+# Verify model integrity
+storycore model verify gemma3
+```
+
+### 2. Model Configuration
+
+```json
+// models.json
+{
+  "models": {
+    "gemma3": {
+      "name": "Gemma 3",
+      "path": "models/gemma3/gemma3-7b.Q4_0.gguf",
+      "type": "llama",
+      "parameters": {
+        "n_ctx": 8192,
+        "n_gpu_layers": 40,
+        "temperature": 0.7,
+        "top_p": 0.9
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+---
+
+## ComfyUI Issues
+
+### 1. ComfyUI Doesn't Start
+
+**Symptoms**: Error when starting ComfyUI
+
+**Solutions**:
+```bash
+# Check port usage
+netstat -tlnp | grep :8000
+
+# Change port
+storycore config set comfyui.port 8001
+
+# Verify Python environment
+python -c "import torch; print(torch.__version__)"
+
+# Reinstall PyTorch
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Check models
+ls -la ~/.storycore/comfyui/models/
+
+# Download models
+storycore comfyui download-models
+```
+
+### 2. AI Processing Errors
+
+**Solutions**:
+```bash
+# Check GPU
+nvidia-smi
+
+# Configure GPU
+storycore config set comfyui.gpu.enabled true
+storycore config set comfyui.gpu.memory_limit 0.8
+
+# Optimize performance
+storycore config set comfyui.performance.batch_size 1
+
+# List models
+storycore comfyui list-models
+
+# Test model
+storycore comfyui test-model gemma3 "Hello, world!"
+```
+
+---
+
+## Network and Connection Issues
+
+### 1. Authentication Problems
+
+**Solutions**:
+```bash
+# Test login manually
+curl -X POST https://api.storycore.io/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "password"}'
+
+# Validate token
+storycore auth validate-token
+
+# Refresh token
+storycore auth refresh
+```
+
+### 2. Network Connectivity
+
+**Solutions**:
+```bash
+# Test connectivity
+ping api.storycore.io
+
+# Check DNS
+nslookup api.storycore.io
+
+# Test HTTPS
+curl -I https://api.storycore.io
+
+# Configure proxy
+export HTTP_PROXY=http://proxy.example.com:8080
+export HTTPS_PROXY=http://proxy.example.com:8080
+
+# Configure firewall
+sudo ufw allow 3000
+sudo ufw allow 8000
+```
+
+---
+
+## Security Issues
+
+### 1. Account Locked
+
+**Solutions**:
+```bash
+# Reset password
+storycore auth reset-password
+
+# Check account security
+storycore security check-account
+
+# List active sessions
+storycore auth list-sessions
+
+# Invalidate all sessions
+storycore auth invalidate-sessions
+```
+
+### 2. Data Issues
+
+**Solutions**:
+```bash
+# Create backup
+storycore backup create
+
+# Restore backup
+storycore backup restore backup-20260123.tar.gz
+
+# Check data integrity
+storycore data integrity-check
+
+# Repair data
+storycore data repair
+```
+
+---
+
+## Diagnostic Scripts
+
+### Complete Diagnostic Script
+
+```bash
+#!/bin/bash
+echo "=== StoryCore Diagnostic Report ==="
+echo "Date: $(date)"
+
+echo "1. System Health:"
+storycore health-check
+
+echo "2. Version Info:"
+storycore version
+
+echo "3. Configuration:"
+storycore config validate
+
+echo "4. Models:"
+storycore model list
+
+echo "5. ComfyUI Status:"
+storycore comfyui status
+
+echo "6. Generating Report:"
+storycore diagnose --output diagnostic-report-$(date +%Y%m%d-%H%M%S).json
+
+echo "=== Diagnostic Complete ==="
+```
+
+### Automated Repair Script
+
+```bash
+#!/bin/bash
+echo "=== StoryCore Repair ==="
+echo "Date: $(date)"
+
+echo "1. Stopping services..."
+storycore stop
+
+echo "2. Cleaning cache..."
+storycore cache clean
+
+echo "3. Resetting configuration..."
+storycore config reset
+storycore config restore-default
+
+echo "4. Checking models..."
+storycore model check
+storycore model repair
+
+echo "5. Starting services..."
+storycore start
+
+echo "6. Verifying health..."
+storycore health-check
+
+echo "=== Repair Complete ==="
+```
+
+---
+
+## Getting Help
+
+If you cannot resolve your issue:
+
+1. **Check Documentation**: Review the Complete Documentation
+2. **Check Changelog**: See CHANGELOG.md for known issues
+3. **GitHub Issues**: Report issues on GitHub
+4. **Discord**: Join our Discord server
+5. **Email**: support@storycore.io
+
+### Information to Provide
+
+When contacting support, include:
+
+- **Version**: `storycore version`
+- **OS**: Operating system and version
+- **Hardware**: CPU, RAM, GPU, disk space
+- **Error Message**: Exact error text
+- **Logs**: Relevant log files
+- **Steps to Reproduce**: Exact reproduction steps
+
+---
+
+## Related Documentation
+
+- [User Guide](USER_GUIDE.md) - User documentation
+- [Technical Guide](TECHNICAL_GUIDE.md) - Technical documentation
+- [Security Documentation](SECURITY.md) - Security features
+- [API Documentation](api/OVERVIEW.md) - API reference
+
+---
+
+*Last Updated: January 2026*

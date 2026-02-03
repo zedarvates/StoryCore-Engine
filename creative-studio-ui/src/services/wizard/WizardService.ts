@@ -5,6 +5,8 @@
  */
 
 import { WizardDefinition } from '../../types/configuration';
+import { getComfyUIServersService } from '../comfyuiServersService';
+import { testComfyUIConnection } from '../comfyuiService';
 
 export interface WizardLaunchResult {
   success: boolean;
@@ -212,34 +214,56 @@ export class WizardService {
   }
 
   /**
-   * Check ComfyUI connection status
+   * Check ComfyUI connection status using ComfyUI Servers Service
    */
   async checkComfyUIConnection(): Promise<ConnectionStatus> {
     try {
-      // Try to connect to ComfyUI API
-      const response = await fetch('http://localhost:8188/system_stats', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(5000) // 5 second timeout
-      });
-
-      if (response.ok) {
-        return {
-          connected: true,
-          service: 'comfyui',
-          endpoint: 'http://localhost:8188'
-        };
+      // Get the ComfyUI Servers Service
+      const comfyuiServersService = getComfyUIServersService();
+      
+      // Try to get an available server
+      const availableServer = await comfyuiServersService.getAvailableServer();
+      
+      if (availableServer) {
+        // Use the available server's URL
+        console.log('[WizardService] Using active ComfyUI server:', availableServer.serverUrl);
+        
+        // Test the connection using the ComfyUI service
+        const testResult = await testComfyUIConnection({
+          serverUrl: availableServer.serverUrl,
+          authentication: availableServer.authentication,
+          timeout: availableServer.timeout,
+        });
+        
+        if (testResult.success) {
+          console.log('[WizardService] ComfyUI connection successful using configured server:', availableServer.serverUrl);
+          return {
+            connected: true,
+            service: 'comfyui',
+            endpoint: availableServer.serverUrl
+          };
+        } else {
+          console.log('[WizardService] ComfyUI connection failed:', testResult.message);
+          return {
+            connected: false,
+            service: 'comfyui',
+            endpoint: availableServer.serverUrl,
+            error: testResult.message
+          };
+        }
       } else {
+        // No servers configured - return disconnected without attempting connection
+        console.log('[WizardService] No ComfyUI server configured');
         return {
           connected: false,
           service: 'comfyui',
-          endpoint: 'http://localhost:8188',
-          error: `HTTP ${response.status}: ${response.statusText}`
+          endpoint: '',
+          error: 'No ComfyUI server configured. Please configure a server in settings.'
         };
       }
     } catch (error) {
+      console.error('[WizardService] Error checking ComfyUI connection:', error instanceof Error ? error.message : 'Unknown error');
+      
       return {
         connected: false,
         service: 'comfyui',
@@ -274,13 +298,24 @@ export class WizardService {
   /**
    * Validate wizard launch parameters
    */
-  validateWizardLaunch(wizard: WizardDefinition, projectPath?: string): { valid: boolean; errors: string[] } {
+  validateWizardLaunch(wizard: WizardDefinition, projectPath?: string, projectData?: any): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     // Check if project path is required and provided
     if (wizard.requiresCharacters || wizard.requiresShots) {
       if (!projectPath) {
         errors.push('Project path is required for this wizard');
+      }
+    }
+
+    // Check project data requirements
+    if (projectData) {
+      if (wizard.requiresCharacters && (!projectData.characters || projectData.characters.length === 0)) {
+        errors.push('This wizard requires at least one character. Please create characters first.');
+      }
+
+      if (wizard.requiresShots && (!projectData.shots || projectData.shots.length === 0)) {
+        errors.push('This wizard requires shot planning data. Please create shots first.');
       }
     }
 
@@ -294,6 +329,20 @@ export class WizardService {
       valid: errors.length === 0,
       errors
     };
+  }
+
+  /**
+   * Check if a wizard can be launched with current dependencies
+   */
+  canLaunchWizard(wizard: WizardDefinition, availableConfig: string[], projectData?: any): boolean {
+    // Check configuration requirements
+    const configMet = wizard.requiredConfig?.every(req => availableConfig.includes(req)) || !wizard.requiredConfig;
+
+    // Check project data requirements
+    const charactersMet = !wizard.requiresCharacters || (projectData?.characters && projectData.characters.length > 0);
+    const shotsMet = !wizard.requiresShots || (projectData?.shots && projectData.shots.length > 0);
+
+    return configMet && charactersMet && shotsMet;
   }
 
   /**

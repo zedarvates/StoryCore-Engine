@@ -1,0 +1,280 @@
+/**
+ * Recovery Dialog Styles
+ * 
+ * Styles for the crash recovery and snapshot management dialog.
+ */
+
+.recovery-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: recovery-fade-in 0.2s ease-out;
+}
+
+@keyframes recovery-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.recovery-dialog {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: recovery-slide-up 0.3s ease-out;
+}
+
+@keyframes recovery-slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.recovery-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #333;
+}
+
+.recovery-dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.recovery-icon {
+  font-size: 24px;
+}
+
+.recovery-dialog-close {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.recovery-dialog-close:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+.recovery-dialog-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.recovery-warning {
+  background-color: #3a2a1a;
+  border-left: 4px solid #f39c12;
+  padding: 16px;
+  margin-bottom: 24px;
+  border-radius: 4px;
+}
+
+.recovery-warning p {
+  margin: 0;
+  color: #f39c12;
+  line-height: 1.5;
+}
+
+.recovery-error {
+  background-color: #3a1a1a;
+  border-left: 4px solid #e74c3c;
+  padding: 16px;
+  margin-bottom: 24px;
+  border-radius: 4px;
+  color: #e74c3c;
+}
+
+.recovery-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.recovery-empty p {
+  margin: 0;
+}
+
+.recovery-snapshots h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.recovery-snapshots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recovery-snapshot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: #2a2a2a;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recovery-snapshot:hover {
+  background-color: #333;
+  border-color: #444;
+}
+
+.recovery-snapshot.selected {
+  background-color: #2a3a4a;
+  border-color: #4a90e2;
+}
+
+.recovery-snapshot-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.recovery-snapshot-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recovery-snapshot-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #999;
+}
+
+.recovery-snapshot-time {
+  color: #4a90e2;
+}
+
+.recovery-snapshot-details {
+  color: #999;
+}
+
+.recovery-snapshot-delete {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.recovery-snapshot-delete:hover {
+  background-color: rgba(231, 76, 60, 0.2);
+  opacity: 1;
+}
+
+.recovery-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #333;
+}
+
+.recovery-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recovery-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recovery-button-secondary {
+  background-color: #333;
+  color: #fff;
+}
+
+.recovery-button-secondary:hover:not(:disabled) {
+  background-color: #444;
+}
+
+.recovery-button-primary {
+  background-color: #4a90e2;
+  color: #fff;
+}
+
+.recovery-button-primary:hover:not(:disabled) {
+  background-color: #357abd;
+}
+
+.recovery-button-primary:disabled {
+  background-color: #2a5a8a;
+}
+
+/* Scrollbar styling */
+.recovery-dialog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.recovery-dialog-content::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.recovery-dialog-content::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.recovery-dialog-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

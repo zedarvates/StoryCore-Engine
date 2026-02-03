@@ -72,9 +72,9 @@
 /* Print-friendly styles */
 @media print {
     .no-print { display: none !important; }
-    body { background: white !important; color: black !important; }
-    .bg-gray-900 { background: white !important; }
-    .bg-gray-800 { background: #f3f4f6 !important; border: 1px solid #d1d5db !important; }
+    body { background: rgb(128, 118, 118) !important; color: black !important; }
+    .bg-gray-900 { background: rgb(190, 176, 176) !important; }
+    .bg-gray-800 { background: #bfcff0 !important; border: 1px solid #aeb4bd !important; }
     .text-white { color: black !important; }
     .text-gray-300, .text-gray-400 { color: #374151 !important; }
 }

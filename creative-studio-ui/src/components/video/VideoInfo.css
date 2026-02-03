@@ -1,0 +1,187 @@
+/**
+ * VideoInfo Component Styles
+ * 
+ * @module components/video/VideoInfo.css
+ */
+
+/* Container */
+.video-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #cccccc;
+  min-width: 200px;
+}
+
+/* Sections */
+.video-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.video-info-filename {
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.video-info-technical,
+.video-info-time,
+.video-info-buffer,
+.video-info-performance {
+  padding: 8px 0;
+}
+
+/* Items */
+.video-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Labels */
+.video-info-label {
+  color: #888888;
+  min-width: 60px;
+  font-weight: 500;
+}
+
+/* Values */
+.video-info-value {
+  color: #ffffff;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.video-info-filename-value {
+  font-weight: 500;
+}
+
+.video-info-time-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Warning state */
+.video-info-warning {
+  color: #f59e0b !important;
+}
+
+/* Buffer bar */
+.video-info-buffer-bar {
+  flex: 1;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.video-info-buffer-progress {
+  height: 100%;
+  background-color: #6366f1;
+  border-radius: 3px;
+  transition: width 0.2s ease;
+}
+
+.video-info-buffer-value {
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Variants */
+.video-info-compact {
+  padding: 8px;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.video-info-compact .video-info-label {
+  min-width: 50px;
+}
+
+.video-info-minimal {
+  padding: 8px;
+  gap: 4px;
+}
+
+.video-info-minimal .video-info-section:not(:last-child) {
+  padding-bottom: 4px;
+  border-bottom: none;
+}
+
+.video-info-minimal .video-info-item {
+  gap: 6px;
+}
+
+.video-info-minimal .video-info-label {
+  min-width: 40px;
+  font-size: 10px;
+}
+
+/* Detailed variant (default) */
+.video-info-detailed .video-info-technical {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.video-info-detailed .video-info-item {
+  justify-content: space-between;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .video-info {
+    padding: 10px;
+    font-size: 11px;
+  }
+  
+  .video-info-detailed .video-info-technical {
+    grid-template-columns: 1fr;
+  }
+  
+  .video-info-label {
+    min-width: 50px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .video-info {
+    background-color: #000000;
+    border: 1px solid #ffffff;
+  }
+  
+  .video-info-label {
+    color: #ffffff;
+  }
+  
+  .video-info-value {
+    color: #ffffff;
+  }
+  
+  .video-info-filename {
+    border-bottom-color: #ffffff;
+  }
+  
+  .video-info-buffer-bar {
+    background-color: #ffffff;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .video-info-buffer-progress {
+    transition: none;
+  }
+}
+
+/* Focus styles */
+.video-info:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+

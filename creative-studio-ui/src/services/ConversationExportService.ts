@@ -338,6 +338,7 @@ export class ConversationExportService {
   /**
    * Export vers DOCX (simulé - dans un vrai système utiliserait une bibliothèque spécialisée)
    */
+  private exportToDOCX(conversation: Conversation, options: ExportOptions): Blob {
     // Simulation d'export DOCX - dans un vrai système, utiliserait une bibliothèque comme docx
     const content = this.formatConversationForExport(conversation, options, 'docx');
     return new Blob([content], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });

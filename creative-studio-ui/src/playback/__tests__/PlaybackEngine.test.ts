@@ -14,10 +14,10 @@ describe('PlaybackEngine', () => {
       duration: 5,
       position: 0,
       image: 'data:image/png;base64,test',
-      audioTracks: [],
-      effects: [],
-      textLayers: [],
-      animations: [],
+      audioTracks: [] as const,
+      effects: [] as const,
+      textLayers: [] as const,
+      animations: [] as const,
     },
     {
       id: 'shot-2',
@@ -25,15 +25,15 @@ describe('PlaybackEngine', () => {
       description: 'Second shot',
       duration: 3,
       position: 1,
-      audioTracks: [],
-      effects: [],
-      textLayers: [],
-      animations: [],
+      audioTracks: [] as const,
+      effects: [] as const,
+      textLayers: [] as const,
+      animations: [] as const,
       transitionOut: {
         id: 'trans-1',
-        type: 'fade',
+        type: 'fade' as const,
         duration: 1,
-        easing: 'ease-in-out',
+        easing: 'ease-in-out' as const,
       },
     },
   ];
@@ -157,6 +157,10 @@ describe('PlaybackEngine', () => {
     const shortShot: Shot = {
       ...mockShots[0],
       duration: 0.05, // 50ms
+      audioTracks: [] as const,
+      effects: [] as const,
+      textLayers: [] as const,
+      animations: [] as const,
     };
     engine.setShots([shortShot]);
 
@@ -197,16 +201,19 @@ describe('PlaybackEngine', () => {
   it('handles shots with effects', () => {
     const shotWithEffects: Shot = {
       ...mockShots[0],
+      audioTracks: [] as const,
       effects: [
         {
           id: 'effect-1',
-          type: 'filter',
+          type: 'filter' as const,
           name: 'brightness',
           enabled: true,
           intensity: 50,
           parameters: { value: 20 },
         },
-      ],
+      ] as const,
+      textLayers: [] as const,
+      animations: [] as const,
     };
 
     engine.setShots([shotWithEffects]);
@@ -219,20 +226,23 @@ describe('PlaybackEngine', () => {
   it('handles shots with text layers', () => {
     const shotWithText: Shot = {
       ...mockShots[0],
+      audioTracks: [] as const,
+      effects: [] as const,
       textLayers: [
         {
           id: 'text-1',
           content: 'Test Text',
-          font: 'Arial',
+          font: 'Arial' as const,
           fontSize: 48,
           color: '#ffffff',
           position: { x: 50, y: 50 },
-          alignment: 'center',
+          alignment: 'center' as const,
           startTime: 0,
           duration: 3,
           style: {},
         },
-      ],
+      ] as const,
+      animations: [] as const,
     };
 
     engine.setShots([shotWithText]);
@@ -245,16 +255,19 @@ describe('PlaybackEngine', () => {
   it('handles shots with animations', () => {
     const shotWithAnimations: Shot = {
       ...mockShots[0],
+      audioTracks: [] as const,
+      effects: [] as const,
+      textLayers: [] as const,
       animations: [
         {
           id: 'anim-1',
-          property: 'opacity',
+          property: 'opacity' as const,
           keyframes: [
-            { id: 'kf-1', time: 0, value: 0, easing: 'linear' },
-            { id: 'kf-2', time: 2, value: 1, easing: 'linear' },
-          ],
+            { id: 'kf-1', time: 0, value: 0, easing: 'linear' as const },
+            { id: 'kf-2', time: 2, value: 1, easing: 'linear' as const },
+          ] as const,
         },
-      ],
+      ] as const,
     };
 
     engine.setShots([shotWithAnimations]);
@@ -282,7 +295,7 @@ describe('PlaybackEngine', () => {
             type,
             duration: 1,
             easing: 'linear' as const,
-            direction: 'left' as 'left' | 'right' | 'up' | 'down',
+            direction: 'left' as const,
           },
         },
       ];

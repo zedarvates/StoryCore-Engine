@@ -15,7 +15,7 @@ import { AssetPanel } from '@/components/AssetPanel';
 import { CanvasArea } from '@/components/CanvasArea';
 import { PropertiesPanel } from '@/components/PropertiesPanel';
 import { CentralConfigurationUI } from '@/components';
-import { WizardLauncher } from '@/components/wizards/WizardLauncher';
+import { WizardLauncher } from '@/components/wizard/WizardLauncher';
 import { ConfigurationProvider } from '@/contexts/ConfigurationContext';
 import { WIZARD_DEFINITIONS } from '@/data/wizardDefinitions';
 
@@ -28,8 +28,15 @@ export function EditorPage({ sequenceId, onBackToDashboard }: EditorPageProps) {
   const { project } = useAppStore();
   const { projectPath } = useEditorStore();
 
+  // Handle generation completion
+  const handleGenerationComplete = (asset: any) => {
+    console.log('[EditorPage] Generation completed:', asset);
+    // Asset will be automatically saved by the generation services
+    // and integrated into the project
+  };
+
   return (
-    <EditorLayout>
+    <EditorLayout onGenerationComplete={handleGenerationComplete}>
       <AssetPanel projectPath={projectPath || undefined} />
       <CanvasArea onBackToDashboard={onBackToDashboard} />
       <PropertiesPanel />

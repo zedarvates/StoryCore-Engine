@@ -1,0 +1,22 @@
+{
+  "name": "example_workflow",
+  "version": "1.0.0",
+  "type": "workflow_addon",
+  "author": "StoryCore Team",
+  "description": "Example workflow addon for testing",
+  "compatibility": {
+    "engine_version": ">=2.0.0",
+    "python_version": ">=3.9"
+  },
+  "permissions": [
+    "model_access"
+  ],
+  "entry_points": {
+    "main": "src/main.py"
+  },
+  "dependencies": {},
+  "metadata": {
+    "created_with": "addon_cli",
+    "category": "community"
+  }
+}

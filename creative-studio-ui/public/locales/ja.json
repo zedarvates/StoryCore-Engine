@@ -1,0 +1,27 @@
+{
+  "menu": {
+    "main": "メインメニュー",
+    "view": "表示",
+    "settings": "設定",
+    "backToDashboard": "ダッシュボードに戻る",
+    "llmConfig": "LLM StoryCore アシスタント設定",
+    "comfyUIConfig": "ComfyUI サーバー設定",
+    "userPreferences": "ユーザー設定"
+  },
+  "preferences": {
+    "title": "ユーザー設定",
+    "language": "言語",
+    "selectLanguage": "言語を選択",
+    "languageDescription": "インターフェースの言語を選択してください"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "ok": "OK",
+    "yes": "はい",
+    "no": "いいえ",
+    "apply": "適用",
+    "reset": "リセット"
+  }
+}

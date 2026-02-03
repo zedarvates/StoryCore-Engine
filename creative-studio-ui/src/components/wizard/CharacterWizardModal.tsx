@@ -5,13 +5,14 @@
  * Integrates with app state and provides modal UI
  */
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import React from 'react';
+import { X } from 'lucide-react';
 import { CharacterWizard } from './character/CharacterWizard';
 import { LLMStatusBanner } from './LLMStatusBanner';
 import { useAppStore } from '@/stores/useAppStore';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
+import './WizardModal.css';
 
 export interface CharacterWizardModalProps {
   isOpen: boolean;
@@ -30,6 +31,12 @@ export function CharacterWizardModal({
 }: CharacterWizardModalProps) {
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
+  console.log('[CharacterWizardModal] Rendered with isOpen:', isOpen);
+
+  if (!isOpen) {
+    return null;
+  }
+
   const handleComplete = (character: Character) => {
     onComplete?.(character);
     onClose();
@@ -40,20 +47,31 @@ export function CharacterWizardModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6" aria-describedby={undefined}>
-        <DialogTitle className="sr-only">Character Creation Wizard</DialogTitle>
-        
-        {/* LLM Status Banner */}
-        <LLMStatusBanner onConfigure={() => setShowLLMSettings(true)} />
-        
-        <CharacterWizard
-          onComplete={handleComplete}
-          onCancel={handleCancel}
-          worldContext={worldContext}
-          initialData={initialData}
-        />
-      </DialogContent>
-    </Dialog>
+    <div className="wizard-modal-overlay" onClick={handleCancel}>
+      <div className="wizard-modal-container" onClick={(e) => e.stopPropagation()}>
+        <div className="wizard-modal-header">
+          <h2 className="wizard-modal-title">Character Creator</h2>
+          <button
+            className="wizard-modal-close"
+            onClick={handleCancel}
+            aria-label="Close wizard"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="wizard-modal-content">
+          {/* LLM Status Banner */}
+          <LLMStatusBanner onConfigure={() => setShowLLMSettings(true)} />
+
+          <CharacterWizard
+            onComplete={handleComplete}
+            onCancel={handleCancel}
+            worldContext={worldContext}
+            initialData={initialData}
+          />
+        </div>
+      </div>
+    </div>
   );
 }

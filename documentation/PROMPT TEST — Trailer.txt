@@ -1,0 +1,57 @@
+PROMPT TEST — Trailer “Snow White Cyberpunk 2048”
+Create an intense, cinematic trailer for a cyberpunk reinterpretation of Snow White set in the year 2048. Tone must be dark, tense, and futuristic. Mix dramatic narration, action scenes, emotional tension, and memorable punchlines. Include: neon megacity, corrupted AI as the Queen, Snow White as a wanted hacker, seven augmented mercenaries, surveillance drones, alleyway chases, explosive climax. Style: Hollywood trailer, rising crescendo, short lines, impactful voice‑over.
+Version PRO — Optimized for StoryCore LLM
+(Modular, clear, ideal for a narrative engine or multimedia pipeline)
+TASK: Generate a complete trailer for “Snow White 2048,” a cyberpunk rewrite of the classic tale.
+TONE & STYLE:
+• 	Hollywood‑style trailer with rising crescendo.
+• 	Neon, dystopian, technological atmosphere.
+• 	Deep voice‑over, short lines, emotional impact.
+• 	Alternation of narration, action scenes, and punchlines.
+SETTING:
+• 	Vertical megacity saturated with neon lights.
+• 	Queen = corrupted sovereign AI controlling the city.
+• 	Snow White = rebel hacker wanted for stealing forbidden code.
+• 	The “Seven” = a group of augmented mercenaries, each with a cybernetic specialty.
+• 	Presence of drones, giant screens, acid rain, narrow alleys, mega‑towers.
+TRAILER STRUCTURE:
+1. 	Slow opening: voice‑over + wide shots of the city.
+2. 	Conflict reveal: the AI‑Queen hunts Snow White.
+3. 	Rising tension: fast action scenes, hacking, chases.
+4. 	Introduction of the Seven: silhouettes, abilities, lines.
+5. 	Climax: explosion, final confrontation, moral choice.
+6. 	Final punchline: memorable tagline.
+7. 	Title + fictional release date.
+OUTPUT FORMAT:
+• 	Trailer script in multiple sequences.
+• 	Short dialogues.
+• 	Visual and sound indications.
+• 	Immersive, dynamic, cinematic style.
+PACK 1 — Fairy Tales Remixed into Extreme Genres
+1. 	Little Red Riding Hood × Post‑apocalyptic Western
+Create a post‑apocalyptic western trailer inspired by Little Red Riding Hood. Toxic desert, mutant cowboys, nomad caravan, slow‑motion shootouts. The Wolf = cyber‑mutant gang leader. Red Riding Hood = messenger armed with a plasma rifle. Brutal, dusty, mythical tone.
+2. 	Cinderella × Techno‑paranoid Thriller
+Generate a paranoid thriller trailer where Cinderella becomes a hacker infiltrating a corporate ball. Midnight = network blackout. Stepmother = CEO of a megacorp. Cold atmosphere, psychological tension, glitch music.
+3. 	The Jungle Book × Space Opera
+Create a space‑opera trailer where Mowgli is a child raised by an alien faction. Shere Khan = interstellar warlord. Lush planets, space battles, cosmic prophecy.
+PACK 2 — History Remixed into Sci‑Fi, Horror, or Fantasy
+4. 	Napoleon × Cyberpunk Noir
+Generate a cyberpunk noir trailer where Napoleon is an augmented strategist commanding a drone army. Paris = vertical megacity. Political intrigue, betrayal, acid‑rain atmosphere.
+5. 	Ancient Egypt × Lovecraftian Horror
+Create a horror trailer where the pyramids are dimensional antennas. Pharaoh = avatar of a cosmic entity. Trapped archaeologists, forbidden visions, rising terror.
+6. 	Vikings × Celestial Fantasy
+Generate an epic trailer where Vikings sail not on the sea, but in the sky on flying longships. Storm giants, glowing runes, aerial battles.
+PACK 3 — Absurd, Fun, or Experimental Mixes
+7. 	Sherlock Holmes × Futuristic Musical
+Create a futuristic musical trailer where Sherlock Holmes solves crimes by singing. Neon London, drone choreography, Watson as a DJ. Quirky but stylish tone.
+8. 	Alien × Romantic Film
+Generate a romantic trailer set in an isolated spaceship. Two survivors grow closer while an alien creature lurks. Mix tension, softness, claustrophobia, and poetry.
+9. 	Gladiators × Japanese Cyber‑Fantasy
+Create a trailer where gladiators fight technological spirits in a holographic arena inspired by mythological Japan. Plasma katanas, digital oni masks, stylized combat.
+PACK 4 — Ultra‑Hybrids (3 Genres or More)
+10. 	Pirates × Steampunk × Aquatic Horror
+Generate a trailer where steampunk pirates explore a black ocean filled with abyssal creatures. Steam submarines, mechanical harpoons, Lovecraftian tension.
+11. 	Knights × Cyberpunk × Kaiju
+Create a trailer where augmented knights battle giant monsters in a neon city. Mix medieval, futuristic, and titanic elements.
+12. 	Western × Arthurian Fantasy × Mechas
+Generate a trailer where Excalibur is a legendary mecha buried under the desert. Cowboys, magic, colossal robots, mythical final duel.

@@ -434,7 +434,7 @@ function ActEditorDialog({
               <SelectTrigger>
                 <SelectValue placeholder="Select narrative purpose..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[9999]">
                 {narrativePurposes.map(purpose => (
                   <SelectItem key={purpose} value={purpose}>
                     {purpose}

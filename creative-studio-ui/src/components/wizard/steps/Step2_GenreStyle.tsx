@@ -208,7 +208,8 @@ export function Step2_GenreStyle({ data, onUpdate, errors = {} }: Step2_GenreSty
         mood: selectedMoods,
       });
     }
-  }, [selectedGenres, selectedVisualStyle, colorPalette, selectedMoods, onUpdate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGenres, selectedVisualStyle, colorPalette, selectedMoods]); // Don't include onUpdate
 
   // Handle genre toggle
   const handleGenreToggle = (genre: Genre) => {

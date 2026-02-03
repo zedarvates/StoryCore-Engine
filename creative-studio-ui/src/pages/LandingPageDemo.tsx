@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LandingPage } from './LandingPage';
 import type { RecentProject } from '@/components/launcher/RecentProjectsList';
 import { CreateProjectDialog } from '@/components/launcher/CreateProjectDialog';
 import { OpenProjectDialog } from '@/components/launcher/OpenProjectDialog';
+import { EmptyProjectsState } from '@/components/launcher/EmptyProjectsState';
+import { ErrorProjectsState } from '@/components/launcher/ErrorProjectsState';
 import { generateProjectTemplate, sequencesToShots } from '@/utils/projectTemplateGenerator';
 import type { SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
+import { useProjectLoader } from '@/hooks/useProjectLoader';
+import { MergedProject } from '@/utils/projectMerger';
 
 // ============================================================================
 // Landing Page Demo Component
@@ -13,50 +17,33 @@ import type { SerializableProjectFormat } from '@/components/launcher/CreateProj
 export function LandingPageDemo() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showOpenDialog, setShowOpenDialog] = useState(false);
-  const [recentProjects, setRecentProjects] = useState<RecentProject[]>([
-    {
-      id: '1',
-      name: 'My First Story',
-      path: 'C:/Users/Documents/StoryCore/my-first-story',
-      lastAccessed: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-      exists: true,
-    },
-    {
-      id: '2',
-      name: 'Epic Adventure',
-      path: 'C:/Users/Documents/StoryCore/epic-adventure',
-      lastAccessed: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-      exists: true,
-    },
-    {
-      id: '3',
-      name: 'Deleted Project',
-      path: 'C:/Users/Documents/StoryCore/deleted-project',
-      lastAccessed: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-      exists: false,
-    },
-    {
-      id: '4',
-      name: 'Tutorial Project',
-      path: 'C:/Users/Documents/StoryCore/tutorial',
-      lastAccessed: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-      exists: true,
-    },
-  ]);
+  
+  // Use the project loader hook
+  const { projects, isLoading, error, loadProjects, refreshProjects } = useProjectLoader();
+
+  // Load projects on mount
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
+
+  // Convert MergedProject to RecentProject format for display
+  const recentProjects: RecentProject[] = projects.map((project: MergedProject) => ({
+    id: project.path,
+    name: project.name,
+    path: project.path,
+    lastAccessed: project.lastAccessed ? new Date(project.lastAccessed) : new Date(project.lastModified),
+    exists: true,
+  }));
 
   const handleCreateProject = () => {
-    ;
     setShowCreateDialog(true);
   };
 
   const handleOpenProject = () => {
-    ;
     setShowOpenDialog(true);
   };
 
   const handleCreateProjectSubmit = async (projectName: string, projectPath: string, format: SerializableProjectFormat) => {
-    ;
-    
     // Generate project template
     const template = generateProjectTemplate(format);
     const initialShots = sequencesToShots(template.sequences);
@@ -64,22 +51,13 @@ export function LandingPageDemo() {
     // Simulate project creation
     await new Promise((resolve) => setTimeout(resolve, 1000));
     
-    // Add to recent projects
-    const newProject: RecentProject = {
-      id: Date.now().toString(),
-      name: projectName,
-      path: `${projectPath}/${projectName}`,
-      lastAccessed: new Date(),
-      exists: true,
-    };
-    
-    setRecentProjects((prev) => [newProject, ...prev].slice(0, 10));
     alert(`Project "${projectName}" created successfully with format: ${format.name}!\n\n${template.sequences.length} sequences and ${template.totalShots} shots created.`);
+    
+    // Refresh projects list
+    await refreshProjects();
   };
 
   const handleOpenProjectSubmit = async (projectPath: string) => {
-    ;
-    
     // Simulate project opening
     await new Promise((resolve) => setTimeout(resolve, 1000));
     
@@ -87,7 +65,6 @@ export function LandingPageDemo() {
   };
 
   const handleRecentProjectClick = (project: RecentProject) => {
-    ;
     if (project.exists === false) {
       alert(`Project "${project.name}" not found at ${project.path}`);
     } else {
@@ -96,9 +73,85 @@ export function LandingPageDemo() {
   };
 
   const handleRemoveRecentProject = (projectPath: string) => {
-    ;
-    setRecentProjects((prev) => prev.filter((p) => p.path !== projectPath));
+    // This will be handled by the RecentProjectsService
+    // For now, just refresh the list
+    refreshProjects();
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: '1rem',
+      }}>
+        <div style={{
+          width: '48px',
+          height: '48px',
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #007bff',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <p style={{ color: '#666' }}>Loading projects...</p>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && projects.length === 0) {
+    return (
+      <>
+        <ErrorProjectsState 
+          error={error} 
+          onRetry={refreshProjects}
+        />
+        
+        <CreateProjectDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onCreateProject={handleCreateProjectSubmit}
+        />
+        
+        <OpenProjectDialog
+          open={showOpenDialog}
+          onOpenChange={setShowOpenDialog}
+          onOpenProject={handleOpenProjectSubmit}
+        />
+      </>
+    );
+  }
+
+  // Empty state
+  if (projects.length === 0) {
+    return (
+      <>
+        <EmptyProjectsState onCreateProject={handleCreateProject} />
+        
+        <CreateProjectDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onCreateProject={handleCreateProjectSubmit}
+        />
+        
+        <OpenProjectDialog
+          open={showOpenDialog}
+          onOpenChange={setShowOpenDialog}
+          onOpenProject={handleOpenProjectSubmit}
+        />
+      </>
+    );
+  }
 
   return (
     <>

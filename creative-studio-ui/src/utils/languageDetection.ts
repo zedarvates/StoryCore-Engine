@@ -1,143 +1,155 @@
 /**
- * Language Detection Utilities
+ * Language Detection and Initialization Utilities
  * 
- * Provides functions for detecting and validating browser language preferences.
- * Implements requirement 2.3 from the LLM Chatbox Enhancement spec.
+ * This module provides functions for detecting the system language,
+ * initializing the language preference on first launch, and persisting
+ * user language preferences to localStorage.
  * 
- * @module languageDetection
+ * @module utils/languageDetection
  */
 
-/**
- * Language codes supported by the chatbox
- * 
- * Represents the 9 languages supported by the LLM chatbox:
- * - fr: French (Français)
- * - en: English
- * - es: Spanish (Español)
- * - de: German (Deutsch)
- * - it: Italian (Italiano)
- * - pt: Portuguese (Português)
- * - ja: Japanese (日本語)
- * - zh: Chinese (中文)
- * - ko: Korean (한국어)
- */
-export type LanguageCode = 'fr' | 'en' | 'es' | 'de' | 'it' | 'pt' | 'ja' | 'zh' | 'ko';
+import {
+  SUPPORTED_LANGUAGES,
+  LANGUAGE_STORAGE_KEY,
+  StoredLanguagePreference
+} from '../types/language';
 
 /**
- * Detects the browser's language preference and maps it to a supported language code.
+ * Detects the system language from the browser's navigator.language property.
  * 
- * Uses `navigator.language` to detect the browser's language setting and maps it
- * to one of the supported language codes. Falls back to English if the browser
- * language is not supported.
+ * Algorithm:
+ * 1. Extract the primary language code from navigator.language (e.g., 'en-US' -> 'en')
+ * 2. Check if the language code is in SUPPORTED_LANGUAGES
+ * 3. Return the supported language code or fallback to 'en' if unsupported
  * 
- * @returns The detected language code or 'en' as fallback
+ * @returns {string} The detected language code or 'en' as fallback
  * 
  * @example
- * ```typescript
- * // Browser language is 'fr-FR'
- * const lang = detectBrowserLanguage(); // Returns 'fr'
+ * // Browser language is 'es-ES'
+ * const lang = detectSystemLanguage(); // Returns 'es'
  * 
- * // Browser language is 'en-US'
- * const lang = detectBrowserLanguage(); // Returns 'en'
- * 
- * // Browser language is 'sv-SE' (not supported)
- * const lang = detectBrowserLanguage(); // Returns 'en' (fallback)
- * ```
- * 
- * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Navigator/language | Navigator.language}
- * 
- * Requirement 2.3: Detect browser language from navigator.language
+ * @example
+ * // Browser language is 'xx-XX' (unsupported)
+ * const lang = detectSystemLanguage(); // Returns 'en'
  */
-export function detectBrowserLanguage(): LanguageCode {
-  // Get browser language (e.g., 'en-US', 'fr-FR', 'es', etc.)
-  const browserLang = navigator.language || (navigator as any).userLanguage || 'en';
+export function detectSystemLanguage(): string {
+  // Force English as default language instead of auto-detecting browser language
+  // This prevents the app from defaulting to French on French systems
+  return 'en';
   
-  // Extract the primary language code (e.g., 'en' from 'en-US')
-  const primaryLang = browserLang.toLowerCase().split('-')[0];
-  
-  // Map browser language codes to supported languages
-  const languageMap: Record<string, LanguageCode> = {
-    'fr': 'fr',
-    'en': 'en',
-    'es': 'es',
-    'de': 'de',
-    'it': 'it',
-    'pt': 'pt',
-    'ja': 'ja',
-    'zh': 'zh',
-    'ko': 'ko',
-  };
-  
-  // Return mapped language or fallback to English
-  return languageMap[primaryLang] || 'en';
+  // Original auto-detection code (disabled):
+  // const browserLang = navigator.language || (navigator as any).userLanguage || 'en';
+  // const primaryLang = browserLang.split('-')[0].toLowerCase();
+  // const isSupported = SUPPORTED_LANGUAGES.some(lang => lang.code === primaryLang);
+  // return isSupported ? primaryLang : 'en';
 }
 
 /**
- * Checks if a language code is supported by the application.
+ * Initializes the language preference on application startup.
  * 
- * Type guard function that validates whether a given string is a valid
- * LanguageCode. Useful for runtime validation of language preferences.
+ * Algorithm:
+ * 1. Check localStorage for an existing language preference
+ * 2. If found and user-selected, return the saved language
+ * 3. Otherwise, detect the system language
+ * 4. Save the detected language (marked as not user-selected)
+ * 5. Return the detected language
  * 
- * @param languageCode - The language code to check
- * @returns True if the language is supported, false otherwise
+ * This function distinguishes between:
+ * - User-selected languages (explicitly chosen by the user)
+ * - System-detected languages (automatically detected on first launch)
  * 
- * @example
- * ```typescript
- * if (isSupportedLanguage('fr')) {
- *   // TypeScript knows languageCode is LanguageCode here
- *   const prompt = buildSystemPrompt('fr');
- * }
- * 
- * if (!isSupportedLanguage('sv')) {
- *   // Swedish is not supported
- * }
- * ```
- */
-export function isSupportedLanguage(languageCode: string): languageCode is LanguageCode {
-  const supportedLanguages: LanguageCode[] = ['fr', 'en', 'es', 'de', 'it', 'pt', 'ja', 'zh', 'ko'];
-  return supportedLanguages.includes(languageCode as LanguageCode);
-}
-
-/**
- * Gets the initial language preference on first load.
- * 
- * Implements a two-tier preference system:
- * 1. First checks localStorage for previously saved preference
- * 2. Falls back to browser language detection if no preference exists
- * 
- * This ensures users see their preferred language immediately on subsequent
- * visits while providing intelligent defaults for first-time users.
- * 
- * @returns The initial language preference
+ * @returns {string} The initialized language code
  * 
  * @example
- * ```typescript
- * // First visit - no stored preference
- * const lang = getInitialLanguagePreference(); // Detects from browser
+ * // First launch, no saved preference
+ * const lang = initializeLanguage(); // Detects system language and saves it
  * 
- * // Subsequent visits - stored preference exists
- * const lang = getInitialLanguagePreference(); // Returns stored preference
- * ```
- * 
- * @see {@link detectBrowserLanguage} for browser detection logic
- * 
- * Requirement 2.3: Set initial language preference on first load
+ * @example
+ * // User has previously selected a language
+ * const lang = initializeLanguage(); // Returns the user's saved preference
  */
-export function getInitialLanguagePreference(): LanguageCode {
-  // Check if language preference exists in localStorage
-  const storedLanguage = localStorage.getItem('storycore_language_preference');
-  
-  if (storedLanguage) {
-    try {
-      const parsed = JSON.parse(storedLanguage);
-      if (parsed.code && isSupportedLanguage(parsed.code)) {
-        return parsed.code;
+export function initializeLanguage(): string {
+  try {
+    // 1. Check localStorage for existing preference
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    
+    if (stored) {
+      try {
+        const parsed: StoredLanguagePreference = JSON.parse(stored);
+        
+        // 2. If user has explicitly selected a language, use it
+        if (parsed.userLanguage) {
+          return parsed.userLanguage;
+        }
+      } catch (parseError) {
+        // Corrupted data - clear it and continue with detection
+        console.warn('Corrupted language preference data, re-initializing:', parseError);
+        localStorage.removeItem(LANGUAGE_STORAGE_KEY);
       }
-    } catch (error) {
-      console.warn('Failed to parse stored language preference:', error);
     }
+    
+    // 3. No saved preference or not user-selected - detect system language
+    const systemLang = detectSystemLanguage();
+    
+    // 4. Save detected language (marked as not user-selected)
+    saveLanguagePreference(systemLang, false);
+    
+    // 5. Return the detected language
+    return systemLang;
+  } catch (error) {
+    // localStorage unavailable - fall back to system detection without saving
+    console.warn('localStorage unavailable, using in-memory language preference:', error);
+    return detectSystemLanguage();
   }
-  
-  // No stored preference, detect from browser
-  return detectBrowserLanguage();
 }
+
+/**
+ * Alias for initializeLanguage - gets the initial language preference.
+ * This function initializes or retrieves the language preference on application startup.
+ * 
+ * @returns {string} The initialized language code
+ * 
+ * @example
+ * const lang = getInitialLanguagePreference(); // Returns the saved or detected language
+ */
+export function getInitialLanguagePreference(): string {
+  return initializeLanguage();
+}
+
+/**
+ * Saves the language preference to localStorage.
+ * 
+ * This function creates a StoredLanguagePreference object with:
+ * - Schema version for future migration support
+ * - User language (null if system-detected, language code if user-selected)
+ * - Timestamp of when the preference was saved
+ * 
+ * @param {string} language - The language code to save
+ * @param {boolean} userSelected - Whether the language was explicitly selected by the user
+ * 
+ * @example
+ * // Save user-selected language
+ * saveLanguagePreference('es', true);
+ * 
+ * @example
+ * // Save system-detected language (not user-selected)
+ * saveLanguagePreference('en', false);
+ */
+export function saveLanguagePreference(language: string, userSelected: boolean): void {
+  try {
+    // Create the preference object
+    const preference: StoredLanguagePreference = {
+      version: '1.0',
+      userLanguage: userSelected ? language : null,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Save to localStorage
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, JSON.stringify(preference));
+  } catch (error) {
+    // localStorage unavailable or quota exceeded
+    console.error('Failed to save language preference to localStorage:', error);
+    // Continue execution - the app will work with in-memory state
+  }
+}
+

@@ -1,15 +1,17 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { WizardProvider, useWizard } from '@/contexts/WizardContext';
-import { WizardContainer } from '../WizardContainer';
+import { ProductionWizardContainer } from '../production-wizards/ProductionWizardContainer';
 import type { WizardStep } from '../WizardStepIndicator';
 import type { World } from '@/types/world';
 import { createEmptyWorld } from '@/types/world';
 import { useStore } from '@/store';
+import { llmConfigService } from '@/services/llmConfigService';
 import { Step1BasicInformation } from './Step1BasicInformation';
 import { Step2WorldRules } from './Step2WorldRules';
 import { Step3Locations } from './Step3Locations';
 import { Step4CulturalElements } from './Step4CulturalElements';
 import { Step5ReviewFinalize } from './Step5ReviewFinalize';
+import { Loader2 } from 'lucide-react';
 
 // ============================================================================
 // World Wizard Component
@@ -57,27 +59,74 @@ interface WorldWizardContentProps {
   steps: WizardStep[];
   onCancel: () => void;
   renderStepContent: (step: number) => React.ReactNode;
+  onComplete?: () => void;
 }
 
-function WorldWizardContent({ steps, onCancel, renderStepContent }: WorldWizardContentProps) {
-  const { currentStep } = useWizard<World>();
+function WorldWizardContent({ steps, onCancel, renderStepContent, onComplete }: WorldWizardContentProps) {
+  const { currentStep, nextStep, previousStep, goToStep, isDirty, submitWizard } = useWizard<World>();
 
-  return (
-    <WizardContainer
-      title="Create World"
+  const handleComplete = async () => {
+    await submitWizard();
+      onComplete?.();
+      };
+      
+      return (
+      <ProductionWizardContainer
+      title="World Builder"
       steps={steps}
       onCancel={onCancel}
+      onComplete={handleComplete}
       allowJumpToStep={false}
       showAutoSaveIndicator={true}
+      currentStep={currentStep}
+      onNextStep={nextStep}
+      onPreviousStep={previousStep}
+      onGoToStep={goToStep}
+      isDirty={isDirty}
     >
       {renderStepContent(currentStep)}
-    </WizardContainer>
+    </ProductionWizardContainer>
   );
 }
 
 export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardProps) {
   // Get store actions
   const addWorld = useStore((state) => state.addWorld);
+
+  // ============================================================================
+  // LLM Service Initialization
+  // ============================================================================
+
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeServices = async () => {
+      try {
+        // Initialize llmConfigService if not already done
+        if (!llmConfigService.isConfigured()) {
+          await llmConfigService.initialize();
+        }
+        if (isMounted) {
+          setIsInitializing(false);
+        }
+      } catch (error) {
+        console.error('[WorldWizard] Failed to initialize LLM service:', error);
+        if (isMounted) {
+          setInitError(error instanceof Error ? error.message : 'Initialization failed');
+          setIsInitializing(false);
+        }
+      }
+    };
+
+    initializeServices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // ============================================================================
   // Validation
@@ -211,6 +260,50 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
     }
   };
 
+  // Create a simple no-arg callback for WizardContainer
+  // The actual world data is handled by handleSubmit (passed to WizardProvider.onSubmit)
+  const handleWizardComplete = useCallback(() => {
+    // This callback is called after submitWizard() completes successfully
+    // The world has already been created and onComplete(world) was called by handleSubmit
+    // This is just a notification that the wizard finished
+  }, []);
+
+  // ============================================================================
+  // Render Loading/Error States
+  // ============================================================================
+
+  if (isInitializing) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Initializing services...</p>
+      </div>
+    );
+  }
+
+  if (initError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <p className="text-sm text-red-500">Failed to initialize: {initError}</p>
+        <button
+          onClick={() => {
+            setInitError(null);
+            setIsInitializing(true);
+            llmConfigService.initialize().then(() => {
+              setIsInitializing(false);
+            }).catch((error) => {
+              setInitError(error instanceof Error ? error.message : 'Initialization failed');
+              setIsInitializing(false);
+            });
+          }}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <WizardProvider<World>
       wizardType="world"
@@ -224,8 +317,10 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
       <WorldWizardContent
         steps={WIZARD_STEPS}
         onCancel={onCancel}
+        onComplete={handleWizardComplete}
         renderStepContent={renderStepContent}
       />
     </WizardProvider>
   );
 }
+
