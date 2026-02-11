@@ -36,7 +36,7 @@ metrics-*/
 
 # Dependencies
 node_modules/
-package-lock.json
+!creative-studio-ui/package-lock.json
 
 # IDE and editor files
 .vscode/
