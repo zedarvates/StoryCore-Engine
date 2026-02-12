@@ -1,4 +1,4 @@
-// cspell:ignore lieux
+// cspell:words lieux
 import { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout } from '../WizardFormLayout';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, MapPin, Sparkles } from 'lucide-react';
-import { useStore } from '@/store';
+import { useStore, useAppStore } from '@/store';
 import type { LocationSelectionData, LocationCreationRequest, WorldContext, LocationReference } from '@/types/story';
 import type { AppState } from '@/types';
 import type { World, WorldRule } from '@/types/world';
@@ -21,7 +21,7 @@ import { LLMErrorCategory, type ErrorRecoveryOptions } from '@/services/llmServi
 import { saveLocationToProject, createLocationFromWizardData } from '@/utils/locationStorage';
 import { useLocationStore } from '@/stores/locationStore';
 import { useEditorStore } from '@/stores/editorStore';
-import type { RootState } from '@/store';
+// Removed unused import of RootState
 
 // ============================================================================
 // Location Card Component
