@@ -2,16 +2,68 @@
 // MCP Addon React Hooks
 // ============================================================================
 
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore, useState } from 'react';
 import { MCPAddonManager } from './MCPAddonManager';
 import type { 
   MCPAddon, 
   MCPServerConfig, 
   UseMCPAddonResult,
-  UseMCPServersResult,
-  UseMCPConfigResult,
-  UseMCPTestResult
+  MCPTestResult
 } from '@/types/addons';
+
+// Missing type definitions for hooks
+export interface UseMCPServersResult {
+  servers: MCPServerConfig[];
+  selectedServer: string | null;
+  isLoading: boolean;
+  error: string | null;
+  addServer: (config: MCPServerConfig) => Promise<void>;
+  updateServer: (serverId: string, updates: Partial<MCPServerConfig>) => Promise<void>;
+  removeServer: (serverId: string) => Promise<void>;
+  testServer: (serverId: string) => Promise<void>;
+  setSelectedServer: (serverId: string | null) => void;
+}
+
+export interface UseMCPConfigResult {
+  config: Record<string, unknown>;
+  isLoading: boolean;
+  error: string | null;
+  updateConfig: (config: Partial<MCPAddon['config']>) => Promise<void>;
+}
+
+export interface UseMCPTestResult {
+  testResults: MCPTestResult[];
+  isLoading: boolean;
+  error: string | null;
+  testServer: (serverId: string) => Promise<void>;
+  testAllServers: () => Promise<void[]>;
+}
+
+export interface UseMCPServerTestingResult {
+  isTesting: boolean;
+  lastTestResult: MCPTestResult | null;
+  testServer: (serverId: string) => Promise<void>;
+  testAllServers: () => Promise<void>;
+}
+
+export interface UseMCPPermissionsResult {
+  permissions: string[];
+  hasPermission: (permission: string) => boolean;
+}
+
+export interface UseMCPErrorResult {
+  error: string | null;
+  clearError: () => void;
+}
+
+export interface UseMCPMetadataResult {
+  metadata: {
+    name: string;
+    version: string;
+    description: string;
+  } | null;
+  isLoading: boolean;
+}
 
 // Singleton instance of MCPAddonManager
 let mcpManager: MCPAddonManager | null = null;
@@ -161,5 +213,59 @@ export function useMCPTest(): UseMCPTestResult {
     error: state.error,
     testServer,
     testAllServers,
+  };
+}
+
+/**
+ * Hook for MCP server testing (alias for useMCPTest)
+ */
+export function useMCPServerTesting(): UseMCPTestResult {
+  return useMCPTest();
+}
+
+/**
+ * Hook for MCP permissions
+ */
+export function useMCPPermissions(): UseMCPPermissionsResult {
+  const permissions = [
+    'read:project',
+    'write:project',
+    'read:assets',
+    'write:assets',
+  ];
+
+  return {
+    permissions,
+    hasPermission: (permission: string) => permissions.includes(permission),
+  };
+}
+
+/**
+ * Hook for MCP metadata
+ */
+export function useMCPMetadata(): UseMCPMetadataResult {
+  return {
+    metadata: {
+      name: 'MCP Addon',
+      version: '1.0.0',
+      description: 'Model Context Protocol Addon',
+    },
+    isLoading: false,
+  };
+}
+
+/**
+ * Hook for MCP errors
+ */
+export function useMCPError(): UseMCPErrorResult {
+  const [error, setError] = useState<string | null>(null);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  return {
+    error,
+    clearError,
   };
 }

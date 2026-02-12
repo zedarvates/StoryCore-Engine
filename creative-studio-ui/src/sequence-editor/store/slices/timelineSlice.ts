@@ -260,7 +260,7 @@ const timelineSlice = createSlice({
       }
     },
     // Visual style actions
-    applyStyleToShot: (state, action: PayloadAction<{ shotId: string; styleApplication: any }>) => {
+    applyStyleToShot: (state, action: PayloadAction<{ shotId: string; styleApplication: unknown }>) => {
       const { shotId, styleApplication } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
       if (shot) {
@@ -268,7 +268,7 @@ const timelineSlice = createSlice({
         shot.modified = true;
       }
     },
-    applyStyleToMultipleShots: (state, action: PayloadAction<{ shotIds: string[]; styleApplication: any }>) => {
+    applyStyleToMultipleShots: (state, action: PayloadAction<{ shotIds: string[]; styleApplication: unknown }>) => {
       const { shotIds, styleApplication } = action.payload;
       shotIds.forEach((shotId) => {
         const shot = state.shots.find((s) => s.id === shotId);
@@ -293,7 +293,7 @@ const timelineSlice = createSlice({
         shot.modified = true;
       }
     },
-    updateStyleParameters: (state, action: PayloadAction<{ shotId: string; parameters: any }>) => {
+    updateStyleParameters: (state, action: PayloadAction<{ shotId: string; parameters: unknown }>) => {
       const { shotId, parameters } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
       if (shot && shot.visualStyle) {
@@ -353,3 +353,4 @@ export const {
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;
+

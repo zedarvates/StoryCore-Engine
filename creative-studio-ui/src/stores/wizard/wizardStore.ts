@@ -18,10 +18,8 @@ import type {
   ScriptData,
   SceneBreakdown,
   ShotPlan,
+  WizardType,
 } from '../../types/wizard';
-
-// Import WizardType from storage utilities
-import type { WizardType } from '../../utils/wizardStorage';
 
 // Initial state factory
 const createInitialState = () => ({
@@ -362,7 +360,7 @@ export const useWizardStore = create<WizardState>()(
           validationErrors: Array.from(state.validationErrors.entries()),
         }),
         // Custom deserialization for Set and Map with proper type handling
-        merge: (persistedState: any, currentState) => {
+        merge: (persistedState: unknown, currentState) => {
           // Safely convert completedSteps to Set
           const completedSteps = Array.isArray(persistedState.completedSteps)
             ? new Set(persistedState.completedSteps)
@@ -403,3 +401,4 @@ export const useScenes = () => useWizardStore((state) => state.scenes);
 export const useShots = () => useWizardStore((state) => state.shots);
 export const useValidationErrors = () => useWizardStore((state) => state.validationErrors);
 export const useCanProceed = () => useWizardStore((state) => state.canProceed());
+

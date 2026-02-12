@@ -60,7 +60,7 @@ export interface CanvasElement {
     expression: 'neutral' | 'happy' | 'sad' | 'angry' | 'surprised';
   };
   audio?: AudioProperties;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ShotData {
@@ -103,7 +103,7 @@ export interface PlanningState {
 export interface DragItem {
   type: string;
   id: string;
-  data: any;
+  data: unknown;
 }
 
 export interface TransformGizmo {
@@ -172,3 +172,4 @@ export const calculateAudioProperties = (position: Vector3D, surroundMode: '5.1'
     highPassFilter
   };
 };
+

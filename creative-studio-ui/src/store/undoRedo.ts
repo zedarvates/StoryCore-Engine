@@ -137,11 +137,11 @@ export function canRedo(): boolean {
  * addShotWithUndo(newShot);
  */
 // Using 'any[]' in generic constraint to allow wrapping actions with any parameter types
-export function withUndo<T extends (...args: any[]) => void>(
+export function withUndo<T extends (...args: unknown[]) => void>(
   action: T
 ): T {
   // Using 'any[]' for args to match the generic constraint
-  return ((...args: any[]) => {
+  return ((...args: unknown[]) => {
     // Save current state to history
     pushToHistory();
     
@@ -284,3 +284,4 @@ export function useUndoRedo() {
     historyLength,
   };
 }
+

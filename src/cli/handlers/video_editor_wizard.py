@@ -145,8 +145,8 @@ class VideoEditorWizardHandler(BaseHandler):
         print(f"🎨 Recommended Style: {preview['recommended_style'].title()}")
         print(f"📊 Quality Potential: {preview['quality_potential'].upper()}")
 
-        print("
-💡 Tips:"        print(f"   • {'✅' if preview['has_audio_plan'] else '❌'} Audio plan available - {'Higher' if preview['has_audio_plan'] else 'Lower'} quality expected")
+        print("\n💡 Tips:")
+        print(f"   • {'✅' if preview['has_audio_plan'] else '❌'} Audio plan available - {'Higher' if preview['has_audio_plan'] else 'Lower'} quality expected")
         print(f"   • Run with --style {preview['recommended_style']} for best results")
         print(f"   • Use --preview before full creation to validate")
 

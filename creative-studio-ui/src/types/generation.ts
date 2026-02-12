@@ -44,7 +44,7 @@ export interface PromptCategories {
  * Asset metadata
  */
 export interface AssetMetadata {
-  generationParams: Record<string, any>;
+  generationParams: Record<string, unknown>;
   fileSize: number;
   dimensions?: { width: number; height: number };
   duration?: number;
@@ -96,7 +96,7 @@ export interface GenerationPipelineState {
 export interface GenerationTask {
   id: string;
   type: 'prompt' | 'image' | 'video' | 'audio';
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   priority: number;
   status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
   progress: GenerationProgress;
@@ -123,7 +123,7 @@ export interface HistoryEntry {
   id: string;
   pipelineId: string;
   type: 'prompt' | 'image' | 'video' | 'audio';
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   result: GeneratedAsset;
   timestamp: number;
   version: number;
@@ -217,7 +217,7 @@ export interface BatchGenerationTask {
   id: string;
   batchId: string;
   type: 'prompt' | 'image' | 'video' | 'audio';
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   priority: number;
   status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
   progress: GenerationProgress;
@@ -246,3 +246,4 @@ export interface BatchGenerationState {
   createdAt: number;
   completedAt?: number;
 }
+

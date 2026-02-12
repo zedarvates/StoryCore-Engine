@@ -3,7 +3,7 @@ export interface Effect {
   name: string;
   type: 'color-correction' | 'blur' | 'sharpen' | 'distortion' | 'filter' | 'transition';
   enabled: boolean;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   intensity?: number; // 0-1
   duration?: number; // in seconds
   startTime?: number; // in seconds
@@ -16,11 +16,11 @@ export interface EffectParameter {
   id: string;
   name: string;
   type: 'range' | 'color' | 'select' | 'boolean' | 'number';
-  value: any;
+  value: unknown;
   min?: number;
   max?: number;
   step?: number;
-  options?: { label: string; value: any }[];
+  options?: { label: string; value: unknown }[];
   unit?: string;
 }
 
@@ -41,3 +41,4 @@ export interface EffectStackProps {
   onReorder?: (effects: AppliedEffect[]) => void;
   onRemove?: (effectId: string) => void;
 }
+

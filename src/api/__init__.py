@@ -37,7 +37,10 @@ from .middleware import (
     create_rate_limit_middleware,
     create_logging_middleware,
 )
-from .categories import NarrationCategoryHandler
+from .categories import (
+    NarrationCategoryHandler,
+    ExportIntegrationCategoryHandler,
+)
 
 __all__ = [
     'addon_router',
@@ -73,4 +76,5 @@ __all__ = [
     'create_rate_limit_middleware',
     'create_logging_middleware',
     'NarrationCategoryHandler',
+    'ExportIntegrationCategoryHandler',
 ]

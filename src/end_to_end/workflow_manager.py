@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 from enum import Enum
 
-from .workflow_configs import ZImageTurboConfig, LTX2ImageToVideoConfig
+from src.end_to_end.workflow_configs import ZImageTurboConfig, LTX2ImageToVideoConfig
 
 
 logger = logging.getLogger(__name__)

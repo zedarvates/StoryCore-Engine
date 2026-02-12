@@ -3,7 +3,7 @@ import { WorldData } from '../../../stores/worldBuilderStore';
 
 interface WorldPreview3DProps {
   worldData: WorldData;
-  onElementSelect: (element: any) => void;
+  onElementSelect: (element: unknown) => void;
 }
 
 export const WorldPreview3D: React.FC<WorldPreview3DProps> = ({ worldData, onElementSelect }) => {

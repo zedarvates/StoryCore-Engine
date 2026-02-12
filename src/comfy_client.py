@@ -8,6 +8,7 @@ import time
 import asyncio
 import websocket
 import requests
+from datetime import datetime
 from typing import Dict, Any, Optional, Callable
 from urllib.parse import urljoin
 import logging
@@ -27,19 +28,48 @@ class ComfyUIClient:
         self.session = requests.Session()
         self.session.timeout = timeout
         self.client_id = f"storycore_{int(time.time())}"
+        self._connection_health = {
+            "last_check": None,
+            "is_connected": False,
+            "last_error": None,
+            "response_time_ms": None
+        }
         
     def test_connection(self) -> bool:
         """Test HTTP connection to ComfyUI server"""
+        start_time = time.time()
         try:
             response = self.session.get(urljoin(self.base_url, "/system_stats"))
+            response_time = (time.time() - start_time) * 1000  # Convert to ms
+            
+            self._connection_health = {
+                "last_check": datetime.utcnow().isoformat() + "Z",
+                "is_connected": response.status_code == 200,
+                "last_error": None,
+                "response_time_ms": round(response_time, 2)
+            }
+            
             return response.status_code == 200
         except Exception as e:
+            self._connection_health = {
+                "last_check": datetime.utcnow().isoformat() + "Z",
+                "is_connected": False,
+                "last_error": str(e),
+                "response_time_ms": None
+            }
             logger.error(f"Connection test failed: {e}")
             return False
     
+    def get_connection_health(self) -> Dict[str, Any]:
+        """Get current connection health status"""
+        return self._connection_health.copy()
+    
     def queue_workflow(self, workflow: Dict[str, Any], global_seed: int, prompt: str) -> Optional[str]:
         """Queue workflow with retry logic and error handling"""
-        for attempt in range(3):
+        max_retries = 3
+        base_delay = 1.0
+        
+        for attempt in range(max_retries):
             try:
                 # Inject project parameters
                 modified_workflow = self._inject_parameters(workflow, global_seed, prompt)
@@ -61,13 +91,16 @@ class ComfyUIClient:
                     
             except requests.exceptions.Timeout:
                 logger.warning(f"Timeout on attempt {attempt + 1}")
-                time.sleep(2 ** attempt)  # Exponential backoff
+                delay = base_delay * (2 ** attempt)  # Exponential backoff
+                time.sleep(delay)
             except Exception as e:
                 logger.error(f"Queue error on attempt {attempt + 1}: {e}")
                 if self._is_vram_error(str(e)):
                     raise VRAMOverflowError("VRAM overflow detected - reduce batch size")
-                time.sleep(2 ** attempt)
+                delay = base_delay * (2 ** attempt)  # Exponential backoff
+                time.sleep(delay)
         
+        logger.error(f"Failed to queue workflow after {max_retries} attempts")
         return None
     
     def monitor_execution(self, prompt_id: str, progress_callback: Optional[Callable] = None) -> Dict[str, Any]:

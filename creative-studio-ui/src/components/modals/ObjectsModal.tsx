@@ -71,7 +71,7 @@ export function ObjectsModal({ isOpen, onClose }: ObjectsModalProps) {
       const projectObjects = localStorage.getItem(`objects_${project.id}`);
       if (projectObjects) {
         const parsed = JSON.parse(projectObjects);
-        const objectsWithDates = parsed.map((obj: any) => ({
+        const objectsWithDates = parsed.map((obj: unknown) => ({
           ...obj,
           createdAt: new Date(obj.createdAt),
           updatedAt: new Date(obj.updatedAt)
@@ -1075,3 +1075,4 @@ function ObjectAnalysisModal({ object, analysis, onClose }: ObjectAnalysisModalP
     </Dialog>
   );
 }
+

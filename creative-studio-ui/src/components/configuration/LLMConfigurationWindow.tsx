@@ -47,13 +47,13 @@ export function LLMConfigurationWindow({ isOpen, onClose, onSave }: LLMConfigura
   };
 
   // Handle field changes
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: unknown) => {
     setFormData(prev => {
       if (!prev) return prev;
       
       const keys = field.split('.');
       const newData = JSON.parse(JSON.stringify(prev));
-      let current: any = newData;
+      let current: unknown = newData;
       
       for (let i = 0; i < keys.length - 1; i++) {
         if (!current[keys[i]]) {
@@ -379,3 +379,5 @@ export function LLMConfigurationWindow({ isOpen, onClose, onSave }: LLMConfigura
     </div>
   );
 }
+
+

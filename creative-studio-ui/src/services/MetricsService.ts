@@ -16,24 +16,24 @@ export interface SystemMetrics {
   memoryUsage: number;
   cpuUsage?: number;
 
-  // Utilisation
+  // Usage
   activeUsers: number;
   totalProjects: number;
   totalEntities: number;
   sessionCount: number;
 
-  // Stockage
+  // Storage
   storageUsed: number;
   cacheHitRate: number;
   backupSuccessRate: number;
 
-  // IA & Automatisation
+  // AI & Automation
   contextExtractionAccuracy: number;
   autoFillSuccessRate: number;
   wizardCompletionRate: number;
   llmResponseTime: number;
 
-  // Persistance
+  // Persistence
   persistenceSuccessRate: number;
   syncConflictRate: number;
   migrationSuccessRate: number;
@@ -55,22 +55,22 @@ export interface MetricThreshold {
 export interface AlertConfig {
   enabled: boolean;
   thresholds: MetricThreshold[];
-  cooldown: number; // Minutes entre les alertes
+  cooldown: number; // Minutes between alerts
   channels: ('console' | 'log' | 'notification')[];
 }
 
 /**
- * Service de métriques avec monitoring en temps réel
+ * Metrics service with real-time monitoring
  */
 export class MetricsService {
   private static instance: MetricsService;
   private metrics: Partial<SystemMetrics> = {};
   private history: Array<{ timestamp: Date; metrics: Partial<SystemMetrics> }> = [];
-  private maxHistorySize = 1000; // Garder 1000 points de données
-  private collectionInterval = 30000; // Collecte toutes les 30 secondes
+  private maxHistorySize = 1000; // Keep 1000 data points
+  private collectionInterval = 30000; // Collect every 30 seconds
   private intervalId?: NodeJS.Timeout;
 
-  // Seuils d'alerte configurables
+  // Configurable alert thresholds
   private alertConfig: AlertConfig = {
     enabled: true,
     cooldown: 5, // 5 minutes
@@ -81,40 +81,40 @@ export class MetricsService {
         value: 5,
         operator: '>',
         severity: 'high',
-        description: 'Taux d\'erreur supérieur à 5%'
+        description: 'Error rate above 5%'
       },
       {
         name: 'slow_response_time',
         value: 5000,
         operator: '>',
         severity: 'medium',
-        description: 'Temps de réponse moyen supérieur à 5 secondes'
+        description: 'Average response time above 5 seconds'
       },
       {
         name: 'high_memory_usage',
         value: 500 * 1024 * 1024,
         operator: '>',
         severity: 'high',
-        description: 'Utilisation mémoire supérieure à 500MB'
+        description: 'Memory usage above 500MB'
       },
       {
         name: 'low_cache_hit_rate',
         value: 50,
         operator: '<',
         severity: 'low',
-        description: 'Taux de succès du cache inférieur à 50%'
+        description: 'Cache hit rate below 50%'
       },
       {
         name: 'high_sync_conflicts',
         value: 10,
         operator: '>',
         severity: 'medium',
-        description: 'Plus de 10 conflits de synchronisation'
+        description: 'More than 10 sync conflicts'
       }
     ]
   };
 
-  // État des alertes pour éviter les spams
+  // Alert state to avoid spam
   private alertCooldowns = new Map<string, Date>();
 
   private constructor() {
@@ -129,7 +129,7 @@ export class MetricsService {
   }
 
   /**
-   * Démarre la collecte automatique des métriques
+   * Starts automatic metrics collection
    */
   private startMetricsCollection(): void {
     this.intervalId = setInterval(() => {
@@ -139,25 +139,25 @@ export class MetricsService {
   }
 
   /**
-   * Collecte toutes les métriques du système
+   * Collects all system metrics
    */
   private async collectMetrics(): Promise<void> {
     const timestamp = new Date();
 
     try {
-      // Métriques de performance système
+      // System performance metrics
       const systemMetrics = await this.collectSystemMetrics();
 
-      // Métriques d'utilisation
+      // Usage metrics
       const usageMetrics = await this.collectUsageMetrics();
 
-      // Métriques de stockage
+      // Storage metrics
       const storageMetrics = await this.collectStorageMetrics();
 
-      // Métriques IA
+      // AI metrics
       const aiMetrics = await this.collectAIMetrics();
 
-      // Métriques de persistance
+      // Persistence metrics
       const persistenceMetrics = await this.collectPersistenceMetrics();
 
       // Fusionner toutes les métriques
@@ -169,11 +169,11 @@ export class MetricsService {
         ...persistenceMetrics
       };
 
-      // Stocker dans l'historique
+      // Store in history
       this.metrics = allMetrics;
       this.history.push({ timestamp, metrics: { ...allMetrics } });
 
-      // Limiter la taille de l'historique
+      // Limit history size
       if (this.history.length > this.maxHistorySize) {
         this.history = this.history.slice(-this.maxHistorySize);
       }
@@ -184,19 +184,19 @@ export class MetricsService {
   }
 
   /**
-   * Collecte les métriques système (performance)
+   * Collects system metrics (performance)
    */
   private async collectSystemMetrics(): Promise<Partial<SystemMetrics>> {
     const memoryUsage = (performance as any).memory?.usedJSHeapSize || 0;
 
-    // Calculer le temps de réponse moyen depuis les logs
+    // Calculate average response time from logs
     const logStats = loggingService.getStats();
     const averageResponseTime = logStats.averageResponseTime;
 
-    // Calculer le taux d'erreur
+    // Calculate error rate
     const errorRate = logStats.errorRate;
 
-    // Calculer le débit (requêtes par minute)
+    // Calculate throughput (requests per minute)
     const recentLogs = loggingService.getLogs({
       startDate: new Date(Date.now() - 60000), // Dernière minute
       limit: 1000
@@ -314,7 +314,7 @@ export class MetricsService {
   }
 
   /**
-   * Vérifie les seuils d'alerte
+   * Checks alert thresholds
    */
   private checkThresholds(): void {
     if (!this.alertConfig.enabled) return;
@@ -332,7 +332,7 @@ export class MetricsService {
   }
 
   /**
-   * Vérifie si un seuil est dépassé
+   * Checks if a threshold is exceeded
    */
   private checkThreshold(threshold: MetricThreshold, value: number): boolean {
     switch (threshold.operator) {
@@ -346,21 +346,21 @@ export class MetricsService {
   }
 
   /**
-   * Déclenche une alerte
+   * Triggers an alert
    */
   private triggerAlert(threshold: MetricThreshold, value: number): void {
     const alertKey = `${threshold.name}_${threshold.operator}_${threshold.value}`;
     const lastAlert = this.alertCooldowns.get(alertKey);
 
-    // Vérifier le cooldown
+    // Check cooldown
     if (lastAlert && Date.now() - lastAlert.getTime() < threshold.cooldown * 60 * 1000) {
-      return; // En cooldown
+      return; // In cooldown
     }
 
-    // Créer le message d'alerte
+    // Create alert message
     const alertMessage = `[ALERT] ${threshold.description} (Current: ${value}, Threshold: ${threshold.value})`;
 
-    // Logger selon la sévérité
+    // Log according to severity
     switch (threshold.severity) {
       case 'low':
         loggingService.info(LogCategory.SYSTEM, alertMessage);
@@ -374,7 +374,7 @@ export class MetricsService {
         break;
     }
 
-    // Envoyer aux canaux configurés
+    // Send to configured channels
     for (const channel of this.alertConfig.channels) {
       switch (channel) {
         case 'console':
@@ -386,12 +386,12 @@ export class MetricsService {
       }
     }
 
-    // Mettre à jour le cooldown
+    // Update cooldown
     this.alertCooldowns.set(alertKey, new Date());
   }
 
   /**
-   * Affiche une notification browser
+   * Displays a browser notification
    */
   private showBrowserNotification(message: string, severity: string): void {
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -404,14 +404,14 @@ export class MetricsService {
   }
 
   /**
-   * Obtient les métriques actuelles
+   * Gets current metrics
    */
   getCurrentMetrics(): Partial<SystemMetrics> {
     return { ...this.metrics };
   }
 
   /**
-   * Obtient l'historique des métriques
+   * Gets metrics history
    */
   getMetricsHistory(limit?: number): Array<{ timestamp: Date; metrics: Partial<SystemMetrics> }> {
     const history = [...this.history];
@@ -422,7 +422,7 @@ export class MetricsService {
   }
 
   /**
-   * Calcule les métriques sur une période
+   * Calculates metrics over a period
    */
   getMetricsSummary(timeRange: number = 3600000): { // 1 heure par défaut
     average: Partial<SystemMetrics>;
@@ -442,7 +442,7 @@ export class MetricsService {
       };
     }
 
-    // Calculer moyennes, min, max
+    // Calculate averages, min, max
     const metrics = Object.keys(relevantHistory[0].metrics) as Array<keyof SystemMetrics>;
     const summary = {
       average: {} as Partial<SystemMetrics>,
@@ -462,7 +462,7 @@ export class MetricsService {
       (summary.max as any)[metric] = max;
     }
 
-    // Déterminer la tendance basée sur les dernières valeurs
+    // Determine trend based on latest values
     if (relevantHistory.length >= 2) {
       const recent = relevantHistory.slice(-10); // Dernières 10 mesures
       const older = relevantHistory.slice(-20, -10); // 10 mesures précédentes
@@ -483,90 +483,90 @@ export class MetricsService {
   }
 
   /**
-   * Génère un rapport détaillé
+   * Generates a detailed report
    */
   generateReport(): string {
     const current = this.getCurrentMetrics();
     const summary = this.getMetricsSummary();
 
-    let report = `# 📊 Rapport de Métriques - StoryCore\n\n`;
-    report += `*Généré le ${new Date().toISOString()}*\n\n`;
+    let report = `# 📊 Metrics Report - StoryCore\n\n`;
+    report += `*Generated on ${new Date().toISOString()}*\n\n`;
 
-    // Métriques actuelles
-    report += `## 📈 Métriques Actuelles\n`;
-    report += `- **Temps de réponse moyen** : ${current.averageResponseTime?.toFixed(2) || 'N/A'}ms\n`;
-    report += `- **Débit** : ${current.throughput || 0} req/min\n`;
-    report += `- **Taux d'erreur** : ${current.errorRate?.toFixed(2) || 'N/A'}%\n`;
-    report += `- **Utilisation mémoire** : ${((current.memoryUsage || 0) / 1024 / 1024).toFixed(2)} MB\n`;
-    report += `- **Temps d'activité** : ${this.formatUptime(current.uptime || 0)}\n\n`;
+    // Current metrics
+    report += `## 📈 Current Metrics\n`;
+    report += `- **Average response time** : ${current.averageResponseTime?.toFixed(2) || 'N/A'}ms\n`;
+    report += `- **Throughput** : ${current.throughput || 0} req/min\n`;
+    report += `- **Error rate** : ${current.errorRate?.toFixed(2) || 'N/A'}%\n`;
+    report += `- **Memory usage** : ${((current.memoryUsage || 0) / 1024 / 1024).toFixed(2)} MB\n`;
+    report += `- **Uptime** : ${this.formatUptime(current.uptime || 0)}\n\n`;
 
-    // Résumé de tendance
-    report += `## 📊 Analyse de Tendance\n`;
-    report += `- **Tendance globale** : ${summary.trend === 'improving' ? '🔥 Amélioration' :
-                                         summary.trend === 'degrading' ? '⚠️ Dégradation' : '✅ Stable'}\n`;
-    report += `- **Erreur moyenne (1h)** : ${summary.average.errorRate?.toFixed(2) || 'N/A'}%\n`;
-    report += `- **Réponse min/max (1h)** : ${summary.min.averageResponseTime?.toFixed(2) || 'N/A'}ms / ${summary.max.averageResponseTime?.toFixed(2) || 'N/A'}ms\n\n`;
+    // Trend summary
+    report += `## 📊 Trend Analysis\n`;
+    report += `- **Overall trend** : ${summary.trend === 'improving' ? '🔥 Improving' :
+                                         summary.trend === 'degrading' ? '⚠️ Degrading' : '✅ Stable'}\n`;
+    report += `- **Average error (1h)** : ${summary.average.errorRate?.toFixed(2) || 'N/A'}%\n`;
+    report += `- **Response min/max (1h)** : ${summary.min.averageResponseTime?.toFixed(2) || 'N/A'}ms / ${summary.max.averageResponseTime?.toFixed(2) || 'N/A'}ms\n\n`;
 
-    // Alertes actives
+    // Active alerts
     const activeAlerts = this.getActiveAlerts();
     if (activeAlerts.length > 0) {
-      report += `## 🚨 Alertes Actives\n`;
+      report += `## 🚨 Active Alerts\n`;
       activeAlerts.forEach(alert => {
         report += `- **${alert.severity.toUpperCase()}** : ${alert.description}\n`;
       });
       report += '\n';
     }
 
-    // Recommandations
-    report += `## 💡 Recommandations\n`;
+    // Recommendations
+    report += `## 💡 Recommendations\n`;
     if ((current.errorRate || 0) > 5) {
-      report += `- ⚠️ Taux d'erreur élevé : Vérifier les logs d'erreur\n`;
+      report += `- ⚠️ High error rate: Check error logs\n`;
     }
     if ((current.averageResponseTime || 0) > 5000) {
-      report += `- 🐌 Performance lente : Optimiser les requêtes ou ajouter du cache\n`;
+      report += `- 🐌 Slow performance: Optimize requests or add cache\n`;
     }
     if ((current.memoryUsage || 0) > 400 * 1024 * 1024) {
-      report += `- 💾 Mémoire élevée : Vérifier les fuites mémoire\n`;
+      report += `- 💾 High memory: Check for memory leaks\n`;
     }
     if ((current.cacheHitRate || 0) < 50) {
-      report += `- 🎯 Cache inefficace : Ajuster la stratégie de cache\n`;
+      report += `- 🎯 Ineffective cache: Adjust cache strategy\n`;
     }
 
     return report;
   }
 
   /**
-   * Obtient les alertes actives
+   * Gets active alerts
    */
   private getActiveAlerts(): Array<{ severity: string; description: string }> {
     const alerts: Array<{ severity: string; description: string }> = [];
 
-    // Vérifier manuellement les seuils courants
+    // Manually check common thresholds
     const metrics = this.metrics;
 
     if ((metrics.errorRate || 0) > 5) {
-      alerts.push({ severity: 'high', description: 'Taux d\'erreur supérieur à 5%' });
+      alerts.push({ severity: 'high', description: 'Error rate above 5%' });
     }
     if ((metrics.averageResponseTime || 0) > 5000) {
-      alerts.push({ severity: 'medium', description: 'Temps de réponse supérieur à 5 secondes' });
+      alerts.push({ severity: 'medium', description: 'Response time above 5 seconds' });
     }
     if ((metrics.memoryUsage || 0) > 500 * 1024 * 1024) {
-      alerts.push({ severity: 'high', description: 'Utilisation mémoire supérieure à 500MB' });
+      alerts.push({ severity: 'high', description: 'Memory usage above 500MB' });
     }
 
     return alerts;
   }
 
   /**
-   * Calcule le temps d'activité
+   * Calculates uptime
    */
   private calculateUptime(): number {
-    // Simplifié - devrait être tracké depuis le démarrage
+    // Simplified - should be tracked from startup
     return Date.now() - (this.history[0]?.timestamp.getTime() || Date.now());
   }
 
   /**
-   * Formate le temps d'activité
+   * Formats uptime
    */
   private formatUptime(ms: number): string {
     const seconds = Math.floor(ms / 1000);
@@ -581,7 +581,7 @@ export class MetricsService {
   }
 
   /**
-   * Configure les seuils d'alerte
+   * Configures alert thresholds
    */
   configureAlerts(config: Partial<AlertConfig>): void {
     this.alertConfig = { ...this.alertConfig, ...config };
@@ -589,7 +589,7 @@ export class MetricsService {
   }
 
   /**
-   * Arrête la collecte des métriques
+   * Stops metrics collection
    */
   stop(): void {
     if (this.intervalId) {

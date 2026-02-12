@@ -10,7 +10,7 @@ interface Location {
 
 interface WorldMap2DProps {
   locations: Location[];
-  onElementSelect: (element: any) => void;
+  onElementSelect: (element: unknown) => void;
 }
 
 export const WorldMap2D: React.FC<WorldMap2DProps> = ({ locations, onElementSelect }) => {

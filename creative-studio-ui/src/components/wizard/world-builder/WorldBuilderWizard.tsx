@@ -17,6 +17,7 @@ import { useWizardAutoSave } from '@/hooks/useWizardAutoSave';
 import { useWizardCompletion } from '@/hooks/useWizardCompletion';
 import { useServiceStatus } from '@/hooks/useServiceStatus';
 import { useStore } from '@/store';
+import { useWorldPersistence } from '@/hooks/useWorldPersistence';
 import type { World, Location, WorldRule, CulturalElements } from '@/types/world';
 import { GENRE_OPTIONS, TONE_OPTIONS, RULE_CATEGORIES } from '@/types/world';
 
@@ -35,6 +36,16 @@ export interface WorldPreset {
   culturalElements: Partial<CulturalElements>;
   icon: string;
 }
+
+// Use simple string icons to avoid hydration issues
+const ICONS = {
+  fresh: '✨',
+  fantasy: '🏰',
+  cyberpunk: '🌆',
+  postApocalyptic: '☢️',
+  spaceOpera: '🚀',
+  horror: '👻',
+};
 
 export const WORLD_PRESETS: WorldPreset[] = [
   {
@@ -57,7 +68,7 @@ export const WORLD_PRESETS: WorldPreset[] = [
       religions: ['Temple of Light', 'Old Gods'],
       traditions: ['Harvest Festival', 'Knighting Ceremony'],
     },
-    icon: '🏰',
+    icon: ICONS.fantasy,
   },
   {
     id: 'cyberpunk-city',
@@ -79,7 +90,7 @@ export const WORLD_PRESETS: WorldPreset[] = [
       religions: ['Tech Cult', 'Old Religions'],
       traditions: ['Neon Festival', 'Hackathon'],
     },
-    icon: '🌆',
+    icon: ICONS.cyberpunk,
   },
   {
     id: 'post-apocalyptic',
@@ -101,7 +112,7 @@ export const WORLD_PRESETS: WorldPreset[] = [
       religions: ['Survivor Cults', 'Old World Worship'],
       traditions: ['Survival Day', 'Memorial of the Fall'],
     },
-    icon: '☢️',
+    icon: ICONS.postApocalyptic,
   },
   {
     id: 'space-opera',
@@ -123,7 +134,7 @@ export const WORLD_PRESETS: WorldPreset[] = [
       religions: ['Universal Church', 'Alien faiths'],
       traditions: ['Star Festival', 'Ship Launch'],
     },
-    icon: '🚀',
+    icon: ICONS.spaceOpera,
   },
   {
     id: 'horror-manor',
@@ -145,7 +156,7 @@ export const WORLD_PRESETS: WorldPreset[] = [
       religions: ['Occult', 'Christianity'],
       traditions: ['Seance', 'Ritual of Binding'],
     },
-    icon: '👻',
+    icon: ICONS.horror,
   },
 ];
 
@@ -372,6 +383,8 @@ function Step2LocationsRules({
                   <button
                     onClick={() => onRemoveLocation(location.id!)}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                    aria-label="Remove location"
+                    title="Remove this location"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -427,6 +440,8 @@ function Step2LocationsRules({
                       onUpdate({ ...data, rules: newRules });
                     }}
                     className="px-3 py-1 border rounded-lg text-sm"
+                    aria-label="Rule category"
+                    title="Select rule category"
                   >
                     {RULE_CATEGORIES.map((cat) => (
                       <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -435,6 +450,8 @@ function Step2LocationsRules({
                   <button
                     onClick={() => onRemoveRule(rule.id!)}
                     className="ml-auto p-1 text-red-500 hover:bg-red-50 rounded"
+                    aria-label="Remove rule"
+                    title="Remove this rule"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -559,7 +576,12 @@ function Step3CultureReview({ data, onUpdate, onComplete }: Step3CultureReviewPr
               {culturalElements.languages.map((lang, i) => (
                 <span key={i} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full flex items-center gap-1">
                   {lang}
-                  <button onClick={() => removeItem('languages', i)} className="hover:text-blue-900">
+                  <button 
+                    onClick={() => removeItem('languages', i)} 
+                    className="hover:text-blue-900"
+                    aria-label={`Remove language ${lang}`}
+                    title={`Remove ${lang}`}
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -599,7 +621,12 @@ function Step3CultureReview({ data, onUpdate, onComplete }: Step3CultureReviewPr
               {culturalElements.religions.map((rel, i) => (
                 <span key={i} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full flex items-center gap-1">
                   {rel}
-                  <button onClick={() => removeItem('religions', i)} className="hover:text-purple-900">
+                  <button 
+                    onClick={() => removeItem('religions', i)} 
+                    className="hover:text-purple-900"
+                    aria-label={`Remove religion ${rel}`}
+                    title={`Remove ${rel}`}
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -639,7 +666,12 @@ function Step3CultureReview({ data, onUpdate, onComplete }: Step3CultureReviewPr
               {culturalElements.traditions.map((trad, i) => (
                 <span key={i} className="px-3 py-1 bg-green-100 text-green-700 rounded-full flex items-center gap-1">
                   {trad}
-                  <button onClick={() => removeItem('traditions', i)} className="hover:text-green-900">
+                  <button 
+                    onClick={() => removeItem('traditions', i)} 
+                    className="hover:text-green-900"
+                    aria-label={`Remove tradition ${trad}`}
+                    title={`Remove ${trad}`}
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -695,6 +727,9 @@ export function WorldBuilderWizard({
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<Partial<World>>(initialData || {});
   const addWorld = useStore((state) => state.addWorld);
+  
+  // Get saveWorld function from persistence hook
+  const { saveWorld } = useWorldPersistence();
 
   // Steps definition
   const steps: WizardStep[] = [
@@ -822,9 +857,19 @@ export function WorldBuilderWizard({
       updatedAt: new Date(),
     };
 
+    // Add to store first
     addWorld(world);
+    
+    // Then save to project directory
+    try {
+      await saveWorld(world);
+    } catch (error) {
+      console.error('[WorldBuilderWizard] Failed to save world to project:', error);
+      // World is already in store, so we still call onComplete
+    }
+    
     onComplete(world);
-  }, [data, addWorld, onComplete]);
+  }, [data, addWorld, saveWorld, onComplete]);
 
   // Render current step
   const renderStep = () => {

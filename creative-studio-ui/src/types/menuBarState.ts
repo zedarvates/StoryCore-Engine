@@ -59,11 +59,11 @@ export interface ClipboardState {
   /** Type of content in clipboard */
   contentType: 'shot' | 'asset' | 'text' | null;
   /** Cut operation - removes content and places in clipboard */
-  cut: (content: any) => void;
+  cut: (content: unknown) => void;
   /** Copy operation - copies content to clipboard */
-  copy: (content: any) => void;
+  copy: (content: unknown) => void;
   /** Paste operation - inserts clipboard content */
-  paste: () => any;
+  paste: () => unknown;
 }
 
 /**
@@ -148,3 +148,5 @@ export const DEFAULT_MENU_BAR_STATE: MenuBarState = {
   activeModals: new Set<string>(),
   recentProjects: [],
 };
+
+

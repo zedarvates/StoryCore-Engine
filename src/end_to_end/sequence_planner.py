@@ -10,7 +10,7 @@ Plans sequences and shots from story structure and dialogue, including:
 
 import uuid
 from typing import List, Dict
-from .data_models import (
+from src.end_to_end.data_models import (
     ParsedPrompt, StoryStructure, DialogueScript, WorldConfig,
     SequencePlan, Sequence, Shot, PromptModules
 )

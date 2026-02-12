@@ -251,7 +251,7 @@ export async function validateWizardData<T>(
   requiredFields: (keyof T)[],
   customValidators?: Array<{
     field: keyof T;
-    validate: (value: any) => Promise<boolean>;
+    validate: (value: unknown) => Promise<boolean>;
     message: string;
   }>
 ): Promise<{ valid: boolean; error?: string }> {
@@ -295,7 +295,7 @@ export interface CompletionResultDisplay {
 export function formatCompletionResult(
   isComplete: boolean,
   error: Error | null,
-  data?: any
+  data?: unknown
 ): CompletionResultDisplay {
   if (isComplete && !error) {
     return {
@@ -318,4 +318,6 @@ export function formatCompletionResult(
     message: 'Unknown state',
   };
 }
+
+
 

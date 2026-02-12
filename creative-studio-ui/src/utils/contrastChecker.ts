@@ -154,8 +154,8 @@ export const ACCESSIBLE_COLORS = {
 export function validatePalette(
   palette: Record<string, string>,
   options: { level?: 'AA' | 'AAA' } = {}
-): Record<string, any> {
-  const results: Record<string, any> = {};
+): Record<string, unknown> {
+  const results: Record<string, unknown> = {};
 
   // Check common text on background combinations
   const combinations = [
@@ -173,3 +173,4 @@ export function validatePalette(
 
   return results;
 }
+

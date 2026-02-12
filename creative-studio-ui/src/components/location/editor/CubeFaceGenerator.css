@@ -1,0 +1,356 @@
+/**
+ * CubeFaceGenerator Styles
+ * 
+ * CSS styles for the CubeFaceGenerator component.
+ * 
+ * File: creative-studio-ui/src/components/location/editor/CubeFaceGenerator.css
+ */
+
+/* Container */
+.cube-face-generator {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.cube-face-generator__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.cube-face-generator__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.cube-face-generator__title svg {
+  color: var(--primary-color, #6366f1);
+}
+
+.cube-face-generator__close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary, #2a2a2a);
+  border: none;
+  border-radius: 8px;
+  color: var(--text-secondary, #a0a0a0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cube-face-generator__close:hover {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-primary, #e5e5e5);
+}
+
+/* Content */
+.cube-face-generator__content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Form Groups */
+.cube-face-generator__form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cube-face-generator__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.cube-face-generator__required {
+  color: #ef4444;
+}
+
+.cube-face-generator__textarea {
+  padding: 12px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.cube-face-generator__textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+.cube-face-generator__textarea::placeholder {
+  color: var(--text-muted, #666);
+}
+
+/* Settings */
+.cube-face-generator__settings {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.cube-face-generator__settings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+}
+
+.cube-face-generator__setting {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cube-face-generator__setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cube-face-generator__toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.cube-face-generator__toggle-label svg {
+  color: var(--primary-color, #6366f1);
+}
+
+.cube-face-generator__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cube-face-generator__toggle-btn {
+  padding: 6px 14px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cube-face-generator__toggle-btn--active {
+  background: var(--primary-color, #6366f1);
+  border-color: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.cube-face-generator__toggle-info {
+  font-size: 11px;
+  color: var(--text-muted, #666);
+}
+
+.cube-face-generator__dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cube-face-generator__select {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 13px;
+  cursor: pointer;
+  appearance: none;
+}
+
+.cube-face-generator__select:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+.cube-face-generator__select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cube-face-generator__dropdown-icon {
+  position: absolute;
+  right: 10px;
+  color: var(--text-muted, #666);
+  pointer-events: none;
+}
+
+.cube-face-generator__setting label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cube-face-generator__setting label {
+  font-size: 12px;
+  color: var(--text-muted, #666);
+}
+
+.cube-face-generator__setting input {
+  padding: 8px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 14px;
+}
+
+.cube-face-generator__setting input:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+/* Error */
+.cube-face-generator__error {
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 14px;
+}
+
+/* Generate Button */
+.cube-face-generator__generate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  background: var(--primary-color, #6366f1);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cube-face-generator__generate-btn:hover:not(:disabled) {
+  background: var(--primary-hover, #4f46e5);
+}
+
+.cube-face-generator__generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cube-face-generator__spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Result */
+.cube-face-generator__result {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cube-face-generator__preview {
+  aspect-ratio: 1;
+  background: var(--bg-primary, #1a1a1a);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cube-face-generator__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cube-face-generator__result-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.cube-face-generator__apply-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--success-color, #22c55e);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cube-face-generator__apply-btn:hover {
+  background: #16a34a;
+}
+
+.cube-face-generator__regenerate-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cube-face-generator__regenerate-btn:hover {
+  background: #444;
+  color: var(--text-primary, #e5e5e5);
+}
+
+/* Existing */
+.cube-face-generator__existing {
+  padding: 12px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+}
+
+.cube-face-generator__existing p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted, #666);
+  text-align: center;
+}

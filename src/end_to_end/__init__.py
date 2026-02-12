@@ -17,6 +17,8 @@ from .data_models import (
     WorkflowStep,
     RecoveryStrategy,
     PipelineStep,
+    OrchestratorConfig,
+    OrchestratorConfig as EndToEndOrchestratorConfig,
 )
 from .error_handling import (
     ErrorCategory,
@@ -44,6 +46,8 @@ __all__ = [
     "WorkflowStep",
     "RecoveryStrategy",
     "PipelineStep",
+    "OrchestratorConfig",
+    "EndToEndOrchestratorConfig",
     "ErrorCategory",
     "CategorizedError",
     "ErrorCategorizer",

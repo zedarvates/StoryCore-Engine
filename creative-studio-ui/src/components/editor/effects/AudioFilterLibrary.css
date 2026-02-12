@@ -1,0 +1,168 @@
+/* ============================================================================
+   Audio Filter Library — Premium Dark UI
+   ============================================================================ */
+
+.audio-filter-library {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: transparent;
+    padding: 12px;
+    gap: 16px;
+}
+
+.library-header .search-container {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 36px;
+    transition: all 0.2s ease;
+}
+
+.library-header .search-container:focus-within {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}
+
+.library-header .search-container input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 13px;
+    width: 100%;
+    padding-left: 8px;
+}
+
+.search-icon {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.category-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.category-tabs::-webkit-scrollbar {
+    height: 3px;
+}
+
+.category-tab {
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.category-tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.category-tab.active {
+    background: rgba(124, 58, 237, 0.2);
+    border-color: rgba(124, 58, 237, 0.5);
+    color: #a78bfa;
+}
+
+.presets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.audio-preset-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.audio-preset-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+}
+
+.audio-preset-card.selected {
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.15), transparent);
+    border-color: rgba(124, 58, 237, 0.4);
+}
+
+.preset-icon-box {
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7c3aed;
+    border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+.preset-details {
+    flex: 1;
+}
+
+.preset-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.preset-desc {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.3;
+}
+
+.star-icon {
+    color: #f59e0b;
+    fill: #f59e0b;
+}
+
+.check-icon {
+    color: #22c55e;
+}
+
+.popular::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 2px;
+    background: #f59e0b;
+    border-radius: 2px 0 0 2px;
+    opacity: 0.6;
+}
+
+.no-results {
+    text-align: center;
+    padding: 40px 0;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 13px;
+}

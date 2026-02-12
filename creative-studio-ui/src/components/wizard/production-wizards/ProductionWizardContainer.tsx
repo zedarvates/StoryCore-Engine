@@ -1,10 +1,11 @@
-import React, { ReactNode, useRef, useEffect } from 'react';
+import React, { ReactNode, useRef, useEffect, useState } from 'react';
 import { AlertTriangle, Save, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ProductionWizardStepIndicator } from './ProductionWizardStepIndicator.js';
 import { ProductionWizardNavigation } from './ProductionWizardNavigation.js';
 import { Button } from '@/components/ui/button';
 import { WizardStep } from '@/types';
+import { useWizard } from '@/contexts/WizardContext.js';
 
 // ============================================================================
 // Production Wizard Container Component
@@ -47,24 +48,54 @@ export function ProductionWizardContainer({
   lastSaved = 0,
 }: ProductionWizardContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Check if we have all required props from parent wizard context
+  // If so, we don't need to call useWizard()
+  const hasParentNavigation = onNextStep && onPreviousStep && onGoToStep;
+  const hasParentSubmit = onComplete;
+  
+  // Only call useWizard() if we need fallback behavior from parent context
+  const wizardContext = hasParentNavigation && hasParentSubmit ? null : useWizard();
+  const { submitWizard, isSubmitting: contextIsSubmitting, validationErrors } = wizardContext || {};
+  const isSubmitting = contextIsSubmitting || false;
 
-  // Use provided props or fallback to defaults
+  // Local state for tracking validation - updates reactively from context
+  const [localValidationErrors, setLocalValidationErrors] = useState<Record<string, string[]>>({});
+
+  // Sync validation errors from context when they change
+  useEffect(() => {
+    if (validationErrors) {
+      setLocalValidationErrors(validationErrors);
+    }
+  }, [validationErrors]);
+
+  // Calculate if can proceed based on validation errors
+  const hasValidationErrors = localValidationErrors && Object.keys(localValidationErrors).length > 0;
+  const canGoNext = !hasValidationErrors;
+
+  // Use provided props or fallback to defaults, preferring context functions
   const wizard = {
     currentStep,
     totalSteps: steps.length,
     isDirty,
     lastSaved,
-    canProceed,
+    canProceed: canGoNext,
+    validationErrors,
     submit: async () => {
-      if (onComplete) onComplete();
+      if (submitWizard) {
+        await submitWizard();
+      } else if (onComplete) {
+        onComplete();
+      }
     },
     saveDraft: async () => {
-      // Draft saving would be handled by parent component
-      ;
+      if (wizardContext?.saveProgress) {
+        wizardContext.saveProgress();
+      }
     },
-    nextStep: onNextStep || (() => console.warn('nextStep not provided')),
-    previousStep: onPreviousStep || (() => console.warn('previousStep not provided')),
-    goToStep: onGoToStep || ((step: number) => console.warn('goToStep not provided', step)),
+    nextStep: onNextStep || (wizardContext?.nextStep ? () => wizardContext.nextStep!() : (() => console.warn('nextStep not provided'))),
+    previousStep: onPreviousStep || (wizardContext?.previousStep ? () => wizardContext.previousStep!() : (() => console.warn('previousStep not provided'))),
+    goToStep: onGoToStep || (wizardContext?.goToStep ? (step: number) => wizardContext.goToStep!(step) : ((step: number) => console.warn('goToStep not provided', step))),
   };
 
   const handleSubmit = async () => {
@@ -141,6 +172,15 @@ export function ProductionWizardContainer({
       {/* Footer Navigation */}
       <div className="border-t border-primary/30 bg-card/95 px-6 py-4 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto">
+          {/* Validation Errors Warning */}
+          {localValidationErrors && Object.keys(localValidationErrors).length > 0 && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-700 dark:text-red-400 font-medium">
+                ⚠️ Please fix the errors above to continue
+              </p>
+            </div>
+          )}
+          
           <ProductionWizardNavigation
             currentStep={wizard.currentStep}
             totalSteps={wizard.totalSteps}
@@ -150,6 +190,7 @@ export function ProductionWizardContainer({
             onSubmit={handleSubmit}
             canGoNext={wizard.canProceed}
             canGoPrevious={wizard.currentStep > 0}
+            isSubmitting={isSubmitting}
           />
         </div>
       </div>

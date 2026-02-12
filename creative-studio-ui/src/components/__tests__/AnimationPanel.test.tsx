@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { AnimationPanel } from '../AnimationPanel';
 import { useStore } from '../../store';
 import type { Shot, Animation, Keyframe } from '../../types';
@@ -37,6 +37,11 @@ describe('AnimationPanel', () => {
       };
       return selector(state);
     });
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
   });
 
   describe('Rendering', () => {

@@ -3,9 +3,10 @@ import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout } from '../WizardFormLayout';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, RefreshCw, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useStore } from '@/store';
 import type { GenerationProgress, StoryGenerationParams, WorldContext } from '@/types/story';
+import type { MethodologyState, StoryPhase } from '@/types/storyMethodology';
 import { generateStory } from '@/services/storyGenerationService';
 import { Star, ScrollText, Layers, FileEdit } from 'lucide-react';
 
@@ -22,7 +23,81 @@ interface StoryWizardFormData {
   selectedLocations?: Array<{ id: string; name: string; significance: string }>;
   generatedContent?: string;
   generatedSummary?: string;
-  parts?: any[];
+  parts?: unknown[];
+  methodologyState?: MethodologyState;
+}
+
+// ============================================================================
+// Phase Progress Component
+// ============================================================================
+
+interface Phase {
+  phase: StoryPhase;
+  name: string;
+  description: string;
+}
+
+interface PhaseProgressProps {
+  phases: Phase[];
+  currentPhase: StoryPhase;
+  progress: number;
+}
+
+function PhaseProgress({ phases, currentPhase, progress }: PhaseProgressProps) {
+  const getPhaseIndex = (phase: StoryPhase) => 
+    phases.findIndex(p => p.phase === phase);
+  
+  const currentIndex = getPhaseIndex(currentPhase);
+  
+  return (
+    <div className="space-y-4">
+      {/* Overall Progress */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-medium">Overall Progress</span>
+          <span className="text-muted-foreground">{progress}%</span>
+        </div>
+        <Progress value={progress} className="h-2" />
+      </div>
+      
+      {/* Phase Steps */}
+      <div className="flex items-center justify-between">
+        {phases.map((phase, index) => {
+          const isComplete = index < currentIndex;
+          const isCurrent = index === currentIndex;
+          const isPending = index > currentIndex;
+          
+          return (
+            <React.Fragment key={phase.phase}>
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                    isComplete
+                      ? 'bg-green-500 text-white'
+                      : isCurrent
+                      ? 'bg-blue-500 text-white animate-pulse'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {isComplete ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : (
+                    index + 1
+                  )}
+                </div>
+                <span className={`text-xs mt-1 ${isCurrent ? 'font-medium text-primary' : 'text-muted-foreground'}`}>
+                  {phase.name}
+                </span>
+              </div>
+              {index < phases.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-2 ${index < currentIndex ? 'bg-green-500' : 'bg-muted'}`} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // ============================================================================
@@ -43,7 +118,6 @@ function GenerationProgressComponent({ progress }: GenerationProgressProps) {
     reviewing: 'Reviewing content quality...',
     refining: 'Refining story details...',
     generating_story: 'Generating story content...',
-    creating_summary: 'Creating summary...',
     complete: 'Generation complete!',
   };
 
@@ -89,7 +163,7 @@ function GenerationProgressComponent({ progress }: GenerationProgressProps) {
 // Story Preview Component
 // ============================================================================
 
-function StoryPartPreview({ part }: { part: any }) {
+function StoryPartPreview({ part }: { part: unknown }) {
   const scores = part.reviewScore;
 
   return (
@@ -100,7 +174,7 @@ function StoryPartPreview({ part }: { part: any }) {
           {part.title}
         </h4>
         {scores && (
-          <div className="flex items-center gap-2 px-2 py-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-bold">
+          <div className="flex items-center gap-2 px-2 py-1 rounded bg-amber-amber-900/30 text-amber100 dark:bg--700 dark:text-amber-400 text-xs font-bold">
             <Star className="w-3 h-3 fill-current" />
             Quality: {scores.overall}/10
           </div>
@@ -132,7 +206,7 @@ function StoryPartPreview({ part }: { part: any }) {
   );
 }
 
-function StoryPreview({ title, summary, content, parts }: any) {
+function StoryPreview({ title, summary, content, parts }: unknown) {
   const [activeTab, setActiveTab] = useState<'summary' | 'parts'>('parts');
 
   return (
@@ -170,7 +244,7 @@ function StoryPreview({ title, summary, content, parts }: any) {
       ) : (
         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           {parts && parts.length > 0 ? (
-            parts.map((part: any, index: number) => (
+            parts.map((part: unknown, index: number) => (
               <StoryPartPreview key={part.id || index} part={part} />
             ))
           ) : (
@@ -183,7 +257,7 @@ function StoryPreview({ title, summary, content, parts }: any) {
 
       {/* Metadata */}
       <div className="flex gap-4 text-xs text-muted-foreground py-2 border-t border-gray-100 dark:border-gray-800">
-        <span>📖 {content.split(' ').length} words</span>
+        <span>📖 {content?.split(' ').length || 0} words</span>
         <span>📑 {parts?.length || 1} parts</span>
       </div>
     </div>
@@ -206,13 +280,34 @@ export function Step4StoryGeneration() {
   });
 
   const [generatedStory, setGeneratedStory] = useState<any | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasSkipped, setHasSkipped] = useState(false);
 
   useEffect(() => {
-    // Start generation automatically when component mounts
-    handleGenerate();
-  }, []);
+    // Start generation automatically when component mounts (only if not skipped)
+    if (!hasSkipped && !generatedStory) {
+      handleGenerate();
+    }
+  }, [hasSkipped]);
+
+  const handleSkip = () => {
+    setHasSkipped(true);
+    setProgress({
+      stage: 'complete',
+      progress: 100,
+      currentTask: 'Generation skipped - you can enter content manually in the next step',
+    });
+    
+    // Set empty content to allow proceeding
+    updateFormData({
+      generatedContent: '[Enter your story content here]',
+      generatedSummary: '[Enter your story summary here]',
+      parts: [],
+    });
+  };
 
   const handleGenerate = async () => {
+    setIsGenerating(true);
     try {
       // Reset state
       setProgress({
@@ -239,7 +334,7 @@ export function Step4StoryGeneration() {
       } : undefined;
 
       // Get selected characters and locations
-      const selectedCharacterIds = formData.selectedCharacters?.map((c: any) => c.id) || [];
+      const selectedCharacterIds = formData.selectedCharacters?.map((c: unknown) => c.id) || [];
       const selectedCharacters = characters.filter(c => selectedCharacterIds.includes(c.character_id));
       const selectedLocations = formData.selectedLocations || [];
 
@@ -279,6 +374,7 @@ export function Step4StoryGeneration() {
         generatedContent: story.content,
         generatedSummary: story.summary,
         parts: story.parts,
+        methodologyState: story.methodologyState,
       });
 
     } catch (error) {
@@ -289,10 +385,13 @@ export function Step4StoryGeneration() {
         currentTask: progress.currentTask,
         error: error instanceof Error ? error.message : 'Failed to generate story',
       });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   const handleRetry = () => {
+    setHasSkipped(false);
     handleGenerate();
   };
 
@@ -301,18 +400,57 @@ export function Step4StoryGeneration() {
       title="Story Generation"
       description="Your story is being generated with AI"
     >
+      {/* Phase Progress (if methodology state exists) */}
+      {formData.methodologyState && (
+        <div className="mb-6">
+          <PhaseProgress
+            phases={[
+              { phase: 'intro_summary' as StoryPhase, name: 'Introduction', description: 'Generate intro' },
+              { phase: 'chapter_outline' as StoryPhase, name: 'Chapters', description: 'Plan chapters' },
+              { phase: 'ending_summary' as StoryPhase, name: 'Ending', description: 'Plan ending' },
+              { phase: 'full_content' as StoryPhase, name: 'Full Story', description: 'Expand content' },
+              { phase: 'revision' as StoryPhase, name: 'Revision', description: 'Refine story' },
+            ]}
+            currentPhase={formData.methodologyState.currentPhase}
+            progress={formData.methodologyState.progress}
+          />
+        </div>
+      )}
+
       {/* Progress Display */}
       <GenerationProgressComponent progress={progress} />
 
       {/* Retry Button (shown on error) */}
       {progress.error && (
+        <div className="flex gap-2">
+          <Button
+            onClick={handleRetry}
+            variant="outline"
+            className="flex-1 gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry Generation
+          </Button>
+          <Button
+            onClick={handleSkip}
+            variant="secondary"
+            className="flex-1 gap-2"
+          >
+            <ChevronRight className="w-4 h-4" />
+            Skip & Continue
+          </Button>
+        </div>
+      )}
+
+      {/* Skip Button (shown during generation) */}
+      {isGenerating && !progress.error && (
         <Button
-          onClick={handleRetry}
+          onClick={handleSkip}
           variant="outline"
           className="w-full gap-2 mt-4"
         >
-          <RefreshCw className="w-4 h-4" />
-          Retry Generation
+          <ChevronRight className="w-4 h-4" />
+          Skip Generation (Enter Content Manually)
         </Button>
       )}
 
@@ -339,3 +477,5 @@ export function Step4StoryGeneration() {
     </WizardFormLayout>
   );
 }
+
+

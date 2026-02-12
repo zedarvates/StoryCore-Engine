@@ -41,7 +41,7 @@ export interface ErrorContext {
   timestamp: number;
   attemptNumber: number;
   stackTrace?: string;
-  additionalInfo?: Record<string, any>;
+  additionalInfo?: Record<string, unknown>;
 }
 
 /**
@@ -510,4 +510,5 @@ export function logError(
  * Default error handler instance
  */
 export const defaultErrorHandler = new GenerationErrorHandler();
+
 

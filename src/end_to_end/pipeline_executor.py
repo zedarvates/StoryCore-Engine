@@ -15,7 +15,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-from .data_models import ProjectComponents
+from src.end_to_end.data_models import ProjectComponents
 
 
 class PipelineStep(Enum):

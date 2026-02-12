@@ -569,7 +569,7 @@ export class ProjectService {
    * @param data - Data to validate
    * @returns ValidationResult with errors and warnings
    */
-  validateProjectData(data: any): ValidationResult {
+  validateProjectData(data: unknown): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
     
@@ -646,7 +646,7 @@ export class ProjectService {
    * @param data - Legacy project data
    * @returns Migrated ProjectData
    */
-  migrateToDataContractV1(data: any): ProjectData {
+  migrateToDataContractV1(data: unknown): ProjectData {
     console.log('[ProjectService] Starting migration to Data Contract v1');
     console.log('[ProjectService] Source data structure:', Object.keys(data));
     
@@ -662,7 +662,7 @@ export class ProjectService {
     } else if (Array.isArray(data.shots)) {
       // Convert shots to storyboard format
       console.log('[ProjectService] Converting shots array to storyboard format');
-      storyboard = data.shots.map((shot: any) => ({
+      storyboard = data.shots.map((shot: unknown) => ({
         id: shot.id || `shot_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         title: shot.title || 'Untitled Shot',
         description: shot.description || '',
@@ -698,7 +698,7 @@ export class ProjectService {
       },
       storyboard: storyboard,
       assets: Array.isArray(data.assets) ? data.assets : [],
-      characters: Array.isArray(data.characters) ? data.characters.map((char: any) => ({
+      characters: Array.isArray(data.characters) ? data.characters.map((char: unknown) => ({
         id: char.character_id || char.id,
         name: char.name,
         reference_image_path: char.visual_identity?.reference_image || '',
@@ -719,3 +719,5 @@ export class ProjectService {
 
 // Export singleton instance
 export const projectService = new ProjectService();
+
+

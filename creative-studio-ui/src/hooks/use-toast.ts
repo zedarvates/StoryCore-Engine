@@ -103,3 +103,31 @@ export function useToast() {
     toasts: state.toasts,
   };
 }
+
+// Standalone toast function for use outside React components
+export function toast({
+  title,
+  description,
+  variant = 'default',
+  duration = 5000,
+  action,
+}: Omit<Toast, 'id'>) {
+  // Use counter for unique ID generation (avoids Math.random collisions)
+  toastIdCounter++;
+  const id = `toast-${toastIdCounter}-${Date.now()}`;
+
+  const newToast: Toast = { id, title, description, variant, duration, action };
+
+  toastState.toasts = [...toastState.toasts, newToast];
+  notify();
+
+  // Auto-dismiss after duration
+  if (duration > 0) {
+    setTimeout(() => {
+      toastState.toasts = toastState.toasts.filter((t) => t.id !== id);
+      notify();
+    }, duration);
+  }
+
+  return id;
+}

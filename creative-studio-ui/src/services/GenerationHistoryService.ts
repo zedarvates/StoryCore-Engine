@@ -77,7 +77,7 @@ export class GenerationHistoryService {
   public logGeneration(
     pipelineId: string,
     type: HistoryEntry['type'],
-    params: Record<string, any>,
+    params: Record<string, unknown>,
     result: GeneratedAsset
   ): HistoryEntry {
     // Determine version number
@@ -306,12 +306,12 @@ export class GenerationHistoryService {
   ): {
     version1Entry?: HistoryEntry;
     version2Entry?: HistoryEntry;
-    paramDifferences: Record<string, { v1: any; v2: any }>;
+    paramDifferences: Record<string, { v1: unknown; v2: unknown }>;
   } {
     const v1Entry = this.getVersion(assetId, version1);
     const v2Entry = this.getVersion(assetId, version2);
     
-    const paramDifferences: Record<string, { v1: any; v2: any }> = {};
+    const paramDifferences: Record<string, { v1: unknown; v2: unknown }> = {};
     
     if (v1Entry && v2Entry) {
       // Find parameter differences
@@ -536,3 +536,6 @@ export class GenerationHistoryService {
 
 // Export singleton instance
 export const generationHistoryService = GenerationHistoryService.getInstance();
+
+
+

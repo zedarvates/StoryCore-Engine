@@ -147,7 +147,7 @@ export function ComfyUIControlPanel({ className }: ComfyUIControlPanelProps) {
 
     try {
       // Create basic workflow based on type
-      let workflow: any = {};
+      let workflow: unknown = {};
       switch (workflowType) {
         case 'image':
           workflow = execution.client.getStoryboardFrameTemplate();
@@ -412,3 +412,4 @@ export function ComfyUIControlPanel({ className }: ComfyUIControlPanelProps) {
     </div>
   );
 }
+

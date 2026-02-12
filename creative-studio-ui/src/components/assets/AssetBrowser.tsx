@@ -220,7 +220,7 @@ export function AssetBrowser({
 
 interface CategoryItemProps {
   categoryId: string;
-  category: any;
+  category: unknown;
   isSelected: boolean;
   onClick: () => void;
 }
@@ -310,3 +310,4 @@ function AssetCard({ asset, isSelected, onClick }: AssetCardProps) {
     </button>
   );
 }
+

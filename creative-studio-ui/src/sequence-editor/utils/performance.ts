@@ -7,53 +7,15 @@
  * Requirements: 3.6, 20.1, 22.3
  */
 
-import { useCallback, useEffect, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useMemo, useState } from 'react';
+import { debounce, throttle } from '../../utils/debounceAndThrottle';
+
+// Re-export debounce and throttle from unified module
+export { debounce, throttle };
 
 // ============================================================================
-// Debounce and Throttle
+// Request Idle Callback
 // ============================================================================
-
-/**
- * Debounce a function call
- */
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null;
-  
-  return function executedFunction(...args: Parameters<T>) {
-    const later = () => {
-      timeout = null;
-      func(...args);
-    };
-    
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-    timeout = setTimeout(later, wait);
-  };
-}
-
-/**
- * Throttle a function call
- */
-export function throttle<T extends (...args: any[]) => any>(
-  func: T,
-  limit: number
-): (...args: Parameters<T>) => void {
-  let inThrottle: boolean = false;
-  
-  return function executedFunction(...args: Parameters<T>) {
-    if (!inThrottle) {
-      func(...args);
-      inThrottle = true;
-      setTimeout(() => {
-        inThrottle = false;
-      }, limit);
-    }
-  };
-}
 
 /**
  * Request idle callback with fallback
@@ -120,7 +82,7 @@ export function useThrottle<T>(value: T, limit: number): T {
 /**
  * Hook for debounced callback
  */
-export function useDebouncedCallback<T extends (...args: any[]) => any>(
+export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -143,7 +105,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
 /**
  * Hook for throttled callback
  */
-export function useThrottledCallback<T extends (...args: any[]) => any>(
+export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   limit: number
 ): (...args: Parameters<T>) => void {
@@ -278,7 +240,7 @@ export function useVirtualScroll(
 /**
  * Deep equality check for objects
  */
-export function deepEqual(obj1: any, obj2: any): boolean {
+export function deepEqual(obj1: unknown, obj2: unknown): boolean {
   if (obj1 === obj2) return true;
   
   if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
@@ -302,7 +264,7 @@ export function deepEqual(obj1: any, obj2: any): boolean {
 /**
  * Shallow equality check for objects
  */
-export function shallowEqual(obj1: any, obj2: any): boolean {
+export function shallowEqual(obj1: unknown, obj2: unknown): boolean {
   if (obj1 === obj2) return true;
   
   if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
@@ -414,7 +376,9 @@ export class LRUCache<K, V> {
     // Remove oldest if over limit
     if (this.cache.size > this.maxSize) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
     }
   }
   
@@ -435,7 +399,9 @@ export class LRUCache<K, V> {
  * Hook for LRU cache
  */
 export function useLRUCache<K, V>(maxSize: number = 100): LRUCache<K, V> {
-  return useMemo(() => new LRUCache<K, V>(maxSize), [maxSize]);
+  // Use useState with lazy initialization to avoid constructor issues in production
+  const [cache] = useState(() => new LRUCache<K, V>(maxSize));
+  return cache;
 }
 
 // ============================================================================
@@ -460,3 +426,5 @@ export function preloadComponent(
 // ============================================================================
 
 import * as React from 'react';
+
+

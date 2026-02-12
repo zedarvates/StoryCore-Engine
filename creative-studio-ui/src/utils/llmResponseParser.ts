@@ -1,9 +1,12 @@
 /**
  * LLM Response Parser Utility
  * 
- * Provides robust parsing for LLM responses with comprehensive logging
+ * Provides robust parsing for LLM responses with development-only logging
  * and fallback strategies for handling various response formats.
  */
+
+import { logger } from './logger';
+import { devLog, devWarn } from './devOnly';
 
 /**
  * Parse JSON from LLM response with detailed logging
@@ -13,36 +16,36 @@ export function parseLLMJSON<T = any>(
   response: string,
   context: string = 'LLM Response'
 ): T | null {
-  console.log(`🔍 [${context}] Raw response:`, response);
-  console.log(`🔍 [${context}] Response length:`, response?.length || 0);
+  devLog(`🔍 [${context}] Raw response:`, response);
+  devLog(`🔍 [${context}] Response length:`, response?.length || 0);
 
   if (!response || response.trim().length === 0) {
-    console.warn(`⚠️ [${context}] Empty response received`);
+    devWarn(`⚠️ [${context}] Empty response received`);
     return null;
   }
 
   try {
     const trimmed = response.trim();
-    console.log(`🔍 [${context}] Trimmed response (first 100 chars):`, trimmed.substring(0, 100));
+    devLog(`🔍 [${context}] Trimmed response (first 100 chars):`, trimmed.substring(0, 100));
 
     // Try to find JSON array or object
     const jsonMatch = trimmed.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
     if (jsonMatch) {
-      console.log(`📦 [${context}] Found JSON match`);
+      devLog(`📦 [${context}] Found JSON match`);
       try {
         const parsed = JSON.parse(jsonMatch[0]);
-        console.log(`✅ [${context}] Successfully parsed JSON:`, parsed);
+        devLog(`✅ [${context}] Successfully parsed JSON:`, parsed);
         return parsed as T;
       } catch (jsonError) {
-        console.error(`❌ [${context}] JSON parsing failed:`, jsonError);
-        console.error(`❌ [${context}] Failed JSON string:`, jsonMatch[0].substring(0, 200));
+        logger.error(`❌ [${context}] JSON parsing failed:`, jsonError);
+        logger.error(`❌ [${context}] Failed JSON string:`, jsonMatch[0].substring(0, 200));
       }
     } else {
-      console.warn(`⚠️ [${context}] No JSON object found in response`);
-      console.log(`🔍 [${context}] Response starts with:`, trimmed.substring(0, 100));
+      devWarn(`⚠️ [${context}] No JSON object found in response`);
+      devLog(`🔍 [${context}] Response starts with:`, trimmed.substring(0, 100));
     }
   } catch (error) {
-    console.error(`❌ [${context}] Unexpected error:`, error);
+    logger.error(`❌ [${context}] Unexpected error:`, error);
   }
 
   return null;
@@ -63,12 +66,12 @@ export function parseLLMArray<T = any>(
 
   // If it's already an array, return it
   if (Array.isArray(parsed)) {
-    console.log(`✨ [${context}] Extracted array with ${parsed.length} items`);
+    devLog(`✨ [${context}] Extracted array with ${parsed.length} items`);
     return parsed;
   }
 
   // If it's a single object, wrap it in an array
-  console.log(`✨ [${context}] Wrapped single object in array`);
+  devLog(`✨ [${context}] Wrapped single object in array`);
   return [parsed];
 }
 
@@ -87,12 +90,12 @@ export function parseLLMObject<T = any>(
 
   // If it's an array, take the first element
   if (Array.isArray(parsed)) {
-    console.log(`✨ [${context}] Extracted first object from array`);
+    devLog(`✨ [${context}] Extracted first object from array`);
     return parsed[0] || null;
   }
 
   // If it's already an object, return it
-  console.log(`✨ [${context}] Extracted object`);
+  devLog(`✨ [${context}] Extracted object`);
   return parsed as T;
 }
 
@@ -101,14 +104,14 @@ export function parseLLMObject<T = any>(
  */
 export function validateLLMResponse(response: string, context: string = 'LLM Response'): boolean {
   if (!response || response.trim().length === 0) {
-    console.error(`❌ [${context}] Response is empty!`);
-    console.error(`❌ [${context}] This usually means the LLM model has extended thinking enabled`);
-    console.error(`❌ [${context}] and is consuming all tokens without producing output.`);
-    console.error(`❌ [${context}] Try using a different model like llama3.1:8b instead of qwen3-vl`);
+    logger.error(`❌ [${context}] Response is empty!`);
+    logger.error(`❌ [${context}] This usually means the LLM model has extended thinking enabled`);
+    logger.error(`❌ [${context}] and is consuming all tokens without producing output.`);
+    logger.error(`❌ [${context}] Try using a different model like llama3.1:8b instead of qwen3-vl`);
     return false;
   }
 
-  console.log(`✅ [${context}] Response is valid (${response.length} chars)`);
+  devLog(`✅ [${context}] Response is valid (${response.length} chars)`);
   return true;
 }
 
@@ -116,15 +119,15 @@ export function validateLLMResponse(response: string, context: string = 'LLM Res
  * Extract text content from LLM response (for non-JSON responses)
  */
 export function extractLLMText(response: string, context: string = 'LLM Text Response'): string {
-  console.log(`🔍 [${context}] Extracting text from response`);
+  devLog(`🔍 [${context}] Extracting text from response`);
 
   if (!response || response.trim().length === 0) {
-    console.warn(`⚠️ [${context}] Empty response`);
+    devWarn(`⚠️ [${context}] Empty response`);
     return '';
   }
 
   const trimmed = response.trim();
-  console.log(`✨ [${context}] Extracted text (${trimmed.length} chars)`);
+  devLog(`✨ [${context}] Extracted text (${trimmed.length} chars)`);
   return trimmed;
 }
 
@@ -132,10 +135,10 @@ export function extractLLMText(response: string, context: string = 'LLM Text Res
  * Parse comma-separated values from LLM response
  */
 export function parseLLMCSV(response: string, context: string = 'LLM CSV Response'): string[] {
-  console.log(`🔍 [${context}] Parsing CSV from response`);
+  devLog(`🔍 [${context}] Parsing CSV from response`);
 
   if (!response || response.trim().length === 0) {
-    console.warn(`⚠️ [${context}] Empty response`);
+    devWarn(`⚠️ [${context}] Empty response`);
     return [];
   }
 
@@ -144,7 +147,7 @@ export function parseLLMCSV(response: string, context: string = 'LLM CSV Respons
     .map(item => item.trim())
     .filter(item => item.length > 0);
 
-  console.log(`✨ [${context}] Extracted ${items.length} items`);
+  devLog(`✨ [${context}] Extracted ${items.length} items`);
   return items;
 }
 
@@ -152,10 +155,10 @@ export function parseLLMCSV(response: string, context: string = 'LLM CSV Respons
  * Parse numbered list from LLM response
  */
 export function parseLLMNumberedList(response: string, context: string = 'LLM List Response'): string[] {
-  console.log(`🔍 [${context}] Parsing numbered list from response`);
+  devLog(`🔍 [${context}] Parsing numbered list from response`);
 
   if (!response || response.trim().length === 0) {
-    console.warn(`⚠️ [${context}] Empty response`);
+    devWarn(`⚠️ [${context}] Empty response`);
     return [];
   }
 
@@ -169,6 +172,6 @@ export function parseLLMNumberedList(response: string, context: string = 'LLM Li
     }
   }
 
-  console.log(`✨ [${context}] Extracted ${items.length} items from numbered list`);
+  devLog(`✨ [${context}] Extracted ${items.length} items from numbered list`);
   return items;
 }

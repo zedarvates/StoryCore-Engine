@@ -39,7 +39,7 @@ export interface FXTrack extends Track {
 export interface EffectNode {
   id: string;
   effectType: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   enabled: boolean;
   bypass: boolean;
 }
@@ -97,7 +97,7 @@ export interface Marker {
   label: string;
   color: string;
   type: 'chapter' | 'cue' | 'beat' | 'section' | 'custom';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface LayerTrack extends Track {
@@ -288,7 +288,7 @@ export function createFXTrack(
 export function addEffectToFXTrack(
   trackId: string,
   effectType: string,
-  parameters: Record<string, any>,
+  parameters: Record<string, unknown>,
   tracks: FXTrack[]
 ): FXTrack[] {
   return tracks.map((track) => {
@@ -838,3 +838,4 @@ export function toggleGroupVisibility(
   
   return { groups: updatedGroups, tracks: updatedTracks };
 }
+

@@ -2,8 +2,8 @@
  * ResultsGallery Component Tests
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { ResultsGallery } from '../ResultsGallery';
 import type { GeneratedResult } from '@/services/resultService';
 
@@ -71,6 +71,11 @@ describe('ResultsGallery', () => {
 
     const { useResultDisplay } = require('@/hooks/useResultDisplay');
     useResultDisplay.mockReturnValue(mockHookReturn);
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {

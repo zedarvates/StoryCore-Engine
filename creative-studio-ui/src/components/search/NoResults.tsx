@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Search, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { SearchService } from '../../services/search/SearchService';
+import { getSearchService } from '../../services/search/SearchService';
 
 export interface NoResultsProps {
   query: string;
@@ -12,11 +12,10 @@ export const NoResults: React.FC<NoResultsProps> = ({
   query,
   onSuggestionClick
 }) => {
-  const searchService = useMemo(() => new SearchService(), []);
-
   const suggestions = useMemo(() => {
+    const searchService = getSearchService();
     return searchService.getAlternativeSuggestions(query);
-  }, [query, searchService]);
+  }, [query]);
 
   return (
     <motion.div

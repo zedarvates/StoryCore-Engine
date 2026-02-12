@@ -164,7 +164,7 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
     }
   };
 
-  const performPostInstallationVerification = async (installResult: any) => {
+  const performPostInstallationVerification = async (installResult: unknown) => {
     try {
       setInstallationProgress(95, 'Verifying installation...');
 
@@ -211,7 +211,7 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
     }
   };
 
-  const updateApplicationConfiguration = async (config: any) => {
+  const updateApplicationConfiguration = async (config: unknown) => {
     try {
       // Update local storage
       localStorage.setItem('comfyui_config', JSON.stringify(config));
@@ -405,3 +405,4 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
     </div>
   );
 };
+

@@ -2,24 +2,93 @@
  * DataValidator - Service de validation des données
  *
  * Valide les schémas JSON et contraintes métier pour toutes les entités
+ *
+ * @updated 2026-02-12 - Migrated `any` types to specific types
  */
 
 import { World } from '@/types/world';
 import { Character } from '@/types/character';
 
+// ============================================================================
+// Validation Types (Migrated from `any`)
+// ============================================================================
+
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
   warnings: string[];
-  score: number; // Score de qualité des données (0-100)
+  score: number;
 }
+
+/** Generic validator function - replaces `(data: unknown) => boolean` */
+type GenericValidator = (data: unknown) => boolean;
 
 export interface ValidationRule {
   name: string;
-  validator: (data: any) => boolean;
+  validator: GenericValidator;
   message: string;
   severity: 'error' | 'warning';
-  weight: number; // Impact sur le score (0-10)
+  weight: number;
+}
+
+/** Schema definition for JSON validation - replaces `any` */
+export interface JsonSchema {
+  type?: string;
+  required?: string[];
+  properties?: Record<string, JsonSchema>;
+  items?: JsonSchema;
+  [key: string]: unknown;
+}
+
+/** Sequence validation data interface - replaces `any` */
+export interface SequenceValidationData {
+  id?: string;
+  name?: string;
+  duration?: number;
+  shots?: number;
+}
+
+/** Scene validation data interface - replaces `any` */
+export interface SceneValidationData {
+  description?: string;
+  characters?: string[];
+}
+
+/** Shot validation data interface - replaces `any` */
+export interface ShotValidationData {
+  id?: string;
+  description?: string;
+  duration?: number;
+  camera_angle?: string;
+}
+
+/** Type-safe validator wrapper - allows typed validators in generic context */
+function createValidator<T>(
+  validator: (data: T) => boolean
+): (data: unknown) => boolean {
+  return (data: unknown) => validator(data as T);
+}
+
+/** Sequence validation data interface - replaces `any` */
+export interface SequenceValidationData {
+  id?: string;
+  name?: string;
+  duration?: number;
+  shots?: number;
+}
+
+/** Scene validation data interface - replaces `any` */
+export interface SceneValidationData {
+  description?: string;
+  characters?: string[];
+}
+
+/** Shot validation data interface - replaces `any` */
+export interface ShotValidationData {
+  id?: string;
+  description?: string;
+  duration?: number;
+  camera_angle?: string;
 }
 
 /**
@@ -57,25 +126,25 @@ export class DataValidator {
   }
 
   /**
-   * Valide une séquence
+   * Valide une séquence - typed interface
    */
-  validateSequence(sequence: any): ValidationResult {
+  validateSequence(sequence: SequenceValidationData): ValidationResult {
     const rules = this.rules.get('sequence') || [];
     return this.validateEntity(sequence, rules);
   }
 
   /**
-   * Valide une scène
+   * Valide une scène - typed interface
    */
-  validateScene(scene: any): ValidationResult {
+  validateScene(scene: SceneValidationData): ValidationResult {
     const rules = this.rules.get('scene') || [];
     return this.validateEntity(scene, rules);
   }
 
   /**
-   * Valide un plan
+   * Valide un plan - typed interface
    */
-  validateShot(shot: any): ValidationResult {
+  validateShot(shot: ShotValidationData): ValidationResult {
     const rules = this.rules.get('shot') || [];
     return this.validateEntity(shot, rules);
   }
@@ -83,7 +152,7 @@ export class DataValidator {
   /**
    * Validation générique d'entité
    */
-  private validateEntity(entity: any, rules: ValidationRule[]): ValidationResult {
+  private validateEntity(entity: unknown, rules: ValidationRule[]): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
     let totalScore = 100;
@@ -254,28 +323,28 @@ export class DataValidator {
     this.rules.set('sequence', [
       {
         name: 'has-valid-id',
-        validator: (sequence: any) => !!sequence.id && typeof sequence.id === 'string',
+        validator: createValidator<SequenceValidationData>((sequence) => !!sequence.id && typeof sequence.id === 'string'),
         message: 'Sequence must have a valid string ID',
         severity: 'error',
         weight: 10
       },
       {
         name: 'has-name',
-        validator: (sequence: any) => !!sequence.name && sequence.name.trim().length > 0,
+        validator: createValidator<SequenceValidationData>((sequence) => !!sequence.name && sequence.name.trim().length > 0),
         message: 'Sequence must have a name',
         severity: 'error',
         weight: 8
       },
       {
         name: 'has-duration',
-        validator: (sequence: any) => typeof sequence.duration === 'number' && sequence.duration > 0,
+        validator: createValidator<SequenceValidationData>((sequence) => typeof sequence.duration === 'number' && sequence.duration > 0),
         message: 'Sequence must have a valid duration',
         severity: 'error',
         weight: 6
       },
       {
         name: 'has-shots',
-        validator: (sequence: any) => !!sequence.shots && typeof sequence.shots === 'number' && sequence.shots >= 0,
+        validator: createValidator<SequenceValidationData>((sequence) => typeof sequence.shots === 'number' && sequence.shots >= 0),
         message: 'Sequence must specify number of shots',
         severity: 'warning',
         weight: 3
@@ -286,14 +355,14 @@ export class DataValidator {
     this.rules.set('scene', [
       {
         name: 'has-description',
-        validator: (scene: any) => !!scene.description && scene.description.trim().length > 0,
+        validator: createValidator<SceneValidationData>((scene) => !!scene.description && scene.description.trim().length > 0),
         message: 'Scene must have a description',
         severity: 'error',
         weight: 8
       },
       {
         name: 'has-characters',
-        validator: (scene: any) => !!scene.characters && Array.isArray(scene.characters) && scene.characters.length > 0,
+        validator: createValidator<SceneValidationData>((scene) => Array.isArray(scene.characters) && scene.characters.length > 0),
         message: 'Scene should involve characters',
         severity: 'warning',
         weight: 3
@@ -304,28 +373,28 @@ export class DataValidator {
     this.rules.set('shot', [
       {
         name: 'has-valid-id',
-        validator: (shot: any) => !!shot.id && typeof shot.id === 'string',
+        validator: createValidator<ShotValidationData>((shot) => !!shot.id && typeof shot.id === 'string'),
         message: 'Shot must have a valid string ID',
         severity: 'error',
         weight: 10
       },
       {
         name: 'has-description',
-        validator: (shot: any) => !!shot.description && shot.description.trim().length > 0,
+        validator: createValidator<ShotValidationData>((shot) => !!shot.description && shot.description.trim().length > 0),
         message: 'Shot must have a description',
         severity: 'error',
         weight: 8
       },
       {
         name: 'has-duration',
-        validator: (shot: any) => typeof shot.duration === 'number' && shot.duration > 0,
+        validator: createValidator<ShotValidationData>((shot) => typeof shot.duration === 'number' && shot.duration > 0),
         message: 'Shot must have a valid duration',
         severity: 'error',
         weight: 6
       },
       {
         name: 'has-camera-angle',
-        validator: (shot: any) => !!shot.camera_angle,
+        validator: createValidator<ShotValidationData>((shot) => !!shot.camera_angle),
         message: 'Camera angle should be specified',
         severity: 'warning',
         weight: 2
@@ -357,7 +426,7 @@ export class DataValidator {
   /**
    * Valide un schéma JSON générique
    */
-  validateJSONSchema(data: any, schema: any): ValidationResult {
+  validateJSONSchema(data: unknown, schema: JsonSchema): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
     let score = 100;
@@ -382,13 +451,16 @@ export class DataValidator {
    * Validation récursive contre un schéma
    */
   private validateObjectAgainstSchema(
-    data: any,
-    schema: any,
+    data: unknown,
+    schema: JsonSchema,
     path: string,
     errors: string[],
     warnings: string[]
   ): void {
-    if (!schema) return;
+    if (!schema || data === null || data === undefined) return;
+
+    const objData = data as Record<string, unknown>;
+    const objSchema = schema as JsonSchema & { properties?: Record<string, JsonSchema> };
 
     // Validation de type
     if (schema.type) {
@@ -402,7 +474,7 @@ export class DataValidator {
     // Validation de propriétés requises
     if (schema.required && Array.isArray(schema.required)) {
       for (const requiredProp of schema.required) {
-        if (!(requiredProp in data)) {
+        if (!(requiredProp in objData)) {
           errors.push(`${path}: Missing required property "${requiredProp}"`);
         }
       }
@@ -411,18 +483,19 @@ export class DataValidator {
     // Validation des propriétés
     if (schema.properties && typeof data === 'object') {
       for (const [prop, propSchema] of Object.entries(schema.properties)) {
-        if (prop in data) {
+        if (prop in objData) {
           const newPath = path ? `${path}.${prop}` : prop;
-          this.validateObjectAgainstSchema(data[prop], propSchema, newPath, errors, warnings);
+          this.validateObjectAgainstSchema(objData[prop], propSchema as JsonSchema, newPath, errors, warnings);
         }
       }
     }
 
     // Validation des items de tableau
     if (schema.items && Array.isArray(data)) {
+      const itemsSchema = schema.items;
       data.forEach((item, index) => {
         const newPath = `${path}[${index}]`;
-        this.validateObjectAgainstSchema(item, schema.items, newPath, errors, warnings);
+        this.validateObjectAgainstSchema(item, itemsSchema, newPath, errors, warnings);
       });
     }
   }
@@ -477,3 +550,4 @@ export class DataValidator {
 
 // Export de l'instance singleton
 export const dataValidator = DataValidator.getInstance();
+

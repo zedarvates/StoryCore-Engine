@@ -52,8 +52,8 @@ export interface VersionDifference {
   panelId?: string;
   layerId?: string;
   description: string;
-  before?: any;
-  after?: any;
+  before?: unknown;
+  after?: unknown;
 }
 
 /**
@@ -278,8 +278,8 @@ export class VersionControlService {
    */
   private compareLayerArrays(
     panelId: string,
-    layers1: any[],
-    layers2: any[]
+    layers1: unknown[],
+    layers2: unknown[]
   ): VersionDifference[] {
     const differences: VersionDifference[] = [];
 
@@ -544,3 +544,5 @@ export class VersionControlService {
  * Default version control service instance
  */
 export const versionControlService = new VersionControlService();
+
+

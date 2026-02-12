@@ -477,7 +477,7 @@ export class PlaybackEngine {
   /**
    * Apply animation value to context
    */
-  private applyAnimationValue(property: Animation['property'], value: any): void {
+  private applyAnimationValue(property: Animation['property'], value: unknown): void {
     switch (property) {
       case 'position':
         if (typeof value === 'object' && 'x' in value && 'y' in value) {
@@ -505,7 +505,7 @@ export class PlaybackEngine {
   /**
    * Interpolate between keyframes
    */
-  private interpolateKeyframes(keyframes: Keyframe[], time: number): any {
+  private interpolateKeyframes(keyframes: Keyframe[], time: number): unknown {
     if (keyframes.length === 0) return 0;
     if (keyframes.length === 1) return keyframes[0].value;
 
@@ -653,3 +653,5 @@ export class PlaybackEngine {
     this.imageCache.clear();
   }
 }
+
+

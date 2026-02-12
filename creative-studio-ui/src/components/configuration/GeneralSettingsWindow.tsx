@@ -198,7 +198,7 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-7">
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Theme</Label>
-                <Select value={settings.theme} onValueChange={(value: any) => updateSetting('theme', value)}>
+                <Select value={settings.theme} onValueChange={(value: unknown) => updateSetting('theme', value)}>
                   <SelectTrigger className="bg-background/50 border-primary/30">
                     <SelectValue />
                   </SelectTrigger>
@@ -242,7 +242,7 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Font Size</Label>
-                <Select value={settings.fontSize} onValueChange={(value: any) => updateSetting('fontSize', value)}>
+                <Select value={settings.fontSize} onValueChange={(value: unknown) => updateSetting('fontSize', value)}>
                   <SelectTrigger className="bg-background/50 border-primary/30">
                     <SelectValue />
                   </SelectTrigger>
@@ -322,7 +322,7 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Sidebar Position</Label>
-                <Select value={settings.sidebarPosition} onValueChange={(value: any) => updateSetting('sidebarPosition', value)}>
+                <Select value={settings.sidebarPosition} onValueChange={(value: unknown) => updateSetting('sidebarPosition', value)}>
                   <SelectTrigger className="bg-background/50 border-primary/30">
                     <SelectValue />
                   </SelectTrigger>
@@ -431,7 +431,7 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Preview Quality</Label>
-                <Select value={settings.previewQuality} onValueChange={(value: any) => updateSetting('previewQuality', value)}>
+                <Select value={settings.previewQuality} onValueChange={(value: unknown) => updateSetting('previewQuality', value)}>
                   <SelectTrigger className="bg-background/50 border-primary/30">
                     <SelectValue />
                   </SelectTrigger>
@@ -529,3 +529,4 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
     </Dialog>
   );
 }
+

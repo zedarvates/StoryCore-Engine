@@ -38,7 +38,7 @@ interface MetadataField {
  * Changements de métadonnées
  */
 interface MetadataChanges {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -94,7 +94,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
    * Valeurs communes entre les plans sélectionnés
    */
   const commonValues = useMemo(() => {
-    const values: Record<string, any> = {};
+    const values: Record<string, unknown> = {};
     
     for (const field of fields) {
       const fieldValues = selectedShots.map(shot => {
@@ -124,7 +124,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
   /**
    * Met à jour un champ
    */
-  const handleFieldChange = useCallback((key: string, value: any) => {
+  const handleFieldChange = useCallback((key: string, value: unknown) => {
     setChanges(prev => ({
       ...prev,
       [key]: value
@@ -405,3 +405,6 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
     </motion.div>
   );
 };
+
+
+

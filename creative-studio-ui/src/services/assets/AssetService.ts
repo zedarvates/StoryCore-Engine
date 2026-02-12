@@ -502,7 +502,7 @@ export class AssetService {
     const projectJsonPath = this.joinPath(projectPath, 'project.json');
 
     // Read existing project.json
-    let projectData: any = {};
+    let projectData: unknown = {};
     try {
       const exists = await window.electronAPI.fs.exists(projectJsonPath);
       if (exists) {
@@ -600,3 +600,4 @@ export class AssetService {
     }
   }
 }
+

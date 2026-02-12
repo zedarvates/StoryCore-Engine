@@ -5,8 +5,9 @@ import './EditorSection.css';
 interface BasicIdentitySectionProps {
   data: Partial<Character>;
   errors: Record<string, string[]>;
-  onChange: (field: string, value: any) => void;
-  onNestedChange: (section: string, field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
+  onNestedChange: (section: string, field: string, value: unknown) => void;
+  id?: string;
 }
 
 export function BasicIdentitySection({
@@ -130,3 +131,4 @@ export function BasicIdentitySection({
     </div>
   );
 }
+

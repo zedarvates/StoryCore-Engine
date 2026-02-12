@@ -8,12 +8,82 @@ import json
 from pathlib import Path
 from typing import Dict, List, Any, Tuple
 from datetime import datetime
+import logging
 
-# Import quality validation modules
 from quality_validator import QualityValidator, ValidationMode, QualityStandard
 from quality_feedback import QualityFeedback
 from report_generator import JSONReportGenerator
 from audio_mixing_engine import AudioMixingEngine
+
+logger = logging.getLogger(__name__)
+
+
+class JobLogger:
+    """Handles job logging for QA operations"""
+    
+    def __init__(self, project_dir: str):
+        self.project_dir = Path(project_dir)
+        self.job_log_file = self.project_dir / "qa_job_log.json"
+        self.jobs: Dict[str, Dict[str, Any]] = {}
+    
+    def start_job(self, job_id: str, project_id: str, job_type: str) -> None:
+        """Start a new job log entry"""
+        self.jobs[job_id] = {
+            "job_id": job_id,
+            "project_id": project_id,
+            "job_type": job_type,
+            "start_time": datetime.utcnow().isoformat() + "Z",
+            "status": "running",
+            "steps": [],
+            "errors": []
+        }
+    
+    def add_step(self, job_id: str, step_name: str, status: str, details: Dict[str, Any] = None) -> None:
+        """Add a step to a job log"""
+        if job_id in self.jobs:
+            step = {
+                "step_name": step_name,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "status": status
+            }
+            if details:
+                step["details"] = details
+            self.jobs[job_id]["steps"].append(step)
+    
+    def complete_job(self, job_id: str, status: str, results: Dict[str, Any] = None) -> None:
+        """Complete a job log entry"""
+        if job_id in self.jobs:
+            self.jobs[job_id]["status"] = status
+            self.jobs[job_id]["end_time"] = datetime.utcnow().isoformat() + "Z"
+            if results:
+                self.jobs[job_id]["results"] = results
+    
+    def log_error(self, job_id: str, error: str, context: Dict[str, Any] = None) -> None:
+        """Log an error for a job"""
+        if job_id in self.jobs:
+            error_entry = {
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "error": error
+            }
+            if context:
+                error_entry["context"] = context
+            self.jobs[job_id]["errors"].append(error_entry)
+    
+    def save(self) -> None:
+        """Save job log to file"""
+        try:
+            with open(self.job_log_file, 'w') as f:
+                json.dump(self.jobs, f, indent=2)
+        except Exception as e:
+            logger.error(f"Failed to save job log: {e}")
+    
+    def get_job(self, job_id: str) -> Dict[str, Any]:
+        """Get a specific job log"""
+        return self.jobs.get(job_id, {})
+    
+    def get_all_jobs(self) -> Dict[str, Dict[str, Any]]:
+        """Get all job logs"""
+        return self.jobs
 
 
 class QAEngine:
@@ -28,6 +98,13 @@ class QAEngine:
     def run_qa_scoring(self, project_dir: str, enable_advanced_validation: bool = True, enable_audio_mixing: bool = True) -> Dict[str, Any]:
         """Run complete QA scoring on a project with integrated quality validation."""
         project_path = Path(project_dir)
+        
+        # Initialize job logger
+        job_logger = JobLogger(project_dir)
+        job_id = f"qa_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        project_data = self._load_project_data(project_path)
+        project_id = project_data.get("project_id", "unknown")
+        job_logger.start_job(job_id, project_id, "qa_scoring")
 
         # Initialize quality validation components
         quality_validator = QualityValidator(ValidationMode.BATCH) if enable_advanced_validation else None
@@ -35,22 +112,35 @@ class QAEngine:
         report_generator = JSONReportGenerator() if enable_advanced_validation else None
         audio_mixer = AudioMixingEngine() if enable_audio_mixing else None
 
+        job_logger.add_step(job_id, "initialize_components", "completed", {
+            "quality_validator": enable_advanced_validation,
+            "audio_mixer": enable_audio_mixing
+        })
+
         # Load project data
         project_data = self._load_project_data(project_path)
         if not project_data:
+            job_logger.log_error(job_id, "Failed to load project data")
             return self._create_error_report("Failed to load project data")
 
         # Run scoring
         scores = self._score_project(project_data, project_path, quality_validator, audio_mixer)
+        job_logger.add_step(job_id, "score_project", "completed", {"scores": scores})
+        
         issues = self._detect_issues(project_data, scores)
 
         # Add advanced quality validation if enabled
         advanced_issues = []
         quality_scores = []
         if quality_validator and enable_advanced_validation:
+            job_logger.add_step(job_id, "advanced_quality_validation", "running")
             advanced_issues, quality_scores = self._run_advanced_quality_validation(
                 project_path, project_data, quality_validator, quality_feedback
             )
+            job_logger.add_step(job_id, "advanced_quality_validation", "completed", {
+                "issues_count": len(advanced_issues),
+                "quality_scores_count": len(quality_scores)
+            })
 
         # Combine issues
         all_issues = issues + advanced_issues
@@ -58,10 +148,14 @@ class QAEngine:
         # Check if audio mixing should be performed (between promotion and QA)
         audio_mixing_recommended = self._check_audio_mixing_needed(project_data, project_path)
         if audio_mixing_recommended and enable_audio_mixing:
+            job_logger.add_step(job_id, "audio_mixing", "running")
             mixing_result = self._perform_audio_mixing(project_path, project_data, audio_mixer)
             if mixing_result:
                 # Update project data with mixing metadata
                 project_data["asset_manifest"]["audio_mixing"] = mixing_result
+                job_logger.add_step(job_id, "audio_mixing", "completed", {"mixing_result": mixing_result})
+            else:
+                job_logger.add_step(job_id, "audio_mixing", "skipped", {"reason": "No audio files found"})
 
         # Calculate overall results
         category_scores = {k: v for k, v in scores.items() if k != "overall"}
@@ -69,6 +163,12 @@ class QAEngine:
         passed = overall_score >= self.thresholds["pass_score"] and all(
             score >= self.thresholds["min_category_score"] for score in category_scores.values()
         )
+        
+        job_logger.add_step(job_id, "calculate_results", "completed", {
+            "overall_score": overall_score,
+            "passed": passed,
+            "category_count": len(category_scores)
+        })
 
         # Generate comprehensive quality report if enabled
         quality_report = None
@@ -77,6 +177,7 @@ class QAEngine:
                 quality_scores,
                 project_data.get("project_id", "unknown")
             )
+            job_logger.add_step(job_id, "generate_quality_report", "completed", {"report_generated": True})
 
         # Create QA report
         qa_report = {
@@ -94,6 +195,11 @@ class QAEngine:
             "quality_scores": [score.to_dict() for score in quality_scores] if quality_scores else [],
             "quality_report": quality_report
         }
+        
+        job_logger.complete_job(job_id, "completed" if passed else "failed", qa_report)
+        job_logger.save()
+        
+        logger.info(f"QA job {job_id} completed with status: {qa_report['status']}")
 
         return qa_report
     

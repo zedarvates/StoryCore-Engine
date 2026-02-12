@@ -469,7 +469,7 @@ export const useAddonStore = create<AddonStore>()(
           const response = await apiCall<{ 
             success: boolean; 
             updates_available: number;
-            updates: any[];
+            updates: unknown[];
           }>('/updates/check');
           
           // TODO: Handle updates (show notification, etc.)
@@ -540,3 +540,4 @@ export const selectDisabledAddons = (state: AddonStore) => {
 export const selectErrorAddons = (state: AddonStore) => {
   return state.addons.filter(addon => addon.status === 'error');
 };
+

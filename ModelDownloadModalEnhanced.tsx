@@ -30,7 +30,8 @@ export const ModelDownloadModal: React.FC<ModelDownloadModalProps> = ({
     { name: 'flux2-vae.safetensors', url: 'https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors', subfolder: 'vae', size: '335MB' },
     { name: 'flux2_berthe_morisot.safetensors', url: 'https://huggingface.co/ostris/flux2_berthe_morisot/resolve/main/flux2_berthe_morisot.safetensors', subfolder: 'loras', size: '100MB' },
     { name: 'flux2_dev_fp8mixed.safetensors', url: 'https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/diffusion_models/flux2_dev_fp8mixed.safetensors', subfolder: 'checkpoints', size: '3.5GB' },
-    { name: 'mistral_3_small_flux2_bf16.safetensors', url: 'https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_bf16.safetensors', subfolder: 'clip', size: '7.2GB' }
+    { name: 'mistral_3_small_flux2_bf16.safetensors', url: 'https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_bf16.safetensors', subfolder: 'clip', size: '7.2GB' },
+    { name: 'beyond_reality_super_z_image_3.0_bf16.safetensors', url: 'https://huggingface.co/mingyi456/BEYOND_REALITY_Z_IMAGE-DF11-ComfyUI/resolve/main/BEYOND%20REALITY%20SUPER%20Z%20IMAGE%203.0%20%E6%B7%A1%E5%A6%86%E6%B5%93%E6%8A%B9%20BF16-DF11.safetensors', subfolder: 'checkpoints', size: '5.5GB' }
   ];
 
   const selectManualPath = async () => {
@@ -117,11 +118,23 @@ export const ModelDownloadModal: React.FC<ModelDownloadModalProps> = ({
   const validateDownloadedModels = async () => {
     // Simulate model validation (20% chance of missing models for demo)
     const missingModels = Math.random() < 0.2 ? [models[0]] : [];
-    
+
     return {
       allValid: missingModels.length === 0,
       missingModels: missingModels
     };
+  };
+
+  const checkComfyUIStatus = async (): Promise<boolean> => {
+    // Simulate checking if ComfyUI is running
+    try {
+      const response = await fetch('http://127.0.0.1:8188/object_info', {
+        signal: AbortSignal.timeout(5000)
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
   };
 
   const triggerAutomaticFallback = async (missingModels: ModelInfo[]) => {
@@ -260,7 +273,7 @@ export const ModelDownloadModal: React.FC<ModelDownloadModalProps> = ({
 
         {/* Model List */}
         <div className="mb-6">
-          <h4 className="font-medium mb-3">Required Models (Total: ~11.1 GB)</h4>
+          <h4 className="font-medium mb-3">Required Models (Total: ~16.6 GB)</h4>
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {models.map((model, index) => (
               <div key={index} className="flex justify-between items-center p-2 bg-gray-700 rounded text-sm">

@@ -32,7 +32,7 @@ interface StorageAdapter {
  * Electron secure storage adapter
  */
 class ElectronStorageAdapter implements StorageAdapter {
-  private electronAPI: any;
+  private electronAPI: unknown;
 
   constructor() {
     // Get Electron API if available
@@ -307,7 +307,7 @@ export class DraftStorageService {
   /**
    * Validate draft data structure
    */
-  private isValidDraft(draftData: any): boolean {
+  private isValidDraft(draftData: unknown): boolean {
     return (
       draftData &&
       typeof draftData === 'object' &&
@@ -379,3 +379,5 @@ export class DraftStorageService {
 
 // Export singleton instance
 export const draftStorage = new DraftStorageService();
+
+

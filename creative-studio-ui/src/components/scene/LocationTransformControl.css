@@ -1,0 +1,190 @@
+/**
+ * LocationTransformControl Styles
+ * 
+ * CSS styles for the LocationTransformControl component.
+ * 
+ * File: creative-studio-ui/src/components/scene/LocationTransformControl.css
+ */
+
+/* Container */
+.location-transform-control {
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Header */
+.location-transform-control__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-tertiary, #333);
+}
+
+.location-transform-control__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-transform-control__instance-id {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--primary-color, #6366f1);
+  background: rgba(99, 102, 241, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Tabs */
+.location-transform-control__tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.location-transform-control__tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted, #666);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-transform-control__tab:hover {
+  color: var(--text-secondary, #a0a0a0);
+  background: var(--bg-tertiary, #333);
+}
+
+.location-transform-control__tab--active {
+  color: var(--primary-color, #6366f1);
+  border-bottom-color: var(--primary-color, #6366f1);
+}
+
+/* Content */
+.location-transform-control__content {
+  padding: 16px;
+}
+
+/* Inputs */
+.location-transform-control__inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.location-transform-control__axis {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.location-transform-control__axis-label {
+  width: 24px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.location-transform-control__axis--x .location-transform-control__axis-label {
+  color: #ef4444;
+}
+
+.location-transform-control__axis--y .location-transform-control__axis-label {
+  color: #22c55e;
+}
+
+.location-transform-control__axis--z .location-transform-control__axis-label {
+  color: #3b82f6;
+}
+
+.location-transform-control__axis input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-primary, #1a1a1a);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 14px;
+  font-family: monospace;
+  text-align: center;
+}
+
+.location-transform-control__axis input:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+.location-transform-control__axis--uniform {
+  flex-wrap: wrap;
+}
+
+.location-transform-control__axis--uniform input[type="range"] {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg-tertiary, #333);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.location-transform-control__axis--uniform input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--primary-color, #6366f1);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.location-transform-control__scale-value {
+  min-width: 40px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-color, #6366f1);
+}
+
+/* Actions */
+.location-transform-control__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color, #333);
+}
+
+.location-transform-control__action {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-transform-control__action:hover {
+  background: #444;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-transform-control__action--delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #ef4444;
+}

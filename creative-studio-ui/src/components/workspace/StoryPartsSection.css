@@ -1,0 +1,370 @@
+/**
+ * StoryPartsSection Styles
+ * Styles pour la section des parties d'histoire dans le dashboard
+ */
+
+.story-parts-section {
+  --section-bg: var(--surface-color, #1a1a1a);
+  --section-border: var(--border-color, #333);
+  --header-bg: rgba(255, 255, 255, 0.02);
+  --header-hover: rgba(255, 255, 255, 0.04);
+  --accent-color: #3b82f6;
+  --text-primary: #fff;
+  --text-secondary: #888;
+  --text-muted: #666;
+  --border-radius: 12px;
+  --transition-duration: 0.2s;
+  
+  background: var(--section-bg);
+  border: 1px solid var(--section-border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-parts-section:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.story-parts-section--expanded {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================================================
+   Header Section
+   ============================================================================ */
+
+.story-parts-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  cursor: pointer;
+  transition: background-color var(--transition-duration) ease;
+}
+
+.story-parts-section__header:hover {
+  background: var(--header-hover);
+}
+
+.story-parts-section__header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.story-parts-section__icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--accent-color, #3b82f6);
+  border-radius: 10px;
+}
+
+.story-parts-section__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.story-parts-section__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  margin: 0;
+}
+
+.story-parts-section__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary, #888);
+}
+
+.story-parts-section__meta span {
+  opacity: 0.7;
+}
+
+.story-parts-section__header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.story-parts-section__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #888);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-parts-section__action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary, #fff);
+}
+
+.story-parts-section__action-btn--primary {
+  color: var(--accent-color, #3b82f6);
+}
+
+.story-parts-section__action-btn--primary:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--accent-color, #3b82f6);
+}
+
+.story-parts-section__expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #888);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-parts-section__expand-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary, #fff);
+}
+
+/* ============================================================================
+   Content Section
+   ============================================================================ */
+
+.story-parts-section__content {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   Individual Sections (Intro, Chapters, Ending)
+   ============================================================================ */
+
+.story-parts-section__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.story-parts-section__section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.story-parts-section__section-icon {
+  font-size: 18px;
+}
+
+.story-parts-section__section-header h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  margin: 0;
+}
+
+.story-parts-section__summary-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.story-parts-section__summary-card p {
+  font-size: 14px;
+  color: var(--text-secondary, #888);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ============================================================================
+   Parts Grid
+   ============================================================================ */
+
+.story-parts-section__parts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============================================================================
+   Actions
+   ============================================================================ */
+
+.story-parts-section__actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.story-parts-section__add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent-color, #3b82f6);
+  background: transparent;
+  border: 1px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-parts-section__add-btn:hover {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.story-parts-section--empty,
+.story-parts-section--loading {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.story-parts-section__empty-state,
+.story-parts-section__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.story-parts-section__empty-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--text-muted, #666);
+  opacity: 0.5;
+}
+
+.story-parts-section__loading-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--accent-color, #3b82f6);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.story-parts-section__empty-state h3,
+.story-parts-section__loading p {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  margin: 0;
+}
+
+.story-parts-section__empty-state p,
+.story-parts-section__loading-hint {
+  font-size: 14px;
+  color: var(--text-secondary, #888);
+  max-width: 300px;
+}
+
+.story-parts-section__loading-hint {
+  display: inline-block;
+  padding: 8px 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 6px;
+  margin-top: 8px;
+  max-width: none;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .story-parts-section__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .story-parts-section__header-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .story-parts-section__meta {
+    flex-wrap: wrap;
+  }
+
+  .story-parts-section__content {
+    padding: 0 12px 12px;
+  }
+}
+
+/* ============================================================================
+   Light Mode Adjustments
+   ============================================================================ */
+
+@media (prefers-color-scheme: light) {
+  .story-parts-section {
+    --section-bg: #fff;
+    --section-border: #e5e5e5;
+    --header-bg: rgba(0, 0, 0, 0.02);
+    --header-hover: rgba(0, 0, 0, 0.04);
+    --text-primary: #111;
+    --text-secondary: #666;
+    --text-muted: #999;
+  }
+
+  .story-parts-section__summary-card {
+    background: #f9fafb;
+    border-color: #e5e5e5;
+  }
+
+  .story-parts-section__action-btn:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .story-parts-section__expand-btn:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+}
+

@@ -7,42 +7,50 @@
 
 const { spawn } = require('child_process');
 const path = require('path');
-const fs = require('fs');
 
-const ELECTRON_PATH = path.join(__dirname, '..', '..', '..', 'node_modules', '.bin', 'electron.cmd');
+const ELECTRON_PATH = path.join(__dirname, '..', 'node_modules', '.bin', 'electron.cmd');
 const VITE_PORT = 5173;
 
 async function main() {
   console.log('🚀 Starting StoryCore Creative Studio (Electron Dev Mode)');
   
-// Step 1: Build the UI first (required for Electron)
-  console.log('📦 Building UI...');
-  const buildProcess = spawn('npm', ['run', 'build'], {
-    cwd: path.join(__dirname, '..'),
+  // Step 0: Compile Electron TypeScript files
+  console.log('🔨 Compiling Electron TypeScript...');
+  const tscProcess = spawn('npx', ['tsc', '-p', 'electron/tsconfig.json'], {
+    cwd: path.join(__dirname, '..', '..'),
     stdio: 'inherit',
     shell: true
   });
 
   await new Promise((resolve, reject) => {
-    buildProcess.on('close', (code) => {
+    tscProcess.on('close', (code) => {
       if (code === 0) {
+        console.log('✅ Electron TypeScript compiled');
         resolve();
       } else {
-        reject(new Error(`Build failed with code ${code}`));
+        reject(new Error(`TypeScript compilation failed with code ${code}`));
       }
     });
-    buildProcess.on('error', reject);
+    tscProcess.on('error', reject);
   });
+  
+  // Step 1: Start Vite dev server for hot-reload during development
 
-  console.log('✅ UI built successfully');
-
-// Step 2: Start Vite dev server for hot-reload during development
   console.log('🌐 Starting Vite dev server...');
   const viteProcess = spawn('npm', ['run', 'dev', '--', '--port', String(VITE_PORT)], {
     cwd: path.join(__dirname, '..'),
-    stdio: 'inherit',
+    stdio: ['inherit', 'pipe', 'pipe'], // Pipe stdout and stderr to capture output
     shell: true,
     env: { ...process.env, ELECTRON_DISABLE_SANDBOX: '1' }
+  });
+
+  // Forward Vite output to console
+  viteProcess.stdout.on('data', (data) => {
+    process.stdout.write(data);
+  });
+  
+  viteProcess.stderr.on('data', (data) => {
+    process.stderr.write(data);
   });
 
   // Wait for Vite to be ready
@@ -51,7 +59,7 @@ async function main() {
       reject(new Error('Vite server startup timeout'));
     }, 30000);
 
-    viteProcess.stdout?.on('data', (data) => {
+    viteProcess.stdout.on('data', (data) => {
       const output = data.toString();
       if (output.includes('Local:') || output.includes('localhost')) {
         clearTimeout(timeout);
@@ -66,7 +74,7 @@ async function main() {
     });
   });
 
-  // Step 3: Launch Electron with the built UI
+  // Step 2: Launch Electron with the dev server
   console.log('⚡ Launching Electron...');
   
   const electronEnv = { 
@@ -75,7 +83,8 @@ async function main() {
     NODE_ENV: 'development'
   };
 
-  const electronProcess = spawn(ELECTRON_PATH, ['.'], {
+  const electronProcess = spawn(ELECTRON_PATH, ['../dist/electron/main.js'], {
+
     cwd: path.join(__dirname, '..'),
     stdio: 'inherit',
     shell: true,
@@ -116,4 +125,3 @@ main().catch((error) => {
   console.error('❌ Launcher failed:', error.message);
   process.exit(1);
 });
-

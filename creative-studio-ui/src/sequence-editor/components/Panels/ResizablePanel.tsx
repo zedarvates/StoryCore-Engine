@@ -46,7 +46,7 @@ const LAYOUT_STORAGE_KEY = 'sequence-editor-layout';
 const RESIZE_DEBOUNCE_MS = 500; // Debounce localStorage saves
 
 const DEFAULT_MIN_DIMENSIONS = {
-  assetLibrary: { minWidth: 200, minHeight: 0 },
+  assetLibrary: { minWidth: 120, minHeight: 0 },
   preview: { minWidth: 640, minHeight: 360 },
   shotConfig: { minWidth: 200, minHeight: 0 },
   timeline: { minWidth: 0, minHeight: 150 },
@@ -91,6 +91,18 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
     startHeight: 0,
   });
 
+  // Get container dimensions
+  const getContainerDimensions = useCallback(() => {
+    const root = document.querySelector('.sequence-editor-root');
+    if (root) {
+      return {
+        width: root.clientWidth,
+        height: root.clientHeight,
+      };
+    }
+    return { width: window.innerWidth, height: window.innerHeight };
+  }, []);
+
   // Get current dimensions from layout state
   const getCurrentDimensions = useCallback(() => {
     const panelLayout = layout[panelId];
@@ -103,17 +115,29 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
     return { width: panelLayout.width, height: 0 };
   }, [layout, panelId]);
 
-  // Get container dimensions
-  const getContainerDimensions = useCallback(() => {
-    const root = document.querySelector('.sequence-editor-root');
-    if (root) {
+  // Get current dimensions from layout state (in pixels)
+  const getCurrentDimensionsPixels = useCallback(() => {
+    const containerDims = getContainerDimensions();
+    const panelLayout = layout[panelId];
+
+    if (panelId === 'timeline') {
       return {
-        width: root.clientWidth,
-        height: root.clientHeight,
+        width: containerDims.width,
+        height: (panelLayout.height / 100) * containerDims.height
       };
     }
-    return { width: window.innerWidth, height: window.innerHeight };
-  }, []);
+    if (panelId === 'preview') {
+      return {
+        width: (panelLayout.width / 100) * containerDims.width,
+        height: (panelLayout.height / 100) * containerDims.height
+      };
+    }
+    // assetLibrary and shotConfig
+    return {
+      width: (panelLayout.width / 100) * containerDims.width,
+      height: 0
+    };
+  }, [layout, panelId, getContainerDimensions]);
 
   // Save layout to localStorage
   const saveLayoutToStorage = useCallback((newLayout: typeof layout) => {
@@ -338,6 +362,9 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
     console.log('Layout reset to defaults');
   }, [dispatch]);
 
+  // Calculate panel dimensions from Redux state
+  const panelDimensions = getCurrentDimensionsPixels();
+
   // Get resize handle position class
   const getResizeHandleClass = () => {
     if (panelId === 'assetLibrary') return 'resize-handle resize-handle-asset-library';
@@ -360,6 +387,8 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        width: panelDimensions.width > 0 ? `${panelDimensions.width}px` : undefined,
+        height: panelDimensions.height > 0 ? `${panelDimensions.height}px` : undefined,
       }}
     >
       {/* Panel Content */}
@@ -402,7 +431,7 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
         onMouseDown={handleMouseDown}
         role="separator"
         aria-label={`Resize ${panelId} panel`}
-        aria-orientation={resizeDirection === 'vertical' ? 'horizontal' : 'vertical'}
+        data-resize-direction={resizeDirection}
         tabIndex={0}
         onKeyDown={(e) => {
           // Allow keyboard resizing with arrow keys

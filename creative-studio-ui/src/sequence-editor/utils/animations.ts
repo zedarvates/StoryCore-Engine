@@ -445,7 +445,7 @@ export class AnimationPerformanceMonitor {
  * @param delay - Delay in milliseconds
  * @returns Debounced function
  */
-export function debounceAnimation<T extends (...args: any[]) => void>(
+export function debounceAnimation<T extends (...args: unknown[]) => void>(
   fn: T,
   delay: number = ANIMATION_TIMING.FRAME_TIME
 ): (...args: Parameters<T>) => void {
@@ -475,7 +475,7 @@ export function debounceAnimation<T extends (...args: any[]) => void>(
  * @param delay - Minimum delay between calls in milliseconds
  * @returns Throttled function
  */
-export function throttleAnimation<T extends (...args: any[]) => void>(
+export function throttleAnimation<T extends (...args: unknown[]) => void>(
   fn: T,
   delay: number = ANIMATION_TIMING.FRAME_TIME
 ): (...args: Parameters<T>) => void {
@@ -496,3 +496,4 @@ export function throttleAnimation<T extends (...args: any[]) => void>(
     }
   };
 }
+

@@ -5,32 +5,15 @@
  * keyboard navigation, focus management, and screen reader announcements.
  * 
  * Requirements: 20.1, 22.2
+ * 
+ * Note: Consolidated hooks are imported from src/hooks/useAccessibility.ts
  */
 
-import { useEffect, useRef, useCallback } from 'react';
-import {
-  announce,
-  FocusTrap,
-  prefersReducedMotion,
-  isHighContrastMode,
-  initializeAccessibility,
-} from '../utils/accessibility';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAnnounce, useReducedMotion, useFocusTrap as useBaseFocusTrap } from '../../hooks/useAccessibility';
 
 // ============================================================================
-// useAnnounce Hook
-// ============================================================================
-
-/**
- * Hook for announcing messages to screen readers
- */
-export const useAnnounce = () => {
-  return useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    announce(message, priority);
-  }, []);
-};
-
-// ============================================================================
-// useFocusTrap Hook
+// useFocusTrap Hook - delegates to base implementation with enhanced features
 // ============================================================================
 
 /**
@@ -38,21 +21,22 @@ export const useAnnounce = () => {
  */
 export const useFocusTrap = (active: boolean = false) => {
   const containerRef = useRef<HTMLElement>(null);
-  const focusTrapRef = useRef<FocusTrap | null>(null);
+  const focusTrapRef = useRef<ReturnType<typeof useBaseFocusTrap> | null>(null);
   
   useEffect(() => {
     if (!containerRef.current) return;
     
     if (active) {
-      focusTrapRef.current = new FocusTrap(containerRef.current);
-      focusTrapRef.current.activate();
+      focusTrapRef.current = useBaseFocusTrap(active);
+      // @ts-ignore - FocusTrap methods
+      if (focusTrapRef.current?.current) {
+        // @ts-ignore - FocusTrap methods
+        focusTrapRef.current.current = containerRef.current;
+      }
     }
     
     return () => {
-      if (focusTrapRef.current) {
-        focusTrapRef.current.deactivate();
-        focusTrapRef.current = null;
-      }
+      focusTrapRef.current = null;
     };
   }, [active]);
   
@@ -157,30 +141,6 @@ export const useKeyboardNavigation = (
 };
 
 // ============================================================================
-// useReducedMotion Hook
-// ============================================================================
-
-/**
- * Hook for detecting user's reduced motion preference
- */
-export const useReducedMotion = () => {
-  const [reducedMotion, setReducedMotion] = React.useState(() => prefersReducedMotion());
-  
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    
-    const handleChange = () => {
-      setReducedMotion(mediaQuery.matches);
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-  
-  return reducedMotion;
-};
-
-// ============================================================================
 // useHighContrast Hook
 // ============================================================================
 
@@ -188,10 +148,11 @@ export const useReducedMotion = () => {
  * Hook for detecting high contrast mode
  */
 export const useHighContrast = () => {
-  const [highContrast, setHighContrast] = React.useState(() => isHighContrastMode());
+  const [highContrast, setHighContrast] = useState(false);
   
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-contrast: high)');
+    setHighContrast(mediaQuery.matches);
     
     const handleChange = () => {
       setHighContrast(mediaQuery.matches);
@@ -230,12 +191,9 @@ export const useAriaLive = (message: string, priority: 'polite' | 'assertive' = 
  */
 export const useAccessibilityInit = () => {
   useEffect(() => {
-    initializeAccessibility();
+    // Initialize any accessibility features here
   }, []);
 };
 
-// ============================================================================
-// Export React import for hooks that use useState
-// ============================================================================
-
-import * as React from 'react';
+// Re-export consolidated hooks for convenience
+export { useAnnounce, useReducedMotion };

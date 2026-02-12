@@ -43,7 +43,7 @@ interface WizardState {
   wizardId: string;
   currentStep: number;
   totalSteps: number;
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
   connectionStatus: {
     ollama: ConnectionStatus | null;
     comfyui: ConnectionStatus | null;
@@ -56,7 +56,7 @@ interface WizardState {
   };
   preservedData?: {
     timestamp: string;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
   };
 }
 
@@ -95,7 +95,7 @@ interface EditorStore {
   closeWizard: () => void;
   updateWizardState: (updates: Partial<WizardState>) => void;
   setWizardStep: (step: number) => void;
-  setWizardFormData: (data: Record<string, any>) => void;
+  setWizardFormData: (data: Record<string, unknown>) => void;
   updateWizardConnectionStatus: (service: 'ollama' | 'comfyui', status: ConnectionStatus) => void;
   setWizardGenerationStatus: (status: Partial<WizardState['generationStatus']>) => void;
   completeWizard: (output: WizardOutput) => Promise<void>;
@@ -251,7 +251,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }));
   },
 
-  setWizardFormData: (data: Record<string, any>) => {
+  setWizardFormData: (data: Record<string, unknown>) => {
     set((state) => ({
       activeWizard: state.activeWizard
         ? { ...state.activeWizard, formData: data }
@@ -748,3 +748,4 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     return await wizardService.checkAllConnections();
   },
 }));
+

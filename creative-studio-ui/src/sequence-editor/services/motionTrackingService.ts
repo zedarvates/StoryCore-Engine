@@ -265,7 +265,7 @@ class MotionTrackingService {
   }
 
   private exportAsJSON(trackData: TrackingData): string {
-    const frames: any[] = [];
+    const frames: unknown[] = [];
     trackData.frames.forEach((point, frameNumber) => {
       frames.push({
         frame: frameNumber,
@@ -338,3 +338,4 @@ class MotionTrackingService {
 }
 
 export const motionTrackingService = new MotionTrackingService();
+

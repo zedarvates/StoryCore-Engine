@@ -13,7 +13,7 @@ from typing import Optional, List, Callable, Dict, Any
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-from .data_models import (
+from src.end_to_end.data_models import (
     WorldConfig,
     StyleConfig,
     ShotConfig,

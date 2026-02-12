@@ -150,64 +150,41 @@
   margin-bottom: 1.5rem;
 }
 
-.tips-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.tips-header svg {
-  color: #667eea;
-}
-
-.tips-header h3 {
+.tips-section h3 {
   font-size: 1.125rem;
   font-weight: 600;
-  margin: 0;
+  margin: 0 0 1rem 0;
   color: #fff;
 }
 
-.tips-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.tips-intro {
+.tips-section p {
   font-size: 0.9375rem;
   line-height: 1.6;
   color: #ccc;
+  margin: 0 0 1rem 0;
+}
+
+.tips-section ol {
   margin: 0;
+  padding-left: 1.5rem;
 }
 
-.tips-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin: 0;
-  padding-left: 0;
-  list-style: none;
-  counter-reset: tips-counter;
+.tips-section ol li {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #ccc;
+  margin-bottom: 0.75rem;
 }
 
-.tips-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(42, 42, 42, 0.6);
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  border-radius: 8px;
-  counter-increment: tips-counter;
-  position: relative;
-  transition: all 0.2s ease;
+.tips-section ol li strong {
+  color: #fff;
+  font-weight: 600;
 }
 
-.tips-list li:hover {
-  background: rgba(42, 42, 42, 0.8);
-  border-color: rgba(102, 126, 234, 0.4);
-  transform: translateX(4px);
+.tips-section ol li br {
+  display: block;
+  content: "";
+  margin-top: 0.25rem;
 }
 
 .tips-list li::before {
@@ -215,7 +192,7 @@
   position: absolute;
   left: -12px;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateX(30px) translateY(-50%);
   width: 24px;
   height: 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -399,6 +376,7 @@
   line-height: 1;
   cursor: ns-resize;
   user-select: none;
+  -webkit-user-select: none;
   transition: color 0.2s;
 }
 
@@ -464,6 +442,24 @@
 
 .btn-sequence-control.add:hover {
   background: #16a34a;
+}
+
+/* Sync button */
+.btn-sequence-control.sync {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: #fff;
+  border: 1px solid #8b5cf6;
+}
+
+.btn-sequence-control.sync:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border-color: #7c3aed;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.btn-sequence-control.sync:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Buttons with text labels */
@@ -928,6 +924,7 @@
   z-index: 1000;
   padding: 24px;
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .story-detail-container {
@@ -1573,4 +1570,88 @@
 
 .generation-toolbar-container .toolbar-buttons {
   gap: 0.5rem;
+}
+
+/* ============================================================================
+   Character Tile Image Fixes
+   ============================================================================ */
+
+/* Ensure character cards in dashboard have properly sized images */
+.dashboard-left .character-card__thumbnail {
+  width: 100%;
+  height: 180px;
+  min-height: 180px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure character card images fill their container and use proper object-fit */
+.dashboard-left .character-card__thumbnail-image {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Character card placeholder styling in dashboard */
+.dashboard-left .character-card__thumbnail-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #2a2a2a;
+  color: #888;
+}
+
+/* Ensure character card grid items have proper sizing */
+.dashboard-left .character-list__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Character card wrapper in dashboard grid */
+.dashboard-left .character-list__grid > * {
+  height: 100%;
+}
+
+/* Responsive adjustments for character tiles */
+@media (max-width: 768px) {
+  .dashboard-left .character-card__thumbnail {
+    height: 160px;
+    min-height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-left .character-card__thumbnail {
+    height: 140px;
+    min-height: 140px;
+  }
+  
+  .dashboard-left .character-list__grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Dark mode support for character card images */
+@media (prefers-color-scheme: dark) {
+  .dashboard-left .character-card__thumbnail {
+    background: #1f2937;
+  }
+  
+  .dashboard-left .character-card__thumbnail-placeholder {
+    background: #1f2937;
+    color: #9ca3af;
+  }
 }

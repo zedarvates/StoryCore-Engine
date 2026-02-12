@@ -3,8 +3,8 @@
  * Requirements: 1.1, 1.5
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { ShotPromptEditor } from '../ShotPromptEditor';
 import type { Shot } from '../../types/projectDashboard';
 
@@ -22,6 +22,11 @@ describe('ShotPromptEditor', () => {
   });
 
   beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
     vi.clearAllMocks();
   });
 

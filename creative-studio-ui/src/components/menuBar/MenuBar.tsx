@@ -227,7 +227,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
   /**
    * Convert menu config items to Menu component props
    */
-  const convertMenuItems = useCallback((items: MenuItemConfig[]): any[] => {
+  const convertMenuItems = useCallback((items: MenuItemConfig[]): unknown[] => {
     const state = getAppState();
 
     return items
@@ -323,4 +323,5 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
 };
 
 export default MenuBar;
+
 

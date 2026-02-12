@@ -235,8 +235,8 @@ export function createEmptyProject(name: string): Project {
 export async function createProjectOnDisk(data: {
   name: string;
   location?: string;
-  format?: any;
-  initialShots?: any[];
+  format?: unknown;
+  initialShots?: unknown[];
 }): Promise<{
   id: string;
   name: string;
@@ -310,7 +310,7 @@ export function getRecentProjects(): RecentProject[] {
     const projects = JSON.parse(json);
     // Convert lastAccessed strings back to Date objects
     // Using 'any' for parsed JSON data before type validation
-    return projects.map((p: any) => ({
+    return projects.map((p: unknown) => ({
       ...p,
       lastAccessed: new Date(p.lastAccessed),
     }));
@@ -354,4 +354,6 @@ export function clearRecentProjects(): void {
     console.error('Failed to clear recent projects:', error);
   }
 }
+
+
 

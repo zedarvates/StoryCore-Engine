@@ -109,17 +109,26 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   const handleDrag = (e: MouseEvent) => {
     if (!isDragging || !panelRef.current) return;
     
-    requestAnimationFrame(() => {
+    // Use requestAnimationFrame for smoother drag
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    animationFrameRef.current = requestAnimationFrame(() => {
       const newX = e.clientX - dragStartPos.current.x;
       const newY = e.clientY - dragStartPos.current.y;
       
-      // Keep panel within viewport
+      // Keep panel within viewport with smooth boundaries
       const maxX = window.innerWidth - panelRef.current!.offsetWidth;
       const maxY = window.innerHeight - panelRef.current!.offsetHeight;
       
+      // Apply smooth constraints
+      const constrainedX = Math.max(0, Math.min(newX, maxX));
+      const constrainedY = Math.max(0, Math.min(newY, maxY));
+      
       setPosition({
-        x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(0, Math.min(newY, maxY)),
+        x: constrainedX,
+        y: constrainedY,
       });
     });
   };
@@ -223,6 +232,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     }
     
     return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
       window.removeEventListener('mousemove', handleDrag);
       window.removeEventListener('mouseup', handleDragEnd);
       window.removeEventListener('mousemove', handleResize);

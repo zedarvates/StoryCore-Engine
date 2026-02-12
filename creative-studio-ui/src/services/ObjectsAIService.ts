@@ -349,7 +349,7 @@ Format de réponse JSON:
     };
   }
 
-  private buildAnalysisPrompt(object: GameObject, context?: any): string {
+  private buildAnalysisPrompt(object: GameObject, context?: unknown): string {
     return `Analyse le rôle narratif de cet objet dans une histoire:
 
 Objet: ${object.name}
@@ -359,8 +359,8 @@ Lore: ${object.lore}
 Capacités: ${object.abilities.join(', ')}
 
 ${context ? `Contexte:
-${context.characters ? `Personnages: ${context.characters.map((c: any) => c.name).join(', ')}` : ''}
-${context.locations ? `Lieux: ${context.locations.map((l: any) => l.name).join(', ')}` : ''}
+${context.characters ? `Personnages: ${context.characters.map((c: unknown) => c.name).join(', ')}` : ''}
+${context.locations ? `Lieux: ${context.locations.map((l: unknown) => l.name).join(', ')}` : ''}
 ` : ''}
 
 Détermine:
@@ -401,7 +401,7 @@ Réponds en format JSON structuré.`;
     };
   }
 
-  private parseImprovementSuggestions(response: string): any {
+  private parseImprovementSuggestions(response: string): unknown {
     // Parser les suggestions d'amélioration
     return {
       nameSuggestions: ['Nom alternatif 1', 'Nom alternatif 2', 'Nom alternatif 3'],
@@ -411,7 +411,7 @@ Réponds en format JSON structuré.`;
     };
   }
 
-  private buildConnectionsPrompt(objects: GameObject[], context?: any): string {
+  private buildConnectionsPrompt(objects: GameObject[], context?: unknown): string {
     const objectList = objects.map(obj => `- ${obj.name} (${obj.type}, ${obj.rarity})`).join('\n');
 
     return `Analyse les connexions possibles entre ces objets:
@@ -419,8 +419,8 @@ Réponds en format JSON structuré.`;
 ${objectList}
 
 ${context ? `Contexte:
-${context.characters ? `Personnages: ${context.characters.map((c: any) => c.name).join(', ')}` : ''}
-${context.locations ? `Lieux: ${context.locations.map((l: any) => l.name).join(', ')}` : ''}
+${context.characters ? `Personnages: ${context.characters.map((c: unknown) => c.name).join(', ')}` : ''}
+${context.locations ? `Lieux: ${context.locations.map((l: unknown) => l.name).join(', ')}` : ''}
 ` : ''}
 
 Pour chaque objet, identifie les relations avec les autres:
@@ -432,7 +432,7 @@ Pour chaque objet, identifie les relations avec les autres:
 Réponds en format JSON structuré.`;
   }
 
-  private parseConnections(response: string, objects: GameObject[]): any[] {
+  private parseConnections(response: string, objects: GameObject[]): unknown[] {
     // Parser les connexions
     return objects.map(obj => ({
       objectId: obj.id,
@@ -474,3 +474,5 @@ Réponds en format JSON structuré.`;
 
 // Export de l'instance singleton
 export const objectsAIService = ObjectsAIService.getInstance();
+
+

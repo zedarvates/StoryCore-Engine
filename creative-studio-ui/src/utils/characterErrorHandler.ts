@@ -29,12 +29,12 @@ export type CharacterErrorType = typeof CharacterErrorType[keyof typeof Characte
  */
 export class CharacterError extends Error {
   type: CharacterErrorType;
-  details?: any;
+  details?: unknown;
 
   constructor(
     type: CharacterErrorType,
     message: string,
-    details?: any
+    details?: unknown
   ) {
     super(message);
     this.name = 'CharacterError';
@@ -201,3 +201,5 @@ export function createValidationErrorMessage(validation: ValidationResult): stri
     return `${errorCount} validation errors found. Please check all required fields.`;
   }
 }
+
+

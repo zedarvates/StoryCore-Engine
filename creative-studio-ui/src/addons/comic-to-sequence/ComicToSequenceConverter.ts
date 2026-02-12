@@ -224,7 +224,7 @@ export class ComicToSequenceConverter {
   /**
    * Validate comic conversion state
    */
-  private isValidComicConversionState(state: any): state is ComicConversionState {
+  private isValidComicConversionState(state: unknown): state is ComicConversionState {
     return (
       state &&
       typeof state === 'object' &&

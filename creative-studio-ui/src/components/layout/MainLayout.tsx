@@ -3,7 +3,7 @@
  * Primary application layout with sidebar and main content area
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MainSidebar } from '../navigation/MainSidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { ProjectDashboardNew } from '@/components/workspace/ProjectDashboardNew';
@@ -12,7 +12,8 @@ import { LocalAIPanel } from '../workspace/LocalAIPanel';
 import { EditorLayout } from '@/components/EditorLayout';
 import { useAppStore } from '@/stores/useAppStore';
 import { getEnabledWizards } from '@/data/wizardDefinitions';
-import { useMemo } from 'react';
+import { WorkflowProgressBar } from '../WorkflowProgressBar';
+import { WorkflowOrchestrator } from '@/services/WorkflowOrchestrator';
 import { cn } from '@/lib/utils';
 import { FolderOpen, Settings, Image } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,6 +28,11 @@ type ViewType = 'dashboard' | 'projects' | 'wizards' | 'media' | 'settings' | 'a
 export function MainLayout({ children, className }: MainLayoutProps) {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Initialize Workflow Orchestrator
+  useEffect(() => {
+    WorkflowOrchestrator.getInstance();
+  }, []);
 
   // Get wizard definitions
   const availableWizards = useMemo(() => getEnabledWizards(), []);
@@ -138,19 +144,24 @@ export function MainLayout({ children, className }: MainLayoutProps) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header Bar */}
-        <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-background">
-          <div className="flex items-center gap-4">
-            <h2 className="font-semibold capitalize">{activeView}</h2>
-            {project && (
-              <span className="text-sm text-muted-foreground">
-                {project.project_name}
-              </span>
-            )}
+        <header className="h-20 border-b border-border flex flex-col justify-center bg-background">
+          <div className="flex items-center justify-between px-4 h-10">
+            <div className="flex items-center gap-4">
+              <h2 className="font-semibold text-sm capitalize">{activeView}</h2>
+              {project && (
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border">
+                  {project.project_name}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Quick actions could go here */}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Quick actions could go here */}
-          </div>
+          {/* New Workflow Progress Bar */}
+          <WorkflowProgressBar />
         </header>
 
         {/* Content */}

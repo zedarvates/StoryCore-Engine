@@ -1,0 +1,203 @@
+/**
+ * Beat Selector Styles
+ */
+
+.beat-selector {
+  --beat-bg: #1a1a2e;
+  --beat-border: #0f3460;
+  --beat-selected: #e94560;
+  --beat-text: #eaeaea;
+  --beat-muted: #888;
+  
+  background: var(--beat-bg);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--beat-border);
+}
+
+.beat-details {
+  background: rgba(233, 69, 96, 0.1);
+  border: 2px solid;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.beat-details-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.beat-details .beat-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.beat-details .beat-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.beat-details .beat-info h4 {
+  margin: 0 0 4px 0;
+  color: var(--beat-text);
+  font-size: 16px;
+}
+
+.beat-details .beat-info p {
+  margin: 0;
+  color: var(--beat-muted);
+  font-size: 13px;
+}
+
+.beat-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.beat-meta .duration {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--beat-text);
+}
+
+.beat-meta .purpose {
+  background: rgba(233, 69, 96, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--beat-selected);
+}
+
+.beat-tones {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.tone-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--beat-muted);
+}
+
+.importance-selector {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.importance-selector label {
+  display: block;
+  font-size: 12px;
+  color: var(--beat-muted);
+  margin-bottom: 8px;
+}
+
+.importance-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.importance-btn {
+  padding: 6px 12px;
+  border: 1px solid;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--beat-text);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.importance-btn.active {
+  color: #000;
+}
+
+.importance-btn.critical { border-color: #e94560; }
+.importance-btn.high { border-color: #ff6b6b; }
+.importance-btn.medium { border-color: #ffe66d; }
+.importance-btn.low { border-color: #4ecdc4; }
+
+.beat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.beat-category {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.beat-category .category-title {
+  margin: 0 0 8px 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--beat-muted);
+}
+
+.beat-category .category-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.beat-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--beat-bg);
+  border: 1px solid var(--beat-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 70px;
+}
+
+.beat-button:hover {
+  border-color: var(--beat-selected);
+}
+
+.beat-button.selected {
+  background: rgba(233, 69, 96, 0.2);
+  border-color: var(--beat-selected);
+}
+
+.beat-button .beat-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--beat-text);
+}
+
+.beat-button .beat-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.beat-button .beat-name {
+  font-size: 10px;
+  color: var(--beat-muted);
+}
+
+.beat-button.selected .beat-name {
+  color: var(--beat-selected);
+}
+

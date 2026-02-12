@@ -170,7 +170,7 @@ export class ExampleWorkflowManager {
     description: string,
     workflowId?: string,
     stepId?: string,
-    details?: any
+    details?: unknown
   ): void {
     const operation: WorkflowOperation = {
       id: crypto.randomUUID(),
@@ -193,7 +193,7 @@ export class ExampleWorkflowManager {
   /**
    * Validate example workflow state
    */
-  private isValidExampleWorkflowState(state: any): state is ExampleWorkflowState {
+  private isValidExampleWorkflowState(state: unknown): state is ExampleWorkflowState {
     return (
       state &&
       typeof state === 'object' &&
@@ -270,3 +270,4 @@ export class ExampleWorkflowManager {
     this.recordOperation('stop', `Workflow removed: ${workflowId}`, workflowId);
   }
 }
+

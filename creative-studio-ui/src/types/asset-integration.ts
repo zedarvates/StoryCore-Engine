@@ -50,7 +50,7 @@ export interface ProjectTemplate {
       characters: Character[];
       acts: Act[];
     };
-    custom_fields: Record<string, any>;
+    custom_fields: Record<string, unknown>;
     documentation: {
       usage: string;
       extensibility: string;
@@ -189,7 +189,7 @@ export interface Effect {
   start_time: number;
   end_time: number;
   description: string;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   speed_multiplier?: number;
   intensity?: number;
 }
@@ -211,3 +211,4 @@ export interface NarrativeText {
   created_at: string;
   updated_at: string;
 }
+

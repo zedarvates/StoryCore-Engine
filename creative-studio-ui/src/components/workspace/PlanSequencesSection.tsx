@@ -6,7 +6,7 @@
  */
 
 import React, { memo, useMemo } from 'react';
-import { Plus, FileText, RefreshCw, Edit3, Trash2 } from 'lucide-react';
+import { Plus, FileText, RefreshCw, Edit3, Trash2, Sparkles } from 'lucide-react';
 import { InlineLoading } from '@/components/ui/LoadingFeedback';
 
 interface SequenceData {
@@ -22,12 +22,14 @@ interface PlanSequencesSectionProps {
   sequences: SequenceData[];
   isLoadingSequences: boolean;
   isAddingSequence: boolean;
+  isSyncing: boolean;
   onRefresh: () => void;
   onNewPlan: () => void;
   onAddSequence: () => void;
   onEditSequence: (sequence: SequenceData, e: React.MouseEvent) => void;
   onDeleteSequence: (sequenceId: string, e: React.MouseEvent) => void;
   onSequenceClick: (sequenceId: string) => void;
+  onSync: () => void;
   className?: string;
 }
 
@@ -38,12 +40,14 @@ export const PlanSequencesSection = memo(function PlanSequencesSection({
   sequences,
   isLoadingSequences,
   isAddingSequence,
+  isSyncing,
   onRefresh,
   onNewPlan,
   onAddSequence,
   onEditSequence,
   onDeleteSequence,
   onSequenceClick,
+  onSync,
   className,
 }: PlanSequencesSectionProps) {
   // Memoized empty state check
@@ -54,6 +58,22 @@ export const PlanSequencesSection = memo(function PlanSequencesSection({
       <div className="section-header">
         <h3>Plan Sequences</h3>
         <div className="sequence-controls">
+          <button
+            className="btn-sequence-control sync"
+            onClick={onSync}
+            disabled={isSyncing || isEmpty}
+            title="Synchroniser les plans séquences avec l'histoire et les dialogues"
+            aria-label="Synchroniser"
+          >
+            {isSyncing ? (
+              <InlineLoading message="Sync..." />
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" aria-hidden="true" />
+                <span>Sync</span>
+              </>
+            )}
+          </button>
           <button
             className="btn-sequence-control refresh"
             onClick={onRefresh}

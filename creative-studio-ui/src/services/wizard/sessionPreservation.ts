@@ -18,7 +18,7 @@ export interface PreservedSession {
   wizardType: WizardType;
   currentStep: number;
   totalSteps: number;
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
   timestamp: string;
   expiresAt: string;
 }
@@ -74,7 +74,7 @@ export class SessionPreservationManager {
     wizardType: WizardType,
     currentStep: number,
     totalSteps: number,
-    formData: Record<string, any>
+    formData: Record<string, unknown>
   ): void {
     try {
       const timestamp = new Date().toISOString();
@@ -283,7 +283,7 @@ export class SessionPreservationManager {
     getSessionData: () => {
       currentStep: number;
       totalSteps: number;
-      formData: Record<string, any>;
+      formData: Record<string, unknown>;
     }
   ): void {
     if (!this.config.autoSave) {
@@ -353,8 +353,8 @@ export class SessionPreservationManager {
    * @param formData - Raw form data
    * @returns Sanitized form data
    */
-  private sanitizeFormData(formData: Record<string, any>): Record<string, any> {
-    const sanitized: Record<string, any> = {};
+  private sanitizeFormData(formData: Record<string, unknown>): Record<string, unknown> {
+    const sanitized: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(formData)) {
       // Skip functions and undefined values
@@ -469,7 +469,7 @@ export function saveWizardSession(
   wizardType: WizardType,
   currentStep: number,
   totalSteps: number,
-  formData: Record<string, any>
+  formData: Record<string, unknown>
 ): void {
   const manager = getSessionManager();
   manager.saveSession(wizardId, wizardType, currentStep, totalSteps, formData);
@@ -518,3 +518,4 @@ export function cleanupExpiredSessions(): number {
   const manager = getSessionManager();
   return manager.cleanupExpiredSessions();
 }
+

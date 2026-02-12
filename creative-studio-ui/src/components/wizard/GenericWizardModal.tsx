@@ -18,8 +18,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { useAppStore, type WizardType } from '@/stores/useAppStore';
+import { Loader2, AlertCircle, Info } from 'lucide-react';
+import { useAppStore, type WizardType as AppWizardType } from '@/stores/useAppStore';
+import { useWizardStore } from '@/stores/wizard/wizardStore';
 import { useToast } from '@/hooks/use-toast';
 import { LLMStatusBanner } from './LLMStatusBanner';
 import { DialogueWriterForm } from './forms/DialogueWriterForm';
@@ -28,6 +29,24 @@ import { StoryboardCreatorForm } from './forms/StoryboardCreatorForm';
 import { StyleTransferForm } from './forms/StyleTransferForm';
 import type { Character } from '@/types/character';
 import type { Shot } from '@/types';
+
+// Supported wizard types for GenericWizardModal (matching useAppStore WizardType)
+// Note: 'world', 'character', and 'storyteller' wizards are multi-step and use separate modals
+const SUPPORTED_WIZARD_TYPES: AppWizardType[] = [
+  'dialogue-writer',
+  'scene-generator',
+  'storyboard-creator',
+  'style-transfer',
+  'sequence-plan',
+  'shot',
+];
+
+/**
+ * Check if a wizard type is supported by GenericWizardModal
+ */
+function isWizardTypeSupported(type: AppWizardType | null | undefined): type is AppWizardType {
+  return type !== null && type !== undefined && SUPPORTED_WIZARD_TYPES.includes(type);
+}
 
 // Wizard configuration interface
 interface WizardConfig {
@@ -39,8 +58,8 @@ interface WizardConfig {
   requiresShots?: boolean;
 }
 
-// Wizard configuration mapping
-const WIZARD_CONFIG: Record<WizardType, WizardConfig> = {
+// Wizard configuration mapping (using AppWizardType for consistency)
+const WIZARD_CONFIG: Record<AppWizardType, WizardConfig> = {
   'dialogue-writer': {
     title: 'Dialogue Writer',
     description: 'Generate natural dialogue for your scenes. Requires at least one character.',
@@ -70,6 +89,7 @@ const WIZARD_CONFIG: Record<WizardType, WizardConfig> = {
   },
   // Note: 'sequence-plan' and 'shot' wizards are handled by separate modals
   // 'world' and 'character' wizards are multi-step and use WorldWizardModal/CharacterWizardModal
+  // 'storyteller' wizard uses StorytellerWizardModal
   'sequence-plan': {
     title: 'Sequence Plan',
     description: 'Plan your video sequence',
@@ -93,10 +113,10 @@ const WIZARD_CONFIG: Record<WizardType, WizardConfig> = {
  * Requirements: 2.2, 8.1, 8.2, 8.3, 8.4
  */
 interface WizardFormRendererProps {
-  wizardType: WizardType;
-  onSubmit: (data: any) => void;
+  wizardType: AppWizardType;
+  onSubmit: (data: unknown) => void;
   onCancel: () => void;
-  onChange?: (data: any) => void;
+  onChange?: (data: unknown) => void;
   onFormReady?: (submitFn: () => void) => void;
   onValidationChange?: (isValid: boolean) => void;
 }
@@ -287,9 +307,9 @@ function WizardFormRenderer({
 // Generic wizard modal props
 export interface GenericWizardModalProps {
   isOpen: boolean;
-  wizardType: WizardType | null;
+  wizardType: AppWizardType | null;
   onClose: () => void;
-  onComplete?: (data: any) => void;
+  onComplete?: (data: unknown) => void;
 }
 
 /**
@@ -303,7 +323,7 @@ export function GenericWizardModal({
   wizardType,
   onClose,
   onComplete,
-}: GenericWizardModalProps): React.ReactElement {
+}: GenericWizardModalProps): React.ReactElement | null {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitFormFn, setSubmitFormFn] = useState<(() => void) | null>(null);
   const [isFormValid, setIsFormValid] = useState(false);
@@ -320,7 +340,7 @@ export function GenericWizardModal({
   }, [isOpen]);
 
   // Handle form submission from wizard forms
-  const handleFormSubmit = useCallback(async (formData: any) => {
+  const handleFormSubmit = useCallback(async (formData: unknown) => {
     setIsSubmitting(true);
     try {
       // Call completion handler with form data
@@ -370,7 +390,7 @@ export function GenericWizardModal({
   }, []);
 
   // Handle form data changes (for auto-save in later tasks)
-  const handleFormChange = useCallback((data: any) => {
+  const handleFormChange = useCallback((data: unknown) => {
     // This will be used for draft auto-save in task 10
   }, []);
 
@@ -379,12 +399,63 @@ export function GenericWizardModal({
     setIsFormValid(isValid);
   }, []);
 
-  // Get wizard configuration
-  const wizardConfig = wizardType ? WIZARD_CONFIG[wizardType] : null;
+  // Sync wizardType with wizardStore if provided via store
+  // Use AppWizardType to ensure type consistency with WIZARD_CONFIG
+  const wizardTypeFromStore = useWizardStore((state) => state.wizardType) as AppWizardType | null;
+  const effectiveWizardType = wizardType || wizardTypeFromStore;
 
-  if (!wizardType || !wizardConfig) {
-    return <></>;
+  // Return null if modal is closed and no wizard type
+  if (!isOpen || !effectiveWizardType) {
+    return null;
   }
+
+  // Validate wizard type
+  if (!isWizardTypeSupported(effectiveWizardType)) {
+    // Show info about unsupported wizard type
+    const unsupportedMessage = effectiveWizardType === 'world' || 
+                               effectiveWizardType === 'character' || 
+                               effectiveWizardType === 'storyteller' ? (
+      <div className="flex flex-col items-center justify-center py-8 px-4">
+        <Info className="h-12 w-12 mb-4 text-blue-500" />
+        <p className="text-base font-semibold text-center mb-2">
+          This wizard type uses a dedicated modal
+        </p>
+        <p className="text-sm text-center text-muted-foreground mb-4">
+          The "{effectiveWizardType}" wizard is handled by a specialized modal with multi-step support.
+        </p>
+        <Button variant="outline" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+    ) : (
+      <div className="flex flex-col items-center justify-center py-8 px-4">
+        <AlertCircle className="h-12 w-12 mb-4 text-destructive" />
+        <p className="text-base font-semibold text-center mb-2">
+          Unsupported wizard type: {effectiveWizardType}
+        </p>
+        <p className="text-sm text-center text-muted-foreground mb-4">
+          Please use a valid wizard type from the supported list.
+        </p>
+        <Button variant="outline" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+    );
+
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Wizard Not Available</DialogTitle>
+          </DialogHeader>
+          {unsupportedMessage}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Get wizard configuration (type is now guaranteed to be AppWizardType)
+  const wizardConfig = WIZARD_CONFIG[effectiveWizardType as AppWizardType];
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -418,7 +489,7 @@ export function GenericWizardModal({
           )}
           
           <WizardFormRenderer
-            wizardType={wizardType}
+            wizardType={effectiveWizardType}
             onSubmit={handleFormSubmit}
             onCancel={onClose}
             onChange={handleFormChange}
@@ -449,3 +520,4 @@ export function GenericWizardModal({
     </Dialog>
   );
 }
+

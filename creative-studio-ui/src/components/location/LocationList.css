@@ -1,0 +1,180 @@
+/**
+ * LocationList Styles
+ * 
+ * CSS styles for the LocationList component.
+ * 
+ * File: creative-studio-ui/src/components/location/LocationList.css
+ */
+
+/* Container */
+.location-list {
+  padding: 24px;
+}
+
+/* Header */
+.location-list__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.location-list__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-list__create-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--primary-color, #6366f1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.location-list__create-btn:hover {
+  background: var(--primary-hover, #4f46e5);
+}
+
+/* Filters */
+.location-list__filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.location-list__search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.location-list__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted, #666);
+}
+
+.location-list__search-input {
+  width: 100%;
+  padding: 10px 12px 10px 40px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 14px;
+}
+
+.location-list__search-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+.location-list__filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.location-list__select {
+  padding: 8px 12px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.location-list__select:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+.location-list__count {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--text-muted, #666);
+}
+
+/* Grid */
+.location-list__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* Loading State */
+.location-list__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-muted, #666);
+}
+
+.location-list__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color, #333);
+  border-top-color: var(--primary-color, #6366f1);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.location-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.location-list__empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.location-list__empty h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-list__empty p {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  color: var(--text-muted, #666);
+}
+
+.location-list__empty .location-list__create-btn {
+  margin-top: 0;
+}

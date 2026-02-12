@@ -127,6 +127,23 @@ class ComfyUIWorkflowResult:
 
 
 @dataclass
+class VideoGenerationRequest:
+    """Request for video generation from reference image via ComfyUI."""
+    shot_id: str
+    reference_image: str  # Base64 string
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class VideoGenerationResult:
+    """Result of video generation request."""
+    task_id: str
+    status: str  # "pending", "processing", "completed", "failed"
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class WebhookRegistrationRequest:
     """Request for webhook registration."""
     url: str

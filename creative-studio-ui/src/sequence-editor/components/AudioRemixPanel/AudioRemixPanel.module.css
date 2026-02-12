@@ -1,0 +1,326 @@
+/* Audio Remix Panel Styles */
+
+.panel {
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 16px;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.header {
+  margin-bottom: 16px;
+}
+
+.header h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.header p {
+  margin: 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.section {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #252525;
+  border-radius: 6px;
+}
+
+.section h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ddd;
+}
+
+.section h5 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 13px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #0078d4;
+}
+
+.select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  background: #2a2a2a;
+  color: #e0e0e0;
+  font-size: 13px;
+}
+
+.durationInput {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.durationInput .input {
+  flex: 1;
+}
+
+.durationDisplay {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.range {
+  width: calc(100% - 50px);
+  vertical-align: middle;
+}
+
+.rangeValue {
+  font-size: 12px;
+  color: #888;
+  margin-left: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.buttonPrimary,
+.buttonSecondary {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.buttonPrimary {
+  background: #0078d4;
+  color: #fff;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background: #106ebe;
+}
+
+.buttonPrimary:disabled {
+  background: #3a3a3a;
+  cursor: not-allowed;
+  color: #666;
+}
+
+.buttonSecondary {
+  background: #3a3a3a;
+  color: #e0e0e0;
+}
+
+.buttonSecondary:hover:not(:disabled) {
+  background: #4a4a4a;
+}
+
+.buttonSecondary:disabled {
+  background: #2a2a2a;
+  cursor: not-allowed;
+  color: #555;
+}
+
+.error {
+  padding: 10px;
+  background: #442222;
+  border: 1px solid #ff4444;
+  border-radius: 6px;
+  color: #ff8888;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.structureGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.structureItem {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.structureItem .label {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.structureItem .value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.sections {
+  margin-top: 12px;
+}
+
+.sectionBars {
+  display: flex;
+  height: 32px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #1a1a1a;
+}
+
+.sectionBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  transition: opacity 0.2s;
+}
+
+.sectionBar:hover {
+  opacity: 0.8;
+}
+
+.sectionLabel {
+  font-size: 9px;
+  color: #fff;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+
+.previewStats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.previewStat {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.previewLabel {
+  font-size: 10px;
+  color: #666;
+}
+
+.previewValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.previewValue.positive {
+  color: #4caf50;
+}
+
+.resultStats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resultStat {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.resultStat span {
+  color: #888;
+}
+
+.resultStat strong {
+  color: #4caf50;
+}
+
+.cutsList {
+  margin-top: 12px;
+}
+
+.cutItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.cutTime {
+  color: #ff9800;
+}
+
+.cutReason {
+  color: #888;
+}
+

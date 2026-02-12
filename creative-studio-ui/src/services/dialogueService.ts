@@ -187,7 +187,7 @@ Format: Description complète de séquence vidéo pour génération IA.`;
   /**
    * Build dialogue generation prompt
    */
-  private buildDialoguePrompt(characters: Character[], context: any): string {
+  private buildDialoguePrompt(characters: Character[], context: unknown): string {
     const characterDescriptions = characters.map(char =>
       `${char.name}: ${char.personality.join(', ')} (${char.age || 'âge inconnu'}, ${char.gender || 'genre inconnu'})`
     ).join('\n');
@@ -230,7 +230,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
       const parsed = JSON.parse(response);
 
       if (parsed.dialogues && Array.isArray(parsed.dialogues)) {
-        return parsed.dialogues.map((line: any, index: number) => ({
+        return parsed.dialogues.map((line: unknown, index: number) => ({
           id: `dialogue_${Date.now()}_${index}`,
           character: line.character,
           text: line.text,
@@ -280,7 +280,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
   /**
    * Build SAPI command for text-to-speech
    */
-  private buildSAPICommand(text: string, character: Character, options: any): string {
+  private buildSAPICommand(text: string, character: Character, options: unknown): string {
     // Simulation de commande SAPI
     // En production, utiliser l'API Windows SAPI ou un service TTS
     return `SAPI-Speak -Text "${text}" -Voice "${character.voiceProfile}" -Rate ${options.speed || 0} -Pitch ${options.pitch || 0}`;
@@ -298,7 +298,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
   /**
    * Call real SAPI service at 192.168.1.47:3000
    */
-  private async callSAPIService(text: string, character: Character, options: any): Promise<Blob> {
+  private async callSAPIService(text: string, character: Character, options: unknown): Promise<Blob> {
     try {
       const sapiUrl = 'http://192.168.1.47:3000/api/sapi/generate';
 
@@ -491,7 +491,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
     duration: number;
     transcription?: string;
     emotionalTone?: string;
-    voiceCharacteristics?: any;
+    voiceCharacteristics?: unknown;
   }> {
     try {
       const duration = await this.getAudioDuration(audioBlob);
@@ -519,7 +519,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
   private async analyzeAudioWithSAPI(audioBlob: Blob): Promise<{
     transcription?: string;
     emotionalTone?: string;
-    voiceCharacteristics?: any;
+    voiceCharacteristics?: unknown;
   }> {
     try {
       const formData = new FormData();
@@ -597,3 +597,4 @@ Rends le dialogue plus naturel, corrige les erreurs de transcription, et adapte-
 }
 
 export const dialogueService = DialogueService.getInstance();
+

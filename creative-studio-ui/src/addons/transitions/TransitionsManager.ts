@@ -231,7 +231,7 @@ export class TransitionsManager {
   /**
    * Validate transition state
    */
-  private isValidTransitionState(state: any): state is TransitionState {
+  private isValidTransitionState(state: unknown): state is TransitionState {
     return (
       state &&
       typeof state === 'object' &&

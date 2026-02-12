@@ -14,7 +14,9 @@ export interface World {
   culturalElements: CulturalElements;
   technology: string;
   magic: string;
+  technologyMagic?: string; // Combined technology and magic field for hybrid settings
   conflicts: string[];
+  threats?: string[]; // Optional threats field
   createdAt: Date;
   updatedAt: Date;
 }

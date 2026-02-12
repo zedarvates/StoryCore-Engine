@@ -75,7 +75,7 @@ export interface AnnotationContent {
 export interface EffectContent {
   type: 'effect';
   effectType: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
 }
 
 export type LayerContent = ImageContent | AnnotationContent | EffectContent;
@@ -314,7 +314,7 @@ export interface GridStore {
    * Requirements: 11.7
    */
   // Using 'any' for operation parameter to support flexible operation types from undo/redo system
-  pushOperation: (operation: any) => void;
+  pushOperation: (operation: unknown) => void;
 
   // ============================================================================
   // Tool Actions
@@ -882,7 +882,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   },
 
   // Using 'any' for _operation parameter to match interface signature
-  pushOperation: (_operation: any) => {
+  pushOperation: (_operation: unknown) => {
     // This is a placeholder - the actual undo/redo is handled by useUndoRedoStore
     // This method is here for convenience so components can call it directly
     // In practice, components should import and use useUndoRedoStore directly
@@ -915,3 +915,5 @@ export const useGridStore = create<GridStore>((set, get) => ({
 
 // Export alias for consistency with other components
 export const useGridEditorStore = useGridStore;
+
+

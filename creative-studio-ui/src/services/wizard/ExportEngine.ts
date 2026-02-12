@@ -6,6 +6,8 @@
  * project directory structure, and generates human-readable summary documents.
  * 
  * Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6
+ * 
+ * @updated 2026-02-12 - Migrated `any` types to specific types
  */
 
 import { z } from 'zod';

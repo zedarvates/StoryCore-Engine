@@ -1,0 +1,320 @@
+/**
+ * LocationSection Styles
+ * 
+ * CSS styles for the LocationSection component.
+ * 
+ * File: creative-studio-ui/src/components/location/LocationSection.css
+ */
+
+/* Container */
+.location-section {
+  width: 100%;
+}
+
+/* Header */
+.location-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.location-section__title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.location-section__icon {
+  color: var(--primary-color, #6366f1);
+}
+
+.location-section__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-section__count {
+  font-size: 14px;
+  color: var(--text-muted, #666);
+  padding: 4px 12px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 20px;
+}
+
+/* Modal Overlay */
+.location-section__modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+/* Modal */
+.location-section__modal {
+  background: var(--card-bg, #1e1e1e);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.location-section__modal--full {
+  max-width: 1200px;
+  width: 95vw;
+}
+
+.location-section__modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color, #333);
+  position: sticky;
+  top: 0;
+  background: var(--card-bg, #1e1e1e);
+  z-index: 10;
+}
+
+.location-section__modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-section__modal-close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary, #2a2a2a);
+  border: none;
+  border-radius: 8px;
+  color: var(--text-secondary, #a0a0a0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-section__modal-close:hover {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-primary, #e5e5e5);
+}
+
+/* Placeholder Styles */
+.location-editor-placeholder {
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.location-editor-placeholder p {
+  margin: 0 0 16px;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.location-editor-placeholder p strong {
+  color: var(--primary-color, #6366f1);
+}
+
+.location-editor-placeholder__hint {
+  font-size: 13px;
+  color: var(--text-muted, #666);
+  margin-bottom: 24px;
+}
+
+.location-editor-placeholder__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.location-editor-placeholder__btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-editor-placeholder__btn--cancel {
+  background: var(--bg-secondary, #2a2a2a);
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.location-editor-placeholder__btn--cancel:hover {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-editor-placeholder__btn--save {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.location-editor-placeholder__btn--save:hover {
+  background: var(--primary-hover, #4f46e5);
+}
+
+/* Header Actions */
+.location-section__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* World Button */
+.location-section__world-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-section__world-btn:hover {
+  background: var(--bg-tertiary, #333);
+  border-color: var(--primary-color, #6366f1);
+  color: var(--primary-color, #6366f1);
+}
+
+.location-section__world-btn svg:last-child {
+  color: var(--text-muted, #666);
+}
+
+/* Refresh Button */
+.location-section__refresh {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  color: var(--text-secondary, #a0a0a0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-section__refresh:hover {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-section__refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.location-section__spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Create Button */
+.location-section__create {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--primary-color, #6366f1);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-section__create:hover {
+  background: var(--primary-hover, #4f46e5);
+}
+
+/* World Selector Modal Content */
+.location-section__world-content {
+  padding: 20px 24px;
+}
+
+.location-section__world-description {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.location-section__world-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.location-section__world-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.location-section__world-item:hover {
+  background: var(--bg-tertiary, #333);
+  border-color: var(--primary-color, #6366f1);
+}
+
+.location-section__world-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.location-section__world-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-section__world-item-type {
+  font-size: 12px;
+  color: var(--text-muted, #666);
+}
+
+.location-section__world-source {
+  font-size: 12px;
+  color: var(--primary-color, #6366f1);
+}
+
+.location-section__world-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted, #666);
+  font-size: 14px;
+}

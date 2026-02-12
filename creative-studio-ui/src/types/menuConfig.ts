@@ -23,19 +23,19 @@ export interface ActionContext {
   /** Service instances */
   services: {
     /** Project persistence service */
-    persistence: any; // Will be typed properly when service is implemented
+    persistence: unknown; // Will be typed properly when service is implemented
     /** Project export service */
     export: {
-      exportJSON: (project: any) => Promise<{ success: boolean; filePath?: string; error?: Error }>;
-      exportPDF: (project: any) => Promise<{ success: boolean; filePath?: string; error?: Error }>;
-      exportVideo: (project: any) => Promise<{ success: boolean; filePath?: string; error?: Error }>;
+      exportJSON: (project: unknown) => Promise<{ success: boolean; filePath?: string; error?: Error }>;
+      exportPDF: (project: unknown) => Promise<{ success: boolean; filePath?: string; error?: Error }>;
+      exportVideo: (project: unknown) => Promise<{ success: boolean; filePath?: string; error?: Error }>;
       setProgressCallback?: (callback: (progress: number, message: string) => void) => void;
       clearProgressCallback?: () => void;
     };
     /** Recent projects service */
-    recentProjects: any; // Will be typed properly when service is implemented
+    recentProjects: unknown; // Will be typed properly when service is implemented
     /** Modal manager */
-    modal: any; // Will be typed properly when modal manager is implemented
+    modal: unknown; // Will be typed properly when modal manager is implemented
     /** Notification service */
     notification: {
       show: (notification: { type: 'success' | 'error' | 'warning' | 'info'; message: string; duration?: number }) => string;
@@ -181,3 +181,4 @@ export class MenuConfigError extends Error {
     this.itemId = itemId;
   }
 }
+

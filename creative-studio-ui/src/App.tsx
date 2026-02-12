@@ -23,8 +23,10 @@ import { PerformanceProfilerPage } from '@/pages/experimental/PerformanceProfile
 import { InstallationWizardModal } from '@/components/installation/InstallationWizardModal';
 import { WorldWizardModal } from '@/components/wizard/WorldWizardModal';
 import { CharacterWizardModal } from '@/components/wizard/CharacterWizardModal';
+import { ObjectWizardModal } from '@/components/wizard/ObjectWizardModal';
 import { StorytellerWizardModal } from '@/components/wizard/StorytellerWizardModal';
 import { ProjectSetupWizardModal } from '@/components/wizard/ProjectSetupWizardModal';
+import { CreateProjectDialogModal } from '@/components/wizard/CreateProjectDialogModal';
 import { SequencePlanWizardModal } from '@/components/wizard/SequencePlanWizardModal';
 import { ShotWizardModal } from '@/components/wizard/ShotWizardModal';
 import { GenericWizardModal } from '@/components/wizard/GenericWizardModal';
@@ -37,9 +39,12 @@ import { WorldModal } from '@/components/modals/WorldModal';
 import { LocationsModal } from '@/components/modals/LocationsModal';
 import { ObjectsModal } from '@/components/modals/ObjectsModal';
 import { ImageGalleryModal } from '@/components/modals/ImageGalleryModal';
+import { FactCheckModal } from '@/components/modals/FactCheckModal';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { PendingReportsList } from '@/components/feedback/PendingReportsList';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ReferenceSheetManager } from '@/components/reference/ReferenceSheetManager';
+import { VideoReplicationDialog } from '@/components/reference/VideoReplicationDialog';
 import DialogueEditor from '@/ui/DialogueEditor';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
@@ -52,6 +57,8 @@ import { globalErrorHandler } from '@/utils/globalErrorHandler'; // NEW: Global 
 import { validateFeatureRegistry } from '@/config/experimentalFeatures'; // NEW: Validate experimental features registry
 import { serviceStatusMonitor } from '@/services/ServiceStatusMonitor'; // NEW: Service status monitoring
 import type { FeedbackInitialContext } from '@/components/feedback/types';
+import { logger } from '@/utils/logger';
+import { devLog } from '@/utils/devOnly';
 import {
   createEmptyProject,
   getRecentProjects,
@@ -78,6 +85,8 @@ function AppContent() {
     setShowWorldWizard,
     showCharacterWizard,
     setShowCharacterWizard,
+    showObjectWizard,
+    setShowObjectWizard,
     showStorytellerWizard,
     setShowStorytellerWizard,
     showLLMSettings,
@@ -104,6 +113,8 @@ function AppContent() {
     setShowFeedbackPanel,
     showPendingReportsList,
     setShowPendingReportsList,
+    showFactCheckModal,
+    setShowFactCheckModal,
     // Generic wizard state (simple forms in GenericWizardModal)
     showDialogueWriter,
     showSceneGenerator,
@@ -123,6 +134,10 @@ function AppContent() {
     // Reset unsaved changes flag when project changes
     setHasUnsavedChanges(false);
   }, [project]);
+
+  // Local state for Continuous Creation modals
+  const [showReferenceSheetManager, setShowReferenceSheetManager] = useState(false);
+  const [showVideoReplicationDialog, setShowVideoReplicationDialog] = useState(false);
 
   // Sync project to main store when it changes (CRITICAL: Fixes character persistence)
   // This ensures characters and other project data are available to all components
@@ -172,10 +187,10 @@ function AppContent() {
   const clipboard: ClipboardState = {
     hasContent: false,
     contentType: null,
-    cut: (content: any) => {
+    cut: (content: unknown) => {
       console.log('Cut operation not yet implemented', content);
     },
-    copy: (content: any) => {
+    copy: (content: unknown) => {
       console.log('Copy operation not yet implemented', content);
     },
     paste: () => {
@@ -267,6 +282,35 @@ function AppContent() {
   const [currentView, setCurrentView] = useState<'dashboard' | 'editor'>('dashboard');
   const [selectedSequenceId, setSelectedSequenceId] = useState<string | undefined>(undefined);
 
+  // Listen for navigation events from menu bar
+  useEffect(() => {
+    const handleNavigateToDashboard = () => {
+      setCurrentView('dashboard');
+      setSelectedSequenceId(undefined);
+    };
+
+    const handleExitProject = () => {
+      // Clear the project and navigate to dashboard
+      setProject(null);
+      setShots([]);
+      setCurrentView('dashboard');
+      setSelectedSequenceId(undefined);
+      
+      // Also dispatch navigate-to-dashboard as a fallback
+      setTimeout(() => {
+        setCurrentView('dashboard');
+      }, 100);
+    };
+
+    window.addEventListener('storycore:navigate-to-dashboard', handleNavigateToDashboard);
+    window.addEventListener('storycore:exit-project', handleExitProject);
+    
+    return () => {
+      window.removeEventListener('storycore:navigate-to-dashboard', handleNavigateToDashboard);
+      window.removeEventListener('storycore:exit-project', handleExitProject);
+    };
+  }, [setProject, setShots]);
+
   const handleNewProject = useCallback(() => {
     try {
       const newProject = createEmptyProject('Untitled Project');
@@ -317,7 +361,7 @@ function AppContent() {
           description: `"${loadedProject.project_name}" loaded successfully`,
         });
       } catch (error) {
-        console.error('Failed to load project:', error);
+        logger.error('Failed to load project:', error);
         toast({
           title: 'Error',
           description: 'Failed to load project. Please check the file format.',
@@ -413,7 +457,7 @@ function AppContent() {
       const worldExists = state.worlds?.some(w => w.id === world.id);
 
       if (!worldExists) {
-        console.warn('World not found in store after creation');
+        logger.warn('World not found in store after creation');
         toast({
           title: 'Warning',
           description: 'World created but not found in store',
@@ -444,19 +488,42 @@ function AppContent() {
         throw new Error('Invalid character data');
       }
 
-      // Valider que le caractère a été ajouté au store
-      const state = useAppStore.getState();
-      const characterExists = state.characters?.some(
+      // FIX: Ensure character is properly synced to both stores
+      // 1. Add to Zustand store (main store for UI components)
+      const store = useStore.getState();
+      const characterExistsInStore = store.characters?.some(
         c => c.character_id === character.character_id
       );
+      
+      if (!characterExistsInStore) {
+        useStore.getState().addCharacter(character);
+        devLog('[App] Character added to Zustand store:', character.character_id);
+      }
 
-      if (!characterExists) {
-        console.warn('Character not found in store after creation');
-        toast({
-          title: 'Warning',
-          description: 'Character created but not found in store',
-          variant: 'destructive',
-        });
+      // 2. Sync to App store project characters
+      const currentProject = useAppStore.getState().project;
+      if (currentProject) {
+        const projectCharacters = currentProject.characters || [];
+        const characterExistsInProject = projectCharacters.some(
+          c => c.character_id === character.character_id
+        );
+        
+        if (!characterExistsInProject) {
+          useAppStore.setState({
+            project: {
+              ...currentProject,
+              characters: [...projectCharacters, character]
+            }
+          });
+          devLog('[App] Character synced to project:', character.character_id);
+        }
+      }
+
+      // 3. Trigger store sync to ensure all components see the update
+      const updatedProject = useAppStore.getState().project;
+      if (updatedProject) {
+        useStore.getState().setProject(updatedProject);
+        console.log('[App] Full project sync triggered');
       }
 
       setShowCharacterWizard(false);
@@ -476,7 +543,67 @@ function AppContent() {
     }
   };
 
-  const handleStorytellerComplete = (story: any) => {
+  const handleObjectComplete = (object: unknown) => {
+    try {
+      if (!object || !object.id) {
+        throw new Error('Invalid object data');
+      }
+
+      // Add to Zustand store
+      const store = useStore.getState();
+      const objectExistsInStore = store.objects?.some(
+        o => o.id === object.id
+      );
+      
+      if (!objectExistsInStore) {
+        useStore.getState().addObject(object);
+        devLog('[App] Object added to Zustand store:', object.id);
+      }
+
+      // Sync to App store project objects
+      const currentProject = useAppStore.getState().project;
+      if (currentProject) {
+        const projectObjects = currentProject.objects || [];
+        const objectExistsInProject = projectObjects.some(
+          o => o.id === object.id
+        );
+        
+        if (!objectExistsInProject) {
+          useAppStore.setState({
+            project: {
+              ...currentProject,
+              objects: [...projectObjects, object]
+            }
+          });
+          devLog('[App] Object synced to project:', object.id);
+        }
+      }
+
+      // Trigger store sync
+      const updatedProject = useAppStore.getState().project;
+      if (updatedProject) {
+        useStore.getState().setProject(updatedProject);
+        console.log('[App] Full project sync triggered');
+      }
+
+      setShowObjectWizard(false);
+
+      toast({
+        title: 'Success',
+        description: `Object "${object.name}" created successfully`,
+      });
+    } catch (error) {
+      console.error('Failed to complete object wizard:', error);
+
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to create object',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleStorytellerComplete = (story: unknown) => {
     try {
       if (!story || !story.id) {
         throw new Error('Invalid story data');
@@ -500,7 +627,7 @@ function AppContent() {
   };
 
   // Generic wizard completion handler (Requirement 5.3, 9.1)
-  const handleWizardComplete = (data: any) => {
+  const handleWizardComplete = (data: unknown) => {
     ;
 
     // Integrate wizard results into project based on wizard type (Requirement 5.3)
@@ -627,6 +754,13 @@ function AppContent() {
         onComplete={handleCharacterComplete}
       />
 
+      {/* Object Wizard Modal */}
+      <ObjectWizardModal
+        isOpen={showObjectWizard}
+        onClose={() => setShowObjectWizard(false)}
+        onComplete={handleObjectComplete}
+      />
+
       {/* Storyteller Wizard Modal */}
       <StorytellerWizardModal
         isOpen={showStorytellerWizard}
@@ -635,6 +769,7 @@ function AppContent() {
       />
 
       {/* Project Setup Wizard Modal */}
+      <CreateProjectDialogModal />
       <ProjectSetupWizardModal />
 
       {/* Production Wizards */}
@@ -723,6 +858,37 @@ function AppContent() {
         onClose={() => setShowPendingReportsList(false)}
       />
 
+      {/* Fact Check Modal */}
+      <FactCheckModal
+        isOpen={showFactCheckModal}
+        onClose={() => setShowFactCheckModal(false)}
+      />
+
+      {/* Continuous Creation Modals */}
+      {/* Reference Sheet Manager Modal */}
+      <ReferenceSheetManager
+        open={showReferenceSheetManager}
+        onClose={() => setShowReferenceSheetManager(false)}
+        projectId={project?.id || ''}
+        projectPath={project?.path || ''}
+        onSheetUpdate={(sheetId) => {
+          devLog('Reference sheet updated:', sheetId);
+        }}
+      />
+
+      {/* Video Replication Dialog */}
+      <VideoReplicationDialog
+        open={showVideoReplicationDialog}
+        onClose={() => setShowVideoReplicationDialog(false)}
+        onReplicationComplete={(projectId) => {
+          devLog('Video replication started:', projectId);
+          toast({
+            title: 'Replication Started',
+            description: 'Video replication process has begun',
+          });
+        }}
+      />
+
       {/* Toast Notifications */}
       <Toaster />
     </>
@@ -743,7 +909,7 @@ function AppContent() {
         ExperimentalPage = PerformanceProfilerPage;
         break;
       default:
-        console.warn(`Unknown experimental feature: ${currentExperimentalFeature}`);
+        logger.warn(`Unknown experimental feature: ${currentExperimentalFeature}`);
         ExperimentalPage = null;
     }
 
@@ -850,4 +1016,6 @@ function App() {
 }
 
 export default App;
+
+
 

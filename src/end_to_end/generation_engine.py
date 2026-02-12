@@ -14,11 +14,11 @@ from pathlib import Path
 from typing import Optional, Callable, List, Dict, Any
 from datetime import datetime
 
-from .connection_manager import ConnectionManager
-from .model_manager import ModelManager
-from .workflow_manager import WorkflowManager
-from .workflow_configs import ZImageTurboConfig, LTX2ImageToVideoConfig
-from .data_models import (
+from src.end_to_end.connection_manager import ConnectionManager
+from src.end_to_end.model_manager import ModelManager
+from src.end_to_end.workflow_manager import WorkflowManager
+from src.end_to_end.workflow_configs import ZImageTurboConfig, LTX2ImageToVideoConfig
+from src.end_to_end.data_models import (
     WorldConfig,
     StyleConfig,
     ShotConfig,

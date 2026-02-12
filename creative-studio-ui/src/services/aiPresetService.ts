@@ -234,7 +234,7 @@ Please respond in JSON format:
   /**
    * Parse LLM API response
    */
-  private parseLLMResponse(data: any): LLMAnalysisResult {
+  private parseLLMResponse(data: unknown): LLMAnalysisResult {
     try {
       let content: string;
 
@@ -415,3 +415,4 @@ export function quickSuggestPreset(shot: Shot): AIPresetSuggestion {
     reasoning: analysis.reasoning,
   };
 }
+

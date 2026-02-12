@@ -1,0 +1,26 @@
+# StoryCore-Engine API Dependencies
+# Additional requirements for new backend APIs
+
+# FastAPI and ASGI
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+sse-starlette>=2.0.0
+
+# Pydantic
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Data processing
+python-multipart>=0.0.6
+
+# For LLM integration (optional - for production use)
+# openai>=1.0.0
+# anthropic>=0.8.0
+# ollama>=0.1.0
+
+# For audio processing (optional - for production use)
+# pydub>=0.25.0
+# librosa>=0.10.0
+
+# For production deployment
+gunicorn>=21.0.0

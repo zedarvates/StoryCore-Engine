@@ -43,6 +43,15 @@ Welcome to the StoryCore-Engine documentation! This is the comprehensive documen
 - **AI Panel**: AI tools and features
 - **Preview Window**: Preview your work
 
+- **UI Improvements**: See [`UI_IMPROVEMENTS.md`](documentation/UI_IMPROVEMENTS.md) for details.
+
+#### UI Usage
+- Access new buttons via the toolbar.
+- Toggle dark mode using the moon icon.
+- Use side panels for assets and AI settings.
+- UI components are lazy‑loaded; no extra steps needed.
+- **UI Tests**: Run `npm run test:ui` to execute UI unit tests. See [`README_TESTING.md`](README_TESTING.md) for details.
+
 ### Project Management
 
 #### Creating Projects
@@ -495,6 +504,9 @@ We appreciate all contributions! To contribute to the documentation:
 See [CODING_GUIDELINES_LARGE_FILES.md](CODING_GUIDELINES_LARGE_FILES.md) for best practices.
 
 ### Testing
+
+#### UI Tests
+Run `npm run test:ui` to execute UI unit tests. See [`README_TESTING.md`](README_TESTING.md) for details.
 
 See [README_TESTING.md](README_TESTING.md) for testing documentation.
 

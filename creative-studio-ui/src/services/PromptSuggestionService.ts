@@ -1,8 +1,8 @@
 /**
- * PromptSuggestionService - Service de génération de suggestions de prompts dynamiques
+ * PromptSuggestionService - Dynamic prompt suggestion generation service
  *
- * Analyse la conversation en cours pour générer des suggestions de prompts
- * adaptées au contexte et à la langue de l'utilisateur
+ * Analyzes the current conversation to generate prompt suggestions
+ * adapted to the context and language of the user
  */
 
 import { type LanguageCode } from '@/utils/llmConfigStorage';
@@ -35,12 +35,12 @@ export interface ConversationContext {
 }
 
 /**
- * Service de génération de suggestions de prompts dynamiques
+ * Dynamic prompt suggestion generation service
  */
 export class PromptSuggestionService {
   private static instance: PromptSuggestionService;
 
-  // Base de suggestions par langue et catégorie
+  // Suggestion database by language and category
   private suggestionTemplates: Record<LanguageCode, Record<string, string[]>> = {
     fr: {
       followUp: [

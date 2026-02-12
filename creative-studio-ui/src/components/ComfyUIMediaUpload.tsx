@@ -100,7 +100,7 @@ export function ComfyUIMediaUpload({
       throw new Error('ComfyUI is not configured. Please configure ComfyUI settings first.');
     }
 
-    const serverUrl = backendConfig.serverUrl || 'http://localhost:8188';
+    const serverUrl = backendConfig.serverUrl || 'http://localhost:8000';
 
     // Build headers with authentication if needed
     const headers: Record<string, string> = {};

@@ -3,6 +3,8 @@
  * 
  * Displays and edits configuration for the selected shot including:
  * - Reference images grid
+ * - Inherited references from master/sequence
+ * - Consistency indicators
  * - Prompt editor
  * - Generation parameters
  * - Apply/Revert buttons
@@ -12,10 +14,15 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
+import { useToast } from '@/hooks/use-toast';
 import { updateShot } from '../../store/slices/timelineSlice';
 import { ShotConfigDropTarget } from './ShotConfigDropTarget';
 import { StyleControls } from './StyleControls';
 import type { ReferenceImage, Shot } from '../../types';
+import { referenceInheritanceService } from '../../../services/referenceInheritanceService';
+import { consistencyEngine } from '../../../services/consistencyEngine';
+import type { ConsistencyIssue, ConsistencyScore } from '../../../services/consistencyEngine';
+import type { CharacterAppearanceSheet, LocationAppearanceSheet } from '../../../types/reference';
 import './shotConfigPanel.css';
 
 // ============================================================================
@@ -31,15 +38,24 @@ interface ShotModifications {
   guidance?: number;
 }
 
+interface InheritedReference {
+  id: string;
+  name: string;
+  type: 'character' | 'location' | 'style';
+  source: 'master' | 'sequence';
+  thumbnail?: string;
+}
+
 // ============================================================================
 // Component
 // ============================================================================
 
 export const ShotConfigPanel: React.FC = () => {
   const dispatch = useAppDispatch();
+  const { toast } = useToast();
   
   // Redux state
-  const { shots, selectedElements } = useAppSelector((state) => state.timeline);
+  const { shots, selectedElements, sequences, currentSequenceId } = useAppSelector((state) => state.timeline);
   
   // Get selected shot
   const selectedShot = shots.find((shot: Shot) => selectedElements.includes(shot.id));
@@ -47,7 +63,189 @@ export const ShotConfigPanel: React.FC = () => {
   // Local state
   const [modifications, setModifications] = useState<ShotModifications>({});
   const [hasModifications, setHasModifications] = useState(false);
+  const [inheritedReferences, setInheritedReferences] = useState<InheritedReference[]>([]);
+  const [consistencyIssues, setConsistencyIssues] = useState<ConsistencyIssue[]>([]);
+  const [consistencyScore, setConsistencyScore] = useState<ConsistencyScore | null>(null);
+  const [useInherited, setUseInherited] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  // State for conversion process
+  const [isConverting, setIsConverting] = useState(false);
+
+  // Handler to convert shot to puppet
+  const handleConvertToPuppet = async () => {
+    if (!selectedShot) return;
+    setIsConverting(true);
+    try {
+      const response = await fetch('/api/rigging/convert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          shotId: selectedShot.id,
+          sheet: selectedShot.sheet,
+        }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Conversion failed: ${errorText}`);
+      }
+      const data = await response.json();
+      const rigPath = data?.rigPath;
+      if (rigPath) {
+        // Update the shot with the new rig
+        // Update the shot with the new rig metadata returned from the backend
+        const boneCount = data?.boneCount;
+        const hash = data?.hash;
+        dispatch(
+          updateShot({
+            id: selectedShot.id,
+            updates: {
+              rigPath,
+              boneCount,
+              hash,
+            },
+          })
+        );
+        toast({
+          title: 'Rig generated',
+          description: 'Rig successfully created and loaded.',
+          variant: 'default',
+        });
+      } else {
+        throw new Error('No rigPath returned from backend');
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Conversion error',
+        description: (error as Error).message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsConverting(false);
+    }
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Load inherited references when shot changes
+  useEffect(() => {
+    if (selectedShot && currentSequenceId) {
+      loadInheritedReferences();
+      loadConsistencyInfo();
+    }
+  }, [selectedShot?.id, currentSequenceId]);
+  
+  // Load inherited references
+  const loadInheritedReferences = async () => {
+    if (!selectedShot) return;
+    
+    setIsLoading(true);
+    try {
+      const result = await referenceInheritanceService.getInheritedReferencesForShot(selectedShot.id);
+      
+      const refs: InheritedReference[] = [];
+      
+      // Add master references
+      for (const item of result.fromMaster) {
+        if ('characterName' in item) {
+          const charSheet = item as CharacterAppearanceSheet;
+          refs.push({
+            id: charSheet.id,
+            name: charSheet.characterName,
+            type: 'character',
+            source: 'master',
+            thumbnail: charSheet.appearanceImages[0]?.url,
+          });
+        } else if ('locationName' in item) {
+          const locSheet = item as LocationAppearanceSheet;
+          refs.push({
+            id: locSheet.id,
+            name: locSheet.locationName,
+            type: 'location',
+            source: 'master',
+            thumbnail: locSheet.referenceImages[0]?.url,
+          });
+        }
+      }
+      
+      // Add sequence references
+      if (result.fromSequence) {
+        refs.push({
+          id: result.fromSequence.id,
+          name: `Sequence Style`,
+          type: 'style',
+          source: 'sequence',
+        });
+      }
+      
+      setInheritedReferences(refs);
+    } catch (error) {
+      console.error('Failed to load inherited references:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Load consistency info
+  const loadConsistencyInfo = async () => {
+    if (!selectedShot) return;
+    
+    try {
+      const characterIssues = consistencyEngine.validateCharacterConsistency(selectedShot.id);
+      const locationIssues = consistencyEngine.validateLocationConsistency(selectedShot.id);
+      const styleIssues = consistencyEngine.validateStyleConsistency(selectedShot.id);
+      const issues = [...characterIssues, ...locationIssues, ...styleIssues];
+      setConsistencyIssues(issues);
+      
+      // Calculate overall score
+      if (issues.length === 0) {
+        setConsistencyScore({
+          overallScore: 100,
+          characterScore: 100,
+          styleScore: 100,
+          colorScore: 100,
+          compositionScore: 100,
+        });
+      } else {
+        const avgScore = 100 - (issues.reduce((sum: number, i: ConsistencyIssue) => {
+          const severityMap: Record<string, number> = { critical: 30, high: 20, medium: 10, low: 5 };
+          return sum + (severityMap[i.severity] || 0);
+        }, 0) / Math.max(issues.length, 1));
+        
+        setConsistencyScore({
+          overallScore: Math.max(0, avgScore),
+          characterScore: avgScore,
+          styleScore: avgScore,
+          colorScore: avgScore,
+          compositionScore: avgScore,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load consistency info:', error);
+    }
+  };
+  
+  // Apply inherited references
+  const handleApplyInherited = useCallback(() => {
+    if (!selectedShot || inheritedReferences.length === 0) return;
+    
+    // Convert inherited references to reference images
+    const inheritedImages: ReferenceImage[] = inheritedReferences
+      .filter(ref => ref.thumbnail)
+      .map(ref => ({
+        id: `inherited-${ref.id}`,
+        url: ref.thumbnail!,
+        weight: 1.0,
+        source: 'library' as const,
+      }));
+    
+    setModifications((prev) => ({
+      ...prev,
+      referenceImages: [...(prev.referenceImages || []), ...inheritedImages],
+    }));
+    setHasModifications(true);
+  }, [selectedShot, inheritedReferences]);
   
   // Initialize modifications when shot changes
   useEffect(() => {
@@ -181,6 +379,18 @@ export const ShotConfigPanel: React.FC = () => {
     }
   }, []);
   
+  // Get source label
+  const getSourceLabel = (source: 'master' | 'sequence') => {
+    return source === 'master' ? 'Master' : 'Sequence';
+  };
+  
+  // Get consistency badge class
+  const getConsistencyBadgeClass = (score: number) => {
+    if (score >= 80) return 'consistency-good';
+    if (score >= 60) return 'consistency-warning';
+    return 'consistency-bad';
+  };
+  
   if (!selectedShot) {
     return (
       <ShotConfigDropTarget shot={null}>
@@ -208,6 +418,125 @@ export const ShotConfigPanel: React.FC = () => {
             <span className="modified-indicator" title="Unsaved changes">●</span>
           )}
         </div>
+        
+        {/* Inherited References Section */}
+        {inheritedReferences.length > 0 && (
+          <div className="config-section inherited-references-section">
+            <div className="section-header">
+              <h4 className="section-title">Inherited References</h4>
+              <label className="toggle-inherited">
+                <input
+                  type="checkbox"
+                  checked={useInherited}
+                  onChange={(e) => setUseInherited(e.target.checked)}
+                />
+                Use Inherited
+              </label>
+            </div>
+            
+            <div className="inherited-references-grid">
+              {inheritedReferences.map((ref) => (
+                <div key={ref.id} className="inherited-reference-item">
+                  {ref.thumbnail ? (
+                    <img src={ref.thumbnail} alt={ref.name} className="inherited-thumbnail" />
+                  ) : (
+                    <div className="inherited-thumbnail placeholder">
+                      {ref.type[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div className="inherited-info">
+                    <span className="inherited-name">{ref.name}</span>
+                    <span className={`inherited-source source-${ref.source}`}>
+                      {getSourceLabel(ref.source)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {useInherited && (
+              <button
+                className="apply-inherited-btn"
+                onClick={handleApplyInherited}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Loading...' : 'Apply Inherited References'}
+              </button>
+            )}
+          </div>
+        )}
+        
+        {/* Consistency Indicators */}
+        {consistencyScore && (
+          <div className="config-section consistency-section">
+            <h4 className="section-title">Consistency</h4>
+            
+            <div className="consistency-score">
+              <div className={`consistency-badge ${getConsistencyBadgeClass(consistencyScore.overallScore)}`}>
+                {consistencyScore.overallScore}%
+              </div>
+              <span className="consistency-label">Overall Score</span>
+            </div>
+            
+            <div className="consistency-breakdown">
+              <div className="consistency-item">
+                <span>Character</span>
+                <div className="consistency-bar">
+                  <div
+                    className={`consistency-fill ${getConsistencyBadgeClass(consistencyScore.characterScore)}`}
+                    style={{ width: `${consistencyScore.characterScore}%` }}
+                  />
+                </div>
+              </div>
+              <div className="consistency-item">
+                <span>Style</span>
+                <div className="consistency-bar">
+                  <div
+                    className={`consistency-fill ${getConsistencyBadgeClass(consistencyScore.styleScore)}`}
+                    style={{ width: `${consistencyScore.styleScore}%` }}
+                  />
+                </div>
+              </div>
+              <div className="consistency-item">
+                <span>Color</span>
+                <div className="consistency-bar">
+                  <div
+                    className={`consistency-fill ${getConsistencyBadgeClass(consistencyScore.colorScore)}`}
+                    style={{ width: `${consistencyScore.colorScore}%` }}
+                  />
+                </div>
+              </div>
+              <div className="consistency-item">
+                <span>Composition</span>
+                <div className="consistency-bar">
+                  <div
+                    className={`consistency-fill ${getConsistencyBadgeClass(consistencyScore.compositionScore)}`}
+                    style={{ width: `${consistencyScore.compositionScore}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {consistencyIssues.length > 0 && (
+              <div className="consistency-issues">
+                <h5>Issues ({consistencyIssues.length})</h5>
+                <ul className="issues-list">
+                  {consistencyIssues.slice(0, 3).map((issue) => (
+                    <li key={issue.id} className={`issue-item severity-${issue.severity}`}>
+                      <div className="issue-content">
+                        <span className="issue-type">{issue.type}</span>
+                        <span className="issue-description">{issue.description}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {consistencyIssues.length > 3 && (
+                  <p className="more-issues">+{consistencyIssues.length - 3} more issues</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
         
         {/* Reference Images Grid */}
         <div className="config-section">
@@ -247,6 +576,7 @@ export const ShotConfigPanel: React.FC = () => {
             type="file"
             accept="image/*"
             multiple
+            aria-label="Upload reference images"
             style={{ display: 'none' }}
             onChange={handleFileUpload}
           />
@@ -350,6 +680,15 @@ export const ShotConfigPanel: React.FC = () => {
         
         {/* Action Buttons */}
         <div className="config-actions">
+          {/* New button to convert shot to puppet */}
+          <button
+            className="convert-puppet-btn"
+            onClick={handleConvertToPuppet}
+            disabled={isConverting}
+            title="Convertir en marionnette"
+          >
+            {isConverting ? 'Conversion...' : 'Convertir en marionnette'}
+          </button>
           <button
             className="revert-btn"
             onClick={handleRevert}

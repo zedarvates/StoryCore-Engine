@@ -23,8 +23,8 @@ export const BatchOperationsExample: React.FC = () => {
   const [selectedShotIds, setSelectedShotIds] = useState<string[]>([]);
   const [showMetadataEditor, setShowMetadataEditor] = useState(false);
   
-  // Gestionnaire d'opérations
-  const manager = useMemo(() => new BatchOperationsManager(), []);
+  // Gestionnaire d'opérations (use useState to avoid constructor issues)
+  const [manager] = useState(() => new BatchOperationsManager());
   
   // Plans sélectionnés
   const selectedShots = useMemo(

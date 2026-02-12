@@ -4,8 +4,8 @@
  * Tests the LLM generation features in character wizard steps
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WizardProvider } from '@/contexts/WizardContext';
 import { Step1BasicIdentity } from '../Step1BasicIdentity';
@@ -14,42 +14,134 @@ import { Step3Personality } from '../Step3Personality';
 import { Step4Background } from '../Step4Background';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
-import * as llmService from '@/services/llmService';
 
 // ============================================================================
 // Mock Setup
 // ============================================================================
 
+// Mock generateCompletion function reference for tests
+const mockGenerateCompletion = vi.fn();
+
 vi.mock('@/services/llmService', () => ({
   getLLMService: vi.fn(() => ({
-    generateCompletion: vi.fn(),
+    generateCompletion: mockGenerateCompletion,
     createRecoveryOptions: vi.fn(),
   })),
+}));
+
+// Mock useLLMGeneration hook for character steps
+vi.mock('@/hooks/useLLMGeneration', () => ({
+  useLLMGeneration: vi.fn(() => {
+    const generate = async (request: any, options?: { onSuccess?: (result: any) => void }) => {
+      // Call the mock LLM service and get its resolved value
+      const mockResult = await mockGenerateCompletion(request);
+      
+      // Extract content from the mock result
+      let content;
+      let finish_reason = 'stop';
+      
+      if (mockResult && typeof mockResult === 'object') {
+        if (mockResult.data && typeof mockResult.data === 'object') {
+          content = mockResult.data.content;
+          finish_reason = mockResult.data.finishReason || mockResult.data.finish_reason || 'stop';
+        } else if ('content' in mockResult) {
+          content = mockResult.content;
+        }
+      }
+      
+      // If no content from mock, generate default content based on request type
+      if (!content) {
+        const prompt = request?.prompt?.toLowerCase() || '';
+        
+        if (prompt.includes('name')) {
+          content = JSON.stringify({
+            name: 'Aria Stormwind',
+            suggested_names: ['Aria', 'Stormwind', 'Aria Stormwind'],
+          });
+        } else if (prompt.includes('appearance') || prompt.includes('physical')) {
+          content = JSON.stringify({
+            hair_color: 'Silver',
+            eye_color: 'Blue',
+            skin_tone: 'Pale',
+            height: 'Tall',
+            build: 'Athletic',
+          });
+        } else if (prompt.includes('personality')) {
+          content = JSON.stringify({
+            traits: ['Brave', 'Loyal', 'Determined'],
+            values: ['Justice', 'Honor'],
+            fears: ['Failure', 'Loss'],
+            desires: ['Recognition', 'Adventure'],
+            flaws: ['Impulsive'],
+            strengths: ['Courageous'],
+          });
+        } else if (prompt.includes('background')) {
+          content = JSON.stringify({
+            origin: 'Born in a small village',
+            occupation: 'Adventurer',
+            education: 'Self-taught',
+            family: 'Only surviving sibling',
+            significant_events: ['Found ancient artifact'],
+            current_situation: 'Seeking revenge',
+          });
+        }
+      }
+      
+      if (options?.onSuccess && content) {
+        options.onSuccess({
+          content,
+          finish_reason,
+        });
+      }
+      
+      return { content, finish_reason };
+    };
+    
+    return {
+      generate,
+      isLoading: false,
+      error: null,
+      clearError: vi.fn(),
+      generateStreaming: vi.fn(),
+      retry: vi.fn(),
+      cancel: vi.fn(),
+      reset: vi.fn(),
+      result: null,
+    };
+  }),
+}));
+
+// Mock service-warning hook
+vi.mock('@/components/ui/service-warning', () => ({
+  useServiceStatus: () => ({
+    llmConfigured: true,
+    llmChecking: false,
+    comfyUIConfigured: false,
+    comfyUIChecking: false,
+  }),
+  ServiceWarning: vi.fn(() => null),
 }));
 
 // ============================================================================
 // Test Helpers
 // ============================================================================
 
-const mockWorld: World = {
-  world_id: 'test-world',
+const mockWorld = {
+  id: 'test-world',
   name: 'Test Fantasy World',
   genre: ['fantasy', 'adventure'],
   tone: ['epic', 'dramatic'],
   timePeriod: 'Medieval Era',
-  technology: 'Low tech',
-  magic: 'High magic',
-  rules: [],
-  locations: [],
-  cultural_elements: [],
-  creation_method: 'wizard',
-  creation_timestamp: new Date().toISOString(),
-  version: '1.0',
-};
+} as World;
 
 const renderWithWizard = (component: React.ReactElement, initialData: Partial<Character> = {}) => {
   return render(
-    <WizardProvider initialData={initialData} onComplete={vi.fn()}>
+    <WizardProvider
+      wizardType="character"
+      totalSteps={5}
+      initialData={initialData}
+      onSubmit={vi.fn()}
+    >
       {component}
     </WizardProvider>
   );
@@ -61,6 +153,11 @@ const renderWithWizard = (component: React.ReactElement, initialData: Partial<Ch
 
 describe('Step1BasicIdentity - Name Generation', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
     vi.clearAllMocks();
   });
 
@@ -99,6 +196,43 @@ describe('Step1BasicIdentity - Name Generation', () => {
     expect(screen.getByText(/Creating character for world:/)).toBeInTheDocument();
     expect(screen.getByText('Test Fantasy World')).toBeInTheDocument();
   });
+
+  it('should call LLM service when name generation is clicked', async () => {
+    const user = userEvent.setup();
+    
+    mockGenerateCompletion.mockResolvedValue({
+      success: true,
+      data: {
+        content: JSON.stringify({
+          name: 'Aria Stormwind',
+          suggested_names: ['Aria', 'Stormwind', 'Aria Stormwind'],
+        }),
+        finishReason: 'stop',
+      },
+    });
+
+    const initialData: Partial<Character> = {
+      role: {
+        archetype: 'Protagonist',
+        narrative_function: 'Hero',
+        character_arc: 'Growth',
+      },
+    };
+    
+    renderWithWizard(<Step1BasicIdentity worldContext={mockWorld} />, initialData);
+    
+    const button = screen.getByText('Suggest Name');
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(mockGenerateCompletion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt: expect.stringContaining('character name'),
+          systemPrompt: expect.stringContaining('character generation'),
+        })
+      );
+    });
+  });
 });
 
 // ============================================================================
@@ -107,6 +241,11 @@ describe('Step1BasicIdentity - Name Generation', () => {
 
 describe('Step2PhysicalAppearance - Appearance Generation', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
     vi.clearAllMocks();
   });
 
@@ -147,6 +286,47 @@ describe('Step2PhysicalAppearance - Appearance Generation', () => {
     expect(screen.getByLabelText('Skin Tone')).toBeInTheDocument();
     expect(screen.getByLabelText('Height')).toBeInTheDocument();
   });
+
+  it('should call LLM service when appearance generation is clicked', async () => {
+    const user = userEvent.setup();
+    
+    mockGenerateCompletion.mockResolvedValue({
+      success: true,
+      data: {
+        content: JSON.stringify({
+          hair_color: 'Silver',
+          eye_color: 'Blue',
+          skin_tone: 'Pale',
+          height: 'Tall',
+          build: 'Athletic',
+        }),
+        finishReason: 'stop',
+      },
+    });
+
+    const initialData: Partial<Character> = {
+      name: 'Test Character',
+      role: {
+        archetype: 'Warrior',
+        narrative_function: '',
+        character_arc: '',
+      },
+    };
+    
+    renderWithWizard(<Step2PhysicalAppearance worldContext={mockWorld} />, initialData);
+    
+    const button = screen.getByText('Generate Appearance');
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(mockGenerateCompletion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt: expect.stringContaining('physical appearance'),
+          systemPrompt: expect.stringContaining('character generation'),
+        })
+      );
+    });
+  });
 });
 
 // ============================================================================
@@ -155,6 +335,11 @@ describe('Step2PhysicalAppearance - Appearance Generation', () => {
 
 describe('Step3Personality - Personality Generation', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
     vi.clearAllMocks();
   });
 
@@ -197,6 +382,48 @@ describe('Step3Personality - Personality Generation', () => {
     expect(screen.getByText('Flaws')).toBeInTheDocument();
     expect(screen.getByText('Strengths')).toBeInTheDocument();
   });
+
+  it('should call LLM service when personality generation is clicked', async () => {
+    const user = userEvent.setup();
+    
+    mockGenerateCompletion.mockResolvedValue({
+      success: true,
+      data: {
+        content: JSON.stringify({
+          traits: ['Wise', 'Patient'],
+          values: ['Knowledge', 'Truth'],
+          fears: ['Obsolescence'],
+          desires: ['Legacy'],
+          flaws: ['Detached'],
+          strengths: ['Insightful'],
+        }),
+        finishReason: 'stop',
+      },
+    });
+
+    const initialData: Partial<Character> = {
+      name: 'Test Character',
+      role: {
+        archetype: 'Mentor',
+        narrative_function: '',
+        character_arc: '',
+      },
+    };
+    
+    renderWithWizard(<Step3Personality />, initialData);
+    
+    const button = screen.getByText('Generate Personality');
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(mockGenerateCompletion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt: expect.stringContaining('personality'),
+          systemPrompt: expect.stringContaining('character generation'),
+        })
+      );
+    });
+  });
 });
 
 // ============================================================================
@@ -205,6 +432,11 @@ describe('Step3Personality - Personality Generation', () => {
 
 describe('Step4Background - Background Generation', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
     vi.clearAllMocks();
   });
 
@@ -251,6 +483,53 @@ describe('Step4Background - Background Generation', () => {
     expect(screen.getByLabelText('Family Background')).toBeInTheDocument();
     expect(screen.getByLabelText('Current Situation')).toBeInTheDocument();
   });
+
+  it('should call LLM service when background generation is clicked', async () => {
+    const user = userEvent.setup();
+    
+    mockGenerateCompletion.mockResolvedValue({
+      success: true,
+      data: {
+        content: JSON.stringify({
+          origin: 'Born in a remote mountain village',
+          occupation: 'Former soldier',
+          education: 'Military academy training',
+          family: 'War hero father',
+          significant_events: ['Battle of the Crimson Fields'],
+          current_situation: 'Seeking redemption for past actions',
+        }),
+        finishReason: 'stop',
+      },
+    });
+
+    const initialData: Partial<Character> = {
+      name: 'Test Character',
+      personality: {
+        traits: ['Brave', 'Loyal'],
+        values: ['Justice'],
+        fears: ['Failure'],
+        desires: ['Recognition'],
+        flaws: ['Impulsive'],
+        strengths: ['Determined'],
+        temperament: 'Choleric',
+        communication_style: 'Direct',
+      },
+    };
+    
+    renderWithWizard(<Step4Background worldContext={mockWorld} />, initialData);
+    
+    const button = screen.getByText('Generate Background');
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(mockGenerateCompletion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt: expect.stringContaining('background'),
+          systemPrompt: expect.stringContaining('character generation'),
+        })
+      );
+    });
+  });
 });
 
 // ============================================================================
@@ -258,23 +537,30 @@ describe('Step4Background - Background Generation', () => {
 // ============================================================================
 
 describe('LLM Integration - Consistency', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
   it('should pass world context through all steps', () => {
     const { rerender } = renderWithWizard(<Step1BasicIdentity worldContext={mockWorld} />);
     expect(screen.getByText('Test Fantasy World')).toBeInTheDocument();
     
     rerender(
-      <WizardProvider initialData={{}} onComplete={vi.fn()}>
+      <WizardProvider wizardType="character" totalSteps={5} initialData={{}} onSubmit={vi.fn()}>
         <Step2PhysicalAppearance worldContext={mockWorld} />
       </WizardProvider>
     );
-    // World context is used in generation prompts
     
     rerender(
-      <WizardProvider initialData={{}} onComplete={vi.fn()}>
+      <WizardProvider wizardType="character" totalSteps={5} initialData={{}} onSubmit={vi.fn()}>
         <Step4Background worldContext={mockWorld} />
       </WizardProvider>
     );
-    // World context is used in generation prompts
   });
 
   it('should maintain character data consistency across steps', () => {
@@ -300,6 +586,8 @@ describe('LLM Integration - Consistency', () => {
         posture: 'Confident',
         clothing_style: 'Practical armor',
         color_palette: ['Silver', 'Blue', 'White'],
+        reference_images: [],
+        reference_sheet_images: [],
       },
     };
 
@@ -307,10 +595,42 @@ describe('LLM Integration - Consistency', () => {
     expect(screen.getByDisplayValue('Aria Stormwind')).toBeInTheDocument();
     
     rerender(
-      <WizardProvider initialData={characterData} onComplete={vi.fn()}>
+      <WizardProvider wizardType="character" totalSteps={5} initialData={characterData} onSubmit={vi.fn()}>
         <Step2PhysicalAppearance />
       </WizardProvider>
     );
     expect(screen.getByDisplayValue('Silver')).toBeInTheDocument();
+  });
+
+  it('should use same LLM service mock for all generation steps', async () => {
+    const user = userEvent.setup();
+    
+    mockGenerateCompletion.mockResolvedValue({
+      success: true,
+      data: {
+        content: JSON.stringify({
+          name: 'Test Name',
+        }),
+        finishReason: 'stop',
+      },
+    });
+
+    const initialData: Partial<Character> = {
+      name: 'Test Character',
+      role: {
+        archetype: 'Protagonist',
+        narrative_function: '',
+        character_arc: '',
+      },
+    };
+    
+    renderWithWizard(<Step3Personality />, initialData);
+    
+    const button = screen.getByText('Generate Personality');
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(mockGenerateCompletion).toHaveBeenCalled();
+    });
   });
 });

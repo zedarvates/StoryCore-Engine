@@ -234,6 +234,7 @@ class ProjectManager:
             assets_path = project_path / "assets"
             images_path = assets_path / "images"
             audio_path = assets_path / "audio"
+            story_path = project_path / "story"  # LLM-optimized story directory
             
             logger.info(f"Creating assets directory structure")
             images_path.mkdir(parents=True, exist_ok=True)
@@ -241,6 +242,11 @@ class ProjectManager:
             
             audio_path.mkdir(parents=True, exist_ok=True)
             created_directories.append(str(audio_path))
+            
+            # Create story directory for LLM-optimized story files
+            logger.info(f"Creating story directory structure")
+            story_path.mkdir(parents=True, exist_ok=True)
+            created_directories.append(str(story_path))
             
             # Generate deterministic seed from project name
             seed = self._generate_seed(project_name)

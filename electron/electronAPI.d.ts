@@ -465,6 +465,13 @@ export interface ElectronAPI {
   // Dialogs
   dialog: {
     /**
+     * Show open dialog
+     * @param options Open dialog options
+     * @returns Selected file paths or canceled status
+     */
+    showOpenDialog: (options: Electron.OpenDialogOptions) => Promise<Electron.OpenDialogReturnValue>;
+
+    /**
      * Show save dialog
      * @param options Save dialog options
      * @returns Selected file path or canceled status

@@ -90,7 +90,7 @@ export function useLayoutPersistence() {
 /**
  * Validate panel sizes object
  */
-function isValidPanelSizes(sizes: any): sizes is PanelSizes {
+function isValidPanelSizes(sizes: unknown): sizes is PanelSizes {
   if (!sizes || typeof sizes !== 'object') return false;
 
   const { assetLibrary, canvas, propertiesOrChat } = sizes;
@@ -124,3 +124,4 @@ function isValidPanelSizes(sizes: any): sizes is PanelSizes {
 
   return true;
 }
+

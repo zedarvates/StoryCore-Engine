@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
+import { useStore } from '@/store';
 import { ollamaClient } from '@/services/llm/OllamaClient';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Save, Edit3, Loader2, BookOpen } from 'lucide-react';
@@ -12,9 +13,10 @@ export interface ProjectResumeSectionProps {
 }
 
 export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ className }) => {
-    const project = useAppStore((state: any) => state.project);
-    const shots = useAppStore((state: any) => state.shots);
-    const ollamaStatus = useAppStore((state: any) => state.ollamaStatus);
+    const project = useAppStore((state: unknown) => state.project);
+    const shots = useAppStore((state: unknown) => state.shots);
+    const ollamaStatus = useAppStore((state: unknown) => state.ollamaStatus);
+    const characters = useStore((state: unknown) => state.characters);
     const { showSuccess, showError, showInfo } = useNotifications();
 
     const [resume, setResume] = useState<string>('');
@@ -83,7 +85,7 @@ export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ clas
             const context = {
                 name: project?.metadata?.name || 'Untitled',
                 genre: project?.metadata?.genre || 'Not specified',
-                characters: project?.characters?.map((c: any) => `${c.name} (${c.role?.archetype || c.archetype || 'Unnamed Archetype'})`).join(', ') || 'None',
+                characters: characters?.map((c: unknown) => `${c.name} (${c.role?.archetype || c.archetype || 'Unnamed Archetype'})`).join(', ') || 'None',
                 sequences: shots?.length || 0,
             };
 
@@ -154,3 +156,5 @@ export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ clas
         </div>
     );
 };
+
+

@@ -5,10 +5,10 @@ import { ModelSelector, ReasoningDisplay } from '../../llm';
 
 interface EnhancedStorytellerAssistantProps {
   projectContext?: {
-    characters: any[];
-    world: any;
-    locations: any[];
-    previousStories: any[];
+    characters: unknown[];
+    world: unknown;
+    locations: unknown[];
+    previousStories: unknown[];
   };
   storyData: {
     videoType: string;
@@ -20,7 +20,7 @@ interface EnhancedStorytellerAssistantProps {
     selectedCharacters: string[];
     previousEpisodeReference?: string;
   };
-  onStoryGenerated: (storyResult: any) => void;
+  onStoryGenerated: (storyResult: unknown) => void;
 }
 
 export const EnhancedStorytellerAssistant: React.FC<EnhancedStorytellerAssistantProps> = ({
@@ -258,3 +258,6 @@ Assure-toi que l'histoire:
     </div>
   );
 };
+
+
+

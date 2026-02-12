@@ -116,9 +116,9 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
    */
   const renderLayer = useCallback((
     ctx: CanvasRenderingContext2D,
-    layer: any,
+    layer: unknown,
     bounds: { x: number; y: number; width: number; height: number },
-    transform: any
+    transform: unknown
   ) => {
     // Skip invisible layers
     if (!layer.visible) return;
@@ -183,7 +183,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
       const annotationContent = layer.content;
 
       // Render drawings
-      annotationContent.drawings?.forEach((drawing: any) => {
+      annotationContent.drawings?.forEach((drawing: unknown) => {
         ctx.save();
         ctx.strokeStyle = drawing.style.strokeColor || '#000000';
         ctx.lineWidth = drawing.style.strokeWidth || 2;
@@ -234,7 +234,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
       });
 
       // Render text annotations
-      annotationContent.textAnnotations?.forEach((textAnnotation: any) => {
+      annotationContent.textAnnotations?.forEach((textAnnotation: unknown) => {
         ctx.save();
         ctx.font = `${textAnnotation.style.fontSize}px ${textAnnotation.style.fontFamily}`;
         ctx.fillStyle = textAnnotation.style.color || '#000000';
@@ -510,3 +510,5 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
     </div>
   );
 };
+
+

@@ -11,13 +11,7 @@ import { exportSceneToVideo, downloadExportedFile, generateExportFilename } from
 import { useToast } from '@/hooks/use-toast';
 import './sceneView3D.css';
 import './puppetAnimationControls.css';
-
-interface SceneView3DProps {
-  width: number;
-  height: number;
-  currentFrame: number;
-  onPuppetUpdate?: (puppetData: any) => void;
-}
+import { useSelectedShot } from '../../store';
 
 interface Camera {
   position: { x: number; y: number; z: number };
@@ -50,6 +44,36 @@ interface Environment {
     type: string;
     position: { x: number; y: number; z: number };
   }>;
+}
+
+/**
+ * 3D Object Placement for SceneView3D
+ */
+interface SceneObject3D {
+  placementId: string;
+  objectId: string;
+  objectName: string;
+  modelPath?: string;
+  position: { x: number; y: number; z: number };
+  rotation: { x: number; y: number; z: number };
+  scale: { x: number; y: number; z: number };
+  visible: boolean;
+  depth: number;
+}
+
+interface SceneView3DProps {
+  width: number;
+  height: number;
+  currentFrame: number;
+  onPuppetUpdate?: (puppetData: unknown) => void;
+  /** Optional 3D objects to place in the scene */
+  sceneObjects?: SceneObject3D[];
+  /** Called when object placements change */
+  onObjectsChange?: (objects: SceneObject3D[]) => void;
+  /** Called when an object is selected */
+  onObjectSelect?: (placementId: string | null) => void;
+  /** Currently selected object ID */
+  selectedObjectId?: string | null;
 }
 
 interface PuppetKeyframe {
@@ -313,6 +337,60 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [webGLSupported, setWebGLSupported] = useState(true);
+  
+  // -------------------------------------------------------------------------
+  // Synchronise the generated rig (if any) from the selected shot into the
+  // 3‑D scene. The backend returns a `rigPath` which we expose via the
+  // `useSelectedShot` hook. When a rig is present we replace the current
+  // puppet list with a placeholder puppet representing the rig. In a full
+  // implementation you would load the rig geometry (e.g. from a GLTF file)
+  // and populate the `joints` array accordingly.
+  // -------------------------------------------------------------------------
+  const selectedShot = useSelectedShot();
+  
+  useEffect(() => {
+    if (selectedShot?.rigPath) {
+      // Placeholder puppet for the rig – replace with real geometry later.
+      const rigPuppet: Puppet = {
+        id: 'rig-puppet',
+        position: { x: 0, y: 0, z: 0 },
+        rotation: { x: 0, y: 0, z: 0 },
+        scale: { x: 1, y: 1, z: 1 },
+        pose: 'idle',
+        joints: [], // TODO: load joints from rig data
+      };
+      setPuppets([rigPuppet]);
+    } else {
+      // If no rig is present, fall back to the default demo puppet.
+      setPuppets([
+        {
+          id: 'puppet-1',
+          position: { x: 0, y: 0, z: 0 },
+          rotation: { x: 0, y: 0, z: 0 },
+          scale: { x: 1, y: 1, z: 1 },
+          pose: 'idle',
+          joints: [
+            { id: 'root', name: 'Root', position: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: null },
+            { id: 'spine', name: 'Spine', position: { x: 0, y: 0.5, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'root' },
+            { id: 'neck', name: 'Neck', position: { x: 0, y: 1.2, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'spine' },
+            { id: 'head', name: 'Head', position: { x: 0, y: 1.5, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'neck' },
+            { id: 'left-shoulder', name: 'L Shoulder', position: { x: -0.3, y: 1.1, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'spine' },
+            { id: 'left-elbow', name: 'L Elbow', position: { x: -0.6, y: 0.8, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'left-shoulder' },
+            { id: 'left-hand', name: 'L Hand', position: { x: -0.9, y: 0.5, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'left-elbow' },
+            { id: 'right-shoulder', name: 'R Shoulder', position: { x: 0.3, y: 1.1, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'spine' },
+            { id: 'right-elbow', name: 'R Elbow', position: { x: 0.6, y: 0.8, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'right-shoulder' },
+            { id: 'right-hand', name: 'R Hand', position: { x: 0.9, y: 0.5, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'right-elbow' },
+            { id: 'left-hip', name: 'L Hip', position: { x: -0.15, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'root' },
+            { id: 'left-knee', name: 'L Knee', position: { x: -0.15, y: -0.5, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'left-hip' },
+            { id: 'left-foot', name: 'L Foot', position: { x: -0.15, y: -1, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'left-knee' },
+            { id: 'right-hip', name: 'R Hip', position: { x: 0.15, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'root' },
+            { id: 'right-knee', name: 'R Knee', position: { x: 0.15, y: -0.5, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'right-hip' },
+            { id: 'right-foot', name: 'R Foot', position: { x: 0.15, y: -1, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, parent: 'right-knee' },
+          ],
+        },
+      ]);
+    }
+  }, [selectedShot]);
   
   // Initialize WebGL context
   useEffect(() => {
@@ -1193,3 +1271,4 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
 };
 
 export default SceneView3D;
+

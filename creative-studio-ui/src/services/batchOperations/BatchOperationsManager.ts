@@ -21,7 +21,7 @@ export interface BatchOperationOptions {
   suffix?: string;
   
   // Options de transformation
-  transform?: Record<string, any>;
+  transform?: Record<string, unknown>;
   
   // Options d'export
   format?: string;
@@ -430,3 +430,4 @@ export class BatchOperationsManager {
     this.operationHistory = [];
   }
 }
+

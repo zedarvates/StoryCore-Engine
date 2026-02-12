@@ -1,0 +1,715 @@
+{
+  "meta": {
+    "titre": "The Discovery",
+    "pitch": "Dans Histoire Sans Titre, Marie affronte Professor Dubois,, Dubois,.",
+    "theme": "survie",
+    "sous_themes": [
+      "survie"
+    ],
+    "ton": "sombre",
+    "enjeux": [
+      "La verite"
+    ],
+    "version": "1.0",
+    "created_at": "2026-02-12T14:20:31.066588"
+  },
+  "personnages": [
+    {
+      "id": 1,
+      "nom": "Marie",
+      "age": "Inconnu",
+      "role": "protagoniste",
+      "description": "Personnage important",
+      "objectif": "Accomplir sa destinee",
+      "motivation": "Survivre",
+      "conflit_interne": "Trouver sa place",
+      "conflit_externe": "Obstacles",
+      "traits": [],
+      "forces": [],
+      "faiblesses": [],
+      "secrets": "",
+      "relations": [],
+      "arc_narratif": "Evolution de Marie",
+      "apparitions_scenes": []
+    },
+    {
+      "id": 2,
+      "nom": "Professor Dubois,",
+      "age": "Inconnu",
+      "role": "antagoniste",
+      "description": "Personnage important",
+      "objectif": "Accomplir sa destinee",
+      "motivation": "Survivre",
+      "conflit_interne": "Trouver sa place",
+      "conflit_externe": "Obstacles",
+      "traits": [],
+      "forces": [],
+      "faiblesses": [],
+      "secrets": "",
+      "relations": [],
+      "arc_narratif": "Evolution de Professor Dubois,",
+      "apparitions_scenes": []
+    },
+    {
+      "id": 3,
+      "nom": "Dubois,",
+      "age": "Inconnu",
+      "role": "allie",
+      "description": "Personnage important",
+      "objectif": "Accomplir sa destinee",
+      "motivation": "Survivre",
+      "conflit_interne": "Trouver sa place",
+      "conflit_externe": "Obstacles",
+      "traits": [],
+      "forces": [],
+      "faiblesses": [],
+      "secrets": "",
+      "relations": [],
+      "arc_narratif": "Evolution de Dubois,",
+      "apparitions_scenes": []
+    },
+    {
+      "id": 4,
+      "nom": "Mr. Noir,",
+      "age": "Inconnu",
+      "role": "figurant",
+      "description": "Personnage important",
+      "objectif": "Accomplir sa destinee",
+      "motivation": "Survivre",
+      "conflit_interne": "Trouver sa place",
+      "conflit_externe": "Obstacles",
+      "traits": [],
+      "forces": [],
+      "faiblesses": [],
+      "secrets": "",
+      "relations": [],
+      "arc_narratif": "Evolution de Mr. Noir,",
+      "apparitions_scenes": []
+    },
+    {
+      "id": 5,
+      "nom": "Noir,",
+      "age": "Inconnu",
+      "role": "figurant",
+      "description": "Personnage important",
+      "objectif": "Accomplir sa destinee",
+      "motivation": "Survivre",
+      "conflit_interne": "Trouver sa place",
+      "conflit_externe": "Obstacles",
+      "traits": [],
+      "forces": [],
+      "faiblesses": [],
+      "secrets": "",
+      "relations": [],
+      "arc_narratif": "Evolution de Noir,",
+      "apparitions_scenes": []
+    },
+    {
+      "id": 6,
+      "nom": "Jean,",
+      "age": "Inconnu",
+      "role": "figurant",
+      "description": "Personnage important",
+      "objectif": "Accomplir sa destinee",
+      "motivation": "Survivre",
+      "conflit_interne": "Trouver sa place",
+      "conflit_externe": "Obstacles",
+      "traits": [],
+      "forces": [],
+      "faiblesses": [],
+      "secrets": "",
+      "relations": [],
+      "arc_narratif": "Evolution de Jean,",
+      "apparitions_scenes": []
+    }
+  ],
+  "lieux": [],
+  "objets": [
+    {
+      "id": 1,
+      "nom": "document",
+      "type": "autre",
+      "description": "Objet important",
+      "pouvoir_capacite": "",
+      "proprietaire_actuel": "",
+      "significance": "document est crucial",
+      "apparitions_scenes": [],
+      "utilisation_narrative": ""
+    }
+  ],
+  "structure": {
+    "acte_1": {
+      "titre": "La Mise en Place",
+      "description": "Introduction",
+      "duree": "25%"
+    },
+    "acte_2": {
+      "titre": "La Confrontation",
+      "description": "Obstacles",
+      "duree": "50%"
+    },
+    "acte_3": {
+      "titre": "La Resolution",
+      "description": "Climax et fin",
+      "duree": "25%"
+    },
+    "themes_principaux": [
+      "survie"
+    ],
+    "themes_secondaires": []
+  },
+  "sequences": [
+    {
+      "id": 1,
+      "titre": "L'Ordinaire",
+      "acte": 1,
+      "objectif": "Presenter le monde",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence L'Ordinaire",
+      "tension": "moyenne"
+    },
+    {
+      "id": 2,
+      "titre": "L'Appel",
+      "acte": 1,
+      "objectif": "Declencheur",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence L'Appel",
+      "tension": "moyenne"
+    },
+    {
+      "id": 3,
+      "titre": "La Decision",
+      "acte": 1,
+      "objectif": "Reflexion",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence La Decision",
+      "tension": "moyenne"
+    },
+    {
+      "id": 4,
+      "titre": "La Traverse",
+      "acte": 2,
+      "objectif": "Nouveau monde",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence La Traverse",
+      "tension": "moyenne"
+    },
+    {
+      "id": 5,
+      "titre": "Les Defis",
+      "acte": 2,
+      "objectif": "Obstacles",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence Les Defis",
+      "tension": "moyenne"
+    },
+    {
+      "id": 6,
+      "titre": "Les Allies",
+      "acte": 2,
+      "objectif": "Rencontres",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence Les Allies",
+      "tension": "moyenne"
+    },
+    {
+      "id": 7,
+      "titre": "La Crise",
+      "acte": 2,
+      "objectif": "Midpoint",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence La Crise",
+      "tension": "moyenne"
+    },
+    {
+      "id": 8,
+      "titre": "Le Climax",
+      "acte": 3,
+      "objectif": "Affrontement final",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence Le Climax",
+      "tension": "moyenne"
+    },
+    {
+      "id": 9,
+      "titre": "La Resolution",
+      "acte": 3,
+      "objectif": "Denouement",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence La Resolution",
+      "tension": "moyenne"
+    },
+    {
+      "id": 10,
+      "titre": "Le Nouveau Monde",
+      "acte": 3,
+      "objectif": "Conclusion",
+      "lieu_principal": "Unknown",
+      "lieu_id": 1,
+      "moment_journee": "jour",
+      "personnages": [
+        "Marie",
+        "Professor Dubois,",
+        "Dubois,",
+        "Mr. Noir,",
+        "Noir,",
+        "Jean,"
+      ],
+      "resume": "Sequence Le Nouveau Monde",
+      "tension": "moyenne"
+    }
+  ],
+  "scenes": [
+    {
+      "id": 1,
+      "sequence_id": 1,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de L'Ordinaire",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 2,
+      "sequence_id": 1,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de L'Ordinaire",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 3,
+      "sequence_id": 2,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de L'Appel",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 4,
+      "sequence_id": 2,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de L'Appel",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 5,
+      "sequence_id": 3,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de La Decision",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 6,
+      "sequence_id": 3,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de La Decision",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 7,
+      "sequence_id": 4,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de La Traverse",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 8,
+      "sequence_id": 4,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de La Traverse",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 9,
+      "sequence_id": 5,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de Les Defis",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 10,
+      "sequence_id": 5,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de Les Defis",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 11,
+      "sequence_id": 6,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de Les Allies",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 12,
+      "sequence_id": 6,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de Les Allies",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 13,
+      "sequence_id": 7,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de La Crise",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 14,
+      "sequence_id": 7,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de La Crise",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 15,
+      "sequence_id": 8,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de Le Climax",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 16,
+      "sequence_id": 8,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de Le Climax",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 17,
+      "sequence_id": 9,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de La Resolution",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 18,
+      "sequence_id": 9,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de La Resolution",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 19,
+      "sequence_id": 10,
+      "type": "EXT",
+      "lieu": "Unknown",
+      "moment": "JOUR",
+      "description": "Scene 1 de Le Nouveau Monde",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    },
+    {
+      "id": 20,
+      "sequence_id": 10,
+      "type": "INT",
+      "lieu": "Unknown",
+      "moment": "NUIT",
+      "description": "Scene 2 de Le Nouveau Monde",
+      "actions": [
+        {
+          "ordre": 1,
+          "description": "Action principale"
+        }
+      ],
+      "progression": {
+        "etat": "developpement",
+        "tension": "moyenne"
+      }
+    }
+  ]
+}

@@ -51,6 +51,17 @@ from src.feedback_error_logger import (
     log_github_api_error
 )
 
+# Import Automation endpoints
+# Note: These are added at module level but imported conditionally to avoid
+# circular imports and startup errors
+try:
+    from backend.automation_endpoints import router as automation_router
+    AUTOMATION_AVAILABLE = True
+    logger.info("Automation endpoints module loaded successfully")
+except ImportError as e:
+    logger.warning(f"Automation endpoints not available: {e}")
+    AUTOMATION_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -115,6 +126,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 logger.info(f"CORS configured for origins: {origins}")
+
+# Register automation endpoints router if available
+if AUTOMATION_AVAILABLE:
+    try:
+        app.include_router(automation_router, prefix="/api/automation")
+        logger.info("Automation endpoints registered successfully")
+    except Exception as e:
+        logger.error(f"Failed to register automation router: {e}")
+        AUTOMATION_AVAILABLE = False
 
 
 # Initialize rate limiter

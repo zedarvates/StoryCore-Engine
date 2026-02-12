@@ -78,6 +78,54 @@ const FILTER_PRESETS: FilterPreset[] = [
     }
   },
   {
+    id: 'teal-orange',
+    name: 'Teal & Orange',
+    description: 'Classic block-buster look with warm skin and teal shadows',
+    category: 'cinematic',
+    icon: <Film size={16} />,
+    preview: '🎞️',
+    popular: true,
+    parameters: {
+      brightness: 0,
+      contrast: 30,
+      saturation: 15,
+      hue: 15,
+      tint: -20,
+      warmth: 10,
+    }
+  },
+  {
+    id: 'bleach-bypass',
+    name: 'Bleach Bypass',
+    description: 'High contrast, low saturation gritty film look',
+    category: 'cinematic',
+    icon: <Film size={16} />,
+    preview: '🏭',
+    parameters: {
+      brightness: -10,
+      contrast: 50,
+      saturation: -40,
+      hue: 0,
+      sharpness: 20,
+      grain: 25
+    }
+  },
+  {
+    id: 'technicolor',
+    name: 'Technicolor',
+    description: 'Vibrant, over-saturated early color film aesthetic',
+    category: 'cinematic',
+    icon: <Palette size={16} />,
+    preview: '🌈',
+    parameters: {
+      brightness: 5,
+      contrast: 20,
+      saturation: 60,
+      hue: -5,
+      warmth: 5
+    }
+  },
+  {
     id: 'moody',
     name: 'Moody Blues',
     description: 'Cool tones with high contrast',
@@ -181,8 +229,8 @@ const FILTER_PRESETS: FilterPreset[] = [
   },
   {
     id: 'cyberpunk',
-    name: 'Cyberpunk',
-    description: 'Neon colors with high contrast',
+    name: 'Cyberpunk Blue',
+    description: 'Electric blue and neon highlights',
     category: 'artistic',
     icon: <Gamepad2 size={16} />,
     preview: '🎮',
@@ -192,6 +240,22 @@ const FILTER_PRESETS: FilterPreset[] = [
       saturation: 40,
       hue: 280,
       sharpness: 20
+    }
+  },
+  {
+    id: 'cyber-pink',
+    name: 'Night City Pink',
+    description: 'Neon magenta and deep purples',
+    category: 'artistic',
+    icon: <Sparkles size={16} />,
+    preview: '🌆',
+    popular: true,
+    parameters: {
+      brightness: -5,
+      contrast: 40,
+      saturation: 50,
+      hue: 320,
+      vignette: 20
     }
   },
   {
@@ -297,7 +361,7 @@ export function FilterLibrary({ onFilterSelect, selectedFilter }: FilterLibraryP
   const filteredFilters = FILTER_PRESETS.filter(filter => {
     const matchesCategory = activeCategory === 'all' || filter.category === activeCategory;
     const matchesSearch = filter.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         filter.description.toLowerCase().includes(searchTerm.toLowerCase());
+      filter.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 

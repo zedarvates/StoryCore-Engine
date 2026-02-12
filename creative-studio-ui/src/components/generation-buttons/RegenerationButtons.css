@@ -1,0 +1,211 @@
+/* ============================================================================
+   Re-generation Buttons — Premium Dark UI
+   ============================================================================ */
+
+/* Base Re-generation Button */
+.regen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--regen-color, #999);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.regen-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--regen-from), var(--regen-to));
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.regen-btn:hover:not(:disabled) {
+    border-color: var(--regen-color);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--regen-color) 25%, transparent);
+}
+
+.regen-btn:hover:not(:disabled)::before {
+    opacity: 0.15;
+}
+
+.regen-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.regen-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.regen-btn-loading {
+    pointer-events: none;
+}
+
+/* Size variants */
+.regen-btn-sm {
+    padding: 4px 6px;
+    font-size: 12px;
+}
+
+.regen-btn-sm .regen-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.regen-btn-md {
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+.regen-btn-md .regen-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.regen-btn-lg {
+    padding: 8px 14px;
+    font-size: 14px;
+}
+
+.regen-btn-lg .regen-icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Icon */
+.regen-icon {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+/* Label */
+.regen-label {
+    position: relative;
+    z-index: 1;
+    font-weight: 500;
+}
+
+/* Spin animation */
+.regen-spin {
+    animation: regenSpin 1s linear infinite;
+}
+
+@keyframes regenSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================================
+   Re-generation Group (inline row)
+   ============================================================================ */
+
+.regen-group {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+
+/* ============================================================================
+   Batch Re-generation Button
+   ============================================================================ */
+
+.batch-regen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg,
+            rgba(var(--regen-from), 0.08),
+            rgba(var(--regen-to), 0.04));
+    color: var(--regen-color, #ccc);
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.batch-regen-btn:hover:not(:disabled) {
+    border-color: var(--regen-color);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--regen-color) 20%, transparent);
+}
+
+.batch-regen-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.batch-count {
+    background: var(--regen-color);
+    color: #fff;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* ============================================================================
+   Export Film Button
+   ============================================================================ */
+
+.export-film-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%);
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 0.02em;
+    box-shadow:
+        0 4px 20px rgba(124, 58, 237, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+.export-film-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 32px rgba(124, 58, 237, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+.export-film-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.export-film-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.3);
+}
+
+.export-film-icon {
+    font-size: 20px;
+}
+
+.export-film-label {
+    font-weight: 700;
+}

@@ -263,15 +263,15 @@ export interface BatchOperationsToolbarProps {
 export interface WorkerTask {
   id: string;
   type: string;
-  data: any;
-  resolve: (result: any) => void;
+  data: unknown;
+  resolve: (result: unknown) => void;
   reject: (error: Error) => void;
 }
 
 export interface WorkerMessage {
   id: string;
   type: string;
-  data?: any;
+  data?: unknown;
   error?: string;
   progress?: number;
 }
@@ -314,9 +314,9 @@ export interface AnimationConfig {
 }
 
 export interface AnimationVariants {
-  initial: Record<string, any>;
-  animate: Record<string, any>;
-  exit?: Record<string, any>;
+  initial: Record<string, unknown>;
+  animate: Record<string, unknown>;
+  exit?: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -474,3 +474,6 @@ export function isExportConfiguration(value: unknown): value is ExportConfigurat
 
 // Re-export Shot type for convenience
 export type { Shot } from './index';
+
+
+

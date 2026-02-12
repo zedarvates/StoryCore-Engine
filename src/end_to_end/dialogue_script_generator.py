@@ -10,7 +10,7 @@ Generates complete dialogue scripts from story structures, including:
 
 import uuid
 from typing import List, Dict
-from .data_models import (
+from src.end_to_end.data_models import (
     ParsedPrompt, StoryStructure, Character,
     DialogueScript, DialogueScene, DialogueLine
 )

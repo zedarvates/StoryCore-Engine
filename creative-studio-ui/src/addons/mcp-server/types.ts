@@ -25,7 +25,7 @@ export interface MCPServerOperation {
   type: 'start' | 'stop' | 'command' | 'config';
   timestamp: string;
   description: string;
-  details?: any;
+  details?: unknown;
 }
 
 export interface MCPServerState {

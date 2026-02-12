@@ -10,6 +10,7 @@
 
 import { useCallback } from 'react';
 import { useStore } from '../store';
+import { useEditorStore } from '../stores/editorStore';
 import type { Character } from '../types/character';
 import { toast } from '../utils/toast';
 
@@ -35,11 +36,11 @@ export type PersistenceErrorType = typeof PersistenceErrorType[keyof typeof Pers
  */
 export class PersistenceError extends Error {
   public type: PersistenceErrorType;
-  public details?: any;
+  public details?: unknown;
   constructor(
     type: PersistenceErrorType,
     message: string,
-    details?: any
+    details?: unknown
   ) {
     super(message);
     this.type = type;
@@ -191,7 +192,7 @@ function detectConcurrentModification(
  * Validates character data against schema
  * Requirements: 8.3
  */
-function validateCharacterSchema(data: any): { valid: boolean; errors: string[] } {
+function validateCharacterSchema(data: unknown): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   // Check required fields
@@ -261,13 +262,14 @@ export function useCharacterPersistence() {
   const updateCharacter = useStore((state) => state.updateCharacter);
   const deleteCharacter = useStore((state) => state.deleteCharacter);
   const getAllCharacters = useStore((state) => state.getAllCharacters);
+  const setCharacters = useStore((state) => state.setCharacters);
 
   // ============================================================================
   // File System Operations - All useCallback hooks at top level
   // ============================================================================
-  
+
   /**
-   * Save character to JSON file via backend API
+   * Save character to JSON file via File System Access API
    * Requirements: 8.2, 8.3
    */
   const saveToFile = useCallback(
@@ -283,21 +285,41 @@ export function useCharacterPersistence() {
           );
         }
 
-        // Try to save to file system via backend API with retry logic (Requirement: 8.2)
-        await retryWithBackoff(async () => {
-          const response = await fetch('/api/characters/save', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(character),
-          });
+        // Use File System Access API if available
+        if ('showSaveFilePicker' in window) {
+          const options = {
+            suggestedName: `${character.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_character.json`,
+            types: [
+              {
+                description: 'JSON Files',
+                accept: { 'application/json': ['.json'] },
+              },
+            ],
+          };
 
-          if (!response.ok) {
-            throw new Error(`File save failed: ${response.statusText}`);
-          }
-        });
+          const fileHandle = await (window as any).showSaveFilePicker(options);
+          const writable = await fileHandle.createWritable();
+          await writable.write(JSON.stringify(character, null, 2));
+          await writable.close();
+        } else {
+          // Fallback: download file via anchor element
+          const blob = new Blob([JSON.stringify(character, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${character.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_character.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
       } catch (error) {
+        // Check if user cancelled the save dialog - don't treat as error
+        if ((error as Error).name === 'AbortError') {
+          console.log('User cancelled file save');
+          return;
+        }
+
         // Log error and show user-friendly message (Requirement: 8.2)
         handleFileSystemError(error as Error, 'save');
         throw new PersistenceError(
@@ -311,35 +333,201 @@ export function useCharacterPersistence() {
   );
 
   /**
-   * Load character from JSON file via backend API
-   * Requirements: 8.2
+   * Save character directly to project directory via Electron API
+   * This saves automatically without showing a file picker dialog
+   * Requirements: 8.2, 8.3
    */
-  const loadFromFile = useCallback(
-    async (character_id: string): Promise<PersistedCharacter | null> => {
+  const saveToProjectDirectory = useCallback(
+    async (character: PersistedCharacter, projectPath: string): Promise<void> => {
       try {
-        const response = await fetch(`/api/characters/${character_id}`);
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            return null;
-          }
-          throw new Error(`File load failed: ${response.statusText}`);
-        }
-
-        const character = await response.json();
-
-        // Validate loaded data (Requirement: 8.3)
+        // Validate schema before saving (Requirement: 8.3)
         const validation = validateCharacterSchema(character);
         if (!validation.valid) {
           throw new PersistenceError(
-            PersistenceErrorType.CORRUPTED_DATA,
-            `Loaded character failed validation: ${validation.errors.join(', ')}`,
+            PersistenceErrorType.VALIDATION_ERROR,
+            `Schema validation failed: ${validation.errors.join(', ')}`,
             { errors: validation.errors }
           );
         }
 
-        return character;
+        // Check if we're running in Electron environment
+        if (window.electronAPI?.fs?.writeFile) {
+          const charactersDir = `${projectPath}/characters`;
+          const fileName = `character_${character.character_id}.json`;
+          const filePath = `${charactersDir}/${fileName}`;
+
+          // Ensure the characters directory exists
+          if (window.electronAPI.fs.mkdir) {
+            await window.electronAPI.fs.mkdir(charactersDir, { recursive: true });
+          }
+
+          const jsonData = JSON.stringify(character, null, 2);
+
+          // Convert string to Uint8Array for browser compatibility
+          const encoder = new TextEncoder();
+          const dataBuffer = encoder.encode(jsonData);
+
+          // Convert Uint8Array to string for writeFile (Node.js style)
+          const dataString = new TextDecoder().decode(dataBuffer);
+          await window.electronAPI.fs.writeFile(filePath, dataString);
+          console.log(`[useCharacterPersistence] Character saved to: ${filePath}`);
+        } else {
+          // Fallback: use the file picker method
+          console.warn('[useCharacterPersistence] Electron API not available, falling back to file picker');
+          await saveToFile(character);
+        }
       } catch (error) {
+        console.error('[useCharacterPersistence] Failed to save character to project directory:', error);
+        handleFileSystemError(error as Error, 'save');
+        throw new PersistenceError(
+          PersistenceErrorType.FILE_SYSTEM_ERROR,
+          'Failed to save character to project directory',
+          { originalError: error }
+        );
+      }
+    },
+    []
+  );
+
+  /**
+   * Load all characters from project directory
+   * Requirements: 8.2, 8.4
+   */
+  const loadCharactersFromProjectDirectory = useCallback(
+    async (projectPath: string): Promise<PersistedCharacter[]> => {
+      const characters: PersistedCharacter[] = [];
+
+      try {
+        // Check if we're running in Electron environment
+        if (window.electronAPI?.fs?.readdir) {
+          const charactersDir = `${projectPath}/characters`;
+
+          // Check if directory exists
+          try {
+            const files = await window.electronAPI.fs.readdir(charactersDir);
+
+            for (const file of files) {
+              if (file.endsWith('.json') && file.startsWith('character_')) {
+                try {
+                  const filePath = `${charactersDir}/${file}`;
+                  const buffer = await window.electronAPI.fs.readFile(filePath);
+                  const content = new TextDecoder().decode(buffer);
+                  const character = JSON.parse(content);
+
+                  // Validate loaded data
+                  const validation = validateCharacterSchema(character);
+                  if (validation.valid) {
+                    characters.push(character);
+                  } else {
+                    console.warn(`[useCharacterPersistence] Invalid character file: ${file}`, validation.errors);
+                  }
+                } catch (fileError) {
+                  console.warn(`[useCharacterPersistence] Failed to load character file: ${file}`, fileError);
+                }
+              }
+            }
+          } catch (dirError) {
+            // Directory doesn't exist yet, return empty array
+            console.log('[useCharacterPersistence] Characters directory does not exist yet');
+          }
+        } else {
+          console.warn('[useCharacterPersistence] Electron API not available for loading characters from directory');
+        }
+      } catch (error) {
+        console.error('[useCharacterPersistence] Failed to load characters from project directory:', error);
+      }
+
+      return characters;
+    },
+    []
+  );
+
+  /**
+   * Load character from JSON file via File System Access API
+   * Requirements: 8.2
+   */
+  const loadFromFile = useCallback(
+    async (): Promise<PersistedCharacter | null> => {
+      try {
+        // Use File System Access API if available
+        // NOTE: showOpenFilePicker requires a user gesture (click event)
+        // This function should only be called from explicit user actions
+        if ('showOpenFilePicker' in window) {
+          try {
+            const options = {
+              types: [
+                {
+                  description: 'JSON Files',
+                  accept: { 'application/json': ['.json'] },
+                },
+              ],
+              multiple: false,
+            };
+
+            const [fileHandle] = await (window as any).showOpenFilePicker(options);
+            const file = await fileHandle.getFile();
+            const content = await file.text();
+            const character = JSON.parse(content);
+
+            // Validate loaded data (Requirement: 8.3)
+            const validation = validateCharacterSchema(character);
+            if (!validation.valid) {
+              throw new PersistenceError(
+                PersistenceErrorType.CORRUPTED_DATA,
+                `Loaded character failed validation: ${validation.errors.join(', ')}`,
+                { errors: validation.errors }
+              );
+            }
+
+            return character;
+          } catch (pickerError) {
+            // User cancelled or gesture requirement not met
+            // Fall through to fallback method
+            console.warn('File System Access API not available or cancelled:', pickerError);
+          }
+        }
+
+        // Fallback: use input element (works without user gesture requirement)
+        return new Promise((resolve, reject) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = '.json,application/json';
+          input.onchange = async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (!file) {
+              resolve(null);
+              return;
+            }
+            try {
+              const content = await file.text();
+              const character = JSON.parse(content);
+              const validation = validateCharacterSchema(character);
+              if (!validation.valid) {
+                throw new PersistenceError(
+                  PersistenceErrorType.CORRUPTED_DATA,
+                  `Loaded character failed validation: ${validation.errors.join(', ')}`,
+                  { errors: validation.errors }
+                );
+              }
+              resolve(character);
+            } catch (err) {
+              reject(err);
+            }
+          };
+          // Create the click event properly
+          const clickEvent = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true
+          });
+          input.dispatchEvent(clickEvent);
+        });
+      } catch (error) {
+        // Check if user cancelled the open dialog - don't treat as error
+        if ((error as Error).name === 'AbortError') {
+          console.log('User cancelled file open');
+          return null;
+        }
         console.warn('Failed to load character from file system:', error);
         return null;
       }
@@ -436,17 +624,21 @@ export function useCharacterPersistence() {
 
   /**
    * Save a character with dual persistence and conflict resolution
+   * Automatically saves to project directory if available
    * Requirements: 8.1, 8.2, 8.3, 8.5
    */
   const saveCharacter = useCallback(
     async (characterData: Partial<Character>): Promise<Character> => {
+      // Get project path from editor store
+      const projectPath = useEditorStore.getState().projectPath;
+
       // Generate UUID if not provided
       const character_id = characterData.character_id || generateUUID();
 
       // Add persistence metadata
       const existingChar = loadFromLocalStorage(character_id);
       const currentVersionNumber = (existingChar as PersistedCharacter)?.version_number || 0;
-      
+
       const character: PersistedCharacter = {
         character_id,
         name: characterData.name || '',
@@ -501,143 +693,70 @@ export function useCharacterPersistence() {
         notes: (characterData as PersistedCharacter).notes,
       };
 
+      // Update store first
+      const existingCharacters = getAllCharacters();
+      const characterIndex = existingCharacters.findIndex(
+        (c) => c.character_id === character_id
+      );
+
+      if (characterIndex >= 0) {
+        updateCharacter(character_id, character);
+      } else {
+        addCharacter(character);
+      }
+
+      // Save to localStorage (Requirement: 8.1)
       try {
-        // Check for conflicts (Requirement: 8.5)
-        const existingInLocalStorage = loadFromLocalStorage(character_id);
-        let fileCharacter: PersistedCharacter | null = null;
-        
-        try {
-          fileCharacter = await loadFromFile(character_id);
-        } catch (error) {
-          // File system not available, continue with localStorage only
-        }
-
-        // Resolve conflicts if both exist (Requirement: 8.5, 2.5)
-        if (existingInLocalStorage && fileCharacter) {
-          // Check for concurrent modifications
-          const hasConcurrentModification = detectConcurrentModification(
-            existingInLocalStorage,
-            fileCharacter
-          );
-
-          if (hasConcurrentModification) {
-            // Show conflict resolution dialog
-            toast.warning(
-              'Concurrent Modification Detected',
-              `Character "${character.name}" has been modified in multiple places. Please resolve the conflict.`,
-              10000
-            );
-
-            throw new PersistenceError(
-              PersistenceErrorType.CONFLICT_ERROR,
-              'Concurrent modification detected. Please resolve the conflict.',
-              {
-                localCharacter: existingInLocalStorage,
-                remoteCharacter: fileCharacter,
-                newCharacter: character,
-              }
-            );
-          }
-
-          // No concurrent modification, resolve by timestamp
-          const resolved = resolveConflictByTimestamp(existingInLocalStorage, fileCharacter);
-          
-          // If the resolved version is newer than what we're trying to save, throw conflict error
-          const resolvedTime = new Date(resolved.last_modified || resolved.creation_timestamp).getTime();
-          const newTime = new Date(character.last_modified || character.creation_timestamp).getTime();
-          
-          if (resolvedTime > newTime) {
-            throw new PersistenceError(
-              PersistenceErrorType.CONFLICT_ERROR,
-              'A newer version of this character exists',
-              { existingCharacter: resolved, newCharacter: character }
-            );
-          }
-        }
-
-        // Update store first
-        const existingCharacters = getAllCharacters();
-        const characterIndex = existingCharacters.findIndex(
-          (c) => c.character_id === character_id
-        );
-
-        if (characterIndex >= 0) {
-          updateCharacter(character_id, character);
+        saveToLocalStorage(character);
+      } catch (error) {
+        if (error instanceof PersistenceError &&
+            error.type === PersistenceErrorType.STORAGE_QUOTA_EXCEEDED) {
+          // Try to save to file system as fallback
+          console.warn('localStorage quota exceeded, attempting file system save');
+          await saveToFile(character);
         } else {
-          addCharacter(character);
+          throw error;
         }
+      }
 
-        // Save to localStorage (Requirement: 8.1)
+      // Save to project directory if projectPath is available (Requirement: 8.2)
+      if (projectPath) {
         try {
-          saveToLocalStorage(character);
+          await saveToProjectDirectory(character, projectPath);
+          console.log(`[useCharacterPersistence] Character saved to project directory: ${projectPath}`);
         } catch (error) {
-          if (error instanceof PersistenceError && 
-              error.type === PersistenceErrorType.STORAGE_QUOTA_EXCEEDED) {
-            // Try to save to file system as fallback
-            console.warn('localStorage quota exceeded, attempting file system save');
+          console.warn('[useCharacterPersistence] Project directory save failed, falling back to file picker:', error);
+          // Fallback to file picker if project directory save fails
+          try {
             await saveToFile(character);
-          } else {
-            throw error;
+          } catch (fileError) {
+            console.warn('File picker save also failed:', fileError);
           }
         }
-
-        // Save to file system (Requirement: 8.2)
+      } else {
+        // No project path, use file picker
+        console.log('[useCharacterPersistence] No project path available, using file picker');
         try {
           await saveToFile(character);
         } catch (error) {
           // File system save failed, but localStorage succeeded
           console.warn('File system save failed, character saved to localStorage only');
         }
-
-        return character;
-      } catch (error) {
-        if (error instanceof PersistenceError) {
-          throw error;
-        }
-        console.error('Error saving character:', error);
-        throw new PersistenceError(
-          PersistenceErrorType.FILE_SYSTEM_ERROR,
-          'Failed to save character',
-          { originalError: error }
-        );
       }
+
+      return character;
     },
-    [addCharacter, updateCharacter, getAllCharacters, saveToLocalStorage, saveToFile, loadFromLocalStorage, loadFromFile]
+    [addCharacter, updateCharacter, getAllCharacters, saveToLocalStorage, saveToFile, saveToProjectDirectory, loadFromLocalStorage]
   );
 
   /**
-   * Load a character from localStorage or file system with conflict resolution
-   * Requirements: 8.1, 8.2, 8.4, 8.5
+   * Load a character from localStorage
+   * Requirements: 8.1, 8.2, 8.4
    */
   const loadCharacter = useCallback(
     async (character_id: string): Promise<Character | null> => {
       try {
-        // Try to load from both sources
-        const localStorageChar = loadFromLocalStorage(character_id);
-        let fileChar: PersistedCharacter | null = null;
-        
-        try {
-          fileChar = await loadFromFile(character_id);
-        } catch (error) {
-          // File system not available, use localStorage only
-        }
-
-        // Resolve conflicts if both exist (Requirement: 8.5)
-        let character: PersistedCharacter | null = null;
-        
-        if (localStorageChar && fileChar) {
-          character = resolveConflictByTimestamp(localStorageChar, fileChar);
-          
-          // Save the resolved version to both locations
-          try {
-            saveToLocalStorage(character);
-            await saveToFile(character);
-          } catch (error) {
-            console.warn('Failed to save resolved character:', error);
-          }
-        } else {
-          character = localStorageChar || fileChar;
-        }
+        const character = loadFromLocalStorage(character_id);
 
         if (character) {
           // Add to store
@@ -661,11 +780,11 @@ export function useCharacterPersistence() {
         return null;
       }
     },
-    [addCharacter, loadFromLocalStorage, loadFromFile, saveToLocalStorage, saveToFile]
+    [addCharacter, loadFromLocalStorage]
   );
 
   /**
-   * Load all characters from localStorage and file system
+   * Load all characters from localStorage
    * Requirements: 8.1, 8.2, 8.4
    */
   const loadAllCharacters = useCallback(async (): Promise<Character[]> => {
@@ -675,7 +794,7 @@ export function useCharacterPersistence() {
       ) as string[];
       
       const characters: Character[] = [];
-      const errors: Array<{ id: string; error: any }> = [];
+      const errors: Array<{ id: string; error: unknown }> = [];
       
       for (const id of characterIds) {
         try {
@@ -705,12 +824,109 @@ export function useCharacterPersistence() {
   }, [loadCharacter]);
 
   /**
+   * Load and sync characters when a project is loaded
+   * This should be called after a project is loaded to ensure all characters
+   * from the project directory are properly loaded into the store
+   * Requirements: 8.2, 8.4
+   */
+  const loadAndSyncCharacters = useCallback(async (): Promise<{ loaded: number; errors: number }> => {
+    const projectPath = useEditorStore.getState().projectPath;
+
+    if (!projectPath) {
+      console.log('[useCharacterPersistence] No project path available for loading characters');
+      return { loaded: 0, errors: 0 };
+    }
+
+    let loaded = 0;
+    let errors = 0;
+
+    try {
+      // First, load characters from project directory
+      const projectCharacters = await loadCharactersFromProjectDirectory(projectPath);
+      
+      if (projectCharacters.length > 0) {
+        // Use setCharacters to bulk set all characters at once (more efficient)
+        const existingCharacters = getAllCharacters();
+        const allCharacters = [...existingCharacters];
+        
+        for (const character of projectCharacters) {
+          try {
+            // Check if character already exists in store
+            const existingIndex = allCharacters.findIndex(
+              (c) => c.character_id === character.character_id
+            );
+
+            if (existingIndex >= 0) {
+              // Update existing character
+              allCharacters[existingIndex] = character;
+            } else {
+              // Add new character
+              allCharacters.push(character);
+            }
+
+            // Also save to localStorage
+            saveToLocalStorage(character);
+            loaded++;
+          } catch (error) {
+            console.error(`[useCharacterPersistence] Failed to sync character ${character.character_id}:`, error);
+            errors++;
+          }
+        }
+
+        // Bulk update store with all characters
+        setCharacters(allCharacters);
+        
+        console.log(`[useCharacterPersistence] Loaded and synced ${loaded} characters from project directory`);
+      }
+
+      // Also check localStorage for any characters not in project directory
+      const characterIds = JSON.parse(
+        localStorage.getItem('character-ids') || '[]'
+      ) as string[];
+      
+      for (const id of characterIds) {
+        try {
+          // Check if character is already loaded from project directory
+          const alreadyLoaded = projectCharacters.some((c) => c.character_id === id);
+          if (!alreadyLoaded) {
+            const character = loadFromLocalStorage(id);
+            if (character) {
+              const existingCharacters = getAllCharacters();
+              const existingIndex = existingCharacters.findIndex(
+                (c) => c.character_id === id
+              );
+              
+              if (existingIndex >= 0) {
+                // Update with localStorage version
+                updateCharacter(id, character);
+              } else {
+                // Add new character from localStorage
+                addCharacter(character);
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`[useCharacterPersistence] Failed to load character ${id} from localStorage:`, error);
+        }
+      }
+
+      return { loaded, errors };
+    } catch (error) {
+      console.error('[useCharacterPersistence] Failed to load and sync characters:', error);
+      return { loaded, errors };
+    }
+  }, [loadCharactersFromProjectDirectory, getAllCharacters, setCharacters, saveToLocalStorage, addCharacter, updateCharacter, loadFromLocalStorage]);
+
+  /**
    * Delete a character from localStorage, file system, and store
    * Requirements: 8.1, 8.2
    */
   const removeCharacter = useCallback(
     async (character_id: string): Promise<void> => {
       try {
+        // Get project path from editor store
+        const projectPath = useEditorStore.getState().projectPath;
+
         // Remove from Zustand store
         deleteCharacter(character_id);
 
@@ -722,24 +938,22 @@ export function useCharacterPersistence() {
           const characterIds = JSON.parse(
             localStorage.getItem('character-ids') || '[]'
           ) as string[];
-          
+
           const updatedIds = characterIds.filter((id) => id !== character_id);
           localStorage.setItem('character-ids', JSON.stringify(updatedIds));
         } catch (error) {
           console.error('Failed to remove from localStorage:', error);
         }
 
-        // Remove from file system
-        try {
-          const response = await fetch(`/api/characters/${character_id}`, {
-            method: 'DELETE',
-          });
-          
-          if (!response.ok) {
-            console.warn(`Failed to delete character file: ${response.statusText}`);
+        // Remove from project directory if available
+        if (projectPath && window.electronAPI?.fs?.unlink) {
+          try {
+            const filePath = `${projectPath}/characters/character_${character_id}.json`;
+            await window.electronAPI.fs.unlink(filePath);
+            console.log(`[useCharacterPersistence] Deleted character file: ${filePath}`);
+          } catch (error) {
+            console.warn('[useCharacterPersistence] Failed to delete character from project directory:', error);
           }
-        } catch (error) {
-          console.warn('Failed to delete character from file system:', error);
         }
 
       } catch (error) {
@@ -754,10 +968,81 @@ export function useCharacterPersistence() {
     [deleteCharacter]
   );
 
+  /**
+   * Sync characters from project directory to store
+   * Loads all characters from the project's characters folder
+   * Requirements: 8.2, 8.4
+   */
+  const syncCharactersFromProject = useCallback(
+    async (): Promise<{ loaded: number; errors: number }> => {
+      const projectPath = useEditorStore.getState().projectPath;
+
+      if (!projectPath) {
+        console.log('[useCharacterPersistence] No project path available for sync');
+        return { loaded: 0, errors: 0 };
+      }
+
+      let loaded = 0;
+      let errors = 0;
+
+      try {
+        const characters = await loadCharactersFromProjectDirectory(projectPath);
+
+        for (const character of characters) {
+          try {
+            // Check if character already exists in store
+            const existingCharacters = getAllCharacters();
+            const existingIndex = existingCharacters.findIndex(
+              (c) => c.character_id === character.character_id
+            );
+
+            if (existingIndex >= 0) {
+              // Update existing character
+              updateCharacter(character.character_id, character);
+            } else {
+              // Add new character
+              addCharacter(character);
+            }
+
+            // Also save to localStorage
+            saveToLocalStorage(character);
+
+            loaded++;
+          } catch (error) {
+            console.error(`[useCharacterPersistence] Failed to sync character ${character.character_id}:`, error);
+            errors++;
+          }
+        }
+
+        if (loaded > 0) {
+          toast.success(
+            'Characters Synchronized',
+            `Loaded ${loaded} character${loaded > 1 ? 's' : ''} from project directory`,
+            3000
+          );
+        }
+
+        return { loaded, errors };
+      } catch (error) {
+        console.error('[useCharacterPersistence] Failed to sync characters from project:', error);
+        return { loaded, errors };
+      }
+    },
+    [addCharacter, updateCharacter, getAllCharacters, loadCharactersFromProjectDirectory, saveToLocalStorage]
+  );
+
   return {
     saveCharacter,
     loadCharacter,
     loadAllCharacters,
+    loadAndSyncCharacters,
     removeCharacter,
+    syncCharactersFromProject,
+    saveToProjectDirectory,
+    loadCharactersFromProjectDirectory,
   };
 }
+
+
+
+

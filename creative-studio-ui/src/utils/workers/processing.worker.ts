@@ -7,13 +7,13 @@ interface WorkerMessage {
   type: string;
   taskId?: string;
   taskType?: string;
-  data?: any;
+  data?: unknown;
   workerId?: number;
 }
 
 interface TaskResult {
   success: boolean;
-  result?: any;
+  result?: unknown;
   error?: string;
 }
 
@@ -22,7 +22,7 @@ let workerId: number;
 
 // Task handlers
 const taskHandlers = {
-  async thumbnail_generation(taskData: any): Promise<TaskResult> {
+  async thumbnail_generation(taskData: unknown): Promise<TaskResult> {
     try {
       // Simulate thumbnail generation
       // In real implementation, this would extract frames from video
@@ -45,7 +45,7 @@ const taskHandlers = {
     }
   },
 
-  async video_encoding(taskData: any): Promise<TaskResult> {
+  async video_encoding(taskData: unknown): Promise<TaskResult> {
     try {
       const { videoBlob, format, quality = 0.8 } = taskData;
 
@@ -65,7 +65,7 @@ const taskHandlers = {
     }
   },
 
-  async batch_processing(taskData: any): Promise<TaskResult> {
+  async batch_processing(taskData: unknown): Promise<TaskResult> {
     try {
       const { items, operation } = taskData;
       const results = [];
@@ -102,7 +102,7 @@ function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function executeTask(taskId: string, taskType: string, data: any) {
+async function executeTask(taskId: string, taskType: string, data: unknown) {
   const handler = taskHandlers[taskType as keyof typeof taskHandlers];
 
   if (!handler) {
@@ -165,3 +165,5 @@ self.onunhandledrejection = (event) => {
   console.error('Worker unhandled rejection:', event.reason);
   event.preventDefault();
 };
+
+

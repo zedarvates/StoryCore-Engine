@@ -2,8 +2,8 @@
  * Tests for Step3_WorldBuilding component
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { Step3_WorldBuilding } from '../Step3_WorldBuilding';
 import type { WorldBuildingData } from '@/types/wizard';
 

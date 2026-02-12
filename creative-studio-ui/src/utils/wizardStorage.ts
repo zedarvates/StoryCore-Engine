@@ -261,7 +261,7 @@ export function importWizardState<T>(
 
 // Using 'any' for state parameter to validate arbitrary wizard state structures
 // before type narrowing with the type guard
-function isValidWizardState(state: any): state is WizardAutoSaveState<any> {
+function isValidWizardState(state: unknown): state is WizardAutoSaveState<any> {
   const validWizardTypes: WizardType[] = [
     'world',
     'character',
@@ -461,3 +461,4 @@ export function disableAutoExportOnError(): void {
   // Note: Cannot remove event listeners without references
   // This is a limitation of the current implementation
 }
+

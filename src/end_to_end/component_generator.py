@@ -6,17 +6,18 @@ Orchestrates generation of all project components and validates coherence.
 
 from typing import List, Dict, Optional
 from datetime import datetime
-from .data_models import (
+import uuid
+from src.end_to_end.data_models import (
     ParsedPrompt, ProjectComponents, ProjectMetadata,
     WorldConfig, Character, StoryStructure, DialogueScript,
     SequencePlan, MusicDescription
 )
-from .world_config_generator import WorldConfigGenerator
-from .character_generator import CharacterGenerator
-from .story_structure_generator import StoryStructureGenerator
-from .dialogue_script_generator import DialogueScriptGenerator
-from .sequence_planner import SequencePlanner
-from .music_description_generator import MusicDescriptionGenerator
+from src.end_to_end.world_config_generator import WorldConfigGenerator
+from src.end_to_end.character_generator import CharacterGenerator
+from src.end_to_end.story_structure_generator import StoryStructureGenerator
+from src.end_to_end.dialogue_script_generator import DialogueScriptGenerator
+from src.end_to_end.sequence_planner import SequencePlanner
+from src.end_to_end.music_description_generator import MusicDescriptionGenerator
 
 
 class ComponentGenerator:
@@ -83,9 +84,15 @@ class ComponentGenerator:
         
         # Create metadata
         metadata = ProjectMetadata(
+            project_id=str(uuid.uuid4()),
+            project_name=parsed_prompt.project_title,
             created_at=datetime.now(),
             updated_at=datetime.now(),
             version="1.0",
+            video_type=parsed_prompt.video_type,
+            duration_seconds=parsed_prompt.duration_seconds,
+            aspect_ratio=parsed_prompt.aspect_ratio,
+            resolution="1024x576",  # Default resolution
             author="StoryCore AI"
         )
         

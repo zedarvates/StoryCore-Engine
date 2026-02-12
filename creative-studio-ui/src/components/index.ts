@@ -14,7 +14,7 @@ export { ComfyUIConfigurationWindow } from './configuration/ComfyUIConfiguration
 
 // Workspace Components
 export { ProjectWorkspace } from './workspace/ProjectWorkspace';
-export { WizardLauncher } from './wizards/WizardLauncher';
+export { WizardLauncher } from './wizard/WizardLauncher';
 
 // UI Components (Error Handling & Validation)
 export * from './ui';
@@ -27,7 +27,7 @@ export { useConnectionTest } from '../hooks/useConnectionTest';
 export type { UseConnectionTestResult } from '../hooks/useConnectionTest';
 export { useFormValidation, ValidationRules } from '../hooks/useFormValidation';
 export type { ValidationRule, UseFormValidationResult } from '../hooks/useFormValidation';
-export { useKeyboardShortcuts, CommonShortcuts, formatShortcut, useShortcutHelp } from '../hooks/useKeyboardShortcuts';
+export { useKeyboardShortcuts, COMMON_SHORTCUTS } from '../hooks/useKeyboardShortcuts';
 export type { KeyboardShortcut, UseKeyboardShortcutsOptions } from '../hooks/useKeyboardShortcuts';
 
 // Services

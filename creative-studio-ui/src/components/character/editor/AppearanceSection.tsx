@@ -5,7 +5,8 @@ import './EditorSection.css';
 interface AppearanceSectionProps {
   data: Partial<VisualIdentity>;
   errors: Record<string, string[]>;
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
+  id?: string;
 }
 
 export function AppearanceSection({
@@ -215,3 +216,4 @@ export function AppearanceSection({
     </div>
   );
 }
+

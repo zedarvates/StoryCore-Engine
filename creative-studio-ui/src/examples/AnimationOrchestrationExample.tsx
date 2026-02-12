@@ -36,9 +36,9 @@ export function AnimationOrchestrationExample() {
     distance: number
   ) => {
     return new Promise<void>((resolve) => {
-      setter((prev: any) => ({ ...prev, x: distance }));
+      setter((prev: unknown) => ({ ...prev, x: distance }));
       setTimeout(() => {
-        setter((prev: any) => ({ ...prev, x: 0 }));
+        setter((prev: unknown) => ({ ...prev, x: 0 }));
         resolve();
       }, 500);
     });
@@ -219,3 +219,4 @@ export function AnimationOrchestrationExample() {
     </div>
   );
 }
+

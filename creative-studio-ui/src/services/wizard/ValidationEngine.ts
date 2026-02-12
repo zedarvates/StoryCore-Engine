@@ -5,10 +5,12 @@
  * Provides consistent validation rules, error messages, and severity levels.
  * 
  * Requirements: 3.1, 3.2, 3.3, 3.4
+ * 
+ * @updated 2026-02-12 - Migrated `any` types to specific types
  */
 
 // ============================================================================
-// Validation Types
+// Validation Types (Migrated from `any`)
 // ============================================================================
 
 export type ValidationSeverity = 'error' | 'warning' | 'info';
@@ -17,7 +19,7 @@ export interface ValidationFieldError {
   field: string;
   message: string;
   severity: ValidationSeverity;
-  code?: string; // Optional error code for programmatic handling
+  code?: string;
 }
 
 export interface ValidationResult {
@@ -27,11 +29,60 @@ export interface ValidationResult {
   infos: ValidationFieldError[];
 }
 
-export interface StepValidationRule {
+/** Generic validation data container - replaces `any` for function parameters */
+export interface WizardValidationData {
+  [key: string]: unknown;
+}
+
+/** Typed wizard data interfaces for specific wizards - replaces `any` */
+export interface CharacterStepData {
+  name?: string;
+  role?: {
+    archetype?: string;
+    [key: string]: unknown;
+  };
+  physicalAppearance?: string;
+  personalityTraits?: string[];
+  background?: string;
+  visualReferences?: string[];
+  relationships?: Array<{ characterId: string; relationshipType: string; description: string }>;
+  // Additional properties that may exist
+  visual_identity?: {
+    age_range?: string;
+    [key: string]: unknown;
+  };
+  personality?: {
+    traits?: string[];
+    [key: string]: unknown;
+  };
+}
+
+export interface WorldStepData {
+  name?: string;
+  genre?: string[];
+  setting?: string;
+  rules?: string[];
+  societies?: string[];
+}
+
+export interface StorytellerStepData {
+  storySummary?: string;
+  selectedCharacters?: string[];
+  mainConflict?: string;
+}
+
+export interface ProjectSetupStepData {
+  projectName?: string;
+  genres?: string[];
+  scenes?: Array<{ id: string; sceneName: string }>;
+}
+
+/** Validation rule interface with typed data - replaces `any` */
+export interface StepValidationRule<T extends WizardValidationData = WizardValidationData> {
   step: number;
   wizardType: string;
-  validate: (data: any) => ValidationResult;
-  dependencies?: string[]; // Other steps that must be valid first
+  validate: (data: T) => ValidationResult;
+  dependencies?: string[];
 }
 
 // ============================================================================
@@ -82,9 +133,9 @@ export function combineResults(...results: ValidationResult[]): ValidationResult
 }
 
 /**
- * Check if a field is empty or whitespace
+ * Check if a field is empty or whitespace - typed version
  */
-export function isEmpty(value: any): boolean {
+export function isEmpty(value: unknown): boolean {
   if (value === null || value === undefined) return true;
   if (typeof value === 'string') return value.trim() === '';
   if (Array.isArray(value)) return value.length === 0;
@@ -101,7 +152,7 @@ export function exceedsMaxLength(value: string, maxLength: number): boolean {
 /**
  * Check if a value is below minimum length
  */
-export function belowMinLength(value: any, minLength: number): boolean {
+export function belowMinLength(value: unknown, minLength: number): boolean {
   if (typeof value === 'string') return value.trim().length < minLength;
   if (Array.isArray(value)) return value.length < minLength;
   return false;
@@ -111,7 +162,7 @@ export function belowMinLength(value: any, minLength: number): boolean {
 // Character Wizard Validation Rules
 // ============================================================================
 
-export function validateCharacterStep1(data: any): ValidationResult {
+export function validateCharacterStep1(data: CharacterStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
   const warnings: ValidationFieldError[] = [];
 
@@ -155,12 +206,12 @@ export function validateCharacterStep1(data: any): ValidationResult {
   return createInvalidResult(errors, warnings);
 }
 
-export function validateCharacterStep2(data: any): ValidationResult {
+export function validateCharacterStep2(data: CharacterStepData): ValidationResult {
   // Step 2 (Physical Appearance) is optional - LLM can help fill in
   return createValidResult();
 }
 
-export function validateCharacterStep3(data: any): ValidationResult {
+export function validateCharacterStep3(data: CharacterStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
   const warnings: ValidationFieldError[] = [];
 
@@ -177,18 +228,18 @@ export function validateCharacterStep3(data: any): ValidationResult {
   return createInvalidResult(errors, warnings);
 }
 
-export function validateCharacterStep4(data: any): ValidationResult {
+export function validateCharacterStep4(data: CharacterStepData): ValidationResult {
   // Step 4 (Background) is optional
   return createValidResult();
 }
 
-export function validateCharacterStep5(data: any): ValidationResult {
+export function validateCharacterStep5(data: CharacterStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
   const warnings: ValidationFieldError[] = [];
 
   // Validate relationships
   if (data?.relationships && data.relationships.length > 0) {
-    data.relationships.forEach((rel: any, index: number) => {
+    data.relationships.forEach((rel: unknown, index: number) => {
       if (isEmpty(rel?.character_name)) {
         errors.push({
           field: `relationships[${index}].character_name`,
@@ -211,7 +262,7 @@ export function validateCharacterStep5(data: any): ValidationResult {
   return createInvalidResult(errors, warnings);
 }
 
-export function validateCharacterStep6(data: any): ValidationResult {
+export function validateCharacterStep6(data: CharacterStepData): ValidationResult {
   // Final review step - re-validate required fields
   return validateCharacterStep1(data);
 }
@@ -220,7 +271,7 @@ export function validateCharacterStep6(data: any): ValidationResult {
 // World Wizard Validation Rules
 // ============================================================================
 
-export function validateWorldStep1(data: any): ValidationResult {
+export function validateWorldStep1(data: WorldStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
   const warnings: ValidationFieldError[] = [];
 
@@ -245,7 +296,7 @@ export function validateWorldStep1(data: any): ValidationResult {
   return createInvalidResult(errors, warnings);
 }
 
-export function validateWorldStep2(data: any): ValidationResult {
+export function validateWorldStep2(data: WorldStepData): ValidationResult {
   // World rules - at least one rule required
   const errors: ValidationFieldError[] = [];
   
@@ -261,7 +312,7 @@ export function validateWorldStep2(data: any): ValidationResult {
   return createInvalidResult(errors);
 }
 
-export function validateWorldStep3(data: any): ValidationResult {
+export function validateWorldStep3(data: WorldStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
   const warnings: ValidationFieldError[] = [];
 
@@ -277,7 +328,7 @@ export function validateWorldStep3(data: any): ValidationResult {
   return createInvalidResult(errors, warnings);
 }
 
-export function validateWorldStep4(data: any): ValidationResult {
+export function validateWorldStep4(data: WorldStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
   const warnings: ValidationFieldError[] = [];
 
@@ -294,7 +345,7 @@ export function validateWorldStep4(data: any): ValidationResult {
   return createInvalidResult(errors, warnings);
 }
 
-export function validateWorldStep5(data: any): ValidationResult {
+export function validateWorldStep5(data: WorldStepData): ValidationResult {
   // Final review - re-validate critical fields
   return validateWorldStep1(data);
 }
@@ -303,7 +354,7 @@ export function validateWorldStep5(data: any): ValidationResult {
 // Storyteller Wizard Validation Rules
 // ============================================================================
 
-export function validateStorytellerStep1(data: any): ValidationResult {
+export function validateStorytellerStep1(data: StorytellerStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
   const warnings: ValidationFieldError[] = [];
 
@@ -328,7 +379,7 @@ export function validateStorytellerStep1(data: any): ValidationResult {
   return createInvalidResult(errors, warnings);
 }
 
-export function validateStorytellerStep2(data: any): ValidationResult {
+export function validateStorytellerStep2(data: StorytellerStepData): ValidationResult {
   // Character selection
   const errors: ValidationFieldError[] = [];
 
@@ -344,12 +395,12 @@ export function validateStorytellerStep2(data: any): ValidationResult {
   return createInvalidResult(errors);
 }
 
-export function validateStorytellerStep3(data: any): ValidationResult {
+export function validateStorytellerStep3(data: StorytellerStepData): ValidationResult {
   // Location selection - optional
   return createValidResult();
 }
 
-export function validateStorytellerStep4(data: any): ValidationResult {
+export function validateStorytellerStep4(data: StorytellerStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
 
   if (isEmpty(data?.mainConflict)) {
@@ -364,7 +415,7 @@ export function validateStorytellerStep4(data: any): ValidationResult {
   return createInvalidResult(errors);
 }
 
-export function validateStorytellerStep5(data: any): ValidationResult {
+export function validateStorytellerStep5(data: StorytellerStepData): ValidationResult {
   // Final review
   const result = combineResults(
     validateStorytellerStep1(data),
@@ -377,7 +428,7 @@ export function validateStorytellerStep5(data: any): ValidationResult {
 // Project Setup Wizard Validation Rules
 // ============================================================================
 
-export function validateProjectSetupStep1(data: any): ValidationResult {
+export function validateProjectSetupStep1(data: ProjectSetupStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
 
   if (isEmpty(data?.projectName)) {
@@ -392,7 +443,7 @@ export function validateProjectSetupStep1(data: any): ValidationResult {
   return createInvalidResult(errors);
 }
 
-export function validateProjectSetupStep2(data: any): ValidationResult {
+export function validateProjectSetupStep2(data: ProjectSetupStepData): ValidationResult {
   const errors: ValidationFieldError[] = [];
 
   if (!data?.genres || data.genres.length === 0) {
@@ -407,7 +458,7 @@ export function validateProjectSetupStep2(data: any): ValidationResult {
   return createInvalidResult(errors);
 }
 
-export function validateProjectSetupStep3(data: any): ValidationResult {
+export function validateProjectSetupStep3(data: ProjectSetupStepData): ValidationResult {
   // Scene breakdown validation
   const errors: ValidationFieldError[] = [];
 
@@ -469,23 +520,23 @@ export class WizardValidationEngine {
   /**
    * Register a validation rule for a specific wizard step
    */
-  registerRule(
+  registerRule<T extends WizardValidationData>(
     wizardType: string,
     step: number,
-    validate: (data: any) => ValidationResult,
+    validate: (data: T) => ValidationResult,
     dependencies?: string[]
   ): void {
     const key = wizardType;
     if (!this.rules.has(key)) {
       this.rules.set(key, []);
     }
-    this.rules.get(key)!.push({ step, wizardType, validate, dependencies });
+    this.rules.get(key)!.push({ step, wizardType, validate: validate as (data: WizardValidationData) => ValidationResult, dependencies });
   }
 
   /**
    * Validate a specific step for a wizard
    */
-  validateStep(wizardType: string, step: number, data: any): ValidationResult {
+  validateStep<T extends WizardValidationData>(wizardType: string, step: number, data: T): ValidationResult {
     const rules = this.rules.get(wizardType);
     if (!rules) {
       console.warn(`No validation rules found for wizard type: ${wizardType}`);
@@ -498,13 +549,13 @@ export class WizardValidationEngine {
       return createValidResult();
     }
 
-    return rule.validate(data);
+    return rule.validate(data as WizardValidationData);
   }
 
   /**
    * Validate all steps for a wizard
    */
-  validateAll(wizardType: string, allData: Record<number, any>): ValidationResult {
+  validateAll(wizardType: string, allData: Record<number, WizardValidationData>): ValidationResult {
     const rules = this.rules.get(wizardType);
     if (!rules) {
       return createValidResult();
@@ -598,4 +649,6 @@ export function groupErrorsByField(result: ValidationResult): Record<string, Val
   
   return grouped;
 }
+
+
 

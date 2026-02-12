@@ -300,7 +300,7 @@ export function useImagePreloader(
     let loadedCount = 0;
 
     const progressCallback = progressive
-      ? (url: string, imageData: any) => {
+      ? (url: string, imageData: unknown) => {
           if (abortSignal.aborted) return;
           if (imageData.level === 0) {
             // Only count full-resolution images
@@ -342,3 +342,4 @@ export function useImagePreloader(
 
   return state;
 }
+

@@ -59,7 +59,7 @@ const suggestedComponents = [
 
 export function BuilderIOIntegration() {
   // const { toast } = useToast();
-  const toast = (message: any) => console.log('Toast:', message);
+  const toast = (message: unknown) => console.log('Toast:', message);
   const [config] = useState<BuilderIOConfig>(defaultConfig);
   const [state, setState] = useState<BuilderIOState>({
     isConnected: false,

@@ -9,7 +9,7 @@ export interface ChatContext {
 
 export interface ChatAction {
   type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject';
-  payload: any;
+  payload: unknown;
 }
 
 export interface ChatResponse {
@@ -25,7 +25,7 @@ export interface ProjectCreationRequest {
   universe?: string;
   genre?: string;
   description?: string;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 }
 
 /**
@@ -402,7 +402,7 @@ export class ChatService {
   /**
    * Analyze user intent from input
    */
-  private analyzeIntent(input: string): { type: string; confidence: number; params: any } {
+  private analyzeIntent(input: string): { type: string; confidence: number; params: unknown } {
     // Create/add shots
     if (
       input.match(/create|add|make|generate/i) &&
@@ -487,7 +487,7 @@ export class ChatService {
   /**
    * Handle shot creation requests
    */
-  private handleCreateShots(intent: any, input: string): ChatResponse {
+  private handleCreateShots(intent: unknown, input: string): ChatResponse {
     const { count, theme } = intent.params;
     const actions: ChatAction[] = [];
 
@@ -528,7 +528,7 @@ export class ChatService {
   /**
    * Handle shot modification requests
    */
-  private handleModifyShot(intent: any, input: string): ChatResponse {
+  private handleModifyShot(intent: unknown, input: string): ChatResponse {
     const { shotId } = intent.params;
 
     if (!shotId) {
@@ -558,7 +558,7 @@ export class ChatService {
   /**
    * Handle transition addition requests
    */
-  private handleAddTransition(intent: any, input: string): ChatResponse {
+  private handleAddTransition(intent: unknown, input: string): ChatResponse {
     const { transitionType } = intent.params;
 
     if (this.context.shots.length < 2) {
@@ -587,7 +587,7 @@ export class ChatService {
   /**
    * Handle audio addition requests
    */
-  private handleAddAudio(intent: any, input: string): ChatResponse {
+  private handleAddAudio(intent: unknown, input: string): ChatResponse {
     const { audioType } = intent.params;
 
     const recommendations: Record<string, string> = {
@@ -613,7 +613,7 @@ export class ChatService {
   /**
    * Handle text addition requests
    */
-  private handleAddText(intent: any, input: string): ChatResponse {
+  private handleAddText(intent: unknown, input: string): ChatResponse {
     if (!this.context.selectedShotId) {
       return {
         message: 'Please select a shot first, then I can help you add text overlays.',
@@ -635,7 +635,7 @@ export class ChatService {
   /**
    * Handle asset suggestion requests
    */
-  private handleSuggestAssets(intent: any, input: string): ChatResponse {
+  private handleSuggestAssets(intent: unknown, input: string): ChatResponse {
     const assetCount = this.context.assets.length;
 
     if (assetCount === 0) {
@@ -758,3 +758,5 @@ export class ChatService {
 export function createChatService(context: ChatContext): ChatService {
   return new ChatService(context);
 }
+
+

@@ -11,8 +11,8 @@ import { dataValidator } from './DataValidator';
 export interface SyncConflict {
   entityType: string;
   entityId: string;
-  storeVersion: any;
-  fileVersion: any;
+  storeVersion: unknown;
+  fileVersion: unknown;
   conflictType: 'modified' | 'deleted' | 'created';
   resolution: 'store-wins' | 'file-wins' | 'merge' | 'manual';
   timestamp: Date;
@@ -204,7 +204,7 @@ export class SyncManager {
   /**
    * Détection de conflits entre versions
    */
-  private detectConflict(storeVersion: any, fileVersion: any, entityType: string): SyncConflict | null {
+  private detectConflict(storeVersion: unknown, fileVersion: unknown, entityType: string): SyncConflict | null {
     // Comparer les timestamps de mise à jour
     const storeTime = storeVersion.updatedAt || storeVersion.createdAt;
     const fileTime = fileVersion.updatedAt || fileVersion.createdAt;
@@ -236,9 +236,9 @@ export class SyncManager {
   /**
    * Résoudre un conflit manuellement
    */
-  async resolveConflict(conflict: SyncConflict, resolution: SyncConflict['resolution'], customData?: any): Promise<void> {
+  async resolveConflict(conflict: SyncConflict, resolution: SyncConflict['resolution'], customData?: unknown): Promise<void> {
     try {
-      let finalData: any;
+      let finalData: unknown;
 
       switch (resolution) {
         case 'store-wins':
@@ -273,7 +273,7 @@ export class SyncManager {
   /**
    * Fusionner deux versions automatiquement
    */
-  private mergeVersions(version1: any, version2: any): any {
+  private mergeVersions(version1: unknown, version2: unknown): unknown {
     // Stratégie de fusion simple : prendre la version la plus récente pour chaque champ
     const merged = { ...version1 };
 
@@ -292,7 +292,7 @@ export class SyncManager {
   /**
    * Déterminer si une valeur est "plus récente"
    */
-  private isNewer(value1: any, value2: any): boolean {
+  private isNewer(value1: unknown, value2: unknown): boolean {
     // Pour les dates
     if (value1 instanceof Date && value2 instanceof Date) {
       return value1 > value2;
@@ -442,3 +442,6 @@ export class SyncManager {
 
 // Export de l'instance singleton
 export const syncManager = SyncManager.getInstance();
+
+
+

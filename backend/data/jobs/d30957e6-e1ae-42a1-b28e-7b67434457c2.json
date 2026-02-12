@@ -1,0 +1,54 @@
+{
+  "id": "d30957e6-e1ae-42a1-b28e-7b67434457c2",
+  "project_id": "test-123",
+  "prompt": "A hero enters a dark cave and discovers a treasure",
+  "shot_count": 3,
+  "style": null,
+  "mood": null,
+  "characters": [],
+  "status": "completed",
+  "progress": 100,
+  "current_step": "Generation complete",
+  "result": {
+    "id": "39502f32-2934-4c2f-b346-5845edd165d2",
+    "project_id": "test-123",
+    "name": "Generated Sequence from A hero enters a dark cave and discovers a treasure...",
+    "description": "A sequence of 3 shots generated from the prompt",
+    "shots": [
+      {
+        "id": "a8b5288f-f759-445b-aa04-c9e441e4caff",
+        "order_index": 0,
+        "name": "Shot 1",
+        "prompt": "A hero enters a dark cave and discovers a treasure - Shot 1",
+        "duration_seconds": 5.0,
+        "shot_type": "action"
+      },
+      {
+        "id": "c1879b21-0e68-4f16-affb-31ef04b24d78",
+        "order_index": 1,
+        "name": "Shot 2",
+        "prompt": "A hero enters a dark cave and discovers a treasure - Shot 2",
+        "duration_seconds": 5.0,
+        "shot_type": "action"
+      },
+      {
+        "id": "fd2d4eea-3384-42cc-bdc9-eb6fa351e1b3",
+        "order_index": 2,
+        "name": "Shot 3",
+        "prompt": "A hero enters a dark cave and discovers a treasure - Shot 3",
+        "duration_seconds": 5.0,
+        "shot_type": "action"
+      }
+    ],
+    "total_duration": 15.0,
+    "prompt": "A hero enters a dark cave and discovers a treasure",
+    "style": null,
+    "mood": null,
+    "created_at": "2026-02-10T10:38:11.488031"
+  },
+  "error": null,
+  "created_at": "2026-02-10 10:38:05.408070",
+  "started_at": "2026-02-10 10:38:05.411796",
+  "completed_at": "2026-02-10T10:38:11.488051",
+  "user_id": "test-token-12345678"
+}

@@ -13,6 +13,8 @@
 
 export type AuthenticationType = 'none' | 'basic' | 'token';
 
+export type WorkflowType = 'flux2' | 'z_image_turbo' | 'z_image_turbo_coherence' | 'sdxl' | 'custom';
+
 export interface ComfyUIConfig {
   serverUrl: string;
   authentication?: {
@@ -29,10 +31,11 @@ export interface ComfyUIConfig {
     workflowsPath?: string;
   };
   workflows: {
-    imageGeneration: string;
+    imageGeneration: string;  // Workflow file for image generation
     videoGeneration: string;
     upscaling: string;
     inpainting: string;
+    characterGeneration: string; // Workflow for character image generation
   };
   models: {
     preferredCheckpoint: string;
@@ -50,6 +53,8 @@ export interface ComfyUIConfig {
   };
   connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error';
   lastChecked?: Date;
+  /** Selected workflow type for character image generation */
+  selectedWorkflowType?: WorkflowType;
 }
 
 export interface ComfyUIServerInfo {
@@ -101,6 +106,7 @@ export function getDefaultComfyUIConfig(): ComfyUIConfig {
       videoGeneration: '',
       upscaling: '',
       inpainting: '',
+      characterGeneration: 'image_character_edit_z_turbo.json',
     },
     models: {
       preferredCheckpoint: '',
@@ -117,6 +123,7 @@ export function getDefaultComfyUIConfig(): ComfyUIConfig {
       denoisingStrength: 0.75,
     },
     connectionStatus: 'disconnected',
+    selectedWorkflowType: 'z_image_turbo',
   };
 }
 
@@ -356,7 +363,7 @@ export class ComfyUIService {
   /**
    * Generic asset generation helper
    */
-  private async generateAsset(type: 'image' | 'video', params: any, onProgress?: (progress: number, message: string) => void): Promise<string> {
+  private async generateAsset(type: 'image' | 'video', params: unknown, onProgress?: (progress: number, message: string) => void): Promise<string> {
     const endpoint = this.getConfiguredEndpoint();
     if (!endpoint) throw new Error('ComfyUI endpoint not configured');
 
@@ -382,7 +389,7 @@ export class ComfyUIService {
     return this.waitForImage(endpoint, data.prompt_id, 300000, onProgress);
   }
 
-  private buildVideoWorkflow(params: any): Record<string, any> {
+  private buildVideoWorkflow(params: unknown): Record<string, unknown> {
     // Placeholder for video workflow (SVD or AnimateDiff)
     // For now, reuse a simplified structure that ComfyUI would accept
     return {
@@ -417,7 +424,7 @@ export class ComfyUIService {
     steps: number;
     cfgScale: number;
     seed?: number;
-  }): Record<string, any> {
+  }): Record<string, unknown> {
     const seed = params.seed || Math.floor(Math.random() * 1000000);
 
     return {
@@ -533,7 +540,7 @@ export class ComfyUIService {
     model: string;
     sampler: string;
     scheduler: string;
-  }): Record<string, any> {
+  }): Record<string, unknown> {
     const seed = params.seed || Math.floor(Math.random() * 1000000);
 
     return {
@@ -641,8 +648,8 @@ export class ComfyUIService {
                 const running = queueData.queue_running || [];
                 const pending = queueData.queue_pending || [];
 
-                const isRunning = running.some((item: any) => item[1] === promptId);
-                const isPending = pending.some((item: any) => item[1] === promptId);
+                const isRunning = running.some((item: unknown) => item[1] === promptId);
+                const isPending = pending.some((item: unknown) => item[1] === promptId);
 
                 if (isRunning) {
                   onProgress?.(50, 'Processing in ComfyUI...');
@@ -1087,3 +1094,6 @@ export function formatVRAM(mb: number): string {
 
 // Export singleton instance
 export const comfyuiService = ComfyUIService.getInstance();
+
+
+

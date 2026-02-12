@@ -136,7 +136,7 @@ export interface ComfyUIInstance {
 
   /** Associated ComfyUI client (lazy-loaded) */
   // Using 'any' to avoid circular import dependency with ComfyUIClient
-  client?: any; // ComfyUIClient - avoiding circular import
+  client?: unknown; // ComfyUIClient - avoiding circular import
 }
 
 /**
@@ -285,3 +285,4 @@ export interface PortCheckResult {
   inUseBy?: string;
   suggestedAlternatives?: number[];
 }
+

@@ -3,9 +3,15 @@
  *
  * Permet de voir, organiser et gérer toutes les images générées
  * pour les personnages, objets, mondes et scènes
+ *
+ * Améliorations de lisibilité:
+ * - Meilleur contraste des textes
+ * - Couleurs adaptées au thème sombre/clair
+ * - Accessibilité améliorée
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import './ImageGalleryModal.css';
 import {
   Dialog,
   DialogContent,
@@ -237,17 +243,17 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
+        <DialogContent className="image-gallery-dialog max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="dialog-title flex items-center gap-2">
               <BookOpenIcon className="w-5 h-5" />
               Galerie d'images - {project.project_name}
             </DialogTitle>
           </DialogHeader>
 
           {/* Stats Bar */}
-          <div className="flex-shrink-0 px-6 py-2 bg-gray-50 border-b border-gray-200">
-            <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex-shrink-0 px-6 py-2 stats-bar">
+            <div className="flex items-center justify-between text-sm stat-text">
               <div className="flex items-center gap-4">
                 <span>{stats.totalImages} images</span>
                 <span>{stats.favoriteImages} favoris</span>
@@ -264,17 +270,18 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
           </div>
 
           {/* Toolbar */}
-          <div className="flex-shrink-0 p-4 border-b border-gray-200">
+          <div className="flex-shrink-0 p-4 toolbar border-b border-gray-200">
             <div className="flex items-center justify-between gap-4">
               {/* Search and filters */}
               <div className="flex items-center gap-4 flex-1">
                 <div className="relative flex-1 max-w-sm">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--gallery-text-muted)' }} />
                   <Input
                     placeholder="Rechercher dans les prompts, noms..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
+                    aria-label="Rechercher des images"
                   />
                 </div>
 
@@ -282,6 +289,8 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                   value={selectedContext}
                   onChange={(e) => setSelectedContext(e.target.value as ImageMetadata['contextType'] | 'all')}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  aria-label="Filtrer par contexte"
+                  title="Filtrer par contexte"
                 >
                   <option value="all">Tous les contextes</option>
                   <option value="character">Personnages</option>
@@ -296,6 +305,8 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                   value={selectedCollection || ''}
                   onChange={(e) => setSelectedCollection(e.target.value || null)}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  aria-label="Filtrer par collection"
+                  title="Filtrer par collection"
                 >
                   <option value="">Toutes les images</option>
                   {collections.map(collection => (
@@ -343,14 +354,14 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
           {/* Images Display */}
           <div className="flex-1 overflow-y-auto p-4">
             {filteredImages.length === 0 ? (
-              <div className="text-center py-12">
-                <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <div className="empty-state text-center py-12">
+                <ImageIcon className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--gallery-text-muted)' }} />
+                <h3 className="empty-state-title text-lg font-medium mb-2">
                   {searchQuery || selectedContext !== 'all' || showOnlyFavorites || selectedCollection
                     ? 'Aucune image trouvée'
                     : 'Aucune image dans la galerie'}
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="empty-state-text mb-4">
                   {searchQuery || selectedContext !== 'all' || showOnlyFavorites || selectedCollection
                     ? 'Essayez de modifier vos critères de recherche.'
                     : 'Générez des images avec l\'IA pour commencer votre collection.'}
@@ -361,10 +372,10 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                 {filteredImages.map(image => (
                   <div
                     key={image.id}
-                    className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                    className="image-card group"
                   >
                     {/* Image */}
-                    <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                    <div className="aspect-square relative overflow-hidden" style={{ background: 'var(--gallery-bg-hover)' }}>
                       <img
                         src={image.url}
                         alt={image.prompt}
@@ -376,13 +387,14 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                       />
 
                       {/* Overlay avec actions */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="absolute inset-0 image-overlay transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <div className="flex gap-2">
                           <Button
                             size="sm"
                             variant="secondary"
                             onClick={() => setShowImageDetails(image)}
                             className="bg-white/90 hover:bg-white"
+                            aria-label="Voir les détails"
                           >
                             <EyeIcon className="w-4 h-4" />
                           </Button>
@@ -391,6 +403,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                             variant="secondary"
                             onClick={() => handleDownloadImage(image)}
                             className="bg-white/90 hover:bg-white"
+                            aria-label="Télécharger"
                           >
                             <DownloadIcon className="w-4 h-4" />
                           </Button>
@@ -399,6 +412,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                             variant="secondary"
                             onClick={() => handleToggleFavorite(image)}
                             className={`bg-white/90 hover:bg-white ${image.favorite ? 'text-red-500' : ''}`}
+                            aria-label={image.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                           >
                             <HeartIcon className="w-4 h-4" />
                           </Button>
@@ -417,14 +431,14 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                     <div className="p-3">
                       <div className="flex items-center gap-2 mb-1">
                         {getContextIcon(image.contextType)}
-                        <span className="text-xs text-gray-600">
+                        <span className="image-info-context text-xs">
                           {getContextLabel(image.contextType)}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-800 line-clamp-2 mb-1">
+                      <p className="image-info-title text-xs line-clamp-2 mb-1">
                         {image.contextName || image.prompt.substring(0, 50) + '...'}
                       </p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--gallery-text-muted)' }}>
                         <CalendarIcon className="w-3 h-3" />
                         {image.createdAt.toLocaleDateString('fr-FR')}
                       </div>
@@ -438,10 +452,10 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                 {filteredImages.map(image => (
                   <div
                     key={image.id}
-                    className="flex items-center gap-4 bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+                    className="image-card flex items-center gap-4 p-4"
                   >
                     {/* Miniature */}
-                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0" style={{ background: 'var(--gallery-bg-hover)' }}>
                       <img
                         src={image.url}
                         alt={image.prompt}
@@ -454,15 +468,15 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         {getContextIcon(image.contextType)}
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium" style={{ color: 'var(--gallery-text-primary)' }}>
                           {image.contextName || 'Image générée'}
                         </span>
                         {image.favorite && <HeartIcon className="w-4 h-4 text-red-500" />}
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-1 mb-1">
+                      <p className="text-sm line-clamp-1 mb-1" style={{ color: 'var(--gallery-text-secondary)' }}>
                         {image.prompt}
                       </p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--gallery-text-muted)' }}>
                         <span>{getContextLabel(image.contextType)}</span>
                         <span>{image.model} • {image.size}</span>
                         <span>{image.createdAt.toLocaleDateString('fr-FR')}</span>
@@ -476,6 +490,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                         size="sm"
                         variant="ghost"
                         onClick={() => setShowImageDetails(image)}
+                        aria-label="Voir les détails"
                       >
                         <EyeIcon className="w-4 h-4" />
                       </Button>
@@ -483,6 +498,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleDownloadImage(image)}
+                        aria-label="Télécharger"
                       >
                         <DownloadIcon className="w-4 h-4" />
                       </Button>
@@ -491,6 +507,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                         variant="ghost"
                         onClick={() => handleToggleFavorite(image)}
                         className={image.favorite ? 'text-red-500' : ''}
+                        aria-label={image.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                       >
                         <HeartIcon className="w-4 h-4" />
                       </Button>
@@ -499,6 +516,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                         variant="ghost"
                         onClick={() => handleDeleteImage(image)}
                         className="text-red-500 hover:text-red-700"
+                        aria-label="Supprimer"
                       >
                         <TrashIcon className="w-4 h-4" />
                       </Button>
@@ -559,9 +577,9 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="image-gallery-dialog details-section max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="details-section-title flex items-center gap-2">
             <ImageIcon className="w-5 h-5" />
             Détails de l'image
           </DialogTitle>
@@ -571,7 +589,7 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Image */}
             <div className="space-y-4">
-              <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+              <div className="aspect-square rounded-lg overflow-hidden" style={{ background: 'var(--gallery-bg-hover)' }}>
                 <img
                   src={image.url}
                   alt={image.prompt}
@@ -596,41 +614,41 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
             <div className="space-y-6">
               {/* Informations de base */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Informations</h3>
+                <h3 className="details-section-title text-lg font-semibold mb-3">Informations</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Contexte:</span>
+                    <span className="details-label">Contexte:</span>
                     <Badge variant="outline">{image.contextType}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Modèle:</span>
-                    <span>{image.model}</span>
+                    <span className="details-label">Modèle:</span>
+                    <span className="details-value">{image.model}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Taille:</span>
-                    <span>{image.size}</span>
+                    <span className="details-label">Taille:</span>
+                    <span className="details-value">{image.size}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Qualité:</span>
-                    <span>{image.quality}</span>
+                    <span className="details-label">Qualité:</span>
+                    <span className="details-value">{image.quality}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Créée le:</span>
-                    <span>{image.createdAt.toLocaleString('fr-FR')}</span>
+                    <span className="details-label">Créée le:</span>
+                    <span className="details-value">{image.createdAt.toLocaleString('fr-FR')}</span>
                   </div>
                 </div>
               </div>
 
               {/* Prompt */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Prompt original</h3>
-                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
+                <h3 className="details-section-title text-lg font-semibold mb-3">Prompt original</h3>
+                <p className="prompt-box text-sm">
                   {image.prompt}
                 </p>
                 {image.revisedPrompt && (
                   <div className="mt-2">
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">Prompt révisé par IA:</h4>
-                    <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                    <h4 className="text-sm font-medium mb-1" style={{ color: 'var(--gallery-text-secondary)' }}>Prompt révisé par IA:</h4>
+                    <p className="prompt-box-revised text-sm">
                       {image.revisedPrompt}
                     </p>
                   </div>
@@ -639,18 +657,20 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
 
               {/* Évaluation */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Évaluation</h3>
-                <div className="flex items-center gap-1 mb-2">
+                <h3 className="details-section-title text-lg font-semibold mb-3">Évaluation</h3>
+                <div className="star-rating flex items-center gap-1 mb-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       onClick={() => handleRateImage(star)}
-                      className={`w-6 h-6 ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                      className={`w-6 h-6 ${star <= rating ? 'filled' : 'empty'} star`}
+                      aria-label={`Noter ${star} étoiles sur 5`}
+                      title={`Noter ${star} étoiles sur 5`}
                     >
                       <StarIcon className="w-full h-full fill-current" />
                     </button>
                   ))}
-                  <span className="ml-2 text-sm text-gray-600">
+                  <span className="ml-2 text-sm" style={{ color: 'var(--gallery-text-secondary)' }}>
                     {rating > 0 ? `${rating}/5 étoiles` : 'Non évaluée'}
                   </span>
                 </div>
@@ -658,12 +678,13 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
 
               {/* Notes personnelles */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Notes personnelles</h3>
+                <h3 className="details-section-title text-lg font-semibold mb-3">Notes personnelles</h3>
                 <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Ajoutez vos notes sur cette image..."
                   rows={4}
+                  className="notes-area"
                 />
                 <Button onClick={handleSaveNotes} className="mt-2" size="sm">
                   Sauvegarder les notes
@@ -672,12 +693,14 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
 
               {/* Collections */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Collections</h3>
+                <h3 className="details-section-title text-lg font-semibold mb-3">Collections</h3>
                 <div className="flex gap-2 mb-3">
                   <select
                     value={selectedCollection}
                     onChange={(e) => setSelectedCollection(e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    aria-label="Choisir une collection"
+                    title="Choisir une collection"
                   >
                     <option value="">Choisir une collection...</option>
                     {availableCollections.map(collection => (
@@ -694,7 +717,7 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
                 {/* Collections actuelles */}
                 {collections.filter(coll => coll.imageIds.includes(image.id)).length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Dans les collections:</h4>
+                    <h4 className="text-sm font-medium mb-2" style={{ color: 'var(--gallery-text-secondary)' }}>Dans les collections:</h4>
                     <div className="flex flex-wrap gap-2">
                       {collections
                         .filter(coll => coll.imageIds.includes(image.id))
@@ -703,7 +726,10 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
                             {collection.name}
                             <button
                               onClick={() => onRemoveFromCollection(image.id, collection.id)}
-                              className="ml-1 text-gray-500 hover:text-gray-700"
+                              className="ml-1 hover:text-red-500"
+                              style={{ color: 'var(--gallery-text-muted)' }}
+                              aria-label={`Retirer de la collection ${collection.name}`}
+                              title={`Retirer de la collection ${collection.name}`}
                             >
                               <XIcon className="w-3 h-3" />
                             </button>
@@ -717,7 +743,7 @@ function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFrom
               {/* Tags */}
               {image.tags.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
+                  <h3 className="details-section-title text-lg font-semibold mb-3">Tags</h3>
                   <div className="flex flex-wrap gap-2">
                     {image.tags.map(tag => (
                       <Badge key={tag} variant="outline">

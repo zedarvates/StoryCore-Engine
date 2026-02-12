@@ -66,7 +66,7 @@ export class IndexedDB {
     });
   }
 
-  async put(storeName: string, value: any): Promise<void> {
+  async put(storeName: string, value: unknown): Promise<void> {
     if (!this.db) throw new Error('Database not opened');
 
     return new Promise((resolve, reject) => {
@@ -84,7 +84,7 @@ export class IndexedDB {
     });
   }
 
-  async get<T = any>(storeName: string, key: any): Promise<T | undefined> {
+  async get<T = any>(storeName: string, key: unknown): Promise<T | undefined> {
     if (!this.db) throw new Error('Database not opened');
 
     return new Promise((resolve, reject) => {
@@ -120,7 +120,7 @@ export class IndexedDB {
     });
   }
 
-  async delete(storeName: string, key: any): Promise<void> {
+  async delete(storeName: string, key: unknown): Promise<void> {
     if (!this.db) throw new Error('Database not opened');
 
     return new Promise((resolve, reject) => {
@@ -159,7 +159,7 @@ export class IndexedDB {
   async getByIndex<T = any>(
     storeName: string,
     indexName: string,
-    key: any
+    key: unknown
   ): Promise<T[]> {
     if (!this.db) throw new Error('Database not opened');
 
@@ -190,3 +190,6 @@ export class IndexedDB {
     return this.db !== null;
   }
 }
+
+
+

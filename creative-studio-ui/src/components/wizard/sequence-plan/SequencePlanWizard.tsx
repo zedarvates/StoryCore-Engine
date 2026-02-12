@@ -19,7 +19,7 @@ import { Step6ReviewFinalize } from './Step6ReviewFinalize';
 
 
 
-const Step4ScenePlanning = ({ scenes, acts, onScenesChange, validationErrors, worldId }: any) => (
+const Step4ScenePlanning = ({ scenes, acts, onScenesChange, validationErrors, worldId }: unknown) => (
   <ScenePlanningInterface scenes={scenes} acts={acts} onScenesChange={onScenesChange} validationErrors={validationErrors} worldId={worldId} />
 );
 
@@ -480,3 +480,4 @@ export function SequencePlanWizard({
     </Dialog>
   );
 }
+

@@ -23,7 +23,7 @@ export interface StoredSettings {
   comfyui?: {
     // Using 'any' for ComfyUI config to support flexible configuration schemas
     // that may vary between ComfyUI versions and custom setups
-    config: any; // ComfyUI config without credentials
+    config: unknown; // ComfyUI config without credentials
     encryptedCredentials?: string;
     lastValidated?: string;
   };
@@ -296,7 +296,7 @@ export function exportSettings(): string {
 
     // Create export object without encrypted credentials
     // Using 'any' to allow dynamic property assignment based on available settings
-    const exportData: any = {
+    const exportData: unknown = {
       version: settings.version,
     };
 
@@ -443,3 +443,4 @@ export function getLastValidationTime(): Date | null {
   }
   return null;
 }
+

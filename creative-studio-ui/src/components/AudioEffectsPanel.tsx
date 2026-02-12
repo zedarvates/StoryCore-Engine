@@ -27,7 +27,7 @@ interface AudioEffect {
   id: string;
   type: string;
   name: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   enabled: boolean;
 }
 
@@ -128,7 +128,7 @@ export function AudioEffectsPanel({
   const [selectedEffect, setSelectedEffect] = useState<AudioEffect | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const addEffectToChain = useCallback((effectType: string, name: string, params: Record<string, any>) => {
+  const addEffectToChain = useCallback((effectType: string, name: string, params: Record<string, unknown>) => {
     const newEffect: AudioEffect = {
       id: `${effectType}_${Date.now()}`,
       type: effectType,
@@ -148,7 +148,7 @@ export function AudioEffectsPanel({
     }
   }, [selectedEffect]);
 
-  const updateEffectParameter = useCallback((effectId: string, paramName: string, value: any) => {
+  const updateEffectParameter = useCallback((effectId: string, paramName: string, value: unknown) => {
     setEffectChain(prev => prev.map(effect =>
       effect.id === effectId
         ? { ...effect, parameters: { ...effect.parameters, [paramName]: value } }
@@ -175,7 +175,7 @@ export function AudioEffectsPanel({
     }
   }, [selectedEffect]);
 
-  const renderParameterControl = (paramName: string, paramValue: any, paramType: string = 'number') => {
+  const renderParameterControl = (paramName: string, paramValue: unknown, paramType: string = 'number') => {
     const commonProps = {
       className: "flex-1"
     };
@@ -237,7 +237,7 @@ export function AudioEffectsPanel({
   };
 
   const getParameterConfig = (effectType: string, paramName: string) => {
-    const configs: Record<string, Record<string, any>> = {
+    const configs: Record<string, Record<string, unknown>> = {
       gain: {
         gain_db: { type: 'range', min: -20, max: 20, step: 0.1 }
       },
@@ -539,3 +539,5 @@ export function AudioEffectsPanel({
     </div>
   );
 }
+
+

@@ -27,7 +27,7 @@ export interface Conversation {
   tags: string[];
   isMarked: boolean;
   language: LanguageCode;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface ExportOptions {
@@ -83,11 +83,11 @@ export class ConversationExportService {
       const stored = localStorage.getItem('conversations');
       if (stored) {
         const parsed = JSON.parse(stored);
-        this.conversations = parsed.map((conv: any) => ({
+        this.conversations = parsed.map((conv: unknown) => ({
           ...conv,
           createdAt: new Date(conv.createdAt),
           updatedAt: new Date(conv.updatedAt),
-          messages: conv.messages.map((msg: any) => ({
+          messages: conv.messages.map((msg: unknown) => ({
             ...msg,
             timestamp: new Date(msg.timestamp)
           }))
@@ -501,3 +501,5 @@ export class ConversationExportService {
 
 // Export de l'instance singleton
 export const conversationExportService = ConversationExportService.getInstance();
+
+

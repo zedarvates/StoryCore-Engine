@@ -181,8 +181,8 @@ export function ScenePlanningInterface({
 interface ActScenesSectionProps {
   act: Act;
   scenes: Scene[];
-  locations: any[];
-  allCharacters: any[];
+  locations: unknown[];
+  allCharacters: unknown[];
   onAddScene: () => void;
   onEditScene: (scene: Scene) => void;
   onDeleteScene: (sceneId: string) => void;
@@ -284,8 +284,8 @@ function ActScenesSection({
 interface SceneCardProps {
   scene: Scene;
   index: number;
-  locations: any[];
-  allCharacters: any[];
+  locations: unknown[];
+  allCharacters: unknown[];
   onEdit: () => void;
   onDelete: () => void;
   onDragStart: () => void;
@@ -385,8 +385,8 @@ interface SceneEditorDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (sceneData: Partial<Scene>) => void;
-  locations: any[];
-  allCharacters: any[];
+  locations: unknown[];
+  allCharacters: unknown[];
 }
 
 function SceneEditorDialog({
@@ -607,3 +607,4 @@ function SceneEditorDialog({
     </Dialog>
   );
 }
+

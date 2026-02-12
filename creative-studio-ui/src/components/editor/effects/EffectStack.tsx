@@ -95,7 +95,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
     onEffectsChange([...effects, duplicatedEffect]);
   };
 
-  const updateEffectParameter = (effectId: string, paramId: string, value: any) => {
+  const updateEffectParameter = (effectId: string, paramId: string, value: unknown) => {
     const updatedEffects = effects.map(effect =>
       effect.id === effectId
         ? {
@@ -110,7 +110,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
   };
 
   const renderParameterControl = (effect: AppliedEffect, param: EffectParameter) => {
-    const handleChange = (value: any) => {
+    const handleChange = (value: unknown) => {
       updateEffectParameter(effect.id, param.id, value);
     };
 

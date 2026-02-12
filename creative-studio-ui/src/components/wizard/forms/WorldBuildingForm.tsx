@@ -92,7 +92,7 @@ export function WorldBuildingForm({
     return isValid;
   }, [formData, onValidationChange]);
 
-  const handleFieldChange = useCallback((field: keyof WorldBuildingInput, value: any) => {
+  const handleFieldChange = useCallback((field: keyof WorldBuildingInput, value: unknown) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       onChange?.(updated);
@@ -241,3 +241,4 @@ export function WorldBuildingForm({
     </form>
   );
 }
+

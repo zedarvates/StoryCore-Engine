@@ -132,7 +132,7 @@ export const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
             </li>
           </ul>
           
-          <p className="mt-2 text-xs">
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
             All data is sent to our public GitHub repository and will be visible 
             to anyone. Sensitive information (file paths, usernames, API keys) 
             is automatically removed before submission.
@@ -141,7 +141,7 @@ export const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
       </Alert>
 
       {/* Log Consent Checkbox */}
-      <div className="flex items-start space-x-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+      <div className="flex items-start space-x-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
         <Checkbox
           id="log-consent"
           checked={logConsent}
@@ -151,20 +151,20 @@ export const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
         <div className="flex-1">
           <Label
             htmlFor="log-consent"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-foreground"
           >
             Include application logs in my report
           </Label>
           <p className="mt-1 text-xs text-muted-foreground">
             {logConsent ? (
               <>
-                <strong className="text-green-700">Enabled:</strong> The last 500 lines 
+                <strong className="text-green-800 dark:text-green-400">Enabled:</strong> The last 500 lines 
                 of application logs will be included (with sensitive data removed). 
                 This helps developers diagnose issues faster.
               </>
             ) : (
               <>
-                <strong className="text-amber-700">Disabled:</strong> No logs will be 
+                <strong className="text-amber-800 dark:text-amber-400">Disabled:</strong> No logs will be 
                 included. This may make it harder to diagnose your issue, but protects 
                 your privacy.
               </>
@@ -174,7 +174,7 @@ export const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
       </div>
 
       {/* Additional Privacy Information */}
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-slate-500 dark:text-slate-400">
         By submitting feedback, you acknowledge that your report will be publicly 
         visible on GitHub. You can review the complete report before submission 
         in Manual Mode.

@@ -10,11 +10,16 @@ import { Step2CharacterSelection } from './Step2CharacterSelection';
 import { Step3LocationSelection } from './Step3LocationSelection';
 import { Step4StoryGeneration } from './Step4StoryGeneration';
 import { Step5ReviewExport } from './Step5ReviewExport';
-import { loadStoryFromFile, saveStoryToFile, saveStoryToDisk, storyToMarkdown, markdownToStory } from '@/utils/storyFileIO';
+import { 
+  saveStoryToDisk, 
+  loadStoryPartsFromDisk,
+  storyToMarkdown, 
+  markdownToStory 
+} from '@/utils/storyFileIO';
 import { toast } from '@/utils/toast';
 
 // ============================================================================
-// Storyteller Wizard Component
+// Storyteller Wizard Component - LLM-Optimized Version
 // ============================================================================
 
 export interface StorytellerWizardProps {
@@ -90,28 +95,22 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
   // Pre-fill with project metadata
   // ============================================================================
 
-  // Merge initialData with project metadata if available
   const getInitialStoryData = useCallback((): Partial<Story> => {
     const baseData = initialData || createEmptyStory();
 
-    // If project has metadata, pre-fill story setup
     if (currentProject?.metadata) {
       const projectMeta = currentProject.metadata;
 
       return {
         ...baseData,
-        // Pre-fill genre if available from project
         genre: projectMeta.genre || baseData.genre,
-        // Pre-fill tone if available from project
         tone: projectMeta.tone || baseData.tone,
-        // Pre-fill length based on project type
         length: projectMeta.projectType === 'court-metrage' ? 'scene' :
           projectMeta.projectType === 'moyen-metrage' ? 'short_story' :
             projectMeta.projectType === 'long-metrage-standard' ? 'novella' :
               projectMeta.projectType === 'long-metrage-premium' ? 'novel' :
                 projectMeta.projectType === 'tres-long-metrage' ? 'epic_novel' :
                   baseData.length,
-        // Keep other fields from baseData
       };
     }
 
@@ -119,12 +118,11 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
   }, [currentProject, initialData]);
 
   // ============================================================================
-  // Load story.md on mount (if project exists)
+  // Load story parts on mount (if project exists)
   // ============================================================================
 
   useEffect(() => {
     const loadExistingStory = async () => {
-      // Only attempt to load if we have Electron API and a current project
       if (!window.electronAPI || !currentProject) {
         return;
       }
@@ -132,32 +130,47 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
       setIsLoadingStory(true);
 
       try {
-        // Get project path from project name
-        // In Electron, projects are stored in a known location
-        const projectPath = currentProject.project_name;
-
-        // Check if story.md exists
-        const storyFilePath = `${projectPath}/story.md`;
-        const exists = await window.electronAPI.fs.exists(storyFilePath);
-
-        if (exists) {
-          // Read the story.md file
-          const fileBuffer = await window.electronAPI.fs.readFile(storyFilePath);
-          const markdown = fileBuffer.toString('utf-8');
-
-          // Parse markdown to Story object
-          const story = markdownToStory(markdown, getInitialStoryData());
-
-          setLoadedStoryData(story);
+        const projectPath = currentProject.path || currentProject.project_name;
+        
+        // Try to load parts from the new LLM-optimized structure
+        const parts = await loadStoryPartsFromDisk(projectPath);
+        
+        if (parts && parts.length > 0) {
+          // Combine parts into story content
+          const combinedContent = parts.map(p => `### ${p.title}\n\n${p.content}`).join('\n\n');
+          const lastPart = parts[parts.length - 1];
+          
+          setLoadedStoryData({
+            ...getInitialStoryData(),
+            content: combinedContent,
+            summary: lastPart.summary,
+            parts: parts,
+          });
 
           toast.success(
             'Story Loaded',
-            'Existing story content has been loaded from story.md'
+            `Loaded ${parts.length} story parts from LLM-optimized files`
           );
+        } else {
+          // Fallback to legacy story.md
+          const storyFilePath = `${projectPath}/story.md`;
+          const exists = await window.electronAPI.fs.exists(storyFilePath);
+
+          if (exists) {
+            const fileBuffer = await window.electronAPI.fs.readFile(storyFilePath);
+            const markdown = fileBuffer.toString('utf-8');
+            const story = markdownToStory(markdown, getInitialStoryData());
+
+            setLoadedStoryData(story);
+
+            toast.success(
+              'Story Loaded',
+              'Existing story content has been loaded from story.md'
+            );
+          }
         }
       } catch (error) {
-        console.warn('Failed to load story.md:', error);
-        // Don't show error toast - missing file is expected for new projects
+        console.warn('Failed to load story:', error);
       } finally {
         setIsLoadingStory(false);
       }
@@ -171,46 +184,52 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
   // ============================================================================
 
   const validateStep = useCallback(
-    async (step: number, data: any): Promise<Record<string, string[]>> => {
+    async (step: number, data: unknown): Promise<Record<string, string[]>> => {
       const errors: Record<string, string[]> = {};
 
       switch (step) {
-        case 1: // Story Setup
-          if (!data.genre || data.genre.length === 0) {
-            errors.genre = ['At least one genre must be selected'];
+        case 1:
+          // Validate genre - allow empty initially (will use project defaults)
+          if (data.genre !== undefined && Array.isArray(data.genre) && data.genre.length === 0) {
+            // Warning only, not blocking
+            console.warn('[StorytellerWizard] No genre selected, will use project defaults');
           }
-          if (!data.tone || data.tone.length === 0) {
-            errors.tone = ['At least one tone must be selected'];
+          // Validate tone - allow empty initially (will use project defaults)
+          if (data.tone !== undefined && Array.isArray(data.tone) && data.tone.length === 0) {
+            // Warning only, not blocking
+            console.warn('[StorytellerWizard] No tone selected, will use project defaults');
           }
-          if (!data.length) {
-            errors.length = ['Story length must be selected'];
-          }
-          break;
-
-        case 2: // Character Selection
-          // Optional - characters can be empty
-          break;
-
-        case 3: // Location Selection
-          // Optional - locations can be empty
-          break;
-
-        case 4: // Story Generation
-          // Validation happens during generation
-          if (!data.generatedContent) {
-            errors.generation = ['Story content must be generated before proceeding'];
+          // Validate length - allow empty initially (will use project defaults)
+          if (data.length !== undefined && data.length === '') {
+            // Warning only, not blocking
+            console.warn('[StorytellerWizard] No length selected, will use project defaults');
           }
           break;
 
-        case 5: // Review & Export
-          // Final validation
+        case 2:
+        case 3:
+          // Optional - no validation required
+          break;
+
+        case 4:
+          // Story generation step - allow skipping
+          // No blocking validation needed
+          break;
+
+        case 5:
+          // Review step - validate that story content exists (but allow placeholder)
           if (!data.generatedContent || data.generatedContent.trim() === '') {
-            errors.content = ['Story content is required'];
+            errors.content = ['Story content is required. You can enter it manually if generation was skipped.'];
           }
           if (!data.generatedSummary || data.generatedSummary.trim() === '') {
-            errors.summary = ['Story summary is required'];
+            errors.summary = ['Story summary is required. You can enter it manually if generation was skipped.'];
           }
           break;
+      }
+
+      // Debug logging for validation
+      if (Object.keys(errors).length > 0) {
+        console.log('[StorytellerWizard] Validation errors for step', step, ':', errors);
       }
 
       return errors;
@@ -219,15 +238,13 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
   );
 
   // ============================================================================
-  // Submission
+  // Submission - Save with LLM-Optimized Format
   // ============================================================================
 
   const handleSubmit = useCallback(
-    async (data: any) => {
-      // Extract character IDs from selected characters
-      const characterIds = (data.selectedCharacters || []).map((c: any) => c.id);
+    async (data: unknown) => {
+      const characterIds = (data.selectedCharacters || []).map((c: unknown) => c.id);
 
-      // Create complete story object
       const story: Story = {
         id: crypto.randomUUID(),
         title: data.title || 'Untitled Story',
@@ -236,19 +253,21 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
         genre: data.genre || [],
         tone: data.tone || [],
         length: data.length || 'medium',
-        charactersUsed: characterIds, // Use character IDs (Requirement: 4.5)
+        charactersUsed: characterIds,
         locationsUsed: data.selectedLocations || [],
         autoGeneratedElements: data.autoGeneratedElements || [],
         createdAt: new Date(),
         updatedAt: new Date(),
         version: 1,
         worldId: data.worldId,
+        parts: data.parts,
+        fileFormat: 'md',
       };
 
-      // Add to store (which also persists to localStorage)
+      // Add to store
       addStory(story);
 
-      // Save story to disk if we have Electron API and a project
+      // Save story to disk with LLM-optimized format
       if (window.electronAPI && currentProject) {
         try {
           const projectPath = currentProject.path || currentProject.project_name;
@@ -256,7 +275,7 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
 
           toast.success(
             'Story Saved',
-            'Your story has been saved with its individual chapters.'
+            'Your story has been saved with LLM-optimized structure (intro, chapters, ending, summary)'
           );
         } catch (error) {
           console.error('Failed to save story to disk:', error);
@@ -267,20 +286,13 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
         }
       }
 
-      // Save story metadata to project if available
-      if (currentProject) {
-        // Story is already saved to localStorage via store
-        // Additional project-level metadata could be saved here if needed
-      }
-
-      // Emit event for other components to subscribe to
+      // Emit event
       window.dispatchEvent(
         new CustomEvent('story-created', {
           detail: { story },
         })
       );
 
-      // Call the onComplete callback
       onComplete(story);
     },
     [onComplete, addStory, currentProject]
@@ -334,3 +346,5 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
     </WizardProvider>
   );
 }
+
+

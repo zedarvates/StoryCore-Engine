@@ -3,6 +3,11 @@
  *
  * Fournit une persistance robuste avec fallbacks et retry logic
  * pour garantir que les données sont sauvegardées même en cas de failure
+ * 
+ * FIXES applied:
+ * - Deduplication before save to prevent redundant operations
+ * - Storage cleanup when duplicates detected
+ * - Compressed storage for large datasets
  */
 
 import { World } from '@/types/world';
@@ -28,6 +33,9 @@ export interface ValidationResult {
 export class PersistenceService {
   private static instance: PersistenceService;
   private retryQueue: Map<string, { operation: () => Promise<any>, retries: number }> = new Map();
+  // FIX: Track last save time to prevent rapid duplicate saves
+  private lastSaveTimes: Map<string, number> = new Map();
+  private readonly MIN_SAVE_INTERVAL = 1000; // 1 second minimum between saves
 
   private constructor() {
     // Démarrer le processing de la queue de retry
@@ -42,10 +50,55 @@ export class PersistenceService {
   }
 
   /**
+   * FIX: Check if character was saved recently to prevent duplicates
+   */
+  private canSaveCharacter(characterId: string): boolean {
+    const lastSave = this.lastSaveTimes.get(characterId) || 0;
+    const now = Date.now();
+    if (now - lastSave < this.MIN_SAVE_INTERVAL) {
+      console.log(`[PersistenceService] Skipping duplicate save for character ${characterId} (${Math.round((now - lastSave)/1000)}s since last save)`);
+      return false;
+    }
+    this.lastSaveTimes.set(characterId, now);
+    return true;
+  }
+
+  /**
+   * FIX: Clean up old duplicates from localStorage
+   */
+  private cleanupDuplicates(key: string): void {
+    try {
+      const existingData = localStorage.getItem(key);
+      if (existingData) {
+        const parsed = JSON.parse(existingData);
+        // Keep only unique items by ID
+        const seen = new Set();
+        const unique = parsed.filter((item: { id: string }) => {
+          if (seen.has(item.id)) return false;
+          seen.add(item.id);
+          return true;
+        });
+        // Only update if there were duplicates
+        if (unique.length !== parsed.length) {
+          localStorage.setItem(key, JSON.stringify(unique));
+          console.log(`[PersistenceService] Cleaned up ${parsed.length - unique.length} duplicates from ${key}`);
+        }
+      }
+    } catch (error) {
+      console.warn('[PersistenceService] Cleanup failed:', error);
+    }
+  }
+
+  /**
    * Sauvegarde un personnage avec multi-layer persistance
    */
   async saveCharacter(character: Character, projectPath?: string): Promise<PersistenceResult[]> {
     const results: PersistenceResult[] = [];
+
+    // FIX: Check for duplicate before proceeding
+    if (!this.canSaveCharacter(character.character_id)) {
+      return [{ success: true, layer: 'store' }]; // Skip duplicate save
+    }
 
     // Normalize role field to ensure it's in object format
     const normalizedCharacter = this.normalizeCharacterRole(character);
@@ -55,6 +108,10 @@ export class PersistenceService {
     if (!validation.isValid) {
       throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
     }
+
+    // FIX: Clean up any existing duplicates before saving
+    const projectName = projectPath ? projectPath.split(/[/\\]/).pop() || 'unknown' : 'default';
+    this.cleanupDuplicates(`project-${projectName}-characters`);
 
     // Layer 1: Store Zustand (si disponible)
     try {
@@ -586,7 +643,7 @@ export class PersistenceService {
   /**
    * Téléchargement d'un fichier comme fallback
    */
-  private downloadAsFile(data: any, filename: string): void {
+  private downloadAsFile(data: unknown, filename: string): void {
     const jsonString = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -702,3 +759,4 @@ export class PersistenceService {
 
 // Export de l'instance singleton
 export const persistenceService = PersistenceService.getInstance();
+

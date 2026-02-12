@@ -38,7 +38,7 @@ export interface PanelGenerationConfig {
     compositionStyle?: string; // e.g., "cinematic", "comic", "portrait"
     cropStyle?: string; // e.g., "letterbox", "dynamic", "centered"
     transformStyle?: string; // e.g., "dramatic", "stable", "dynamic"
-    [key: string]: any; // Allow additional custom parameters
+    [key: string]: unknown; // Allow additional custom parameters
   };
 }
 
@@ -377,7 +377,7 @@ export class GridAPIService {
     presetId: string,
     presetName: string,
     panels: PanelGenerationConfig[],
-    presetStyleParams?: Record<string, any>
+    presetStyleParams?: Record<string, unknown>
   ): Promise<ApiResponse<BatchGenerationResponse>> {
     try {
       // Enhance panel configs with preset parameters
@@ -663,3 +663,5 @@ export function createGridAPIService(
 export const gridApi = createGridAPIService(
   import.meta.env.MODE === 'development'
 );
+
+

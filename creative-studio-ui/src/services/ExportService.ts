@@ -1,14 +1,14 @@
 /**
  * ExportService
  * 
- * Service d'export pour StoryCore Creative Studio.
- * Gère l'export des projets vers différents formats:
- * - JSON (Format Data Contract v1)
- * - PDF (Rapport de projet)
- * - Vidéo (Séquence promue)
+ * Export service for StoryCore Creative Studio.
+ * Handles project export to different formats:
+ * - JSON (Data Contract v1 Format)
+ * - PDF (Project Report)
+ * - Video (Promoted Sequence)
  * 
- * Ce service utilise une approche basée sur l'état du projet (ProjectState)
- * et délègue les opérations réelles au ProjectExportService existant.
+ * This service uses a project state-based approach (ProjectState)
+ * and delegates actual operations to the existing ProjectExportService.
  * 
  * Requirements: 13.1-13.6
  */
@@ -17,7 +17,7 @@ import type { Project, Shot, Asset } from '@/types';
 import { projectExportService, ExportResult } from './projectExportService';
 
 /**
- * Interface d'état du projet pour le service d'export
+ * Project state interface for export service
  */
 export interface ProjectState {
   project: Project | null;
@@ -27,19 +27,19 @@ export interface ProjectState {
 }
 
 /**
- * Options d'export pour les méthodes
+ * Export options for methods
  */
 export interface ExportOptions {
-  /** Inclure les métadonnées dans l'export */
+  /** Include metadata in export */
   includeMetadata?: boolean;
-  /** Format de l'export (défaut: automatique selon la méthode) */
+  /** Export format (default: automatic based on method) */
   format?: string;
-  /** Qualité de l'export (pour PDF et Vidéo) */
+  /** Export quality (for PDF and Video) */
   quality?: 'low' | 'medium' | 'high';
 }
 
 /**
- * Progress callback pour les opérations d'export
+ * Progress callback for export operations
  */
 export type ExportProgressCallback = (progress: number, message: string) => void;
 
@@ -62,30 +62,30 @@ export class ExportService {
   private onError?: (error: Error) => void;
 
   /**
-   * Constructeur du ExportService
+   * ExportService constructor
    * 
-   * @param projectState - État actuel du projet
+   * @param projectState - Current project state
    */
   constructor(projectState: ProjectState) {
     this.projectState = projectState;
   }
 
   /**
-   * Définir le callback de progression
+   * Set progress callback
    */
   setProgressCallback(callback: ExportProgressCallback): void {
     this.progressCallback = callback;
   }
 
   /**
-   * Définir le callback d'erreur
+   * Set error callback
    */
   setOnError(callback: (error: Error) => void): void {
     this.onError = callback;
   }
 
   /**
-   * Signaler la progression
+   * Report progress
    */
   private reportProgress(progress: number, message: string): void {
     if (this.progressCallback) {
@@ -95,7 +95,7 @@ export class ExportService {
   }
 
   /**
-   * Gérer une erreur
+   * Handle error
    */
   private handleError(error: Error, context: string): never {
     console.error(`[ExportService] Error in ${context}:`, error);
@@ -106,32 +106,32 @@ export class ExportService {
   }
 
   /**
-   * Obtenir le projet à partir de l'état
+   * Get project from state
    */
   private getProject(): Project | null {
     return this.projectState.project;
   }
 
   /**
-   * Valider les données du projet avant export
+   * Validate project data before export
    * 
-   * @returns true si les données sont valides
+   * @returns true if data is valid
    */
   private validateProjectData(): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
     const { projectName, shots } = this.projectState;
 
-    // Valider le nom du projet
+    // Validate project name
     if (!projectName || projectName.trim().length === 0) {
       errors.push('Le nom du projet est requis');
     }
 
-    // Valider les shots
+    // Validate shots
     if (!shots || shots.length === 0) {
       errors.push('Le projet doit contenir au moins un plan');
     }
 
-    // Valider chaque plan
+    // Validate each shot
     shots.forEach((shot, index) => {
       if (!shot.id) {
         errors.push(`Plan ${index + 1}: L'ID est requis`);
@@ -151,17 +151,17 @@ export class ExportService {
   }
 
   /**
-   * Export du projet au format JSON
+   * Export project to JSON format
    * 
-   * Collecte les données du projet, valide, et génère un fichier JSON formaté.
-   * Utilise l'API Electron pour sauvegarder le fichier si disponible.
+   * Collects project data, validates, and generates a formatted JSON file.
+   * Uses Electron API to save file if available.
    * 
-   * @param options - Options d'export optionnelles
-   * @returns Promise<ExportResult> - Résultat de l'export
+   * @param options - Optional export options
+   * @returns Promise<ExportResult> - Export result
    */
   async exportJSON(options?: ExportOptions): Promise<ExportResult> {
     const context = 'exportJSON';
-    this.reportProgress(0, 'Démarrage de l\'export JSON...');
+    this.reportProgress(0, 'Starting JSON export...');
 
     try {
       // Valider les données
@@ -177,15 +177,15 @@ export class ExportService {
         throw new Error('Aucun projet à exporter');
       }
 
-      // Déléguer au service d'export existant
-      this.reportProgress(50, 'Génération du JSON...');
+      // Delegate to existing export service
+      this.reportProgress(50, 'Generating JSON...');
       const result = await projectExportService.exportJSON(project);
 
       if (result.success) {
-        this.reportProgress(100, 'Export JSON terminé');
-        console.log(`[ExportService] JSON exporté avec succès: ${result.filePath}`);
+        this.reportProgress(100, 'JSON export completed');
+        console.log(`[ExportService] JSON exported successfully: ${result.filePath}`);
       } else {
-        this.reportProgress(100, 'Export JSON échoué');
+        this.reportProgress(100, 'JSON export failed');
         if (result.error) {
           this.handleError(result.error, context);
         }
@@ -194,7 +194,7 @@ export class ExportService {
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      console.error(`[ExportService] Échec de l'export JSON: ${errorMessage}`);
+      console.error(`[ExportService] JSON export failed: ${errorMessage}`);
       
       return {
         success: false,
@@ -204,10 +204,10 @@ export class ExportService {
   }
 
   /**
-   * Export du projet au format PDF
+   * Export project to PDF format
    * 
-   * Utilise jsPDF pour générer un rapport de projet incluant:
-   * - Page de garde avec les métadonnées
+   * Uses jsPDF to generate a project report including:
+   * - Title page with metadata
    * - Liste des plans avec descriptions
    * - Liste des assets
    * - Statut des capacités et de la génération
@@ -217,31 +217,31 @@ export class ExportService {
    */
   async exportPDF(options?: ExportOptions): Promise<ExportResult> {
     const context = 'exportPDF';
-    this.reportProgress(0, 'Démarrage de l\'export PDF...');
+    this.reportProgress(0, 'Starting PDF export...');
 
     try {
-      // Valider les données
-      this.reportProgress(10, 'Validation des données du projet...');
+      // Validate data
+      this.reportProgress(10, 'Validating project data...');
       const validation = this.validateProjectData();
       
       if (!validation.valid) {
-        throw new Error(`Validation échouée: ${validation.errors.join(', ')}`);
+        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
       }
 
       const project = this.getProject();
       if (!project) {
-        throw new Error('Aucun projet à exporter');
+        throw new Error('No project to export');
       }
 
-      // Déléguer au service d'export existant
-      this.reportProgress(30, 'Génération du contenu PDF...');
+      // Delegate to existing export service
+      this.reportProgress(30, 'Generating PDF content...');
       const result = await projectExportService.exportPDF(project);
 
       if (result.success) {
-        this.reportProgress(100, 'Export PDF terminé');
-        console.log(`[ExportService] PDF exporté avec succès: ${result.filePath}`);
+        this.reportProgress(100, 'PDF export completed');
+        console.log(`[ExportService] PDF exported successfully: ${result.filePath}`);
       } else {
-        this.reportProgress(100, 'Export PDF échoué');
+        this.reportProgress(100, 'PDF export failed');
         if (result.error) {
           this.handleError(result.error, context);
         }
@@ -249,8 +249,8 @@ export class ExportService {
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      console.error(`[ExportService] Échec de l'export PDF: ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`[ExportService] PDF export failed: ${errorMessage}`);
       
       return {
         success: false,
@@ -260,51 +260,51 @@ export class ExportService {
   }
 
   /**
-   * Export du projet au format Vidéo
+   * Export project to Video format
    * 
-   * Intégration avec le service de rendu vidéo existant.
-   * Collecte les plans et assets promoted pour générer une séquence vidéo.
+   * Integration with existing video rendering service.
+   * Collects promoted shots and assets to generate a video sequence.
    * 
-   * Note: L'implémentation complète avec FFmpeg est en développement.
-   * Actuellement retourne un placeholder avec instructions d'intégration.
+   * Note: Full FFmpeg implementation is in development.
+   * Currently returns a placeholder with integration instructions.
    * 
-   * @param options - Options d'export optionnelles (quality)
-   * @returns Promise<ExportResult> - Résultat de l'export
+   * @param options - Optional export options (quality)
+   * @returns Promise<ExportResult> - Export result
    */
   async exportVideo(options?: ExportOptions): Promise<ExportResult> {
     const context = 'exportVideo';
-    this.reportProgress(0, 'Démarrage de l\'export vidéo...');
+    this.reportProgress(0, 'Starting video export...');
 
     try {
-      // Valider les données
-      this.reportProgress(10, 'Validation des données du projet...');
+      // Validate data
+      this.reportProgress(10, 'Validating project data...');
       const validation = this.validateProjectData();
       
       if (!validation.valid) {
-        throw new Error(`Validation échouée: ${validation.errors.join(', ')}`);
+        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
       }
 
       const project = this.getProject();
       if (!project) {
-        throw new Error('Aucun projet à exporter');
+        throw new Error('No project to export');
       }
 
-      // Vérifier les plans avec panels promus
+      // Check for shots with promoted panels
       const shotsWithPanels = project.shots.filter(shot => (shot as any).promoted_panel_path);
       
       if (shotsWithPanels.length === 0) {
-        throw new Error('Aucun plan promu trouvé. Veuillez promouvoir des plans avant d\'exporter en vidéo.');
+        throw new Error('No promoted shots found. Please promote shots before exporting to video.');
       }
 
-      // Déléguer au service d'export existant
-      this.reportProgress(40, 'Génération de la séquence vidéo...');
+      // Delegate to existing export service
+      this.reportProgress(40, 'Generating video sequence...');
       const result = await projectExportService.exportVideo(project);
 
       if (result.success) {
-        this.reportProgress(100, 'Export vidéo terminé');
-        console.log(`[ExportService] Vidéo exportée avec succès: ${result.filePath}`);
+        this.reportProgress(100, 'Video export completed');
+        console.log(`[ExportService] Video exported successfully: ${result.filePath}`);
       } else {
-        this.reportProgress(100, 'Export vidéo échoué');
+        this.reportProgress(100, 'Video export failed');
         if (result.error) {
           this.handleError(result.error, context);
         }
@@ -312,8 +312,8 @@ export class ExportService {
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      console.error(`[ExportService] Échec de l'export vidéo: ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`[ExportService] Video export failed: ${errorMessage}`);
       
       return {
         success: false,

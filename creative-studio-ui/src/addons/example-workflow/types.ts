@@ -34,7 +34,7 @@ export interface WorkflowOperation {
   description: string;
   workflowId?: string;
   stepId?: string;
-  details?: any;
+  details?: unknown;
 }
 
 export interface ExampleWorkflowState {

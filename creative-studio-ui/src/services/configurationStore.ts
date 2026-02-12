@@ -215,7 +215,7 @@ export class ConfigurationStore {
   /**
    * Encrypt sensitive fields in configuration
    */
-  private static encryptSensitiveFields(config: ProjectConfiguration): any {
+  private static encryptSensitiveFields(config: ProjectConfiguration): unknown {
     const encrypted = JSON.parse(JSON.stringify(config));
     
     // Encrypt API keys
@@ -245,7 +245,7 @@ export class ConfigurationStore {
       encrypted.comfyui.apiKey = encryptSensitiveData(encrypted.comfyui.apiKey);
     }
     if (encrypted.comfyui?.servers) {
-      encrypted.comfyui.servers.forEach((server: any) => {
+      encrypted.comfyui.servers.forEach((server: unknown) => {
         if (server.apiKey) {
           server.apiKey = encryptSensitiveData(server.apiKey);
         }
@@ -258,7 +258,7 @@ export class ConfigurationStore {
   /**
    * Decrypt sensitive fields in configuration
    */
-  private static decryptSensitiveFields(config: any): ProjectConfiguration {
+  private static decryptSensitiveFields(config: unknown): ProjectConfiguration {
     const decrypted = JSON.parse(JSON.stringify(config));
     
     // Decrypt API keys
@@ -288,7 +288,7 @@ export class ConfigurationStore {
       decrypted.comfyui.apiKey = decryptSensitiveData(decrypted.comfyui.apiKey);
     }
     if (decrypted.comfyui?.servers) {
-      decrypted.comfyui.servers.forEach((server: any) => {
+      decrypted.comfyui.servers.forEach((server: unknown) => {
         if (server.apiKey) {
           server.apiKey = decryptSensitiveData(server.apiKey);
         }
@@ -315,7 +315,7 @@ export class ConfigurationStore {
    * Validate and merge project configuration with defaults
    */
   private static validateAndMergeProjectConfig(
-    config: any
+    config: unknown
   ): ProjectConfiguration {
     return {
       projectId: config.projectId || '',
@@ -330,7 +330,7 @@ export class ConfigurationStore {
    * Validate and merge global configuration with defaults
    */
   private static validateAndMergeGlobalConfig(
-    config: any
+    config: unknown
   ): GlobalConfiguration {
     return {
       ...DEFAULT_GLOBAL_CONFIG,
@@ -341,7 +341,7 @@ export class ConfigurationStore {
   /**
    * Migrate legacy configuration formats to current version
    */
-  private static migrateConfiguration(config: any): any {
+  private static migrateConfiguration(config: unknown): unknown {
     const migrated = JSON.parse(JSON.stringify(config));
 
     // Migrate ComfyUI configuration from single-server to multi-server format
@@ -371,3 +371,6 @@ export class ConfigurationStore {
     return migrated;
   }
 }
+
+
+

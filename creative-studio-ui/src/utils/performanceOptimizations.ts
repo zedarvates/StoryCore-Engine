@@ -166,7 +166,7 @@ export function clearAnalysisCache(): void {
  * @param delay - Delay in milliseconds
  * @returns Debounced function
  */
-export function useDebounce<T extends (...args: any[]) => any>(
+export function useDebounce<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -210,7 +210,7 @@ export function useDebounce<T extends (...args: any[]) => any>(
  * @param delay - Minimum delay between calls in milliseconds
  * @returns Throttled function
  */
-export function useThrottle<T extends (...args: any[]) => any>(
+export function useThrottle<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -356,9 +356,9 @@ export class WorkerPool {
   private workers: Worker[] = [];
   private availableWorkers: Worker[] = [];
   private taskQueue: Array<{
-    data: any;
-    resolve: (value: any) => void;
-    reject: (error: any) => void;
+    data: unknown;
+    resolve: (value: unknown) => void;
+    reject: (error: unknown) => void;
   }> = [];
 
   constructor(workerScript: string, poolSize: number = navigator.hardwareConcurrency || 4) {
@@ -373,7 +373,7 @@ export class WorkerPool {
   /**
    * Execute task in worker pool
    */
-  async execute<T = any>(data: any): Promise<T> {
+  async execute<T = any>(data: unknown): Promise<T> {
     return new Promise((resolve, reject) => {
       const worker = this.availableWorkers.pop();
 
@@ -392,9 +392,9 @@ export class WorkerPool {
    */
   private executeInWorker(
     worker: Worker,
-    data: any,
-    resolve: (value: any) => void,
-    reject: (error: any) => void
+    data: unknown,
+    resolve: (value: unknown) => void,
+    reject: (error: unknown) => void
   ): void {
     const handleMessage = (e: MessageEvent) => {
       worker.removeEventListener('message', handleMessage);
@@ -545,3 +545,5 @@ export function useIntersectionObserver(
 // ============================================================================
 
 import React from 'react';
+
+

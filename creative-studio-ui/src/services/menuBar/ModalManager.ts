@@ -15,12 +15,12 @@ import React from 'react';
 export interface ModalConfig {
   id: string;
   component: React.ComponentType<any>;
-  props?: Record<string, any>;
+  props?: Record<string, unknown>;
 }
 
 export interface ModalState {
   id: string;
-  props?: Record<string, any>;
+  props?: Record<string, unknown>;
 }
 
 type ModalListener = (activeModals: Set<string>) => void;
@@ -73,7 +73,7 @@ export class ModalManager {
    * @param props - Props to pass to the modal component
    * @throws Error if modal is not registered
    */
-  openModal(id: string, props?: Record<string, any>): void {
+  openModal(id: string, props?: Record<string, unknown>): void {
     if (!this.modalComponents.has(id)) {
       throw new Error(`Modal "${id}" is not registered`);
     }
@@ -182,3 +182,4 @@ export class ModalManager {
 
 // Singleton instance for global use
 export const modalManager = new ModalManager();
+

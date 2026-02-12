@@ -35,7 +35,7 @@ export interface DiagnosticResult {
 export interface DiagnosticCheck {
   status: 'pass' | 'warning' | 'fail';
   message: string;
-  details?: any;
+  details?: unknown;
 }
 
 // ============================================================================
@@ -474,3 +474,4 @@ export async function getLLMStatusMessage(): Promise<string> {
 
   return `✗ LLM service has errors: ${result.recommendations[0]}`;
 }
+

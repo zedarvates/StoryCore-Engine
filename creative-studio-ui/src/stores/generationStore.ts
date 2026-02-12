@@ -86,7 +86,7 @@ interface GenerationStore {
   
   // Actions - Batch Generation Management
   setBatchConfig: (config: Partial<BatchGenerationConfig>) => void;
-  startBatch: (type: 'image' | 'video' | 'audio', baseParams: Record<string, any>) => string;
+  startBatch: (type: 'image' | 'video' | 'audio', baseParams: Record<string, unknown>) => string;
   cancelBatch: (batchId: string) => void;
   updateBatchTaskStatus: (batchId: string, taskId: string, status: BatchGenerationTask['status']) => void;
   completeBatchTask: (batchId: string, taskId: string, result: GeneratedAsset) => void;
@@ -883,3 +883,4 @@ export const useGenerationStore = create<GenerationStore>((set, get) => ({
     });
   },
 }));
+

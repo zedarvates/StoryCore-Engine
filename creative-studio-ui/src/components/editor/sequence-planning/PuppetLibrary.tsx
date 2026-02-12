@@ -1,10 +1,11 @@
 import React from 'react';
-import { Users, Search, Plus } from 'lucide-react';
+import { Users, Search, Plus, UserCircle } from 'lucide-react';
 import { useStore } from '../../../store';
+import './Library.css';
 
 export interface PuppetLibraryProps {
   worldId: string;
-  onElementSelect: (element: any) => void;
+  onElementSelect: (element: unknown) => void;
   className?: string;
 }
 
@@ -23,7 +24,7 @@ export const PuppetLibrary: React.FC<PuppetLibraryProps> = ({
     pose: 'standing'
   }));
 
-  const handleDragStart = (puppet: any) => (e: React.DragEvent) => {
+  const handleDragStart = (puppet: unknown) => (e: React.DragEvent) => {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'puppet',
       assetId: puppet.id,
@@ -47,23 +48,32 @@ export const PuppetLibrary: React.FC<PuppetLibraryProps> = ({
       </div>
 
       <div className="library-content">
-        {puppets.map(puppet => (
-          <div
-            key={puppet.id}
-            className="library-item puppet-item"
-            draggable
-            onDragStart={handleDragStart(puppet)}
-          >
-            <div className="item-icon">
-              <Users size={24} />
-            </div>
-            <div className="item-info">
-              <div className="item-name">{puppet.name}</div>
-              <div className="item-type">{puppet.pose}</div>
-            </div>
+        {puppets.length === 0 ? (
+          <div className="library-empty">
+            <UserCircle size={32} />
+            <p>Aucun personnage disponible</p>
+            <p className="empty-hint">Créez des personnages dans le dashboard</p>
           </div>
-        ))}
+        ) : (
+          puppets.map(puppet => (
+            <div
+              key={puppet.id}
+              className="library-item puppet-item"
+              draggable
+              onDragStart={handleDragStart(puppet)}
+            >
+              <div className="item-icon">
+                <Users size={24} />
+              </div>
+              <div className="item-info">
+                <div className="item-name">{puppet.name}</div>
+                <div className="item-type">{puppet.pose}</div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
 };
+

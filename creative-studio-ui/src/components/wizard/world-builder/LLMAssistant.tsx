@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useWorldBuilderSelectors } from '../../../stores/worldBuilderStore';
+import { useLLMGeneration } from '../../../hooks/useLLMGeneration';
 
 export const LLMAssistant: React.FC = () => {
   const { currentStep, worldData } = useWorldBuilderSelectors();
@@ -7,16 +8,44 @@ export const LLMAssistant: React.FC = () => {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState('');
 
-  const handleQuery = async () => {
+  const { isLoading, error, generate } = useLLMGeneration({
+    onSuccess: (data) => {
+      setResponse(data.content);
+    },
+    onError: (error) => {
+      setResponse(`Error: ${error.message || 'Failed to get response'}`);
+    },
+  });
+
+  const handleQuery = useCallback(async () => {
     if (!query.trim()) return;
 
-    setResponse('Thinking...');
-    try {
-      // TODO: Integrate with LLMAugmentationService
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock
-      setResponse(`Mock response for: ${query}`);
-    } catch (error) {
-      setResponse('Error getting assistance');
+    const systemPrompt = getSystemPromptForStep(currentStep, worldData);
+    
+    await generate({
+      prompt: query,
+      systemPrompt,
+      temperature: 0.7,
+      maxTokens: 1500,
+    });
+  }, [query, currentStep, worldData, generate]);
+
+  const getSystemPromptForStep = (step: string, data: unknown): string => {
+    const basePrompt = 'You are a creative world-building assistant.';
+    
+    switch (step) {
+      case 'foundations':
+        return `${basePrompt} Help the user establish the foundational elements of their world: name, genre, core concept, and tone. Current world data: ${JSON.stringify(data?.foundations || {})}`;
+      case 'rules':
+        return `${basePrompt} Help the user define the rules and systems of their world: magic, physics, technology, and natural laws. Current rules: ${JSON.stringify(data?.rules || {})}`;
+      case 'culture':
+        return `${basePrompt} Help the user develop the cultures and societies of their world: traditions, values, conflicts, and social structures. Current culture: ${JSON.stringify(data?.culture || {})}`;
+      case 'locations':
+        return `${basePrompt} Help the user create memorable locations: geography, landmarks, cities, and points of interest. Current locations: ${JSON.stringify(data?.locations || {})}`;
+      case 'synthesis':
+        return `${basePrompt} Help the user synthesize all elements into a cohesive world summary with plot hooks and story potential.`;
+      default:
+        return basePrompt;
     }
   };
 
@@ -42,7 +71,7 @@ export const LLMAssistant: React.FC = () => {
       <button
         className="assistant-toggle"
         onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen ? "true" : "false"}
+        aria-expanded={isOpen}
       >
         AI Assistant
       </button>
@@ -50,6 +79,13 @@ export const LLMAssistant: React.FC = () => {
       {isOpen && (
         <div className="assistant-panel">
           <h4>AI Assistant</h4>
+          
+          {error && (
+            <div className="error-message">
+              <span>{error.message || 'Error getting assistance'}</span>
+            </div>
+          )}
+
           <div className="suggestions">
             <h5>Suggestions:</h5>
             <ul>
@@ -68,8 +104,11 @@ export const LLMAssistant: React.FC = () => {
             placeholder="Ask for help with world building..."
             rows={3}
           />
-          <button onClick={handleQuery} disabled={!query.trim()}>
-            Ask AI
+          <button 
+            onClick={handleQuery} 
+            disabled={!query.trim() || isLoading}
+          >
+            {isLoading ? 'Thinking...' : 'Ask AI'}
           </button>
           {response && (
             <div className="response">
@@ -82,3 +121,4 @@ export const LLMAssistant: React.FC = () => {
     </div>
   );
 };
+

@@ -13,7 +13,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
-from .data_models import (
+from src.end_to_end.data_models import (
     ErrorContext,
     RecoveryAction,
     RecoveryStrategy,

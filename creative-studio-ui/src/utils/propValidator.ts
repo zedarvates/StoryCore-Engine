@@ -21,7 +21,7 @@ export function validateRequired<T>(value: T | null | undefined, fieldName: stri
 /**
  * Validate that a value is a function
  */
-export function validateFunction(value: any, fieldName: string): Function {
+export function validateFunction(value: unknown, fieldName: string): Function {
   if (typeof value !== 'function') {
     const error = `Field "${fieldName}" must be a function, got ${typeof value}`;
     Logger.error(error);
@@ -33,7 +33,7 @@ export function validateFunction(value: any, fieldName: string): Function {
 /**
  * Validate that a value is a string
  */
-export function validateString(value: any, fieldName: string): string {
+export function validateString(value: unknown, fieldName: string): string {
   if (typeof value !== 'string') {
     const error = `Field "${fieldName}" must be a string, got ${typeof value}`;
     Logger.error(error);
@@ -45,7 +45,7 @@ export function validateString(value: any, fieldName: string): string {
 /**
  * Validate that a value is an array
  */
-export function validateArray<T>(value: any, fieldName: string): T[] {
+export function validateArray<T>(value: unknown, fieldName: string): T[] {
   if (!Array.isArray(value)) {
     const error = `Field "${fieldName}" must be an array, got ${typeof value}`;
     Logger.error(error);
@@ -69,7 +69,7 @@ export function validateNonEmptyArray<T>(value: T[], fieldName: string): T[] {
 /**
  * Validate that a value is a React node
  */
-export function validateReactNode(value: any, fieldName: string): any {
+export function validateReactNode(value: unknown, fieldName: string): unknown {
   if (value === null || value === undefined) {
     const error = `Field "${fieldName}" cannot be null or undefined`;
     Logger.error(error);
@@ -81,7 +81,7 @@ export function validateReactNode(value: any, fieldName: string): any {
 /**
  * Validate component props
  */
-export function validateComponentProps(props: Record<string, any>, schema: Record<string, (value: any) => void>): void {
+export function validateComponentProps(props: Record<string, unknown>, schema: Record<string, (value: unknown) => void>): void {
   Object.entries(schema).forEach(([fieldName, validator]) => {
     try {
       validator(props[fieldName]);
@@ -95,8 +95,8 @@ export function validateComponentProps(props: Record<string, any>, schema: Recor
 /**
  * Create a prop validator for a component
  */
-export function createPropValidator(schema: Record<string, (value: any) => void>) {
-  return (props: Record<string, any>) => {
+export function createPropValidator(schema: Record<string, (value: unknown) => void>) {
+  return (props: Record<string, unknown>) => {
     validateComponentProps(props, schema);
   };
 }
@@ -117,3 +117,6 @@ export function createPropValidator(schema: Record<string, (value: any) => void>
  *   // ... rest of component
  * }
  */
+
+
+

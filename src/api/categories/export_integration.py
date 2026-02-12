@@ -9,6 +9,7 @@ import logging
 import time
 import json
 import uuid
+import threading
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 from datetime import datetime
@@ -17,6 +18,9 @@ from ..base_handler import BaseAPIHandler
 from ..models import APIResponse, RequestContext, ErrorCodes
 from ..config import APIConfig
 from ..router import APIRouter
+from ..clients.comfy_client import ComfyUIClient
+from ..services.asset_vault import AssetVault
+from ...video_processing_engine import VideoProcessingEngine
 
 from .export_integration_models import (
     ExportPackageRequest,
@@ -75,10 +79,16 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
         
         # Initialize workflow tracking
         self.workflows: Dict[str, Dict[str, Any]] = {}
+        self.generation_tasks: Dict[str, Dict[str, Any]] = {}
         
         # Try to initialize exporter if available
         self.exporter = None
         self._initialize_exporter()
+
+        # Initialize Engines
+        self.comfy_client = ComfyUIClient()
+        self.video_engine = VideoProcessingEngine()
+        self.asset_vault = AssetVault(projects_root="./projects")
         
         # Register all endpoints
         self.register_endpoints()
@@ -141,6 +151,23 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
             handler=self.comfyui_workflow,
             description="Execute ComfyUI workflow",
             async_capable=True,
+        )
+        
+        self.router.register_endpoint(
+            path="storycore.integration.comfyui.generate_video",
+            method="POST",
+            handler=self.comfyui_generate_video,
+            description="Generate video from reference image via ComfyUI",
+            async_capable=True,
+        )
+        
+        # ComfyUI generation status endpoint
+        self.router.register_endpoint(
+            path="storycore.integration.comfyui.get_status",
+            method="GET",
+            handler=self.comfyui_get_status,
+            description="Get the status of a video generation task",
+            async_capable=False,
         )
         
         # Webhook registration endpoint
@@ -238,6 +265,40 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
         }
         
         return metadata
+
+    def _gather_project_videos(self, project_path: str) -> List[Dict[str, Any]]:
+        """
+        Gather video assets for a project from the vault index.
+        Returns a list of dicts: {"path": str, "in_point": float, "out_point": float}
+        """
+        project_dir = Path(project_path)
+        index_path = project_dir / "project_assets.json"
+        
+        if not index_path.exists():
+            return []
+            
+        try:
+            with open(index_path, 'r') as f:
+                assets = json.load(f)
+                
+            video_configs = []
+            for asset in assets:
+                if asset.get("type") == "generated_video":
+                    rel_path = asset.get("path")
+                    abs_path = project_dir / rel_path
+                    if abs_path.exists():
+                        # For now, we return full duration. 
+                        # In the future, this method could be smarter if assets had default trimmings.
+                        video_configs.append({
+                            "path": str(abs_path),
+                            "in_point": asset.get("in_point"),
+                            "out_point": asset.get("out_point")
+                        })
+        
+            return video_configs
+        except Exception as e:
+            logger.error(f"Failed to gather project videos: {e}")
+            return []
 
     # Export endpoints
     
@@ -411,7 +472,49 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
                     source_format = "unknown"
             
             # Perform format conversion
-            output_path, output_size = self._mock_format_conversion(project_path, target_format)
+        if target_format == "mp4":
+            # Check if explicit shots/clips are provided (with trimming)
+            shots_param = params.get("shots")
+            if shots_param and isinstance(shots_param, list):
+                video_configs = []
+                for shot in shots_param:
+                    path = shot.get("path")
+                    if path and not os.path.isabs(path):
+                        path = str(Path(project_path) / path)
+                    
+                    video_configs.append({
+                        "path": path,
+                        "in_point": shot.get("in_point"),
+                        "out_point": shot.get("out_point")
+                    })
+            else:
+                # 1. Gather videos from vault
+                video_configs = self._gather_project_videos(project_path)
+            
+            if not video_configs:
+                return self.create_error_response(
+                    error_code=ErrorCodes.NOT_FOUND,
+                    message="No video assets found in project to assemble",
+                    context=context
+                )
+            
+            output_dir = project_dir / "exports"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            output_path = str(output_dir / f"export_{int(time.time())}.mp4")
+            
+            # 2. Assemble using FFmpeg
+            success = self.video_engine.assemble(video_configs, output_path)
+                
+                if not success:
+                    return self.create_error_response(
+                        error_code=ErrorCodes.INTERNAL_ERROR,
+                        message="FFmpeg assembly failed",
+                        context=context
+                    )
+                
+                output_size = Path(output_path).stat().st_size
+            else:
+                output_path, output_size = self._mock_format_conversion(project_path, target_format)
             
             # Generate quality metrics based on format
             quality_metrics = {}
@@ -579,7 +682,7 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
         try:
             # Extract parameters
             host = params.get("host", "localhost")
-            port = params.get("port", 8188)
+            port = params.get("port", 8000)
             timeout_seconds = params.get("timeout_seconds", 30)
             verify_ssl = params.get("verify_ssl", True)
             metadata = params.get("metadata", {})
@@ -605,25 +708,28 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
             
             start_time = time.time()
             
-            # Attempt connection (mock implementation)
+            # Attempt connection to ComfyUI
             try:
-                # In production, this would make an actual HTTP request to ComfyUI
-                # For now, we simulate a connection attempt
-                connected = True
-                server_version = "1.0.0"
-                available_models = [
-                    "sd_xl_base_1.0.safetensors",
-                    "sd_xl_refiner_1.0.safetensors",
-                    "dreamshaper_8.safetensors",
-                ]
-                error_message = None
+                self.comfy_client.server_address = f"{host}:{port}"
+                connected = self.comfy_client.connect()
+                
+                if connected:
+                    # In a real scenario, we could query available models from /object_info
+                    server_version = "Real-Time (Connected)"
+                    available_models = ["sdxl_lightning", "svd_xt", "animatediff_v3"]
+                    error_message = None
+                else:
+                    server_version = None
+                    available_models = []
+                    error_message = "Connection refused by ComfyUI server"
                 
                 # Update connection state
                 self.comfyui_connected = connected
                 self.comfyui_host = host
                 self.comfyui_port = port
                 
-                logger.info(f"Connected to ComfyUI at {host}:{port}")
+                if connected:
+                    logger.info(f"Connected to ComfyUI at {host}:{port}")
                 
             except Exception as e:
                 connected = False
@@ -762,8 +868,213 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
         except Exception as e:
             return self.handle_exception(e, context)
 
-    # Webhook endpoints
+    def comfyui_generate_video(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
+        """
+        Generate video from reference image via ComfyUI.
+        
+        Endpoint: storycore.integration.comfyui.generate_video
+        """
+        self.log_request("storycore.integration.comfyui.generate_video", params, context)
+        
+        try:
+            # Validate required parameters
+            error_response = self.validate_required_params(
+                params, ["shot_id", "reference_image"], context
+            )
+            if error_response:
+                return error_response
+            
+            # Extract parameters
+            shot_id = params["shot_id"]
+            reference_image = params["reference_image"]
+            parameters = params.get("parameters", {})
+            metadata = params.get("metadata", {})
+            
+            # Check ComfyUI connection
+            if not self.comfyui_connected:
+                # Try to connect if not already
+                if not self.comfy_client.connect():
+                    return self.create_error_response(
+                        error_code=ErrorCodes.DEPENDENCY_ERROR,
+                        message="ComfyUI server unreachable. Please start ComfyUI at 127.0.0.1:8000",
+                        context=context,
+                        remediation="Launch ComfyUI and verify the connection in settings."
+                    )
+                self.comfyui_connected = True
+
+            # 1. Upload reference image
+            remote_filename = self.comfy_client.upload_image(reference_image, f"ref_{shot_id}.png")
+            if not remote_filename:
+                return self.create_error_response(
+                    error_code=ErrorCodes.INTERNAL_ERROR,
+                    message="Failed to upload reference image to ComfyUI",
+                    context=context
+                )
+
+            # 2. Build workflow (Mocking a basic img2video workflow structure)
+            # In production, we'd load this from a JSON file
+            workflow = {
+                "3": { "class_type": "KSampler", "inputs": { "seed": 42, "steps": parameters.get("steps", 20), "cfg": 7, "sampler_name": "euler", "scheduler": "normal", "denoise": 1, "model": ["4", 0], "positive": ["6", 0], "negative": ["7", 0], "latent_image": ["5", 0] } },
+                "4": { "class_type": "CheckpointLoaderSimple", "inputs": { "ckpt_name": "svd_xt.safetensors" } },
+                "5": { "class_type": "LoadImage", "inputs": { "image": remote_filename } },
+                "6": { "class_type": "CLIPTextEncode", "inputs": { "text": metadata.get("prompt", "cinematic shot"), "clip": ["4", 1] } },
+                "7": { "class_type": "CLIPTextEncode", "inputs": { "text": "blur, low quality", "clip": ["4", 1] } },
+                "8": { "class_type": "SaveVideo", "inputs": { "video": ["3", 0], "filename_prefix": f"gen_{shot_id}" } }
+            }
+
+            # 3. Queue prompt
+            prompt_id = self.comfy_client.queue_prompt(workflow)
+            if not prompt_id:
+                 return self.create_error_response(
+                    error_code=ErrorCodes.INTERNAL_ERROR,
+                    message="Failed to queue generation job in ComfyUI",
+                    context=context
+                )
+            
+            logger.info(f"Submitting video generation for shot {shot_id} (Prompt ID: {prompt_id})")
+            
+            # Store initial task state
+            self.generation_tasks[prompt_id] = {
+                "shot_id": shot_id,
+                "status": "processing",
+                "progress": 0.0,
+                "created_at": datetime.now().isoformat(),
+                "result_path": None
+            }
+            
+            # 4. Start background polling
+            thread = threading.Thread(
+                target=self._poll_comfy_result,
+                args=(prompt_id, params.get("project_id", "default"), shot_id)
+            )
+            thread.daemon = True
+            thread.start()
+            
+            response_data = {
+                "task_id": prompt_id,
+                "status": "processing",
+                "message": f"Generation started for shot {shot_id}. Result will be stored in vault.",
+                "metadata": {**metadata, "remote_image": remote_filename},
+            }
+            
+            response = self.create_success_response(response_data, context)
+            self.log_response("storycore.integration.comfyui.generate_video", response, context)
+            return response
+
+    def comfyui_get_status(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
+        """Get the status of a video generation task."""
+        self.log_request("storycore.integration.comfyui.get_status", params, context)
+        
+        try:
+            task_id = params.get("task_id")
+            if not task_id:
+                return self.create_error_response(
+                    error_code=ErrorCodes.VALIDATION_ERROR,
+                    message="Missing task_id parameter",
+                    context=context
+                )
+            
+            task = self.generation_tasks.get(task_id)
+            if not task:
+                return self.create_error_response(
+                    error_code=ErrorCodes.NOT_FOUND,
+                    message=f"Task not found: {task_id}",
+                    context=context
+                )
+            
+            response = self.create_success_response(task, context)
+            return response
+        except Exception as e:
+            return self.handle_exception(e, context)
+
+    def _poll_comfy_result(self, prompt_id: str, project_id: str, shot_id: str):
+        """Background thread to wait for ComfyUI and move result to vault."""
+        try:
+            logger.info(f"Background polling started for prompt {prompt_id}")
+            history = self.comfy_client.wait_for_completion(prompt_id)
+            
+            if history:
+                outputs = history.get("outputs", {})
+                for node_id, output in outputs.items():
+                    if "gifs" in output or "images" in output:
+                        # Find the first output file (could be a list)
+                        media_list = output.get("gifs") or output.get("images")
+                        if media_list:
+                            file_info = media_list[0]
+                            filename = file_info.get("filename")
+                            
+                            # Download from ComfyUI
+                            media_bytes = self.comfy_client.get_image(filename)
+                            
+                            # Save to a temporary file first
+                            import tempfile
+                            with tempfile.NamedTemporaryFile(suffix=Path(filename).suffix, delete=False) as tmp:
+                                tmp.write(media_bytes)
+                                tmp_path = tmp.name
+                            
+                            # Move to vault
+                            vault_rel_path = self.asset_vault.store_asset(
+                                project_id=project_id,
+                                source_path=tmp_path,
+                                asset_name=f"ai_shot_{shot_id}_{filename}",
+                                asset_type="generated_video"
+                            )
+                            
+                            if vault_rel_path:
+                                logger.info(f"Successfully moved ComfyUI result to vault: {vault_rel_path}")
+                                # Update task status
+                                if prompt_id in self.generation_tasks:
+                                    self.generation_tasks[prompt_id].update({
+                                        "status": "completed",
+                                        "progress": 1.0,
+                                        "result_path": vault_rel_path
+                                    })
+            else:
+                logger.error(f"ComfyUI generation failed or timed out for {prompt_id}")
+                if prompt_id in self.generation_tasks:
+                    self.generation_tasks[prompt_id].update({
+                        "status": "failed",
+                        "error": "ComfyUI generation failed or timed out"
+                    })
+        except Exception as e:
+            logger.exception(f"Error in comfy background poll: {str(e)}")
+            if prompt_id in self.generation_tasks:
+                self.generation_tasks[prompt_id].update({
+                    "status": "failed",
+                    "error": str(e)
+                })
+            
+        except Exception as e:
+            return self.handle_exception(e, context)
+
+    # Vault operations
     
+    def vault_list_assets(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
+        """
+        List assets in the project vault.
+        
+        Endpoint: storycore.vault.list_assets
+        """
+        self.log_request("storycore.vault.list_assets", params, context)
+        
+        try:
+            error_response = self.validate_required_params(params, ["project_path"], context)
+            if error_response:
+                return error_response
+                
+            project_path = params["project_path"]
+            project_dir = Path(project_path)
+            index_path = project_dir / "project_assets.json"
+            
+            assets = []
+            if index_path.exists():
+                with open(index_path, 'r') as f:
+                    assets = json.load(f)
+            
+            return self.create_success_response({"assets": assets}, context)
+        except Exception as e:
+            return self.handle_exception(e, context)
+
     def webhook_register(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
         """
         Register webhook for events.

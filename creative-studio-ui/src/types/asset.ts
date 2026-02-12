@@ -18,13 +18,13 @@ export interface AssetMetadata {
   license?: string;
   tags?: string[]; // Array of tags for categorization and search
   category?: string;
-  characterMetadata?: Record<string, any>;
-  environmentMetadata?: Record<string, any>;
-  styleMetadata?: Record<string, any>;
-  cameraMetadata?: Record<string, any>;
-  lightingMetadata?: Record<string, any>;
-  templateMetadata?: Record<string, any>;
-  [key: string]: any;
+  characterMetadata?: Record<string, unknown>;
+  environmentMetadata?: Record<string, unknown>;
+  styleMetadata?: Record<string, unknown>;
+  cameraMetadata?: Record<string, unknown>;
+  lightingMetadata?: Record<string, unknown>;
+  templateMetadata?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 export interface ValidationResult {
@@ -64,3 +64,5 @@ export const ASSET_VALIDATION_RULES: Record<AssetType, AssetValidationRules> = {
     minDuration: 0.1, // 0.1 seconds
   },
 };
+
+

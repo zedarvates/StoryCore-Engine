@@ -50,7 +50,7 @@ export function EffectPanel({
     });
   }, []);
 
-  const handleParameterChange = useCallback((effectId: string, param: string, value: any) => {
+  const handleParameterChange = useCallback((effectId: string, param: string, value: unknown) => {
     const effect = effects.find(e => e.id === effectId);
     if (!effect) return;
 

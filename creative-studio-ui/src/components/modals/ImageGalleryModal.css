@@ -1,0 +1,361 @@
+/**
+ * ImageGalleryModal - Styles pour corriger les problèmes de lisibilité
+ * 
+ * Améliorations:
+ * - Meilleur contraste pour les textes
+ * - Couleurs adaptées au thème sombre/clair
+ * - Accessibilité améliorée
+ */
+
+/* Variables CSS personnalisées pour la galerie */
+:root {
+  --gallery-text-primary: #1f2937;
+  --gallery-text-secondary: #4b5563;
+  --gallery-text-muted: #6b7280;
+  --gallery-bg-card: #ffffff;
+  --gallery-bg-hover: #f9fafb;
+  --gallery-border: #e5e7eb;
+  --gallery-accent: #3b82f6;
+}
+
+/* Thème sombre */
+.dark {
+  --gallery-text-primary: #f3f4f6;
+  --gallery-text-secondary: #d1d5db;
+  --gallery-text-muted: #9ca3af;
+  --gallery-bg-card: #1f2937;
+  --gallery-bg-hover: #374151;
+  --gallery-border: #374151;
+}
+
+/* Dialog principal - arrière-plan et contraste */
+.image-gallery-dialog .dialog-content {
+  background: var(--gallery-bg-card);
+  color: var(--gallery-text-primary);
+}
+
+/* Header du dialog */
+.image-gallery-dialog .dialog-header {
+  background: var(--gallery-bg-card);
+  border-bottom: 1px solid var(--gallery-border);
+}
+
+.image-gallery-dialog .dialog-title {
+  color: var(--gallery-text-primary) !important;
+  font-weight: 600;
+}
+
+/* Stats bar - fond et texte */
+.image-gallery-dialog .stats-bar {
+  background: var(--gallery-bg-hover);
+  border-bottom: 1px solid var(--gallery-border);
+}
+
+.image-gallery-dialog .stats-bar .stat-text {
+  color: var(--gallery-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Toolbar - fond et éléments */
+.image-gallery-dialog .toolbar {
+  background: var(--gallery-bg-card);
+  border-bottom: 1px solid var(--gallery-border);
+}
+
+/* Zone de recherche et inputs */
+.image-gallery-dialog input[type="text"],
+.image-gallery-dialog input[type="search"],
+.image-gallery-dialog select {
+  background: var(--gallery-bg-card);
+  border: 1px solid var(--gallery-border);
+  color: var(--gallery-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.image-gallery-dialog input::placeholder {
+  color: var(--gallery-text-muted);
+}
+
+.image-gallery-dialog input:focus,
+.image-gallery-dialog select:focus {
+  outline: none;
+  border-color: var(--gallery-accent);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Cartes d'images */
+.image-gallery-dialog .image-card {
+  background: var(--gallery-bg-card);
+  border: 1px solid var(--gallery-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.image-gallery-dialog .image-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Overlay sur les images */
+.image-gallery-dialog .image-overlay {
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+/* Texte des informations de l'image */
+.image-gallery-dialog .image-info-title {
+  color: var(--gallery-text-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.image-gallery-dialog .image-info-meta {
+  color: var(--gallery-text-secondary);
+  font-size: 0.75rem;
+}
+
+.image-gallery-dialog .image-info-context {
+  color: var(--gallery-text-secondary);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Badges et tags */
+.image-gallery-dialog .badge {
+  background: var(--gallery-bg-hover);
+  color: var(--gallery-text-secondary);
+  border: 1px solid var(--gallery-border);
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+/* Section détails de l'image */
+.image-gallery-dialog .details-section {
+  background: var(--gallery-bg-card);
+}
+
+.image-gallery-dialog .details-section-title {
+  color: var(--gallery-text-primary);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.image-gallery-dialog .details-label {
+  color: var(--gallery-text-secondary);
+  font-size: 0.875rem;
+}
+
+.image-gallery-dialog .details-value {
+  color: var(--gallery-text-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Prompt boxes */
+.image-gallery-dialog .prompt-box {
+  background: var(--gallery-bg-hover);
+  border: 1px solid var(--gallery-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: var(--gallery-text-primary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.image-gallery-dialog .prompt-box-revised {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--gallery-text-primary);
+  font-size: 0.8125rem;
+}
+
+/* Évaluation par étoiles */
+.image-gallery-dialog .star-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.image-gallery-dialog .star-rating .star {
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.image-gallery-dialog .star-rating .star:hover {
+  transform: scale(1.1);
+}
+
+.image-gallery-dialog .star-rating .star.filled {
+  color: #fbbf24;
+}
+
+.image-gallery-dialog .star-rating .star.empty {
+  color: #d1d5db;
+}
+
+/* Zone de notes */
+.image-gallery-dialog .notes-area {
+  background: var(--gallery-bg-card);
+  border: 1px solid var(--gallery-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: var(--gallery-text-primary);
+  font-size: 0.875rem;
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.image-gallery-dialog .notes-area::placeholder {
+  color: var(--gallery-text-muted);
+}
+
+/* Collections */
+.image-gallery-dialog .collection-select {
+  background: var(--gallery-bg-card);
+  border: 1px solid var(--gallery-border);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--gallery-text-primary);
+  font-size: 0.875rem;
+}
+
+/* Boutons */
+.image-gallery-dialog .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.image-gallery-dialog .btn-primary {
+  background: var(--gallery-accent);
+  color: white;
+}
+
+.image-gallery-dialog .btn-primary:hover {
+  background: #2563eb;
+}
+
+.image-gallery-dialog .btn-secondary {
+  background: var(--gallery-bg-hover);
+  color: var(--gallery-text-primary);
+  border: 1px solid var(--gallery-border);
+}
+
+.image-gallery-dialog .btn-secondary:hover {
+  background: var(--gallery-border);
+}
+
+.image-gallery-dialog .btn-outline {
+  background: transparent;
+  color: var(--gallery-text-secondary);
+  border: 1px solid var(--gallery-border);
+}
+
+.image-gallery-dialog .btn-outline:hover {
+  background: var(--gallery-bg-hover);
+}
+
+/* État vide (no images) */
+.image-gallery-dialog .empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.image-gallery-dialog .empty-state-icon {
+  color: var(--gallery-text-muted);
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+}
+
+.image-gallery-dialog .empty-state-title {
+  color: var(--gallery-text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.image-gallery-dialog .empty-state-text {
+  color: var(--gallery-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Messages de notification */
+.image-gallery-dialog .notification {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  background: var(--gallery-bg-card);
+  border: 1px solid var(--gallery-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: var(--gallery-text-primary);
+  font-size: 0.875rem;
+  z-index: 1000;
+}
+
+.image-gallery-dialog .notification.success {
+  border-left: 4px solid #10b981;
+}
+
+.image-gallery-dialog .notification.error {
+  border-left: 4px solid #ef4444;
+}
+
+/* Scrollbar personnalisée */
+.image-gallery-dialog ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.image-gallery-dialog ::-webkit-scrollbar-track {
+  background: var(--gallery-bg-hover);
+  border-radius: 4px;
+}
+
+.image-gallery-dialog ::-webkit-scrollbar-thumb {
+  background: var(--gallery-border);
+  border-radius: 4px;
+}
+
+.image-gallery-dialog ::-webkit-scrollbar-thumb:hover {
+  background: var(--gallery-text-muted);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .image-gallery-dialog .toolbar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .image-gallery-dialog .toolbar .search-filters {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .image-gallery-dialog .grid-view {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}

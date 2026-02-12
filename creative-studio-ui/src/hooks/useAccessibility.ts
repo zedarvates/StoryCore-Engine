@@ -7,7 +7,7 @@
  * Requirements: 5.3, 5.4
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * Hook for managing focus trap in dialogs
@@ -337,3 +337,28 @@ export function getTimeRemainingAriaLabel(milliseconds: number): string {
 
   return `Estimated ${seconds} second${seconds !== 1 ? 's' : ''} remaining`;
 }
+
+/**
+ * Hook for detecting user's reduced motion preference
+ * Requirements: 5.3
+ */
+export function useReducedMotion(): boolean {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+    
+    const handler = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+    
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+  
+  return prefersReducedMotion;
+}
+
+// Alias for useAnnouncer for backward compatibility
+export const useAnnounce = useAnnouncer;

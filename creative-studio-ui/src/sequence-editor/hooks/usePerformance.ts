@@ -15,13 +15,13 @@ import { useEffect, useRef, useCallback, useMemo } from 'react';
 /**
  * Hook to debug why a component re-rendered
  */
-export function useWhyDidYouUpdate(name: string, props: Record<string, any>): void {
-  const previousProps = useRef<Record<string, any> | undefined>(undefined);
+export function useWhyDidYouUpdate(name: string, props: Record<string, unknown>): void {
+  const previousProps = useRef<Record<string, unknown> | undefined>(undefined);
   
   useEffect(() => {
     if (previousProps.current) {
       const allKeys = Object.keys({ ...previousProps.current, ...props });
-      const changedProps: Record<string, { from: any; to: any }> = {};
+      const changedProps: Record<string, { from: unknown; to: unknown }> = {};
       
       allKeys.forEach((key) => {
         if (previousProps.current![key] !== props[key]) {
@@ -66,7 +66,7 @@ export function useRenderCount(componentName: string): number {
 /**
  * Hook for creating optimized callbacks with dependency tracking
  */
-export function useOptimizedCallback<T extends (...args: any[]) => any>(
+export function useOptimizedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   deps: React.DependencyList
 ): T {
@@ -77,7 +77,7 @@ export function useOptimizedCallback<T extends (...args: any[]) => any>(
   }, [callback]);
   
   return useCallback(
-    ((...args: any[]) => callbackRef.current(...args)) as T,
+    ((...args: unknown[]) => callbackRef.current(...args)) as T,
     deps
   );
 }
@@ -275,3 +275,7 @@ export function useUnmount(fn: () => void): void {
 // ============================================================================
 
 import * as React from 'react';
+
+
+
+

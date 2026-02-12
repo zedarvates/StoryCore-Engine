@@ -214,7 +214,7 @@ export const LayerManager: React.FC<LayerManagerProps> = ({
 };
 
 // Helper function to create default layer data based on type
-function getDefaultLayerData(type: LayerType): any {
+function getDefaultLayerData(type: LayerType): unknown {
   switch (type) {
     case 'media':
       return {
@@ -263,3 +263,4 @@ function getDefaultLayerData(type: LayerType): any {
       return {};
   }
 }
+

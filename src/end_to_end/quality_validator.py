@@ -10,7 +10,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 import logging
 
-from .data_models import (
+from src.end_to_end.data_models import (
     QualityReport,
     Issue,
     ProjectComponents

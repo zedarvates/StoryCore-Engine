@@ -60,7 +60,7 @@ export interface WizardAutoSaveState {
   currentStep: number;
   completedSteps: number[];
   isReviewMode: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -532,4 +532,5 @@ export function WizardRecoveryDialog({
     </div>
   );
 }
+
 

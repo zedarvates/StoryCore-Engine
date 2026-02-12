@@ -88,7 +88,7 @@ export interface ColorGradingConfig {
   qualityLevel: 'preview' | 'standard' | 'high' | 'maximum';
   outputFormat: string;
   compatibilityTargets: string[];
-  artisticConstraints: Record<string, any>;
+  artisticConstraints: Record<string, unknown>;
   preserveOriginalColors: boolean;
 }
 
@@ -284,7 +284,7 @@ class AIColorGradingService extends EventEmitter {
    * Import grading settings
    */
   async importGrading(data: string, format: 'json' | 'xml' = 'json'): Promise<ColorGrading> {
-    let gradingData: any;
+    let gradingData: unknown;
 
     if (format === 'json') {
       gradingData = JSON.parse(data);
@@ -622,7 +622,7 @@ DOMAIN_MAX 1.0 1.0 1.0
 0.125000 0.000000 0.000000 0.175000 0.050000 0.050000`;
   }
 
-  private parseXML(xml: string): any {
+  private parseXML(xml: string): unknown {
     throw new Error('XML parsing not implemented');
   }
 
@@ -632,7 +632,7 @@ DOMAIN_MAX 1.0 1.0 1.0
       const saved = localStorage.getItem('ai_color_gradings');
       if (saved) {
         const gradings = JSON.parse(saved);
-        gradings.forEach((grading: any) => {
+        gradings.forEach((grading: unknown) => {
           this.gradings.set(grading.id, {
             ...grading,
             createdAt: new Date(grading.createdAt),
@@ -674,3 +674,6 @@ export type {
   MoodEnhancement, TechnicalQuality, CompatibilityReport, ColorGradingConfig,
   ColorAnalysis 
 };
+
+
+

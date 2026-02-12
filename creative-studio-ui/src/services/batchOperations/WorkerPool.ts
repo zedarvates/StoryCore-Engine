@@ -67,7 +67,7 @@ export class WorkerPool {
    * Exécute une tâche
    * Exigence: 10.1 - Traitement non-bloquant
    */
-  async execute<T>(type: string, data: any): Promise<T> {
+  async execute<T>(type: string, data: unknown): Promise<T> {
     return new Promise((resolve, reject) => {
       const task: WorkerTask = {
         id: this.generateId(),
@@ -107,7 +107,7 @@ export class WorkerPool {
   /**
    * Gère les messages des workers
    */
-  private handleWorkerMessage(worker: Worker, message: any): void {
+  private handleWorkerMessage(worker: Worker, message: unknown): void {
     const task = (worker as any).__currentTask as WorkerTask;
     
     if (task && message.id === task.id) {
@@ -248,3 +248,5 @@ export class WorkerPool {
     return `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }
+
+

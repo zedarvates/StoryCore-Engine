@@ -18,7 +18,7 @@ export interface AddonSettingsModalProps {
 }
 
 export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: AddonSettingsModalProps) {
-  const [settings, setSettings] = useState<Record<string, any>>({});
+  const [settings, setSettings] = useState<Record<string, unknown>>({});
   const [settingsDefinition, setSettingsDefinition] = useState<AddonSetting[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -38,7 +38,7 @@ export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: Addo
     setHasChanges(false);
   };
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleSettingChange = (key: string, value: unknown) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
@@ -239,3 +239,5 @@ export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: Addo
     </Dialog>
   );
 }
+
+

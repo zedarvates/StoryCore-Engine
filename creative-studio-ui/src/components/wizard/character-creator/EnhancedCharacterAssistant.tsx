@@ -4,7 +4,7 @@ import { useEnhancedLLM } from '../../../hooks/useEnhancedLLM';
 import { ModelSelector, ReasoningDisplay } from '../../llm';
 
 interface EnhancedCharacterAssistantProps {
-  worldContext?: any;
+  worldContext?: unknown;
   characterData: {
     name?: string;
     gender?: string;
@@ -14,7 +14,7 @@ interface EnhancedCharacterAssistantProps {
     backstory?: string;
     abilities?: string[];
   };
-  onSuggestion: (field: string, value: any) => void;
+  onSuggestion: (field: string, value: unknown) => void;
   suggestionType: 'name' | 'personality' | 'appearance' | 'backstory' | 'abilities';
 }
 
@@ -38,7 +38,7 @@ export const EnhancedCharacterAssistant: React.FC<EnhancedCharacterAssistantProp
 
   const [showResponse, setShowResponse] = useState(false);
 
-  const getGenreString = (genre: any): string => {
+  const getGenreString = (genre: unknown): string => {
     if (!genre) return 'fantastique';
     if (typeof genre === 'string') return genre;
     if (Array.isArray(genre)) return genre.join(', ');
@@ -52,7 +52,7 @@ export const EnhancedCharacterAssistant: React.FC<EnhancedCharacterAssistantProp
     const genreString = getGenreString(worldContext?.genre);
     const worldDesc = worldContext?.description || 'monde fantastique';
     const rulesString = worldContext?.rules && Array.isArray(worldContext.rules)
-      ? worldContext.rules.map((r: any) => r.rule).join(', ')
+      ? worldContext.rules.map((r: unknown) => r.rule).join(', ')
       : 'magie et technologie';
 
     switch (suggestionType) {
@@ -213,3 +213,5 @@ Format de réponse: capacité1, capacité2, capacité3, capacité4`;
     </div>
   );
 };
+
+

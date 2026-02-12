@@ -350,7 +350,7 @@ export interface CharacterStore {
  * Event emitter interface for character events.
  */
 export interface CharacterEventEmitter {
-  emit: (eventType: string, payload: any) => void;
+  emit: (eventType: string, payload: unknown) => void;
 }
 
 /**
@@ -878,3 +878,4 @@ export function removeRelationship(
     toCharacter: updatedToCharacter,
   };
 }
+

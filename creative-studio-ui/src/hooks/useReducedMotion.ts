@@ -78,7 +78,7 @@ export function getAnimationDuration(
  * @param normalTransition - Transition config for normal motion
  * @returns Transition config adjusted for user preference
  */
-export function useAccessibleTransition(normalTransition: any): any {
+export function useAccessibleTransition(normalTransition: unknown): unknown {
   const prefersReducedMotion = useReducedMotion();
   
   if (prefersReducedMotion) {
@@ -90,3 +90,5 @@ export function useAccessibleTransition(normalTransition: any): any {
   
   return normalTransition;
 }
+
+

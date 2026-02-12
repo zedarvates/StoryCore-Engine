@@ -8,6 +8,16 @@
     "comfyUIConfig": "Configuration du Serveur ComfyUI",
     "userPreferences": "Préférences Utilisateur"
   },
+  "wizards": "Assistants",
+  "wizards.projectSetup": "Configuration du Projet",
+  "wizards.characters": "Assistant Personnages",
+  "wizards.world": "Constructeur de Monde",
+  "wizards.sequences": "Générateur d'Histoire",
+  "wizards.sequencePlan": "Plan de Séquence",
+  "wizards.shot": "Assistant de Plan",
+  "wizards.script": "Assistant de Script",
+  "wizards.audioProduction": "Production Audio",
+  "wizards.videoProduction": "Production Vidéo",
   "preferences": {
     "title": "Préférences Utilisateur",
     "language": "Langue",

@@ -6,24 +6,61 @@
  */
 
 import { EventEmitter } from 'events';
-import type { AIConfig, AIEnhancementRequest, AIEnhancementResult } from '../../src/ai_enhancement_engine';
+
+/**
+ * AI Configuration interface
+ */
+export interface AIConfig {
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+}
+
+/**
+ * AI Enhancement Request interface
+ */
+export interface AIEnhancementRequest {
+  type: string;
+  content: string;
+  options?: Record<string, unknown>;
+}
+
+/**
+ * AI Enhancement Result interface
+ */
+export interface AIEnhancementResult {
+  success: boolean;
+  enhancedContent?: string;
+  suggestions?: string[];
+  error?: string;
+}
 
 // Wizard data types
-export interface WizardSession {
-  id: string;
-  type: WizardType;
-  config: WizardConfig;
-  state: WizardState;
-  createdAt: Date;
-  updatedAt: Date;
+
+/**
+ * Wizard constraint type
+ */
+export interface WizardConstraint {
+  key: string;
+  value: string | number | boolean;
+  description?: string;
+}
+
+/**
+ * Wizard preference type
+ */
+export interface WizardPreference {
+  key: string;
+  value: string | number | boolean;
+  priority: 'low' | 'medium' | 'high';
 }
 
 export interface WizardConfig {
   taskType: 'character' | 'script' | 'shot' | 'color' | 'audio' | 'general';
   complexity: 'simple' | 'moderate' | 'complex';
   qualityLevel: 'preview' | 'standard' | 'high' | 'maximum';
-  constraints: Record<string, any>;
-  preferences: Record<string, any>;
+  constraints: WizardConstraint[];
+  preferences: WizardPreference[];
 }
 
 export interface WizardState {
@@ -35,14 +72,113 @@ export interface WizardState {
   errors: string[];
 }
 
+/**
+ * Wizard result data types
+ */
+export interface CharacterWizardResultData {
+  characterId: string;
+  name: string;
+  traits: string[];
+  backstory: string;
+}
+
+export interface ScriptWizardResultData {
+  scriptId: string;
+  title: string;
+  scenes: number;
+  dialogueCount: number;
+}
+
+export interface ShotWizardResultData {
+  shotId: string;
+  composition: string;
+  duration: number;
+  camera: string;
+}
+
+export interface ColorWizardResultData {
+  palette: string[];
+  mood: string;
+  contrast: number;
+}
+
+export interface AudioWizardResultData {
+  trackId: string;
+  duration: number;
+  format: string;
+}
+
+export interface GeneralWizardResultData {
+  taskId: string;
+  output: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+}
+
+export type WizardResultData = 
+  | CharacterWizardResultData
+  | ScriptWizardResultData
+  | ShotWizardResultData
+  | ColorWizardResultData
+  | AudioWizardResultData
+  | GeneralWizardResultData;
+
 export interface WizardResult {
   step: number;
   type: 'analysis' | 'generation' | 'enhancement' | 'recommendation';
-  data: any;
+  data: WizardResultData;
   timestamp: Date;
 }
 
 export type WizardType = 'character' | 'script' | 'shot' | 'color' | 'audio' | 'workflow' | 'optimization';
+
+/**
+ * Wizard task parameter types
+ */
+export interface CharacterTaskParameters {
+  characterName?: string;
+  archetype?: string;
+  traits?: string[];
+  background?: string;
+}
+
+export interface ScriptTaskParameters {
+  title?: string;
+  genre?: string[];
+  length?: number;
+  style?: string;
+}
+
+export interface ShotTaskParameters {
+  shotType?: string;
+  duration?: number;
+  camera?: string;
+  lighting?: string;
+}
+
+export interface ColorTaskParameters {
+  mood?: string;
+  style?: string;
+  reference?: string;
+}
+
+export interface AudioTaskParameters {
+  trackType?: string;
+  duration?: number;
+  style?: string;
+}
+
+export interface GeneralTaskParameters {
+  taskName?: string;
+  options?: Record<string, unknown>;
+}
+
+export type WizardTaskParameters = 
+  | CharacterTaskParameters
+  | ScriptTaskParameters
+  | ShotTaskParameters
+  | ColorTaskParameters
+  | AudioTaskParameters
+  | GeneralTaskParameters;
 
 export interface WizardTask {
   id: string;
@@ -51,7 +187,7 @@ export interface WizardTask {
   estimatedTime: number;
   complexity: number;
   dependencies: string[];
-  parameters: Record<string, any>;
+  parameters: WizardTaskParameters;
 }
 
 export interface WizardProgress {
@@ -62,6 +198,57 @@ export interface WizardProgress {
   eta: number;
   completedTasks: string[];
   remainingTasks: string[];
+}
+
+/**
+ * XML node for import/export
+ */
+export interface XMLNode {
+  tag: string;
+  attributes: Record<string, string>;
+  children: XMLNode[];
+  text?: string;
+}
+
+/**
+ * Saved session data
+ */
+export interface SavedSessionData {
+  id: string;
+  type: WizardType;
+  config: WizardConfig;
+  state: WizardState;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Analysis data for recommendations
+ */
+export interface AnalysisData {
+  qualityScore?: number;
+  analysis?: {
+    recommendations?: string[];
+  };
+}
+
+/**
+ * Enhancement data for recommendations
+ */
+export interface EnhancementData {
+  enhancements?: boolean;
+}
+
+/**
+ * Wizard session interface
+ */
+export interface WizardSession {
+  id: string;
+  type: WizardType;
+  config: WizardConfig;
+  state: WizardState;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Service events
@@ -149,10 +336,10 @@ class AIWizardService extends EventEmitter {
       this.emit('wizard:completed', session);
     } catch (error) {
       session.state.status = 'failed';
-      session.state.errors.push(error.message);
+      session.state.errors.push(error instanceof Error ? error.message : 'Unknown error');
       session.updatedAt = new Date();
       await this.saveSessions();
-      this.emit('wizard:failed', sessionId, error.message);
+      this.emit('wizard:failed', sessionId, error instanceof Error ? error.message : 'Unknown error');
     }
 
     return session;
@@ -199,18 +386,14 @@ class AIWizardService extends EventEmitter {
    */
   getWizardProgress(sessionId: string): WizardProgress | null {
     const session = this.sessions.get(sessionId);
-    if (!session) {
-      return null;
-    }
-
-    const completedTasks = session.state.results.length;
-    const totalTasks = session.state.totalSteps;
-    const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    if (!session) return null;
 
     return {
-      sessionId,
-      currentTask: session.state.results[completedTasks - 1]?.type || 'Initializing',
-      progress,
+      sessionId: session.id,
+      currentTask: session.state.results.length > 0 
+        ? session.state.results[session.state.results.length - 1].type 
+        : 'initializing',
+      progress: session.state.progress,
       status: session.state.status,
       eta: this.calculateETA(session),
       completedTasks: session.state.results.map(r => r.type),
@@ -219,32 +402,9 @@ class AIWizardService extends EventEmitter {
   }
 
   /**
-   * Get wizard recommendations
-   */
-  getWizardRecommendations(sessionId: string): string[] {
-    const session = this.sessions.get(sessionId);
-    if (!session) {
-      throw new Error('Session not found');
-    }
-
-    const recommendations: string[] = [];
-    
-    // Generate recommendations based on session results
-    session.state.results.forEach(result => {
-      if (result.type === 'analysis') {
-        recommendations.push(...this.generateAnalysisRecommendations(result.data));
-      } else if (result.type === 'enhancement') {
-        recommendations.push(...this.generateEnhancementRecommendations(result.data));
-      }
-    });
-
-    return recommendations;
-  }
-
-  /**
    * Export wizard session
    */
-  exportWizardSession(sessionId: string, format: 'json' | 'xml' = 'json'): string {
+  async exportWizardSession(sessionId: string, format: 'json' | 'xml' = 'json'): Promise<string> {
     const session = this.sessions.get(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -252,10 +412,8 @@ class AIWizardService extends EventEmitter {
 
     if (format === 'json') {
       return JSON.stringify(session, null, 2);
-    } else if (format === 'xml') {
-      return this.convertToXML(session);
     } else {
-      throw new Error('Unsupported export format');
+      return this.convertToXML(session);
     }
   }
 
@@ -263,12 +421,12 @@ class AIWizardService extends EventEmitter {
    * Import wizard session
    */
   async importWizardSession(data: string, format: 'json' | 'xml' = 'json'): Promise<WizardSession> {
-    let sessionData: any;
+    let sessionData: SavedSessionData;
 
     if (format === 'json') {
-      sessionData = JSON.parse(data);
+      sessionData = JSON.parse(data) as SavedSessionData;
     } else {
-      sessionData = this.parseXML(data);
+      sessionData = this.parseImportedXML(data);
     }
 
     const session: WizardSession = {
@@ -337,7 +495,7 @@ class AIWizardService extends EventEmitter {
     // Simulate task execution with progress updates
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    let resultData: any;
+    let resultData: WizardResultData;
 
     switch (task.type) {
       case 'character':
@@ -359,6 +517,9 @@ class AIWizardService extends EventEmitter {
         resultData = await this.executeGeneralWizardTask(task);
     }
 
+    // Generate recommendations based on result
+    const recommendations = this.generateAnalysisRecommendations(resultData as AnalysisData);
+
     return {
       step: session.state.currentStep,
       type: 'generation',
@@ -367,300 +528,155 @@ class AIWizardService extends EventEmitter {
     };
   }
 
-  private async executeCharacterWizardTask(task: WizardTask): Promise<any> {
+  private async executeCharacterWizardTask(task: WizardTask): Promise<CharacterWizardResultData> {
     // Simulate character generation
     return {
-      characters: [
-        {
-          id: `char_${Date.now()}`,
-          name: 'Generated Character',
-          archetype: 'Hero',
-          traits: ['brave', 'loyal', 'determined'],
-          backstory: 'Generated backstory'
-        }
-      ],
-      analysis: {
-        integrationScore: 0.8,
-        developmentOpportunities: ['Add more backstory details']
-      }
+      characterId: `char_${Date.now()}`,
+      name: 'Generated Character',
+      traits: ['brave', 'curious'],
+      backstory: 'A character created by the AI wizard.'
     };
   }
 
-  private async executeScriptWizardTask(task: WizardTask): Promise<any> {
+  private async executeScriptWizardTask(task: WizardTask): Promise<ScriptWizardResultData> {
     // Simulate script analysis
     return {
-      analysis: {
-        characters: [],
-        scenes: [],
-        dialogues: [],
-        storyStructure: {},
-        metrics: {},
-        recommendations: []
-      },
-      qualityScore: 0.75
+      scriptId: `script_${Date.now()}`,
+      title: 'Generated Script',
+      scenes: 5,
+      dialogueCount: 50
     };
   }
 
-  private async executeShotWizardTask(task: WizardTask): Promise<any> {
+  private async executeShotWizardTask(task: WizardTask): Promise<ShotWizardResultData> {
     // Simulate shot composition
     return {
-      compositions: [
-        {
-          shotType: 'Close Up',
-          cameraMovement: 'Static',
-          compositionRules: ['Rule of Thirds'],
-          settings: { focalLength: 50, aperture: 2.8 }
-        }
-      ],
-      alternatives: []
+      shotId: `shot_${Date.now()}`,
+      composition: 'Rule of Thirds',
+      duration: 5,
+      camera: 'Wide Angle'
     };
   }
 
-  private async executeColorWizardTask(task: WizardTask): Promise<any> {
+  private async executeColorWizardTask(task: WizardTask): Promise<ColorWizardResultData> {
     // Simulate color grading
     return {
-      presets: [
-        {
-          name: 'Dramatic',
-          mood: 'Dramatic',
-          settings: { contrast: 0.3, saturation: 0.2 }
-        }
-      ],
-      analysis: {
-        colorBalance: { saturation: 0.7, brightness: 0.6 },
-        moodAlignment: 0.8
-      }
+      palette: ['#FF5733', '#33FF57', '#3357FF'],
+      mood: 'Vibrant',
+      contrast: 0.8
     };
   }
 
-  private async executeAudioWizardTask(task: WizardTask): Promise<any> {
+  private async executeAudioWizardTask(task: WizardTask): Promise<AudioWizardResultData> {
     // Simulate audio enhancement
     return {
-      enhancements: [
-        {
-          type: 'Noise Reduction',
-          intensity: 0.8,
-          parameters: { threshold: -40 }
-        }
-      ],
-      mixingProfile: {
-        masterVolume: -12,
-        stereoWidth: 0.8,
-        bassBoost: 0.0
-      }
+      trackId: `audio_${Date.now()}`,
+      duration: 180,
+      format: 'mp3'
     };
   }
 
-  private async executeGeneralWizardTask(task: WizardTask): Promise<any> {
+  private async executeGeneralWizardTask(task: WizardTask): Promise<GeneralWizardResultData> {
     // Simulate general task
     return {
-      taskType: task.type,
-      parameters: task.parameters,
-      result: 'Task completed successfully',
-      recommendations: ['Consider additional optimization']
+      taskId: task.id,
+      output: {},
+      metadata: {}
     };
   }
 
-  private getWizardTasks(type: WizardType, config: WizardConfig): WizardTask[] {
+  /**
+   * Get wizard tasks based on type and configuration
+   */
+  getWizardTasks(type: WizardType, config: WizardConfig): WizardTask[] {
     const tasks: WizardTask[] = [];
 
     switch (type) {
       case 'character':
-        tasks.push(
-          {
-            id: 'char-analysis',
-            type: 'character',
-            description: 'Analyze character requirements',
-            estimatedTime: 2,
-            complexity: 1,
-            dependencies: [],
-            parameters: { config }
-          },
-          {
-            id: 'char-generation',
-            type: 'character',
-            description: 'Generate character profiles',
-            estimatedTime: 3,
-            complexity: 2,
-            dependencies: ['char-analysis'],
-            parameters: { config }
-          },
-          {
-            id: 'char-enhancement',
-            type: 'character',
-            description: 'Enhance character details',
-            estimatedTime: 2,
-            complexity: 2,
-            dependencies: ['char-generation'],
-            parameters: { config }
-          }
-        );
+        tasks.push({
+          id: `${type}_analysis_${Date.now()}`,
+          type: 'character',
+          description: 'Analyze character requirements',
+          estimatedTime: 2,
+          complexity: 3,
+          dependencies: [],
+          parameters: {}
+        });
+        tasks.push({
+          id: `${type}_generation_${Date.now()}`,
+          type: 'character',
+          description: 'Generate character details',
+          estimatedTime: 5,
+          complexity: 5,
+          dependencies: [`${type}_analysis_${Date.now()}`],
+          parameters: {}
+        });
         break;
 
       case 'script':
-        tasks.push(
-          {
-            id: 'script-analysis',
-            type: 'script',
-            description: 'Analyze script structure',
-            estimatedTime: 3,
-            complexity: 2,
-            dependencies: [],
-            parameters: { config }
-          },
-          {
-            id: 'script-enhancement',
-            type: 'script',
-            description: 'Enhance script elements',
-            estimatedTime: 4,
-            complexity: 3,
-            dependencies: ['script-analysis'],
-            parameters: { config }
-          },
-          {
-            id: 'script-optimization',
-            type: 'script',
-            description: 'Optimize script flow',
-            estimatedTime: 2,
-            complexity: 2,
-            dependencies: ['script-enhancement'],
-            parameters: { config }
-          }
-        );
+        tasks.push({
+          id: `${type}_analysis_${Date.now()}`,
+          type: 'script',
+          description: 'Analyze script structure',
+          estimatedTime: 3,
+          complexity: 4,
+          dependencies: [],
+          parameters: {}
+        });
         break;
 
       case 'shot':
-        tasks.push(
-          {
-            id: 'shot-analysis',
-            type: 'shot',
-            description: 'Analyze shot requirements',
-            estimatedTime: 2,
-            complexity: 1,
-            dependencies: [],
-            parameters: { config }
-          },
-          {
-            id: 'shot-composition',
-            type: 'shot',
-            description: 'Generate shot compositions',
-            estimatedTime: 3,
-            complexity: 2,
-            dependencies: ['shot-analysis'],
-            parameters: { config }
-          },
-          {
-            id: 'shot-optimization',
-            type: 'shot',
-            description: 'Optimize shot settings',
-            estimatedTime: 2,
-            complexity: 2,
-            dependencies: ['shot-composition'],
-            parameters: { config }
-          }
-        );
+        tasks.push({
+          id: `${type}_composition_${Date.now()}`,
+          type: 'shot',
+          description: 'Plan shot composition',
+          estimatedTime: 2,
+          complexity: 3,
+          dependencies: [],
+          parameters: {}
+        });
         break;
 
       case 'color':
-        tasks.push(
-          {
-            id: 'color-analysis',
-            type: 'color',
-            description: 'Analyze color characteristics',
-            estimatedTime: 2,
-            complexity: 1,
-            dependencies: [],
-            parameters: { config }
-          },
-          {
-            id: 'color-grading',
-            type: 'color',
-            description: 'Apply color grading',
-            estimatedTime: 3,
-            complexity: 2,
-            dependencies: ['color-analysis'],
-            parameters: { config }
-          },
-          {
-            id: 'color-optimization',
-            type: 'color',
-            description: 'Optimize color balance',
-            estimatedTime: 2,
-            complexity: 2,
-            dependencies: ['color-grading'],
-            parameters: { config }
-          }
-        );
+        tasks.push({
+          id: `${type}_palette_${Date.now()}`,
+          type: 'color',
+          description: 'Generate color palette',
+          estimatedTime: 2,
+          complexity: 2,
+          dependencies: [],
+          parameters: {}
+        });
         break;
 
       case 'audio':
-        tasks.push(
-          {
-            id: 'audio-analysis',
-            type: 'audio',
-            description: 'Analyze audio characteristics',
-            estimatedTime: 2,
-            complexity: 1,
-            dependencies: [],
-            parameters: { config }
-          },
-          {
-            id: 'audio-enhancement',
-            type: 'audio',
-            description: 'Enhance audio quality',
-            estimatedTime: 3,
-            complexity: 2,
-            dependencies: ['audio-analysis'],
-            parameters: { config }
-          },
-          {
-            id: 'audio-mixing',
-            type: 'audio',
-            description: 'Mix audio tracks',
-            estimatedTime: 3,
-            complexity: 3,
-            dependencies: ['audio-enhancement'],
-            parameters: { config }
-          }
-        );
+        tasks.push({
+          id: `${type}_enhance_${Date.now()}`,
+          type: 'audio',
+          description: 'Enhance audio track',
+          estimatedTime: 3,
+          complexity: 3,
+          dependencies: [],
+          parameters: {}
+        });
         break;
 
       default:
-        tasks.push(
-          {
-            id: 'general-analysis',
-            type: 'general',
-            description: 'Analyze requirements',
-            estimatedTime: 2,
-            complexity: 1,
-            dependencies: [],
-            parameters: { config }
-          },
-          {
-            id: 'general-processing',
-            type: 'general',
-            description: 'Process data',
-            estimatedTime: 3,
-            complexity: 2,
-            dependencies: ['general-analysis'],
-            parameters: { config }
-          },
-          {
-            id: 'general-optimization',
-            type: 'general',
-            description: 'Optimize results',
-            estimatedTime: 2,
-            complexity: 2,
-            dependencies: ['general-processing'],
-            parameters: { config }
-          }
-        );
+        tasks.push({
+          id: `${type}_task_${Date.now()}`,
+          type: type,
+          description: `Execute ${type} task`,
+          estimatedTime: 2,
+          complexity: 3,
+          dependencies: [],
+          parameters: {}
+        });
     }
 
     return tasks;
   }
 
-  private generateAnalysisRecommendations(data: any): string[] {
+  private generateAnalysisRecommendations(data: AnalysisData): string[] {
     const recommendations: string[] = [];
 
     if (data.qualityScore && data.qualityScore < 0.7) {
@@ -674,7 +690,7 @@ class AIWizardService extends EventEmitter {
     return recommendations;
   }
 
-  private generateEnhancementRecommendations(data: any): string[] {
+  private generateEnhancementRecommendations(data: EnhancementData): string[] {
     const recommendations: string[] = [];
 
     if (data.enhancements) {
@@ -699,11 +715,11 @@ class AIWizardService extends EventEmitter {
   }
 
   private getRemainingTasks(session: WizardSession): string[] {
-    const completedTaskTypes = session.state.results.map(r => r.type);
+    const completedTaskIds = new Set(session.state.results.map(r => (r.data as { taskId?: string }).taskId).filter(Boolean));
     const allTasks = this.getWizardTasks(session.type, session.config);
     
     return allTasks
-      .filter(task => !completedTaskTypes.includes(task.type))
+      .filter(task => !completedTaskIds.has(task.id))
       .map(task => task.description);
   }
 
@@ -718,7 +734,9 @@ class AIWizardService extends EventEmitter {
 </wizard_session>`;
   }
 
-  private parseXML(xml: string): any {
+  private parseImportedXML(xml: string): SavedSessionData {
+    // Simple XML parser for wizard session import
+    // In production, use a proper XML parser library
     throw new Error('XML parsing not implemented');
   }
 
@@ -727,8 +745,8 @@ class AIWizardService extends EventEmitter {
     try {
       const saved = localStorage.getItem('ai_wizard_sessions');
       if (saved) {
-        const sessions = JSON.parse(saved);
-        sessions.forEach((session: any) => {
+        const sessions = JSON.parse(saved) as SavedSessionData[];
+        sessions.forEach((session) => {
           this.sessions.set(session.id, {
             ...session,
             createdAt: new Date(session.createdAt),
@@ -753,17 +771,7 @@ class AIWizardService extends EventEmitter {
 
 // Export singleton instance
 export const aiWizardService = new AIWizardService({
-  circuitBreakerConfig: {
-    failureThreshold: 5,
-    recoveryTimeout: 30000,
-    resetTimeout: 60000
-  },
-  maxRetries: 3,
-  timeout: 30000
+  apiKey: '',
+  baseUrl: 'http://localhost:11434',
+  model: 'gemma2:2b'
 });
-
-// Export types for React hooks
-export type { 
-  WizardSession, WizardConfig, WizardState, WizardResult, 
-  WizardTask, WizardProgress, WizardType 
-};

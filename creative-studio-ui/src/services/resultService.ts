@@ -39,7 +39,7 @@ export interface GeneratedAsset {
   format?: string; // e.g., 'png', 'mp4', 'wav', 'json'
   dimensions?: { width: number; height: number };
   duration?: number; // seconds (for video/audio)
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ResultFetchOptions {
@@ -132,7 +132,7 @@ export class ResultService {
 
     const data = await response.json();
     
-    return data.results.map((result: any) => ({
+    return data.results.map((result: unknown) => ({
       taskId: result.taskId,
       shotId: result.shotId,
       type: result.type,
@@ -297,3 +297,5 @@ export function createResultService(useMock: boolean = false): ResultService {
   }
   return new ResultService();
 }
+
+

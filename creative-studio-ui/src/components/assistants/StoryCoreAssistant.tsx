@@ -3,6 +3,7 @@
  *
  * AI-powered assistant that can analyze projects, provide advice, and automatically
  * trigger wizards including the Ghost Tracker for project insights.
+ * Enhanced with pipeline-aware generation context and re-generation commands.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -11,8 +12,11 @@ import { WizardService } from '../../services/wizard/WizardService';
 import { WIZARD_DEFINITIONS } from '../../data/wizardDefinitions';
 import { useAppStore } from '../../stores/useAppStore';
 import { useEditorStore } from '../../stores/editorStore';
+import { useGenerationStore } from '../../stores/generationStore';
 import { LandingChatBox } from '../launcher/LandingChatBox';
 import { ollamaClient } from '../../services/llm/OllamaClient';
+import { PipelineAwareLLM } from '../../services/llm/PipelineAwareLLM';
+import type { ContextualSuggestion } from '../../services/llm/PipelineAwareLLM';
 import './StoryCoreAssistant.css';
 
 interface AssistantMessage {
@@ -45,44 +49,76 @@ export function StoryCoreAssistant() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [projectAnalysis, setProjectAnalysis] = useState<ProjectAnalysis | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const [pipelineSuggestions, setPipelineSuggestions] = useState<ContextualSuggestion[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const project = useAppStore((state) => state.project);
   const projectPath = useEditorStore((state) => state.projectPath);
+  const currentPipeline = useGenerationStore((state) => state.currentPipeline);
 
-  // Initialize with welcome message
+  // Update pipeline suggestions when pipeline state changes
   useEffect(() => {
+    const suggestions = PipelineAwareLLM.getContextualSuggestions();
+    setPipelineSuggestions(suggestions);
+  }, [currentPipeline]);
+
+  // Initialize with welcome message (context-aware)
+  useEffect(() => {
+    const projectStatus = PipelineAwareLLM.getProjectCompletionStatus();
+    const ctxSuggestions = PipelineAwareLLM.getContextualSuggestions();
+
+    let welcomeContent = `👋 Salut ! Je suis ton Assistant StoryCore. Je t'aide à créer ton film de A à Z.\n\n`;
+    welcomeContent += `📊 Ton projet est à **${projectStatus.completionPercentage}%**`;
+
+    if (projectStatus.missingSteps.length > 0) {
+      welcomeContent += `\n\n📋 Prochaines étapes :`;
+      projectStatus.missingSteps.slice(0, 3).forEach(step => {
+        welcomeContent += `\n• ${step}`;
+      });
+    }
+
+    welcomeContent += `\n\nEssaie :\n• "Analyse mon projet"\n• "Régénérer l'image du shot 1"\n• "État du pipeline"\n• "Quel wizard lancer ?"`;
+
+    // Build dynamic suggestions from pipeline state + defaults
+    const dynamicSuggestions: AssistantSuggestion[] = [];
+
+    // Add pipeline-aware suggestions first
+    ctxSuggestions.slice(0, 2).forEach(cs => {
+      dynamicSuggestions.push({
+        type: cs.type === 'wizard' ? 'wizard' : 'analysis',
+        title: cs.title,
+        description: cs.description,
+        action: () => handlePipelineSuggestion(cs),
+        priority: cs.priority === 'critical' ? 'high' : cs.priority === 'high' ? 'high' : 'medium',
+      });
+    });
+
+    // Always include analyze
+    dynamicSuggestions.push({
+      type: 'analysis',
+      title: '📊 Analyser le projet',
+      description: 'Analyse complète avec état du pipeline',
+      action: () => handleQuickAction('analyze'),
+      priority: 'high'
+    });
+
+    // Ghost Tracker
+    dynamicSuggestions.push({
+      type: 'wizard',
+      title: '👻 Ghost Tracker',
+      description: 'AI-powered project advisor',
+      action: () => handleWizardLaunch('ghost-tracker-wizard'),
+      wizardId: 'ghost-tracker-wizard',
+      priority: 'medium'
+    });
+
     const welcomeMessage: AssistantMessage = {
       id: 'welcome',
       type: 'assistant',
-      content: "👋 Hello! I'm your StoryCore Assistant. I can help you analyze your project, provide advice, and automatically run wizards to improve your video storyboard.\n\nTry asking me:\n• 'Analyze my project'\n• 'What wizards should I run?'\n• 'Give me advice on storytelling'\n• 'Run Ghost Tracker'",
+      content: welcomeContent,
       timestamp: new Date(),
-      suggestions: [
-        {
-          type: 'analysis',
-          title: 'Analyze Project',
-          description: 'Get comprehensive project analysis',
-          action: () => handleQuickAction('analyze'),
-          priority: 'high'
-        },
-        {
-          type: 'wizard',
-          title: 'Run Ghost Tracker',
-          description: 'AI-powered project advisor',
-          action: () => handleWizardLaunch('ghost-tracker-wizard'),
-          wizardId: 'ghost-tracker-wizard',
-          priority: 'high'
-        },
-        {
-          type: 'wizard',
-          title: 'Check Characters',
-          description: 'Review character development',
-          action: () => handleWizardLaunch('character-creation'),
-          wizardId: 'character-creation',
-          priority: 'medium'
-        }
-      ]
+      suggestions: dynamicSuggestions.slice(0, 4),
     };
 
     setMessages([welcomeMessage]);
@@ -123,10 +159,77 @@ export function StoryCoreAssistant() {
     await processUserMessage(inputValue);
   };
 
+  // Handle pipeline-aware suggestions when user clicks them
+  const handlePipelineSuggestion = (suggestion: ContextualSuggestion) => {
+    switch (suggestion.type) {
+      case 'wizard':
+        // Map suggestion IDs to wizard IDs
+        if (suggestion.id === 'create-characters') handleWizardLaunch('character-creation');
+        else if (suggestion.id === 'plan-shots') handleWizardLaunch('shot-planning');
+        else addAssistantMessage(`🚀 Lancement de l'action: ${suggestion.title}`);
+        break;
+      case 'generate':
+      case 'regenerate':
+        addAssistantMessage(
+          `🎨 Pour ${suggestion.actionLabel}, utilise le bouton correspondant dans la barre de génération (Prompt → Image → Vidéo → Audio).\n\n` +
+          `💡 Astuce : Tu peux aussi cliquer droit sur un shot dans l'éditeur pour accéder aux options de re-génération.`,
+          [{
+            type: 'advice',
+            title: '📊 Voir l\'état du pipeline',
+            description: 'Afficher l\'état de toutes les générations',
+            action: () => handleQuickAction('status'),
+            priority: 'medium',
+          }]
+        );
+        break;
+      case 'export':
+        addAssistantMessage(
+          `🎞️ Pour exporter ton film, va dans le Video Editor et clique sur "Export".\n` +
+          `Tu pourras choisir le format (MP4, MOV, etc.) et la qualité (Draft → Cinema).`
+        );
+        break;
+      default:
+        addAssistantMessage(`✅ ${suggestion.title} — ${suggestion.description}`);
+    }
+  };
+
   const processUserMessage = async (message: string) => {
     const lowerMessage = message.toLowerCase();
 
-    if (lowerMessage.includes('analyze') || lowerMessage.includes('analysis')) {
+    // 1. Check for re-generation intent first (new feature)
+    const regenIntent = PipelineAwareLLM.parseGenerationIntent(message);
+    if (regenIntent) {
+      const typeLabels = { prompt: 'le prompt', image: 'l\'image', video: 'la vidéo', audio: 'l\'audio' };
+      const label = typeLabels[regenIntent.type];
+      let response = `🔄 Tu veux régénérer ${label}`;
+      if (regenIntent.targetName) {
+        response += ` de "${regenIntent.targetName}"`;
+      }
+      response += `.\n\n`;
+      response += `Pour lancer la re-génération :\n`;
+      response += `1. Sélectionne le shot dans l'éditeur\n`;
+      response += `2. Clique sur le bouton ${regenIntent.type === 'image' ? '🖼️ Image' : regenIntent.type === 'video' ? '🎬 Vidéo' : regenIntent.type === 'audio' ? '🔊 Audio' : '✏️ Prompt'} dans la barre de génération\n`;
+      response += `3. Ajuste les paramètres si besoin et lance\n\n`;
+      response += `💡 La re-génération remplacera le contenu existant.`;
+
+      addAssistantMessage(response, [{
+        type: 'analysis',
+        title: '📊 État du pipeline',
+        description: 'Voir les générations en cours',
+        action: () => handleQuickAction('status'),
+        priority: 'medium',
+      }]);
+      return;
+    }
+
+    // 2. Check for status/pipeline commands (new feature)
+    if (lowerMessage.includes('status') || lowerMessage.includes('état') || lowerMessage.includes('pipeline') || lowerMessage.includes('progression')) {
+      await handleQuickAction('status');
+      return;
+    }
+
+    // 3. Existing command routing
+    if (lowerMessage.includes('analyze') || lowerMessage.includes('analysis') || lowerMessage.includes('analyse')) {
       await handleQuickAction('analyze');
     } else if (lowerMessage.includes('ghost') || lowerMessage.includes('tracker')) {
       await handleWizardLaunch('ghost-tracker-wizard');
@@ -142,8 +245,26 @@ export function StoryCoreAssistant() {
       await handleWizardLaunch('world-building');
     } else if (lowerMessage.includes('storyboard')) {
       await handleWizardLaunch('storyboard-creator');
+    } else if (lowerMessage.includes('export') || lowerMessage.includes('film')) {
+      // New: export guidance
+      const projectStatus = PipelineAwareLLM.getProjectCompletionStatus();
+      if (projectStatus.completionPercentage < 80) {
+        addAssistantMessage(
+          `⚠️ Ton projet est à ${projectStatus.completionPercentage}%. Voici ce qu'il reste à faire avant l'export :\n\n` +
+          projectStatus.missingSteps.map(s => `• ${s}`).join('\n') +
+          `\n\n💡 Complète d'abord ces étapes pour un export de qualité.`
+        );
+      } else {
+        addAssistantMessage(
+          `🎞️ Ton projet est prêt pour l'export (${projectStatus.completionPercentage}%) !\n\n` +
+          `Va dans le Video Editor → Export pour choisir :\n` +
+          `• Format : MP4, MOV, AVI, MKV, WEBM\n` +
+          `• Qualité : Draft, Preview, Standard, High, Broadcast, Cinema\n` +
+          `• Options : Sous-titres, chapitres, package professionnel`
+        );
+      }
     } else {
-      // Use Ollama for real AI chat if connected
+      // 4. Use Ollama with CONTEXT-AWARE system prompt (enhanced)
       const ollamaStatus = useAppStore.getState().ollamaStatus;
 
       if (ollamaStatus === 'connected') {
@@ -152,11 +273,8 @@ export function StoryCoreAssistant() {
           const model = models.find(m => m.category === 'storytelling' || m.name.includes('llama'))?.name || models[0]?.name;
 
           if (model) {
-            const systemPrompt = `You are the StoryCore Assistant, a helpful AI expert in cinematic storytelling, scriptwriting, and visual design.
-            You help users with their creative projects, giving advice on character development, world-building, and shot planning.
-            The current project is called "${project?.project_name || 'Untitled'}".
-            Keep your responses concise, helpful, and creative.`;
-
+            // Use pipeline-aware context instead of generic prompt
+            const systemPrompt = PipelineAwareLLM.buildContextualSystemPrompt();
             const response = await ollamaClient.generate(model, `${systemPrompt}\n\nUser: ${message}`);
             addAssistantMessage(response);
             return;
@@ -173,26 +291,46 @@ export function StoryCoreAssistant() {
   };
 
   const handleQuickAction = async (action: string) => {
-    if (action === 'analyze') {
+    if (action === 'status') {
+      // New: Pipeline status command
+      const statusMsg = PipelineAwareLLM.formatStatusMessage();
+      const ctxSuggestions = PipelineAwareLLM.getContextualSuggestions();
+      const suggestions: AssistantSuggestion[] = ctxSuggestions.slice(0, 3).map(cs => ({
+        type: cs.type === 'wizard' ? 'wizard' as const : 'analysis' as const,
+        title: cs.title,
+        description: cs.description,
+        action: () => handlePipelineSuggestion(cs),
+        priority: cs.priority === 'critical' ? 'high' as const : 'medium' as const,
+      }));
+      addAssistantMessage(statusMsg, suggestions);
+    } else if (action === 'analyze') {
       setIsAnalyzing(true);
 
       try {
         const analysis = await analyzeProject();
         setProjectAnalysis(analysis);
+        const pipelineStatus = PipelineAwareLLM.getPipelineStatus();
+        const projectStatus = PipelineAwareLLM.getProjectCompletionStatus();
 
-        let content = `📊 Project Analysis Complete!\n\n`;
-        content += `🎯 Overall Score: ${analysis.score}/10\n\n`;
+        let content = `📊 **Analyse Complète du Projet !**\n\n`;
+        content += `🎯 Score global : ${analysis.score}/10\n`;
+        content += `📈 Complétion : ${projectStatus.completionPercentage}%\n`;
+        content += `🔄 Pipeline : ${pipelineStatus.overallProgress}%\n\n`;
 
         if (analysis.issues.length > 0) {
-          content += `⚠️ Key Issues:\n`;
+          content += `⚠️ Problèmes détectés :\n`;
           analysis.issues.slice(0, 3).forEach(issue => {
             content += `• ${issue}\n`;
           });
           content += '\n';
         }
 
+        if (pipelineStatus.failedStages.length > 0) {
+          content += `❌ Étapes en échec : ${pipelineStatus.failedStages.join(', ')}\n\n`;
+        }
+
         if (analysis.recommendations.length > 0) {
-          content += `💡 Recommendations:\n`;
+          content += `💡 Recommandations :\n`;
           analysis.recommendations.slice(0, 3).forEach(rec => {
             content += `• ${rec}\n`;
           });
@@ -200,7 +338,7 @@ export function StoryCoreAssistant() {
         }
 
         if (analysis.suggestedWizards.length > 0) {
-          content += `🚀 Suggested Wizards:\n`;
+          content += `🚀 Wizards suggérés :\n`;
           analysis.suggestedWizards.forEach(wizardId => {
             const wizard = WIZARD_DEFINITIONS.find(w => w.id === wizardId);
             if (wizard) {
@@ -209,22 +347,38 @@ export function StoryCoreAssistant() {
           });
         }
 
-        const suggestions: AssistantSuggestion[] = analysis.suggestedWizards.map(wizardId => {
+        // Merge wizard suggestions with pipeline suggestions
+        const suggestions: AssistantSuggestion[] = [];
+
+        // Pipeline-aware suggestions first
+        const ctxSuggestions = PipelineAwareLLM.getContextualSuggestions();
+        ctxSuggestions.slice(0, 2).forEach(cs => {
+          suggestions.push({
+            type: cs.type === 'wizard' ? 'wizard' as const : 'analysis' as const,
+            title: cs.title,
+            description: cs.description,
+            action: () => handlePipelineSuggestion(cs),
+            priority: cs.priority === 'critical' ? 'high' as const : 'medium' as const,
+          });
+        });
+
+        // Wizard suggestions
+        analysis.suggestedWizards.slice(0, 2).forEach(wizardId => {
           const wizard = WIZARD_DEFINITIONS.find(w => w.id === wizardId);
-          return {
+          suggestions.push({
             type: 'wizard' as const,
             title: wizard?.name || 'Unknown Wizard',
-            description: `Run ${wizard?.name} to improve your project`,
+            description: `Lancer ${wizard?.name} pour améliorer le projet`,
             action: () => handleWizardLaunch(wizardId),
             wizardId,
             priority: 'high' as const
-          };
+          });
         });
 
         addAssistantMessage(content, suggestions);
 
       } catch (error) {
-        addAssistantMessage(`❌ Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        addAssistantMessage(`❌ L'analyse a échoué : ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
       } finally {
         setIsAnalyzing(false);
       }
@@ -442,7 +596,7 @@ export function StoryCoreAssistant() {
     };
 
     const workflow = workflows[completedWizardId] || [];
-    return workflow.slice(0, 2).map((item: any) => ({
+    return workflow.slice(0, 2).map((item: unknown) => ({
       type: 'wizard' as const,
       title: item.title,
       description: item.desc,
@@ -1003,3 +1157,4 @@ export function StoryCoreAssistant() {
     </div>
   );
 }
+

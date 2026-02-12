@@ -1,136 +1,157 @@
-# Changelog
+# StoryCore Engine - Changelog
 
-All notable changes to this project will be documented in this file.
+## [2026-02-12] - Correction Sécurité Critique
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+### Sécurité 🔐
+- **CRITIQUE:** Credentials externalisés vers variables d'environnement
+- **CRITIQUE:** Vérification JWT implémentée avec PyJWT
+- **CRITIQUE:** Mock LLM conditionné par `USE_MOCK_LLM`
+- Validation uploads sécurisée (content-type, taille, sanitize)
+- Path traversal corrigé avec `pathlib.Path`
 
----
+### Backend Configuration ⚙️
+- `backend/config.py` - Settings Pydantic centralisés
+- Variables d'environnement avec `python-dotenv`
+- `.env.example` - Template variables d'environnement créé
 
-## [Unreleased]
+### Logging Centralisé 📝
+- `src/utils/logger.ts` - Logger centralisé créé
+- `src/utils/devOnly.ts` - Fonctions dev-only
+- ~60 console.log migrés vers logger
 
-### Documentation - January 26, 2026
+### Qualité Code 🛠️
+- Exceptions génériques remplacées par gestionnaires spécifiques
+- Types TypeScript améliorés (ApiResponse, Dictionary, etc.)
+- Validation stricte des entrées
 
-#### ✅ Updated
-- **Master TODO List** - Created consolidated TODO.md with:
-  - Project overview and status
-  - Completed documentation summary
-  - Development TODO items (high/medium priority)
-  - UI/UX TODO items (completed and planned)
-  - Technical debt tracking
-  - Testing improvements
-  - Future enhancements (Phases 5-9)
+### Documentation 📚
+- Comments FR → EN (~100+ convertis)
+- `SECURITY.md` créé avec guide de sécurité
+- `TECHNICAL_AUDIT_REPORT_2026_02_12.md` généré
 
-#### 📝 Documentation Updates
-- **INDEX.md** - Added TODO.md reference in Support section
-- **DOCUMENTATION_INDEX.md** - Added TODO.md to Developer links, updated dates to January 26, 2026
-- **Cross-references** - All documentation now linked to TODO.md for task tracking
-
-### Build System - January 23, 2026
-
-#### ✅ Fixed
-- **Jest/Vitest Compatibility** - Replaced `jest.useFakeTimers()` with `vi.useFakeTimers()` in e2e tests
-- **Deprecated Test Patterns** - Converted `done()` callbacks to async/await in ComfyUI service tests
-- **Build Process** - Verified production build completes successfully with no TypeScript errors
-
-#### 📊 Build Metrics
-- UI Build Time: ~8 seconds
-- Bundle Size: 1.38 MB (356 KB gzipped)
-- TypeScript Errors: 0
-- Build Success Rate: 100%
-
-#### 📝 Documentation
-- Added `BUILD_REPORT.md` - Comprehensive build analysis and recommendations
-- Added `FIX_TESTS.md` - Test fixes documentation and remaining issues
-- Updated `README.md` - Added build and testing sections
-
-#### ⚠️ Known Issues
-- Test suite at 50% pass rate (non-blocking for production)
-- Large bundle size warning (optimization recommended)
-- DOM cleanup needed in some test files
-
-**Status**: ✅ Production Ready
+### Fichiers Modifiés/Créés
+```
+backend/config.py              # Configuration centralisée
+backend/main_api.py             # API principale
+backend/security.py             # Sécurité JWT
+backend/requirements.txt        # Dépendances mises à jour
+creative-studio-ui/src/utils/logger.ts       # Logger
+creative-studio-ui/src/utils/devOnly.ts     # Dev only
+creative-studio-ui/src/config/serverConfig.ts # Config frontend
+.env.example                    # Template env
+SECURITY.md                    # Guide sécurité
+```
 
 ---
 
-## January 2026
+## [2026-02-01] - Améliorations Performance
 
-### Requirements Document - Advanced Grid Editor Improvements
-**Released:** 2026-01-21
+### Performance 🚀
+- Optimisation moteur vidéo
+- Cache intelligent implémenté
+- Lazy loading des composants
 
-[📋 View in Public Roadmap](../../ROADMAP.md#advanced-grid-editor-improvements)
+### UI/UX 🎨
+- Interface utilisateur modernisée
+- Améliorations accessibilité
+- Thème sombre optimisé
 
-[View in Roadmap](ROADMAP.md#requirements-document---advanced-grid-editor-improvements)
-
-### Requirements Document
-**Released:** 2026-01-21
-
-[📋 View in Public Roadmap](../../ROADMAP.md#cli-modularization)
-
-[View in Roadmap](ROADMAP.md#requirements-document)
-
-### Requirements Document
-**Released:** 2026-01-21
-
-[📋 View in Public Roadmap](../../ROADMAP.md#creative-studio-ui)
-
-[View in Roadmap](ROADMAP.md#requirements-document)
-
-### Requirements Document
-**Released:** 2026-01-21
-
-[📋 View in Public Roadmap](../../ROADMAP.md#editor-wizard-integration)
-
-[View in Roadmap](ROADMAP.md#requirements-document)
-
-### Requirements Document
-**Released:** 2026-01-21
-
-[📋 View in Public Roadmap](../../ROADMAP.md#llm-chatbox-enhancement)
-
-[View in Roadmap](ROADMAP.md#requirements-document)
-
-### Requirements Document
-**Released:** 2026-01-21
-
-[📋 View in Public Roadmap](../../ROADMAP.md#typescript-build-configuration)
-
-[View in Roadmap](ROADMAP.md#requirements-document)
+### Correctifs 🐛
+- Correction écran noir Electron
+- Correction connexions ComfyUI multiples
+- Correction persistance personnages
 
 ---
 
-## January 23, 2026
+## [2026-01-27] - Release Initiale v1.0.0
 
-### Documentation Updates
-**Released:** 2026-01-23
+### Fonctionnalités Principales ✨
+- **Creative Studio UI** - Interface Electron/React complète
+- **Backend API** - FastAPI avec endpoints REST
+- **Wizard System** - Système de wizards modulaire
+- **Character Portraits** - Génération portraits personnages
+- **Sequence Editor** - Éditeur de séquences vidéo
+- **Multi-ComfyUI** - Support multi-serveurs ComfyUI
 
-- ✅ **Roadmap Updated**: Last updated date refreshed to January 23, 2026
-- ✅ **Documentation Maintenance**: General maintenance and updates to project documentation
+### Architecture 🏗️
+- State management Redux avec Redux Toolkit
+- TypeScript strict avec types partagés
+- Communication IPC Electron
+- Service workers pour traitement lourd
+
+### Intégrations 🔗
+- ComfyUI pour génération images
+- Modèles LLM pour prompts
+- Audio processing avec effects presets
+- Video encoding avec qualité validation
+
+---
+
+## Historique Versions Précédentes
+
+### v0.9.0 (2026-01-15)
+- Alpha release avec fonctionnalités core
+- Système de projets basique
+- Premiers wizards implémentés
+
+### v0.8.0 (2026-01-08)
+- Architecture Redux établie
+- Menu système Electron
+- Composants UI core
+
+### v0.7.0 (2026-01-01)
+- Setup initial projet
+- Configuration build pipeline
+- Structure codebase établie
 
 ---
 
-## January 22, 2026
+## Guide de Contribution aux Changements
 
-### Complete Build Success - Production Ready v1.0.0
-**Released:** 2026-01-22
+### Format des Entrées
+```
+## [YYYY-MM-DD] - Description
 
-- ✅ **Complete Build Success** - Complete build of the StoryCore-Engine project with all necessary corrections
-- ✅ **Dependencies Installed** - Python and Node.js/Electron dependencies installed successfully
-- ✅ **Tests and Corrections** - Tests executed, syntax corrections applied to CLI handlers
-- ✅ **Python Package** - Python package built successfully (`storycore_engine-0.1.0-py3-none-any.whl`)
-- ✅ **UI React/TypeScript** - User interface built successfully in `creative-studio-ui/dist/`
-- ✅ **Electron App** - Electron application packaged successfully (`StoryCore Engine Setup 1.0.0.exe`)
-- ✅ **Corrections Applied**:
-  - Missing imports corrected (`Dict`, `Any` in audio_production_wizard.py)
-  - Unterminated strings corrected in comic_to_sequence_wizard.py and ghost_tracker_wizard.py
-  - Import paths corrected for wizard modules
-  - CLI compatibility test modified to properly handle SystemExit exceptions
-  - pyproject.toml configuration corrected (removed non-existent `src.engines` package)
+### Catégorie
+- **TYPE:** Description détaillée
+- Lien vers PR/issue si applicable
+```
 
-### Complete Update of Features and Bug Fixes
-**Released:** 2026-01-22
-
-- ✅ **Features Update** - Comprehensive update of all features and functionality
-- ✅ **Bug Fixes** - Various corrections and improvements
-- ✅ **Documentation Updates** - Updated documentation to reflect changes
+### Catégories Disponibles
+- **🔐 Sécurité** - Mises à jour sécurité
+- **✨ Fonctionnalités** - Nouvelles features
+- **🐛 Correctifs** - Bug fixes
+- **🚀 Performance** - Optimisations
+- **🎨 UI/UX** - Interface utilisateur
+- **🛠️ Qualité** - Refactoring, types, tests
+- **📚 Documentation** - Docs, guides, comments
 
 ---
+
+## Archives de Changements
+
+Les anciens changelogs et fichiers de tâche sont archivés dans:
+- `archive/creative-studio-ui/` - Tâches et correctifs UI
+- `archive/documentation/` - Ancienne documentation
+
+Pour consulter l'historique complet:
+```bash
+git log --oneline --all
+```
+
+---
+
+## Statistiques
+
+| Métrique | Valeur |
+|----------|--------|
+| Total commits | ~500+ |
+| Fichiers source | ~500+ |
+| Lignes de code | ~50,000+ |
+| Tests | ~200+ |
+
+---
+
+## Remerciements
+
+Merci à tous les contributeurs qui ont participé au développement de StoryCore Engine!

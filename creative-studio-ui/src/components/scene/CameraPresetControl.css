@@ -1,0 +1,176 @@
+/**
+ * CameraPresetControl Styles
+ * 
+ * CSS styles for the CameraPresetControl component.
+ * 
+ * File: creative-studio-ui/src/components/scene/CameraPresetControl.css
+ */
+
+/* Container */
+.camera-preset-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+}
+
+/* Dropdown */
+.camera-preset-control__dropdown {
+  position: relative;
+}
+
+.camera-preset-control__trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.camera-preset-control__trigger:hover {
+  background: #3a3a3a;
+  border-color: var(--primary-color, #6366f1);
+}
+
+.camera-preset-control__label {
+  font-weight: 500;
+}
+
+.camera-preset-control__icon {
+  color: var(--text-muted, #666);
+}
+
+/* Menu */
+.camera-preset-control__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 200px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.camera-preset-control__section {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.camera-preset-control__section:last-child {
+  border-bottom: none;
+}
+
+.camera-preset-control__section-title {
+  display: block;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.camera-preset-control__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.camera-preset-control__option:hover {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-primary, #e5e5e5);
+}
+
+.camera-preset-control__option--active {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.camera-preset-control__option svg {
+  flex-shrink: 0;
+}
+
+/* Buttons */
+.camera-preset-control__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.camera-preset-control__btn:hover {
+  background: #3a3a3a;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.camera-preset-control__btn--active {
+  background: var(--primary-color, #6366f1);
+  border-color: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.camera-preset-control__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animation indicator */
+.camera-preset-control__animating {
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--primary-color, #6366f1);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .camera-preset-control {
+    padding: 6px 8px;
+    gap: 4px;
+  }
+
+  .camera-preset-control__trigger {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .camera-preset-control__label {
+    display: none;
+  }
+
+  .camera-preset-control__menu {
+    min-width: 160px;
+  }
+}

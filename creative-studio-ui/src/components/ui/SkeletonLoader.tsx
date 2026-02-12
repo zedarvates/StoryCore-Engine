@@ -68,7 +68,7 @@ export function SkeletonText({
   lines?: number;
   width?: number | string;
   lastLineWidth?: number | string;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div className={cn('space-y-2', className)} {...props}>
@@ -94,7 +94,7 @@ export function SkeletonAvatar({
 }: {
   className?: string;
   size?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <Skeleton
@@ -123,7 +123,7 @@ export function SkeletonCard({
   showTitle?: boolean;
   showDescription?: boolean;
   lines?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div className={cn('space-y-4 p-4 border rounded-lg', className)} {...props}>
@@ -166,7 +166,7 @@ export function SkeletonTableRow({
   className?: string;
   columns?: number;
   showActions?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div className={cn('flex gap-4 py-3 border-b items-center', className)} {...props}>
@@ -206,7 +206,7 @@ export function SkeletonMediaItem({
   className?: string;
   aspectRatio?: string;
   showInfo?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div className={cn('space-y-2', className)} {...props}>
@@ -236,7 +236,7 @@ export function SkeletonTimeline({
   className?: string;
   shots?: number;
   showWaveform?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div className={cn('space-y-2', className)} {...props}>
@@ -286,7 +286,7 @@ export function SkeletonForm({
   className?: string;
   fields?: number;
   showSubmit?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div className={cn('space-y-6', className)} {...props}>
@@ -318,7 +318,7 @@ export function SkeletonWidget({
   title?: boolean;
   chart?: boolean;
   stats?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div className={cn('space-y-4 p-4 border rounded-lg', className)} {...props}>
@@ -354,7 +354,7 @@ export function SkeletonConversation({
 }: {
   className?: string;
   messages?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div className={cn('space-y-4', className)} {...props}>
@@ -393,7 +393,7 @@ export function SkeletonWizardStep({
   className?: string;
   steps?: number;
   currentStep?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   return (
     <div className={cn('space-y-6', className)} {...props}>
@@ -430,4 +430,5 @@ export function SkeletonWizardStep({
 }
 
 export default Skeleton;
+
 

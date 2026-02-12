@@ -529,7 +529,7 @@ export function useCharacterManager() {
 
         // Create event emitter adapter
         const eventEmitterAdapter: CharacterEventEmitter = {
-          emit: (eventType: string, payload: any) => {
+          emit: (eventType: string, payload: unknown) => {
             eventEmitter.emit(eventType as any, payload);
           },
         };
@@ -590,7 +590,7 @@ export function useCharacterManager() {
 
         // Create event emitter adapter
         const eventEmitterAdapter: CharacterEventEmitter = {
-          emit: (eventType: string, payload: any) => {
+          emit: (eventType: string, payload: unknown) => {
             eventEmitter.emit(eventType as any, payload);
           },
         };
@@ -639,7 +639,7 @@ export function useCharacterManager() {
 
         // Create event emitter adapter
         const eventEmitterAdapter: CharacterEventEmitter = {
-          emit: (eventType: string, payload: any) => {
+          emit: (eventType: string, payload: unknown) => {
             eventEmitter.emit(eventType as any, payload);
           },
         };
@@ -783,7 +783,7 @@ export function useCharacterManager() {
     async (jsonData: string): Promise<Character> => {
       try {
         // Parse JSON (Requirement: 10.4)
-        let parsedData: any;
+        let parsedData: unknown;
         try {
           parsedData = JSON.parse(jsonData);
         } catch (error) {
@@ -864,3 +864,5 @@ export function useCharacterManager() {
     importCharacter,
   };
 }
+
+

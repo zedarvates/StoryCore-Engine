@@ -10,6 +10,11 @@
  * Requirements: Performance
  */
 
+import { debounce } from './debounceAndThrottle';
+
+// Re-export debounce from unified module
+export { debounce };
+
 /**
  * Image compression options
  */
@@ -112,33 +117,6 @@ export function createStreamingVideoUrl(videoUrl: string): string {
   // For remote URLs, ensure range requests are supported
   // This is a placeholder - actual implementation would depend on backend
   return videoUrl;
-}
-
-/**
- * Debounce function for progress updates
- * 
- * @param func - Function to debounce
- * @param wait - Wait time in milliseconds
- * @returns Debounced function
- */
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null;
-  
-  return function executedFunction(...args: Parameters<T>) {
-    const later = () => {
-      timeout = null;
-      func(...args);
-    };
-    
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-    
-    timeout = setTimeout(later, wait);
-  };
 }
 
 /**

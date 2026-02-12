@@ -21,7 +21,11 @@ import {
   Info,
   Wifi,
   WifiOff,
+  Cloud,
+  Database
 } from 'lucide-react';
+import { VaultGallery } from './workspace/VaultGallery';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AssetPanelProps {
   projectPath?: string;
@@ -34,7 +38,7 @@ interface Asset {
   type: 'image' | 'audio' | 'video' | 'template';
   url: string;
   thumbnail?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export function AssetPanel({ projectPath, className }: AssetPanelProps) {
@@ -50,6 +54,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
   // Selection state
   const [selectedAssetIds, setSelectedAssetIds] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [activeTab, setActiveTab] = useState<'library' | 'vault'>('library');
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const assetListRef = useRef<HTMLDivElement>(null);
 
@@ -474,6 +479,16 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           </div>
           <div className="flex items-center gap-1">
             <button
+              onClick={handleRefreshAssets}
+              className={`p-1 rounded-md ${isLoadingAssets ? 'animate-spin' : 'hover:bg-muted'}`}
+              title="Refresh asset library"
+              aria-label="Refresh asset library"
+              disabled={isLoadingAssets}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <div className="h-4 w-px bg-border mx-1" />
+            <button
               onClick={() => setViewMode('grid')}
               className={`p-1 rounded-md ${viewMode === 'grid' ? 'bg-muted' : 'hover:bg-muted'}`}
               title="Grid view"
@@ -506,6 +521,22 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           className="w-full px-3 py-1.5 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           aria-label="Search assets"
         />
+
+        {/* Tab Toggle */}
+        <div className="mt-4">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+            <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-lg">
+              <TabsTrigger value="library" className="flex items-center gap-1.5 text-xs py-1.5 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <Cloud className="w-3.5 h-3.5" />
+                Library
+              </TabsTrigger>
+              <TabsTrigger value="vault" className="flex items-center gap-1.5 text-xs py-1.5 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <Database className="w-3.5 h-3.5" />
+                Vault
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       {/* Selection Toolbar */}
@@ -552,127 +583,130 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
         </div>
       )}
 
-      {/* Asset Categories */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-2">
-          {/* Category Buttons */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => handleCategoryChange('all')}
-              className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                selectedCategory === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'
-              }`}
-            >
-              All
-            </button>
-            {ASSET_CATEGORIES.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => handleCategoryChange(category.id)}
-                className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                  selectedCategory === category.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Asset Grid/List by Source */}
-        {isLoadingAssets ? (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          </div>
+        {activeTab === 'vault' && projectPath ? (
+          <VaultGallery projectId={projectPath.split(/[/\\]/).pop() || ''} className="border-none rounded-none h-full" />
         ) : (
-          <div ref={assetListRef} className="p-4 space-y-4">
-            {assetSources.map((source) => {
-              // Filter source assets based on current search/filter criteria
-              const sourceAssets = source.assets.filter(asset => {
-                // Apply search query filter
-                if (assetSearchQuery.trim()) {
-                  const query = assetSearchQuery.toLowerCase();
-                  const matchesName = asset.name.toLowerCase().includes(query);
-                  const matchesTags = asset.metadata?.tags?.some((tag: string) =>
-                    tag.toLowerCase().includes(query)
+          <>
+            <div className="p-2">
+              {/* Category Buttons */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => handleCategoryChange('all')}
+                  className={`px-3 py-1 text-xs rounded-full transition-colors ${selectedCategory === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'
+                    }`}
+                >
+                  All
+                </button>
+                {ASSET_CATEGORIES.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryChange(category.id)}
+                    className={`px-3 py-1 text-xs rounded-full transition-colors ${selectedCategory === category.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'
+                      }`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Asset Grid/List by Source */}
+            {isLoadingAssets ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div ref={assetListRef} className="p-4 space-y-4">
+                {assetSources.map((source) => {
+                  // Filter source assets based on current search/filter criteria
+                  const sourceAssets = source.assets.filter(asset => {
+                    // Apply search query filter
+                    if (assetSearchQuery.trim()) {
+                      const query = assetSearchQuery.toLowerCase();
+                      const matchesName = asset.name.toLowerCase().includes(query);
+                      const matchesTags = asset.metadata?.tags?.some((tag: string) =>
+                        tag.toLowerCase().includes(query)
+                      );
+                      if (!matchesName && !matchesTags) return false;
+                    }
+
+                    // Apply category filter
+                    if (selectedCategory !== 'all') {
+                      const category = ASSET_CATEGORIES.find(c => c.id === selectedCategory);
+                      if (category && !category.filter(asset)) return false;
+                    }
+
+                    return true;
+                  });
+
+                  if (sourceAssets.length === 0) return null;
+
+                  return (
+                    <div key={source.id}>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs font-semibold text-muted-foreground">
+                          {source.name}
+                        </h3>
+                        <span className="text-xs text-muted-foreground">
+                          {sourceAssets.length}
+                        </span>
+                      </div>
+
+                      {/* Grid View */}
+                      {viewMode === 'grid' ? (
+                        <div className="space-y-2">
+                          {sourceAssets.map((asset, index) => renderAssetGridItem(asset, index))}
+                        </div>
+                      ) : (
+                        /* List View */
+                        <div className="space-y-1">
+                          {sourceAssets.map((asset, index) => renderAssetListItem(asset, index))}
+                        </div>
+                      )}
+                    </div>
                   );
-                  if (!matchesName && !matchesTags) return false;
-                }
+                })}
 
-                // Apply category filter
-                if (selectedCategory !== 'all') {
-                  const category = ASSET_CATEGORIES.find(c => c.id === selectedCategory);
-                  if (category && !category.filter(asset)) return false;
-                }
-
-                return true;
-              });
-
-              if (sourceAssets.length === 0) return null;
-
-              return (
-                <div key={source.id}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-semibold text-muted-foreground">
-                      {source.name}
-                    </h3>
-                    <span className="text-xs text-muted-foreground">
-                      {sourceAssets.length}
-                    </span>
-                  </div>
-
-                  {/* Grid View */}
-                  {viewMode === 'grid' ? (
-                    <div className="space-y-2">
-                      {sourceAssets.map((asset, index) => renderAssetGridItem(asset, index))}
+                {filteredAssets.length === 0 && !isLoadingAssets && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <div className="flex justify-center mb-4">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                        <FileText className="w-8 h-8 opacity-50" />
+                      </div>
                     </div>
-                  ) : (
-                    /* List View */
-                    <div className="space-y-1">
-                      {sourceAssets.map((asset, index) => renderAssetListItem(asset, index))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {filteredAssets.length === 0 && !isLoadingAssets && (
-              <div className="text-center py-8 text-muted-foreground">
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                    <FileText className="w-8 h-8 opacity-50" />
-                  </div>
-                </div>
-                <p className="text-sm font-medium mb-2">No assets found</p>
-                {assetSearchQuery ? (
-                  <div className="space-y-2">
-                    <p className="text-xs">No assets match your search criteria</p>
-                    <button
-                      onClick={() => {
-                        setAssetSearchQuery('');
-                        handleAssetSearch('');
-                      }}
-                      className="text-xs text-primary hover:text-primary/80 underline"
-                    >
-                      Clear search
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-xs">No assets are currently available</p>
-                    <div className="text-xs space-y-1">
-                      <p>In demo mode, you have access to:</p>
-                      <ul className="list-disc list-inside text-xs text-muted-foreground">
-                        <li>Sample images from the library</li>
-                        <li>UI assets and placeholders</li>
-                        <li>StoryCore branding assets</li>
-                      </ul>
-                    </div>
+                    <p className="text-sm font-medium mb-2">No assets found</p>
+                    {assetSearchQuery ? (
+                      <div className="space-y-2">
+                        <p className="text-xs">No assets match your search criteria</p>
+                        <button
+                          onClick={() => {
+                            setAssetSearchQuery('');
+                            handleAssetSearch('');
+                          }}
+                          className="text-xs text-primary hover:text-primary/80 underline"
+                        >
+                          Clear search
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-xs">No assets are currently available</p>
+                        <div className="text-xs space-y-1">
+                          <p>In demo mode, you have access to:</p>
+                          <ul className="list-disc list-inside text-xs text-muted-foreground">
+                            <li>Sample images from the library</li>
+                            <li>UI assets and placeholders</li>
+                            <li>StoryCore branding assets</li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
 
@@ -690,3 +724,4 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
     </div>
   );
 }
+

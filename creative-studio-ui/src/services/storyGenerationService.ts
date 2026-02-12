@@ -143,7 +143,7 @@ export async function generateStoryContent(
 
   // Build character descriptions
   const characterDescriptions = params.characters
-    .map((char: any) => {
+    .map((char: unknown) => {
       const parts = [
         `**${char.name}** (${char.archetype || char.role || 'Character'})`,
       ];
@@ -173,7 +173,7 @@ export async function generateStoryContent(
 
   // Build location descriptions
   const locationDescriptions = params.locations
-    .map((loc: any) => {
+    .map((loc: unknown) => {
       const parts = [
         `**${loc.name}** (${loc.type || 'Location'})`,
       ];
@@ -210,7 +210,7 @@ export async function generateStoryContent(
 
     if (ctx.rules && ctx.rules.length > 0) {
       worldContextDescription.push('\nWorld Rules:');
-      ctx.rules.forEach((rule: any) => {
+      ctx.rules.forEach((rule: unknown) => {
         worldContextDescription.push(`- ${rule.rule}: ${rule.description}`);
       });
     }
@@ -596,7 +596,7 @@ export async function retryWithBackoff<T>(
  * @param error Error object
  * @returns User-friendly error message
  */
-export function handleLLMError(error: any): string {
+export function handleLLMError(error: unknown): string {
   if (error.message?.includes('network')) {
     return 'Network error: Unable to connect to LLM service. Please check your connection.';
   }
@@ -615,3 +615,4 @@ export function handleLLMError(error: any): string {
 
   return `Generation error: ${error.message || 'Unknown error occurred'}`;
 }
+

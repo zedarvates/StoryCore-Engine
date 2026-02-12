@@ -257,7 +257,7 @@ export function validateImportCompatibility(
 /**
  * Merge configurations (useful for partial imports)
  */
-export function mergeConfigurations<T extends Record<string, any>>(
+export function mergeConfigurations<T extends Record<string, unknown>>(
   base: T,
   imported: Partial<T>,
   overwrite: boolean = true
@@ -308,3 +308,4 @@ export function restoreConfigurationFromBackup(
 ): ImportResult {
   return importConfigurationFromJSON(backup);
 }
+

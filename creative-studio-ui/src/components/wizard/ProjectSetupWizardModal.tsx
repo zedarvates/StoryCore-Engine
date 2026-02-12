@@ -2,6 +2,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { ProjectSetupWizard, type ProjectSetupData } from './project-setup';
 import { useAppStore } from '@/stores/useAppStore';
+import { useEditorStore } from '@/stores/editorStore';
 import './WizardModal.css';
 
 export function ProjectSetupWizardModal() {
@@ -9,17 +10,21 @@ export function ProjectSetupWizardModal() {
   const setShowProjectSetupWizard = useAppStore((state) => state.setShowProjectSetupWizard);
   const project = useAppStore((state) => state.project);
   const setProject = useAppStore((state) => state.setProject);
+  
+  // Get editor store actions for saving
+  const saveProject = useEditorStore((state) => state.saveProject);
+  const projectPath = useEditorStore((state) => state.projectPath);
 
   if (!showProjectSetupWizard) {
     return null;
   }
 
-  const handleComplete = (data: ProjectSetupData) => {
+  const handleComplete = async (data: ProjectSetupData) => {
     console.log('✅ Project Setup completed:', data);
     
     // Update project with setup data
     if (project) {
-      setProject({
+      const updatedProject = {
         ...project,
         metadata: {
           ...project.metadata,
@@ -33,7 +38,21 @@ export function ProjectSetupWizardModal() {
           targetAudience: data.targetAudience,
           estimatedDuration: data.estimatedDuration,
         },
-      });
+      };
+      
+      setProject(updatedProject);
+      
+      // Save project to file if projectPath is available
+      if (projectPath) {
+        try {
+          // Update the current project in editor store first
+          useEditorStore.setState({ currentProject: updatedProject });
+          await saveProject();
+          console.log('[ProjectSetupWizardModal] Project saved successfully');
+        } catch (error) {
+          console.error('[ProjectSetupWizardModal] Failed to save project:', error);
+        }
+      }
     }
     
     setShowProjectSetupWizard(false);

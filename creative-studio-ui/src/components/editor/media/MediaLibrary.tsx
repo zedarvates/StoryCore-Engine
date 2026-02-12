@@ -116,8 +116,8 @@ export function MediaLibrary({
       return matchesSearch && matchesType;
     })
     .sort((a, b) => {
-      let aValue: any = a[sortBy as keyof MediaAsset];
-      let bValue: any = b[sortBy as keyof MediaAsset];
+      let aValue: unknown = a[sortBy as keyof MediaAsset];
+      let bValue: unknown = b[sortBy as keyof MediaAsset];
 
       if (sortBy === 'size') {
         aValue = a.size;

@@ -283,6 +283,7 @@ export const PromptAnalysisPanel: React.FC<PromptAnalysisPanelProps> = ({
               variant="outline"
               size="sm"
               onClick={() => handleGoToShot(shotAnalysis.shot)}
+              aria-label="Edit shot"
             >
               Edit Shot
             </Button>
@@ -371,6 +372,7 @@ export const PromptAnalysisPanel: React.FC<PromptAnalysisPanelProps> = ({
                             variant="default"
                             onClick={() => handleAcceptSuggestion(shotAnalysis.shot, suggestion)}
                             className="flex items-center gap-1"
+                            aria-label="Accepter la suggestion"
                           >
                             <Check className="h-3 w-3" />
                             Accept

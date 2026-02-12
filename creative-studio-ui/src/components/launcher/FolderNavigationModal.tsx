@@ -358,7 +358,7 @@ export function FolderNavigationModal({
                     <div className="flex-1">
                       <span className="text-sm font-medium text-red-400">Invalid project</span>
                       <ul className="mt-1 space-y-1">
-                        {validationResult.errors?.map((error: any, index: number) => (
+                        {validationResult.errors?.map((error: unknown, index: number) => (
                           <li key={index} className="text-xs text-red-300">• {error.message}</li>
                         ))}
                       </ul>
@@ -403,3 +403,4 @@ export function FolderNavigationModal({
     </Dialog>
   );
 }
+

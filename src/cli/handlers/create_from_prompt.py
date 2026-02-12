@@ -108,7 +108,7 @@ class CreateFromPromptHandler(BaseHandler):
         
         parser.add_argument(
             "--resume",
-            met="PROJECT_PATH",
+            metavar="PROJECT_PATH",
             help="Resume an interrupted workflow from a checkpoint"
         )
         
@@ -337,13 +337,14 @@ class CreateFromPromptHandler(BaseHandler):
     
     async def _execute_workflow(self, args: argparse.Namespace, prompt: str) -> int:
         """Execute the full workflow."""
-        from end_to_end import EndToEndOrchestrator, OrchestratorConfig
-        from data_models import ProgressReport
+        from src.end_to_end import EndToEndOrchestrator, OrchestratorConfig
+        from src.end_to_end.data_models import ProgressReport
         
         # Build configuration
         config = OrchestratorConfig(
             projects_directory=args.projects_dir,
             comfyui_backend_url=args.comfyui_url,
+            storycore_cli_path="storycore.py",
             default_quality_tier=args.quality,
             max_retry_attempts=args.max_retries,
             checkpoint_enabled=not args.no_checkpoint
@@ -439,7 +440,7 @@ class CreateFromPromptHandler(BaseHandler):
     
     def _execute_resume(self, args: argparse.Namespace) -> int:
         """Resume an interrupted workflow."""
-        from end_to_end import EndToEndOrchestrator
+        from src.end_to_end import EndToEndOrchestrator
         
         project_path = Path(args.resume)
         

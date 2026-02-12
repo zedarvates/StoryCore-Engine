@@ -1,0 +1,15 @@
+{
+  "current_step": "component_generation",
+  "completed_steps": [
+    "parsing",
+    "name_generation"
+  ],
+  "failed_steps": [],
+  "project_data": {
+    "prompt": "Sept mercenaires augment\u00e9s dans une m\u00e9galopole n\u00e9on corrompue"
+  },
+  "start_time": "2026-02-11T21:42:53.741302",
+  "estimated_completion": null,
+  "checkpoint_time": "2026-02-11T21:42:53.747072",
+  "error_history": []
+}

@@ -88,7 +88,7 @@ function CentralConfigurationUIContent({
   };
 
   // Handle saving API settings
-  const handleSaveAPISettings = async (config: any) => {
+  const handleSaveAPISettings = async (config: unknown) => {
     try {
       await saveProjectConfig({ api: config });
       setHasUnsavedChanges(false);
@@ -100,7 +100,7 @@ function CentralConfigurationUIContent({
   };
 
   // Handle saving LLM settings
-  const handleSaveLLMSettings = async (config: any) => {
+  const handleSaveLLMSettings = async (config: unknown) => {
     try {
       await saveProjectConfig({ llm: config });
       setHasUnsavedChanges(false);
@@ -112,7 +112,7 @@ function CentralConfigurationUIContent({
   };
 
   // Handle saving ComfyUI settings
-  const handleSaveComfyUISettings = async (config: any) => {
+  const handleSaveComfyUISettings = async (config: unknown) => {
     try {
       await saveProjectConfig({ comfyui: config });
       setHasUnsavedChanges(false);
@@ -188,3 +188,4 @@ export function CentralConfigurationUI(props: CentralConfigurationUIProps) {
     </ConfigurationProvider>
   );
 }
+

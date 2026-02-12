@@ -11,7 +11,7 @@ import { useEffect, useRef } from 'react';
  */
 export function useEventListener<K extends keyof WindowEventMap>(
   eventName: K,
-  handler: (this: Window, ev: WindowEventMap[K]) => any,
+  handler: (this: Window, ev: WindowEventMap[K]) => unknown,
   element: Window | Document | HTMLElement = window,
   options?: boolean | AddEventListenerOptions
 ) {
@@ -41,7 +41,7 @@ export function useEventListener<K extends keyof WindowEventMap>(
 export function useEventListeners(
   listeners: Array<{
     eventName: keyof WindowEventMap;
-    handler: (this: Window, ev: WindowEventMap[keyof WindowEventMap]) => any;
+    handler: (this: Window, ev: WindowEventMap[keyof WindowEventMap]) => unknown;
     element?: Window | Document | HTMLElement;
     options?: boolean | AddEventListenerOptions;
   }>
@@ -100,3 +100,4 @@ export function useVisibilityListener(handler: () => void) {
 export function useBeforeUnloadListener(handler: (event: BeforeUnloadEvent) => void) {
   useEventListener('beforeunload', (event) => handler(event as BeforeUnloadEvent), window);
 }
+

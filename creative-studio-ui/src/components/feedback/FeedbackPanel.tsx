@@ -456,9 +456,10 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
     }
 
     // 3. Open URL in default browser
-    if (window.electronAPI?.openExternal) {
+    const electronAPI = window.electronAPI as { openExternal?: (url: string) => Promise<void> };
+    if (electronAPI?.openExternal) {
       // Use Electron API to open in external browser
-      await window.electronAPI.openExternal(githubUrl);
+      await electronAPI.openExternal(githubUrl);
     } else {
       // Fallback to window.open for web environment
       window.open(githubUrl, '_blank', 'noopener,noreferrer');
@@ -489,7 +490,7 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Help & Support</DialogTitle>
           <DialogDescription>
@@ -529,12 +530,12 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                 
                 {/* Progress Message */}
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-blue-800">
+                  <p className="text-sm font-medium text-blue-900">
                     {progressState.message}
                   </p>
                   
                   {/* Progress Steps */}
-                  <div className="mt-2 flex items-center gap-2 text-xs text-blue-600">
+                  <div className="mt-2 flex items-center gap-2 text-xs text-blue-800">
                     <span className={progressState.phase === 'collecting' ? 'font-semibold' : ''}>
                       {progressState.phase === 'collecting' ? '● ' : '✓ '}
                       Diagnostics
@@ -575,14 +576,14 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-red-800">
+                  <h3 className="text-sm font-medium text-red-900">
                     Submission Error
                   </h3>
-                  <p className="mt-1 text-sm text-red-700">
+                  <p className="mt-1 text-sm text-red-800">
                     {formState.error}
                   </p>
                   {formState.error.includes('Backend') && (
-                    <p className="mt-2 text-xs text-red-600">
+                    <p className="mt-2 text-xs text-red-800">
                       Tip: Try using Manual Mode to submit your report directly through GitHub.
                     </p>
                   )}
@@ -611,10 +612,10 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-semibold text-green-800">
+                  <h3 className="text-base font-semibold text-green-900">
                     Report Submitted Successfully!
                   </h3>
-                  <div className="mt-2 text-sm text-green-700">
+                  <div className="mt-2 text-sm text-green-800">
                     <p>
                       Your feedback has been submitted as GitHub issue{' '}
                       <a
@@ -679,8 +680,8 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
           </div>
 
           {/* Submission Mode Selection (Requirements: 1.3) */}
-          <div className="grid gap-3 p-4 border rounded-md bg-slate-50">
-            <Label className="text-base font-semibold">
+          <div className="grid gap-3 p-4 border rounded-md bg-slate-50 dark:bg-slate-800">
+            <Label className="text-base font-semibold text-foreground">
               Submission Mode
             </Label>
             <RadioGroup
@@ -694,11 +695,11 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                 <div className="flex-1">
                   <Label
                     htmlFor="mode-manual"
-                    className="font-medium cursor-pointer"
+                    className="font-medium cursor-pointer text-foreground"
                   >
                     Manual Mode
                   </Label>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                     Opens a pre-filled GitHub issue in your browser. You can review and edit before submitting.
                     The issue template will be copied to your clipboard.
                   </p>
@@ -711,11 +712,11 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                 <div className="flex-1">
                   <Label
                     htmlFor="mode-automatic"
-                    className="font-medium cursor-pointer"
+                    className="font-medium cursor-pointer text-foreground"
                   >
                     Automatic Mode
                   </Label>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                     Automatically creates a GitHub issue without opening your browser.
                     Requires backend service to be available.
                   </p>
@@ -726,17 +727,17 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
 
           {/* Description Field */}
           <div className="grid gap-2">
-            <Label htmlFor="description">
+            <Label htmlFor="description" className="text-foreground">
               Description <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="description"
               placeholder="Describe the issue, feature request, or question..."
-              className="min-h-[100px]"
+              className="min-h-[100px] text-foreground bg-background"
               value={formState.description}
               onChange={handleDescriptionChange}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Minimum 10 characters required
             </p>
             {validationErrors.description && (
@@ -746,17 +747,17 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
 
           {/* Reproduction Steps Field */}
           <div className="grid gap-2">
-            <Label htmlFor="reproduction-steps">
+            <Label htmlFor="reproduction-steps" className="text-foreground">
               Reproduction Steps (Optional)
             </Label>
             <Textarea
               id="reproduction-steps"
               placeholder="Steps to reproduce the issue (if applicable)..."
-              className="min-h-[80px]"
+              className="min-h-[80px] text-foreground bg-background"
               value={formState.reproductionSteps}
               onChange={handleReproductionStepsChange}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Help us understand how to reproduce the issue
             </p>
           </div>
@@ -772,6 +773,7 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                 <input
                   id="screenshot"
                   type="file"
+                  title="Upload screenshot"
                   accept="image/png,image/jpeg,image/jpg,image/gif"
                   onChange={handleScreenshotChange}
                   className="block w-full text-sm text-slate-500
@@ -787,7 +789,7 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="border rounded-md p-3 bg-slate-50">
+              <div className="border rounded-md p-3 bg-slate-50 dark:bg-slate-800">
                 {/* Screenshot Preview */}
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
@@ -800,10 +802,10 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                   
                   {/* File Information */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
                       {formState.screenshot.name}
                     </p>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
                       <span>{formatFileSize(formState.screenshot.size)}</span>
                       <span>•</span>
                       <span className="uppercase">
@@ -848,7 +850,7 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
                   onClose();
                   onOpenPendingReports();
                 }}
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                className="text-sm text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:underline"
               >
                 View pending reports
               </button>

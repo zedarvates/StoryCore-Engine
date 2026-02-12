@@ -20,7 +20,7 @@ export interface ErrorLogEntry {
   category: string;
   message: string;
   stack?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   recoverable: boolean;
   retryable: boolean;
   userMessage: string;
@@ -277,7 +277,7 @@ export class ErrorLogger {
    * @param details - Raw error details
    * @returns Sanitized details
    */
-  private sanitizeDetails(details?: Record<string, any>): Record<string, any> | undefined {
+  private sanitizeDetails(details?: Record<string, unknown>): Record<string, unknown> | undefined {
     if (!details) {
       return undefined;
     }
@@ -286,7 +286,7 @@ export class ErrorLogger {
       return details;
     }
 
-    const sanitized: Record<string, any> = {};
+    const sanitized: Record<string, unknown> = {};
     const sensitiveKeys = ['password', 'token', 'apiKey', 'secret', 'credential'];
 
     for (const [key, value] of Object.entries(details)) {
@@ -585,3 +585,4 @@ export function logWizardError(
   const logger = getErrorLogger();
   logger.logError(error, context);
 }
+

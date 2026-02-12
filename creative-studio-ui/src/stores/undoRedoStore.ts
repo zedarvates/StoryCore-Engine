@@ -42,8 +42,8 @@ export interface Operation {
     panelId: string;
     // Using 'any' for before/after state to support flexible operation data
     // that varies by operation type (transform, crop, layer operations, etc.)
-    before: any;
-    after: any;
+    before: unknown;
+    after: unknown;
   };
 }
 
@@ -254,8 +254,8 @@ export const createOperation = (
   description: string,
   panelId: string,
   // Using 'any' for before/after parameters to support any operation state type
-  before: any,
-  after: any
+  before: unknown,
+  after: unknown
 ): Operation => ({
   type,
   timestamp: Date.now(),
@@ -275,3 +275,5 @@ export const formatOperation = (operation: Operation): string => {
   const timeStr = date.toLocaleTimeString();
   return `${timeStr} - ${operation.description}`;
 };
+
+

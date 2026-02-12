@@ -63,7 +63,7 @@ export const CameraPresetControls: React.FC<CameraPresetControlsProps> = ({
   // Handle parameter modification
   const handleParameterChange = useCallback((
     param: keyof CameraPresetParameters,
-    value: any
+    value: unknown
   ) => {
     setCustomParameters((prev) => ({
       ...prev,
@@ -294,3 +294,4 @@ export const CameraPresetControls: React.FC<CameraPresetControlsProps> = ({
 };
 
 export default CameraPresetControls;
+

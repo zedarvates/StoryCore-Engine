@@ -126,7 +126,7 @@ export interface DataImportProps {
   /**
    * Callback when import is successful
    */
-  onImportSuccess?: (data: any) => void;
+  onImportSuccess?: (data: unknown) => void;
 
   /**
    * Callback when import fails
@@ -385,3 +385,4 @@ export function DataExportImportPanel({
     </div>
   );
 }
+

@@ -260,6 +260,28 @@ export function Step5ReviewExport() {
         </div>
       </div>
 
+      {/* Story Structure Info */}
+      {formData.parts && formData.parts.length > 0 && (
+        <div className="space-y-2">
+          <Label>LLM-Optimized File Structure</Label>
+          <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+            <p className="text-sm text-green-900 dark:text-green-100 mb-2">
+              Story will be saved as separate .md files for optimal LLM processing:
+            </p>
+            <div className="font-mono text-xs space-y-1 text-green-800 dark:text-green-200">
+              <div>story/</div>
+              <div className="pl-4">├── story-index.md <span className="text-muted-foreground"># Index & metadata</span></div>
+              <div className="pl-4">├── story-intro.md <span className="text-muted-foreground"># Introduction</span></div>
+              {formData.parts.filter((p: unknown) => p.type === 'chapter').map((part: unknown, i: number) => (
+                <div key={part.id} className="pl-4">├── story-chapter-{String(i + 1).padStart(2, '0')}.md <span className="text-muted-foreground"># {part.title}</span></div>
+              ))}
+              <div className="pl-4">├── story-ending.md <span className="text-muted-foreground"># Conclusion</span></div>
+              <div className="pl-4">└── story-summary.md <span className="text-muted-foreground"># Rolling summary</span></div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Export Options */}
       <div className="space-y-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
         <h3 className="font-semibold text-sm">Export Options</h3>
@@ -267,23 +289,15 @@ export function Step5ReviewExport() {
         {/* Format Selection */}
         <div className="space-y-2">
           <Label>File Format</Label>
-          <RadioGroup
-            value={exportOptions.format}
-            onValueChange={(value) => setExportOptions({ ...exportOptions, format: value as 'txt' | 'md' })}
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="md" id="format-md" />
-              <Label htmlFor="format-md" className="text-sm font-normal cursor-pointer">
-                Markdown (.md) - Formatted text with styling
-              </Label>
+          <div className="p-3 rounded bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-blue-900 dark:text-blue-100">Markdown (.md)</span>
+              <span className="text-xs text-blue-700 dark:text-blue-300">- LLM-optimized with YAML frontmatter</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="txt" id="format-txt" />
-              <Label htmlFor="format-txt" className="text-sm font-normal cursor-pointer">
-                Plain Text (.txt) - Simple text file
-              </Label>
-            </div>
-          </RadioGroup>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              Each part includes metadata for better LLM context understanding
+            </p>
+          </div>
         </div>
 
         {/* Filename */}
@@ -378,3 +392,4 @@ export function Step5ReviewExport() {
     </WizardFormLayout>
   );
 }
+

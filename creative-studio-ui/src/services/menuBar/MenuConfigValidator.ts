@@ -277,7 +277,7 @@ export class MenuConfigValidator {
    * Validate keyboard shortcut
    */
   private validateShortcut(
-    shortcut: any,
+    shortcut: unknown,
     menuId: string,
     itemId: string,
     path: string
@@ -476,3 +476,4 @@ export function validateAndGetConfig(config: MenuBarConfig): MenuBarConfig {
 
   return config;
 }
+

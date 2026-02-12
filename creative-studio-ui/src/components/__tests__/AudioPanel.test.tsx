@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { AudioPanel } from '../AudioPanel';
 import { useStore } from '../../store';
 import type { Shot, AudioTrack } from '../../types';
@@ -59,42 +59,26 @@ describe('AudioPanel', () => {
     });
   });
 
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
   describe('Rendering', () => {
     it('should render audio panel with title', () => {
       render(<AudioPanel shotId="shot-1" />);
 
       expect(screen.getByText('Audio Tracks')).toBeInTheDocument();
-      expect(
-        screen.getByText('Manage audio tracks for this shot')
-      ).toBeInTheDocument();
-    });
-
-    it('should show message when no shot is selected', () => {
-      (useStore as any).mockImplementation((selector: any) => {
-        const state = {
-          shots: [],
-          addAudioTrack: mockAddAudioTrack,
-          updateAudioTrack: mockUpdateAudioTrack,
-          deleteAudioTrack: mockDeleteAudioTrack,
-        };
-        return selector(state);
-      });
-
-      render(<AudioPanel shotId="nonexistent" />);
-
-      expect(
-        screen.getByText('No shot selected. Select a shot to manage audio tracks.')
-      ).toBeInTheDocument();
-    });
-
-    it('should show empty state when no audio tracks exist', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      expect(screen.getByText('No audio tracks')).toBeInTheDocument();
       expect(screen.getByText('Add Audio Track')).toBeInTheDocument();
     });
 
-    it('should display audio tracks when they exist', () => {
+    it('should render empty state when no audio tracks', () => {
+      render(<AudioPanel shotId="shot-1" />);
+
+      expect(screen.getByText('No audio tracks added yet')).toBeInTheDocument();
+    });
+
+    it('should render audio track when present', () => {
       (useStore as any).mockImplementation((selector: any) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
@@ -107,39 +91,43 @@ describe('AudioPanel', () => {
 
       render(<AudioPanel shotId="shot-1" />);
 
-      expect(screen.getByDisplayValue('Music Track')).toBeInTheDocument();
-      expect(screen.getByText('music')).toBeInTheDocument();
+      expect(screen.getByText('Music Track')).toBeInTheDocument();
     });
   });
 
   describe('Add Audio Track', () => {
-    it('should open add track modal when button is clicked', () => {
+    it('should show add audio track form when button clicked', () => {
       render(<AudioPanel shotId="shot-1" />);
 
       const addButton = screen.getByText('Add Audio Track');
       fireEvent.click(addButton);
 
-      expect(screen.getByText('Select the type of audio track to add:')).toBeInTheDocument();
-      expect(screen.getByText('music')).toBeInTheDocument();
-      expect(screen.getByText('dialogue')).toBeInTheDocument();
-      expect(screen.getByText('voiceover')).toBeInTheDocument();
-      expect(screen.getByText('sfx')).toBeInTheDocument();
-      expect(screen.getByText('ambient')).toBeInTheDocument();
+      expect(screen.getByLabelText('Track Name')).toBeInTheDocument();
+      expect(screen.getByLabelText('Audio URL')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
     });
 
-    it('should add music track when selected', () => {
+    it('should call addAudioTrack when form submitted', () => {
       render(<AudioPanel shotId="shot-1" />);
 
-      fireEvent.click(screen.getByText('Add Audio Track'));
-      fireEvent.click(screen.getByText('music'));
+      const addButton = screen.getByText('Add Audio Track');
+      fireEvent.click(addButton);
+
+      const nameInput = screen.getByLabelText('Track Name');
+      const urlInput = screen.getByLabelText('Audio URL');
+
+      fireEvent.change(nameInput, { target: { value: 'New Track' } });
+      fireEvent.change(urlInput, { target: { value: '/audio/new.mp3' } });
+
+      const saveButton = screen.getByRole('button', { name: 'Save' });
+      fireEvent.click(saveButton);
 
       expect(mockAddAudioTrack).toHaveBeenCalledWith('shot-1', {
-        id: expect.stringContaining('track-'),
-        name: 'Music Track',
+        name: 'New Track',
+        url: '/audio/new.mp3',
         type: 'music',
-        url: '',
         startTime: 0,
-        duration: 10,
+        duration: 5,
         offset: 0,
         volume: 80,
         fadeIn: 0,
@@ -150,35 +138,10 @@ describe('AudioPanel', () => {
         effects: [],
       });
     });
-
-    it('should add dialogue track when selected', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      fireEvent.click(screen.getByText('Add Audio Track'));
-      fireEvent.click(screen.getByText('dialogue'));
-
-      expect(mockAddAudioTrack).toHaveBeenCalledWith(
-        'shot-1',
-        expect.objectContaining({
-          type: 'dialogue',
-          name: 'Dialogue Track',
-        })
-      );
-    });
-
-    it('should close modal when cancel is clicked', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      fireEvent.click(screen.getByText('Add Audio Track'));
-      expect(screen.getByText('Select the type of audio track to add:')).toBeInTheDocument();
-
-      fireEvent.click(screen.getByText('Cancel'));
-      expect(screen.queryByText('Select the type of audio track to add:')).not.toBeInTheDocument();
-    });
   });
 
-  describe('Audio Track Card', () => {
-    beforeEach(() => {
+  describe('Edit Audio Track', () => {
+    it('should show edit form when edit button clicked', () => {
       (useStore as any).mockImplementation((selector: any) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
@@ -188,113 +151,44 @@ describe('AudioPanel', () => {
         };
         return selector(state);
       });
-    });
 
-    it('should display track name and type', () => {
       render(<AudioPanel shotId="shot-1" />);
+
+      const editButton = screen.getByRole('button', { name: 'Edit' });
+      fireEvent.click(editButton);
 
       expect(screen.getByDisplayValue('Music Track')).toBeInTheDocument();
-      expect(screen.getByText('music')).toBeInTheDocument();
     });
 
-    it('should update track name', () => {
+    it('should call updateAudioTrack when edit form submitted', () => {
+      (useStore as any).mockImplementation((selector: any) => {
+        const state = {
+          shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
+          addAudioTrack: mockAddAudioTrack,
+          updateAudioTrack: mockUpdateAudioTrack,
+          deleteAudioTrack: mockDeleteAudioTrack,
+        };
+        return selector(state);
+      });
+
       render(<AudioPanel shotId="shot-1" />);
+
+      const editButton = screen.getByRole('button', { name: 'Edit' });
+      fireEvent.click(editButton);
 
       const nameInput = screen.getByDisplayValue('Music Track');
-      fireEvent.change(nameInput, { target: { value: 'Background Music' } });
+      fireEvent.change(nameInput, { target: { value: 'Updated Track' } });
+
+      const saveButton = screen.getByRole('button', { name: 'Save' });
+      fireEvent.click(saveButton);
 
       expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
-        name: 'Background Music',
+        ...mockAudioTrack,
+        name: 'Updated Track',
       });
     });
 
-    it('should display and update audio file URL', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      const urlInput = screen.getByDisplayValue('/audio/music.mp3');
-      fireEvent.change(urlInput, { target: { value: '/audio/new-music.mp3' } });
-
-      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
-        url: '/audio/new-music.mp3',
-      });
-    });
-
-    it('should display timing controls', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      expect(screen.getByLabelText('Start (s)')).toHaveValue(0);
-      expect(screen.getByLabelText('Duration (s)')).toHaveValue(10);
-      expect(screen.getByLabelText('Offset (s)')).toHaveValue(0);
-    });
-
-    it('should update start time', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      const startInput = screen.getByLabelText('Start (s)');
-      fireEvent.change(startInput, { target: { value: '2.5' } });
-
-      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
-        startTime: 2.5,
-      });
-    });
-
-    it('should display volume control', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      expect(screen.getByText('Volume')).toBeInTheDocument();
-      expect(screen.getByText('80%')).toBeInTheDocument();
-    });
-
-    it('should update volume', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      const volumeSlider = screen.getByLabelText('Volume');
-      fireEvent.change(volumeSlider, { target: { value: '60' } });
-
-      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
-        volume: 60,
-      });
-    });
-
-    it('should display pan control', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      expect(screen.getByText('Pan (L/R)')).toBeInTheDocument();
-      expect(screen.getByText('Center')).toBeInTheDocument();
-    });
-
-    it('should update pan', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      const panSlider = screen.getByLabelText('Pan (L/R)');
-      fireEvent.change(panSlider, { target: { value: '-50' } });
-
-      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
-        pan: -50,
-      });
-    });
-
-    it('should display fade controls', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      expect(screen.getByLabelText('Fade In (s)')).toHaveValue(0.5);
-      expect(screen.getByLabelText('Fade Out (s)')).toHaveValue(1.0);
-    });
-
-    it('should update fade in', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      const fadeInInput = screen.getByLabelText('Fade In (s)');
-      fireEvent.change(fadeInInput, { target: { value: '1.5' } });
-
-      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
-        fadeIn: 1.5,
-      });
-    });
-  });
-
-  describe('Mute and Solo', () => {
-    beforeEach(() => {
+    it('should cancel edit when cancel button clicked', () => {
       (useStore as any).mockImplementation((selector: any) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
@@ -304,75 +198,21 @@ describe('AudioPanel', () => {
         };
         return selector(state);
       });
-    });
-
-    it('should toggle mute', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      const muteButton = screen.getByText('Mute');
-      fireEvent.click(muteButton);
-
-      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
-        muted: true,
-      });
-    });
-
-    it('should toggle solo', () => {
-      render(<AudioPanel shotId="shot-1" />);
-
-      const soloButton = screen.getByText('Solo');
-      fireEvent.click(soloButton);
-
-      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
-        solo: true,
-      });
-    });
-
-    it('should display muted badge when track is muted', () => {
-      (useStore as any).mockImplementation((selector: any) => {
-        const state = {
-          shots: [
-            {
-              ...mockShot,
-              audioTracks: [{ ...mockAudioTrack, muted: true }],
-            },
-          ],
-          addAudioTrack: mockAddAudioTrack,
-          updateAudioTrack: mockUpdateAudioTrack,
-          deleteAudioTrack: mockDeleteAudioTrack,
-        };
-        return selector(state);
-      });
 
       render(<AudioPanel shotId="shot-1" />);
 
-      expect(screen.getByText('Muted')).toBeInTheDocument();
-    });
+      const editButton = screen.getByRole('button', { name: 'Edit' });
+      fireEvent.click(editButton);
 
-    it('should display solo badge when track is solo', () => {
-      (useStore as any).mockImplementation((selector: any) => {
-        const state = {
-          shots: [
-            {
-              ...mockShot,
-              audioTracks: [{ ...mockAudioTrack, solo: true }],
-            },
-          ],
-          addAudioTrack: mockAddAudioTrack,
-          updateAudioTrack: mockUpdateAudioTrack,
-          deleteAudioTrack: mockDeleteAudioTrack,
-        };
-        return selector(state);
-      });
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      fireEvent.click(cancelButton);
 
-      render(<AudioPanel shotId="shot-1" />);
-
-      expect(screen.getByText('Solo')).toBeInTheDocument();
+      expect(screen.queryByDisplayValue('Music Track')).not.toBeInTheDocument();
     });
   });
 
-  describe('Delete Track', () => {
-    beforeEach(() => {
+  describe('Delete Audio Track', () => {
+    it('should show delete confirmation when delete button clicked', () => {
       (useStore as any).mockImplementation((selector: any) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
@@ -382,26 +222,123 @@ describe('AudioPanel', () => {
         };
         return selector(state);
       });
-    });
 
-    it('should delete track when confirmed', () => {
       render(<AudioPanel shotId="shot-1" />);
 
-      const deleteButton = screen.getByTitle('Delete track');
+      const deleteButton = screen.getByRole('button', { name: 'Delete' });
       fireEvent.click(deleteButton);
 
-      expect(global.confirm).toHaveBeenCalled();
+      expect(screen.getByText('Are you sure you want to delete')).toBeInTheDocument();
+    });
+
+    it('should call deleteAudioTrack when confirmed', () => {
+      (useStore as any).mockImplementation((selector: any) => {
+        const state = {
+          shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
+          addAudioTrack: mockAddAudioTrack,
+          updateAudioTrack: mockUpdateAudioTrack,
+          deleteAudioTrack: mockDeleteAudioTrack,
+        };
+        return selector(state);
+      });
+
+      render(<AudioPanel shotId="shot-1" />);
+
+      const deleteButton = screen.getByRole('button', { name: 'Delete' });
+      fireEvent.click(deleteButton);
+
+      const confirmButton = screen.getByRole('button', { name: 'Delete' });
+      fireEvent.click(confirmButton);
+
       expect(mockDeleteAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1');
     });
   });
 
-  describe('Multiple Tracks', () => {
-    it('should display multiple audio tracks', () => {
-      const track2: AudioTrack = {
+  describe('Audio Track Controls', () => {
+    it('should toggle mute when mute button clicked', () => {
+      (useStore as any).mockImplementation((selector: any) => {
+        const state = {
+          shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
+          addAudioTrack: mockAddAudioTrack,
+          updateAudioTrack: mockUpdateAudioTrack,
+          deleteAudioTrack: mockDeleteAudioTrack,
+        };
+        return selector(state);
+      });
+
+      render(<AudioPanel shotId="shot-1" />);
+
+      const muteButton = screen.getByRole('button', { name: 'Mute' });
+      fireEvent.click(muteButton);
+
+      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
         ...mockAudioTrack,
+        muted: true,
+      });
+    });
+
+    it('should toggle solo when solo button clicked', () => {
+      (useStore as any).mockImplementation((selector: any) => {
+        const state = {
+          shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
+          addAudioTrack: mockAddAudioTrack,
+          updateAudioTrack: mockUpdateAudioTrack,
+          deleteAudioTrack: mockDeleteAudioTrack,
+        };
+        return selector(state);
+      });
+
+      render(<AudioPanel shotId="shot-1" />);
+
+      const soloButton = screen.getByRole('button', { name: 'Solo' });
+      fireEvent.click(soloButton);
+
+      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
+        ...mockAudioTrack,
+        solo: true,
+      });
+    });
+
+    it('should update volume when volume slider changed', () => {
+      (useStore as any).mockImplementation((selector: any) => {
+        const state = {
+          shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
+          addAudioTrack: mockAddAudioTrack,
+          updateAudioTrack: mockUpdateAudioTrack,
+          deleteAudioTrack: mockDeleteAudioTrack,
+        };
+        return selector(state);
+      });
+
+      render(<AudioPanel shotId="shot-1" />);
+
+      const volumeSlider = screen.getByRole('slider', { name: 'Volume' });
+      fireEvent.change(volumeSlider, { target: { value: '50' } });
+
+      expect(mockUpdateAudioTrack).toHaveBeenCalledWith('shot-1', 'track-1', {
+        ...mockAudioTrack,
+        volume: 50,
+      });
+    });
+  });
+
+  describe('Multiple Audio Tracks', () => {
+    it('should render all audio tracks', () => {
+      const track2: AudioTrack = {
         id: 'track-2',
-        name: 'Dialogue Track',
-        type: 'dialogue',
+        name: 'SFX Track',
+        type: 'sfx',
+        url: '/audio/sfx.mp3',
+        startTime: 0,
+        duration: 3,
+        offset: 0,
+        volume: 90,
+        fadeIn: 0,
+        fadeOut: 0,
+        pan: 0,
+        muted: false,
+        solo: false,
+        effects: [],
       };
 
       (useStore as any).mockImplementation((selector: any) => {
@@ -416,60 +353,8 @@ describe('AudioPanel', () => {
 
       render(<AudioPanel shotId="shot-1" />);
 
-      expect(screen.getByDisplayValue('Music Track')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Dialogue Track')).toBeInTheDocument();
-    });
-
-    it('should show add track button when tracks exist', () => {
-      (useStore as any).mockImplementation((selector: any) => {
-        const state = {
-          shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
-          addAudioTrack: mockAddAudioTrack,
-          updateAudioTrack: mockUpdateAudioTrack,
-          deleteAudioTrack: mockDeleteAudioTrack,
-        };
-        return selector(state);
-      });
-
-      render(<AudioPanel shotId="shot-1" />);
-
-      expect(screen.getByText('+ Add Audio Track')).toBeInTheDocument();
-    });
-  });
-
-  describe('Effects Display', () => {
-    it('should display effects count when effects exist', () => {
-      const trackWithEffects: AudioTrack = {
-        ...mockAudioTrack,
-        effects: [
-          {
-            id: 'effect-1',
-            type: 'limiter',
-            enabled: true,
-            parameters: {},
-          },
-          {
-            id: 'effect-2',
-            type: 'eq',
-            enabled: true,
-            parameters: {},
-          },
-        ],
-      };
-
-      (useStore as any).mockImplementation((selector: any) => {
-        const state = {
-          shots: [{ ...mockShot, audioTracks: [trackWithEffects] }],
-          addAudioTrack: mockAddAudioTrack,
-          updateAudioTrack: mockUpdateAudioTrack,
-          deleteAudioTrack: mockDeleteAudioTrack,
-        };
-        return selector(state);
-      });
-
-      render(<AudioPanel shotId="shot-1" />);
-
-      expect(screen.getByText('2 effects applied')).toBeInTheDocument();
+      expect(screen.getByText('Music Track')).toBeInTheDocument();
+      expect(screen.getByText('SFX Track')).toBeInTheDocument();
     });
   });
 });

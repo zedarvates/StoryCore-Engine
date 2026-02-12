@@ -41,9 +41,10 @@ vi.mock('@/services/assetLibraryService', () => ({
     })),
   },
   ASSET_CATEGORIES: [
-    { id: 'image', name: 'Images' },
-    { id: 'audio', name: 'Audio' },
-    { id: 'video', name: 'Video' },
+    { id: 'all', name: 'All', filter: () => true },
+    { id: 'image', name: 'Images', filter: (asset) => asset.type === 'image' },
+    { id: 'audio', name: 'Audio', filter: (asset) => asset.type === 'audio' },
+    { id: 'video', name: 'Video', filter: (asset) => asset.type === 'video' },
   ],
 }));
 

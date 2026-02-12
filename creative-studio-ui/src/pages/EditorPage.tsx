@@ -29,7 +29,7 @@ export function EditorPage({ sequenceId, onBackToDashboard }: EditorPageProps) {
   const { projectPath } = useEditorStore();
 
   // Handle generation completion
-  const handleGenerationComplete = (asset: any) => {
+  const handleGenerationComplete = (asset: unknown) => {
     console.log('[EditorPage] Generation completed:', asset);
     // Asset will be automatically saved by the generation services
     // and integrated into the project
@@ -43,3 +43,4 @@ export function EditorPage({ sequenceId, onBackToDashboard }: EditorPageProps) {
     </EditorLayout>
   );
 }
+

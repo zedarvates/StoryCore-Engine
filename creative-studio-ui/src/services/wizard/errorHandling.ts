@@ -27,7 +27,7 @@ export interface ErrorContext {
   service?: string;
   endpoint?: string;
   operation?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 /**
@@ -394,3 +394,4 @@ export function isErrorActionable(error: WizardError): boolean {
   const template = generateErrorMessage(error);
   return template.actionable;
 }
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FolderPlus, Loader2, Film, Tv, Video, Clock, AlertCircle, RefreshCw } from 'lucide-react';
+import { FolderPlus, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -127,22 +127,6 @@ const PROJECT_FORMATS: ProjectFormat[] = [
     description: '11 sequences of 2 minutes each',
   },
 ];
-
-// Helper function to get icon component from type
-const getIconComponent = (iconType: 'film' | 'tv' | 'video' | 'clock') => {
-  switch (iconType) {
-    case 'film':
-      return <Film className="w-5 h-5" />;
-    case 'tv':
-      return <Tv className="w-5 h-5" />;
-    case 'video':
-      return <Video className="w-5 h-5" />;
-    case 'clock':
-      return <Clock className="w-5 h-5" />;
-    default:
-      return <Film className="w-5 h-5" />;
-  }
-};
 
 // Helper function to convert format to serializable format
 const toSerializableFormat = (format: ProjectFormat): SerializableProjectFormat => {
@@ -588,94 +572,6 @@ export function CreateProjectDialog({
               {errors.projectPath && (
                 <p className="text-sm text-red-400">{errors.projectPath}</p>
               )}
-            </div>
-
-            {/* Format Selection */}
-            <div className="space-y-3">
-              <Label className="text-gray-200">
-                Format * <span className="text-gray-500 text-sm font-normal">(Durée moyenne)</span>
-              </Label>
-              <div className="grid grid-cols-1 gap-3">
-                {PROJECT_FORMATS.map((format) => (
-                  <button
-                    key={format.id}
-                    type="button"
-                    onClick={() => setSelectedFormat(format)}
-                    disabled={isCreating}
-                    className={`
-                      relative flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left
-                      ${
-                        selectedFormat.id === format.id
-                          ? 'border-blue-500 bg-blue-500/10'
-                          : 'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'
-                      }
-                      ${isCreating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                    `}
-                  >
-                    {/* Radio indicator */}
-                    <div
-                      className={`
-                        flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center
-                        ${
-                          selectedFormat.id === format.id
-                            ? 'border-blue-500 bg-blue-500'
-                            : 'border-gray-600'
-                        }
-                      `}
-                    >
-                      {selectedFormat.id === format.id && (
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                      )}
-                    </div>
-
-                    {/* Icon */}
-                    <div
-                      className={`
-                        flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg
-                        ${
-                          selectedFormat.id === format.id
-                            ? 'bg-blue-500/20 text-blue-400'
-                            : 'bg-gray-700 text-gray-400'
-                        }
-                      `}
-                    >
-                      {getIconComponent(format.iconType)}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className={`font-semibold ${
-                            selectedFormat.id === format.id ? 'text-white' : 'text-gray-200'
-                          }`}
-                        >
-                          {format.name}
-                        </span>
-                        <span className="text-sm text-gray-400">{format.duration}</span>
-                      </div>
-                      <p className="text-sm text-gray-500">{format.description}</p>
-                    </div>
-
-                    {/* Checkmark */}
-                    {selectedFormat.id === format.id && (
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-white"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Project Structure Info */}

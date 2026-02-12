@@ -32,7 +32,7 @@ export interface SystemInfo {
  */
 export interface ModuleContext {
   active_module: string;
-  module_state: Record<string, any>;
+  module_state: Record<string, unknown>;
 }
 
 /**
@@ -50,7 +50,7 @@ export interface Diagnostics {
   stacktrace: string | null;
   logs: string[];
   memory_usage_mb: number;
-  process_state: Record<string, any>;
+  process_state: Record<string, unknown>;
 }
 
 /**
@@ -134,3 +134,4 @@ export interface PendingReportsListProps {
   isOpen: boolean;
   onClose: () => void;
 }
+

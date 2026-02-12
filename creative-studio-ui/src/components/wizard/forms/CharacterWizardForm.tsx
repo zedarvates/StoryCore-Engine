@@ -103,7 +103,7 @@ export function CharacterWizardForm({
     return Object.keys(newErrors).length === 0;
   }, [formData]);
 
-  const handleFieldChange = useCallback((field: string, value: any) => {
+  const handleFieldChange = useCallback((field: string, value: unknown) => {
     setFormData(prev => {
       const updated = { ...prev };
       
@@ -293,3 +293,4 @@ export function CharacterWizardForm({
     </form>
   );
 }
+

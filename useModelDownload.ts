@@ -66,6 +66,13 @@ export const useModelDownload = (): UseModelDownloadReturn => {
       url: 'https://huggingface.co/ostris/flux2_berthe_morisot/resolve/main/flux2_berthe_morisot.safetensors',
       subfolder: 'loras',
       size: 100
+    },
+    {
+      name: 'BEYOND REALITY SUPER Z IMAGE 3.0',
+      filename: 'beyond_reality_super_z_image_3.0_bf16.safetensors',
+      url: 'https://huggingface.co/mingyi456/BEYOND_REALITY_Z_IMAGE-DF11-ComfyUI/resolve/main/BEYOND%20REALITY%20SUPER%20Z%20IMAGE%203.0%20%E6%B7%A1%E5%A6%86%E6%B5%93%E6%8A%B9%20BF16-DF11.safetensors',
+      subfolder: 'checkpoints',
+      size: 5500
     }
   ];
 

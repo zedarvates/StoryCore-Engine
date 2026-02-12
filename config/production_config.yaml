@@ -76,6 +76,13 @@ security:
   auth:
     enabled: true
     jwt_secret: "${JWT_SECRET}"  # Load from environment variable
+  cors:
+    enabled: true
+    # Configure via CORS_ALLOWED_ORIGINS environment variable
+    # Comma-separated list of allowed origins for production
+    # Example: "https://storycore.com,https://app.storycore.com"
+    # Set to "*" only for development (NOT recommended for production)
+    origins_env_var: "CORS_ALLOWED_ORIGINS"
 
 # Configuration des performances
 performance:

@@ -56,7 +56,7 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
   const dispatch = useAppDispatch();
 
   // Calculate drop position from mouse coordinates
-  const getDropPosition = useCallback((monitor: any): number => {
+  const getDropPosition = useCallback((monitor: unknown): number => {
     const clientOffset = monitor.getClientOffset();
     if (!clientOffset) return 0;
 
@@ -73,7 +73,7 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
   }, [zoomLevel]);
 
   // Handle asset drop
-  const handleDrop = useCallback((item: DraggedAssetItem, monitor: any) => {
+  const handleDrop = useCallback((item: DraggedAssetItem, monitor: unknown) => {
     const dropPosition = getDropPosition(monitor);
     
     // Support multi-select in the future by wrapping single asset in array
@@ -208,3 +208,4 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
 };
 
 export default TimelineDropTarget;
+

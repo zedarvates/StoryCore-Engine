@@ -15,7 +15,7 @@ export interface ConnectionStatus {
   endpoint: string;
   error?: string;
   latency?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -36,14 +36,14 @@ export interface WizardErrorDetails {
   service?: string;
   endpoint?: string;
   originalError?: Error;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 export class WizardError extends Error {
   public readonly category: WizardErrorCategory;
   public readonly recoverable: boolean;
   public readonly retryable: boolean;
-  public readonly details?: Record<string, any>;
+  public readonly details?: Record<string, unknown>;
   public readonly timestamp: Date;
 
   constructor(
@@ -51,7 +51,7 @@ export class WizardError extends Error {
     category: WizardErrorCategory,
     recoverable: boolean = true,
     retryable: boolean = true,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'WizardError';
@@ -98,7 +98,7 @@ export class WizardError extends Error {
   /**
    * Convert to JSON for logging
    */
-  toJSON(): Record<string, any> {
+  toJSON(): Record<string, unknown> {
     return {
       name: this.name,
       message: this.message,
@@ -138,12 +138,12 @@ export interface WizardMetadata {
   generationSeed?: number;
   modelUsed?: string;
   processingTime?: number;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 export interface WizardOutput {
   type: WizardType;
-  data: any;
+  data: unknown;
   files: GeneratedFile[];
   metadata: WizardMetadata;
 }
@@ -228,14 +228,14 @@ export interface OllamaResponse {
 }
 
 export interface ComfyUIRequest {
-  prompt: Record<string, any>;
+  prompt: Record<string, unknown>;
   client_id: string;
 }
 
 export interface ComfyUIResponse {
   prompt_id: string;
   number: number;
-  node_errors: Record<string, any>;
+  node_errors: Record<string, unknown>;
 }
 
 export interface ComfyUIImageOutput {
@@ -252,7 +252,7 @@ export interface WizardState {
   wizardId: string;
   currentStep: number;
   totalSteps: number;
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
   connectionStatus: {
     ollama: ConnectionStatus;
     comfyui: ConnectionStatus;
@@ -265,7 +265,7 @@ export interface WizardState {
   };
   preservedData?: {
     timestamp: string;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
   };
 }
 
@@ -278,7 +278,7 @@ export interface LogEntry {
   level: 'debug' | 'info' | 'warn' | 'error';
   category: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   error?: Error | WizardError;
 }
 
@@ -288,3 +288,5 @@ export interface LogFilter {
   startTime?: Date;
   endTime?: Date;
 }
+
+

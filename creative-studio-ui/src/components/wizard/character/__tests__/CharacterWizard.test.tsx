@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, within, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CharacterWizard } from '../CharacterWizard';
 import type { Character } from '@/types/character';
@@ -16,6 +16,11 @@ describe('CharacterWizard - Comprehensive Tests', () => {
     onComplete = vi.fn();
     onCancel = vi.fn();
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
   });
 
   describe('Step 1: Basic Identity', () => {

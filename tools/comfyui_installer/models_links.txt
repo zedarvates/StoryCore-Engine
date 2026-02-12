@@ -32,6 +32,14 @@ https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/resolve/main/ae.safeten
 https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/t5xxl_fp16.safetensors
 
 # =============================================================================
+# BEYOND REALITY SUPER Z IMAGE 3.0 (Fast Portraits - NEW!)
+# =============================================================================
+
+# BEYOND REALITY SUPER Z IMAGE 3.0 (Fast portrait generation, ~5.5GB)
+# Optimized for quick, high-quality portraits
+https://huggingface.co/mingyi456/BEYOND_REALITY_Z_IMAGE-DF11-ComfyUI/resolve/main/BEYOND%20REALITY%20SUPER%20Z%20IMAGE%203.0%20%E6%B7%A1%E5%A6%86%E6%B5%93%E6%8A%B9%20BF16-DF11.safetensors
+
+# =============================================================================
 # LoRA MODELS (Style enhancements)
 # =============================================================================
 

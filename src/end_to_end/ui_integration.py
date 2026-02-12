@@ -9,11 +9,11 @@ import logging
 from typing import Optional, Callable, Dict, Any
 from pathlib import Path
 
-from .connection_manager import ConnectionManager
-from .model_manager import ModelManager, DownloadProgress
-from .workflow_manager import WorkflowManager
-from .generation_engine import GenerationEngine, GenerationProgress
-from .data_models import ComfyUIStatus
+from src.end_to_end.connection_manager import ConnectionManager
+from src.end_to_end.model_manager import ModelManager, DownloadProgress
+from src.end_to_end.workflow_manager import WorkflowManager
+from src.end_to_end.generation_engine import GenerationEngine, GenerationProgress
+from src.end_to_end.data_models import ComfyUIStatus
 
 logger = logging.getLogger(__name__)
 

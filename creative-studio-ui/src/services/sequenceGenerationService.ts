@@ -44,7 +44,7 @@ export type StageProgressCallback = (status: GenerationStatus) => void;
 /**
  * Stage completion callback
  */
-export type StageCompleteCallback = (stage: PipelineStage, result: any) => void;
+export type StageCompleteCallback = (stage: PipelineStage, result: unknown) => void;
 
 /**
  * Error callback
@@ -795,4 +795,5 @@ export class SequenceGenerationService {
  * Default sequence generation service instance
  */
 export const sequenceGenerationService = new SequenceGenerationService();
+
 

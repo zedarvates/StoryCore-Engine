@@ -373,7 +373,7 @@ class AIScriptAnalysisService extends EventEmitter {
    * Import analysis results
    */
   async importAnalysis(data: string, format: 'json' | 'xml' = 'json'): Promise<ScriptAnalysis> {
-    let analysisData: any;
+    let analysisData: unknown;
 
     if (format === 'json') {
       analysisData = JSON.parse(data);
@@ -668,7 +668,7 @@ class AIScriptAnalysisService extends EventEmitter {
       const saved = localStorage.getItem('ai_script_analyses');
       if (saved) {
         const analyses = JSON.parse(saved);
-        analyses.forEach((analysis: any) => {
+        analyses.forEach((analysis: unknown) => {
           this.analyses.set(analysis.id, {
             ...analysis,
             createdAt: new Date(analysis.createdAt),
@@ -701,7 +701,7 @@ class AIScriptAnalysisService extends EventEmitter {
 </script_analysis>`;
   }
 
-  private parseXML(xml: string): any {
+  private parseXML(xml: string): unknown {
     throw new Error('XML parsing not implemented');
   }
 }
@@ -753,3 +753,5 @@ export type {
   StoryStructure, ScriptMetrics, ScriptAnalysisConfig, CharacterSummary, SceneSummary,
   DialogueSummary, Recommendation 
 };
+
+

@@ -88,7 +88,7 @@ export function InstanceEditorDialog({
   }, [isOpen, instance]);
 
   // Handle input changes
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -466,3 +466,4 @@ export function InstanceEditorDialog({
     </div>
   );
 }
+

@@ -27,7 +27,7 @@ export interface WizardContextState<T> {
   
   // Actions
   goToStep: (step: number) => void;
-  nextStep: () => void;
+  nextStep: () => Promise<void>;
   previousStep: () => void;
   updateFormData: (data: Partial<T>) => void;
   setValidationErrors: (errors: Record<string, string[]>) => void;
@@ -79,6 +79,25 @@ export function WizardProvider<T>({
   const [isDirty, setIsDirty] = useState(false);
   const [isManualMode, setIsManualMode] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // ============================================================================
+  // Validation - MUST be defined BEFORE nextStep
+  // ============================================================================
+
+  const validateStep = useCallback(async (step: number, data?: Partial<T>): Promise<boolean> => {
+    // Use provided data or fall back to current formData from closure
+    const dataToValidate = data || formData;
+    if (!onValidateStep) return true;
+
+    try {
+      const errors = await onValidateStep(step, dataToValidate);
+      setValidationErrors(errors);
+      return Object.keys(errors).length === 0;
+    } catch (error) {
+      console.error('Validation error:', error);
+      return false;
+    }
+  }, [formData, onValidateStep]);
 
   // ============================================================================
   // Auto-save to localStorage
@@ -151,6 +170,11 @@ export function WizardProvider<T>({
     };
   }, [formData, autoSave, autoSaveDelay, isDirty, saveProgress]);
 
+  // Reset validation errors when wizard first loads
+  useEffect(() => {
+    setValidationErrors({});
+  }, [wizardType]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -169,11 +193,13 @@ export function WizardProvider<T>({
     setCurrentStep(step);
   }, [totalSteps]);
 
-  const nextStep = useCallback(() => {
-    if (currentStep < totalSteps) {
+  const nextStep = useCallback(async () => {
+    // Validate current step before proceeding
+    const isValid = await validateStep(currentStep);
+    if (isValid && currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
-  }, [currentStep, totalSteps]);
+  }, [currentStep, totalSteps, validateStep]);
 
   const previousStep = useCallback(() => {
     if (currentStep > 1) {
@@ -185,11 +211,22 @@ export function WizardProvider<T>({
   // Form Data Actions
   // ============================================================================
 
+  // Auto-validate when form data changes
+  useEffect(() => {
+    if (!onValidateStep || isDirty) return;
+    
+    // Only auto-validate for steps 1, 4, 5 which have validation requirements
+    // Skip for steps 2 and 3 which are optional
+    if (currentStep === 2 || currentStep === 3) return;
+    
+    validateStep(currentStep);
+  }, [formData, currentStep, onValidateStep, validateStep, isDirty]);
+
   const updateFormData = useCallback((data: Partial<T>) => {
     setFormData((prev) => ({ ...prev, ...data }));
     setIsDirty(true);
     
-    // Clear validation errors for updated fields
+    // Immediately clear validation errors for updated fields (sync operation)
     const updatedFields = Object.keys(data);
     setValidationErrors((prev) => {
       const newErrors = { ...prev };
@@ -198,24 +235,15 @@ export function WizardProvider<T>({
       });
       return newErrors;
     });
-  }, []);
-
-  // ============================================================================
-  // Validation
-  // ============================================================================
-
-  const validateStep = useCallback(async (step: number): Promise<boolean> => {
-    if (!onValidateStep) return true;
-
-    try {
-      const errors = await onValidateStep(step, formData);
-      setValidationErrors(errors);
-      return Object.keys(errors).length === 0;
-    } catch (error) {
-      console.error('Validation error:', error);
-      return false;
+    
+    // For immediate feedback, validate with the merged data
+    if (onValidateStep) {
+      // Use setTimeout to ensure we have the latest formData
+      setTimeout(() => {
+        validateStep(currentStep, { ...formData, ...data });
+      }, 0);
     }
-  }, [formData, onValidateStep]);
+  }, [currentStep, onValidateStep, validateStep, formData]);
 
   // ============================================================================
   // Submission
@@ -331,3 +359,4 @@ export function useWizard<T>(): WizardContextState<T> {
   
   return context as WizardContextState<T>;
 }
+

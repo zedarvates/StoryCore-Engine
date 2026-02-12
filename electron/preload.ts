@@ -166,6 +166,9 @@ const electronAPI: ElectronAPI = {
     showDevTools: () => {
       ipcRenderer.send('app:show-devtools');
     },
+    openFolder: async (path: string) => {
+      ipcRenderer.send('app:open-folder', path);
+    },
   },
 
   // File system operations
@@ -220,6 +223,13 @@ const electronAPI: ElectronAPI = {
 
   // Dialogs
   dialog: {
+    showOpenDialog: async (options: Electron.OpenDialogOptions) => {
+      const result = await ipcRenderer.invoke('dialog:show-open', options);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to show open dialog');
+      }
+      return result.result;
+    },
     showSaveDialog: async (options: Electron.SaveDialogOptions) => {
       const result = await ipcRenderer.invoke('dialog:show-save', options);
       if (!result.success) {

@@ -7,8 +7,8 @@ export interface ProjectData {
   name: string;
   location?: string;
   template?: string;
-  format?: any;
-  initialShots?: any[];
+  format?: Record<string, unknown>;
+  initialShots?: Record<string, unknown>[];
 }
 
 export interface Project {
@@ -18,7 +18,7 @@ export interface Project {
   version: string;
   createdAt: Date;
   modifiedAt: Date;
-  config: any;
+  config: Record<string, unknown>;
 }
 
 export interface RecentProject {
@@ -101,7 +101,7 @@ export interface ValidationResult {
     message: string;
     path?: string;
   }>;
-  config?: any;
+  config?: Record<string, unknown>;
 }
 
 export interface DirectoryItem {
@@ -149,14 +149,14 @@ export interface StoryCoreElectronAPI {
     validate: (path: string) => Promise<ValidationResult>;
     selectDirectory: () => Promise<string | null>;
     listDirectory: (path: string) => Promise<DirectoryItem[]>;
-    updateMetadata: (path: string, metadata: Record<string, any>) => Promise<Project>;
+    updateMetadata: (path: string, metadata: Record<string, unknown>) => Promise<Project>;
   };
 
   // Sequence management
   sequence: {
-    updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, any>) => Promise<any>;
-    getShots: (projectPath: string, sequenceId: string) => Promise<any[]>;
-    getAll: (projectPath: string) => Promise<any[]>;
+    updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, unknown>) => Promise<unknown>;
+    getShots: (projectPath: string, sequenceId: string) => Promise<unknown[]>;
+    getAll: (projectPath: string) => Promise<unknown[]>;
   };
 
   // Recent projects management
@@ -215,31 +215,31 @@ export interface StoryCoreElectronAPI {
 
   // LLM integration
   llm: {
-    getConfig: () => Promise<any>;
-    updateConfig: (config: any) => Promise<any>;
-    testConnection: (provider: any) => Promise<{ success: boolean; message: string }>;
-    getModels: (provider: any) => Promise<any[]>;
+    getConfig: () => Promise<Record<string, unknown>>;
+    updateConfig: (config: Record<string, unknown>) => Promise<Record<string, unknown>>;
+    testConnection: (provider: Record<string, unknown>) => Promise<{ success: boolean; message: string }>;
+    getModels: (provider: Record<string, unknown>) => Promise<unknown[]>;
   };
 
   // ComfyUI integration
   comfyui: {
-    getConfig: () => Promise<any>;
-    updateConfig: (config: any) => Promise<any>;
+    getConfig: () => Promise<Record<string, unknown>>;
+    updateConfig: (config: Record<string, unknown>) => Promise<Record<string, unknown>>;
     testConnection: () => Promise<{ success: boolean; message: string }>;
-    getServiceStatus: () => Promise<any>;
-    startService: () => Promise<any>;
-    stopService: () => Promise<any>;
-    executeWorkflow: (workflow: any) => Promise<any>;
-    getQueueStatus: () => Promise<any>;
-    uploadMedia: (filePath: string, filename: string) => Promise<any>;
-    downloadOutput: (filename: string, outputPath: string) => Promise<any>;
+    getServiceStatus: () => Promise<Record<string, unknown>>;
+    startService: () => Promise<Record<string, unknown>>;
+    stopService: () => Promise<Record<string, unknown>>;
+    executeWorkflow: (workflow: Record<string, unknown>) => Promise<Record<string, unknown>>;
+    getQueueStatus: () => Promise<Record<string, unknown>>;
+    uploadMedia: (filePath: string, filename: string) => Promise<unknown>;
+    downloadOutput: (filename: string, outputPath: string) => Promise<unknown>;
   };
 
   // Rover (Persistent Memory Layer)
   rover: {
-    sync: (projectPath: string, projectId: string, message: string, data: any) => Promise<RoverCommit>;
+    sync: (projectPath: string, projectId: string, message: string, data: Record<string, unknown>) => Promise<RoverCommit>;
     getHistory: (projectPath: string) => Promise<RoverHistory>;
-    restoreCheckpoint: (projectPath: string, commitId: string) => Promise<any>;
+    restoreCheckpoint: (projectPath: string, commitId: string) => Promise<unknown>;
   };
 }
 

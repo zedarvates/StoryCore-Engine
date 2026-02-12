@@ -156,7 +156,7 @@ Example format:
           }
 
           if (items.length > 0) {
-            const rules = items.map((item: any) => ({
+            const rules = items.map((item: unknown) => ({
               id: crypto.randomUUID(),
               category: (item.category?.toLowerCase() as WorldRule['category']) || 'physical',
               rule: item.rule || item.name || item.title || '',
@@ -481,3 +481,4 @@ Example format:
     </WizardFormLayout>
   );
 }
+

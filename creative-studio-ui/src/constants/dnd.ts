@@ -22,7 +22,7 @@ export interface AssetDragItem {
     type: 'image' | 'audio' | 'template';
     url: string;
     thumbnail?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   };
 }
 
@@ -39,3 +39,4 @@ export interface TaskDragItem {
 }
 
 export type DragItem = AssetDragItem | ShotDragItem | TaskDragItem;
+

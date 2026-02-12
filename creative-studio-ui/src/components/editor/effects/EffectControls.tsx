@@ -73,7 +73,7 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
     setExpandedSections(newExpanded);
   };
 
-  const updateParameter = (paramId: string, value: any) => {
+  const updateParameter = (paramId: string, value: unknown) => {
     setLocalParameters(prev =>
       prev.map(param =>
         param.id === paramId ? { ...param, value } : param
@@ -117,7 +117,7 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
   };
 
   const renderParameterControl = (param: EffectParameter) => {
-    const handleChange = (value: any) => {
+    const handleChange = (value: unknown) => {
       updateParameter(param.id, value);
     };
 

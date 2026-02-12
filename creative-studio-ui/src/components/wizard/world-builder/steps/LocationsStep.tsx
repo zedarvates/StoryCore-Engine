@@ -4,7 +4,6 @@ import { StepValidator } from '../StepValidator';
 import { saveLocationToProject, createLocationFromWizardData } from '../../../../utils/locationStorage';
 import { useStore } from '@/store';
 import type { RootState } from '@/store';
-import type { LocationReference } from '@/types/story';
 import { useLocationStore } from '@/stores/locationStore';
 
 export const LocationsStep: React.FC = () => {

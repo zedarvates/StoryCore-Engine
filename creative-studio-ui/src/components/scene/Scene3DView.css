@@ -1,0 +1,100 @@
+/**
+ * Scene3DView Styles
+ * 
+ * CSS styles for the Scene3DView component.
+ * 
+ * File: creative-studio-ui/src/components/scene/Scene3DView.css
+ */
+
+/* Container */
+.scene-3d-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.scene-3d-view canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Controls */
+.scene-3d-view__controls {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.scene-3d-view__control-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scene-3d-view__control-btn:hover {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-primary, #e5e5e5);
+}
+
+.scene-3d-view__control-btn--active {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+/* Info */
+.scene-3d-view__info {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.scene-3d-view__lighting-label {
+  color: var(--primary-color, #6366f1);
+  font-weight: 500;
+}
+
+/* Top Controls Bar */
+.scene-3d-view__controls-top {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  z-index: 10;
+}
+
+.scene-3d-view__controls-top > * {
+  flex-shrink: 0;
+}
+
+/* Hide legacy controls when using new presets */
+@media (min-width: 769px) {
+  .scene-3d-view__controls {
+    display: none;
+  }
+}

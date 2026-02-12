@@ -1,0 +1,815 @@
+/**
+ * Automation Panel Component
+ * Panneau central pour toutes les fonctionnalités d'automation
+ * Inclut gestion des travaux avec retry des générations échouees
+ */
+
+import React, { useState, useEffect } from 'react';
+import {
+  automationService,
+  AutomationHelpers,
+  DialogueCharacterData,
+  CharacterGridBundleData,
+  PromptEnhanceResponse,
+  GenerationJob,
+} from '../../services/automationService';
+
+// Styles
+const styles: Record<string, React.CSSProperties> = {
+  panel: {
+    padding: '20px',
+    backgroundColor: '#1a1a2e',
+    borderRadius: '8px',
+    color: '#eee',
+    fontFamily: 'system-ui, sans-serif',
+  },
+  header: {
+    marginBottom: '20px',
+    borderBottom: '1px solid #333',
+    paddingBottom: '10px',
+  },
+  section: {
+    marginBottom: '24px',
+    padding: '16px',
+    backgroundColor: '#16213e',
+    borderRadius: '6px',
+  },
+  sectionTitle: {
+    fontSize: '16px',
+    fontWeight: 600,
+    marginBottom: '12px',
+    color: '#00d4ff',
+  },
+  input: {
+    width: '100%',
+    padding: '8px 12px',
+    marginBottom: '8px',
+    backgroundColor: '#0f3460',
+    border: '1px solid #333',
+    borderRadius: '4px',
+    color: '#eee',
+    fontSize: '14px',
+  },
+  select: {
+    width: '100%',
+    padding: '8px 12px',
+    marginBottom: '8px',
+    backgroundColor: '#0f3460',
+    border: '1px solid #333',
+    borderRadius: '4px',
+    color: '#eee',
+    fontSize: '14px',
+  },
+  button: {
+    padding: '10px 20px',
+    backgroundColor: '#e94560',
+    border: 'none',
+    borderRadius: '4px',
+    color: '#fff',
+    fontSize: '14px',
+    cursor: 'pointer',
+    marginRight: '8px',
+    marginTop: '8px',
+  },
+  buttonSecondary: {
+    backgroundColor: '#533483',
+  },
+  buttonDisabled: {
+    backgroundColor: '#444',
+    cursor: 'not-allowed',
+  },
+  buttonSuccess: {
+    backgroundColor: '#44aa44',
+  },
+  buttonWarning: {
+    backgroundColor: '#ff9800',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '12px',
+    marginTop: '12px',
+  },
+  card: {
+    padding: '12px',
+    backgroundColor: '#0f3460',
+    borderRadius: '4px',
+    border: '1px solid #333',
+  },
+  label: {
+    display: 'block',
+    marginBottom: '4px',
+    fontSize: '12px',
+    color: '#aaa',
+  },
+  value: {
+    fontSize: '14px',
+    fontWeight: 500,
+  },
+  loading: {
+    padding: '20px',
+    textAlign: 'center',
+    color: '#aaa',
+  },
+  error: {
+    padding: '12px',
+    backgroundColor: '#ff4444',
+    borderRadius: '4px',
+    marginBottom: '12px',
+    color: '#fff',
+  },
+  success: {
+    padding: '12px',
+    backgroundColor: '#44aa44',
+    borderRadius: '4px',
+    marginBottom: '12px',
+    color: '#fff',
+  },
+  warning: {
+    padding: '12px',
+    backgroundColor: '#ff9800',
+    borderRadius: '4px',
+    marginBottom: '12px',
+    color: '#fff',
+  },
+  tabs: {
+    display: 'flex',
+    marginBottom: '16px',
+    borderBottom: '1px solid #333',
+  },
+  tab: {
+    padding: '10px 20px',
+    cursor: 'pointer',
+    borderBottom: '2px solid transparent',
+    color: '#aaa',
+    transition: 'all 0.2s',
+  },
+  tabActive: {
+    color: '#00d4ff',
+    borderBottomColor: '#00d4ff',
+  },
+  jobQueue: {
+    marginTop: '16px',
+    padding: '12px',
+    backgroundColor: '#0a0a1a',
+    borderRadius: '6px',
+    border: '1px solid #333',
+  },
+  jobItem: {
+    padding: '10px',
+    marginBottom: '8px',
+    backgroundColor: '#16213e',
+    borderRadius: '4px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  jobItemFailed: {
+    borderLeft: '3px solid #ff4444',
+  },
+  jobItemPending: {
+    borderLeft: '3px solid #ff9800',
+  },
+  progressBar: {
+    height: '4px',
+    backgroundColor: '#333',
+    borderRadius: '2px',
+    overflow: 'hidden',
+    marginTop: '8px',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#00d4ff',
+    transition: 'width 0.3s ease',
+  },
+  statsRow: {
+    display: 'flex',
+    gap: '16px',
+    marginBottom: '16px',
+    flexWrap: 'wrap',
+  },
+  statCard: {
+    padding: '12px 16px',
+    backgroundColor: '#0f3460',
+    borderRadius: '4px',
+    textAlign: 'center',
+    minWidth: '100px',
+  },
+  statValue: {
+    fontSize: '24px',
+    fontWeight: 600,
+    color: '#00d4ff',
+  },
+  statLabel: {
+    fontSize: '12px',
+    color: '#aaa',
+    marginTop: '4px',
+  },
+};
+
+type TabType = 'dialogue' | 'grid' | 'prompt' | 'jobs';
+
+interface AutomationPanelProps {
+  projectId?: string;
+}
+
+export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) => {
+  const [activeTab, setActiveTab] = useState<TabType>('dialogue');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+
+  // Dialogues
+  const [dialogueCharacters, setDialogueCharacters] = useState<DialogueCharacterData[]>([]);
+  const [dialogueContext, setDialogueContext] = useState({
+    location: '',
+    time_of_day: 'day',
+    situation: 'neutral',
+    mood: 'neutral',
+  });
+  const [generatedDialogue, setGeneratedDialogue] = useState<any>(null);
+
+  // Grids
+  const [gridCharacterId, setGridCharacterId] = useState('');
+  const [gridCharacterName, setGridCharacterName] = useState('');
+  const [gridSize, setGridSize] = useState('3x3');
+  const [generatedGrids, setGeneratedGrids] = useState<CharacterGridBundleData[]>([]);
+
+  // Prompts
+  const [basePrompt, setBasePrompt] = useState('');
+  const [promptStyle, setPromptStyle] = useState('realistic');
+  const [promptLighting, setPromptLighting] = useState('cinematic');
+  const [promptMood, setPromptMood] = useState('neutral');
+  const [enhancedPrompt, setEnhancedPrompt] = useState<PromptEnhanceResponse | null>(null);
+
+  // Job Queue
+  const [retryQueue, setRetryQueue] = useState<GenerationJob[]>([]);
+  const [processingJob, setProcessingJob] = useState<GenerationJob | null>(null);
+  const [jobProgress, setJobProgress] = useState(0);
+
+  useEffect(() => {
+    if (error || success || warning) {
+      const timer = setTimeout(() => {
+        setError(null);
+        setSuccess(null);
+        setWarning(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success, warning]);
+
+  useEffect(() => {
+    setRetryQueue(automationService.getRetryQueue());
+  }, []);
+
+  const addCharacter = () => {
+    setDialogueCharacters([
+      ...dialogueCharacters,
+      {
+        character_id: `char_${Date.now()}`,
+        name: `Character ${dialogueCharacters.length + 1}`,
+        archetype: 'hero',
+      },
+    ]);
+  };
+
+  const updateCharacter = (index: number, field: string, value: string) => {
+    const updated = [...dialogueCharacters];
+    updated[index] = { ...updated[index], [field]: value };
+    setDialogueCharacters(updated);
+  };
+
+  const removeCharacter = (index: number) => {
+    setDialogueCharacters(dialogueCharacters.filter((_, i) => i !== index));
+  };
+
+  const generateDialogue = async () => {
+    if (dialogueCharacters.length === 0) {
+      setError('Add at least one character');
+      return;
+    }
+    if (!dialogueContext.location) {
+      setError('Specify a location');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await automationService.generateDialogue({
+        characters: dialogueCharacters,
+        context: dialogueContext as any,
+        dialogueType: 'conversation',
+        numLines: 10,
+      });
+      setGeneratedDialogue(result);
+      setSuccess('Dialogue generated successfully');
+    } catch (err: any) {
+      const errorMessage = err.message || 'Error generating dialogue';
+      setError(errorMessage);
+      const job = AutomationHelpers.createJob('dialogue', {
+        characters: dialogueCharacters,
+        context: dialogueContext,
+        dialogueType: 'conversation',
+        numLines: 10,
+      });
+      job.status = 'failed';
+      job.error = errorMessage;
+      automationService.addToRetryQueue(job);
+      setRetryQueue(automationService.getRetryQueue());
+      setWarning('Generation added to retry queue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateGrid = async () => {
+    if (!gridCharacterId || !gridCharacterName) {
+      setError('Specify character ID and name');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await automationService.generateCharacterGrid({
+        characterId: gridCharacterId,
+        characterName: gridCharacterName,
+        gridSize: gridSize,
+      });
+      setGeneratedGrids([result, ...generatedGrids]);
+      setSuccess('Grid generated successfully');
+    } catch (err: any) {
+      const errorMessage = err.message || 'Error generating grid';
+      setError(errorMessage);
+      const job = AutomationHelpers.createJob('grid', {
+        characterId: gridCharacterId,
+        characterName: gridCharacterName,
+        gridSize: gridSize,
+      });
+      job.status = 'failed';
+      job.error = errorMessage;
+      automationService.addToRetryQueue(job);
+      setRetryQueue(automationService.getRetryQueue());
+      setWarning('Generation added to retry queue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const enhancePromptAction = async () => {
+    if (!basePrompt) {
+      setError('Enter a base prompt');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await automationService.enhancePrompt({
+        base_prompt: basePrompt,
+        style: promptStyle as any,
+        lighting: promptLighting as any,
+        mood: promptMood as any,
+      });
+      setEnhancedPrompt(result);
+      setSuccess('Prompt enhanced successfully');
+    } catch (err: any) {
+      const errorMessage = err.message || 'Error enhancing prompt';
+      setError(errorMessage);
+      const job = AutomationHelpers.createJob('prompt', {
+        base_prompt: basePrompt,
+        style: promptStyle,
+        lighting: promptLighting,
+        mood: promptMood,
+      });
+      job.status = 'failed';
+      job.error = errorMessage;
+      automationService.addToRetryQueue(job);
+      setRetryQueue(automationService.getRetryQueue());
+      setWarning('Enhancement added to retry queue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const retryJob = async (job: GenerationJob) => {
+    setProcessingJob(job);
+    setJobProgress(0);
+    setError(null);
+
+    try {
+      const successResult = await automationService.retryJob(job);
+      setJobProgress(50);
+
+      if (successResult) {
+        setJobProgress(100);
+        setRetryQueue(automationService.getRetryQueue());
+        setSuccess(`Job ${job.job_id} retry successful!`);
+      } else {
+        setError(`Job ${job.job_id} retry failed after ${job.retry_count} attempts`);
+        setRetryQueue(automationService.getRetryQueue());
+      }
+    } catch (err: any) {
+      setError(`Retry error: ${err.message}`);
+    } finally {
+      setProcessingJob(null);
+      setJobProgress(0);
+    }
+  };
+
+  const processAllRetryQueue = async () => {
+    const queue = automationService.getRetryQueue();
+    if (queue.length === 0) {
+      setWarning('No jobs in retry queue');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const results = await automationService.processRetryQueue((completed, total) => {
+        setJobProgress(Math.round((completed / total) * 100));
+      });
+
+      setRetryQueue(automationService.getRetryQueue());
+      setSuccess(`Processed: ${results.success} successful, ${results.failed} failed`);
+    } catch (err: any) {
+      setError(`Queue processing error: ${err.message}`);
+    } finally {
+      setLoading(false);
+      setJobProgress(0);
+    }
+  };
+
+  const clearRetryQueue = () => {
+    automationService.clearRetryQueue();
+    setRetryQueue([]);
+    setSuccess('Retry queue cleared');
+  };
+
+  const removeJob = (jobId: string) => {
+    automationService.removeFromRetryQueue(jobId);
+    setRetryQueue(automationService.getRetryQueue());
+    setSuccess(`Job ${jobId} removed`);
+  };
+
+  const getJobTypeLabel = (type: string): string => {
+    const labels: Record<string, string> = {
+      dialogue: 'Dialogue',
+      grid: 'Character Grid',
+      prompt: 'Prompt Enhancement',
+    };
+    return labels[type] || type;
+  };
+
+  const getStatusColor = (status: string): string => {
+    const colors: Record<string, string> = {
+      pending: '#ff9800',
+      processing: '#00d4ff',
+      completed: '#44aa44',
+      failed: '#ff4444',
+      cancelled: '#888888',
+    };
+    return colors[status] || '#888888';
+  };
+
+  const renderTabs = () => (
+    <div style={styles.tabs}>
+      {(['dialogue', 'grid', 'prompt', 'jobs'] as TabType[]).map((tab) => (
+        <div
+          key={tab}
+          style={{
+            ...styles.tab,
+            ...(activeTab === tab ? styles.tabActive : {}),
+          }}
+          onClick={() => setActiveTab(tab)}
+        >
+          {tab === 'dialogue' && '💬'}
+          {tab === 'grid' && '🖼️'}
+          {tab === 'prompt' && '✨'}
+          {tab === 'jobs' && '📋'}
+          <span style={{ marginLeft: '8px' }}>
+            {tab === 'dialogue' && 'Dialogues'}
+            {tab === 'grid' && 'Grids'}
+            {tab === 'prompt' && 'Prompts'}
+            {tab === 'jobs' && `Queue (${retryQueue.length})`}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderJobsTab = () => (
+    <div>
+      <div style={styles.statsRow}>
+        <div style={styles.statCard}>
+          <div style={styles.statValue}>{retryQueue.length}</div>
+          <div style={styles.statLabel}>Total in Queue</div>
+        <div style={styles.statCard}>
+          <div style={styles.statValue}>
+            {retryQueue.filter(j => j.status === 'failed').length}
+          </div>
+          <div style={styles.statLabel}>Failed</div>
+        <div style={styles.statCard}>
+          <div style={styles.statValue}>
+            {retryQueue.filter(j => j.status === 'pending').length}
+          </div>
+          <div style={styles.statLabel}>Pending</div>
+      </div>
+
+      {processingJob && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>Processing: {processingJob.job_id}</div>
+          <div style={styles.progressBar}>
+            <div style={{ ...styles.progressFill, width: `${jobProgress}%` }} />
+          </div>
+          <div style={{ marginTop: '8px', color: '#aaa', fontSize: '12px' }}>
+            {jobProgress}% complete
+          </div>
+      )}
+
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+        <button
+          style={{ ...styles.button, ...styles.buttonSuccess }}
+          onClick={processAllRetryQueue}
+          disabled={loading || retryQueue.length === 0}
+        >
+          ▶️ Process All ({retryQueue.length})
+        </button>
+        <button
+          style={{ ...styles.button, ...styles.buttonWarning }}
+          onClick={clearRetryQueue}
+          disabled={retryQueue.length === 0}
+        >
+          🗑️ Clear Queue
+        </button>
+      </div>
+
+      {retryQueue.length === 0 ? (
+        <div style={styles.section}>
+          <div style={{ textAlign: 'center', color: '#aaa', padding: '20px' }}>
+            No jobs in retry queue
+            <br />
+            <small>Failed generations will appear here</small>
+          </div>
+      ) : (
+        <div style={styles.jobQueue}>
+          {retryQueue.map((job) => (
+            <div
+              key={job.job_id}
+              style={{
+                ...styles.jobItem,
+                borderLeft: `3px solid ${getStatusColor(job.status)}`,
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span style={{ color: getStatusColor(job.status), fontWeight: 600, fontSize: '12px' }}>
+                    {job.status.toUpperCase()}
+                  </span>
+                  <span style={{ color: '#aaa', fontSize: '12px' }}>
+                    #{job.job_id.slice(-6)}
+                  </span>
+                  <span style={{ color: '#00d4ff', fontSize: '12px' }}>
+                    {getJobTypeLabel(job.type)}
+                  </span>
+                </div>
+                {job.error && (
+                  <div style={{ color: '#ff6b6b', fontSize: '12px', marginTop: '4px' }}>
+                    Error: {job.error}
+                  </div>
+                )}
+                <div style={{ color: '#666', fontSize: '11px', marginTop: '4px' }}>
+                  Retries: {job.retry_count}/{job.max_retries}
+                </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {job.status === 'failed' && job.retry_count < job.max_retries && (
+                  <button
+                    style={{ ...styles.button, ...styles.buttonSecondary, padding: '6px 12px', marginTop: 0, fontSize: '12px' }}
+                    onClick={() => retryJob(job)}
+                    disabled={processingJob !== null}
+                  >
+                    🔄 Retry
+                  </button>
+                )}
+                <button
+                  style={{ ...styles.button, backgroundColor: '#ff4444', padding: '6px 12px', marginTop: 0, fontSize: '12px' }}
+                  onClick={() => removeJob(job.job_id)}
+                >
+                  ✕
+                </button>
+              </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderDialogueTab = () => (
+    <div>
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>Characters</div>
+        {dialogueCharacters.map((char, index) => (
+          <div key={char.character_id} style={styles.card}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span>Character {index + 1}</span>
+              <button
+                style={{ ...styles.button, ...styles.buttonSecondary, padding: '4px 8px', marginTop: 0 }}
+                onClick={() => removeCharacter(index)}
+              >
+                ✕
+              </button>
+            </div>
+            <input
+              style={styles.input}
+              value={char.name}
+              onChange={(e) => updateCharacter(index, 'name', e.target.value)}
+              placeholder="Character name"
+            />
+            <select
+              style={styles.select}
+              value={char.archetype}
+              onChange={(e) => updateCharacter(index, 'archetype', e.target.value)}
+            >
+              <option value="hero">Hero</option>
+              <option value="villain">Villain</option>
+              <option value="mentor">Mentor</option>
+              <option value="comic_relief">Comic Relief</option>
+              <option value="sidekick">Sidekick</option>
+            </select>
+          </div>
+        ))}
+        <button style={styles.button} onClick={addCharacter}>+ Add Character</button>
+      </div>
+
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>Context</div>
+        <input
+          style={styles.input}
+          value={dialogueContext.location}
+          onChange={(e) => setDialogueContext({ ...dialogueContext, location: e.target.value })}
+          placeholder="Location"
+        />
+        <select
+          style={styles.select}
+          value={dialogueContext.time_of_day}
+          onChange={(e) => setDialogueContext({ ...dialogueContext, time_of_day: e.target.value })}
+        >
+          <option value="dawn">Dawn</option>
+          <option value="morning">Morning</option>
+          <option value="afternoon">Afternoon</option>
+          <option value="dusk">Dusk</option>
+          <option value="night">Night</option>
+        </select>
+        <select
+          style={styles.select}
+          value={dialogueContext.mood}
+          onChange={(e) => setDialogueContext({ ...dialogueContext, mood: e.target.value })}
+        >
+          <option value="neutral">Neutral</option>
+          <option value="tense">Tense</option>
+          <option value="peaceful">Peaceful</option>
+          <option value="epic">Epic</option>
+        </select>
+      </div>
+
+      <button style={{ ...styles.button, width: '100%' }} onClick={generateDialogue} disabled={loading}>
+        {loading ? 'Generating...' : 'Generate Dialogue'}
+      </button>
+
+      {generatedDialogue && (
+        <div style={{ marginTop: '20px' }}>
+          <div style={styles.sectionTitle}>Generated Dialogue</div>
+          {generatedDialogue.lines?.map((line: any, index: number) => (
+            <div key={line.line_id || index} style={{ ...styles.card, marginBottom: '8px' }}>
+              <div style={{ fontWeight: 600, color: '#00d4ff' }}>{line.character_name}</div>
+              <div>{line.dialogue}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderGridTab = () => (
+    <div>
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>Configuration</div>
+        <input
+          style={styles.input}
+          value={gridCharacterId}
+          onChange={(e) => setGridCharacterId(e.target.value)}
+          placeholder="Character ID"
+        />
+        <input
+          style={styles.input}
+          value={gridCharacterName}
+          onChange={(e) => setGridCharacterName(e.target.value)}
+          placeholder="Character Name"
+        />
+        <select style={styles.select} value={gridSize} onChange={(e) => setGridSize(e.target.value)}>
+          <option value="2x2">2x2 (4 images)</option>
+          <option value="3x3">3x3 (9 images)</option>
+          <option value="4x4">4x4 (16 images)</option>
+        </select>
+      </div>
+
+      <button style={{ ...styles.button, width: '100%' }} onClick={generateGrid} disabled={loading}>
+        {loading ? 'Generating...' : 'Generate Grid'}
+      </button>
+
+      {generatedGrids.length > 0 && (
+        <div style={{ marginTop: '20px' }}>
+          <div style={styles.sectionTitle}>Generated Grids</div>
+          <div style={styles.grid}>
+            {generatedGrids.map((grid) => (
+              <div key={grid.bundle_id} style={styles.card}>
+                <div style={{ fontWeight: 600 }}>{grid.character_name}</div>
+                <div>{grid.grid_size}</div>
+                <div>{grid.total_panels} panels</div>
+            ))}
+          </div>
+      )}
+    </div>
+  );
+
+  const renderPromptTab = () => (
+    <div>
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>Base Prompt</div>
+        <textarea
+          style={{ ...styles.input, minHeight: '100px', resize: 'vertical' }}
+          value={basePrompt}
+          onChange={(e) => setBasePrompt(e.target.value)}
+          placeholder="Enter your prompt..."
+        />
+      </div>
+
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>Options</div>
+        <select style={styles.select} value={promptStyle} onChange={(e) => setPromptStyle(e.target.value)}>
+          <option value="realistic">Realistic</option>
+          <option value="anime">Anime</option>
+          <option value="fantasy">Fantasy</option>
+          <option value="photographic">Photographic</option>
+        </select>
+        <select style={styles.select} value={promptLighting} onChange={(e) => setPromptLighting(e.target.value)}>
+          <option value="cinematic">Cinematic</option>
+          <option value="natural">Natural</option>
+          <option value="dramatic">Dramatic</option>
+          <option value="golden_hour">Golden Hour</option>
+        </select>
+        <select style={styles.select} value={promptMood} onChange={(e) => setPromptMood(e.target.value)}>
+          <option value="neutral">Neutral</option>
+          <option value="tense">Tense</option>
+          <option value="epic">Epic</option>
+          <option value="peaceful">Peaceful</option>
+        </select>
+      </div>
+
+      <button style={{ ...styles.button, width: '100%' }} onClick={enhancePromptAction} disabled={loading}>
+        {loading ? 'Enhancing...' : 'Enhance Prompt'}
+      </button>
+
+      {enhancedPrompt && (
+        <div style={{ marginTop: '20px' }}>
+          <div style={styles.sectionTitle}>Enhanced Prompt</div>
+          <div style={{ ...styles.card, whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '12px' }}>
+            {enhancedPrompt.enhanced_prompt}
+          </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div style={styles.panel}>
+      <div style={styles.header}>
+        <h2 style={{ margin: 0, color: '#00d4ff' }}>Automation Studio</h2>
+        <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#aaa' }}>
+          Automatic generation with retry queue
+        </p>
+      </div>
+
+      {error && <div style={styles.error}>{error}</div>}
+      {success && <div style={styles.success}>{success}</div>}
+      {warning && <div style={styles.warning}>{warning}</div>}
+
+      {loading && <div style={styles.loading}>Processing...</div>}
+
+      {renderTabs()}
+
+      {activeTab === 'dialogue' && renderDialogueTab()}
+      {activeTab === 'grid' && renderGridTab()}
+      {activeTab === 'prompt' && renderPromptTab()}
+      {activeTab === 'jobs' && renderJobsTab()}
+    </div>
+  );
+};
+
+export default AutomationPanel;

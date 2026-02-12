@@ -1,0 +1,578 @@
+/**
+ * StoryPartCard Styles
+ * Styles pour les tuiles de parties d'histoire (intro, chapitres, conclusion)
+ */
+
+/* Variables CSS pour les couleurs des types de parties */
+.story-part-card {
+  --intro-color: #3b82f6;
+  --intro-bg: #eff6ff;
+  --chapter-color: #8b5cf6;
+  --chapter-bg: #f5f3ff;
+  --ending-color: #10b981;
+  --ending-bg: #ecfdf5;
+  
+  --card-border-radius: 12px;
+  --card-padding: 16px;
+  --transition-duration: 0.2s;
+}
+
+/* ============================================================================
+   Card Principal
+   ============================================================================ */
+
+.story-part-card {
+  background: var(--surface-color, #1a1a1a);
+  border: 1px solid var(--border-color, #333);
+  border-radius: var(--card-border-radius);
+  overflow: hidden;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-part-card:hover {
+  border-color: var(--part-color, #666);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.story-part-card--expanded {
+  border-color: var(--part-color, #666);
+}
+
+/* Type-specific styles */
+.story-part-card--intro {
+  border-left: 4px solid var(--intro-color);
+}
+
+.story-part-card--chapter {
+  border-left: 4px solid var(--chapter-color);
+}
+
+.story-part-card--ending {
+  border-left: 4px solid var(--ending-color);
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.story-part-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--card-padding);
+  cursor: pointer;
+  transition: background-color var(--transition-duration) ease;
+}
+
+.story-part-card__header:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.story-part-card__header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.story-part-card__icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--part-bg, #333);
+  border-radius: 8px;
+}
+
+.story-part-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.story-part-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.story-part-card__story-title {
+  font-size: 13px;
+  color: var(--text-secondary, #888);
+}
+
+.story-part-card__chapter-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  background: var(--part-bg, #333);
+  color: var(--part-color);
+  border-radius: 4px;
+}
+
+.story-part-card__type-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  background: var(--part-bg, #333);
+  color: var(--part-color);
+  border-radius: 4px;
+}
+
+.story-part-card__header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================================================
+   Quick Actions
+   ============================================================================ */
+
+.story-part-card__quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.6;
+  transition: opacity var(--transition-duration) ease;
+}
+
+.story-part-card__header:hover .story-part-card__quick-actions {
+  opacity: 1;
+}
+
+.story-part-card__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #888);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-part-card__action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #fff);
+}
+
+.story-part-card__action-btn--primary {
+  color: var(--primary-color, #3b82f6);
+}
+
+.story-part-card__action-btn--primary:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary-hover, #2563eb);
+}
+
+.story-part-card__action-btn--danger {
+  color: #ef4444;
+}
+
+.story-part-card__action-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.story-part-card__expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #888);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-part-card__expand-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #fff);
+}
+
+/* ============================================================================
+   Content (Expanded)
+   ============================================================================ */
+
+.story-part-card__content {
+  padding: 0 var(--card-padding) var(--card-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   Summary Section
+   ============================================================================ */
+
+.story-part-card__summary {
+  background: var(--part-bg, #333);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.story-part-card__summary-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  margin-bottom: 8px;
+}
+
+.story-part-card__summary-text {
+  font-size: 13px;
+  color: var(--text-secondary, #888);
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   Main Content / Editor
+   ============================================================================ */
+
+.story-part-card__main-content {
+  min-height: 100px;
+}
+
+.story-part-card__text {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+
+.story-part-card__pre {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary, #fff);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+}
+
+.story-part-card__read-more {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary-color, #3b82f6);
+  background: transparent;
+  border: 1px solid var(--primary-color, #3b82f6);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-part-card__read-more:hover {
+  background: var(--primary-color, #3b82f6);
+  color: #fff;
+}
+
+/* Editor */
+.story-part-card__editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.story-part-card__textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary, #fff);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  resize: vertical;
+  transition: border-color var(--transition-duration) ease;
+}
+
+.story-part-card__textarea:focus {
+  outline: none;
+  border-color: var(--part-color, #666);
+  box-shadow: 0 0 0 2px rgba(var(--part-color-rgb), 0.2);
+}
+
+.story-part-card__editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.story-part-card__editor-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-part-card__editor-btn--cancel {
+  background: transparent;
+  color: var(--text-secondary, #888);
+  border: 1px solid var(--border-color, #444);
+}
+
+.story-part-card__editor-btn--cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary, #fff);
+}
+
+.story-part-card__editor-btn--save {
+  background: var(--part-color, #3b82f6);
+  color: #fff;
+}
+
+.story-part-card__editor-btn--save:hover {
+  filter: brightness(1.1);
+}
+
+/* ============================================================================
+   Review Scores
+   ============================================================================ */
+
+.story-part-card__review-scores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color, #333);
+}
+
+.story-part-card__score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.story-part-card__score-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.story-part-card__score-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.story-part-card__score-fill {
+  height: 100%;
+  background: var(--part-color, #3b82f6);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.story-part-card__score-fill--drama {
+  background: #f59e0b;
+}
+
+.story-part-card__score-fill--sense {
+  background: #10b981;
+}
+
+.story-part-card__score-fill--emotion {
+  background: #ec4899;
+}
+
+.story-part-card__score-fill--overall {
+  background: linear-gradient(90deg, var(--intro-color), var(--chapter-color), var(--ending-color));
+}
+
+.story-part-card__score-bar--overall {
+  height: 8px;
+}
+
+.story-part-card__score-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.story-part-card__score--overall .story-part-card__score-value {
+  font-size: 14px;
+}
+
+/* ============================================================================
+   Delete Confirmation
+   ============================================================================ */
+
+.story-part-card__confirm-delete {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+  z-index: 10;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.story-part-card__confirm-dialog {
+  background: var(--surface-color, #1a1a1a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  max-width: 300px;
+}
+
+.story-part-card__confirm-dialog p {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  margin-bottom: 16px;
+}
+
+.story-part-card__confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.story-part-card__confirm-btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-duration) ease;
+}
+
+.story-part-card__confirm-btn--cancel {
+  background: transparent;
+  color: var(--text-secondary, #888);
+  border: 1px solid var(--border-color, #444);
+}
+
+.story-part-card__confirm-btn--cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary, #fff);
+}
+
+.story-part-card__confirm-btn--delete {
+  background: #ef4444;
+  color: #fff;
+}
+
+.story-part-card__confirm-btn--delete:hover {
+  background: #dc2626;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .story-part-card {
+    --card-padding: 12px;
+  }
+
+  .story-part-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .story-part-card__header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .story-part-card__quick-actions {
+    opacity: 1;
+  }
+
+  .story-part-card__review-scores {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: light) {
+  .story-part-card {
+    background: #fff;
+    border-color: #e5e5e5;
+  }
+
+  .story-part-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .story-part-card__story-title {
+    color: #666;
+  }
+
+  .story-part-card__action-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .story-part-card__expand-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .story-part-card__text {
+    background: #f9fafb;
+  }
+
+  .story-part-card__textarea {
+    background: #f9fafb;
+    border-color: #e5e5e5;
+  }
+
+  .story-part-card__confirm-dialog {
+    background: #fff;
+    border-color: #e5e5e5;
+  }
+
+  .story-part-card__score-bar {
+    background: #e5e5e5;
+  }
+}
+

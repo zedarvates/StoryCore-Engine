@@ -300,7 +300,7 @@ export class PlanSequencesManager {
   /**
    * Validate planning state
    */
-  private isValidPlanningState(state: any): state is PlanningState {
+  private isValidPlanningState(state: unknown): state is PlanningState {
     return (
       state &&
       typeof state === 'object' &&

@@ -253,11 +253,11 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
 // Helper function to generate AI responses (mock implementation)
 function generateAIResponse(
   userInput: string,
-  currentShots: any[]
+  currentShots: unknown[]
 ): {
   message: string;
   suggestions?: string[];
-  actions?: Array<{ type: string; shot?: any; shotId?: string; updates?: any }>;
+  actions?: Array<{ type: string; shot?: unknown; shotId?: string; updates?: unknown }>;
 } {
   const input = userInput.toLowerCase();
 
@@ -384,3 +384,5 @@ function extractTheme(text: string): string {
   }
   return 'scene';
 }
+
+

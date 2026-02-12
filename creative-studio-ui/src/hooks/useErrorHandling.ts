@@ -68,7 +68,7 @@ export interface UseErrorHandlingReturn {
   /**
    * Handle error manually
    */
-  handleError: (error: Error | string, context?: Record<string, any>) => AppError;
+  handleError: (error: Error | string, context?: Record<string, unknown>) => AppError;
 
   /**
    * Clear current error
@@ -138,7 +138,7 @@ export function useErrorHandling(
    * Handle error
    */
   const handleError = useCallback(
-    (err: Error | string, context?: Record<string, any>): AppError => {
+    (err: Error | string, context?: Record<string, unknown>): AppError => {
       if (!serviceRef.current) {
         const fallbackError: AppError = {
           id: 'fallback',
@@ -355,3 +355,4 @@ export function useErrorHandling(
     isRetrying,
   };
 }
+

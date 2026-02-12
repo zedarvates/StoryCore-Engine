@@ -136,7 +136,7 @@ export interface ComfyUISettingsUpdatedPayload extends BaseEventPayload {
 export interface WizardStartedPayload extends BaseEventPayload {
   wizardType: 'world' | 'character' | 'llm-settings' | 'comfyui-settings';
   // Using 'any' for initialData to support different wizard initialization data structures
-  initialData?: any;
+  initialData?: unknown;
 }
 
 /**
@@ -155,7 +155,7 @@ export interface WizardStepChangedPayload extends BaseEventPayload {
 export interface WizardCompletedPayload extends BaseEventPayload {
   wizardType: string;
   // Using 'any' for wizard completion data to support different wizard result types
-  data: any;
+  data: unknown;
   duration: number; // milliseconds
 }
 
@@ -463,3 +463,5 @@ export {
   createValidationFailedPayload,
   createDependenciesCheckedPayload,
 } from './characterEvents';
+
+

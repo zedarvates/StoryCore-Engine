@@ -8,7 +8,7 @@ import type { PanelsState, PanelLayout } from '../../types';
 
 // Default panel layout (percentages)
 const DEFAULT_LAYOUT: PanelLayout = {
-  assetLibrary: { width: 20 },
+  assetLibrary: { width: 10 },
   preview: { width: 50, height: 60 },
   shotConfig: { width: 30 },
   timeline: { height: 40 },

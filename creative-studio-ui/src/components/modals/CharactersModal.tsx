@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import './SharedModalStyles.css';
 import {
   Dialog,
   DialogContent,
@@ -23,13 +24,9 @@ import {
   SaveIcon,
   XIcon,
   SearchIcon,
-  FilterIcon,
   StarIcon,
   UsersIcon,
-  BookOpenIcon,
-  HeartIcon,
   TargetIcon,
-  SparklesIcon,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import { notificationService } from '@/services/NotificationService';
@@ -64,7 +61,6 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
   const [selectedRole, setSelectedRole] = useState<Character['role'] | 'all'>('all');
   const [selectedImportance, setSelectedImportance] = useState<Character['importance'] | 'all'>('all');
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Charger les personnages du projet
   useEffect(() => {
@@ -79,7 +75,7 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
     try {
       // Load characters from project object
       if (project.characters && project.characters.length > 0) {
-        const charactersWithDates = project.characters.map((char: any) => ({
+        const charactersWithDates = (project.characters as any[]).map((char: unknown) => ({
           ...char,
           createdAt: char.createdAt instanceof Date ? char.createdAt : new Date(char.createdAt || Date.now()),
           updatedAt: char.updatedAt instanceof Date ? char.updatedAt : new Date(char.updatedAt || Date.now())
@@ -107,7 +103,7 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
       const updatedProject = {
         ...project,
         characters: chars
-      };
+      } as any;
       setProject(updatedProject);
       console.log(`✅ [CharactersModal] Saved ${chars.length} characters to project`);
     } catch (error) {
@@ -130,7 +126,7 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
 
   const handleCreateCharacter = () => {
     const newCharacter: Character = {
-      id: `char_${Date.now()}`,
+      character_id: `char_${Date.now()}`,
       name: '',
       description: '',
       personality: '',
@@ -146,12 +142,11 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
     };
 
     setEditingCharacter(newCharacter);
-    setShowCreateForm(true);
+    // showCreateForm is no longer needed as separate state
   };
 
   const handleEditCharacter = (character: Character) => {
     setEditingCharacter({ ...character });
-    setShowCreateForm(false);
   };
 
   const handleSaveCharacter = (character: Character) => {
@@ -170,7 +165,7 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
 
     notificationService.success(
       'Personnage sauvegardé',
-      `Le personnage "${character.name}" a été ${editingCharacter?.id ? 'modifié' : 'créé'} avec succès.`
+      `Le personnage "${character.name}" a été ${editingCharacter ? 'modifié' : 'créé'} avec succès.`
     );
   };
 
@@ -227,14 +222,14 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
   if (!project) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="shared-modal-dialog max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Personnages du projet</DialogTitle>
           </DialogHeader>
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center no-project-state">
             <UserIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Aucun projet ouvert</p>
-            <p className="text-sm">Ouvrez un projet pour gérer ses personnages</p>
+            <p className="title">Aucun projet ouvert</p>
+            <p className="text-sm subtitle">Ouvrez un projet pour gérer ses personnages</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -244,7 +239,7 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="shared-modal-dialog max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <UserIcon className="w-5 h-5" />
@@ -253,17 +248,18 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
           </DialogHeader>
 
           {/* Toolbar */}
-          <div className="flex-shrink-0 p-4 border-b border-gray-200">
+          <div className="flex-shrink-0 p-4 toolbar border-b border-gray-200">
             <div className="flex items-center justify-between gap-4">
               {/* Search and filters */}
               <div className="flex items-center gap-4 flex-1">
                 <div className="relative flex-1 max-w-sm">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
                   <Input
                     placeholder="Rechercher des personnages..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
+                    aria-label="Rechercher des personnages"
                   />
                 </div>
 
@@ -297,7 +293,7 @@ export function CharactersModal({ isOpen, onClose }: CharactersModalProps) {
 
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <Button onClick={handleCreateCharacter} className="flex items-center gap-2">
+                <Button onClick={handleCreateCharacter} className="flex items-center gap-2" aria-label="Créer un nouveau personnage">
                   <PlusIcon className="w-4 h-4" />
                   Nouveau personnage
                 </Button>
@@ -353,12 +349,12 @@ const CharacterGrid = React.memo(function CharacterGrid({
 }) {
   if (characters.length === 0) {
     return (
-      <div className="col-span-full text-center py-12">
-        <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+      <div className="col-span-full text-center py-12 empty-state">
+        <UserIcon className="w-12 h-12 mx-auto mb-4 empty-state-icon" />
+        <h3 className="text-lg font-medium empty-state-title mb-2">
           Aucun personnage trouvé
         </h3>
-        <p className="text-gray-600 mb-4">
+        <p className="empty-state-text mb-4">
           {searchQuery || selectedRole !== 'all' || selectedImportance !== 'all'
             ? 'Essayez de modifier vos critères de recherche.'
             : 'Créez votre premier personnage pour commencer.'}
@@ -431,14 +427,14 @@ const CharacterCard = React.memo(function CharacterCard({
 
   return (
     <div
-      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+      className="element-card bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
       data-testid={`character-card-${character.character_id}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           {getRoleIcon(character.role)}
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold element-title">
             {character.name}
           </h3>
         </div>
@@ -452,14 +448,14 @@ const CharacterCard = React.memo(function CharacterCard({
 
       {/* Role */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-sm text-gray-500">Rôle:</span>
+        <span className="text-sm meta-label">Rôle:</span>
         <Badge variant="outline">
           {getRoleLabel(character.role)}
         </Badge>
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-700 mb-3 line-clamp-3">
+      <p className="text-sm element-description mb-3 line-clamp-3">
         {character.description}
       </p>
 
@@ -481,7 +477,7 @@ const CharacterCard = React.memo(function CharacterCard({
 
       {/* Actions */}
       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <div className="text-xs text-gray-500">
+        <div className="text-xs element-meta">
           Modifié {character.updatedAt.toLocaleDateString('fr-FR')}
         </div>
         <div className="flex items-center gap-1">
@@ -690,7 +686,7 @@ function CharacterEditModal({ character, isCreate, onSave, onCancel }: Character
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   placeholder="Ajouter un tag"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
                   aria-label="Nouveau tag"
                 />
                 <Button 
@@ -708,6 +704,7 @@ function CharacterEditModal({ character, isCreate, onSave, onCancel }: Character
                     <button
                       onClick={() => handleRemoveTag(tag)}
                       className="ml-1 text-gray-500 hover:text-gray-700"
+                      aria-label={`Retirer le tag ${tag}`}
                     >
                       <XIcon className="w-3 h-3" />
                     </button>
@@ -732,3 +729,4 @@ function CharacterEditModal({ character, isCreate, onSave, onCancel }: Character
     </Dialog>
   );
 }
+

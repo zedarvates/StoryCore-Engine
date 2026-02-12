@@ -167,10 +167,10 @@ Example format:
       console.log('🔍 [parseLLMConstraints] Trimmed response:', trimmed.substring(0, 100));
       
       // Use the utility function to parse array
-      const items = parseLLMArray<any>(response, 'parseLLMConstraints');
+      const items = parseLLMArray<unknown>(response, 'parseLLMConstraints');
       
       if (items.length > 0) {
-        const constraints = items.map((item: any) => ({
+        const constraints = items.map((item: unknown) => ({
           id: crypto.randomUUID(),
           category: (item.category?.toLowerCase() as ProjectConstraint['category']) || 'technical',
           constraint: item.constraint || item.name || '',
@@ -423,3 +423,5 @@ Example format:
     </WizardFormLayout>
   );
 }
+
+

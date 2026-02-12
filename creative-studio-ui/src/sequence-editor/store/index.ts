@@ -59,6 +59,7 @@ export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 // Export custom hooks
 export { useUndoRedo } from './hooks/useUndoRedo';
 export { useProjectPersistence } from './hooks/useProjectPersistence';
+export { useSelectedShot } from './hooks/useSelectedShot';
 
 // Export auto-save utilities
 export { loadFromLocalStorage, clearAutoSave } from './middleware/autoSaveMiddleware';

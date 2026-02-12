@@ -30,7 +30,7 @@ export const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
     );
   }
 
-  const handlePropertyChange = (property: string, value: any) => {
+  const handlePropertyChange = (property: string, value: unknown) => {
     onElementUpdate(selectedElement.id, { [property]: value });
   };
 
@@ -52,7 +52,7 @@ export const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
     onElementUpdate(selectedElement.id, { scale: newScale });
   };
 
-  const handleAudioChange = (property: keyof AudioProperties, value: any) => {
+  const handleAudioChange = (property: keyof AudioProperties, value: unknown) => {
     const currentAudio = selectedElement.audio || {
       enabled: true,
       volume: 1,

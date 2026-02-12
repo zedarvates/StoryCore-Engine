@@ -36,8 +36,9 @@ export interface Shot {
   transitionOut?: Transition;
 
   position: number; // order in sequence
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   promoted_panel_path?: string; // Path to promoted panel image
+  referenceImage?: string; // Base64 or URL of the reference image for AI
 }
 
 // ============================================================================
@@ -73,6 +74,13 @@ export interface AudioTrack {
 
   // Waveform data (for visualization)
   waveformData?: number[]; // amplitude values
+
+  // Metadata for dialogue tracks and others
+  metadata?: {
+    speaker?: string;
+    emotion?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface SurroundConfig {
@@ -202,7 +210,7 @@ export interface Transition {
   duration: number; // in seconds
   direction?: 'left' | 'right' | 'up' | 'down'; // for directional transitions
   easing?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 export interface Effect {
@@ -320,7 +328,7 @@ export interface Project {
     }>;
     last_modified: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   global_resume?: string;
 }
 
@@ -678,6 +686,7 @@ export interface AppState {
   characters: Character[]; // Characters for the project
   stories: Story[]; // Stories for the project
   storyVersions: StoryVersion[]; // Version history for stories
+  objects?: unknown[]; // Story objects, props, and artifacts
 
   // UI state
   selectedShotId: string | null;
@@ -761,3 +770,5 @@ export interface ChatSuggestion {
   text: string;
   action?: () => void;
 }
+
+

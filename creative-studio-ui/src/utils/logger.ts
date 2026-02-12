@@ -1,75 +1,97 @@
-/**
- * Logger - Logging structuré avec niveaux
- */
+// Logger centralisé pour StoryCore Creative Studio
 
-export enum LogLevel {
-  DEBUG = 'DEBUG',
-  INFO = 'INFO',
-  WARN = 'WARN',
-  ERROR = 'ERROR',
-}
+export const LogLevel = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+  NONE: 4,
+} as const;
 
-interface LogEntry {
+export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
+
+export interface LoggerConfig {
   level: LogLevel;
-  message: string;
-  timestamp: string;
-  data?: any;
+  enableColors: boolean;
+  prefix?: string;
 }
 
-export class Logger {
-  private static isDevelopment = import.meta.env.DEV;
+class Logger {
+  private level: LogLevel = LogLevel.INFO;
+  private prefix: string = '';
+  private colors: Record<LogLevel, string> = {
+    [LogLevel.DEBUG]: '#6c757d',  // gray
+    [LogLevel.INFO]: '#0d6efd',   // blue
+    [LogLevel.WARN]: '#ffc107',   // yellow
+    [LogLevel.ERROR]: '#dc3545',  // red
+    [LogLevel.NONE]: '',
+  };
 
-  private static formatTimestamp(): string {
-    return new Date().toISOString();
+  configure(config: Partial<LoggerConfig>): void {
+    if (config.level !== undefined) this.level = config.level;
+    if (config.prefix !== undefined) this.prefix = config.prefix;
   }
 
-  private static formatLog(entry: LogEntry): string {
-    const { level, message, timestamp, data } = entry;
-    const dataStr = data ? ` ${JSON.stringify(data)}` : '';
-    return `[${timestamp}] [${level}] ${message}${dataStr}`;
+  private shouldLog(level: LogLevel): boolean {
+    return level >= this.level;
   }
 
-  private static log(level: LogLevel, message: string, data?: any): void {
-    const entry: LogEntry = {
-      level,
-      message,
-      timestamp: this.formatTimestamp(),
-      data,
-    };
-
-    const formatted = this.formatLog(entry);
-
-    switch (level) {
-      case LogLevel.DEBUG:
-        if (this.isDevelopment) {
-          console.debug(formatted, data);
-        }
-        break;
-      case LogLevel.INFO:
-        console.info(formatted, data);
-        break;
-      case LogLevel.WARN:
-        console.warn(formatted, data);
-        break;
-      case LogLevel.ERROR:
-        console.error(formatted, data);
-        break;
-    }
+  private formatMessage(message: string, level: LogLevel): string {
+    const timestamp = new Date().toISOString();
+    const prefix = this.prefix ? `[${this.prefix}] ` : '';
+    return `${timestamp} ${prefix}${message}`;
   }
 
-  static debug(message: string, data?: any): void {
-    this.log(LogLevel.DEBUG, message, data);
+  debug(message: string, ...args: unknown[]): void {
+    if (!this.shouldLog(LogLevel.DEBUG)) return;
+    console.debug(this.formatMessage(message, LogLevel.DEBUG), ...args);
   }
 
-  static info(message: string, data?: any): void {
-    this.log(LogLevel.INFO, message, data);
+  info(message: string, ...args: unknown[]): void {
+    if (!this.shouldLog(LogLevel.INFO)) return;
+    console.info(this.formatMessage(message, LogLevel.INFO), ...args);
   }
 
-  static warn(message: string, data?: any): void {
-    this.log(LogLevel.WARN, message, data);
+  warn(message: string, ...args: unknown[]): void {
+    if (!this.shouldLog(LogLevel.WARN)) return;
+    console.warn(this.formatMessage(message, LogLevel.WARN), ...args);
   }
 
-  static error(message: string, data?: any): void {
-    this.log(LogLevel.ERROR, message, data);
+  error(message: string | Error, ...args: unknown[]): void {
+    if (!this.shouldLog(LogLevel.ERROR)) return;
+    console.error(this.formatMessage(message.toString(), LogLevel.ERROR), ...args);
+  }
+
+  // Méthodes de commodité
+  time(label: string): void {
+    console.time(label);
+  }
+
+  timeEnd(label: string): void {
+    console.timeEnd(label);
+  }
+
+  group(label: string): void {
+    console.group(label);
+  }
+
+  groupEnd(): void {
+    console.groupEnd();
   }
 }
+
+// Instance globale
+export const logger = new Logger();
+
+// Configuration selon l'environnement
+const isDevelopment = (): boolean => {
+  return import.meta.env?.DEV || process.env?.NODE_ENV === 'development';
+};
+
+if (isDevelopment()) {
+  logger.configure({ level: LogLevel.DEBUG });
+} else {
+  logger.configure({ level: LogLevel.WARN }); // WARN en prod
+}
+
+export default logger;

@@ -52,7 +52,7 @@ export interface PresetManagerProps {
   /**
    * Current parameters to save as preset
    */
-  currentParams: any;
+  currentParams: unknown;
   
   /**
    * Callback when preset is loaded
@@ -379,3 +379,4 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
     </div>
   );
 };
+

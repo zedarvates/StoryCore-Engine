@@ -1,233 +1,88 @@
-# Advanced ComfyUI Workflows - Production Configuration
+# StoryCore Production Configuration
+# All sensitive data should use secrets, not plain text
 
-# Deployment Configuration
-deployment:
-  environment: "production"
-  deployment_name: "advanced-workflows-prod"
+app:
+  name: "StoryCore Engine"
   version: "1.0.0"
+  environment: "production"
   
-  # Infrastructure Requirements
-  infrastructure:
-    min_vram_gb: 24.0
-    min_ram_gb: 64.0
-    min_storage_gb: 500.0
-    required_cuda_version: "11.8"
-    
-  # Service Configuration
-  services:
-    enable_monitoring: true
-    enable_health_checks: true
-    enable_auto_scaling: false
-    enable_backup: true
-    
-  # Performance Settings
-  performance:
-    max_concurrent_requests: 8
-    request_timeout_seconds: 600
-    model_cache_size_gb: 40.0
-    
-  # Monitoring Configuration
-  monitoring:
-    metrics_collection_interval: 30
-    health_check_interval: 60
-    log_retention_days: 30
-    
-  # Alert Configuration
-  alerting:
-    alert_email: "ops@company.com"
-    alert_webhook: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
-    alert_thresholds:
-      cpu_usage: 85.0
-      memory_usage: 90.0
-      gpu_usage: 95.0
-      error_rate: 3.0
-      response_time: 60.0
+backend:
+  host: "0.0.0.0"
+  port: 8080
+  workers: 4
+  timeout: 120
+  
+  # Rate limiting
+  rate_limit:
+    requests_per_minute: 100
+    burst: 20
+  
+  # CORS
+  cors:
+    origins:
+      - "https://storycore.io"
+      - "https://www.storycore.io"
+    methods:
+      - "*"
+    credentials: true
 
-# Workflow Configuration
-workflows:
-  # Video Workflows
-  video:
-    hunyuan:
+  # Security headers
+  security:
+    allowed_hosts:
+      - "storycore.io"
+      - "www.storycore.io"
+    strict_transport_security:
       enabled: true
-      model_precision: "fp16"
-      max_frames: 121
-      default_resolution: "720p"
-      upscaling_enabled: true
-      
-    wan:
-      enabled: true
-      model_precision: "fp8"
-      alpha_channel_support: true
-      inpainting_enabled: true
-      lightning_lora: true
-      
-  # Image Workflows
-  image:
-    newbie:
-      enabled: true
-      model_precision: "bf16"
-      anime_styles: ["realistic", "cartoon", "artistic"]
-      max_resolution: "1536x1024"
-      
-    qwen:
-      enabled: true
-      model_precision: "bf16"
-      editing_modes: ["relight", "edit", "layered"]
-      lightning_inference: true
+      max_age: 31536000
+      include_subdomains: true
 
-# Model Management
-models:
-  # Download Configuration
-  download:
-    auto_download: false
-    verify_checksums: true
-    retry_attempts: 3
-    timeout_seconds: 3600
-    
-  # Cache Configuration
-  cache:
+# Database
+database:
+  provider: "postgresql"
+  pool_size: 20
+  max_overflow: 10
+  pool_timeout: 30
+
+# Cache
+redis:
+  host: "redis"
+  port: 6379
+  db: 0
+  key_prefix: "storycore:"
+
+# External services
+services:
+  llm:
+    provider: "ollama"
+    url: "http://llm-service:8001"
+    model: "llama2:70b"
+    timeout: 300
+  
+  comfyui:
+    url: "http://comfyui:8188"
+    timeout: 600
+
+# Storage
+storage:
+  type: "local"
+  base_path: "/app/generated"
+  max_file_size: 10737418240  # 10GB
+  
+# Monitoring
+monitoring:
+  enabled: true
+  log_level: "INFO"
+  metrics:
     enabled: true
-    max_size_gb: 40.0
-    eviction_policy: "lru"
-    preload_critical: true
-    
-  # Model Locations
-  paths:
-    hunyuan_video: "/app/models/hunyuan/"
-    wan_video: "/app/models/wan/"
-    newbie_image: "/app/models/newbie/"
-    qwen_image: "/app/models/qwen/"
+    path: "/metrics"
 
-# Quality Configuration
-quality:
-  # Quality Thresholds
-  thresholds:
-    video_quality_min: 0.8
-    image_quality_min: 0.85
-    temporal_consistency_min: 0.75
-    
-  # Enhancement Settings
-  enhancement:
-    auto_enhance: true
-    max_iterations: 3
-    improvement_threshold: 0.1
-    
-  # Validation Settings
-  validation:
-    enabled: true
-    strict_mode: false
-    fail_on_low_quality: false
-
-# Performance Optimization
-optimization:
-  # Memory Management
-  memory:
-    gpu_memory_fraction: 0.9
-    enable_memory_pooling: true
-    clear_cache_interval: 300
-    
-  # Batch Processing
-  batch:
-    enabled: true
-    max_batch_size: 4
-    dynamic_batching: true
-    
-  # Model Optimization
-  model:
-    enable_quantization: true
-    use_torch_compile: true
-    enable_flash_attention: true
-
-# Security Configuration
-security:
-  # Input Validation
-  validation:
-    max_prompt_length: 2000
-    allowed_file_types: [".jpg", ".jpeg", ".png", ".webp"]
-    max_file_size_mb: 50
-    
-  # Rate Limiting
-  rate_limiting:
-    enabled: true
-    requests_per_minute: 60
-    burst_limit: 10
-    
-  # Authentication
-  authentication:
-    enabled: false  # Set to true for production
-    api_key_required: false
-    jwt_secret: "your-jwt-secret-here"
-
-# Logging Configuration
+# Logging
 logging:
-  # Log Levels
   level: "INFO"
   format: "json"
-  
-  # Log Destinations
-  destinations:
-    console: true
-    file: true
-    syslog: false
-    
-  # Log Rotation
-  rotation:
-    max_size_mb: 100
-    max_files: 10
-    compress: true
-    
-  # Component Logging
-  components:
-    deployment_manager: "INFO"
-    health_checker: "INFO"
-    monitoring_system: "INFO"
-    workflow_engines: "INFO"
-    quality_monitor: "DEBUG"
-
-# Backup Configuration
-backup:
-  # Backup Schedule
-  schedule:
-    enabled: true
-    interval_hours: 24
-    retention_days: 30
-    
-  # Backup Components
-  components:
-    configuration: true
-    model_metadata: true
-    logs: true
-    metrics: true
-    
-  # Backup Storage
-  storage:
-    local_path: "/app/backups"
-    compress: true
-    encryption: false
-
-# Network Configuration
-network:
-  # Server Settings
-  server:
-    host: "0.0.0.0"
-    port: 8080
-    workers: 4
-    
-  # Proxy Settings
-  proxy:
-    enabled: false
-    timeout: 300
-    max_connections: 100
-    
-  # CORS Settings
-  cors:
-    enabled: true
-    allowed_origins: ["*"]
-    allowed_methods: ["GET", "POST", "PUT", "DELETE"]
-
-# Development Settings (disabled in production)
-development:
-  debug_mode: false
-  hot_reload: false
-  mock_models: false
-  test_endpoints: false
+  handlers:
+    - type: "console"
+    - type: "file"
+      filename: "/app/logs/storycore.log"
+      max_size: 104857600  # 100MB
+      backup_count: 5

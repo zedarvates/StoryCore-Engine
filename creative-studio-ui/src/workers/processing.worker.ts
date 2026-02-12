@@ -1,12 +1,12 @@
 /**
- * Processing Worker - Worker pour traitement asynchrone
+ * Processing Worker - Worker for async processing
  * 
- * Ce worker gère les opérations lourdes en arrière-plan:
- * - Génération de thumbnails vidéo
- * - Encodage vidéo
- * - Traitement par lots
+ * This worker handles heavy background operations:
+ * - Video thumbnail generation
+ * - Video encoding
+ * - Batch processing
  * 
- * Exigences: 10.2, 10.3, 10.4, 10.7
+ * Requirements: 10.2, 10.3, 10.4, 10.7
  */
 
 interface WorkerMessage<T = any> {
@@ -24,15 +24,15 @@ interface WorkerResponse<R = any> {
 }
 
 /**
- * Envoie une réponse au thread principal
+ * Sends a response to the main thread
  */
 function sendResponse<R>(response: WorkerResponse<R>): void {
   self.postMessage(response);
 }
 
 /**
- * Envoie une mise à jour de progression
- * Exigence: 10.2 - Messages de progression
+ * Sends a progress update
+ * Requirement: 10.2 - Progress messages
  */
 function sendProgress(id: string, progress: number): void {
   sendResponse({
@@ -43,7 +43,7 @@ function sendProgress(id: string, progress: number): void {
 }
 
 /**
- * Envoie un résultat de succès
+ * Sends a success result
  */
 function sendSuccess<R>(id: string, result: R): void {
   sendResponse({
@@ -54,10 +54,10 @@ function sendSuccess<R>(id: string, result: R): void {
 }
 
 /**
- * Envoie une erreur avec contexte
- * Exigence: 10.7 - Gestion d'erreurs avec contexte
+ * Sends an error with context
+ * Requirement: 10.7 - Error handling with context
  */
-function sendError(id: string, error: Error, context?: any): void {
+function sendError(id: string, error: Error, context?: unknown): void {
   const errorMessage = error.message;
   const errorContext = context ? ` (Context: ${JSON.stringify(context)})` : '';
   
@@ -69,8 +69,8 @@ function sendError(id: string, error: Error, context?: any): void {
 }
 
 /**
- * Génère un thumbnail depuis une vidéo
- * Exigence: 10.3 - Thumbnail generation
+ * Generates a thumbnail from a video
+ * Requirement: 10.3 - Thumbnail generation
  */
 async function generateThumbnail(
   id: string,
@@ -81,7 +81,7 @@ async function generateThumbnail(
 
     sendProgress(id, 10);
 
-    // Créer un élément vidéo
+    // Create video element
     const video = document.createElement('video');
     video.crossOrigin = 'anonymous';
     video.preload = 'metadata';
@@ -97,7 +97,7 @@ async function generateThumbnail(
 
     sendProgress(id, 50);
 
-    // Aller au temps spécifié
+    // Seek to specified time
     video.currentTime = time;
     await new Promise<void>((resolve) => {
       video.onseeked = () => resolve();
@@ -105,7 +105,7 @@ async function generateThumbnail(
 
     sendProgress(id, 70);
 
-    // Créer un canvas et dessiner la frame
+    // Create canvas and draw frame
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
     
@@ -129,8 +129,8 @@ async function generateThumbnail(
 }
 
 /**
- * Encode une vidéo (simulation pour l'instant)
- * Exigence: 10.3 - Video encoding
+ * Encodes a video (simulation for now)
+ * Requirement: 10.3 - Video encoding
  */
 async function encodeVideo(
   id: string,
@@ -139,7 +139,7 @@ async function encodeVideo(
   try {
     const { videoUrl, format, quality } = data;
 
-    // Simulation d'encodage avec progression
+    // Encoding simulation with progress
     for (let progress = 0; progress <= 100; progress += 10) {
       sendProgress(id, progress);
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -149,8 +149,8 @@ async function encodeVideo(
       encodedUrl: videoUrl,
       format,
       quality,
-      size: Math.floor(Math.random() * 10000000), // Taille simulée
-      duration: Math.floor(Math.random() * 300) // Durée simulée
+      size: Math.floor(Math.random() * 10000000), // Simulated size
+      duration: Math.floor(Math.random() * 300) // Simulated duration
     };
 
     sendSuccess(id, result);
@@ -161,25 +161,25 @@ async function encodeVideo(
 }
 
 /**
- * Traite un lot d'éléments
- * Exigence: 10.4 - Batch processing
+ * Processes a batch of items
+ * Requirement: 10.4 - Batch processing
  */
 async function processBatch(
   id: string,
-  data: { items: any[]; operation: string; options?: any }
+  data: { items: unknown[]; operation: string; options?: unknown }
 ): Promise<void> {
   try {
     const { items, operation, options } = data;
-    const results: any[] = [];
+    const results: unknown[] = [];
     const errors: Array<{ index: number; error: string }> = [];
 
     for (let i = 0; i < items.length; i++) {
       try {
-        // Simuler le traitement de chaque élément
+        // Simulate processing of each item
         const result = await processItem(items[i], operation, options);
         results.push(result);
 
-        // Envoyer la progression
+        // Send progress
         const progress = ((i + 1) / items.length) * 100;
         sendProgress(id, progress);
 
@@ -199,10 +199,10 @@ async function processBatch(
 }
 
 /**
- * Traite un élément individuel dans un lot
+ * Processes a single item in a batch
  */
-async function processItem(item: any, operation: string, options?: any): Promise<any> {
-  // Simulation de traitement
+async function processItem(item: unknown, operation: string, options?: unknown): Promise<any> {
+  // Processing simulation
   await new Promise(resolve => setTimeout(resolve, 50));
 
   switch (operation) {
@@ -218,8 +218,8 @@ async function processItem(item: any, operation: string, options?: any): Promise
 }
 
 /**
- * Optimise une image
- * Exigence: 10.3 - Image processing
+ * Optimizes an image
+ * Requirement: 10.3 - Image processing
  */
 async function optimizeImage(
   id: string,
@@ -230,18 +230,18 @@ async function optimizeImage(
 
     sendProgress(id, 20);
 
-    // Charger l'image
+    // Load image
     const response = await fetch(imageUrl);
     const blob = await response.blob();
 
     sendProgress(id, 40);
 
-    // Créer un bitmap
+    // Create bitmap
     const bitmap = await createImageBitmap(blob);
 
     sendProgress(id, 60);
 
-    // Calculer les nouvelles dimensions
+    // Calculate new dimensions
     let width = bitmap.width;
     let height = bitmap.height;
 
@@ -253,7 +253,7 @@ async function optimizeImage(
 
     sendProgress(id, 80);
 
-    // Redimensionner
+    // Resize
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
 
@@ -263,7 +263,7 @@ async function optimizeImage(
 
     ctx.drawImage(bitmap, 0, 0, width, height);
 
-    // Convertir en blob
+    // Convert to blob
     const optimizedBlob = await canvas.convertToBlob({
       type: 'image/jpeg',
       quality
@@ -278,7 +278,7 @@ async function optimizeImage(
 }
 
 /**
- * Analyse la qualité d'une vidéo
+ * Analyzes video quality
  */
 async function analyzeVideoQuality(
   id: string,
@@ -289,7 +289,7 @@ async function analyzeVideoQuality(
 
     sendProgress(id, 25);
 
-    // Charger la vidéo
+    // Load video
     const video = document.createElement('video');
     video.crossOrigin = 'anonymous';
     video.preload = 'metadata';
@@ -302,7 +302,7 @@ async function analyzeVideoQuality(
 
     sendProgress(id, 50);
 
-    // Extraire les métadonnées
+    // Extract metadata
     const metadata = {
       duration: video.duration,
       width: video.videoWidth,
@@ -313,7 +313,7 @@ async function analyzeVideoQuality(
 
     sendProgress(id, 75);
 
-    // Analyser quelques frames pour la qualité
+    // Analyze frames for quality
     const samples = 5;
     const qualityScores: number[] = [];
 
@@ -324,7 +324,7 @@ async function analyzeVideoQuality(
         video.onseeked = () => resolve();
       });
 
-      // Simuler une analyse de qualité
+      // Simulate quality analysis
       qualityScores.push(Math.random() * 100);
     }
 
@@ -344,18 +344,18 @@ async function analyzeVideoQuality(
 }
 
 /**
- * Gestionnaire principal des messages
- * Exigence: 10.4 - Gestion des opérations multiples
- * Exigence: 10.5 - Annulation de tâches
+ * Main message handler
+ * Requirement: 10.4 - Multiple operations handling
+ * Requirement: 10.5 - Task cancellation
  */
 
-// Map pour suivre les tâches en cours et permettre l'annulation
+// Map to track ongoing tasks and enable cancellation
 const activeTasks = new Map<string, AbortController>();
 
 self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
   const { id, type, data } = event.data;
 
-  // Gérer l'annulation
+  // Handle cancellation
   if (type === 'cancel') {
     const controller = activeTasks.get(id);
     if (controller) {
@@ -365,7 +365,7 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
     return;
   }
 
-  // Créer un AbortController pour cette tâche
+  // Create AbortController for this task
   const abortController = new AbortController();
   activeTasks.set(id, abortController);
 
@@ -395,16 +395,19 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
         throw new Error(`Unknown operation type: ${type}`);
     }
   } catch (error) {
-    // Ne pas envoyer d'erreur si la tâche a été annulée
+    // Do not send error if task was cancelled
     if (error instanceof Error && error.name === 'AbortError') {
       return;
     }
     sendError(id, error as Error, { type, data });
   } finally {
-    // Nettoyer le controller
+    // Cleanup controller
     activeTasks.delete(id);
   }
 };
 
 // Export pour TypeScript
 export {};
+
+
+

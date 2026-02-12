@@ -73,12 +73,12 @@ export interface MusicGenerationResult {
   generationId: string;
   timestamp: Date;
   generatedAudioId: string;
-  compositionDetails: Record<string, any>;
+  compositionDetails: Record<string, unknown>;
   moodAlignmentScore: number;
   genreAccuracy: number;
   technicalQuality: number;
   processingTime: number;
-  generationParameters: Record<string, any>;
+  generationParameters: Record<string, unknown>;
 }
 
 export interface AudioMixing {
@@ -97,7 +97,7 @@ export interface AudioMixingResult {
   stereoImagingScore: number;
   overallQuality: number;
   processingTime: number;
-  mixingDetails: Record<string, any>;
+  mixingDetails: Record<string, unknown>;
 }
 
 export interface AudioEnhancementConfig {
@@ -105,7 +105,7 @@ export interface AudioEnhancementConfig {
   enhancementTypes: AudioEnhancementType[];
   qualityLevel: AudioQuality;
   preserveOriginalCharacteristics: boolean;
-  artisticConstraints: Record<string, any>;
+  artisticConstraints: Record<string, unknown>;
 }
 
 export interface MusicGenerationConfig {
@@ -365,7 +365,7 @@ class AIAudioEnhancementService extends EventEmitter {
    * Import enhancement settings
    */
   async importEnhancement(data: string, format: 'json' | 'xml' = 'json'): Promise<AudioEnhancement> {
-    let enhancementData: any;
+    let enhancementData: unknown;
 
     if (format === 'json') {
       enhancementData = JSON.parse(data);
@@ -651,7 +651,7 @@ class AIAudioEnhancementService extends EventEmitter {
 </audio_enhancement>`;
   }
 
-  private parseXML(xml: string): any {
+  private parseXML(xml: string): unknown {
     throw new Error('XML parsing not implemented');
   }
 
@@ -661,7 +661,7 @@ class AIAudioEnhancementService extends EventEmitter {
       const saved = localStorage.getItem('ai_audio_enhancements');
       if (saved) {
         const enhancements = JSON.parse(saved);
-        enhancements.forEach((enhancement: any) => {
+        enhancements.forEach((enhancement: unknown) => {
           this.enhancements.set(enhancement.id, {
             ...enhancement,
             createdAt: new Date(enhancement.createdAt),
@@ -688,7 +688,7 @@ class AIAudioEnhancementService extends EventEmitter {
       const saved = localStorage.getItem('ai_music_generations');
       if (saved) {
         const generations = JSON.parse(saved);
-        generations.forEach((generation: any) => {
+        generations.forEach((generation: unknown) => {
           this.musicGenerations.set(generation.id, {
             ...generation,
             createdAt: new Date(generation.createdAt),
@@ -715,7 +715,7 @@ class AIAudioEnhancementService extends EventEmitter {
       const saved = localStorage.getItem('ai_audio_mixings');
       if (saved) {
         const mixings = JSON.parse(saved);
-        mixings.forEach((mixing: any) => {
+        mixings.forEach((mixing: unknown) => {
           this.mixings.set(mixing.id, {
             ...mixing,
             createdAt: new Date(mixing.createdAt),
@@ -747,3 +747,6 @@ export type {
   AudioMixingProfile, MusicGeneration, MusicGenerationResult, AudioMixing,
   AudioMixingResult, AudioEnhancementConfig, MusicGenerationConfig, AudioMixingConfig
 };
+
+
+

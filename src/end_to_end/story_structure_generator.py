@@ -10,7 +10,7 @@ Generates complete story structures from parsed prompts, including:
 
 import uuid
 from typing import List, Dict
-from .data_models import (
+from src.end_to_end.data_models import (
     ParsedPrompt, StoryStructure, Act, EmotionalBeat,
     WorldConfig, Character
 )

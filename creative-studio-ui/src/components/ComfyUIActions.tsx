@@ -20,7 +20,7 @@ import {
 
 interface ComfyUIActionsProps {
   className?: string;
-  onWorkflowExecute?: (workflowType: string, params: any) => void;
+  onWorkflowExecute?: (workflowType: string, params: unknown) => void;
   onMediaUpload?: (filePath: string) => void;
 }
 
@@ -274,3 +274,4 @@ export const ComfyUIActions: React.FC<ComfyUIActionsProps> = ({
     </div>
   );
 };
+

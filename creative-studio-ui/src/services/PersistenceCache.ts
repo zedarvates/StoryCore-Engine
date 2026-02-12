@@ -241,7 +241,7 @@ export class PersistenceCache {
   /**
    * Calcule la taille approximative d'un objet
    */
-  private calculateSize(obj: any): number {
+  private calculateSize(obj: unknown): number {
     const str = JSON.stringify(obj);
     return str ? str.length * 2 : 0; // Approximation: 2 octets par caractère
   }
@@ -424,3 +424,4 @@ export class PersistenceCache {
 
 // Export de l'instance singleton
 export const persistenceCache = PersistenceCache.getInstance();
+

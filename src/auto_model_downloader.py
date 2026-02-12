@@ -2,6 +2,7 @@
 """
 Auto Model Downloader for StoryCore-Engine ComfyUI Integration
 Automatically downloads required models when ComfyUI starts up.
+Includes FLUX.2, Z-Image Turbo, and other image generation models.
 """
 
 import os
@@ -27,6 +28,7 @@ class ModelInfo:
     subfolder: str
     expected_size_mb: int
     required: bool = True
+    description: str = ""
 
 class AutoModelDownloader:
     """
@@ -59,117 +61,199 @@ class AutoModelDownloader:
         return Path.cwd() / "comfyui_portable" / "ComfyUI"
 
     def _get_required_models(self) -> List[ModelInfo]:
-        """Get the list of required models for StoryCore FLUX.2 pipeline."""
+        """Get the list of required models for StoryCore workflows."""
         return [
-            # Core FLUX.2 models (required)
+            # =====================================
+            # FLUX.2 Models (Main Image Generation)
+            # =====================================
             ModelInfo(
                 name="flux2-vae.safetensors",
                 url="https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors",
                 subfolder="vae",
                 expected_size_mb=335,
-                required=True
+                required=True,
+                description="FLUX.2 VAE model"
             ),
             ModelInfo(
                 name="flux2_dev_fp8mixed.safetensors",
                 url="https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/diffusion_models/flux2_dev_fp8mixed.safetensors",
                 subfolder="checkpoints",
                 expected_size_mb=3584,
-                required=True
+                required=True,
+                description="FLUX.2 diffusion model (FP8)"
             ),
             ModelInfo(
                 name="mistral_3_small_flux2_bf16.safetensors",
                 url="https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_bf16.safetensors",
                 subfolder="clip",
                 expected_size_mb=7372,
-                required=True
+                required=True,
+                description="FLUX.2 CLIP text encoder"
             ),
 
-            # New FLUX.2-klein models (lightweight alternatives)
+            # =====================================
+            # Z-Image Turbo Models (Fast Generation)
+            # =====================================
             ModelInfo(
-                name="flux2-klein.safetensors",
-                url="https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/resolve/main/flux2-klein.safetensors",
+                name="z_image_turbo_bf16.safetensors",
+                url="https://huggingface.co/Comfy-Org/z-img-turbo/resolve/main/z_image_turbo_bf16.safetensors",
                 subfolder="checkpoints",
-                expected_size_mb=9500,  # ~9.3GB actual size
-                required=False  # Optional lightweight alternative
+                expected_size_mb=5200,
+                required=True,
+                description="Z-Image Turbo model for fast generation"
             ),
 
-            # Enhanced text encoders
+            # =====================================
+            # BEYOND REALITY SUPER Z IMAGE 3.0 (Fast Portraits)
+            # =====================================
             ModelInfo(
-                name="t5xxl_fp16.safetensors",
-                url="https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/t5xxl_fp16.safetensors",
-                subfolder="clip",
-                expected_size_mb=9450,
-                required=False  # Optional for basic FLUX.2
+                name="beyond_reality_super_z_image_3.0_bf16.safetensors",
+                url="https://huggingface.co/mingyi456/BEYOND_REALITY_Z_IMAGE-DF11-ComfyUI/resolve/main/BEYOND%20REALITY%20SUPER%20Z%20IMAGE%203.0%20%E6%B7%A1%E5%A6%86%E6%B5%93%E6%8A%B9%20BF16-DF11.safetensors",
+                subfolder="checkpoints",
+                expected_size_mb=5500,
+                required=False,
+                description="BEYOND REALITY SUPER Z IMAGE 3.0 - Fast portrait generation model"
             ),
-
-            # Additional VAE variants (optional)
+            ModelInfo(
+                name="qwen_3_4b.safetensors",
+                url="https://huggingface.co/Comfy-Org/z-img-turbo/resolve/main/qwen_3_4b.safetensors",
+                subfolder="clip",
+                expected_size_mb=8300,
+                required=True,
+                description="Qwen 3 4B CLIP model for Z-Turbo"
+            ),
             ModelInfo(
                 name="ae.safetensors",
-                url="https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/resolve/main/ae.safetensors",
+                url="https://huggingface.co/Comfy-Org/z-img-turbo/resolve/main/ae.safetensors",
                 subfolder="vae",
                 expected_size_mb=335,
-                required=False  # Alternative VAE
+                required=True,
+                description="Autoencoder for Z-Turbo"
             ),
 
-            # LTX-2 Video Generation Models (Optional - Video Generation)
+            # =====================================
+            # LTX-2 Video Generation Models (Optional)
+            # =====================================
             ModelInfo(
                 name="ltx-2-19b-dev.safetensors",
                 url="https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-dev.safetensors",
                 subfolder="checkpoints",
-                expected_size_mb=38000,  # ~37GB
-                required=False  # Video generation model
+                expected_size_mb=38000,
+                required=False,
+                description="LTX-2 Video Generation Model (~37GB)"
             ),
             ModelInfo(
                 name="ltx-2-19b-dev-fp8.safetensors",
                 url="https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-dev-fp8.safetensors",
                 subfolder="checkpoints",
-                expected_size_mb=9500,  # ~9.3GB
-                required=False  # Optimized FP8 version
+                expected_size_mb=9500,
+                required=False,
+                description="LTX-2 optimized FP8 version (~9.3GB)"
             ),
             ModelInfo(
                 name="gemma_3_12B_it.safetensors",
                 url="https://huggingface.co/Comfy-Org/ltx-2/resolve/main/split_files/text_encoders/gemma_3_12B_it.safetensors",
                 subfolder="text_encoders",
-                expected_size_mb=24500,  # ~24GB
-                required=False  # LTX-2 text encoder
+                expected_size_mb=24500,
+                required=False,
+                description="LTX-2 text encoder (~24GB)"
             ),
             ModelInfo(
                 name="ltx-2-19b-distilled-lora-384.safetensors",
                 url="https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-distilled-lora-384.safetensors",
                 subfolder="loras",
-                expected_size_mb=150,  # ~150MB
-                required=False  # Distilled LoRA
+                expected_size_mb=150,
+                required=False,
+                description="LTX-2 distilled LoRA"
+            ),
+
+            # =====================================
+            # ACE-Step Audio Models (Optional - NOT for images)
+            # =====================================
+            # NOTE: ACE-Step is for audio/music generation, NOT character images
+            # Only include if user explicitly wants audio capabilities
+            # ModelInfo(
+            #     name="ace_step_v1_3.5b.safetensors",
+            #     url="https://huggingface.co/Comfy-Org/ACE-Step_ComfyUI_repackaged/resolve/main/all_in_one/ace_step_v1_3.5b.safetensors",
+            #     subfolder="checkpoints",
+            #     expected_size_mb=7000,
+            #     required=False,
+            #     description="ACE-Step TTS/Audio model (NOT for images)"
+            # ),
+
+            # =====================================
+            # Additional Optional Models
+            # =====================================
+            ModelInfo(
+                name="flux2-klein.safetensors",
+                url="https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/resolve/main/flux2-klein.safetensors",
+                subfolder="checkpoints",
+                expected_size_mb=9500,
+                required=False,
+                description="FLUX.2-klein lightweight alternative (~9.3GB)"
             ),
             ModelInfo(
-                name="ltx-2-19b-lora-camera-control-dolly-left.safetensors",
-                url="https://huggingface.co/Lightricks/LTX-2-19b-LoRA-Camera-Control-Dolly-Left/resolve/main/ltx-2-19b-lora-camera-control-dolly-left.safetensors",
-                subfolder="loras",
-                expected_size_mb=150,  # ~150MB
-                required=False  # Camera control LoRA
-            ),
-            ModelInfo(
-                name="ltx-2-spatial-upscaler-x2-1.0.safetensors",
-                url="https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-spatial-upscaler-x2-1.0.safetensors",
-                subfolder="latent_upscale_models",
-                expected_size_mb=500,  # ~500MB
-                required=False  # Spatial upscaler
+                name="t5xxl_fp16.safetensors",
+                url="https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/t5xxl_fp16.safetensors",
+                subfolder="clip",
+                expected_size_mb=9450,
+                required=False,
+                description="T5-XXL text encoder (optional)"
             ),
         ]
 
-    async def check_and_download_models(self) -> Tuple[bool, List[str]]:
+    def get_image_generation_models(self) -> List[ModelInfo]:
+        """Get models specifically for character/image generation (NOT ACE-Step)."""
+        return [
+            m for m in self.required_models
+            if "flux" in m.name.lower() or "z_image" in m.name.lower()
+        ]
+
+    def get_video_generation_models(self) -> List[ModelInfo]:
+        """Get models for video generation."""
+        return [
+            m for m in self.required_models
+            if "ltx" in m.name.lower()
+        ]
+
+    def get_audio_generation_models(self) -> List[ModelInfo]:
+        """Get models for audio generation (ACE-Step, etc.)."""
+        return [
+            m for m in self.required_models
+            if "ace" in m.name.lower()
+        ]
+
+    async def check_and_download_models(self, model_type: Optional[str] = None) -> Tuple[bool, List[str]]:
         """
         Check for missing models and download them automatically.
 
+        Args:
+            model_type: Optional filter - 'image', 'video', 'audio', or None for all
+
         Returns:
-            Tuple of (success, list of downloaded models)
+            Tuple of (success, list of available models)
         """
-        logger.info("🔍 Checking for required models...")
+        logger.info(f"🔍 Checking for required models (type: {model_type or 'all'})...")
+
+        # Filter models by type if specified
+        if model_type == 'image':
+            models_to_check = self.get_image_generation_models()
+            logger.info("📷 Checking FLUX.2 and Z-Image Turbo models for character images...")
+        elif model_type == 'video':
+            models_to_check = self.get_video_generation_models()
+            logger.info("🎬 Checking LTX-2 video models...")
+        elif model_type == 'audio':
+            models_to_check = self.get_audio_generation_models()
+            logger.info("🎵 Checking ACE-Step audio models...")
+        else:
+            models_to_check = self.required_models
+            logger.info("📦 Checking all models...")
 
         missing_models = []
         existing_models = []
 
         # Check each required model
-        for model in self.required_models:
+        for model in models_to_check:
             model_path = self.models_path / model.subfolder / model.name
 
             if model_path.exists():
@@ -188,7 +272,7 @@ class AutoModelDownloader:
                     missing_models.append(model)
                     logger.warning(f"❌ {model.name} not found")
                 else:
-                    logger.info(f"ℹ️  {model.name} (optional) not found")
+                    logger.info(f"ℹ️  {model.name} ({model.description}) - optional")
 
         # Download missing models
         downloaded = []
@@ -276,14 +360,65 @@ class AutoModelDownloader:
 
         return True
 
-    async def run_auto_setup(self) -> bool:
+    def validate_models_for_workflow(self, workflow_type: str) -> Dict[str, Any]:
+        """
+        Validate that required models exist for a specific workflow type.
+
+        Args:
+            workflow_type: 'image', 'video', or 'character_edit'
+
+        Returns:
+            Dict with validation results
+        """
+        result = {
+            "workflow_type": workflow_type,
+            "valid": True,
+            "missing_models": [],
+            "warnings": [],
+            "available_models": []
+        }
+
+        if workflow_type in ['image', 'character_edit']:
+            required_models = self.get_image_generation_models()
+        elif workflow_type == 'video':
+            required_models = self.get_video_generation_models()
+        elif workflow_type == 'audio':
+            required_models = self.get_audio_generation_models()
+        else:
+            required_models = self.required_models
+
+        for model in required_models:
+            model_path = self.models_path / model.subfolder / model.name
+            if model_path.exists():
+                result["available_models"].append(model.name)
+            else:
+                result["missing_models"].append(model.name)
+                if model.required:
+                    result["valid"] = False
+                    result["warnings"].append(f"Required model missing: {model.name}")
+
+        # Special check: Warn if user is trying character editing with audio models
+        if workflow_type == 'character_edit':
+            audio_models = self.get_audio_generation_models()
+            if audio_models:
+                result["warnings"].append(
+                    "NOTE: ACE-Step audio models are NOT needed for character image generation. "
+                    "Use FLUX.2 or Z-Image Turbo workflows instead."
+                )
+
+        return result
+
+    async def run_auto_setup(self, model_type: Optional[str] = None) -> bool:
         """
         Run the complete auto-setup process for StoryCore ComfyUI models.
+
+        Args:
+            model_type: Optional filter - 'image', 'video', 'audio', or None for all
 
         Returns:
             True if all required models are available, False otherwise
         """
-        logger.info("🚀 Starting StoryCore ComfyUI Auto Model Setup")
+        logger.info(f"🚀 Starting StoryCore ComfyUI Auto Model Setup")
         logger.info("=" * 50)
 
         # Validate ComfyUI setup
@@ -291,8 +426,16 @@ class AutoModelDownloader:
             logger.error("❌ ComfyUI setup validation failed")
             return False
 
+        # Validate models for the workflow type
+        if model_type:
+            validation = self.validate_models_for_workflow(model_type)
+            if not validation["valid"]:
+                logger.warning(f"⚠️  Some required models for {model_type} are missing")
+                for warning in validation["warnings"]:
+                    logger.warning(f"   {warning}")
+
         # Check and download models
-        success, available_models = await self.check_and_download_models()
+        success, available_models = await self.check_and_download_models(model_type)
 
         logger.info("=" * 50)
         if success:
@@ -301,11 +444,19 @@ class AutoModelDownloader:
             for model in available_models:
                 logger.info(f"  - {model}")
             logger.info("🌐 ComfyUI is ready for StoryCore workflows")
+            
+            # Specific guidance for character image generation
+            if model_type in [None, 'image', 'character_edit']:
+                logger.info("")
+                logger.info("📷 Character Image Generation:")
+                logger.info("   Use FLUX.2 or Z-Image Turbo workflows")
+                logger.info("   NOT ACE-Step (which is for audio/music)")
             return True
         else:
             logger.error("❌ Some required models could not be downloaded")
             logger.info("💡 Try running again or check your internet connection")
             return False
+
 
 async def main():
     """Main entry point for the auto model downloader."""
@@ -313,18 +464,37 @@ async def main():
 
     parser = argparse.ArgumentParser(description="Auto Model Downloader for StoryCore ComfyUI")
     parser.add_argument("--comfyui-path", help="Path to ComfyUI installation")
+    parser.add_argument("--type", choices=['image', 'video', 'audio'], 
+                       help="Model type to check/download")
     parser.add_argument("--check-only", action="store_true", help="Only check models, don't download")
+    parser.add_argument("--validate", choices=['image', 'video', 'audio', 'character_edit'],
+                       help="Validate models for specific workflow type")
 
     args = parser.parse_args()
 
     downloader = AutoModelDownloader(args.comfyui_path)
 
+    # Validation mode
+    if args.validate:
+        result = downloader.validate_models_for_workflow(args.validate)
+        print(f"\n📋 Validation for {args.validate}:")
+        print(f"   Valid: {result['valid']}")
+        print(f"   Available: {len(result['available_models'])} models")
+        print(f"   Missing: {len(result['missing_models'])} models")
+        for model in result['missing_models']:
+            print(f"      - {model}")
+        for warning in result['warnings']:
+            print(f"   ⚠️  {warning}")
+        sys.exit(0 if result['valid'] else 1)
+
     if args.check_only:
-        success, available = await downloader.check_and_download_models()
+        success, available = await downloader.check_and_download_models(args.type)
         sys.exit(0 if success else 1)
     else:
-        success = await downloader.run_auto_setup()
+        success = await downloader.run_auto_setup(args.type)
         sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
+

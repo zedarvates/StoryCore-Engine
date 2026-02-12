@@ -3,8 +3,15 @@
   "version": "1.0.0",
   "description": "StoryCore Creative Studio - From Script to Screen in 5 Minutes",
   "main": "dist/electron/main.js",
+  "bin": {
+    "storycore": "./dist/cli/storycore-cli.js"
+  },
   "scripts": {
     "test": "jest",
+    "test:ui": "jest \"./creative-studio-ui/**/*.test.tsx\"",
+    "cli:build": "tsc -p cli/tsconfig.json",
+    "cli:dev": "tsc -p cli/tsconfig.json --watch",
+    "storycore": "node dist/cli/storycore-cli.js",
     "electron:dev": "npm run electron:build && cross-env NODE_ENV=development electron .",
     "electron:build": "tsc -p electron/tsconfig.json",
     "electron:build:watch": "tsc -p electron/tsconfig.json --watch",
@@ -40,6 +47,7 @@
   },
   "homepage": "https://github.com/zedarvates/StoryCore-Engine#readme",
   "dependencies": {
+    "commander": "^12.0.0",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "lucide-react": "^0.562.0",
@@ -70,8 +78,11 @@
     "testEnvironment": "node",
     "testMatch": [
       "**/tests/**/*.test.ts",
+      "**/tests/**/*.test.tsx",
       "**/electron/**/*.test.ts",
-      "**/src/**/*.test.ts"
+      "**/electron/**/*.test.tsx",
+      "**/src/**/*.test.ts",
+      "**/src/**/*.test.tsx"
     ],
     "moduleFileExtensions": [
       "ts",

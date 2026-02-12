@@ -14,11 +14,11 @@ export interface AutoFillResult {
   filledFields: string[];
   suggestions: string[];
   confidence: number;
-  data: any;
+  data: unknown;
 }
 
 export interface FormData {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -242,7 +242,7 @@ export class FormAutoFill {
       };
     }
 
-    const formData: any = {};
+    const formData: unknown = {};
     const sceneContext = context.sceneContext;
 
     // Type de scène
@@ -308,7 +308,7 @@ export class FormAutoFill {
       };
     }
 
-    const formData: any = {};
+    const formData: unknown = {};
     const dialogueContext = context.dialogueContext;
 
     // Interlocuteur principal
@@ -368,7 +368,7 @@ export class FormAutoFill {
       };
     }
 
-    const formData: any = {};
+    const formData: unknown = {};
     const storyboardContext = context.storyboardContext;
 
     // Séquence
@@ -422,7 +422,7 @@ export class FormAutoFill {
       };
     }
 
-    const formData: any = {};
+    const formData: unknown = {};
     const styleContext = context.styleContext;
 
     // Style cible
@@ -532,7 +532,7 @@ export class FormAutoFill {
   /**
    * Valide les données pré-remplies en temps réel
    */
-  validateAutoFilledData(formType: string, data: any): { isValid: boolean, errors: string[], warnings: string[] } {
+  validateAutoFilledData(formType: string, data: unknown): { isValid: boolean, errors: string[], warnings: string[] } {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -596,7 +596,7 @@ export class FormAutoFill {
   /**
    * Génère des suggestions d'amélioration pour les données pré-remplies
    */
-  generateImprovementSuggestions(formType: string, data: any): string[] {
+  generateImprovementSuggestions(formType: string, data: unknown): string[] {
     const suggestions: string[] = [];
 
     switch (formType.toLowerCase()) {
@@ -676,3 +676,5 @@ export class FormAutoFill {
 
 // Export de l'instance singleton
 export const formAutoFill = FormAutoFill.getInstance();
+
+

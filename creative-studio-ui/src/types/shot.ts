@@ -24,7 +24,7 @@ export interface ComfyUIParameters {
   sampler: string;
   scheduler: string;
   denoisingStrength?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface CameraMovement {
@@ -87,6 +87,12 @@ export interface Shot {
   sequencePlanId?: string;
   sceneId?: string;
   position: number;
+  // New rig metadata fields
+  rigPath?: string; // Path to the generated rig asset
+  boneCount?: number; // Number of bones in the rig
+  hash?: string; // Content hash of the rig
+  gltfPath?: string; // Path to exported GLTF file
+  referenceImage?: string; // Base64 or URL of the reference image for AI
 }
 
 export interface ProductionShot {
@@ -135,6 +141,7 @@ export interface ProductionShot {
     parameters: ComfyUIParameters;
     styleReferences: string[];
     seed?: number;
+    referenceImage?: string; // Reference image for ComfyUI generation
   };
 
   // Dialogue and audio
@@ -223,3 +230,4 @@ export const ShotSchema = z.object({
   tags: z.array(z.string()),
   templates: z.array(z.string()),
 });
+

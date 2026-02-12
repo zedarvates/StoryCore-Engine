@@ -8,7 +8,7 @@ import { useState, useCallback, useMemo } from 'react';
 
 export interface ValidationRule<T = any> {
   field: keyof T;
-  validate: (value: any, formData: T) => string | null;
+  validate: (value: unknown, formData: T) => string | null;
   message?: string;
 }
 
@@ -17,19 +17,19 @@ export interface UseFormValidationResult<T> {
   isValid: boolean;
   validationErrors: string[];
   validate: (formData: T) => boolean;
-  validateField: (field: keyof T, value: any, formData: T) => string | null;
+  validateField: (field: keyof T, value: unknown, formData: T) => string | null;
   clearErrors: () => void;
   clearFieldError: (field: keyof T) => void;
   setFieldError: (field: keyof T, error: string) => void;
 }
 
-export function useFormValidation<T extends Record<string, any>>(
+export function useFormValidation<T extends Record<string, unknown>>(
   rules: ValidationRule<T>[]
 ): UseFormValidationResult<T> {
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
 
   const validateField = useCallback(
-    (field: keyof T, value: any, formData: T): string | null => {
+    (field: keyof T, value: unknown, formData: T): string | null => {
       const fieldRules = rules.filter(rule => rule.field === field);
       
       for (const rule of fieldRules) {
@@ -108,7 +108,7 @@ export function useFormValidation<T extends Record<string, any>>(
  * Common validation rules
  */
 export const ValidationRules = {
-  required: (message = 'This field is required') => (value: any) => {
+  required: (message = 'This field is required') => (value: unknown) => {
     if (value === null || value === undefined || value === '') {
       return message;
     }
@@ -153,7 +153,7 @@ export const ValidationRules = {
     return null;
   },
 
-  number: (message = 'Must be a valid number') => (value: any) => {
+  number: (message = 'Must be a valid number') => (value: unknown) => {
     if (value === null || value === undefined || value === '') return null;
     
     if (isNaN(Number(value))) {
@@ -190,11 +190,13 @@ export const ValidationRules = {
     return null;
   },
 
-  custom: <T = any>(validator: (value: any, formData: T) => boolean, message: string) => 
-    (value: any, formData: T) => {
+  custom: <T = any>(validator: (value: unknown, formData: T) => boolean, message: string) => 
+    (value: unknown, formData: T) => {
       if (!validator(value, formData)) {
         return message;
       }
       return null;
     },
 };
+
+

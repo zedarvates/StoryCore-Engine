@@ -18,7 +18,7 @@ const toolsSlice = createSlice({
     setActiveTool: (state, action: PayloadAction<ToolType>) => {
       state.activeTool = action.payload;
     },
-    setToolSettings: (state, action: PayloadAction<Record<string, any>>) => {
+    setToolSettings: (state, action: PayloadAction<Record<string, unknown>>) => {
       state.toolSettings = { ...state.toolSettings, ...action.payload };
     },
     clearToolSettings: (state) => {
@@ -34,3 +34,4 @@ export const {
 } = toolsSlice.actions;
 
 export default toolsSlice.reducer;
+

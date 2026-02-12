@@ -13,10 +13,10 @@ import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
-  SelectItem,
+  SelectItemWithDescription,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select-rich';
 import {
   Dialog,
   DialogContent,
@@ -557,14 +557,14 @@ export function Step8_ShotPlanning({
                 <SelectTrigger id="shotType">
                   <SelectValue placeholder="Select shot type" />
                 </SelectTrigger>
-                <SelectContent className="z-[9999]">
+<SelectContent className="z-[9999]">
                   {SHOT_TYPE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-gray-500">{option.description}</div>
-                      </div>
-                    </SelectItem>
+                    <SelectItemWithDescription
+                      key={option.value}
+                      value={option.value}
+                      label={option.label}
+                      description={option.description}
+                    />
                   ))}
                 </SelectContent>
               </Select>
@@ -586,14 +586,14 @@ export function Step8_ShotPlanning({
                 <SelectTrigger id="cameraAngle">
                   <SelectValue placeholder="Select camera angle" />
                 </SelectTrigger>
-                <SelectContent className="z-[9999]">
+<SelectContent className="z-[9999]">
                   {CAMERA_ANGLE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-gray-500">{option.description}</div>
-                      </div>
-                    </SelectItem>
+                    <SelectItemWithDescription
+                      key={option.value}
+                      value={option.value}
+                      label={option.label}
+                      description={option.description}
+                    />
                   ))}
                 </SelectContent>
               </Select>
@@ -615,14 +615,14 @@ export function Step8_ShotPlanning({
                 <SelectTrigger id="cameraMovement">
                   <SelectValue placeholder="Select camera movement" />
                 </SelectTrigger>
-                <SelectContent className="z-[9999]">
+<SelectContent className="z-[9999]">
                   {CAMERA_MOVEMENT_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-gray-500">{option.description}</div>
-                      </div>
-                    </SelectItem>
+                    <SelectItemWithDescription
+                      key={option.value}
+                      value={option.value}
+                      label={option.label}
+                      description={option.description}
+                    />
                   ))}
                 </SelectContent>
               </Select>
@@ -644,14 +644,14 @@ export function Step8_ShotPlanning({
                 <SelectTrigger id="transition">
                   <SelectValue placeholder="Select transition" />
                 </SelectTrigger>
-                <SelectContent className="z-[9999]">
+<SelectContent className="z-[9999]">
                   {TRANSITION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-gray-500">{option.description}</div>
-                      </div>
-                    </SelectItem>
+                    <SelectItemWithDescription
+                      key={option.value}
+                      value={option.value}
+                      label={option.label}
+                      description={option.description}
+                    />
                   ))}
                 </SelectContent>
               </Select>

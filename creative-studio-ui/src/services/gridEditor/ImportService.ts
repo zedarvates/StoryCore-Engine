@@ -242,7 +242,7 @@ export class ImportService {
       return { success: true };
     }
 
-    const errors = result.error?.issues.map((err: any) => {
+    const errors = result.error?.issues.map((err: unknown) => {
       const path = err.path.join('.');
       return path ? `${path}: ${err.message}` : err.message;
     }) || ['Unknown validation error'];
@@ -350,3 +350,4 @@ export class ImportService {
 
 // Singleton instance
 export const importService = new ImportService();
+

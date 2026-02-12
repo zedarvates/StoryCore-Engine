@@ -278,7 +278,7 @@ class ElevenLabsTTSProvider implements TTSProvider {
 
     const data = await response.json();
     // Using 'any' for voice data from ElevenLabs API response which has flexible structure
-    return data.voices.map((voice: any) => ({
+    return data.voices.map((voice: unknown) => ({
       id: voice.voice_id,
       name: voice.name,
       gender: voice.labels?.gender || 'neutral',
@@ -323,3 +323,4 @@ export const ttsService = new TTSService();
 
 // Export provider classes for testing
 export { MockTTSProvider, ElevenLabsTTSProvider };
+

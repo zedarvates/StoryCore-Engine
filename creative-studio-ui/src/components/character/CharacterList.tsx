@@ -104,9 +104,13 @@ export function CharacterList({
 
   // Log component mount/unmount
   useEffect(() => {
-    console.log('🎬 [CharacterList] Component mounted');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🎬 [CharacterList] Component mounted');
+    }
     return () => {
-      console.log('🎬 [CharacterList] Component unmounted');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🎬 [CharacterList] Component unmounted');
+      }
     };
   }, []);
 
@@ -119,31 +123,22 @@ export function CharacterList({
    * Requirements: 1.2, 1.3, 4.4, 9.2, 9.3, 9.4
    */
   const characters = useMemo(() => {
-    console.log('🔍 [CharacterList] Recalculating characters list');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 [CharacterList] Recalculating characters list');
+    }
     
     let result = characterManager.getAllCharacters();
     
-    console.log(`📊 [CharacterList] Total characters from store: ${result.length}`);
-    
-    // Deduplicate characters first
-    const beforeDedup = result.length;
-    result = deduplicateCharacters(result);
-    const afterDedup = result.length;
-    
-    if (beforeDedup !== afterDedup) {
-      console.warn(`⚠️ [CharacterList] Removed ${beforeDedup - afterDedup} duplicate(s)`);
-    }
-    
-    // Log duplicate info in development
     if (process.env.NODE_ENV === 'development') {
-      logDuplicateInfo(result);
+      console.log(`📊 [CharacterList] Total characters from store: ${result.length}`);
     }
-
+    
     // Apply search filter (Requirement: 9.2)
     if (characterSearchQuery && characterSearchQuery.trim() !== '') {
       result = characterManager.searchCharacters(characterSearchQuery);
-      result = deduplicateCharacters(result); // Deduplicate search results too
-      console.log(`🔎 [CharacterList] After search: ${result.length} characters`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔎 [CharacterList] After search: ${result.length} characters`);
+      }
     }
 
     // Apply additional filters (Requirement: 9.3, 9.4)
@@ -153,16 +148,35 @@ export function CharacterList({
       characterFilters.creationMethod?.length
     ) {
       result = characterManager.filterCharacters(characterFilters);
-      result = deduplicateCharacters(result); // Deduplicate filtered results
-      console.log(`🎯 [CharacterList] After filters: ${result.length} characters`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🎯 [CharacterList] After filters: ${result.length} characters`);
+      }
       
       // If both search and filters are active, we need to intersect the results
       if (characterSearchQuery && characterSearchQuery.trim() !== '') {
         const searchResults = characterManager.searchCharacters(characterSearchQuery);
         const searchIds = new Set(searchResults.map(c => c.character_id));
         result = result.filter(c => searchIds.has(c.character_id));
-        console.log(`🔗 [CharacterList] After search+filter intersection: ${result.length} characters`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🔗 [CharacterList] After search+filter intersection: ${result.length} characters`);
+        }
       }
+    }
+
+    // Single deduplication at the end (optimization: was called 3x O(n), now 1x O(n))
+    const beforeDedup = result.length;
+    result = deduplicateCharacters(result);
+    const afterDedup = result.length;
+    
+    if (beforeDedup !== afterDedup) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`⚠️ [CharacterList] Removed ${beforeDedup - afterDedup} duplicate(s)`);
+      }
+    }
+    
+    // Log duplicate info in development
+    if (process.env.NODE_ENV === 'development') {
+      logDuplicateInfo(result);
     }
 
     // Sort by creation date, newest first (Requirement: 1.3)
@@ -172,7 +186,9 @@ export function CharacterList({
       return dateB - dateA; // Descending order (newest first)
     });
 
-    console.log(`✅ [CharacterList] Final result: ${result.length} characters to display`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ [CharacterList] Final result: ${result.length} characters to display`);
+    }
     return result;
   }, [
     characterManager,
@@ -199,25 +215,33 @@ export function CharacterList({
       }
       updateTimeout = setTimeout(() => {
         setRefreshTrigger(prev => prev + 1);
-        console.log('🔄 [CharacterList] Refreshing character list');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔄 [CharacterList] Refreshing character list');
+        }
       }, 100); // 100ms debounce
     };
     
     // Handler for character-created event (Requirement: 5.1)
     const handleCharacterCreated = () => {
-      console.log('➕ [CharacterList] Character created event received');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('➕ [CharacterList] Character created event received');
+      }
       scheduleUpdate();
     };
 
     // Handler for character-updated event (Requirement: 5.2)
     const handleCharacterUpdated = () => {
-      console.log('✏️ [CharacterList] Character updated event received');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✏️ [CharacterList] Character updated event received');
+      }
       scheduleUpdate();
     };
 
     // Handler for character-deleted event (Requirement: 5.3)
     const handleCharacterDeleted = () => {
-      console.log('🗑️ [CharacterList] Character deleted event received');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🗑️ [CharacterList] Character deleted event received');
+      }
       scheduleUpdate();
     };
 
@@ -302,7 +326,9 @@ export function CharacterList({
    * Handle image generation - save to character data
    */
   const handleImageGenerated = useCallback(async (character: Character, imagePath: string) => {
-    console.log('🖼️ [CharacterList] Image generated for character:', character.name, imagePath);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🖼️ [CharacterList] Image generated for character:', character.name, imagePath);
+    }
     
     try {
       // Update character with the generated portrait path
@@ -313,9 +339,13 @@ export function CharacterList({
         },
       });
       
-      console.log('✅ [CharacterList] Character updated with portrait path');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ [CharacterList] Character updated with portrait path');
+      }
     } catch (error) {
-      console.error('❌ [CharacterList] Failed to update character with portrait:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ [CharacterList] Failed to update character with portrait:', error);
+      }
     }
   }, [characterManager]);
 

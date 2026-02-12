@@ -123,9 +123,9 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
   // Use ref to avoid hoisting issues with useEffect
   const handleConfirmRef = useRef<(() => Promise<void>) | null>(null);
 
-  // Services
-  const exportEngine = useMemo(() => new ExportEngine(), []);
-  const templateSystem = useMemo(() => new TemplateSystem(), []);
+  // Services (use useState to avoid constructor issues in production build)
+  const [exportEngine] = useState(() => new ExportEngine());
+  const [templateSystem] = useState(() => new TemplateSystem());
 
   /**
    * Initialize wizard from template if provided
@@ -325,7 +325,7 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
    * Stable callback for updating step data
    * Prevents infinite loops in child components
    */
-  const handleStepUpdate = useCallback((data: any) => {
+  const handleStepUpdate = useCallback((data: unknown) => {
     updateStepData(currentStep, data);
   }, [currentStep, updateStepData]);
 
@@ -347,8 +347,8 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
     const StepComponent = currentStepConfig.component;
     
     // Extract step data based on current step
-    let stepData: any = null;
-    let stepErrors: any = {};
+    let stepData: unknown = null;
+    let stepErrors: unknown = {};
     
     switch (currentStep) {
       case 1:
@@ -380,14 +380,14 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
     // Get validation errors for current step
     const validationErrors = wizardState.validationErrors?.get?.(currentStep) || [];
     if (validationErrors.length > 0) {
-      stepErrors = validationErrors.reduce((acc: any, error: any) => {
+      stepErrors = validationErrors.reduce((acc: unknown, error: unknown) => {
         acc[error.field] = error.message;
         return acc;
       }, {});
     }
     
     // Prepare context props from previous steps
-    const contextProps: any = {};
+    const contextProps: unknown = {};
     
     // For Step7 (Scene Breakdown), pass locations and characters
     if (currentStep === 7) {
@@ -665,3 +665,6 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
 };
 
 export default WizardContainer;
+
+
+

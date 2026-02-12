@@ -1,0 +1,192 @@
+/**
+ * LocationPalette Styles
+ * 
+ * CSS styles for the LocationPalette component.
+ * 
+ * File: creative-studio-ui/src/components/scene/LocationPalette.css
+ */
+
+/* Container */
+.location-palette {
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Header */
+.location-palette__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: var(--bg-tertiary, #333);
+  cursor: pointer;
+}
+
+.location-palette__header svg {
+  color: var(--primary-color, #6366f1);
+}
+
+.location-palette__title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-palette__count {
+  padding: 4px 10px;
+  background: var(--primary-color, #6366f1);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+}
+
+/* Content */
+.location-palette__content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Section */
+.location-palette__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.location-palette__section-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* List */
+.location-palette__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Item */
+.location-palette__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg-primary, #1a1a1a);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 8px;
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.location-palette__item:hover {
+  border-color: var(--primary-color, #6366f1);
+}
+
+.location-palette__item--placed {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.location-palette__item--in-scene {
+  cursor: pointer;
+}
+
+.location-palette__item--selected {
+  border-color: var(--primary-color, #6366f1);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.location-palette__drag {
+  color: var(--text-muted, #666);
+  cursor: grab;
+}
+
+/* Thumbnail */
+.location-palette__thumbnail {
+  width: 40px;
+  height: 40px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.location-palette__thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.location-palette__thumbnail svg {
+  color: var(--text-muted, #666);
+}
+
+/* Info */
+.location-palette__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.location-palette__name {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #e5e5e5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.location-palette__type {
+  font-size: 11px;
+  color: var(--text-muted, #666);
+  text-transform: capitalize;
+}
+
+.location-palette__instance-id {
+  font-size: 11px;
+  color: var(--primary-color, #6366f1);
+  font-family: monospace;
+}
+
+/* Actions */
+.location-palette__action {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-palette__action--add {
+  color: var(--primary-color, #6366f1);
+}
+
+.location-palette__action--add:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+.location-palette__action--remove {
+  color: #ef4444;
+}
+
+.location-palette__action--remove:hover {
+  background: rgba(239, 68, 68, 0.2);
+}

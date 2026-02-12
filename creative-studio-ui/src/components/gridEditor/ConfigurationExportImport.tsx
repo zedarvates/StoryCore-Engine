@@ -311,7 +311,7 @@ interface ExportTabProps {
   };
   onFormatChange: (format: ExportFormat) => void;
   onTypeChange: (type: 'full' | 'template') => void;
-  onTemplateInfoChange: (info: any) => void;
+  onTemplateInfoChange: (info: unknown) => void;
   onExport: () => void;
 }
 
@@ -789,3 +789,4 @@ function showNotification(message: string, type: 'success' | 'error' | 'info'): 
   });
   window.dispatchEvent(event);
 }
+

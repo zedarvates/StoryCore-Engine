@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryCore - Éditeur Vidéo IA Wizard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav a:hover {
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .hero-btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* AI Section */
+        .ai-section {
+            padding: 4rem 2rem;
+            background: var(--bg-card);
+        }
+
+        .ai-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .ai-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .ai-card {
+            background: var(--bg-dark);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .ai-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-card ul {
+            list-style: none;
+            color: var(--text-muted);
+        }
+
+        .ai-card li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ai-card li::before {
+            content: "✨";
+        }
+
+        /* Editor Preview */
+        .editor-preview {
+            padding: 4rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .editor-mockup {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .editor-toolbar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .tool-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover, .tool-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .editor-main {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 1rem;
+            height: 500px;
+        }
+
+        .editor-sidebar {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .editor-preview-area {
+            background: #000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .preview-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+
+        .editor-properties {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .timeline {
+            margin-top: 1rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        .timeline-tracks {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 800px;
+        }
+
+        .timeline-track {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .track-label {
+            width: 80px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .track-content {
+            flex: 1;
+            height: 40px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0.25rem;
+            gap: 0.25rem;
+        }
+
+        .clip {
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .clip:hover {
+            transform: scale(1.02);
+        }
+
+        .clip-video {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .clip-audio {
+            background: linear-gradient(90deg, #10b981, #059669);
+            color: white;
+        }
+
+        .clip-text {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        /* Pricing */
+        .pricing {
+            padding: 4rem 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .pricing-card {
+            background: var(--bg-card);
+            padding: 2.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary);
+            position: relative;
+        }
+
+        .pricing-card.featured::before {
+            content: "POPULAIRE";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-card .price {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 1.5rem 0;
+        }
+
+        .pricing-card .price span {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .pricing-features {
+            list-style: none;
+            text-align: left;
+            margin: 2rem 0;
+        }
+
+        .pricing-features li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pricing-features li::before {
+            content: "✓";
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-card);
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer h4 {
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .footer a {
+            display: block;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 0.5rem 0;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: var(--text);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav {
+                display: none;
+            }
+
+            .editor-main {
+                grid-template-columns: 1fr;
+            }
+
+            .header-actions {
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">🎬</div>
+            <span>StoryCore</span>
+        </div>
+        <nav class="nav">
+            <a href="#features">Fonctionnalités</a>
+            <a href="#ai">IA</a>
+            <a href="#pricing">Tarifs</a>
+            <a href="#help">Aide</a>
+        </nav>
+        <div class="header-actions">
+            <button class="btn btn-secondary">Connexion</button>
+            <button class="btn btn-primary">Lancer l'éditeur</button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Éditeur de vidéos optimisé par l'IA pour tout le monde</h1>
+        <p>Montez, améliorez et publiez vos vidéos en quelques minutes, sans compétences techniques. L'assistant IA vous guide à chaque étape.</p>
+        <div class="hero-buttons">
+            <button class="btn btn-primary hero-btn">Commencer gratuitement</button>
+            <button class="btn btn-secondary hero-btn">Voir une démo</button>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2 class="section-title">Fonctionnalités clés</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">✂️</div>
+                <h3>Montage simplifié</h3>
+                <p>Découpez, fusionnez et organisez vos clips en quelques clics. Les outils essentiels à portée de main.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>IA pour tout le monde</h3>
+                <p>Sous-titres automatiques, nettoyage audio, découpage intelligent. L'IA fait le travail lourd pour vous.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📐</div>
+                <h3>Reformatage automatique</h3>
+                <p>Adaptez vos vidéos pour TikTok, YouTube, Instagram en un clic. Smart crop intelligent inclus.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Templates & Presets</h3>
+                <p>Models professionnels pour réseaux sociaux, cours en ligne, marketing. Commencez en secondes.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎵</div>
+                <h3>Audio professionnel</h3>
+                <p>Réduction de bruit, enhancement vocal, musique libre de droits. Un son cristallin garanti.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📤</div>
+                <h3>Export multi-plateforme</h3>
+                <p>Exportez en 4K, Full HD ou pour le web. Presets optimisés pour chaque plateforme.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Section -->
+    <section class="ai-section" id="ai">
+        <div class="ai-container">
+            <h2 class="section-title">L'IA à votre service</h2>
+            <div class="ai-grid">
+                <div class="ai-card">
+                    <h3>💬 Texte → Vidéo</h3>
+                    <ul>
+                        <li>Décrivez votre idée, l'IA génère un script</li>
+                        <li>Script → Storyboard automatique</li>
+                        <li>Suggestions de plans et transitions</li>
+                    </ul>
+                </div>
+                <div class="ai-card">
+                    <h3>🎙️ Texte → Voix</h3>
+                    <ul>
+                        <li>Voix synthétiques multilingues</li>
+                        <li>Expressions naturelles</li>
+                        <li>Personnalisables (vitesse, ton)</li>
+                    </ul>
+                </div>
+                <div class="ai-card">
+                    <h3>📝 Sous-titres</h3>
+                    <ul>
+                        <li>Transcription automatique</li>
+                        <li>Traduction instantanée</li>
+                        <li>Styles personnalisables</li>
+                    </ul>
+                </div>
+                <div class="ai-card">
+                    <h3>🎯 Smart Edit</h3>
+                    <ul>
+                        <li>Détection automatique des moments forts</li>
+                        <li>Découpage intelligent</li>
+                        <li>Rythme dynamique</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Editor Preview -->
+    <section class="editor-preview">
+        <h2 class="section-title">Interface intuitive</h2>
+        <div class="editor-mockup">
+            <div class="editor-toolbar">
+                <button class="tool-btn active">✂️ Cut</button>
+                <button class="tool-btn">📝 Texte</button>
+                <button class="tool-btn">🎵 Audio</button>
+                <button class="tool-btn">🎨 Filtres</button>
+                <button class="tool-btn">🤖 Assistant IA</button>
+                <button class="tool-btn">📤 Export</button>
+            </div>
+            <div class="editor-main">
+                <div class="editor-sidebar">
+                    <h4 style="margin-bottom: 1rem;">Médias</h4>
+                    <div class="media-item" style="padding: 0.5rem; background: var(--bg-card); border-radius: 4px; margin-bottom: 0.5rem;">
+                        📹 video_01.mp4
+                    </div>
+                    <div class="media-item" style="padding: 0.5rem; background: var(--bg-card); border-radius: 4px; margin-bottom: 0.5rem;">
+                        🎵 music.wav
+                    </div>
+                    <div class="media-item" style="padding: 0.5rem; background: var(--bg-card); border-radius: 4px; margin-bottom: 0.5rem;">
+                        🖼️ image.png
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <button class="btn btn-primary" style="width: 100%;">+ Ajouter média</button>
+                    </div>
+                </div>
+                <div class="editor-preview-area">
+                    <div class="preview-video">
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">▶️</div>
+                            <div>Aperçu vidéo</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="editor-properties">
+                    <h4 style="margin-bottom: 1rem;">Propriétés</h4>
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Durée:</strong> 02:34
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Résolution:</strong> 1920x1080
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Ratio:</strong> 16:9
+                        </div>
+                        <div style="padding: 1rem; background: rgba(99, 102, 241, 0.2); border-radius: 8px; margin-top: 1rem;">
+                            <strong>🤖 Assistant IA</strong>
+                            <p style="font-size: 0.85rem; margin-top: 0.5rem;">
+                                Détecter les silences<br>
+                                Générer sous-titres<br>
+                                Nettoyer l'audio
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline">
+                <div class="timeline-tracks">
+                    <div class="timeline-track">
+                        <div class="track-label">Vidéo 1</div>
+                        <div class="track-content">
+                            <div class="clip clip-video" style="width: 200px;">Intro</div>
+                            <div class="clip clip-video" style="width: 350px;">Scene_01</div>
+                            <div class="clip clip-video" style="width: 150px;">Transition</div>
+                        </div>
+                    </div>
+                    <div class="timeline-track">
+                        <div class="track-label">Audio 1</div>
+                        <div class="track-content">
+                            <div class="clip clip-audio" style="width: 180px;">Voix off</div>
+                            <div class="clip clip-audio" style="width: 300px;">Musique</div>
+                        </div>
+                    </div>
+                    <div class="timeline-track">
+                        <div class="track-label">Texte</div>
+                        <div class="track-content">
+                            <div class="clip clip-text" style="width: 100px;">Titre</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <h2 class="section-title">Tarifs simples</h2>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>Gratuit</h3>
+                <p>Pour commencer</p>
+                <div class="price">0€<span>/mois</span></div>
+                <ul class="pricing-features">
+                    <li>Projets illimités</li>
+                    <li>Export 720p avec watermark</li>
+                    <li>5 min de transcription IA/mois</li>
+                    <li>10 templates</li>
+                    <li>Communauté</li>
+                </ul>
+                <button class="btn btn-secondary" style="width: 100%;">Commencer</button>
+            </div>
+            <div class="pricing-card featured">
+                <h3>Pro</h3>
+                <p>Pour créateurs réguliers</p>
+                <div class="price">19€<span>/mois</span></div>
+                <ul class="pricing-features">
+                    <li>Tout gratuit +</li>
+                    <li>Export 4K sans watermark</li>
+                    <li>60 min de transcription IA/mois</li>
+                    <li>Tous les templates</li>
+                    <li>Support prioritaire</li>
+                    <li>Stockage 100Go</li>
+                </ul>
+                <button class="btn btn-primary" style="width: 100%;">Essai gratuit</button>
+            </div>
+            <div class="pricing-card">
+                <h3>Team</h3>
+                <p>Pour équipes</p>
+                <div class="price">49€<span>/mois</span></div>
+                <ul class="pricing-features">
+                    <li>Tout Pro +</li>
+                    <li>5 utilisateurs</li>
+                    <li>Projets partagés</li>
+                    <li>API access</li>
+                    <li>Formation incluse</li>
+                </ul>
+                <button class="btn btn-secondary" style="width: 100%;">Contact</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="help">
+        <div class="footer-content">
+            <div>
+                <h4>StoryCore</h4>
+                <p style="color: var(--text-muted);">L'éditeur vidéo IA accessible à tous.</p>
+            </div>
+            <div>
+                <h4>Produit</h4>
+                <a href="#">Fonctionnalités</a>
+                <a href="#">Tarifs</a>
+                <a href="#">Templates</a>
+                <a href="#">Mises à jour</a>
+            </div>
+            <div>
+                <h4>Ressources</h4>
+                <a href="#">Documentation</a>
+                <a href="#">Tutoriels</a>
+                <a href="#">API</a>
+                <a href="#">Blog</a>
+            </div>
+            <div>
+                <h4>Support</h4>
+                <a href="#">Aide</a>
+                <a href="#">Contact</a>
+                <a href="#">Status</a>
+                <a href="#">Signalement</a>
+            </div>
+            <div>
+                <h4>Légal</h4>
+                <a href="#">CGU</a>
+                <a href="#">Confidentialité</a>
+                <a href="#">Mentions légales</a>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 3rem; color: var(--text-muted);">
+            <p>© 2026 StoryCore. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple interaction script
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // CTA button interaction
+        document.querySelector('.hero .btn-primary').addEventListener('click', function() {
+            alert('Lancement de l\'éditeur vidéo IA...');
+        });
+
+        document.querySelector('.header .btn-primary').addEventListener('click', function() {
+            alert('Lancement de l\'éditeur vidéo IA...');
+        });
+
+        console.log('StoryCore Video Editor Wizard loaded successfully');
+    </script>
+</body>
+</html>

@@ -49,7 +49,7 @@ export interface AddonInfo {
 export interface AddonConfig {
   [addonId: string]: {
     enabled: boolean;
-    settings?: Record<string, any>;
+    settings?: Record<string, unknown>;
   };
 }
 
@@ -57,12 +57,12 @@ export interface AddonSetting {
   key: string;
   label: string;
   type: 'text' | 'number' | 'boolean' | 'select' | 'textarea';
-  defaultValue: any;
+  defaultValue: unknown;
   description?: string;
-  options?: Array<{ label: string; value: any }>; // Pour les selects
+  options?: Array<{ label: string; value: unknown }>; // Pour les selects
   min?: number; // Pour les numbers
   max?: number; // Pour les numbers
-  validation?: (value: any) => boolean;
+  validation?: (value: unknown) => boolean;
 }
 
 export interface AddonSettingsDefinition {
@@ -279,7 +279,7 @@ export class AddonManager {
   /**
    * Met à jour les paramètres d'un add-on
    */
-  updateAddonSettings(addonId: string, settings: Record<string, any>): void {
+  updateAddonSettings(addonId: string, settings: Record<string, unknown>): void {
     if (!this.config[addonId]) {
       this.config[addonId] = { enabled: false };
     }
@@ -290,7 +290,7 @@ export class AddonManager {
   /**
    * Obtient les paramètres d'un add-on
    */
-  getAddonSettings(addonId: string): Record<string, any> | undefined {
+  getAddonSettings(addonId: string): Record<string, unknown> | undefined {
     return this.config[addonId]?.settings;
   }
 
@@ -304,11 +304,11 @@ export class AddonManager {
   /**
    * Obtient les paramètres actuels d'un add-on (avec valeurs par défaut)
    */
-  getAddonSettingsWithDefaults(addonId: string): Record<string, any> {
+  getAddonSettingsWithDefaults(addonId: string): Record<string, unknown> {
     const definition = this.getAddonSettingsDefinition(addonId);
     const currentSettings = this.getAddonSettings(addonId) || {};
 
-    const settingsWithDefaults: Record<string, any> = {};
+    const settingsWithDefaults: Record<string, unknown> = {};
     definition.forEach(setting => {
       settingsWithDefaults[setting.key] = currentSettings[setting.key] ?? setting.defaultValue;
     });
@@ -1072,3 +1072,5 @@ export class AddonManager {
 
 // Export de l'instance singleton
 export const addonManager = AddonManager.getInstance();
+
+

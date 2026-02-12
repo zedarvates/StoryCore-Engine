@@ -7,6 +7,7 @@ import { AppearanceSection } from './editor/AppearanceSection';
 import { PersonalitySection } from './editor/PersonalitySection';
 import { BackgroundSection } from './editor/BackgroundSection';
 import { RelationshipsSection } from './editor/RelationshipsSection';
+import { CharacterImagesSection } from './editor/CharacterImagesSection';
 import './CharacterEditor.css';
 
 /**
@@ -27,7 +28,7 @@ export interface CharacterEditorProps {
   onDelete?: (characterId: string) => void;
 }
 
-type TabId = 'identity' | 'appearance' | 'personality' | 'background' | 'relationships';
+type TabId = 'identity' | 'appearance' | 'personality' | 'background' | 'relationships' | 'images';
 
 interface ValidationErrors {
   [key: string]: string[];
@@ -56,6 +57,10 @@ export function CharacterEditor({
   onDelete,
 }: CharacterEditorProps) {
   const characterManager = useCharacterManager();
+  const dialogRef = React.useRef<HTMLDialogElement>(null);
+  const unsavedDialogRef = React.useRef<HTMLDialogElement>(null);
+  const deleteDialogRef = React.useRef<HTMLDialogElement>(null);
+  const previousActiveElement = React.useRef<HTMLElement | null>(null);
 
   // Get the character
   const originalCharacter = characterManager.getCharacter(characterId);
@@ -78,7 +83,7 @@ export function CharacterEditor({
   }, [originalCharacter]);
   
   // Handle form field changes
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -96,7 +101,7 @@ export function CharacterEditor({
   };
   
   // Handle nested field changes
-  const handleNestedFieldChange = (section: string, field: string, value: any) => {
+  const handleNestedFieldChange = (section: string, field: string, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [section]: {
@@ -208,17 +213,44 @@ export function CharacterEditor({
     }
   };
   
-  // Handle escape key
+  // Handle escape key - native dialog handles this automatically, but we keep for cleanup
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // Native dialog handles escape automatically
         handleCancel();
       }
     };
     
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    globalThis.addEventListener('keydown', handleEscape);
+    return () => globalThis.removeEventListener('keydown', handleEscape);
   }, [isDirty]);
+  
+  // Open dialog when component mounts
+  useEffect(() => {
+    if (dialogRef.current && !dialogRef.current.open) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
+      dialogRef.current.showModal();
+    }
+  }, []);
+  
+  // Handle unsaved warning dialog open
+  useEffect(() => {
+    if (showUnsavedWarning && unsavedDialogRef.current && !unsavedDialogRef.current.open) {
+      unsavedDialogRef.current.showModal();
+    } else if (!showUnsavedWarning && unsavedDialogRef.current?.open) {
+      unsavedDialogRef.current.close();
+    }
+  }, [showUnsavedWarning]);
+  
+  // Handle delete dialog open
+  useEffect(() => {
+    if (showDeleteConfirm && deleteDialogRef.current && !deleteDialogRef.current.open) {
+      deleteDialogRef.current.showModal();
+    } else if (!showDeleteConfirm && deleteDialogRef.current?.open) {
+      deleteDialogRef.current.close();
+    }
+  }, [showDeleteConfirm]);
   
   if (!originalCharacter) {
     return null;
@@ -230,18 +262,36 @@ export function CharacterEditor({
     { id: 'personality', label: 'Personality' },
     { id: 'background', label: 'Background' },
     { id: 'relationships', label: 'Relationships' },
+    { id: 'images', label: 'Images' },
   ];
 
   return (
     <>
-      {/* Modal backdrop */}
-      <div
-        className="character-editor-backdrop"
-        onClick={handleBackdropClick}
-        role="presentation"
+      {/* Modal - Using native <dialog> element for WCAG compliance */}
+      <dialog
+        ref={dialogRef}
+        className="character-editor"
+        aria-labelledby="editor-title"
+        onClose={() => {
+          // Restore focus when dialog closes
+          if (previousActiveElement.current) {
+            previousActiveElement.current.focus();
+          }
+          handleCancel();
+        }}
+        onClick={(e) => {
+          // Close on backdrop click (native dialog behavior)
+          const rect = dialogRef.current?.getBoundingClientRect();
+          if (rect && (
+            e.clientX < rect.left || 
+            e.clientX > rect.right || 
+            e.clientY < rect.top || 
+            e.clientY > rect.bottom
+          )) {
+            handleCancel();
+          }
+        }}
       >
-        {/* Modal */}
-        <div className="character-editor" role="dialog" aria-labelledby="editor-title">
           {/* Header */}
           <div className="character-editor__header">
             <h2 id="editor-title" className="character-editor__title">
@@ -259,15 +309,15 @@ export function CharacterEditor({
           {/* General errors */}
           {errors._general && (
             <div className="character-editor__error-banner">
-              {errors._general.map((error, index) => (
-                <p key={index}>{error}</p>
+              {errors._general.map((error) => (
+                <p key={error}>{error}</p>
               ))}
             </div>
           )}
           
           {/* Tabs */}
           <div className="character-editor__tabs" role="tablist">
-            {tabs.map(tab => (
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
                 className={`character-editor__tab ${
@@ -277,6 +327,7 @@ export function CharacterEditor({
                 role="tab"
                 aria-selected={activeTab === tab.id}
                 aria-controls={`panel-${tab.id}`}
+                id={`tab-${tab.id}`}
               >
                 {tab.label}
               </button>
@@ -291,6 +342,7 @@ export function CharacterEditor({
                 errors={errors}
                 onChange={handleFieldChange}
                 onNestedChange={handleNestedFieldChange}
+                id="panel-identity"
               />
             )}
             
@@ -299,6 +351,7 @@ export function CharacterEditor({
                 data={formData.visual_identity || {}}
                 errors={errors}
                 onChange={(field, value) => handleNestedFieldChange('visual_identity', field, value)}
+                id="panel-appearance"
               />
             )}
             
@@ -307,6 +360,7 @@ export function CharacterEditor({
                 data={formData.personality || {}}
                 errors={errors}
                 onChange={(field, value) => handleNestedFieldChange('personality', field, value)}
+                id="panel-personality"
               />
             )}
             
@@ -315,6 +369,7 @@ export function CharacterEditor({
                 data={formData.background || {}}
                 errors={errors}
                 onChange={(field, value) => handleNestedFieldChange('background', field, value)}
+                id="panel-background"
               />
             )}
             
@@ -324,6 +379,16 @@ export function CharacterEditor({
                 relationships={formData.relationships || []}
                 errors={errors}
                 onChange={(relationships) => handleFieldChange('relationships', relationships)}
+                id="panel-relationships"
+              />
+            )}
+            
+            {activeTab === 'images' && (
+              <CharacterImagesSection
+                characterId={characterId}
+                characterName={originalCharacter.name}
+                character={formData as Character}
+                id="panel-images"
               />
             )}
           </div>
@@ -358,97 +423,100 @@ export function CharacterEditor({
               </button>
             </div>
           </div>
-        </div>
-      </div>
-      
-      {/* Unsaved changes warning */}
-      {showUnsavedWarning && (
-        <div className="character-editor-backdrop" onClick={() => setShowUnsavedWarning(false)}>
-          <div className="character-editor-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="character-editor-dialog__header">
-              <AlertTriangle className="character-editor-dialog__icon" />
-              <h3>Unsaved Changes</h3>
-            </div>
-            <p>You have unsaved changes. Are you sure you want to discard them?</p>
-            <div className="character-editor-dialog__actions">
-              <button
-                className="character-editor__button character-editor__button--secondary"
-                onClick={() => setShowUnsavedWarning(false)}
-              >
-                Keep Editing
-              </button>
-              <button
-                className="character-editor__button character-editor__button--danger"
-                onClick={confirmCancel}
-              >
-                Discard Changes
-              </button>
-            </div>
+        </dialog>
+        
+        {/* Unsaved changes warning - Using native <dialog> element for WCAG compliance */}
+        <dialog
+          ref={unsavedDialogRef}
+          className="character-editor-dialog"
+          aria-labelledby="unsaved-changes-title"
+          aria-describedby="unsaved-changes-desc"
+        >
+          <div className="character-editor-dialog__header">
+            <AlertTriangle className="character-editor-dialog__icon" />
+            <h3 id="unsaved-changes-title">Unsaved Changes</h3>
           </div>
+          <p id="unsaved-changes-desc">You have unsaved changes. Are you sure you want to discard them?</p>
+          <div className="character-editor-dialog__actions">
+            <button
+              className="character-editor__button character-editor__button--secondary"
+              onClick={() => setShowUnsavedWarning(false)}
+            >
+              Keep Editing
+            </button>
+            <button
+              className="character-editor__button character-editor__button--danger"
+              onClick={confirmCancel}
+            >
+              Discard Changes
+            </button>
+          </div>
+        </dialog>
+      
+      {/* Delete confirmation - Using native <dialog> element for WCAG compliance */}
+      <dialog
+        ref={deleteDialogRef}
+        className="character-editor-dialog"
+        aria-labelledby="delete-character-title"
+        aria-describedby="delete-character-desc"
+      >
+        <div className="character-editor-dialog__header">
+          <AlertTriangle className="character-editor-dialog__icon character-editor-dialog__icon--danger" />
+          <h3 id="delete-character-title">Delete Character</h3>
         </div>
-      )}
-
-      {/* Delete confirmation */}
-      {showDeleteConfirm && (
-        <div className="character-editor-backdrop" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="character-editor-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="character-editor-dialog__header">
-              <AlertTriangle className="character-editor-dialog__icon character-editor-dialog__icon--danger" />
-              <h3>Delete Character</h3>
-            </div>
+        
+        {dependencies && (dependencies.stories.length > 0 || dependencies.relationships.length > 0) ? (
+          <>
+            <p>This character is used in the following places:</p>
             
-            {dependencies && (dependencies.stories.length > 0 || dependencies.relationships.length > 0) ? (
-              <>
-                <p>This character is used in the following places:</p>
-                
-                {dependencies.stories.length > 0 && (
-                  <div className="character-editor-dialog__dependencies">
-                    <h4>Stories ({dependencies.stories.length}):</h4>
-                    <ul>
-                      {dependencies.stories.map((story: any) => (
-                        <li key={story.id}>{story.title || 'Untitled Story'}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                {dependencies.relationships.length > 0 && (
-                  <div className="character-editor-dialog__dependencies">
-                    <h4>Relationships ({dependencies.relationships.length}):</h4>
-                    <ul>
-                      {dependencies.relationships.map((char: any) => (
-                        <li key={char.character_id}>{char.name}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                <p className="character-editor-dialog__warning">
-                  Deleting this character will remove it from all stories and relationships.
-                  This action cannot be undone.
-                </p>
-              </>
-            ) : (
-              <p>Are you sure you want to delete this character? This action cannot be undone.</p>
+            {dependencies.stories.length > 0 && (
+              <div className="character-editor-dialog__dependencies">
+                <h4>Stories ({dependencies.stories.length}):</h4>
+                <ul>
+                  {dependencies.stories.map((story: unknown) => (
+                    <li key={story.id}>{story.title || 'Untitled Story'}</li>
+                  ))}
+                </ul>
+              </div>
             )}
             
-            <div className="character-editor-dialog__actions">
-              <button
-                className="character-editor__button character-editor__button--secondary"
-                onClick={() => setShowDeleteConfirm(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="character-editor__button character-editor__button--danger"
-                onClick={performDelete}
-              >
-                Delete Character
-              </button>
-            </div>
-          </div>
+            {dependencies.relationships.length > 0 && (
+              <div className="character-editor-dialog__dependencies">
+                <h4>Relationships ({dependencies.relationships.length}):</h4>
+                <ul>
+                  {dependencies.relationships.map((char: unknown) => (
+                    <li key={char.character_id}>{char.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            <p className="character-editor-dialog__warning">
+              Deleting this character will remove it from all stories and relationships.
+              This action cannot be undone.
+            </p>
+          </>
+        ) : (
+          <p id="delete-character-desc">Are you sure you want to delete this character? This action cannot be undone.</p>
+        )}
+        
+        <div className="character-editor-dialog__actions">
+          <button
+            className="character-editor__button character-editor__button--secondary"
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className="character-editor__button character-editor__button--danger"
+            onClick={performDelete}
+          >
+            Delete Character
+          </button>
         </div>
-      )}
+      </dialog>
     </>
   );
 }
+
+

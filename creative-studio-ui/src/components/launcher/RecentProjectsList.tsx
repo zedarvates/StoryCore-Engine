@@ -38,13 +38,13 @@ const PROJECT_TYPE_CONFIG = {
   video: {
     icon: Video,
     label: 'Video',
-    color: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     bgGradient: 'from-blue-500/30 to-cyan-500/20',
   },
   animation: {
     icon: Film,
     label: 'Animation',
-    color: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
     bgGradient: 'from-purple-500/30 to-pink-500/20',
   },
   image: {
@@ -333,7 +333,7 @@ function EnhancedProjectCard({
                 'w-6 h-6',
                 isMissing && 'text-red-400',
                 isValid && isRecent && 'text-blue-400',
-                isValid && !isRecent && 'text-blue-300',
+                isValid && !isRecent && 'text-blue-400',
                 !isMissing && !isValid && 'text-gray-400'
               )}
             />
@@ -378,7 +378,7 @@ function EnhancedProjectCard({
           
           {/* Recently Opened Badge */}
           {isRecent && !isMissing && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">
               Recent
             </span>
           )}

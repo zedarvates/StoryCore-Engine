@@ -10,7 +10,7 @@ Generates WorldConfig from ParsedPrompt with:
 
 import uuid
 from typing import Dict, List, Optional
-from .data_models import (
+from src.end_to_end.data_models import (
     ParsedPrompt,
     WorldConfig,
     ColorPalette,

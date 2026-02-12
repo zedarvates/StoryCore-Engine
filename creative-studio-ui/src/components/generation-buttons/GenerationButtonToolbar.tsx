@@ -3,6 +3,7 @@
  * 
  * Container component that displays generation buttons in editor and dashboard contexts.
  * Manages button visibility, dialog state, and context-aware behavior.
+ * Enhanced with re-generation group and export film button.
  * 
  * Requirements: 5.1, 5.2
  */
@@ -12,6 +13,7 @@ import { PromptGenerationButton } from './PromptGenerationButton';
 import { ImageGenerationButton } from './ImageGenerationButton';
 import { VideoGenerationButton } from './VideoGenerationButton';
 import { AudioGenerationButton } from './AudioGenerationButton';
+import { RegenerationGroup, ExportFilmButton } from './RegenerationButtons';
 import { useGenerationStore } from '../../stores/generationStore';
 import type { Shot, Sequence } from '../../types';
 import type { GeneratedAsset } from '../../types/generation';
@@ -29,22 +31,27 @@ export interface GenerationButtonToolbarProps {
    * Context where toolbar is displayed
    */
   context: 'editor' | 'dashboard';
-  
+
   /**
    * Current shot (editor context)
    */
   currentShot?: Shot;
-  
+
   /**
    * Current sequence (editor context)
    */
   currentSequence?: Sequence;
-  
+
   /**
    * Callback when generation completes
    */
   onGenerationComplete?: (asset: GeneratedAsset) => void;
-  
+
+  /**
+   * Callback for export film
+   */
+  onExportFilm?: () => void;
+
   /**
    * Custom className for styling
    */
@@ -63,53 +70,54 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
   currentShot,
   currentSequence,
   onGenerationComplete,
+  onExportFilm,
   className = '',
 }) => {
   const { currentPipeline } = useGenerationStore();
-  
+
   // Dialog state management
   const [activeDialog, setActiveDialog] = useState<'prompt' | 'image' | 'video' | 'audio' | null>(null);
-  
+
   // Determine if generation is in progress
   const isGenerating = currentPipeline?.stages.prompt?.status === 'in_progress' ||
-                       currentPipeline?.stages.image?.status === 'in_progress' ||
-                       currentPipeline?.stages.video?.status === 'in_progress' ||
-                       currentPipeline?.stages.audio?.status === 'in_progress';
-  
+    currentPipeline?.stages.image?.status === 'in_progress' ||
+    currentPipeline?.stages.video?.status === 'in_progress' ||
+    currentPipeline?.stages.audio?.status === 'in_progress';
+
   // Button click handlers
   const handlePromptClick = useCallback(() => {
     setActiveDialog('prompt');
   }, []);
-  
+
   const handleImageClick = useCallback(() => {
     setActiveDialog('image');
   }, []);
-  
+
   const handleVideoClick = useCallback(() => {
     setActiveDialog('video');
   }, []);
-  
+
   const handleAudioClick = useCallback(() => {
     setActiveDialog('audio');
   }, []);
-  
+
   // Dialog close handlers
   const handleCloseDialog = useCallback(() => {
     setActiveDialog(null);
   }, []);
-  
+
   // Generation complete handler
   const handleGenerationComplete = useCallback((asset: GeneratedAsset) => {
     if (onGenerationComplete) {
       onGenerationComplete(asset);
     }
   }, [onGenerationComplete]);
-  
+
   // Determine toolbar layout based on context
-  const toolbarClass = context === 'editor' 
-    ? 'generation-toolbar-editor' 
+  const toolbarClass = context === 'editor'
+    ? 'generation-toolbar-editor'
     : 'generation-toolbar-dashboard';
-  
+
   return (
     <>
       {/* Toolbar Container */}
@@ -119,24 +127,47 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
             onClick={handlePromptClick}
             isGenerating={currentPipeline?.stages.prompt?.status === 'in_progress'}
           />
-          
+
           <ImageGenerationButton
             onClick={handleImageClick}
             isGenerating={currentPipeline?.stages.image?.status === 'in_progress'}
           />
-          
+
           <VideoGenerationButton
             onClick={handleVideoClick}
             isGenerating={currentPipeline?.stages.video?.status === 'in_progress'}
           />
-          
+
           <AudioGenerationButton
             onClick={handleAudioClick}
             isGenerating={currentPipeline?.stages.audio?.status === 'in_progress'}
           />
         </div>
+
+        {/* Re-generation buttons — shown when a shot is selected */}
+        {context === 'editor' && currentShot && (
+          <div className="toolbar-regen-section">
+            <span className="toolbar-regen-label">Régénérer :</span>
+            <RegenerationGroup
+              shotId={currentShot.id}
+              shotLabel={currentShot.title}
+              size="sm"
+              types={['image', 'text', 'audio']}
+            />
+          </div>
+        )}
+
+        {/* Export Film button — shown in dashboard */}
+        {context === 'dashboard' && (
+          <div className="toolbar-export-section">
+            <ExportFilmButton
+              onExport={onExportFilm}
+              disabled={isGenerating}
+            />
+          </div>
+        )}
       </div>
-      
+
       {/* Dialogs - Lazy loaded with Suspense */}
       <Suspense fallback={<div className="dialog-loading">Loading...</div>}>
         {activeDialog === 'prompt' && (
@@ -160,7 +191,7 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
             }}
           />
         )}
-        
+
         {activeDialog === 'image' && (
           <ImageGenerationDialog
             isOpen={true}
@@ -168,7 +199,7 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
             initialPrompt={currentPipeline?.stages.prompt?.result?.text}
           />
         )}
-        
+
         {activeDialog === 'video' && (
           <VideoGenerationDialog
             isOpen={true}
@@ -176,7 +207,7 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
             sourceImage={currentPipeline?.stages.image?.result}
           />
         )}
-        
+
         {activeDialog === 'audio' && (
           <AudioGenerationDialog
             isOpen={true}
@@ -184,7 +215,7 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
           />
         )}
       </Suspense>
-      
+
       {/* Progress Modal - Lazy loaded with Suspense */}
       {isGenerating && currentPipeline && (
         <Suspense fallback={<div className="modal-loading">Loading progress...</div>}>
@@ -192,9 +223,9 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
             isOpen={isGenerating}
             generationType={
               currentPipeline.stages.prompt?.status === 'in_progress' ? 'prompt' :
-              currentPipeline.stages.image?.status === 'in_progress' ? 'image' :
-              currentPipeline.stages.video?.status === 'in_progress' ? 'video' :
-              'audio'
+                currentPipeline.stages.image?.status === 'in_progress' ? 'image' :
+                  currentPipeline.stages.video?.status === 'in_progress' ? 'video' :
+                    'audio'
             }
             progress={
               currentPipeline.stages.prompt?.progress ||
@@ -219,3 +250,4 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
     </>
   );
 };
+

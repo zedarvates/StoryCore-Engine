@@ -5,7 +5,7 @@ export interface ContextMenuState {
   visible: boolean;
   position: { x: number; y: number };
   items: ContextMenuItem[];
-  context?: any;
+  context?: unknown;
 }
 
 export const useContextMenu = () => {
@@ -20,7 +20,7 @@ export const useContextMenu = () => {
     x: number,
     y: number,
     items: ContextMenuItem[],
-    context?: any
+    context?: unknown
   ) => {
     setMenuState({
       visible: true,
@@ -40,7 +40,7 @@ export const useContextMenu = () => {
   const handleContextMenu = useCallback((
     event: React.MouseEvent,
     items: ContextMenuItem[],
-    context?: any
+    context?: unknown
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -54,3 +54,5 @@ export const useContextMenu = () => {
     handleContextMenu
   };
 };
+
+

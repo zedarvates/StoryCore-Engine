@@ -486,7 +486,7 @@ export function handleAddKeyframe(
   shotId: string,
   playheadPosition: number,
   property: string,
-  value: any,
+  value: unknown,
   shots: Shot[]
 ): { shotId: string; layer: Layer } | null {
   const shot = shots.find((s) => s.id === shotId);
@@ -621,3 +621,4 @@ export function getShotEdge(
     return 'middle';
   }
 }
+

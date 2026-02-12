@@ -91,7 +91,7 @@ export class OfflineService {
       const cached = localStorage.getItem('offline-suggestions-cache');
       if (cached) {
         const parsed = JSON.parse(cached);
-        this.cachedSuggestions = parsed.map((item: any) => ({
+        this.cachedSuggestions = parsed.map((item: unknown) => ({
           ...item,
           timestamp: new Date(item.timestamp),
           expiresAt: new Date(item.expiresAt)
@@ -251,7 +251,7 @@ export class OfflineService {
    * Génère des suggestions avec cache intelligent
    */
   async generateOfflineSuggestions(
-    messages: any[],
+    messages: unknown[],
     language: string,
     currentInput: string = ''
   ): Promise<PromptSuggestion[]> {
@@ -294,7 +294,7 @@ export class OfflineService {
   /**
    * Génère une clé de cache
    */
-  private generateCacheKey(messages: any[], language: string, input: string): string {
+  private generateCacheKey(messages: unknown[], language: string, input: string): string {
     const recentMessages = messages.slice(-3);
     const content = recentMessages.map(m => m.content).join('') + input + language;
     return btoa(content).substring(0, 32); // Hash simple
@@ -424,3 +424,5 @@ export class OfflineService {
 
 // Export de l'instance singleton
 export const offlineService = OfflineService.getInstance();
+
+

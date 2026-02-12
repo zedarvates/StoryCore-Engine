@@ -97,7 +97,20 @@ export async function fetchAndCacheThumbnail(url: string): Promise<string> {
       return cached;
     }
     
-    // Fetch from network
+    // Check if URL is a local file path or data URL
+    if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('file:')) {
+      // Don't try to fetch local URLs, just return them
+      return url;
+    }
+    
+    // Check if URL is relative or absolute
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      // Relative URL - might not be accessible in offline mode
+      // Return as-is and let the browser handle it
+      return url;
+    }
+    
+    // Fetch from network (only for http/https URLs)
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch thumbnail: ${response.statusText}`);
@@ -111,7 +124,13 @@ export async function fetchAndCacheThumbnail(url: string): Promise<string> {
     // Return object URL
     return URL.createObjectURL(blob);
   } catch (error) {
-    console.error('Failed to fetch and cache thumbnail:', error);
+    // Silently fail in offline mode - don't log errors for expected failures
+    // Only log if it's not a network error
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      // Network error in offline mode - expected, don't log
+    } else {
+      console.warn('Thumbnail fetch failed, using fallback:', error);
+    }
     // Return original URL as fallback
     return url;
   }

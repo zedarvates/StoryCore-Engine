@@ -1,0 +1,323 @@
+/**
+ * LocationEditor Styles
+ * 
+ * CSS styles for the LocationEditor component.
+ * 
+ * File: creative-studio-ui/src/components/location/LocationEditor.css
+ */
+
+/* Container */
+.location-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.location-editor--full {
+  min-height: 600px;
+}
+
+/* Tabs */
+.location-editor__tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color, #333);
+  background: var(--bg-secondary, #2a2a2a);
+}
+
+.location-editor__tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-editor__tab:hover {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-editor__tab--active {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+/* Content */
+.location-editor__content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* Panel */
+.location-editor__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.location-editor__panel-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-editor__hint {
+  margin: 0;
+  padding: 20px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+  color: var(--text-muted, #666);
+  text-align: center;
+}
+
+/* Form Groups */
+.location-editor__form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.location-editor__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.location-editor__input {
+  padding: 12px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 14px;
+}
+
+.location-editor__input:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+.location-editor__textarea {
+  padding: 12px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 14px;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.location-editor__textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+/* Type Selector */
+.location-editor__type-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.location-editor__type-btn {
+  flex: 1;
+  padding: 12px;
+  background: var(--bg-tertiary, #333);
+  border: 2px solid var(--border-color, #444);
+  border-radius: 8px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-editor__type-btn:hover {
+  border-color: var(--primary-color, #6366f1);
+}
+
+.location-editor__type-btn--active {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: var(--primary-color, #6366f1);
+  color: var(--primary-color, #6366f1);
+}
+
+/* Cube Panel */
+.location-editor__cube-panel,
+.location-editor__skybox-panel,
+.location-editor__assets-panel,
+.location-editor__scene-panel {
+  padding: 20px;
+}
+
+/* Transform */
+.location-editor__transform {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+}
+
+.location-editor__transform h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.location-editor__transform pre {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-primary, #e5e5e5);
+  overflow-x: auto;
+}
+
+/* Actions */
+.location-editor__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color, #333);
+  background: var(--bg-secondary, #2a2a2a);
+}
+
+.location-editor__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-editor__btn--cancel {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.location-editor__btn--cancel:hover {
+  background: #444;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-editor__btn--save {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.location-editor__btn--save:hover {
+  background: var(--primary-hover, #4f46e5);
+}
+
+.location-editor__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Preview Button */
+.location-editor__btn--preview {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.location-editor__btn--preview:hover {
+  background: #3a3a3a;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-editor__btn--preview--active {
+  background: var(--success-color, #22c55e);
+  color: white;
+}
+
+/* Cube Faces Navigation */
+.location-editor__cube-faces {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+}
+
+.location-editor__cube-faces-label {
+  font-size: 13px;
+  color: var(--text-muted, #666);
+  white-space: nowrap;
+}
+
+.location-editor__cube-face-nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.location-editor__cube-face-btn {
+  padding: 6px 12px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-editor__cube-face-btn:hover {
+  background: #3a3a3a;
+  border-color: var(--border-color, #555);
+  color: var(--text-primary, #e5e5e5);
+}
+
+.location-editor__cube-face-btn--active {
+  background: var(--primary-color, #6366f1);
+  border-color: var(--primary-color, #6366f1);
+  color: white;
+}
+
+/* Keyboard Shortcuts */
+.location-editor__shortcuts {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 24px;
+  background: var(--bg-tertiary, #333);
+  border-top: 1px solid var(--border-color, #333);
+  font-size: 12px;
+  color: var(--text-muted, #666);
+}
+
+.location-editor__shortcuts svg {
+  color: var(--text-muted, #666);
+}
+
+.location-editor__shortcuts span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.location-editor__shortcuts kbd {
+  padding: 2px 6px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-secondary, #a0a0a0);
+}

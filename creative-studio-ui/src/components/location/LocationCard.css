@@ -1,0 +1,241 @@
+/**
+ * LocationCard Styles
+ * 
+ * CSS styles for the LocationCard component.
+ * 
+ * File: creative-studio-ui/src/components/location/LocationCard.css
+ */
+
+/* Card Container */
+.location-card {
+  position: relative;
+  background: var(--card-bg, #1e1e1e);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+}
+
+.location-card:hover {
+  border-color: var(--primary-color, #6366f1);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.location-card.selectable {
+  cursor: default;
+}
+
+.location-card.selected {
+  border-color: var(--primary-color, #6366f1);
+  background: var(--card-selected-bg, rgba(99, 102, 241, 0.1));
+}
+
+.location-card.loading {
+  pointer-events: none;
+}
+
+/* Loading Overlay */
+.location-card__loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.location-card__spinner {
+  animation: spin 1s linear infinite;
+  color: var(--primary-color, #6366f1);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Checkbox */
+.location-card__checkbox {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+}
+
+.location-card__checkbox input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--primary-color, #6366f1);
+}
+
+/* Thumbnail */
+.location-card__thumbnail {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  background: var(--bg-secondary, #2a2a2a);
+  overflow: hidden;
+}
+
+.location-card__thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.location-card__thumbnail-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted, #666);
+}
+
+/* Cube Progress Indicator */
+.location-card__cube-progress {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Content */
+.location-card__content {
+  padding: 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.location-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.location-card__name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+  line-height: 1.3;
+}
+
+.location-card__type {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.location-card__type--exterior {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.location-card__type--interior {
+  background: rgba(168, 85, 247, 0.2);
+  color: #a855f7;
+}
+
+.location-card__description {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: var(--text-secondary, #a0a0a0);
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* Tags */
+.location-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.location-card__tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: var(--bg-tertiary, #333);
+  color: var(--text-secondary, #a0a0a0);
+  border-radius: 4px;
+}
+
+.location-card__tag--more {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+/* Meta Information */
+.location-card__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted, #666);
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color, #333);
+}
+
+.location-card__derived {
+  color: var(--primary-color, #6366f1);
+}
+
+/* Actions */
+.location-card__actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border-color, #333);
+  background: var(--bg-secondary, #2a2a2a);
+}
+
+.location-card__action {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.location-card__action--edit {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.location-card__action--edit:hover {
+  background: var(--primary-hover, #4f46e5);
+}
+
+.location-card__action--delete {
+  background: #ef4444;
+  color: white;
+}
+
+.location-card__action--delete:hover {
+  background: #dc2626;
+}

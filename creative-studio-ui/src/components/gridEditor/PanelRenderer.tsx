@@ -110,8 +110,8 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
     ctx: CanvasRenderingContext2D,
     img: HTMLImageElement,
     bounds: { x: number; y: number; width: number; height: number },
-    transform: any,
-    crop: any
+    transform: unknown,
+    crop: unknown
   ) => {
     // Calculate source rectangle (crop region)
     let srcX = 0;
@@ -176,7 +176,7 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
   ) => {
     // Render drawings
     if (content.drawings) {
-      content.drawings.forEach((drawing: any) => {
+      content.drawings.forEach((drawing: unknown) => {
         ctx.save();
         ctx.strokeStyle = drawing.style.strokeColor || '#000000';
         ctx.lineWidth = drawing.style.strokeWidth || 2;
@@ -230,7 +230,7 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
 
     // Render text annotations
     if (content.textAnnotations) {
-      content.textAnnotations.forEach((text: any) => {
+      content.textAnnotations.forEach((text: unknown) => {
         ctx.save();
         ctx.font = `${text.style.fontSize || 16}px ${text.style.fontFamily || 'sans-serif'}`;
         ctx.fillStyle = text.style.color || '#000000';
@@ -412,3 +412,5 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
     />
   );
 };
+
+

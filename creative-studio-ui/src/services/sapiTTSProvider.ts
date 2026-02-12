@@ -64,7 +64,7 @@ class SapiTTSProvider {
     const tts = (window as any).coquiTTS;
     const speakers = await tts.getSpeakers?.() || [];
     
-    return speakers.map((speaker: any) => ({
+    return speakers.map((speaker: unknown) => ({
       id: speaker.id || speaker.name,
       name: speaker.name || speaker.id,
       gender: this.inferGender(speaker.name || speaker.id),
@@ -241,4 +241,5 @@ export const sapiTTSProvider = new SapiTTSProvider();
 
 // Re-export types for convenience
 export type { SapiTTSProviderConfig, SapiVoice };
+
 

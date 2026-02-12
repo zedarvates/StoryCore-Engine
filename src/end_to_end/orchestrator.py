@@ -25,7 +25,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-from .data_models import (
+from src.end_to_end.data_models import (
     CharacterInfo,
     ParsedPrompt,
     ProjectComponents,
@@ -36,17 +36,17 @@ from .data_models import (
     QualityReport,
     ProgressReport,
 )
-from .prompt_parser import PromptParser
-from .project_name_generator import ProjectNameGenerator
-from .component_generator import ComponentGenerator
-from .project_structure_builder import ProjectStructureBuilder
-from .comfyui_integration import ComfyUIIntegration
-from .pipeline_executor import PipelineExecutor
-from .error_recovery_manager import ErrorRecoveryManager, ErrorContext, RecoveryAction
-from .progress_monitor import ProgressMonitor
-from .configuration_manager import ConfigurationManager
-from .quality_validator import QualityValidator
-from .dependency_manager import DependencyManager
+from src.end_to_end.prompt_parser import PromptParser
+from src.end_to_end.project_name_generator import ProjectNameGenerator
+from src.end_to_end.component_generator import ComponentGenerator
+from src.end_to_end.project_structure_builder import ProjectStructureBuilder
+from src.end_to_end.comfyui_integration import ComfyUIIntegration
+from src.end_to_end.pipeline_executor import PipelineExecutor
+from src.end_to_end.error_recovery_manager import ErrorRecoveryManager, ErrorContext, RecoveryAction
+from src.end_to_end.progress_monitor import ProgressMonitor
+from src.end_to_end.configuration_manager import ConfigurationManager
+from src.end_to_end.quality_validator import QualityValidator
+from src.end_to_end.dependency_manager import DependencyManager
 
 
 logger = logging.getLogger(__name__)
@@ -183,7 +183,7 @@ class EndToEndOrchestrator:
         """Initialize all required components."""
         # Core components
         self.prompt_parser = PromptParser()
-        self.name_generator = ProjectNameGenerator()
+        self.name_generator = ProjectNameGenerator(self.config.projects_directory)
         self.component_generator = ComponentGenerator()
         self.project_builder = ProjectStructureBuilder(self.config.projects_directory)
         
@@ -415,15 +415,12 @@ class EndToEndOrchestrator:
         
         try:
             # Generate unique project name
-            project_name = self.name_generator.generate_project_name(
-                parsed_prompt.project_title,
-                parsed_prompt.genre
-            )
+            project_name = self.name_generator.generate_name(parsed_prompt)
             
-            # Validate the name
-            if not self.name_generator.validate_project_name(project_name):
-                # Sanitize the name
-                project_name = self.name_generator.sanitize_project_name(project_name)
+            # Additional validation if needed
+            is_valid, error = self.name_generator.validate_name(project_name)
+            if not is_valid:
+                logger.warning(f"Generated name '{project_name}' validation issues: {error}")
             
             # Update progress
             self.progress_monitor.complete_step(
@@ -520,7 +517,7 @@ class EndToEndOrchestrator:
         try:
             # Create project structure
             structure = self.project_builder.create_project_structure(
-                components.metadata.project_name,
+                project_path.name,
                 components
             )
             

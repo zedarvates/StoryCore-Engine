@@ -1,0 +1,191 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # Backend API
+  # ========================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: storycore-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ENV=production
+      - DATABASE_URL=postgresql://storycore:password@postgres:5432/storycore
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=${JWT_SECRET}
+      - LLM_API_URL=http://llm-service:8001
+      - COMFYUI_URL=http://comfyui:8188
+    env_file:
+      - .env.production
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+      - ./generated:/app/generated
+    depends_on:
+      - postgres
+      - redis
+      - llm-service
+    networks:
+      - storycore-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # LLM Service (Ollama)
+  # ========================================
+  llm-service:
+    image: ollama/ollama:latest
+    container_name: storycore-llm
+    volumes:
+      - ./models:/root/.ollama
+    ports:
+      - "8001:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    networks:
+      - storycore-network
+    restart: unless-stopped
+
+  # ========================================
+  # ComfyUI
+  # ========================================
+  comfyui:
+    image: comfyanonymous/comfyui:latest
+    container_name: storycore-comfyui
+    volumes:
+      - ./comfyui/models:/ComfyUI/models
+      - ./comfyui/output:/ComfyUI/output
+      - ./comfyui/input:/ComfyUI/input
+    ports:
+      - "8188:8188"
+    environment:
+      - COMFYUI_PORT=8188
+    networks:
+      - storycore-network
+    restart: unless-stopped
+
+  # ========================================
+  # PostgreSQL
+  # ========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: storycore-postgres
+    environment:
+      - POSTGRES_USER=storycore
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=storycore
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - storycore-network
+    restart: unless-stopped
+
+  # ========================================
+  # Redis
+  # ========================================
+  redis:
+    image: redis:7-alpine
+    container_name: storycore-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - storycore-network
+    restart: unless-stopped
+
+  # ========================================
+  # Prometheus
+  # ========================================
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: storycore-prometheus
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - storycore-network
+    restart: unless-stopped
+
+  # ========================================
+  # Grafana
+  # ========================================
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: storycore-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - storycore-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # ========================================
+  # Elasticsearch
+  # ========================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    container_name: storycore-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - storycore-network
+    restart: unless-stopped
+
+  # ========================================
+  # Kibana
+  # ========================================
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.0
+    container_name: storycore-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - storycore-network
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  elasticsearch_data:
+
+networks:
+  storycore-network:
+    driver: bridge

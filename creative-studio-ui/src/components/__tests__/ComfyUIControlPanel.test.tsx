@@ -2,8 +2,8 @@
  * Unit tests for ComfyUIControlPanel component
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ComfyUIControlPanel } from '../ComfyUIControlPanel';
 import { useAppStore } from '@/stores/useAppStore';
 
@@ -38,10 +38,10 @@ describe('ComfyUIControlPanel', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock useAppStore
-    (useAppStore as jest.Mock).mockReturnValue({
+    (useAppStore as any).mockReturnValue({
       project: mockProject,
     });
 
@@ -55,6 +55,11 @@ describe('ComfyUIControlPanel', () => {
       success: true,
       data: { pending: 2, running: 1, queue: [] },
     });
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
   });
 
   it('renders ComfyUI control panel', () => {

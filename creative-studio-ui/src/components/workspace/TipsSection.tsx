@@ -6,7 +6,6 @@
  */
 
 import React, { memo } from 'react';
-import { Globe, Users, BookOpen, Film, Sparkles } from 'lucide-react';
 
 interface TipsSectionProps {
   className?: string;
@@ -18,17 +17,19 @@ interface TipsSectionProps {
 export const TipsSection = memo(function TipsSection({ className }: TipsSectionProps) {
   return (
     <div className={`tips-section ${className || ''}`}>
-      <div className="tips-header">
-        <Sparkles className="w-5 h-5" />
-        <h3>Tips & Tricks</h3>
-      </div>
-      <div className="tips-content">
-        <p className="tips-intro">
-          For a better experience after creating a new project, follow this recommended procedure: 1/project Setup - 2/ World Building - 3/ Character Creation - 4/ Story Generation - 5/ Shot Planning.
-        </p>
-        
-      </div>
+      <h3>Tips & Tricks</h3>
+      <p>
+        For a better experience after creating a new project, follow this recommended procedure:
+      </p>
+      <ol>
+        <li><strong>Project Setup</strong></li>
+        <li><strong>World Building</strong><br />Create the universe and context for your story</li>
+        <li><strong>Character Creation</strong><br />Define your main and secondary characters</li>
+        <li><strong>Story Generator + Global Resume</strong><br />Generate your story and create the global resume below</li>
+        <li><strong>Shot Planning</strong><br />Plan your sequences and shots for production</li>
+        <li><strong>Dialogues generations</strong></li>
+        <li><strong>Prompt generations</strong></li>
+      </ol>
     </div>
   );
 });
-

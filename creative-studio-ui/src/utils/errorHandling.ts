@@ -10,37 +10,43 @@
 /**
  * Error categories for generation pipeline
  */
-export enum ErrorCategory {
-  SERVICE_UNAVAILABLE = 'service_unavailable',
-  VALIDATION = 'validation',
-  GENERATION = 'generation',
-  TIMEOUT = 'timeout',
-  FILE_SYSTEM = 'file_system',
-  NETWORK = 'network',
-  UNKNOWN = 'unknown',
-}
+export const ErrorCategory = {
+  SERVICE_UNAVAILABLE: 'service_unavailable',
+  VALIDATION: 'validation',
+  GENERATION: 'generation',
+  TIMEOUT: 'timeout',
+  FILE_SYSTEM: 'file_system',
+  NETWORK: 'network',
+  UNKNOWN: 'unknown',
+} as const;
+
+export type ErrorCategory = typeof ErrorCategory[keyof typeof ErrorCategory];
 
 /**
  * Error severity levels
  */
-export enum ErrorSeverity {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical',
-}
+export const ErrorSeverity = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  CRITICAL: 'critical',
+} as const;
+
+export type ErrorSeverity = typeof ErrorSeverity[keyof typeof ErrorSeverity];
 
 /**
  * Recovery strategy types
  */
-export enum RecoveryStrategy {
-  RETRY = 'retry',
-  RETRY_WITH_BACKOFF = 'retry_with_backoff',
-  ADJUST_PARAMETERS = 'adjust_parameters',
-  FALLBACK = 'fallback',
-  USER_ACTION_REQUIRED = 'user_action_required',
-  NONE = 'none',
-}
+export const RecoveryStrategy = {
+  RETRY: 'retry',
+  RETRY_WITH_BACKOFF: 'retry_with_backoff',
+  ADJUST_PARAMETERS: 'adjust_parameters',
+  FALLBACK: 'fallback',
+  USER_ACTION_REQUIRED: 'user_action_required',
+  NONE: 'none',
+} as const;
+
+export type RecoveryStrategy = typeof RecoveryStrategy[keyof typeof RecoveryStrategy];
 
 /**
  * Categorized error interface
@@ -56,7 +62,7 @@ export interface CategorizedError {
   troubleshootingSteps: string[];
   canRetry: boolean;
   retryDelay?: number;
-  suggestedParameters?: Record<string, any>;
+  suggestedParameters?: Record<string, unknown>;
 }
 
 /**
@@ -67,7 +73,7 @@ export interface RecoveryResult {
   message: string;
   shouldRetry: boolean;
   retryDelay?: number;
-  adjustedParameters?: Record<string, any>;
+  adjustedParameters?: Record<string, unknown>;
 }
 
 /**
@@ -131,7 +137,7 @@ export function categorizeError(error: Error): CategorizedError {
   const errorMessage = error.message.toLowerCase();
   
   // Determine category
-  let category = ErrorCategory.UNKNOWN;
+  let category: ErrorCategory = ErrorCategory.UNKNOWN;
   for (const [cat, patterns] of Object.entries(ERROR_PATTERNS)) {
     if (patterns.some(pattern => pattern.test(errorMessage))) {
       category = cat as ErrorCategory;
@@ -375,11 +381,13 @@ function determineRetryability(category: ErrorCategory, strategy: RecoveryStrate
     return false;
   }
   
-  return [
+  const retryableCategories: ErrorCategory[] = [
     ErrorCategory.GENERATION,
     ErrorCategory.TIMEOUT,
     ErrorCategory.NETWORK,
-  ].includes(category);
+  ];
+  
+  return retryableCategories.includes(category);
 }
 
 /**
@@ -436,16 +444,16 @@ export async function retryWithBackoff<T>(
 export interface PreservedState {
   timestamp: number;
   errorCategory: ErrorCategory;
-  userInputs: Record<string, any>;
-  generatedAssets: any[];
-  pipelineState: any;
+  userInputs: Record<string, unknown>;
+  generatedAssets: unknown[];
+  pipelineState: unknown;
 }
 
 export function preserveStateOnError(
   error: CategorizedError,
-  userInputs: Record<string, any>,
-  generatedAssets: any[] = [],
-  pipelineState: any = null
+  userInputs: Record<string, unknown>,
+  generatedAssets: unknown[] = [],
+  pipelineState: unknown = null
 ): PreservedState {
   return {
     timestamp: Date.now(),
@@ -462,9 +470,9 @@ export function preserveStateOnError(
  * Requirement: 8.5
  */
 export function restorePreservedState(preserved: PreservedState): {
-  userInputs: Record<string, any>;
-  generatedAssets: any[];
-  pipelineState: any;
+  userInputs: Record<string, unknown>;
+  generatedAssets: unknown[];
+  pipelineState: unknown;
 } {
   return {
     userInputs: { ...preserved.userInputs },
@@ -531,13 +539,13 @@ export function handleGracefulDegradation(
  */
 export function suggestParameterAdjustments(
   error: CategorizedError,
-  currentParams: Record<string, any>
-): Record<string, any> | null {
+  currentParams: Record<string, unknown>
+): Record<string, unknown> | null {
   if (error.category !== ErrorCategory.GENERATION && error.category !== ErrorCategory.TIMEOUT) {
     return null;
   }
   
-  const suggestions: Record<string, any> = {};
+  const suggestions: Record<string, unknown> = {};
   
   // Reduce complexity for timeout or generation errors
   if (currentParams.steps && currentParams.steps > 20) {
@@ -625,3 +633,6 @@ function getSeverityTitle(severity: ErrorSeverity): string {
       return 'Error';
   }
 }
+
+
+

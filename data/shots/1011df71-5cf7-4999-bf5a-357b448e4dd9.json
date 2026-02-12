@@ -1,0 +1,20 @@
+{
+  "id": "1011df71-5cf7-4999-bf5a-357b448e4dd9",
+  "project_id": "be46da84-d2c6-4404-85c5-b6d471de8f68",
+  "sequence_id": null,
+  "name": "Opening Shot",
+  "description": "Wide shot of a mystical forest",
+  "prompt": "Wide shot of a mystical forest with morning mist",
+  "shot_type": "action",
+  "duration_seconds": 5.0,
+  "order_index": 0,
+  "status": "pending",
+  "metadata": {},
+  "character_ids": [],
+  "asset_ids": [],
+  "result_url": null,
+  "thumbnail_url": null,
+  "created_at": "2026-02-11T21:11:37.153677",
+  "updated_at": "2026-02-11T21:11:37.153677",
+  "version": 1
+}

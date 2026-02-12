@@ -74,7 +74,7 @@ Output your review ONLY as a JSON object with the following structure:
         }
     }
 
-    private validateScore(score: any): number {
+    private validateScore(score: unknown): number {
         const n = Number(score);
         if (isNaN(n)) return 5;
         return Math.max(0, Math.min(10, n));
@@ -82,3 +82,4 @@ Output your review ONLY as a JSON object with the following structure:
 }
 
 export const storyReviewer = new StoryReviewer();
+

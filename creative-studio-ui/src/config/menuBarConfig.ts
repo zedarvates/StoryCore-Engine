@@ -8,7 +8,7 @@
  */
 
 import { MenuBarConfig, MenuConfig } from '../types/menuConfig';
-import { fileActions, editActions, viewActions, projectActions, toolsActions, helpActions } from '../components/menuBar/menuActions';
+import { fileActions, editActions, viewActions, projectActions, wizardsActions, toolsActions, helpActions, continuousCreationActions } from '../components/menuBar/menuActions';
 
 /**
  * File Menu Configuration
@@ -16,11 +16,11 @@ import { fileActions, editActions, viewActions, projectActions, toolsActions, he
  */
 const fileMenuConfig: MenuConfig = {
   id: 'file',
-  label: 'menu.file',
+  label: 'file',
   items: [
     {
       id: 'new-project',
-      label: 'menu.file.new',
+      label: 'file.new',
       type: 'action',
       enabled: true,
       visible: true,
@@ -31,7 +31,7 @@ const fileMenuConfig: MenuConfig = {
     },
     {
       id: 'open-project',
-      label: 'menu.file.open',
+      label: 'file.open',
       type: 'action',
       enabled: true,
       visible: true,
@@ -49,7 +49,7 @@ const fileMenuConfig: MenuConfig = {
     },
     {
       id: 'save-project',
-      label: 'menu.file.save',
+      label: 'file.save',
       type: 'action',
       enabled: (state) => state.project !== null,
       visible: true,
@@ -60,7 +60,7 @@ const fileMenuConfig: MenuConfig = {
     },
     {
       id: 'save-as',
-      label: 'menu.file.saveAs',
+      label: 'file.saveAs',
       type: 'action',
       enabled: (state) => state.project !== null,
       visible: true,
@@ -78,7 +78,7 @@ const fileMenuConfig: MenuConfig = {
     },
     {
       id: 'export',
-      label: 'menu.file.export',
+      label: 'file.export',
       type: 'submenu',
       enabled: (state) => state.project !== null,
       visible: true,
@@ -87,7 +87,7 @@ const fileMenuConfig: MenuConfig = {
       submenu: [
         {
           id: 'export-json',
-          label: 'menu.file.export.json',
+          label: 'file.export.json',
           type: 'action',
           enabled: true,
           visible: true,
@@ -96,7 +96,7 @@ const fileMenuConfig: MenuConfig = {
         },
         {
           id: 'export-pdf',
-          label: 'menu.file.export.pdf',
+          label: 'file.export.pdf',
           type: 'action',
           enabled: true,
           visible: true,
@@ -105,7 +105,7 @@ const fileMenuConfig: MenuConfig = {
         },
         {
           id: 'export-video',
-          label: 'menu.file.export.video',
+          label: 'file.export.video',
           type: 'action',
           enabled: true,
           visible: true,
@@ -122,14 +122,54 @@ const fileMenuConfig: MenuConfig = {
       visible: true,
     },
     {
-      id: 'recent-projects',
-      label: 'menu.file.recent',
-      type: 'submenu',
+      id: 'preferences',
+      label: 'file.preferences',
+      type: 'action',
       enabled: true,
       visible: true,
-      icon: 'clock',
-      description: 'Recently opened projects',
-      submenu: [],
+      shortcut: { key: ',', ctrl: true },
+      icon: 'settings',
+      description: 'User preferences and settings',
+      action: fileActions.preferences,
+    },
+
+    {
+      id: 'addons',
+      label: 'file.addons',
+      type: 'action',
+      enabled: true,
+      visible: true,
+      icon: 'puzzle',
+      description: 'Manage add-ons and extensions',
+      action: editActions.openAddonsSettings,
+    },    {
+      id: 'separator-4',
+      label: '',
+      type: 'separator',
+      enabled: true,
+      visible: true,
+    },
+    {
+      id: 'exit-project',
+      label: 'file.exit',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: (state) => state.project !== null,
+      shortcut: { key: 'w', ctrl: true },
+      icon: 'log-out',
+      description: 'Exit current project and return to dashboard',
+      action: fileActions.exitProject,
+    },
+    {
+      id: 'quit-application',
+      label: 'file.quit',
+      type: 'action',
+      enabled: true,
+      visible: true,
+      shortcut: { key: 'q', ctrl: true },
+      icon: 'x-circle',
+      description: 'Quit StoryCore application',
+      action: fileActions.quitApplication,
     },
   ],
 };
@@ -140,11 +180,11 @@ const fileMenuConfig: MenuConfig = {
  */
 const editMenuConfig: MenuConfig = {
   id: 'edit',
-  label: 'menu.edit',
+  label: 'edit',
   items: [
     {
       id: 'undo',
-      label: 'menu.edit.undo',
+      label: 'edit.undo',
       type: 'action',
       enabled: (state) => state.undoStack.canUndo,
       visible: true,
@@ -155,7 +195,7 @@ const editMenuConfig: MenuConfig = {
     },
     {
       id: 'redo',
-      label: 'menu.edit.redo',
+      label: 'edit.redo',
       type: 'action',
       enabled: (state) => state.undoStack.canRedo,
       visible: true,
@@ -173,7 +213,7 @@ const editMenuConfig: MenuConfig = {
     },
     {
       id: 'cut',
-      label: 'menu.edit.cut',
+      label: 'edit.cut',
       type: 'action',
       enabled: (state) => {
         if (!state.project) return false;
@@ -188,7 +228,7 @@ const editMenuConfig: MenuConfig = {
     },
     {
       id: 'copy',
-      label: 'menu.edit.copy',
+      label: 'edit.copy',
       type: 'action',
       enabled: (state) => {
         if (!state.project) return false;
@@ -203,7 +243,7 @@ const editMenuConfig: MenuConfig = {
     },
     {
       id: 'paste',
-      label: 'menu.edit.paste',
+      label: 'edit.paste',
       type: 'action',
       enabled: (state) => state.clipboard.hasContent,
       visible: true,
@@ -212,78 +252,7 @@ const editMenuConfig: MenuConfig = {
       description: 'Paste from clipboard',
       action: editActions.paste,
     },
-    {
-      id: 'separator-2',
-      label: '',
-      type: 'separator',
-      enabled: true,
-      visible: true,
-    },
-    {
-      id: 'settings',
-      label: 'menu.edit.settings',
-      type: 'submenu',
-      enabled: true,
-      visible: true,
-      icon: 'settings',
-      description: 'Application settings',
-      submenu: [
-        {
-          id: 'settings-llm',
-          label: 'menu.edit.settings.llm',
-          type: 'action',
-          enabled: true,
-          visible: true,
-          icon: 'brain',
-          description: 'Configure LLM settings (OpenAI, Anthropic, Ollama, etc.)',
-          action: editActions.openLLMSettings,
-        },
-        {
-          id: 'settings-comfyui',
-          label: 'menu.edit.settings.comfyui',
-          type: 'action',
-          enabled: true,
-          visible: true,
-          icon: 'server',
-          description: 'Configure ComfyUI servers and workflows',
-          action: editActions.openComfyUISettings,
-        },
-        {
-          id: 'separator-settings-1',
-          label: '',
-          type: 'separator',
-          enabled: true,
-          visible: true,
-        },
-        {
-          id: 'settings-addons',
-          label: 'menu.edit.settings.addons',
-          type: 'action',
-          enabled: true,
-          visible: true,
-          icon: 'puzzle',
-          description: 'Manage addons and extensions',
-          action: editActions.openAddonsSettings,
-        },
-        {
-          id: 'separator-settings-2',
-          label: '',
-          type: 'separator',
-          enabled: true,
-          visible: true,
-        },
-        {
-          id: 'settings-general',
-          label: 'menu.edit.settings.general',
-          type: 'action',
-          enabled: true,
-          visible: true,
-          icon: 'sliders',
-          description: 'General application settings',
-          action: editActions.openGeneralSettings,
-        },
-      ],
-    },
+
   ],
 };
 
@@ -293,11 +262,11 @@ const editMenuConfig: MenuConfig = {
  */
 const viewMenuConfig: MenuConfig = {
   id: 'view',
-  label: 'menu.view',
+  label: 'view',
   items: [
     {
       id: 'timeline',
-      label: 'menu.view.timeline',
+      label: 'view.timeline',
       type: 'toggle',
       enabled: true,
       visible: true,
@@ -307,6 +276,35 @@ const viewMenuConfig: MenuConfig = {
       action: viewActions.toggleTimeline,
     },
     {
+      id: 'separator-panels-1',
+      label: '',
+      type: 'separator',
+      enabled: true,
+      visible: true,
+    },
+    {
+      id: 'assets-panel',
+      label: 'view.assetsPanel',
+      type: 'toggle',
+      enabled: true,
+      visible: true,
+      checked: (state) => state.viewState.panelsVisible.assets,
+      icon: 'image',
+      description: 'Toggle assets panel visibility',
+      action: viewActions.toggleAssetsPanel,
+    },
+    {
+      id: 'preview-panel',
+      label: 'view.previewPanel',
+      type: 'toggle',
+      enabled: true,
+      visible: true,
+      checked: (state) => state.viewState.panelsVisible.preview,
+      icon: 'play',
+      description: 'Toggle preview panel visibility',
+      action: viewActions.togglePreviewPanel,
+    },
+    {
       id: 'separator-1',
       label: '',
       type: 'separator',
@@ -314,8 +312,26 @@ const viewMenuConfig: MenuConfig = {
       visible: true,
     },
     {
+      id: 'grid',
+      label: 'view.grid',
+      type: 'toggle',
+      enabled: true,
+      visible: true,
+      checked: (state) => state.viewState.gridVisible,
+      icon: 'grid',
+      description: 'Toggle grid overlay visibility',
+      action: viewActions.toggleGrid,
+    },
+    {
+      id: 'separator-2',
+      label: '',
+      type: 'separator',
+      enabled: true,
+      visible: true,
+    },
+    {
       id: 'zoom-in',
-      label: 'menu.view.zoomIn',
+      label: 'view.zoomIn',
       type: 'action',
       enabled: (state) => state.viewState.zoomLevel < state.viewState.maxZoom,
       visible: true,
@@ -326,7 +342,7 @@ const viewMenuConfig: MenuConfig = {
     },
     {
       id: 'zoom-out',
-      label: 'menu.view.zoomOut',
+      label: 'view.zoomOut',
       type: 'action',
       enabled: (state) => state.viewState.zoomLevel > state.viewState.minZoom,
       visible: true,
@@ -337,7 +353,7 @@ const viewMenuConfig: MenuConfig = {
     },
     {
       id: 'reset-zoom',
-      label: 'menu.view.resetZoom',
+      label: 'view.resetZoom',
       type: 'action',
       enabled: (state) => state.viewState.zoomLevel !== 1,
       visible: true,
@@ -345,24 +361,6 @@ const viewMenuConfig: MenuConfig = {
       icon: 'maximize',
       description: 'Reset zoom to 100% (Ctrl+0)',
       action: viewActions.resetZoom,
-    },
-    {
-      id: 'separator-2',
-      label: '',
-      type: 'separator',
-      enabled: true,
-      visible: true,
-    },
-    {
-      id: 'toggle-grid',
-      label: 'menu.view.grid',
-      type: 'toggle',
-      enabled: true,
-      visible: true,
-      checked: (state) => state.viewState.gridVisible,
-      icon: 'grid',
-      description: 'Toggle grid overlay',
-      action: viewActions.toggleGrid,
     },
     {
       id: 'separator-3',
@@ -373,7 +371,7 @@ const viewMenuConfig: MenuConfig = {
     },
     {
       id: 'fullscreen',
-      label: 'menu.view.fullScreen',
+      label: 'view.fullScreen',
       type: 'toggle',
       enabled: true,
       visible: true,
@@ -392,28 +390,29 @@ const viewMenuConfig: MenuConfig = {
  */
 const projectMenuConfig: MenuConfig = {
   id: 'project',
-  label: 'menu.project',
+  label: 'project',
   items: [
     {
-      id: 'settings',
-      label: 'menu.project.settings',
+      id: 'back-to-dashboard',
+      label: 'project.backToDashboard',
       type: 'action',
-      enabled: true,
-      visible: true,
-      icon: 'settings',
-      description: 'Project settings',
-      action: projectActions.settings,
-    },
-    {
-      id: 'separator-1',
-      label: '',
-      type: 'separator',
       enabled: (state) => state.project !== null,
       visible: (state) => state.project !== null,
+      icon: 'layout-dashboard',
+      shortcut: { key: 'h', ctrl: true, shift: true },
+      description: 'Return to Project Dashboard',
+      action: projectActions.backToDashboard,
+    },
+    {
+      id: 'separator-0',
+      label: '',
+      type: 'separator',
+      enabled: true,
+      visible: true,
     },
     {
       id: 'characters',
-      label: 'menu.project.characters',
+      label: 'project.characters',
       type: 'action',
       enabled: (state) => state.project !== null,
       visible: (state) => state.project !== null,
@@ -422,18 +421,8 @@ const projectMenuConfig: MenuConfig = {
       action: projectActions.characters,
     },
     {
-      id: 'sequences',
-      label: 'menu.project.sequences',
-      type: 'action',
-      enabled: (state) => state.project !== null,
-      visible: (state) => state.project !== null,
-      icon: 'film',
-      description: 'Story Generator - Generate complete stories with AI',
-      action: projectActions.sequences,
-    },
-    {
       id: 'assets',
-      label: 'menu.project.assets',
+      label: 'project.assets',
       type: 'action',
       enabled: (state) => state.project !== null,
       visible: (state) => state.project !== null,
@@ -445,16 +434,233 @@ const projectMenuConfig: MenuConfig = {
 };
 
 /**
+ * Wizards Menu Configuration
+ * All wizards in one centralized menu
+ */
+const wizardsMenuConfig: MenuConfig = {
+  id: 'wizards',
+  label: 'wizards',
+  items: [
+    {
+      id: 'project-setup',
+      label: 'wizards.projectSetup',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'settings',
+      description: 'Project Setup Wizard - Configure project settings',
+      action: wizardsActions.projectSetup,
+    },
+    {
+      id: 'separator-1',
+      label: '',
+      type: 'separator',
+      enabled: true,
+      visible: true,
+    },
+    {
+      id: 'character-wizard',
+      label: 'wizards.characters',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'users',
+      description: 'Character Wizard - Design detailed characters',
+      action: wizardsActions.characters,
+    },
+    {
+      id: 'world-builder',
+      label: 'wizards.world',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'globe',
+      description: 'World Builder - Create comprehensive world settings',
+      action: wizardsActions.world,
+    },
+    {
+      id: 'story-generator',
+      label: 'wizards.sequences',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'film',
+      description: 'Story Generator - Generate complete stories with AI',
+      action: wizardsActions.sequences,
+    },
+    {
+      id: 'separator-2',
+      label: '',
+      type: 'separator',
+      enabled: true,
+      visible: true,
+    },
+    {
+      id: 'sequence-plan-wizard',
+      label: 'wizards.sequencePlan',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'list',
+      description: 'Sequence Plan Wizard - Plan your sequence structure',
+      action: wizardsActions.sequencePlan,
+    },
+    {
+      id: 'shot-wizard',
+      label: 'wizards.shot',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'camera',
+      description: 'Shot Wizard - Create and configure shots',
+      action: wizardsActions.shot,
+    },
+    {
+      id: 'script-wizard',
+      label: 'wizards.script',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'wand',
+      description: 'Script Wizard - Convert scripts to shots',
+      action: wizardsActions.scriptWizard,
+    },
+    {
+      id: 'separator-3',
+      label: '',
+      type: 'separator',
+      enabled: true,
+      visible: true,
+    },
+    {
+      id: 'audio-production-wizard',
+      label: 'wizards.audioProduction',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'volume-2',
+      description: 'Audio Production Wizard - Generate and manage audio',
+      action: wizardsActions.audioProduction,
+    },
+    {
+      id: 'video-production-wizard',
+      label: 'wizards.videoProduction',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'video',
+      description: 'Video Production Wizard - Generate and manage video',
+      action: wizardsActions.videoProduction,
+    },
+  ],
+};
+
+/**
+ * Continuous Creation Menu Configuration
+ * Three-Level Reference System, Video Replication, Style Transfer, Project Branching
+ */
+const continuousCreationMenuConfig: MenuConfig = {
+  id: 'continuous-creation',
+  label: 'continuousCreation',
+  items: [
+    {
+      id: 'reference-sheet-manager',
+      label: 'continuousCreation.referenceSheetManager',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'file-text',
+      description: 'Manage Master, Sequence, and Shot reference sheets',
+      action: continuousCreationActions.referenceSheetManager,
+    },
+    {
+      id: 'video-replication',
+      label: 'continuousCreation.videoReplication',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'video',
+      description: 'Upload reference video and replicate shots with Digital Human',
+      action: continuousCreationActions.videoReplication,
+    },
+    {
+      id: 'cross-shot-reference',
+      label: 'continuousCreation.crossShotReference',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'copy',
+      description: 'Borrow references from other shots in the project',
+      action: continuousCreationActions.crossShotReference,
+    },
+    {
+      id: 'separator-cc-1',
+      label: '',
+      type: 'separator',
+      enabled: true,
+      visible: true,
+    },
+    {
+      id: 'style-transfer',
+      label: 'continuousCreation.styleTransfer',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'palette',
+      description: 'Transfer visual style between scenes',
+      action: continuousCreationActions.styleTransfer,
+    },
+    {
+      id: 'consistency-check',
+      label: 'continuousCreation.consistencyCheck',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'check-circle',
+      description: 'Run visual consistency validation across shots',
+      action: continuousCreationActions.consistencyCheck,
+    },
+    {
+      id: 'separator-cc-2',
+      label: '',
+      type: 'separator',
+      enabled: true,
+      visible: true,
+    },
+    {
+      id: 'project-branching',
+      label: 'continuousCreation.projectBranching',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'git-branch',
+      description: 'Create project branches for different versions',
+      action: continuousCreationActions.projectBranching,
+    },
+    {
+      id: 'episode-references',
+      label: 'continuousCreation.episodeReferences',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'folder-open',
+      description: 'Manage references from previous episodes for sequels',
+      action: continuousCreationActions.episodeReferences,
+    },
+  ],
+};
+
+/**
  * Tools Menu Configuration
  * Handles AI tools and utilities
  */
 const toolsMenuConfig: MenuConfig = {
   id: 'tools',
-  label: 'menu.tools',
+  label: 'tools',
   items: [
     {
       id: 'llm-assistant',
-      label: 'menu.tools.llmAssistant',
+      label: 'tools.llmAssistant',
       type: 'action',
       enabled: true,
       visible: true,
@@ -464,13 +670,23 @@ const toolsMenuConfig: MenuConfig = {
     },
     {
       id: 'comfyui-server',
-      label: 'menu.tools.comfyUIServer',
+      label: 'tools.comfyUIServer',
       type: 'action',
       enabled: true,
       visible: true,
       icon: 'server',
       description: 'ComfyUI Server configuration',
       action: toolsActions.comfyuiServer,
+    },
+    {
+      id: 'llm-configuration',
+      label: 'tools.llmConfiguration',
+      type: 'action',
+      enabled: true,
+      visible: true,
+      icon: 'settings',
+      description: 'LLM Configuration',
+      action: toolsActions.llmConfiguration,
     },
     {
       id: 'separator-1',
@@ -481,7 +697,7 @@ const toolsMenuConfig: MenuConfig = {
     },
     {
       id: 'script-wizard',
-      label: 'menu.tools.scriptWizard',
+      label: 'tools.scriptWizard',
       type: 'action',
       enabled: (state) => state.project !== null,
       visible: true,
@@ -491,7 +707,7 @@ const toolsMenuConfig: MenuConfig = {
     },
     {
       id: 'batch-generation',
-      label: 'menu.tools.batchGeneration',
+      label: 'tools.batchGeneration',
       type: 'action',
       enabled: (state) => state.project !== null,
       visible: true,
@@ -501,13 +717,24 @@ const toolsMenuConfig: MenuConfig = {
     },
     {
       id: 'quality-analysis',
-      label: 'menu.tools.qualityAnalysis',
+      label: 'tools.qualityAnalysis',
       type: 'action',
       enabled: (state) => state.project !== null,
       visible: true,
       icon: 'check-circle',
       description: 'Run QA Engine',
       action: toolsActions.qualityAnalysis,
+    },
+    {
+      id: 'fact-check',
+      label: 'tools.factCheck',
+      type: 'action',
+      enabled: true,
+      visible: true,
+      icon: 'search',
+      shortcut: { key: 'f', ctrl: true, shift: true },
+      description: 'Fact Check - Verify statements with AI',
+      action: toolsActions.factCheck,
     },
   ],
 };
@@ -518,11 +745,11 @@ const toolsMenuConfig: MenuConfig = {
  */
 const helpMenuConfig: MenuConfig = {
   id: 'help',
-  label: 'menu.help',
+  label: 'help',
   items: [
     {
       id: 'documentation',
-      label: 'menu.help.documentation',
+      label: 'help.documentation',
       type: 'action',
       enabled: true,
       visible: true,
@@ -532,7 +759,7 @@ const helpMenuConfig: MenuConfig = {
     },
     {
       id: 'keyboard-shortcuts',
-      label: 'menu.help.keyboardShortcuts',
+      label: 'help.keyboardShortcuts',
       type: 'action',
       enabled: true,
       visible: true,
@@ -550,7 +777,7 @@ const helpMenuConfig: MenuConfig = {
     },
     {
       id: 'about',
-      label: 'menu.help.about',
+      label: 'help.about',
       type: 'action',
       enabled: true,
       visible: true,
@@ -560,7 +787,7 @@ const helpMenuConfig: MenuConfig = {
     },
     {
       id: 'check-updates',
-      label: 'menu.help.checkUpdates',
+      label: 'help.checkUpdates',
       type: 'action',
       enabled: true,
       visible: true,
@@ -570,7 +797,7 @@ const helpMenuConfig: MenuConfig = {
     },
     {
       id: 'report-issue',
-      label: 'menu.help.reportIssue',
+      label: 'help.reportIssue',
       type: 'action',
       enabled: true,
       visible: true,
@@ -583,13 +810,15 @@ const helpMenuConfig: MenuConfig = {
 
 /**
  * Complete menu bar configuration
- * Exports all six menus in order
+ * Exports all menus in order
  */
 export const menuBarConfig: MenuBarConfig = [
   fileMenuConfig,
   editMenuConfig,
   viewMenuConfig,
   projectMenuConfig,
+  wizardsMenuConfig,
+  continuousCreationMenuConfig,
   toolsMenuConfig,
   helpMenuConfig,
 ];
@@ -604,7 +833,7 @@ export function getMenuById(menuId: string): MenuConfig | undefined {
 /**
  * Get menu item by ID (searches all menus)
  */
-export function getMenuItemById(itemId: string): { menu: MenuConfig; item: any } | undefined {
+export function getMenuItemById(itemId: string): { menu: MenuConfig; item: unknown } | undefined {
   for (const menu of menuBarConfig) {
     const item = findMenuItemRecursive(menu.items, itemId);
     if (item) {
@@ -617,7 +846,7 @@ export function getMenuItemById(itemId: string): { menu: MenuConfig; item: any }
 /**
  * Recursively find menu item by ID
  */
-function findMenuItemRecursive(items: any[], itemId: string): any {
+function findMenuItemRecursive(items: unknown[], itemId: string): unknown {
   for (const item of items) {
     if (item.id === itemId) {
       return item;
@@ -629,3 +858,5 @@ function findMenuItemRecursive(items: any[], itemId: string): any {
   }
   return undefined;
 }
+
+

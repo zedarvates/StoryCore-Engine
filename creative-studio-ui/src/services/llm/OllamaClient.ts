@@ -53,7 +53,7 @@ export class OllamaClient {
 
       const data = await response.json();
 
-      return data.models.map((model: any) => ({
+      return data.models.map((model: unknown) => ({
         name: model.name,
         size: this.formatSize(model.size),
         available: true,
@@ -290,3 +290,4 @@ export class OllamaClient {
 
 // Export singleton instance
 export const ollamaClient = new OllamaClient();
+

@@ -2,6 +2,29 @@
 // Character Types for Character Creation Wizard
 // ============================================================================
 
+/**
+ * Image data for reference images (full body views)
+ */
+export interface ReferenceImageData {
+  id: string;
+  url: string;
+  type: 'reference' | 'reference_sheet';
+  panel?: string;
+  created_at: string;
+  filename?: string;
+}
+
+/**
+ * Image data for multi-view character sheets (front, left, right, back)
+ */
+export interface SheetImageData {
+  id: string;
+  url: string;
+  panel: string;  // 'front', 'left', 'right', 'back'
+  created_at: string;
+  filename?: string;
+}
+
 export interface Character {
   character_id: string;
   name: string;
@@ -41,6 +64,10 @@ export interface VisualIdentity {
   clothing_style: string;
   color_palette: string[];
   generated_portrait?: string; // Path to generated portrait image (relative to project or indexeddb://)
+  
+  // Reference images and sheets for multi-view generation
+  reference_images: ReferenceImageData[];  // Generated reference images
+  reference_sheet_images: SheetImageData[];  // Multi-view sheet images (front, left, right, back)
 }
 
 export interface Personality {
@@ -103,6 +130,9 @@ export function createEmptyCharacter(): Partial<Character> {
       posture: '',
       clothing_style: '',
       color_palette: [],
+      // Initialize reference images arrays (empty by default)
+      reference_images: [],
+      reference_sheet_images: [],
     },
     personality: {
       traits: [],

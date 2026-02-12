@@ -58,7 +58,7 @@ const ACTION_DESCRIPTIONS: Record<string, string> = {
 /**
  * Creates a state snapshot for undo/redo
  */
-function createSnapshot(state: RootState, action: any): any {
+function createSnapshot(state: RootState, action: unknown): unknown {
   return {
     project: state.project,
     timeline: state.timeline,
@@ -70,7 +70,7 @@ function createSnapshot(state: RootState, action: any): any {
 /**
  * History middleware that captures undoable actions
  */
-export const historyMiddleware: Middleware<{}, RootState> = (store) => (next) => (action: any) => {
+export const historyMiddleware: Middleware<{}, RootState> = (store) => (next) => (action: unknown) => {
   // Check if this action should be captured in history
   const isUndoable = UNDOABLE_ACTIONS.includes(action.type);
   
@@ -80,7 +80,7 @@ export const historyMiddleware: Middleware<{}, RootState> = (store) => (next) =>
   }
   
   // Capture state before action
-  let previousState: any = null;
+  let previousState: unknown = null;
   if (isUndoable) {
     previousState = createSnapshot(store.getState(), action);
   }
@@ -105,3 +105,6 @@ export const historyMiddleware: Middleware<{}, RootState> = (store) => (next) =>
   
   return result;
 };
+
+
+

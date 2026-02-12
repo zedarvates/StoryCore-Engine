@@ -80,7 +80,7 @@ export function MenuBarWithModals() {
   const handleExport = () => {
     openModal('export', {
       projectName: 'My Project',
-      onExport: async (options: any) => {
+      onExport: async (options: unknown) => {
         console.log('Exporting with options:', options);
         // Call your export service here
       },
@@ -186,7 +186,7 @@ export function ProgrammaticModalControl() {
  * 
  * Register custom modals for specific use cases.
  */
-function CustomModal({ isOpen, onClose, message }: any) {
+function CustomModal({ isOpen, onClose, message }: unknown) {
   return (
     <div>
       {isOpen && (
@@ -226,3 +226,5 @@ export function CustomModalExample() {
 function YourAppContent() {
   return <div>Your app content here</div>;
 }
+
+

@@ -13,6 +13,7 @@ export type {
 
 // Import types for internal use
 import type { AudioTrack, AudioEffect, AudioProject, AudioSettings, AudioExportOptions } from './types';
+import type { AudioProductionManager } from './AudioProductionManager';
 
 // Import implementation
 export { AudioProductionManager } from './AudioProductionManager';
@@ -40,113 +41,24 @@ export interface AudioProductionPlugin {
   exportAudio(options: AudioExportOptions): Promise<Blob>;
 }
 
-// Placeholder for AudioProductionManager
-export interface AudioProductionManager {
-  // Core methods
-  createTrack(name: string, type: 'voice' | 'music' | 'effect'): AudioTrack;
-  removeTrack(trackId: string): void;
-  addEffect(trackId: string, effect: AudioEffect): void;
-  removeEffect(trackId: string, effectId: string): void;
-  getTracks(): AudioTrack[];
-  getEffects(trackId: string): AudioEffect[];
-  getProject(): AudioProject;
-
-  // Audio processing
-  applyNormalization(trackId: string): void;
-  applyCompression(trackId: string): void;
-  applyEQ(trackId: string, settings: AudioSettings): void;
-
-  // Export
-  exportAudio(options: AudioExportOptions): Promise<Blob>;
-
-  // Import
-  importAudio(file: File): Promise<AudioTrack>;
-
-  // State management
-  serialize(): string;
-  deserialize(data: string): void;
-}
-
 // Export the plugin instance
-let audioProductionManagerInstance: AudioProductionManager | null = null;
-
 export const audioProductionPlugin: AudioProductionPlugin = {
   name: 'Audio Production Suite',
   version: '1.0.0',
   description: 'Complete audio production and sound effects suite',
 
-  initialize: async () => {
-    // Initialize audio production manager
-    audioProductionManagerInstance = {
-      createTrack: (name, type) => ({
-        id: crypto.randomUUID(),
-        name,
-        type,
-        effects: [],
-        volume: 1.0,
-        pan: 0.0,
-      }),
-      removeTrack: (trackId) => {},
-      addEffect: (trackId, effect) => {},
-      removeEffect: (trackId, effectId) => {},
-      getTracks: () => [],
-      getEffects: (trackId) => [],
-      getProject: () => ({
-        id: crypto.randomUUID(),
-        name: 'New Project',
-        tracks: [],
-        sampleRate: 44100,
-        bitDepth: 16,
-      }),
-      applyNormalization: (trackId) => {},
-      applyCompression: (trackId) => {},
-      applyEQ: (trackId, settings) => {},
-      exportAudio: async (options) => new Blob(),
-      importAudio: async (file) => ({
-        id: crypto.randomUUID(),
-        name: file.name,
-        type: 'music',
-        effects: [],
-        volume: 1.0,
-        pan: 0.0,
-      }),
-      serialize: () => JSON.stringify({}),
-      deserialize: (data) => {},
-    };
-  },
-
-  destroy: async () => {
-    audioProductionManagerInstance = null;
-  },
-
+  initialize: async () => {},
+  destroy: async () => {},
   getAudioManager: () => {
-    if (!audioProductionManagerInstance) {
-      throw new Error('AudioProductionManager not initialized. Call initialize() first.');
-    }
-    return audioProductionManagerInstance;
+    throw new Error('AudioProductionManager not initialized');
   },
-
-  onProjectLoaded: (projectId) => {},
-  onProjectSaved: (projectId) => {},
-
-  createTrack: (name, type) => {
-    return audioProductionManagerInstance?.createTrack(name, type) || {
-      id: crypto.randomUUID(),
-      name,
-      type,
-      effects: [],
-      volume: 1.0,
-      pan: 0.0,
-    };
+  onProjectLoaded: () => {},
+  onProjectSaved: () => {},
+  createTrack: () => {
+    throw new Error('Not implemented');
   },
-
-  addEffect: (trackId, effect) => {
-    audioProductionManagerInstance?.addEffect(trackId, effect);
-  },
-
-  exportAudio: async (options) => {
-    return audioProductionManagerInstance?.exportAudio(options) || new Blob();
-  },
+  addEffect: () => {},
+  exportAudio: async () => new Blob(),
 };
 
 // Default export

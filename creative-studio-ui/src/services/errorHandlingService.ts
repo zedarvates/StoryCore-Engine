@@ -15,7 +15,7 @@ export interface AppError {
   severity: ErrorSeverity;
   category: ErrorCategory;
   timestamp: Date;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   originalError?: Error;
   recoverable: boolean;
   retryable: boolean;
@@ -61,7 +61,7 @@ export class ErrorHandlingService {
   createError(
     error: Error | string,
     category: ErrorCategory = 'unknown',
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): AppError {
     const originalError = typeof error === 'string' ? new Error(error) : error;
     const message = originalError.message;
@@ -386,3 +386,4 @@ export function createErrorHandlingService(
 ): ErrorHandlingService {
   return new ErrorHandlingService(config);
 }
+

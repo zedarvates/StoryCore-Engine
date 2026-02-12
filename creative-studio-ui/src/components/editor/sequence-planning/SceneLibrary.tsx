@@ -1,8 +1,10 @@
 import React from 'react';
-import { Home, Search, Plus } from 'lucide-react';
+import { Home, Search, Plus, MapPin } from 'lucide-react';
+import { useLocationStore } from '../../../stores/locationStore';
+import './Library.css';
 
 export interface SceneLibraryProps {
-  onElementSelect: (element: any) => void;
+  onElementSelect: (element: unknown) => void;
   className?: string;
 }
 
@@ -10,13 +12,18 @@ export const SceneLibrary: React.FC<SceneLibraryProps> = ({
   onElementSelect,
   className = ''
 }) => {
-  const scenes = [
-    { id: 'scene_1', name: 'Forêt Mystique', type: 'environment' },
-    { id: 'scene_2', name: 'Château Ancien', type: 'building' },
-    { id: 'scene_3', name: 'Plage Tropicale', type: 'nature' },
-  ];
+  // Load locations from store
+  const locations = useLocationStore((state) => state.locations);
 
-  const handleDragStart = (scene: any) => (e: React.DragEvent) => {
+  // Convert locations to scene format
+  const scenes = locations.map(location => ({
+    id: location.location_id,
+    name: location.name,
+    type: location.location_type || 'environment',
+    description: location.metadata?.description
+  }));
+
+  const handleDragStart = (scene: unknown) => (e: React.DragEvent) => {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'decoration',
       assetId: scene.id,
@@ -40,23 +47,33 @@ export const SceneLibrary: React.FC<SceneLibraryProps> = ({
       </div>
 
       <div className="library-content">
-        {scenes.map(scene => (
-          <div
-            key={scene.id}
-            className="library-item scene-item"
-            draggable
-            onDragStart={handleDragStart(scene)}
-          >
-            <div className="item-icon">
-              <Home size={24} />
-            </div>
-            <div className="item-info">
-              <div className="item-name">{scene.name}</div>
-              <div className="item-type">{scene.type}</div>
-            </div>
+        {scenes.length === 0 ? (
+          <div className="library-empty">
+            <MapPin size={32} />
+            <p>Aucun lieu disponible</p>
+            <p className="empty-hint">Créez des lieux dans le dashboard</p>
           </div>
-        ))}
+        ) : (
+          scenes.map(scene => (
+            <div
+              key={scene.id}
+              className="library-item scene-item"
+              draggable
+              onDragStart={handleDragStart(scene)}
+              title={scene.description}
+            >
+              <div className="item-icon">
+                <Home size={24} />
+              </div>
+              <div className="item-info">
+                <div className="item-name">{scene.name}</div>
+                <div className="item-type">{scene.type}</div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
 };
+

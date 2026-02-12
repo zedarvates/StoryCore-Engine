@@ -2,6 +2,18 @@ import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
+// ============================================================================
+// Global Mocks for Service Status
+// ============================================================================
+
+// Mock useServiceStatus hook globally
+vi.mock('@/hooks/useServiceStatus', () => ({
+  useServiceStatus: vi.fn(() => ({
+    ollama: 'connected',
+    comfyui: 'connected',
+  })),
+}));
+
 // Mock hasPointerCapture for Radix UI compatibility with jsdom
 Object.defineProperty((globalThis as any).HTMLElement.prototype, 'hasPointerCapture', {
   writable: true,
@@ -126,10 +138,8 @@ const originalCreateElement = document.createElement.bind(document);
 vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
   if (tagName === 'input') {
     const input = originalCreateElement('input') as HTMLInputElement;
-    input.type = 'file';
-    input.multiple = true;
-    input.accept = 'image/*,audio/*,video/*';
-    input.click = vi.fn();
+    // Preserve the type that will be set by React - don't override to file
+    // The mock should only set default properties for testing, not change the type
     return input;
   }
   return originalCreateElement(tagName);

@@ -42,8 +42,8 @@ export interface ConversionSettings {
 export interface SequenceResult {
   comicId: string;
   settings: ConversionSettings;
-  sequences: any[]; // Would be Sequence objects in real implementation
-  shots: any[]; // Would be Shot objects in real implementation
+  sequences: unknown[]; // Would be Sequence objects in real implementation
+  shots: unknown[]; // Would be Shot objects in real implementation
   metadata: {
     panelCount: number;
     sequenceCount: number;

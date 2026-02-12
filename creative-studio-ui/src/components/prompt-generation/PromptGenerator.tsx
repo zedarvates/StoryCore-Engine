@@ -12,7 +12,7 @@ interface PromptGeneratorProps {
 }
 
 export const PromptGenerator: React.FC<PromptGeneratorProps> = ({ onGenerate }) => {
-  const [categories, setCategories] = useState<Record<string, any>>({});
+  const [categories, setCategories] = useState<Record<string, unknown>>({});
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<PromptTemplate[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<PromptTemplate | null>(null);
@@ -234,3 +234,4 @@ export const PromptGenerator: React.FC<PromptGeneratorProps> = ({ onGenerate }) 
     </div>
   );
 };
+

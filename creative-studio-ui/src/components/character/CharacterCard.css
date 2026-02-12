@@ -69,6 +69,12 @@
   justify-content: center;
 }
 
+.character-card__thumbnail-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .character-card__thumbnail-image {
   width: 100%;
   height: 100%;
@@ -374,6 +380,45 @@
   transform: translateY(0);
 }
 
+/* Regenerate image button overlay */
+.character-card__regenerate-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.character-card__thumbnail-wrapper:hover .character-card__regenerate-button {
+  opacity: 1;
+}
+
+.character-card__regenerate-button:hover {
+  background: rgba(59, 130, 246, 0.9);
+  transform: scale(1.05);
+}
+
+.character-card__regenerate-button:active {
+  transform: scale(0.95);
+}
+
+.character-card__regenerate-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .character-card__generating {
   display: flex;
   align-items: center;
@@ -416,5 +461,14 @@
     background: var(--color-surface-dark, #1f2937);
     border-color: var(--color-border-dark, #374151);
     color: var(--color-text-secondary-dark, #d1d5db);
+  }
+  
+  /* Dark mode for regenerate button */
+  .character-card__regenerate-button {
+    background: rgba(0, 0, 0, 0.7);
+  }
+  
+  .character-card__regenerate-button:hover {
+    background: rgba(59, 130, 246, 0.95);
   }
 }

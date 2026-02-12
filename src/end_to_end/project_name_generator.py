@@ -8,7 +8,7 @@ Handles duplicate detection and variant generation.
 import re
 from pathlib import Path
 from typing import Optional, List
-from .data_models import ParsedPrompt
+from src.end_to_end.data_models import ParsedPrompt
 
 
 class ProjectNameGenerator:

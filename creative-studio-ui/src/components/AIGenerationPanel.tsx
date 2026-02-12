@@ -18,7 +18,7 @@ interface JobStatus {
   status: 'queued' | 'running' | 'completed' | 'failed';
   type: 'flux2_image' | 'ltx2_video';
   created_at: number;
-  result?: any;
+  result?: unknown;
   error?: string;
 }
 
@@ -101,9 +101,9 @@ const AIGenerationPanel: React.FC = () => {
             // Extract generated content URLs from result
             if (jobStatus.result?.outputs) {
               const urls: string[] = [];
-              Object.values(jobStatus.result.outputs).forEach((output: any) => {
+              Object.values(jobStatus.result.outputs).forEach((output: unknown) => {
                 if (output.images) {
-                  output.images.forEach((img: any) => {
+                  output.images.forEach((img: unknown) => {
                     if (img.filename) {
                       urls.push(`${comfyUIUrl}/view?filename=${img.filename}&subfolder=${img.subfolder || ''}&type=${img.type || 'output'}`);
                     }
@@ -653,3 +653,5 @@ const AIGenerationPanel: React.FC = () => {
 };
 
 export default AIGenerationPanel;
+
+

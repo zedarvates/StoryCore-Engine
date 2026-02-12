@@ -23,7 +23,7 @@ export interface SequencePlanData {
   resolution: { width: number; height: number };
   createdAt: number;
   modifiedAt: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ValidationResult {
@@ -318,7 +318,7 @@ export class SequencePlanService {
     } = options;
 
     // Prepare export data
-    const exportData: any = {
+    const exportData: unknown = {
       ...plan,
     };
 
@@ -400,7 +400,7 @@ export class SequencePlanService {
 
       // Validate shots
       if (Array.isArray(plan.shots)) {
-        plan.shots.forEach((shot: any, index: number) => {
+        plan.shots.forEach((shot: unknown, index: number) => {
           if (!shot.id) errors.push(`Shot ${index}: Missing required field: id`);
           if (!shot.title) errors.push(`Shot ${index}: Missing required field: title`);
           if (typeof shot.duration !== 'number') {
@@ -548,3 +548,6 @@ export class SequencePlanService {
 
 // Export singleton instance
 export const sequencePlanService = SequencePlanService.getInstance();
+
+
+

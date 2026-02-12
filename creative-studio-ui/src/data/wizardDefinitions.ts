@@ -192,7 +192,7 @@ export function getEnabledWizards(): WizardDefinition[] {
 export function checkWizardRequirements(
   wizard: WizardDefinition,
   availableConfig: string[],
-  project?: any
+  project?: unknown
 ): boolean {
   if (!wizard.requiredConfig) {
     return true;
@@ -237,3 +237,4 @@ export function getWizardDependencies(wizard: WizardDefinition): {
 export function hasWizardDependencies(wizard: WizardDefinition): boolean {
   return !!(wizard.requiredConfig?.length || wizard.requiresCharacters || wizard.requiresShots);
 }
+

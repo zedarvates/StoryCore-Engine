@@ -2,8 +2,13 @@
  * Memoization utilities for expensive computations
  */
 
+import { debounce, throttle } from './debounceAndThrottle';
+
+// Re-export debounce and throttle from unified module
+export { debounce, throttle };
+
 // Using 'any[]' in generic constraint to allow memoizing functions with any parameter types
-type MemoizedFunction<T extends (...args: any[]) => any> = T & {
+type MemoizedFunction<T extends (...args: unknown[]) => unknown> = T & {
   cache: Map<string, ReturnType<T>>;
   clearCache: () => void;
 };
@@ -12,7 +17,7 @@ type MemoizedFunction<T extends (...args: any[]) => any> = T & {
  * Memoize a function with custom key generation
  */
 // Using 'any[]' in generic constraint to allow memoizing functions with any parameter types
-export function memoize<T extends (...args: any[]) => any>(
+export function memoize<T extends (...args: unknown[]) => unknown>(
   fn: T,
   keyGenerator?: (...args: Parameters<T>) => string
 ): MemoizedFunction<T> {
@@ -40,7 +45,7 @@ export function memoize<T extends (...args: any[]) => any>(
  * Memoize async functions
  */
 // Using 'any' in generic constraint to allow memoizing async functions with any parameter and return types
-export function memoizeAsync<T extends (...args: any[]) => Promise<any>>(
+export function memoizeAsync<T extends (...args: unknown[]) => Promise<any>>(
   fn: T,
   keyGenerator?: (...args: Parameters<T>) => string
 ): MemoizedFunction<T> {
@@ -137,55 +142,3 @@ export class LRUCache<K, V> {
   }
 }
 
-/**
- * Debounce function calls
- */
-// Using 'any[]' in generic constraint to allow debouncing functions with any parameter types
-export function debounce<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout | null = null;
-
-  return (...args: Parameters<T>) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-
-    timeoutId = setTimeout(() => {
-      fn(...args);
-      timeoutId = null;
-    }, delay);
-  };
-}
-
-/**
- * Throttle function calls
- */
-// Using 'any[]' in generic constraint to allow throttling functions with any parameter types
-export function throttle<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let lastCall = 0;
-  let timeoutId: NodeJS.Timeout | null = null;
-
-  return (...args: Parameters<T>) => {
-    const now = Date.now();
-
-    if (now - lastCall >= delay) {
-      lastCall = now;
-      fn(...args);
-    } else {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-
-      timeoutId = setTimeout(() => {
-        lastCall = Date.now();
-        fn(...args);
-        timeoutId = null;
-      }, delay - (now - lastCall));
-    }
-  };
-}

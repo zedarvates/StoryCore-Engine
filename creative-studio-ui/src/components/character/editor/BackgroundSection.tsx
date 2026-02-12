@@ -5,7 +5,8 @@ import './EditorSection.css';
 interface BackgroundSectionProps {
   data: Partial<Background>;
   errors: Record<string, string[]>;
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
+  id?: string;
 }
 
 export function BackgroundSection({
@@ -109,3 +110,4 @@ export function BackgroundSection({
     </div>
   );
 }
+

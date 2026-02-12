@@ -1,0 +1,246 @@
+/**
+ * Shared Modal Styles - Styles partagés pour tous les modals du projet
+ * 
+ * Améliorations:
+ * - Meilleur contraste pour les textes
+ * - Couleurs adaptées au thème sombre/clair
+ * - Accessibilité améliorée
+ */
+
+/* Variables CSS personnalisées pour les modals */
+:root {
+  --modal-text-primary: #1f2937;
+  --modal-text-secondary: #4b5563;
+  --modal-text-muted: #6b7280;
+  --modal-bg-card: #ffffff;
+  --modal-bg-hover: #f9fafb;
+  --modal-border: #e5e7eb;
+  --modal-accent: #3b82f6;
+  --modal-accent-hover: #2563eb;
+}
+
+/* Thème sombre */
+.dark {
+  --modal-text-primary: #f3f4f6;
+  --modal-text-secondary: #d1d5db;
+  --modal-text-muted: #9ca3af;
+  --modal-bg-card: #1f2937;
+  --modal-bg-hover: #374151;
+  --modal-border: #374151;
+}
+
+/* Dialog principal */
+.shared-modal-dialog .dialog-content {
+  background: var(--modal-bg-card);
+  color: var(--modal-text-primary);
+}
+
+/* Header du dialog */
+.shared-modal-dialog .dialog-header {
+  background: var(--modal-bg-card);
+  border-bottom: 1px solid var(--modal-border);
+}
+
+.shared-modal-dialog .dialog-title {
+  color: var(--modal-text-primary) !important;
+  font-weight: 600;
+}
+
+/* Toolbar - fond et éléments */
+.shared-modal-dialog .toolbar {
+  background: var(--modal-bg-card);
+  border-bottom: 1px solid var(--modal-border);
+}
+
+/* Zone de recherche et inputs */
+.shared-modal-dialog input[type="text"],
+.shared-modal-dialog input[type="search"],
+.shared-modal-dialog select {
+  background: var(--modal-bg-card);
+  border: 1px solid var(--modal-border);
+  color: var(--modal-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.shared-modal-dialog input::placeholder {
+  color: var(--modal-text-muted);
+}
+
+.shared-modal-dialog input:focus,
+.shared-modal-dialog select:focus {
+  outline: none;
+  border-color: var(--modal-accent);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Cartes d'éléments */
+.shared-modal-dialog .element-card {
+  background: var(--modal-bg-card);
+  border: 1px solid var(--modal-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.shared-modal-dialog .element-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Texte des informations */
+.shared-modal-dialog .element-title {
+  color: var(--modal-text-primary);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.shared-modal-dialog .element-description {
+  color: var(--modal-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.shared-modal-dialog .element-meta {
+  color: var(--modal-text-muted);
+  font-size: 0.75rem;
+}
+
+/* Labels et valeurs */
+.shared-modal-dialog .meta-label {
+  color: var(--modal-text-secondary);
+  font-size: 0.875rem;
+}
+
+.shared-modal-dialog .meta-value {
+  color: var(--modal-text-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Badges */
+.shared-modal-dialog .badge {
+  background: var(--modal-bg-hover);
+  color: var(--modal-text-secondary);
+  border: 1px solid var(--modal-border);
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+/* État vide */
+.shared-modal-dialog .empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.shared-modal-dialog .empty-state-icon {
+  color: var(--modal-text-muted);
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+}
+
+.shared-modal-dialog .empty-state-title {
+  color: var(--modal-text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.shared-modal-dialog .empty-state-text {
+  color: var(--modal-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Zone de contenu vide (no project) */
+.shared-modal-dialog .no-project-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--modal-text-muted);
+}
+
+.shared-modal-dialog .no-project-state svg,
+.shared-modal-dialog .no-project-state .icon {
+  color: var(--modal-text-muted);
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  opacity: 0.5;
+}
+
+.shared-modal-dialog .no-project-state .title {
+  color: var(--modal-text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.shared-modal-dialog .no-project-state .subtitle {
+  color: var(--modal-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Scrollbar personnalisée */
+.shared-modal-dialog ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.shared-modal-dialog ::-webkit-scrollbar-track {
+  background: var(--modal-bg-hover);
+  border-radius: 4px;
+}
+
+.shared-modal-dialog ::-webkit-scrollbar-thumb {
+  background: var(--modal-border);
+  border-radius: 4px;
+}
+
+.shared-modal-dialog ::-webkit-scrollbar-thumb:hover {
+  background: var(--modal-text-muted);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .shared-modal-dialog .toolbar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .shared-modal-dialog .toolbar .search-filters {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .shared-modal-dialog .grid-view {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+/* Classes utilitaires pour les couleurs de texte */
+.shared-modal-dialog .text-primary {
+  color: var(--modal-text-primary) !important;
+}
+
+.shared-modal-dialog .text-secondary {
+  color: var(--modal-text-secondary) !important;
+}
+
+.shared-modal-dialog .text-muted {
+  color: var(--modal-text-muted) !important;
+}
+
+.shared-modal-dialog .bg-card {
+  background-color: var(--modal-bg-card) !important;
+}
+
+.shared-modal-dialog .bg-hover {
+  background-color: var(--modal-bg-hover) !important;
+}
+
+.shared-modal-dialog .border-color {
+  border-color: var(--modal-border) !important;
+}

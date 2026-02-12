@@ -120,7 +120,7 @@ export class EditTrackingManager {
  * Merges generated data with user-edited data
  * Preserves user edits while updating non-edited fields
  */
-export function mergeWithUserEdits<T extends Record<string, any>>(
+export function mergeWithUserEdits<T extends Record<string, unknown>>(
   generatedData: T,
   currentData: T,
   editTracker: EditTrackingManager
@@ -128,10 +128,10 @@ export function mergeWithUserEdits<T extends Record<string, any>>(
   // Recursively preserve edited fields
   // Using 'any' for recursive merge to handle nested objects of varying structures
   function preserveEdits(
-    generated: any,
-    current: any,
+    generated: unknown,
+    current: unknown,
     path: string = ''
-  ): any {
+  ): unknown {
     if (typeof generated !== 'object' || generated === null) {
       // Check if this field was edited
       if (editTracker.isFieldEdited(path)) {
@@ -150,7 +150,7 @@ export function mergeWithUserEdits<T extends Record<string, any>>(
 
     // For objects, recursively check each property
     // Using 'any' for result object to build merged structure dynamically
-    const result: any = {};
+    const result: unknown = {};
     const allKeys = new Set([
       ...Object.keys(generated),
       ...Object.keys(current || {}),
@@ -207,7 +207,7 @@ export function parseFieldPath(fieldPath: string): string[] {
  * Gets the value at a field path in an object
  */
 // Using 'any' for obj parameter and return type to support accessing any object structure
-export function getValueAtPath(obj: any, fieldPath: string): any {
+export function getValueAtPath(obj: unknown, fieldPath: string): unknown {
   const segments = parseFieldPath(fieldPath);
   let current = obj;
 
@@ -226,9 +226,9 @@ export function getValueAtPath(obj: any, fieldPath: string): any {
  */
 // Using 'any' for obj and value parameters to support setting values in any object structure
 export function setValueAtPath(
-  obj: any,
+  obj: unknown,
   fieldPath: string,
-  value: any
+  value: unknown
 ): void {
   const segments = parseFieldPath(fieldPath);
   let current = obj;
@@ -283,7 +283,7 @@ export function useEditTracking() {
   }, []);
 
   const mergeWithEdits = useCallback(
-    <T extends Record<string, any>>(generatedData: T, currentData: T): T => {
+    <T extends Record<string, unknown>>(generatedData: T, currentData: T): T => {
       return mergeWithUserEdits(generatedData, currentData, trackerRef.current);
     },
     []
@@ -301,3 +301,7 @@ export function useEditTracking() {
     tracker: trackerRef.current,
   };
 }
+
+
+
+

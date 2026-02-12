@@ -19,7 +19,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
-  errorInfo: any;
+  errorInfo: unknown;
   dataExported: boolean;
 }
 
@@ -38,7 +38,7 @@ export class WizardErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: unknown) {
     console.error('Wizard error caught by boundary:', error, errorInfo);
     
     // Emergency export wizard data
@@ -139,3 +139,4 @@ export class WizardErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+

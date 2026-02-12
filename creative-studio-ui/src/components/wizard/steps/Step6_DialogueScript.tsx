@@ -12,10 +12,10 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
-  SelectItem,
+  SelectItemWithDescription,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select-rich';
 import {
   Dialog,
   DialogContent,
@@ -88,7 +88,7 @@ Panel 4: Jane's surprised expression`,
 // Component Props
 // ============================================================================
 
-interface Step6_DialogueScriptProps {
+interface DialogueScriptStepProps {
   data: ScriptData | null;
   onUpdate: (data: ScriptData) => void;
   errors?: Record<string, string>;
@@ -102,7 +102,7 @@ export function Step6_DialogueScript({
   data,
   onUpdate,
   errors = {},
-}: Step6_DialogueScriptProps) {
+}: Readonly<DialogueScriptStepProps>) {
   // State
   const [scriptData, setScriptData] = useState<ScriptData>(
     data || {
@@ -236,12 +236,12 @@ export function Step6_DialogueScript({
             </SelectTrigger>
             <SelectContent className="z-[9999]">
               {SCRIPT_FORMAT_OPTIONS.map((format) => (
-                <SelectItem key={format.value} value={format.value}>
-                  <div>
-                    <div className="font-medium">{format.label}</div>
-                    <div className="text-xs text-gray-500">{format.description}</div>
-                  </div>
-                </SelectItem>
+                <SelectItemWithDescription
+                  key={format.value}
+                  value={format.value}
+                  label={format.label}
+                  description={format.description}
+                />
               ))}
             </SelectContent>
           </Select>
@@ -294,9 +294,11 @@ export function Step6_DialogueScript({
         >
           <Textarea
             id="scriptContent"
+            aria-label="Script content"
+            title="Enter your screenplay or script content"
+            placeholder="Enter your screenplay, scene descriptions, or shot list here..."
             value={scriptData.content}
             onChange={(e) => handleContentChange(e.target.value)}
-            placeholder={currentFormat?.placeholder}
             rows={20}
             className="font-mono text-sm"
           />

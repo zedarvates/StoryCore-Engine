@@ -280,7 +280,7 @@ export function getExportPath(projectName: string, filename: string): string {
  * @param error Error object
  * @returns User-friendly error message
  */
-export function handleExportError(error: any): string {
+export function handleExportError(error: unknown): string {
   if (error.message?.includes('permission')) {
     return 'Permission denied: Unable to write to the export directory. Please check file permissions.';
   }
@@ -323,3 +323,4 @@ export function generateDefaultFilename(
   const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   return `${sanitizedTitle}_${timestamp}.${format}`;
 }
+

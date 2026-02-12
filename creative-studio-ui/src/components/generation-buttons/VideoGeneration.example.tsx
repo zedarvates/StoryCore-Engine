@@ -262,9 +262,9 @@ export const VideoGenerationExamples: React.FC = () => {
   return (
     <div className="space-y-8">
       <BasicVideoGenerationButton />
-      <hr />
+      <hr role="separator" aria-label="Séparateur de section" />
       <VideoGenerationButtonWithPipeline />
-      <hr />
+      <hr role="separator" aria-label="Séparateur de section" />
       <VideoGenerationButtonStates />
       <hr />
       <VideoGenerationButtonInToolbar />

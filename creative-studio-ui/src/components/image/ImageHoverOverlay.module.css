@@ -1,0 +1,331 @@
+/* ImageHoverOverlay.module.css */
+
+/* Container */
+.overlayContainer {
+  position: relative;
+  display: inline-block;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Hover Overlay */
+.hoverOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.overlayContainer:hover .hoverOverlay {
+  opacity: 1;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.95);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.15s ease;
+}
+
+.actionBtn:hover:not(:disabled) {
+  transform: scale(1.05);
+  background: white;
+}
+
+.actionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.icon {
+  font-size: 14px;
+}
+
+/* Dialog Backdrop */
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.dialog {
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 420px;
+  max-width: 520px;
+  color: white;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.6);
+}
+
+.dialog h3 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.quickEditDialog {
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 480px;
+  max-width: 600px;
+  color: white;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.6);
+}
+
+.quickEditDialog h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+}
+
+/* Form Groups */
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.formGroup textarea,
+.formGroup input[type="text"],
+.formGroup input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  background: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.formGroup textarea:focus,
+.formGroup input:focus {
+  outline: none;
+  border-color: #0078d4;
+}
+
+.formGroup textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.formGroup input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #404040;
+  appearance: none;
+  cursor: pointer;
+}
+
+.formGroup input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0078d4;
+  cursor: pointer;
+}
+
+/* Workflow Grid */
+.workflowGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.workflowBtn {
+  padding: 12px;
+  background: #2d2d2d;
+  border: 2px solid #404040;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 13px;
+  color: #ccc;
+  transition: all 0.2s;
+}
+
+.workflowBtn:hover {
+  background: #3d3d3d;
+}
+
+.workflowBtn.active {
+  border-color: #0078d4;
+  background: rgba(0, 120, 212, 0.15);
+  color: white;
+}
+
+/* Preview Grid */
+.previewGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.previewBox {
+  background: #2d2d2d;
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+}
+
+.previewBox span {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+/* Presets Row */
+.presetsRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.presetBtn {
+  padding: 6px 14px;
+  background: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 20px;
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.presetBtn:hover {
+  background: #3d3d3d;
+  border-color: #0078d4;
+}
+
+/* Slider Group */
+.sliderGroup {
+  margin-bottom: 12px;
+}
+
+.sliderGroup label {
+  display: block;
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+
+.sliderGroup input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #404040;
+  appearance: none;
+  cursor: pointer;
+}
+
+.sliderGroup input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #0078d4;
+  cursor: pointer;
+}
+
+/* Dialog Actions */
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #333;
+}
+
+.cancelBtn {
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #ccc;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background: #2d2d2d;
+  border-color: #666;
+}
+
+.resetBtn {
+  padding: 10px 20px;
+  background: #2d2d2d;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.resetBtn:hover {
+  background: #3d3d3d;
+}
+
+.confirmBtn {
+  padding: 10px 24px;
+  background: #0078d4;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirmBtn:hover:not(:disabled) {
+  background: #1084d8;
+}
+
+.confirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

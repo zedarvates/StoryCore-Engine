@@ -39,26 +39,26 @@ export interface ProjectFile {
     };
   };
   timeline: {
-    shots: any[];
-    tracks: any[];
+    shots: unknown[];
+    tracks: unknown[];
     playheadPosition: number;
     zoomLevel: number;
     selectedElements: string[];
     duration: number;
   };
   assets: {
-    categories: any[];
+    categories: unknown[];
     activeCategory: string;
     searchQuery: string;
   };
   panels: {
-    layout: any;
+    layout: unknown;
     activePanel: string | null;
     shotConfigTarget: string | null;
   };
   tools: {
     activeTool: string;
-    toolSettings: any;
+    toolSettings: unknown;
   };
 }
 
@@ -261,3 +261,6 @@ export function validateProjectCompatibility(projectData: ProjectFile): {
     errors,
   };
 }
+
+
+

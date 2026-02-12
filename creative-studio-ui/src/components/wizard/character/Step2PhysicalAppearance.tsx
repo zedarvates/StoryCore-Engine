@@ -29,6 +29,10 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
   const [newFeature, setNewFeature] = useState('');
   const [newColor, setNewColor] = useState('');
 
+  // Use ref to always have access to latest formData in callbacks
+  const formDataRef = React.useRef(formData);
+  formDataRef.current = formData;
+
   // Check if LLM service is configured
   const { llmConfigured, llmChecking } = useServiceStatus();
 
@@ -43,9 +47,11 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
       // Parse LLM response and update form data
       const appearance = parseLLMAppearance(response.content);
       if (appearance) {
+        // Use formDataRef to get latest visual_identity
+        const currentVisualIdentity = formDataRef.current.visual_identity || {};
         updateFormData({
           visual_identity: {
-            ...(formData.visual_identity || {}),
+            ...currentVisualIdentity,
             ...appearance,
           } as Character['visual_identity'],
         });

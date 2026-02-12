@@ -47,7 +47,7 @@ export class MemoryManager {
   private listeners: Set<(stats: MemoryStats) => void> = new Set();
 
   // Performance API for memory monitoring (if available)
-  private performance: Performance & { memory?: any };
+  private performance: Performance & { memory?: unknown };
 
   constructor(options: MemoryManagerOptions = {}) {
     this.maxMemoryBytes = (options.maxMemoryMB || 512) * 1024 * 1024;
@@ -388,3 +388,4 @@ export function disposeMemoryManager(): void {
     globalMemoryManager = null;
   }
 }
+

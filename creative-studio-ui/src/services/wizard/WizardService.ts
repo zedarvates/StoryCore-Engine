@@ -29,7 +29,7 @@ export class WizardService {
   async launchWizard(
     wizardId: string,
     projectPath?: string,
-    options: Record<string, any> = {}
+    options: Record<string, unknown> = {}
   ): Promise<WizardLaunchResult> {
     try {
       // Map wizard IDs to CLI commands
@@ -66,7 +66,7 @@ export class WizardService {
   /**
    * Get the CLI command for a wizard
    */
-  private getWizardCommand(wizardId: string, options: Record<string, any>): string | null {
+  private getWizardCommand(wizardId: string, options: Record<string, unknown>): string | null {
     const commands: Record<string, string> = {
       'project-init': 'storycore init',
       'world-building': 'storycore world-wizard',
@@ -76,6 +76,7 @@ export class WizardService {
       'dialogue-wizard': this.buildDialogueCommand(options),
       'scene-generator': 'storycore scene-generator',
       'storyboard-creator': 'storycore storyboard-creator',
+      'style-transfer-wizard': this.buildStyleTransferCommand(options),
       'style-transfer': 'storycore style-transfer'
     };
 
@@ -85,7 +86,7 @@ export class WizardService {
   /**
    * Build shot reference wizard command with options
    */
-  private buildShotReferenceCommand(options: Record<string, any>): string {
+  private buildShotReferenceCommand(options: Record<string, unknown>): string {
     let command = 'storycore shot-reference-wizard';
 
     if (options.style) {
@@ -110,7 +111,7 @@ export class WizardService {
   /**
    * Build dialogue wizard command with options
    */
-  private buildDialogueCommand(options: Record<string, any>): string {
+  private buildDialogueCommand(options: Record<string, unknown>): string {
     let command = 'storycore dialogue-wizard';
 
     if (options.quick && options.characters && options.topic) {
@@ -128,6 +129,57 @@ export class WizardService {
 
     if (options.purpose) {
       command += ` --purpose ${options.purpose}`;
+    }
+
+    return command;
+  }
+
+  /**
+   * Build style transfer wizard command with options
+   */
+  private buildStyleTransferCommand(options: Record<string, unknown>): string {
+    let command = 'storycore style-transfer-wizard';
+
+    // Mode selection
+    if (options.mode) {
+      command += ` --mode ${options.mode}`;
+    }
+
+    // Source image
+    if (options.sourceImage) {
+      command += ` --source "${options.sourceImage}"`;
+    }
+
+    // Style reference (for workflow mode)
+    if (options.styleImage) {
+      command += ` --style "${options.styleImage}"`;
+    }
+
+    // Prompt (for prompt mode)
+    if (options.prompt) {
+      command += ` --prompt "${options.prompt}"`;
+    }
+
+    // Configuration options
+    if (options.steps) {
+      command += ` --steps ${options.steps}`;
+    }
+
+    if (options.cfgScale) {
+      command += ` --cfg ${options.cfgScale}`;
+    }
+
+    if (options.seed !== undefined && options.seed !== -1) {
+      command += ` --seed ${options.seed}`;
+    }
+
+    if (options.outputPrefix) {
+      command += ` --output "${options.outputPrefix}"`;
+    }
+
+    // Model configuration
+    if (options.modelName) {
+      command += ` --model "${options.modelName}"`;
     }
 
     return command;
@@ -276,8 +328,8 @@ export class WizardService {
   /**
    * Get available wizard options for a specific wizard
    */
-  getWizardOptions(wizardId: string): Record<string, any> {
-    const options: Record<string, Record<string, any>> = {
+  getWizardOptions(wizardId: string): Record<string, unknown> {
+    const options: Record<string, Record<string, unknown>> = {
       'shot-reference-wizard': {
         styles: ['cinematic', 'storyboard', 'realistic', 'concept_art', 'technical'],
         qualities: ['draft', 'standard', 'high', 'maximum'],
@@ -289,6 +341,31 @@ export class WizardService {
         purposes: ['exposition', 'conflict', 'character_development', 'comedy_relief', 'climax_building'],
         defaultTone: 'natural',
         defaultPurpose: 'character_development'
+      },
+      'style-transfer-wizard': {
+        modes: ['workflow', 'prompt', 'video'],
+        defaultMode: 'workflow',
+        models: [
+          'flux-2-klein-9b-fp8.safetensors',
+          'flux-2-klein-base-9b-fp8.safetensors'
+        ],
+        defaultModel: 'flux-2-klein-9b-fp8.safetensors',
+        stylePresets: [
+          'photorealistic',
+          'cinematic',
+          'anime',
+          'oil_painting',
+          'cyberpunk',
+          'watercolor',
+          'sketch',
+          'vintage',
+          'noir',
+          'fantasy'
+        ],
+        defaultSteps: 10,
+        defaultCfgScale: 1.0,
+        defaultWidth: 1024,
+        defaultHeight: 1024
       }
     };
 
@@ -298,7 +375,7 @@ export class WizardService {
   /**
    * Validate wizard launch parameters
    */
-  validateWizardLaunch(wizard: WizardDefinition, projectPath?: string, projectData?: any): { valid: boolean; errors: string[] } {
+  validateWizardLaunch(wizard: WizardDefinition, projectPath?: string, projectData?: unknown): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     // Check if project path is required and provided
@@ -325,6 +402,11 @@ export class WizardService {
       // This would be checked by the CLI command itself
     }
 
+    if (wizard.id === 'style-transfer-wizard') {
+      // Check if ComfyUI is available
+      // This is handled by the backend
+    }
+
     return {
       valid: errors.length === 0,
       errors
@@ -334,7 +416,7 @@ export class WizardService {
   /**
    * Check if a wizard can be launched with current dependencies
    */
-  canLaunchWizard(wizard: WizardDefinition, availableConfig: string[], projectData?: any): boolean {
+  canLaunchWizard(wizard: WizardDefinition, availableConfig: string[], projectData?: unknown): boolean {
     // Check configuration requirements
     const configMet = wizard.requiredConfig?.every(req => availableConfig.includes(req)) || !wizard.requiredConfig;
 
@@ -348,7 +430,7 @@ export class WizardService {
   /**
    * Save wizard output to the project directory
    */
-  async saveWizardOutput(output: any, projectPath: string): Promise<void> {
+  async saveWizardOutput(output: unknown, projectPath: string): Promise<void> {
     // Implementation would save wizard output to files
     // For now, this is a placeholder
   }
@@ -356,7 +438,7 @@ export class WizardService {
   /**
    * Update project data with wizard results
    */
-  async updateProjectData(projectPath: string, output: any): Promise<void> {
+  async updateProjectData(projectPath: string, output: unknown): Promise<void> {
     // Implementation would update project.json with new references
     // For now, this is a placeholder
   }
@@ -366,3 +448,6 @@ export class WizardService {
 export function getWizardService(): WizardService {
   return new WizardService();
 }
+
+
+

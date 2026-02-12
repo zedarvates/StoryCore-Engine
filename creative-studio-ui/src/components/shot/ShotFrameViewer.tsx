@@ -77,7 +77,7 @@ export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
   }, [shot.inPoint, shot.outPoint, frameToTime]);
 
   // Real-time validation
-  const validateField = useCallback((field: string, value: any): string | null => {
+  const validateField = useCallback((field: string, value: unknown): string | null => {
     switch (field) {
       case 'name':
         if (!value || value.trim().length === 0) {
@@ -134,7 +134,7 @@ export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
   }, [shot.outPoint, shot.inPoint, shot.duration, timeToFrame]);
 
   // Update field with validation
-  const updateField = useCallback((field: string, value: any) => {
+  const updateField = useCallback((field: string, value: unknown) => {
     const error = validateField(field, value);
 
     // Update validation errors
@@ -150,7 +150,7 @@ export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
     setShot(prev => {
       const updated = { ...prev };
       const keys = field.split('.');
-      let current: any = updated;
+      let current: unknown = updated;
 
       for (let i = 0; i < keys.length - 1; i++) {
         current = current[keys[i]];
@@ -781,3 +781,5 @@ export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
 };
 
 export default ShotFrameViewer;
+
+

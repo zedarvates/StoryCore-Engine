@@ -77,7 +77,7 @@ export const createAnnotationLayer = (name?: string): Layer => {
  */
 export const createEffectLayer = (
   effectType: string,
-  parameters: Record<string, any> = {},
+  parameters: Record<string, unknown> = {},
   name?: string
 ): Layer => {
   const content: EffectContent = {
@@ -318,3 +318,4 @@ export const createDefaultLayer = (type: 'image' | 'annotation' | 'effect'): Lay
       throw new Error(`Unknown layer type: ${type}`);
   }
 };
+

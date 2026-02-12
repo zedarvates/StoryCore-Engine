@@ -1,0 +1,377 @@
+- **Continuous Creation with “Referenced” Assets**:
+    
+    Leverage the storyboard’s referencing feature to make **point-to-point, targeted adjustments** to creative content.
+    
+   
+    ### The “Reference” Feature Includes Three Levels:
+    
+    - **Shot-Level Referencing**:
+        
+        Allows direct modification of a shot’s content, as well as adding or removing shots before or after the referenced shot.
+        
+    - **Keyframe-Level Referencing**:
+        
+        Enables direct control over keyframe generation, including modifying or fine-tuning visual content (by describing requirements in plain language, which  intelligently interpret and respond to), as well as switching generation models.
+        
+    - **Video-Level Referencing**:
+        
+        Supports direct modification of video content, including adjusting or refining the video through plain-language instructions (which intelligently interpret and respond to), changing generation models, and selecting different generation modes such as **text-to-video**, **first-frame–to-video**, or **first-and-last-frame–to-video**.
+        
+     interprets user modification requests and intelligently orchestrates upstream and downstream changes, ultimately producing all assets required to satisfy the user’s intent.
+
+exemple de modification et amelioration de contenue
+First generation, 2eme  Revision: add more animals, 3 eme Revision: change it to a winter-themed story
+
+- **Manual Storyboard Editing :**
+Supports adjusting the generation model, prompts, reference images, generation modes (such as text-to-video, first-frame–to-video, and first-and-last-frame–to-video), prompt parameters, resolution/clarity, duration, and more.
+
+
+- **Manual storyboard editing and conversational creation can run in parallel, significantly improving overall efficiency.**
+- **Manual voiceover editing supports switching among a wider range of voice options.**
+
+
+- **Storyboard Comment–Driven Generation**:
+
+Users can add plain-language comments on any asset within a specific shot in the storyboard to drive content generation. This runs in parallel with the conversational workflow, resulting in higher efficiency.
+
+
+
+**You only need to enter a single comment describing the desired change. The agent will understand your intent and generate a new visual or video result for the shot.**
+
+**This capability applies only to the current shot and does not affect other shots or the overall project, making it ideal for quick adjustments, detail refinement, or exploring alternative creative directions.**
+
+bouton comment vias l assistant llm story core pour chaque element générer permettre de Nouvelles regenerations 
+
+
+### Assemble video and generate a timeline — supports manual editing before export.
+
+
+Manual editing includes:
+
+- Clicking on a video clip allows you to freely trim the clip, adjust speed, and control volume by dragging the sides.
+- Right-clicking a video clip gives options to reference, regenerate, manually edit, replace the asset, or delete it.
+
+
+# **Advanced Usages**
+
+### **1. Create from a complete script:**  accurately understand and respond to a full script.
+
+ scriptwriting capabilities are continuously evolving; in the future, it will be able to turn a one-line story from the user into a fully developed script.
+
+- **Use  enhance scriptwriting:** By inputting a complete script into storycore,  help refine it while ensuring accurate understanding and response.
+
+ reference clips: Obtain the full script of the work you want to replicate, then input the complete script   for accurate understanding and response.
+
+### **Enhanced Input:** Character images, intelligent start & end frames, quick generation, advanced references, key storyboards
+
+- High-quality key element images ensure consistency in subsequent details.
+
+When inputting key visual element requirements,   faithfully follow them at high quality (use image models for best results).
+
+> **Input :**
+> 
+> 
+> **Requirements for key visual elements:**
+> 
+> - **Layout:** Full-body standing illustration of the central character, clearly visible.
+> - **Surroundings:** Displayed around the main subject:
+>     - Top left: facial expressions and hairstyle
+>     - Middle to lower left: clothing and accessory breakdown
+>     - Top right: skills
+>     - Middle right: personal items, tools, props
+>     - Lower right: back and side views
+- **Connectors:** Use hand-drawn arrows/annotations pointing to related areas of the subject, with text descriptions determined by the story.
+
+
+- **Intelligent Start & End Frames:** Use the last frame of the previous shot as the first frame of the next shot to ensure consistency across multiple shots.
+    
+    > **Input example:**
+    > 
+    > 
+    > The last frame of Shot XX will serve as the first frame of Shot XX…
+    >
+
+- **Intelligent Multi-Step Quick Generation**
+    
+    > **Input examples:**
+    > 
+    > - "Please generate all images in one go..."
+    > - "Please generate all videos in one go..."
+    > - "Please generate all intermediate assets at once, including images, videos, and music, and assemble them directly without requiring my confirmation during the process..."
+
+- **Advanced Intelligent Reference:** By marking additional information on reference images, achieve more controllable results.
+
+> **Input example:**
+> 
+> - add detailed video prompts to the storyboard images, producing professional storyboard frames.
+> - Then  generate videos following the marked references, deleting manual adjustments.
+> - Finally, manually trim the generated video on the timeline to the first few frames to obtain a high-quality video.
+
+- **Key Storyboard Shots: 1)** Add a preview of the entire storyboard within the key visual elements, aiding in quickly assessing script requirements. 2**)** Rapidly generate multiple storyboards for key scenes, then expand them into more detailed multi-shot narratives.
+
+> **Input example:**
+> 
+> - Please add a global storyboard preview within the key visual elements ( optimal results). This preview displays all the storyboards in the plot, numbered sequentially according to the script. The characters should reference the previously generated key visual elements.
+> - The storyboard images should reference both the key character elements and the preview storyboard to ensure alignment with the expected outcome.
+
+> Input:
+> 
+> 
+) Identify all key subjects appearing in the image (whether it's a single person, group/couple, vehicle, or specific object), along with their spatial relationships and interactions.
+> 
+> Generate a 3x3 "Cinematic Contact Sheet" consisting of 9 frames, showing 9 different camera angles of these subjects in the same environment.
+> 
+> Adapt to standard cinematic shot types based on the content of the frames (e.g., if it’s a group, the group must remain intact; if it’s an object, the whole object must be captured).
+> 
+> **Row 1 (Establishing environment and context):**
+> 
+> 1. **Extreme Long Shot (ELS):** The subject appears very small within the vast environment.
+> 2. **Long Shot (LS):** The subject or group is fully visible from head to toe, or from wheels to top.
+> 3. **Medium Long Shot (American 3/4 shot):** Captures from the knees up (for people) or at a 3/4 angle (for objects).
+> 
+> **Row 2 (Core narrative shots):**
+> 
+> 4. **Medium Shot (MS):** Captures the subject from the waist up (or core area of an object), emphasizing interaction or action.
+> 
+> 5. **Medium Close-Up (MCU):** Captures the subject from the chest up, showing closer details.
+> 
+> 6. **Close-Up (CU):** Focuses tightly on the face or the front of an object.
+> 
+> **Row 3 (Details and angles):**
+> 
+> 7. **Extreme Close-Up (ECU):** Captures critical details at very close range (eyes, hands, logo, textures).
+> 
+> 8. **Low Angle (Bug's Eye View):** Shot from the ground looking up, creating a heroic or oppressive feeling.
+> 
+> 9. **High Angle (Bird's Eye View):** Shot from above, looking down on the subject.
+> 
+> Ensure strict consistency: The 9 frames must feature the same group of people/objects, with the same clothing and lighting. The depth of field should naturally vary (close-ups should have a blurred effect).
+>
+Input:
+Instructions for breaking down shots
+Based on this storyboard, break it down into 9 shots, and insert them either before or after a specific shot.
+Alternatively, break down just a few of the shots...
+
+### Skill: Multi-Shot Cutting Techniques to Significantly Enhance Video Dynamism
+
+> Multi-Shot Workflow leverages for direct audio-visual output combined with multi-shot and camera movement effects, enabling rapid generation of dynamic multi-shot videos. This workflow is particularly suitable for anime-style videos, though its controllability is slightly lower compared to strict first-and-last-frame methods.
+> 
+> 
+> Consistency Control Logic: Multi-shot videos require that the first frame includes all characters that will appear in the shot. This can be emphasized for better consistency.
+> 
+Provides the best multi-shot effect, but has more restrictions for U.S.-based IPs. Output: 720p at 15 points/second.
+> 
+ Offers slightly lower multi-shot quality, with minimal IP restrictions. Output: 720p at 10 points/second.
+> 
+Features more camera movement, with minimal IP restrictions. Output: 720p at 5 points/second.
+>
+
+
+> Input:
+> 
+> 
+> ** Innovative Workflow**
+> 
+> 1. **Storyboard Key Characters and Scripts**
+>     
+>     In the storyboard, write key characters and shot scripts. Note that each shot should be **8 or 12 seconds long**, and each shot description can include multiple shot transitions, as Sora-generated videos can naturally incorporate these cuts. However, the **first shot of each segment should ideally be a medium shot**, ensuring all characters are visible and including any dialogue.
+>     
+> 2. **Generate Visual Assets Using the Media Generator**
+>     - **A:** Generate key element images.
+>     - **B:** Use key element images to generate the **first frame** of each shot.
+>     - **C:** Use  **first-frame-to-video** feature to generate all shots.
+> 3. **Generate Key Audio Assets**
+> 4. **Combine All Assets for Final Editing**
+> 
+> Users can modify and confirm at each step, or return to a previous step for adjustments. To avoid IP issues, use **character descriptions** instead of real IP characters.
+ **Example:**
+> 
+> Anime style, **Son Goku in a blue camouflage outfit** versus **Piccolo Daimao in a green striped outfit**, battling for one minute. Goku wins. Landscape orientation.
+> 
+> **Note:** Due to compliance restrictions, minimize realistic human styles and IP characters. Emphasize new features in character design (e.g., Son Goku in a blue camouflage outfit).
+>
+**One-Click Anime Video Generation + Manual Editing**
+
+Select Skill –  Multi-Shot Workflow + Input Story Content + Emphasize One-Click Video Generation + Manual Editing
+**Background:**
+
+This workflow fully leverages s strength in generating long shots with natural transitions, helping users efficiently produce seamless, multi-shot video clips. **Note:** Due to  limited support for photorealistic first-frame generation, this workflow is **not suitable for projects that require highly realistic visual styles**. The following technical guidelines are recommended for this project:
+
+
+### 1. **Storyboard Design Rules**
+
+The **storyboard_designer** should follow these recommendations:
+
+- **Shot Design:** Each shot is recommended to include **7 or more shot transitions**, with additional dialogue from characters as needed to better utilize  capabilities.
+- **Duration Control:** Suggested duration per shot: **8–12 seconds**.
+- **Composition Guidelines:** The first frame of each shot should preferably be a **medium shot**, ensuring key characters are fully visible and facilitating subsequent generation.
+
+
+**Generation Path Strategy**
+
+The **visual_gen_path_designer** and **visual_media_generator** should follow these steps:
+
+- **Step 1 – Key Elements:** Use **Text-to-Image** to generate all key elements. Prompts should include **three-view or character sheets** to clearly define character details. For vertical formats, emphasize **top-to-bottom layout**.
+- **Step 2 – First Frame Generation:** For each shot, generate the **first frame** using **Image-to-Image**. Select reference images from the **key elements** and **first frames of previous shots**, prioritizing relevance.
+- **Step 3 – Final Video Generation:** Use  **FirstFrameToVideoWithAudio** capability to produce the final video. Avoid using well-known IP names in prompts; instead, describe characters (this does **not** affect storyboard design or prior image prompts). - **Story Example:**
+
+**Bing Dwen Dwen participates in the international figure skating competition in Russia and performs three signature moves:
+
+Triple axel spin (wins the preliminary round)
+
+Flying camel spin (wins the semifinals)
+
+Biellmann spin (wins the finals)
+
+He ultimately earns the title of Figure Skating Champion. Keep your ice-dun-dun cute shape throughout the whole process, don't have long hands or long legs.
+
+Style: characters speaking english
+Orientation: Landscape
+Duration: Approximately 1 minute
+
+Instructions:
+Generate all content in one go, including key character images, storyboard, video, and music. No intermediate confirmations are required.**  > **[Enable Advanced Multi-Shot Creation Workflow]**
+> 
+> 
+> **Background:**
+> 
+> This workflow leverages the model’s strength in generating long shots with natural transitions, helping users efficiently produce seamless, multi-shot video clips.
+> 
+**Storyboard Design Rules**
+> 
+> The **storyboard_designer** should follow these recommendations:
+> 
+> - **Shot Design:** Each shot is recommended to include **5 or more multi-shot transitions**, with additional dialogue from characters as needed.
+> - **Duration Control:** Suggested duration per shot: **8–12 seconds**.
+> - **Composition Guidelines:** The first frame of each shot should preferably be a **medium shot**, ensuring key characters are fully visible and facilitating subsequent generation.
+
+> 
+> ### 2. **Generation Path Strategy**
+> 
+> The **visual_gen_path_designer** and **visual_media_generator** should follow these steps:
+> 
+> - **Step 1 – Key Elements:** Use **Text-to-Image** to generate all key elements. Prompts should include **three-view or character sheets** to clearly define character details. For vertical formats, emphasize **top-to-bottom layout**.
+> - **Step 2 – First Frame Generation:** For each shot, generate the **first frame** using  **Image-to-Image**. Select reference images from the **key elements** and **first frames of previous shots**, prioritizing relevance.
+> - **Step 3 – Final Video Generation:** Use ** Audio generations ** to produce the final video via the **FirstFrameToVideoWithAudio** capability. Avoid using well-known IP names in prompts; instead, describe characters (this does **not** affect storyboard design or prior image prompts).
+
+> 
+> ### **Story Example:**
+> 
+> **Bing Dwen Dwen participates in the international figure skating competition in Russia and performs three signature moves:
+> 
+> Triple axel spin (wins the preliminary round)
+> 
+> Flying camel spin (wins the semifinals)
+> 
+> Biellmann spin (wins the finals)
+> 
+> He ultimately earns the title of Figure Skating Champion. Keep your ice-dun-dun cute shape throughout the whole process, don't have long hands or long legs.
+> 
+> Style: characters speaking english
+> Orientation: Landscape
+> Duration: Approximately 1 minute
+> 
+> Instructions:
+> Generate all content in one go, including key character images, storyboard, video, and music. No intermediate confirmations are required.**
+>> Input:
+> 
+> 
+> Generate hand-drawn style storyboards following the above tutorial. Then, **use the generated the video based on these storyboards**, and remove the first frame.
+> 
+> **Note:** Due to compliance restrictions, minimize realistic human styles and IP characters. Emphasize new feature-based character descriptions instead.
+>  
+**Vidu Q3 Tutorial: Multi-Cut Shots + Nine-Grid First Frame = High-Quality Cinematic Video**
+
+> **Input:**
+> 
+> 1. **First Frame Creation**: Each shot’s first frame is created , splitting the single shot’s scene into 6 or 9 grids, designed to enhance dynamic cuts.
+> 2. **Video Creation**: Vidu Q3 Pro generates the full video by processing these first frames, creating a fluid and cinematic visual experience.
+> 3. **Shot Duration Planning**: Each shot is planned with extended durations, optimized for multi-angle cuts and smooth transitions.
+> 
+> **Video Concept**:
+> 
+> Style: Realistic post-apocalyptic film
+> 
+> Plot: A boy, flashlight in hand, explores a doomsday shelter, encountering mysterious and eerie events.
+> 
+> Aspect Ratio: Landscape
+> 
+> Length: Approx. 30 seconds
+>kill: First-and-Last-Frame Coherent Storyboarding – Quickly Create Multi-Scene Group Check-In Videos > **[Select Skill – First-and-Last-Frame Coherent Storyboarding, Emphasize Using Kling 2.5]**
+> 
+> 
+> **System Instruction:** It is recommended to enable the **One-Shot / Continuous Take** workflow.
+> 
+> ---
+> 
+ **Background:**
+> 
+> The **One-Shot / Continuous Take** approach aims to create seamless visual continuity, making the entire video appear as a single continuous long shot. This relies heavily on **first-and-last-frame video generation**, where adjacent shots share frames to maintain visual coherence. The following technical guidelines are recommended for this project:
+> 
+> 
+**Storyboard Design Rules**
+> 
+> The **Storyboard_Designer** should follow these recommendations:
+> 
+> - **Shot Design:** Emphasize visual continuity. The **end of one shot** should naturally transition into the **start of the next shot** (e.g., from different angles of the same object or continuous movement within the same scene).
+> 
+
+**Generation Path Strategy**
+> 
+> The **Visual_gen_path_designer** and **Visual_media_generator** should follow these steps:
+> 
+> - **Step 1 – Key Elements:** Use **Text-to-Image** to generate all key elements. Prompts should include **three-view / character sheets** to clearly define spatial structure. For vertical formats, emphasize **top-to-bottom layout**.
+> - **Step 2 – Static Frame Generation & Asset Binding:**
+>     
+>     This is the core of the workflow. For all shots, design **start and end frames** and establish **special asset binding**. Except for the very first and last frames of the entire video, all intermediate images should serve a **dual role** — the same asset (Asset ID) is both the **end frame of the previous shot** and the **start frame of the next shot**.
+>     
+>     - Example: Image B = Shot 1 End Frame + Shot 2 Start Frame
+>     - Image C = Shot 2 End Frame + Shot 3 Start Frame
+>         
+>         Use **Image-to-Image** to generate these images, selecting reference images from **key elements** and **previously generated start/end frames**, prioritizing **highest relevance** to ensure visual consistency.
+>         
+> - **Step 3 – Final Video Generation:** Use **VideoInterp** (First-and-Last-Frame Video / Interpolation) with **Kling 2.5**. The video generation prompt should focus on **describing the dynamic movement and transitions between start and end frames**.
+
+**Visual & Video Requirements:**
+> 
+> - **Style:** Live-action cinematic
+> - **Orientation:** Landscape
+> - **Image Focus:** Each shot centers on **Judy** taking a posed group photo with other characters. Capture Judy and each character standing side by side, with a **pose moment frozen in time**. Preserve **iconic elements of each filming location** as the background.
+> - **Video Composition:** 5 shots, each combining first and last frames:
+>     1. Judy with the **Pirates of the Caribbean protagonist** on the pirate ship set, green screen background
+>     2. Judy with **Iron Man** on the Avengers set, background with various superheroes
+>     3. Judy with **Captain America** on the U.S. street set used in Captain America filming
+>     4. Judy with the **Transformers protagonist**, battle-damaged set with debris and crew members
+>     5. Judy taking a group photo with all previously photographed stars
+> 
+> **Key Direction:** Each shot shows **Judy walking from the previous scene to the next, taking a posed photo, and then proceeding to the next scene**. Transitions must be **extremely natural and smooth**.
+
+> **Instructions:**
+> 
+> Generate **all images, videos, and music in one go**, and assemble into the final video. **No intermediate confirmations are required.**
+
+## Upload Video → Enable Shot Replication → Recreate
+
+
+Click the “+” button, select a video, and upload the reference video you want to replicate. (Friendly reminder: please respect and protect the original creator’s copyright.)
+
+
+**Quick Video Upload**
+ Analysis & Shot Replication**
+
+**Showcase:** Video Shot Replication + Digital Human
+## Quickly Start Multi-Episode Creation with “Start New Project from Here” and “Return to This Moment” Shortcuts
+
+
+**“Start New Project from Here”**: Retains all context **up to this node** and starts a new project. This is ideal for **multi-episode creation**, allowing you to preserve key elements, world-building, and other settings while beginning a new series.
+
+**“Return to This Moment”**: Deletes all context **after this node** in the current project. This function is useful for quickly clearing redundant context when encountering unexpected results.
+
+## Export Project Files for Quick Editing with Professional Editing Software
+
+
+Export PR files and import them for fast editing. Here’s how to do it with    an example:
+
+-  go to the top right corner, click on "Settings" → "Global Settings" → Enable "Import Project." You will see an "Import Project" entry next to the "Drafts" section .
+- Click on "Import Project" and select the "Premiere" file within the  exported project file.  will automatically prompt you to connect media resources. Select the video folder, and the media will be linked for editing.
+

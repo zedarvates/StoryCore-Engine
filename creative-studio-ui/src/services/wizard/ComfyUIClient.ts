@@ -26,13 +26,13 @@ export class ComfyUIClient {
   private clientId: string;
   private logger = getLogger();
 
-  constructor(config: string | ComfyUIInstanceConfig = 'http://localhost:8188') {
+  constructor(config: string | ComfyUIInstanceConfig = 'http://localhost:8000') {
     // Support backward compatibility with string endpoint
     if (typeof config === 'string') {
       this.config = {
         id: 'legacy_client',
         name: 'Legacy Client',
-        port: 8188,
+        port: 8000, // ComfyUI Desktop default port
         host: 'localhost',
         maxConcurrentWorkflows: 1,
         timeoutMs: 300000,
@@ -41,7 +41,7 @@ export class ComfyUIClient {
       this.endpoint = config;
     } else {
       this.config = config;
-      this.endpoint = `http://${config.host || 'localhost'}:${config.port}`;
+      this.endpoint = `http://${config.host || 'localhost'}:${config.port || 8000}`;
     }
 
     this.clientId = this.generateClientId();
@@ -60,7 +60,7 @@ export class ComfyUIClient {
    * @param workflow - ComfyUI workflow JSON
    * @returns Prompt ID and execution number
    */
-  async queuePrompt(workflow: Record<string, any>): Promise<{
+  async queuePrompt(workflow: Record<string, unknown>): Promise<{
     promptId: string;
     number: number;
   }> {
@@ -386,7 +386,7 @@ export class ComfyUIClient {
    * @returns Execution result with output images
    */
   async executeWorkflow(
-    workflow: Record<string, any>,
+    workflow: Record<string, unknown>,
     timeoutMs: number = 300000
   ): Promise<{
     promptId: string;
@@ -438,7 +438,7 @@ export class ComfyUIClient {
    * 
    * Requirements: 3.3
    */
-  getCharacterReferenceTemplate(): Record<string, any> {
+  getCharacterReferenceTemplate(): Record<string, unknown> {
     return {
       "3": {
         "class_type": "KSampler",
@@ -505,7 +505,7 @@ export class ComfyUIClient {
    * 
    * Requirements: 5.3
    */
-  getStoryboardFrameTemplate(): Record<string, any> {
+  getStoryboardFrameTemplate(): Record<string, unknown> {
     return {
       "3": {
         "class_type": "KSampler",
@@ -572,7 +572,7 @@ export class ComfyUIClient {
    * 
    * Requirements: 8.2
    */
-  getStyleTransferTemplate(): Record<string, any> {
+  getStyleTransferTemplate(): Record<string, unknown> {
     return {
       "3": {
         "class_type": "KSampler",
@@ -652,7 +652,7 @@ export class ComfyUIClient {
   /**
    * Get workflow template by type
    */
-  getWorkflowTemplate(type: WorkflowTemplateType): Record<string, any> {
+  getWorkflowTemplate(type: WorkflowTemplateType): Record<string, unknown> {
     switch (type) {
       case 'character_reference':
         return this.getCharacterReferenceTemplate();
@@ -670,8 +670,8 @@ export class ComfyUIClient {
    */
   buildWorkflow(
     type: WorkflowTemplateType,
-    params: Record<string, any>
-  ): Record<string, any> {
+    params: Record<string, unknown>
+  ): Record<string, unknown> {
     const template = this.getWorkflowTemplate(type);
     const workflow = JSON.parse(JSON.stringify(template)); // Deep clone
 
@@ -774,3 +774,4 @@ export function createComfyUIClient(config?: string | ComfyUIInstanceConfig): Co
 export function setComfyUIClient(client: ComfyUIClient): void {
   comfyuiClientInstance = client;
 }
+

@@ -301,7 +301,7 @@ export class FrameCache {
  */
 export function createCanvasRenderFunction(
   canvas: HTMLCanvasElement,
-  shots: any[],
+  shots: unknown[],
   zoomLevel: number,
   fps: number = 24
 ): (frame: number, quality: 'low' | 'high', signal: AbortSignal) => Promise<ImageData | null> {
@@ -389,3 +389,4 @@ export function formatTimecode(frames: number, fps: number = 24): string {
 
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${remainingFrames.toString().padStart(2, '0')}`;
 }
+

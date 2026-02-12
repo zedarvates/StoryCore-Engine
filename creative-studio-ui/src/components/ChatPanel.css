@@ -34,8 +34,14 @@
 
 /* Panel Dragging State */
 .chat-panel-dragging {
-  transition: none;
+  transition: transform 0.05s ease-out;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  transform: scale(1.02);
+}
+
+/* Smooth drag movement - reduces jitter */
+.chat-panel {
+  will-change: transform, left, top;
 }
 
 /* Backdrop Overlay */

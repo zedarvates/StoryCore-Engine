@@ -39,7 +39,7 @@ export function TransitionEditor({
   }, [transition]);
 
   // Handle transition property changes
-  const handlePropertyChange = useCallback((property: keyof Transition, value: any) => {
+  const handlePropertyChange = useCallback((property: keyof Transition, value: unknown) => {
     const updated = { ...localTransition, [property]: value };
     setLocalTransition(updated);
     onTransitionChange(updated);

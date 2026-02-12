@@ -8,8 +8,8 @@ import { ConfigManager } from '../../../services/llm/ConfigManager';
 export interface CharacterCreatorWizardProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (character: any) => void;
-  worldContext?: any; // From project world/lore
+  onSave: (character: unknown) => void;
+  worldContext?: unknown; // From project world/lore
 }
 
 interface CharacterData {
@@ -213,7 +213,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
     setDraftData(null);
   };
 
-  const getGenreString = (genre: any): string => {
+  const getGenreString = (genre: unknown): string => {
     // Handle different cases safely
     if (!genre) {
       return 'fantastique';
@@ -242,7 +242,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
       // Safely get genre string with proper error handling
       const genreString = getGenreString(worldContext.genre);
       const rulesString = worldContext.rules && Array.isArray(worldContext.rules)
-        ? worldContext.rules.map((r: any) => r.rule).join(', ')
+        ? worldContext.rules.map((r: unknown) => r.rule).join(', ')
         : 'magie et technologie';
 
       // Enhanced prompts with more world context
@@ -367,7 +367,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
     onClose();
   };
 
-  const updateCharacter = (field: keyof CharacterData, value: any) => {
+  const updateCharacter = (field: keyof CharacterData, value: unknown) => {
     setCharacter(prev => ({ ...prev, [field]: value }));
   };
 
@@ -838,3 +838,4 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
     </div>
   );
 };
+

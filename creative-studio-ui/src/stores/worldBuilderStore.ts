@@ -52,7 +52,7 @@ export interface WorldBuilderState {
 
   // Actions
   initializeWorld: (data: Partial<WorldData>) => void;
-  updateStep: (step: string, data: any) => void;
+  updateStep: (step: string, data: unknown) => void;
   navigateToStep: (step: string) => void;
   markStepComplete: (step: string) => void;
   validateStep: (step: string) => boolean;
@@ -117,7 +117,7 @@ export const useWorldBuilderStore = create<WorldBuilderState>()(
         });
       },
 
-      updateStep: (step: string, data: any) => {
+      updateStep: (step: string, data: unknown) => {
         const { worldData } = get();
         if (!worldData) return;
 

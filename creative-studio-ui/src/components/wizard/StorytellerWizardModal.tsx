@@ -1,6 +1,15 @@
+/**
+ * Storyteller Wizard Modal Component
+ *
+ * Modal wrapper for the Storyteller Wizard
+ * Integrates with app state and provides modal UI
+ */
+
 import React from 'react';
 import { X } from 'lucide-react';
 import { StorytellerWizard } from './storyteller/StorytellerWizard';
+import { LLMStatusBanner } from './LLMStatusBanner';
+import { useAppStore } from '@/stores/useAppStore';
 import type { Story } from '@/types/story';
 import './WizardModal.css';
 
@@ -8,17 +17,21 @@ import './WizardModal.css';
 // Storyteller Wizard Modal Component
 // ============================================================================
 
-interface StorytellerWizardModalProps {
+export interface StorytellerWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: (story: Story) => void;
+  initialData?: Partial<Story>;
 }
 
 export function StorytellerWizardModal({
   isOpen,
   onClose,
   onComplete,
+  initialData,
 }: StorytellerWizardModalProps) {
+  const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+
   console.log('[StorytellerWizardModal] Rendered with isOpen:', isOpen);
 
   if (!isOpen) {
@@ -45,6 +58,9 @@ export function StorytellerWizardModal({
         </div>
 
         <div className="wizard-modal-content">
+          {/* LLM Status Banner */}
+          <LLMStatusBanner onConfigure={() => setShowLLMSettings(true)} />
+
           <StorytellerWizard
             onComplete={(story) => {
               console.log('[StorytellerWizardModal] Story completed:', story);
@@ -52,6 +68,7 @@ export function StorytellerWizardModal({
               onClose();
             }}
             onCancel={handleCancel}
+            initialData={initialData}
           />
         </div>
       </div>

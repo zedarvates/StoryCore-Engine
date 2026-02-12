@@ -34,7 +34,7 @@ export interface Notification {
   timestamp: Date;
   expiresAt?: Date;
   actions?: NotificationAction[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   dismissed?: boolean;
   read?: boolean;
 }
@@ -455,3 +455,4 @@ export class NotificationService {
 
 // Export de l'instance singleton
 export const notificationService = NotificationService.getInstance();
+

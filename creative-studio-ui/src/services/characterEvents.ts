@@ -273,7 +273,7 @@ export function isCharacterEvent(eventType: string): boolean {
  * Type guard for character created event
  */
 export function isCharacterCreatedEvent(
-  payload: any
+  payload: unknown
 ): payload is CharacterCreatedEventPayload {
   return !!payload && 'character' in payload && 'source' in payload;
 }
@@ -282,7 +282,7 @@ export function isCharacterCreatedEvent(
  * Type guard for character updated event
  */
 export function isCharacterUpdatedEvent(
-  payload: any
+  payload: unknown
 ): payload is CharacterUpdatedEventPayload {
   return !!payload && 'characterId' in payload && 'updates' in payload;
 }
@@ -291,7 +291,7 @@ export function isCharacterUpdatedEvent(
  * Type guard for character deleted event
  */
 export function isCharacterDeletedEvent(
-  payload: any
+  payload: unknown
 ): payload is CharacterDeletedEventPayload {
   return !!payload && 'characterId' in payload && 'characterName' in payload;
 }
@@ -469,3 +469,4 @@ export function createDependenciesCheckedPayload(
     source: 'dependency-checker',
   };
 }
+

@@ -1,0 +1,269 @@
+/**
+ * SkyboxPanel Styles
+ * 
+ * CSS styles for the SkyboxPanel component.
+ * 
+ * File: creative-studio-ui/src/components/location/SkyboxPanel.css
+ */
+
+/* Container */
+.skybox-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Interior Message */
+.skybox-panel__interior-message {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+}
+
+.skybox-panel__interior-message p {
+  margin: 0 0 8px;
+  color: var(--text-muted, #666);
+}
+
+.skybox-panel__interior-message p:first-child {
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 16px;
+}
+
+/* Section */
+.skybox-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skybox-panel__section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.skybox-panel__section-title svg {
+  color: var(--primary-color, #6366f1);
+}
+
+/* Sky Type Grid */
+.skybox-panel__type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .skybox-panel__type-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.skybox-panel__type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 2px solid var(--border-color, #333);
+  border-radius: 8px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skybox-panel__type-btn:hover {
+  border-color: var(--primary-color, #6366f1);
+  color: var(--text-primary, #e5e5e5);
+}
+
+.skybox-panel__type-btn--active {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: var(--primary-color, #6366f1);
+  color: var(--primary-color, #6366f1);
+}
+
+.skybox-panel__type-btn svg {
+  color: inherit;
+}
+
+/* Shot Types */
+.skybox-panel__shot-types {
+  display: flex;
+  gap: 8px;
+}
+
+.skybox-panel__shot-btn {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skybox-panel__shot-btn:hover {
+  border-color: var(--primary-color, #6366f1);
+}
+
+.skybox-panel__shot-btn--active {
+  background: var(--primary-color, #6366f1);
+  border-color: var(--primary-color, #6366f1);
+  color: white;
+}
+
+/* Time Control */
+.skybox-panel__time-control {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.skybox-panel__time-slider {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg-tertiary, #333);
+  border-radius: 3px;
+  outline: none;
+}
+
+.skybox-panel__time-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary-color, #6366f1);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.skybox-panel__time-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.skybox-panel__time-display {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 80px;
+}
+
+.skybox-panel__time-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.skybox-panel__time-label {
+  font-size: 12px;
+  color: var(--text-muted, #666);
+}
+
+/* Intensity Control */
+.skybox-panel__intensity-control {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.skybox-panel__intensity-slider {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg-tertiary, #333);
+  border-radius: 3px;
+  outline: none;
+}
+
+.skybox-panel__intensity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary-color, #6366f1);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.skybox-panel__intensity-display {
+  min-width: 60px;
+}
+
+.skybox-panel__intensity-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #e5e5e5);
+}
+
+/* Weather Select */
+.skybox-panel__weather-select {
+  width: 100%;
+}
+
+.skybox-panel__select {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.skybox-panel__select:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+/* Colors */
+.skybox-panel__colors {
+  display: flex;
+  gap: 16px;
+}
+
+.skybox-panel__color-input {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skybox-panel__color-input label {
+  font-size: 12px;
+  color: var(--text-muted, #666);
+}
+
+.skybox-panel__color-input input[type="color"] {
+  width: 100%;
+  height: 40px;
+  padding: 4px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.skybox-panel__color-input input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.skybox-panel__color-input input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}

@@ -3,7 +3,42 @@
  * 
  * Handles Ollama local LLM configuration with automatic model selection
  * based on system capabilities (RAM, GPU)
+ * 
+ * Configuration is now centralized in ../config/serverConfig.ts
  */
+
+import { config } from '../config/serverConfig';
+
+/**
+ * Extended navigator interface for device memory
+ */
+interface NavigatorWithDeviceMemory extends Navigator {
+  deviceMemory?: number;
+}
+
+/**
+ * WebGL debug renderer info extension
+ */
+interface WebGLDebugRendererInfo {
+  UNMASKED_RENDERER_WEBGL: number;
+}
+
+/**
+ * Extended WebGL context with debug info
+ */
+interface WebGLDebugContext {
+  getExtension(name: 'WEBGL_debug_renderer_info'): WebGLDebugRendererInfo | null;
+  getParameter(pname: number): unknown;
+}
+
+/**
+ * Ollama API response model
+ */
+interface OllamaModelResponse {
+  name: string;
+  size?: number;
+  digest?: string;
+}
 
 export interface SystemCapabilities {
   totalRAM: number; // in GB
@@ -61,11 +96,13 @@ export const GEMMA3_MODELS: OllamaModelConfig[] = [
 
 /**
  * Default Ollama configuration
+ * Uses centralized config from serverConfig.ts
  */
 export const DEFAULT_OLLAMA_CONFIG = {
-  endpoint: 'http://localhost:11434',
-  timeout: 60000, // 60 seconds for local models
+  endpoint: config.ollama.baseUrl,  // 'http://localhost:11434' from config
+  timeout: config.ollama.timeout,   // 300000ms from config (5 min)
   streamingEnabled: true,
+  model: config.ollama.model,       // Default model from config
 };
 
 /**
@@ -73,7 +110,8 @@ export const DEFAULT_OLLAMA_CONFIG = {
  */
 export async function detectSystemCapabilities(): Promise<SystemCapabilities> {
   // Get device memory (if available)
-  const deviceMemory = (navigator as any).deviceMemory; // in GB
+  const nav = navigator as NavigatorWithDeviceMemory;
+  const deviceMemory = nav.deviceMemory;
   
   // Estimate based on available information
   const totalRAM = deviceMemory || estimateRAMFromHardwareConcurrency();
@@ -113,10 +151,10 @@ function detectGPU(): boolean {
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     if (!gl) return false;
 
-    const debugInfo = (gl as any).getExtension('WEBGL_debug_renderer_info');
+    const debugInfo = (gl as WebGLDebugContext).getExtension('WEBGL_debug_renderer_info');
     if (!debugInfo) return true; // Has WebGL but can't get details
 
-    const renderer = (gl as any).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+    const renderer = (gl as WebGLDebugContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) as string;
     
     // Check if it's a dedicated GPU (not integrated)
     const isDedicated = /nvidia|amd|radeon|geforce|rtx|gtx/i.test(renderer);
@@ -135,10 +173,10 @@ function estimateGPUVRAM(): number {
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     if (!gl) return 2; // Default to 2GB
 
-    const debugInfo = (gl as any).getExtension('WEBGL_debug_renderer_info');
+    const debugInfo = (gl as WebGLDebugContext).getExtension('WEBGL_debug_renderer_info');
     if (!debugInfo) return 4; // Default to 4GB
 
-    const renderer = (gl as any).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
+    const renderer = ((gl as WebGLDebugContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) as string).toLowerCase();
     
     // Rough estimation based on GPU model
     if (renderer.includes('rtx 4090') || renderer.includes('rtx 4080')) return 16;
@@ -260,8 +298,7 @@ export async function getInstalledModels(endpoint: string = DEFAULT_OLLAMA_CONFI
     if (!response.ok) return [];
     
     const data = await response.json();
-    // Using 'any' for model data from Ollama API response which has flexible structure
-    return data.models?.map((m: any) => m.name) || [];
+    return (data.models?.map((m: OllamaModelResponse) => m.name) || []);
   } catch {
     return [];
   }

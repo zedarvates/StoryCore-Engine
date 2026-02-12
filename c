@@ -1,267 +1,140 @@
-/**
- * VideoHoverPreview Component Styles
- * 
- * @module components/video/VideoHoverPreview.css
- */
+"""
+StoryCore API Server - FastAPI Implementation
+Provides REST endpoints for StoryCore-Engine dashboard functionality.
 
-/* Container */
-.video-hover-preview {
-  position: fixed;
-  z-index: 10000;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity var(--animation-duration, 150ms) ease,
-              visibility var(--animation-duration, 150ms) ease,
-              transform var(--animation-duration, 150ms) ease;
-}
+Features:
+- Media Intelligence API
+- Audio Remix API
+- Transcription API
 
-.video-hover-preview-visible {
-  opacity: 1;
-  visibility: visible;
-}
+Author: StoryCore-Engine Team
+Date: 2026-01-23
+"""
 
-.video-hover-preview-hovered {
-  transform: translateX(-50%) translateY(4px);
-}
+import sys
+from pathlib import Path
 
-/* Position variants */
-.video-hover-preview-bottom {
-  transform: translateX(-50%) translateY(0);
-}
+# Add src to path for imports
+src_path = Path(__file__).parent
+sys.path.insert(0, str(src_path))
 
-.video-hover-preview-bottom.video-hover-preview-visible {
-  transform: translateX(-50%) translateY(-4px);
-}
+from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import time
+import logging
 
-.video-hover-preview-bottom.video-hover-preview-hovered {
-  transform: translateX(-50%) translateY(-8px);
-}
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-/* Arrow pointer */
-.video-hover-preview-arrow {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid #2a2a2a;
-}
+# Create FastAPI application instance
+app = FastAPI(
+    title="StoryCore API",
+    version="2.0.0",
+    description="AI-powered video storyboard creation with Media Intelligence, Audio Remix, and Transcription"
+)
 
-.video-hover-preview:not(.video-hover-preview-bottom) .video-hover-preview-arrow {
-  top: 100%;
-}
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-.video-hover-preview-bottom .video-hover-preview-arrow {
-  bottom: 100%;
-  border-bottom: none;
-  border-top: 8px solid #2a2a2a;
-}
+# API version router
+v1_router = APIRouter(prefix="/v1")
 
-/* Main content */
-.video-hover-preview-content {
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 200px;
-}
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Global health check."""
+    return {
+        "status": "healthy",
+        "version": "2.0.0",
+        "timestamp": time.time()
+    }
 
-/* Thumbnail */
-.video-hover-preview-thumbnail {
-  position: relative;
-  width: 160px;
-  height: 90px;
-  background-color: #1a1a1a;
-  border-radius: 4px;
-  overflow: hidden;
-}
+@app.get("/")
+async def root():
+    """Root endpoint with API info."""
+    return {
+        "name": "StoryCore API",
+        "version": "2.0.0",
+        "endpoints": {
+            "health": "/health",
+            "media": "/api/v1/media",
+            "audio": "/api/v1/audio",
+            "transcription": "/api/v1/transcription"
+        }
+    }
 
-.video-hover-preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+# Import and include routers with error handling
+def include_routers():
+    """Include API routers with proper error handling."""
+    
+    # Media Intelligence Router
+    try:
+        from api.media_routes import media_router
+        v1_router.include_router(media_router, prefix="/media", tags=["Media Intelligence"])
+        logger.info("Media Intelligence routes loaded successfully")
+    except Exception as e:
+        logger.warning(f"Failed to load Media Intelligence routes: {e}")
+    
+    # Audio Remix Router
+    try:
+        from api.audio_remix_routes import audio_router
+        v1_router.include_router(audio_router, prefix="/audio", tags=["Audio Remix"])
+        logger.info("Audio Remix routes loaded successfully")
+    except Exception as e:
+        logger.warning(f"Failed to load Audio Remix routes: {e}")
+    
+    # Transcription Router
+    try:
+        from api.transcription_routes import transcription_router
+        v1_router.include_router(transcription_router, prefix="/transcription", tags=["Transcription"])
+        logger.info("Transcription routes loaded successfully")
+    except Exception as e:
+        logger.warning(f"Failed to load Transcription routes: {e}")
 
-/* Placeholder */
-.video-hover-preview-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #666;
-}
+# Include routers
+include_routers()
 
-.video-hover-preview-placeholder svg {
-  width: 32px;
-  height: 32px;
-}
+# Include v1 router in app
+app.include_router(v1_router)
 
-/* Frame overlay */
-.video-hover-preview-frame-overlay {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 2px 6px;
-  border-radius: 3px;
-}
+# Error handlers
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """Global error handler."""
+    logger.error(f"Unhandled exception: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "detail": str(exc) if sys.debug else "An unexpected error occurred"
+        }
+    )
 
-.video-hover-preview-frame-number {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-  font-size: 11px;
-  color: #ffffff;
-  font-weight: 500;
-}
 
-/* Info section */
-.video-hover-preview-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* Shot info */
-.video-hover-preview-shot {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.video-hover-preview-shot-number {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-  font-size: 11px;
-  color: #6366f1;
-  font-weight: 600;
-}
-
-.video-hover-preview-shot-name {
-  font-size: 12px;
-  color: #ffffff;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Timestamp */
-.video-hover-preview-timestamp {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-  font-size: 11px;
-}
-
-.video-hover-preview-time {
-  color: #aaaaaa;
-}
-
-.video-hover-preview-frame-count {
-  color: #666666;
-}
-
-/* High contrast mode */
-@media (prefers-contrast: high) {
-  .video-hover-preview-content {
-    background-color: #000000;
-    border: 1px solid #ffffff;
-  }
-  
-  .video-hover-preview-arrow {
-    border-bottom-color: #ffffff;
-  }
-  
-  .video-hover-preview-bottom .video-hover-preview-arrow {
-    border-top-color: #ffffff;
-  }
-  
-  .video-hover-preview-frame-number,
-  .video-hover-preview-time {
-    color: #ffffff;
-  }
-  
-  .video-hover-preview-shot-name {
-    color: #ffffff;
-  }
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .video-hover-preview,
-  .video-hover-preview-visible,
-  .video-hover-preview-hovered {
-    transition: none;
-    transform: none;
-    opacity: 1;
-    visibility: visible;
-  }
-}
-
-/* Mobile */
-@media (max-width: 640px) {
-  .video-hover-preview-content {
-    max-width: 160px;
-    padding: 6px;
-  }
-  
-  .video-hover-preview-thumbnail {
-    width: 120px;
-    height: 68px;
-  }
-  
-  .video-hover-preview-arrow {
-    border-left-width: 6px;
-    border-right-width: 6px;
-    border-bottom-width: 6px;
-  }
-  
-  .video-hover-preview-bottom .video-hover-preview-arrow {
-    border-top-width: 6px;
-  }
-}
-
-/* Focus styles */
-.video-hover-preview:focus {
-  outline: 2px solid #6366f1;
-  outline-offset: 2px;
-}
-
-/* Animation keyframes */
-@keyframes video-hover-preview-fade-in {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-.video-hover-preview:not(.video-hover-preview-bottom).video-hover-preview-visible {
-  animation: video-hover-preview-fade-in var(--animation-duration, 150ms) ease-out;
-}
-
-@keyframes video-hover-preview-fade-in-bottom {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-.video-hover-preview.video-hover-preview-bottom.video-hover-preview-visible {
-  animation: video-hover-preview-fade-in-bottom var(--animation-duration, 150ms) ease-out;
-}
+if __name__ == "__main__":
+    import uvicorn
+    
+    # Get port from environment or use default
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8001
+    
+    print(f"🚀 Starting StoryCore API Server v2.0.0")
+    print(f"   Health check: http://localhost:{port}/health")
+    print(f"   API docs: http://localhost:{port}/docs")
+    print(f"   Media Intelligence: http://localhost:{port}/api/v1/media")
+    print(f"   Audio Remix: http://localhost:{port}/api/v1/audio")
+    print(f"   Transcription: http://localhost:{port}/api/v1/transcription")
+    
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -59,7 +59,7 @@ export interface ImageGenerationContext {
   id?: string;
   name?: string;
   description?: string;
-  additionalContext?: Record<string, any>;
+  additionalContext?: Record<string, unknown>;
 }
 
 /**
@@ -100,7 +100,7 @@ export class ImageGalleryService {
         const parsed = JSON.parse(storedImages);
         this.images.clear();
 
-        parsed.forEach((imgData: any) => {
+        parsed.forEach((imgData: unknown) => {
           const image: ImageMetadata = {
             ...imgData,
             createdAt: new Date(imgData.createdAt),
@@ -115,7 +115,7 @@ export class ImageGalleryService {
         const parsed = JSON.parse(storedCollections);
         this.collections.clear();
 
-        parsed.forEach((collData: any) => {
+        parsed.forEach((collData: unknown) => {
           const collection: ImageCollection = {
             ...collData,
             createdAt: new Date(collData.createdAt),
@@ -504,7 +504,7 @@ export class ImageGalleryService {
       const importData = JSON.parse(jsonData);
 
       if (importData.images && Array.isArray(importData.images)) {
-        importData.images.forEach((imgData: any) => {
+        importData.images.forEach((imgData: unknown) => {
           const image: ImageMetadata = {
             ...imgData,
             createdAt: new Date(imgData.createdAt),
@@ -516,7 +516,7 @@ export class ImageGalleryService {
       }
 
       if (importData.collections && Array.isArray(importData.collections)) {
-        importData.collections.forEach((collData: any) => {
+        importData.collections.forEach((collData: unknown) => {
           const collection: ImageCollection = {
             ...collData,
             createdAt: new Date(collData.createdAt),
@@ -563,3 +563,5 @@ export class ImageGalleryService {
 
 // Export de l'instance singleton
 export const imageGalleryService = ImageGalleryService.getInstance();
+
+

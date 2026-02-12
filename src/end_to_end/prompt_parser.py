@@ -10,8 +10,8 @@ Extracts structured data from free-form user prompts using:
 import re
 import asyncio
 from typing import Optional, Dict, Any, List
-from .data_models import ParsedPrompt, CharacterInfo
-from .llm_client import LLMClient, LLMError
+from src.end_to_end.data_models import ParsedPrompt, CharacterInfo
+from src.end_to_end.llm_client import LLMClient, LLMError
 
 
 class PromptParser:

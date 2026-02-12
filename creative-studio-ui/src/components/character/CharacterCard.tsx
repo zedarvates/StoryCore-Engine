@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, User, Image as ImageIcon, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Edit2, Trash2, User, Image as ImageIcon, Loader2, RefreshCw } from 'lucide-react';
 import type { Character } from '@/types/character';
 import { ComfyUIService } from '@/services/comfyuiService';
 import { useAppStore } from '@/stores/useAppStore';
 import { downloadAndSaveImage, getImageDisplayUrl } from '@/services/imageStorageService';
+import { devLog, devWarn } from '@/utils/devOnly';
+import { logger } from '@/utils/logger';
 import './CharacterCard.css';
 
 /**
@@ -55,7 +57,7 @@ export interface CharacterCardProps {
  * - Req 2.1: Edit button functionality
  * - Req 4.2: Selection mode for Story Generator
  */
-export function CharacterCard({
+export const CharacterCard = React.memo<CharacterCardProps>(({
   character,
   onClick,
   selectable = false,
@@ -66,7 +68,7 @@ export function CharacterCard({
   onDelete,
   onImageGenerated,
   loading = false,
-}: CharacterCardProps) {
+}) => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(null);
@@ -129,37 +131,37 @@ export function CharacterCard({
   };
 
   // Handle card click
-  const handleCardClick = () => {
+  const handleCardClick = useCallback(() => {
     if (selectable && onSelect) {
       onSelect(!selected);
     } else if (onClick) {
       onClick();
     }
-  };
+  }, [selectable, onSelect, selected, onClick]);
 
   // Handle checkbox change
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
     if (onSelect) {
       onSelect(e.target.checked);
     }
-  };
+  }, [onSelect]);
 
   // Handle edit button click
-  const handleEditClick = (e: React.MouseEvent) => {
+  const handleEditClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     if (onEdit) {
       onEdit();
     }
-  };
+  }, [onEdit]);
 
   // Handle delete button click
-  const handleDeleteClick = (e: React.MouseEvent) => {
+  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     if (onDelete) {
       onDelete();
     }
-  };
+  }, [onDelete]);
 
   // Get thumbnail URL from visual identity or use placeholder
   const thumbnailUrl = displayImageUrl;
@@ -269,10 +271,10 @@ export function CharacterCard({
       const prompt = buildCharacterPrompt();
       const negativePrompt = buildNegativePrompt();
 
-      console.log('🎨 [CharacterCard] Starting image generation');
-      console.log('📝 Prompt:', prompt);
-      console.log('🚫 Negative:', negativePrompt);
-      console.log('🎭 Visual Style:', visualStyle);
+      devLog('🎨 [CharacterCard] Starting image generation');
+      devLog('📝 Prompt:', prompt);
+      devLog('🚫 Negative:', negativePrompt);
+      devLog('🎭 Visual Style:', visualStyle);
 
       // Flux Turbo parameters (Z-Image Turbo workflow)
       const imageUrl = await comfyuiService.generateImage({
@@ -288,12 +290,12 @@ export function CharacterCard({
         scheduler: 'simple',
       });
 
-      console.log('✅ [CharacterCard] Image generated:', imageUrl);
+      devLog('✅ [CharacterCard] Image generated:', imageUrl);
       setGeneratedImageUrl(imageUrl);
       
       // Download and save image to project folder
       if (project?.metadata?.path) {
-        console.log('💾 [CharacterCard] Saving image to project folder...');
+        devLog('💾 [CharacterCard] Saving image to project folder...');
         const saveResult = await downloadAndSaveImage(
           imageUrl,
           character.character_id,
@@ -301,28 +303,28 @@ export function CharacterCard({
         );
         
         if (saveResult.success && saveResult.localPath) {
-          console.log('✅ [CharacterCard] Image saved locally:', saveResult.localPath);
+          devLog('✅ [CharacterCard] Image saved locally:', saveResult.localPath);
           
           // Notify parent component to update character data
           if (onImageGenerated) {
             onImageGenerated(saveResult.localPath);
           }
         } else {
-          console.warn('⚠️ [CharacterCard] Failed to save image locally:', saveResult.error);
+          devWarn('⚠️ [CharacterCard] Failed to save image locally:', saveResult.error);
           // Still show the image from ComfyUI URL
           if (onImageGenerated) {
             onImageGenerated(imageUrl);
           }
         }
       } else {
-        console.warn('⚠️ [CharacterCard] No project path available, image not saved locally');
+        devWarn('⚠️ [CharacterCard] No project path available, image not saved locally');
         // Fallback: just notify with ComfyUI URL
         if (onImageGenerated) {
           onImageGenerated(imageUrl);
         }
       }
     } catch (err) {
-      console.error('❌ [CharacterCard] Failed to generate character portrait:', err);
+      logger.error('❌ [CharacterCard] Failed to generate character portrait:', err);
       
       // Show user-friendly error message
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -333,7 +335,7 @@ export function CharacterCard({
       );
       
       // You can also show a toast notification here if you have a notification system
-      console.warn('💡 [CharacterCard] To fix: 1) Start ComfyUI 2) Configure in Settings > ComfyUI 3) Test connection');
+      devWarn('💡 [CharacterCard] To fix: 1) Start ComfyUI 2) Configure in Settings > ComfyUI 3) Test connection');
     } finally {
       setIsGeneratingImage(false);
     }
@@ -389,23 +391,36 @@ export function CharacterCard({
       {/* Thumbnail */}
       <div className="character-card__thumbnail">
         {thumbnailUrl ? (
-          <img
-            src={thumbnailUrl}
-            alt={`${character.name} thumbnail`}
-            className="character-card__thumbnail-image"
-            onError={(e) => {
-              // Fallback to placeholder on error
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'character-card__thumbnail-placeholder';
-                placeholder.innerHTML = '<svg class="character-card__thumbnail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
-                parent.appendChild(placeholder);
-              }
-            }}
-          />
+          <div className="character-card__thumbnail-wrapper">
+            <img
+              src={thumbnailUrl}
+              alt={`${character.name} thumbnail`}
+              className="character-card__thumbnail-image"
+              onError={(e) => {
+                // Fallback to placeholder on error
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  const placeholder = document.createElement('div');
+                  placeholder.className = 'character-card__thumbnail-placeholder';
+                  placeholder.innerHTML = '<svg class="character-card__thumbnail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
+                  parent.appendChild(placeholder);
+                }
+              }}
+            />
+            {/* Regenerate image button */}
+            <button
+              className="character-card__regenerate-button"
+              onClick={handleGenerateImage}
+              title="Regenerate character portrait with ComfyUI"
+              aria-label={`Regenerate portrait for ${character.name}`}
+              disabled={isGeneratingImage}
+            >
+              <RefreshCw size={16} className={isGeneratingImage ? 'character-card__spinner' : ''} />
+              {isGeneratingImage && <span>Regenerating...</span>}
+            </button>
+          </div>
         ) : (
           <div className="character-card__thumbnail-placeholder">
             <User className="character-card__thumbnail-icon" />
@@ -483,4 +498,4 @@ export function CharacterCard({
       )}
     </div>
   );
-}
+});

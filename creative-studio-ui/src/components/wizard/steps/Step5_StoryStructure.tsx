@@ -13,10 +13,10 @@ import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
-  SelectItem,
+  SelectItemWithDescription,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select-rich';
 import {
   Dialog,
   DialogContent,
@@ -441,12 +441,12 @@ export function Step5_StoryStructure({
             </SelectTrigger>
             <SelectContent className="z-[9999]">
               {ACT_STRUCTURE_OPTIONS.map((structure) => (
-                <SelectItem key={structure.value} value={structure.value}>
-                  <div>
-                    <div className="font-medium">{structure.label}</div>
-                    <div className="text-xs text-gray-500">{structure.description}</div>
-                  </div>
-                </SelectItem>
+                <SelectItemWithDescription
+                  key={structure.value}
+                  value={structure.value}
+                  label={structure.label}
+                  description={structure.description}
+                />
               ))}
             </SelectContent>
           </Select>
@@ -641,15 +641,12 @@ export function Step5_StoryStructure({
             </SelectTrigger>
             <SelectContent className="z-[9999]">
               {NARRATIVE_PERSPECTIVE_OPTIONS.map((perspective) => (
-                <SelectItem key={perspective.value} value={perspective.value}>
-                  <div>
-                    <div className="font-medium">{perspective.label}</div>
-                    <div className="text-xs text-gray-500">{perspective.description}</div>
-                    <div className="text-xs text-gray-400 italic mt-0.5">
-                      {perspective.example}
-                    </div>
-                  </div>
-                </SelectItem>
+                <SelectItemWithDescription
+                  key={perspective.value}
+                  value={perspective.value}
+                  label={perspective.label}
+                  description={perspective.description}
+                />
               ))}
             </SelectContent>
           </Select>

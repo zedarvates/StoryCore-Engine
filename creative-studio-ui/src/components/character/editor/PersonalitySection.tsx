@@ -5,7 +5,8 @@ import './EditorSection.css';
 interface PersonalitySectionProps {
   data: Partial<Personality>;
   errors: Record<string, string[]>;
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
+  id?: string;
 }
 
 export function PersonalitySection({
@@ -142,3 +143,4 @@ export function PersonalitySection({
     </div>
   );
 }
+

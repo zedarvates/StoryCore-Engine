@@ -1,0 +1,225 @@
+/**
+ * LocationImagesSection Component Styles
+ * 
+ * File: creative-studio-ui/src/components/location/editor/LocationImagesSection.css
+ */
+
+.location-images-section {
+  padding: 16px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.location-images-section__header {
+  margin-bottom: 20px;
+}
+
+.location-images-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #00d4ff;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.location-images-section__description {
+  color: #aaa;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.location-images-section__current {
+  margin-bottom: 20px;
+}
+
+.location-images-section__subsection-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #eee;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 12px 0;
+}
+
+.location-images-section__preview {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #333;
+}
+
+.location-images-section__image {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  display: block;
+}
+
+.location-images-section__image-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 12px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+}
+
+.location-images-section__image-label {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.location-images-section__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background-color: #0f3460;
+  border-radius: 8px;
+  border: 2px dashed #333;
+  color: #666;
+}
+
+.location-images-section__placeholder svg {
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.location-images-section__placeholder p {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: #888;
+}
+
+.location-images-section__placeholder-hint {
+  font-size: 12px;
+  color: #666;
+}
+
+.location-images-section__actions {
+  margin-bottom: 20px;
+}
+
+.location-images-section__generate-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background-color: #00d4ff;
+  border: none;
+  border-radius: 6px;
+  color: #1a1a2e;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.location-images-section__generate-btn:hover {
+  background-color: #00b8e6;
+}
+
+.location-images-section__generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.location-images-section__info {
+  padding-top: 16px;
+  border-top: 1px solid #333;
+}
+
+.location-images-section__details {
+  background-color: #0f3460;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.location-images-section__detail {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.location-images-section__detail:last-child {
+  margin-bottom: 0;
+}
+
+.location-images-section__detail-label {
+  color: #888;
+  font-size: 13px;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.location-images-section__detail-value {
+  color: #eee;
+  font-size: 13px;
+}
+
+.location-images-section__no-info {
+  color: #666;
+  font-size: 13px;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Modal styles */
+.location-images-section__modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.location-images-section__modal {
+  background-color: #1a1a2e;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.location-images-section__modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #333;
+}
+
+.location-images-section__modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #00d4ff;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.location-images-section__modal-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.location-images-section__modal-close:hover {
+  color: #fff;
+}

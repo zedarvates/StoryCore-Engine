@@ -86,8 +86,8 @@ export const BatchOperationsToolbar: React.FC<BatchOperationsToolbarProps> = ({
   const [operationState, setOperationState] = useState<OperationState | null>(null);
   const [showErrorReport, setShowErrorReport] = useState(false);
   
-  // Créer le gestionnaire d'opérations
-  const manager = useMemo(() => new BatchOperationsManager(), []);
+  // Créer le gestionnaire d'opérations (use useState to avoid constructor issues)
+  const [manager] = useState(() => new BatchOperationsManager());
   
   /**
    * Exécute une opération

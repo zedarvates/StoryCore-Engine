@@ -22,7 +22,8 @@ import {
   AlertCircle,
   Clock,
   Volume2,
-  Speaker
+  Speaker,
+  Package
 } from 'lucide-react';
 import { SequencePlan } from '@/types/sequencePlan';
 import { ScenePlanningCanvas } from './ScenePlanningCanvas';
@@ -30,6 +31,7 @@ import { AIPromptGenerator } from './AIPromptGenerator';
 import { SequenceGenerator } from './SequenceGenerator';
 import { PuppetLibrary } from './PuppetLibrary';
 import { SceneLibrary } from './SceneLibrary';
+import { ObjectLibrary } from './ObjectLibrary';
 import { ElementPropertiesPanel } from './ElementPropertiesPanel';
 import { SceneSelector } from './SceneSelector';
 import { PlanningState, CanvasElement, ViewMode } from './types';
@@ -75,7 +77,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
     }
   });
 
-  const [leftPanel, setLeftPanel] = useState<'puppets' | 'scenes' | 'properties'>('puppets');
+  const [leftPanel, setLeftPanel] = useState<'puppets' | 'scenes' | 'objects' | 'properties'>('puppets');
   const [rightPanel, setRightPanel] = useState<'prompt' | 'generator' | 'audio' | 'dialogue' | 'none'>('none');
   const [surroundMode, setSurroundMode] = useState<'5.1' | '7.1'>('5.1');
   const [audioSpatializationEnabled, setAudioSpatializationEnabled] = useState(true);
@@ -133,7 +135,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
     onGenerateSequence(sequencePlan);
   }, [sequencePlan, onGenerateSequence, updatePlanningState, planningState.generationProgress]);
 
-  const handleGenerationComplete = useCallback((results: any) => {
+  const handleGenerationComplete = useCallback((results: unknown) => {
     updatePlanningState({
       isGenerating: false,
       generationProgress: { ...planningState.generationProgress, status: 'completed' }
@@ -247,6 +249,13 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
             Décors
           </button>
           <button
+            className={`tool-btn ${leftPanel === 'objects' ? 'active' : ''}`}
+            onClick={() => setLeftPanel('objects')}
+          >
+            <Package size={16} />
+            Objets
+          </button>
+          <button
             className={`tool-btn ${leftPanel === 'properties' ? 'active' : ''}`}
             onClick={() => setLeftPanel('properties')}
           >
@@ -315,6 +324,11 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
           )}
           {leftPanel === 'scenes' && (
             <SceneLibrary
+              onElementSelect={handleElementSelect}
+            />
+          )}
+          {leftPanel === 'objects' && (
+            <ObjectLibrary
               onElementSelect={handleElementSelect}
             />
           )}

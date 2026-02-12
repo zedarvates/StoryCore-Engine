@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 
 // Placeholder components for effects system
-const EffectLibrary = ({ onEffectApply }: { onEffectApply: (effect: any) => void }) => (
+const EffectLibrary = ({ onEffectApply }: { onEffectApply: (effect: unknown) => void }) => (
   <div className="p-4">
     <h3 className="text-sm font-semibold mb-4">Effect Library</h3>
     <div className="space-y-2">
@@ -59,9 +59,9 @@ const EffectStack = ({
   onEffectSelect,
   selectedEffectId
 }: {
-  effects: any[];
-  onEffectsChange: (effects: any[]) => void;
-  onEffectSelect: (effect: any) => void;
+  effects: unknown[];
+  onEffectsChange: (effects: unknown[]) => void;
+  onEffectSelect: (effect: unknown) => void;
   selectedEffectId?: string;
 }) => (
   <div className="p-4">
@@ -89,8 +89,8 @@ const EffectControls = ({
   onEffectDuplicate,
   onEffectToggle
 }: {
-  selectedEffect?: any;
-  onEffectChange: (effect: any) => void;
+  selectedEffect?: unknown;
+  onEffectChange: (effect: unknown) => void;
   onEffectDelete: (effectId: string) => void;
   onEffectDuplicate: (effectId: string) => void;
   onEffectToggle: (effectId: string) => void;
@@ -733,3 +733,5 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
     </div>
   );
 }
+
+

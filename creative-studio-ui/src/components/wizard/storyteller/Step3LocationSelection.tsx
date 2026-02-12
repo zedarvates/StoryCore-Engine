@@ -98,7 +98,7 @@ function LocationCard({ location, isSelected, onToggle }: LocationCardProps) {
 // Step 3: Location Selection
 // ============================================================================
 
-export function Step3LocationSelection() {
+export function Step3LocationSelection(): JSX.Element {
   const { formData, updateFormData, validationErrors } = useWizard<LocationSelectionData>();
   const currentWorld = useStore((state: AppState) => state.worlds?.find((w: World) => w.id === state.selectedWorldId));
   const locations = currentWorld?.locations || [];
@@ -247,7 +247,7 @@ export function Step3LocationSelection() {
       <ValidationErrorSummary errors={validationErrors} className="mb-6" />
 
       {/* Service Warning */}
-      {!llmConfigured && (
+      {llmConfigured ? null : (
         <ServiceWarning
           service="llm"
           variant="inline"

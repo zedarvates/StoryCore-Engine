@@ -1,0 +1,507 @@
+/**
+ * CrossShotReferencePicker Component Styles
+ */
+
+.cross-shot-picker {
+  width: 90vw;
+  max-width: 1200px;
+  height: 80vh;
+  max-height: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.cross-shot-picker .dialog-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.picker-toolbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.search-container {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+}
+
+.search-input {
+  padding-left: 40px;
+}
+
+.filter-select {
+  width: 180px;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 0.5rem;
+  background: var(--muted);
+  border-radius: var(--radius);
+}
+
+.quick-action-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Shot List Container */
+.shot-list-container {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.shot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Loading and Empty States */
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+/* Shot Card */
+.shot-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.shot-card:hover {
+  border-color: var(--primary);
+}
+
+.shot-card.expanded {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.shot-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  background: var(--card);
+  transition: background 0.2s ease;
+}
+
+.shot-card-header:hover {
+  background: var(--muted);
+}
+
+.shot-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shot-thumbnail {
+  width: 48px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.shot-thumbnail-placeholder {
+  width: 48px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--muted);
+  border-radius: 4px;
+  color: var(--muted-foreground);
+}
+
+.shot-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.shot-name {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.shot-badges {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ref-badge {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  height: auto;
+}
+
+.shot-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ref-count {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.expand-icon {
+  transition: transform 0.2s ease;
+}
+
+.expand-icon.rotated {
+  transform: rotate(90deg);
+}
+
+/* Shot References */
+.shot-references {
+  padding: 0.75rem 1rem;
+  background: var(--muted);
+  border-top: 1px solid var(--border);
+}
+
+.loading-refs {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  color: var(--muted-foreground);
+}
+
+.no-refs {
+  text-align: center;
+  padding: 1rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+/* Reference Grid */
+.reference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.5rem;
+}
+
+.reference-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.reference-item:hover {
+  border-color: var(--primary);
+}
+
+.reference-item.selected {
+  border-color: var(--success);
+  box-shadow: 0 0 0 2px var(--success);
+}
+
+.reference-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.selected-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+}
+
+.reference-tooltip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: white;
+  font-size: 0.7rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.reference-item:hover .reference-tooltip {
+  opacity: 1;
+}
+
+.type-badge {
+  font-size: 0.6rem;
+  width: fit-content;
+}
+
+.preview-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.reference-item:hover .preview-btn {
+  opacity: 1;
+}
+
+.preview-btn:hover {
+  background: var(--muted);
+}
+
+/* Selection Preview */
+.selection-preview {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.preview-scroll {
+  max-height: 100px;
+}
+
+.preview-grid {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.25rem;
+}
+
+.preview-item {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.preview-item:hover {
+  border-color: var(--destructive);
+}
+
+.preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-item .remove-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--destructive);
+  color: white;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.preview-item:hover .remove-btn {
+  opacity: 1;
+}
+
+/* Preview Modal */
+.preview-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.preview-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.preview-modal-content img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+
+.preview-modal-info {
+  text-align: center;
+}
+
+.preview-modal-info h4 {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.preview-modal-info p {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+}
+
+.close-modal {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--muted);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.close-modal:hover {
+  background: var(--muted-foreground);
+  color: white;
+}
+
+/* Footer */
+.picker-footer {
+  flex-shrink: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.confirm-btn {
+  background: var(--success);
+}
+
+.confirm-btn:hover {
+  background: var(--success-hover);
+}
+
+.confirm-btn:disabled {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cross-shot-picker {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+  
+  .picker-toolbar {
+    flex-direction: column;
+  }
+  
+  .search-container {
+    max-width: none;
+    width: 100%;
+  }
+  
+  .quick-actions {
+    flex-wrap: wrap;
+  }
+  
+  .reference-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+}

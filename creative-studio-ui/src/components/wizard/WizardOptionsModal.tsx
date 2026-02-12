@@ -12,7 +12,7 @@ import './WizardOptionsModal.css';
 interface WizardOptionsModalProps {
   isOpen: boolean;
   wizard: WizardDefinition | null;
-  onLaunch: (options: Record<string, any>) => void;
+  onLaunch: (options: Record<string, unknown>) => void;
   onCancel: () => void;
 }
 
@@ -22,8 +22,8 @@ export function WizardOptionsModal({
   onLaunch,
   onCancel
 }: WizardOptionsModalProps) {
-  const [options, setOptions] = useState<Record<string, any>>({});
-  const [wizardOptions, setWizardOptions] = useState<Record<string, any>>({});
+  const [options, setOptions] = useState<Record<string, unknown>>({});
+  const [wizardOptions, setWizardOptions] = useState<Record<string, unknown>>({});
 
   // Load wizard options when wizard changes
   useEffect(() => {
@@ -33,7 +33,7 @@ export function WizardOptionsModal({
       setWizardOptions(opts);
 
       // Set default values
-      const defaults: Record<string, any> = {};
+      const defaults: Record<string, unknown> = {};
       if (opts.defaultStyle) defaults.style = opts.defaultStyle;
       if (opts.defaultQuality) defaults.quality = opts.defaultQuality;
       if (opts.defaultTone) defaults.tone = opts.defaultTone;
@@ -43,7 +43,7 @@ export function WizardOptionsModal({
     }
   }, [wizard]);
 
-  const handleOptionChange = (key: string, value: any) => {
+  const handleOptionChange = (key: string, value: unknown) => {
     setOptions(prev => ({ ...prev, [key]: value }));
   };
 
@@ -229,3 +229,5 @@ export function WizardOptionsModal({
     </div>
   );
 }
+
+

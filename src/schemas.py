@@ -255,3 +255,24 @@ QA_REPORT_SCHEMA = {
         "issues": {"type": "array"}
     }
 }
+
+# Lighting Asset schema
+LIGHTING_ASSET_SCHEMA = {
+    "type": "object",
+    "required": ["type", "intensity", "color", "position", "direction"],
+    "properties": {
+        "type": {"type": "string", "enum": ["natural", "soft", "rim", "backlight", "overcast", "warm_sunset", "cool_moonlight", "studio", "dramatic"]},
+        "intensity": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+        "position": {
+            "type": "object",
+            "required": ["x", "y", "z"],
+            "properties": {
+                "x": {"type": "number"},
+                "y": {"type": "number"},
+                "z": {"type": "number"}
+            }
+        },
+        "direction": {"type": "string"}
+    }
+}

@@ -13,10 +13,10 @@ import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
-  SelectItem,
+  SelectItemWithDescription,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select-rich';
 import {
   Dialog,
   DialogContent,
@@ -450,15 +450,13 @@ export function Step4_CharacterCreation({
                   </SelectTrigger>
                   <SelectContent className="z-[9999]">
                     {CHARACTER_ROLE_OPTIONS.map((role) => (
-                      <SelectItem key={role.value} value={role.value}>
-                        <div className="flex items-center gap-2">
-                          <span>{role.icon}</span>
-                          <div>
-                            <div className="font-medium">{role.label}</div>
-                            <div className="text-xs text-gray-500">{role.description}</div>
-                          </div>
-                        </div>
-                      </SelectItem>
+                      <SelectItemWithDescription
+                        key={role.value}
+                        value={role.value}
+                        label={role.label}
+                        icon={role.icon}
+                        description={role.description}
+                      />
                     ))}
                   </SelectContent>
                 </Select>
@@ -557,12 +555,12 @@ export function Step4_CharacterCreation({
                 </SelectTrigger>
                 <SelectContent className="z-[9999]">
                   {DIALOGUE_STYLE_OPTIONS.map((style) => (
-                    <SelectItem key={style.value} value={style.value}>
-                      <div>
-                        <div className="font-medium">{style.label}</div>
-                        <div className="text-xs text-gray-500">{style.description}</div>
-                      </div>
-                    </SelectItem>
+                    <SelectItemWithDescription
+                      key={style.value}
+                      value={style.value}
+                      label={style.label}
+                      description={style.description}
+                    />
                   ))}
                 </SelectContent>
               </Select>

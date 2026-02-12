@@ -5,12 +5,27 @@
  * Validates Requirements 1.2, 1.7, 1.8 from the UI Configuration Wizards spec.
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, cleanup } from '@testing-library/react';
 import { WizardProvider } from '@/contexts/WizardContext';
 import { Step2WorldRules } from '../Step2WorldRules';
 import { Step3Locations } from '../Step3Locations';
 import { Step4CulturalElements } from '../Step4CulturalElements';
+
+// ============================================================================
+// Mock Setup
+// ============================================================================
+
+// Mock service-warning hook
+vi.mock('@/components/ui/service-warning', () => ({
+  useServiceStatus: () => ({
+    llmConfigured: true,
+    llmChecking: false,
+    comfyUIConfigured: false,
+    comfyUIChecking: false,
+  }),
+  ServiceWarning: vi.fn(() => null),
+}));
 
 // ============================================================================
 // Test Helpers
@@ -34,6 +49,15 @@ const renderWithWizard = (component: React.ReactElement, initialData = {}) => {
 // ============================================================================
 
 describe('Step2WorldRules - LLM Integration UI', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
   it('should display Generate Rules button', () => {
     renderWithWizard(<Step2WorldRules />, {
       name: 'Test World',

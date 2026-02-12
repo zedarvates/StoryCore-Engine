@@ -25,7 +25,7 @@ export function useUndoRedo() {
   /**
    * Restore state from a snapshot
    */
-  const restoreState = useCallback((snapshot: any) => {
+  const restoreState = useCallback((snapshot: unknown) => {
     if (!snapshot) return;
     
     // Restore project state
@@ -130,3 +130,4 @@ export function useUndoRedo() {
     redoDescription,
   };
 }
+

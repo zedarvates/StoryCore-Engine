@@ -51,21 +51,21 @@ export class WizardLogger {
   /**
    * Log a debug message
    */
-  debug(category: string, message: string, details?: Record<string, any>): void {
+  debug(category: string, message: string, details?: Record<string, unknown>): void {
     this.log('debug', category, message, details);
   }
 
   /**
    * Log an info message
    */
-  info(category: string, message: string, details?: Record<string, any>): void {
+  info(category: string, message: string, details?: Record<string, unknown>): void {
     this.log('info', category, message, details);
   }
 
   /**
    * Log a warning message
    */
-  warn(category: string, message: string, details?: Record<string, any>): void {
+  warn(category: string, message: string, details?: Record<string, unknown>): void {
     this.log('warn', category, message, details);
   }
 
@@ -76,7 +76,7 @@ export class WizardLogger {
     category: string,
     message: string,
     error?: Error | WizardError,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ): void {
     this.log('error', category, message, { ...details, error });
   }
@@ -84,7 +84,7 @@ export class WizardLogger {
   /**
    * Log a wizard error
    */
-  logWizardError(error: WizardError, context?: Record<string, any>): void {
+  logWizardError(error: WizardError, context?: Record<string, unknown>): void {
     this.error(
       error.category,
       error.message,
@@ -105,7 +105,7 @@ export class WizardLogger {
     level: LogLevel,
     category: string,
     message: string,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ): void {
     // Check if this log level should be recorded
     if (this.logLevels[level] < this.logLevels[this.config.level]) {
@@ -385,7 +385,7 @@ export function createLogger(config?: Partial<LoggerConfig>): WizardLogger {
 export function logWizardOperation(
   operation: string,
   status: 'started' | 'completed' | 'failed',
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): void {
   const logger = getLogger();
   const message = `Wizard operation ${operation} ${status}`;
@@ -396,3 +396,4 @@ export function logWizardOperation(
     logger.info('wizard', message, details);
   }
 }
+

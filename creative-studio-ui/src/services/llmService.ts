@@ -43,7 +43,7 @@ export interface LLMConfig {
 export interface LLMRequest {
   prompt: string;
   systemPrompt?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   stream?: boolean;
   temperature?: number;
   maxTokens?: number;
@@ -78,7 +78,7 @@ export interface GeneratedImage {
   model: string;
   createdAt: Date;
   revisedPrompt?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -113,7 +113,7 @@ export interface ErrorRecoveryOptions {
   message: string;
   userMessage: string; // User-friendly message
   actions: RecoveryAction[];
-  fallbackData?: any;
+  fallbackData?: unknown;
   retryable: boolean;
   category: LLMErrorCategory;
 }
@@ -124,14 +124,14 @@ export interface ErrorRecoveryOptions {
 export class LLMError extends Error {
   code: string;
   retryable: boolean;
-  details?: any;
+  details?: unknown;
   category: LLMErrorCategory;
 
   constructor(
     message: string,
     code: string,
     retryable: boolean = false,
-    details?: any,
+    details?: unknown,
     category?: LLMErrorCategory
   ) {
     super(message);
@@ -1564,3 +1564,5 @@ export function getDefaultSystemPrompts() {
     dialogueGeneration: `You are a dialogue writing specialist for narrative content. Create natural, character-appropriate dialogue that reveals personality, advances plot, maintains consistent voice, and feels authentic to the character's background and emotional state. Consider subtext, pacing, and how dialogue can convey visual actions and reactions. Ensure dialogue works well for both text and potential voice acting or animation.`,
   };
 }
+
+

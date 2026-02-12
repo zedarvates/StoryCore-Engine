@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout, FormField } from '../WizardFormLayout';
 import { ValidationErrorSummary } from '../ValidationErrorSummary';
@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { MethodologySelector, FullSettings } from './MethodologySelector';
+import { WritingStyle, type MethodologyState } from '@/types/storyMethodology';
 import type { StorySetupData } from '@/types/story';
 
 // ============================================================================
@@ -53,11 +55,36 @@ const LENGTH_OPTIONS = [
 ];
 
 // ============================================================================
+// Extended Form Data with Methodology
+// ============================================================================
+
+interface ExtendedStorySetupData extends StorySetupData {
+  methodology?: string;
+  methodologyOptions?: Record<string, unknown>;
+  methodologySettings?: FullSettings;
+}
+
+// ============================================================================
 // Step 1: Story Setup
 // ============================================================================
 
 export function Step1StorySetup() {
-  const { formData, updateFormData, validationErrors } = useWizard<StorySetupData>();
+  const { formData, updateFormData, validationErrors } = useWizard<ExtendedStorySetupData>();
+  
+  // Local state for methodology selection (synced with formData)
+  const [selectedMethodology, setSelectedMethodology] = useState(formData.methodology || 'sequential');
+  const [methodologyOptions, setMethodologyOptions] = useState<Record<string, unknown>>(
+    formData.methodologyOptions || {}
+  );
+  const [methodologySettings, setMethodologySettings] = useState<FullSettings>(
+    formData.methodologySettings || {
+      writingStyle: WritingStyle.DESCRIPTIVE,
+      toneConsistencyCheck: true,
+      characterVoiceConsistency: true,
+      revisionHistory: true,
+    }
+  );
+  const [showMethodology, setShowMethodology] = useState(false);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateFormData({ title: e.target.value });
@@ -81,6 +108,27 @@ export function Step1StorySetup() {
 
   const handleLengthChange = (value: string) => {
     updateFormData({ length: value as 'short' | 'medium' | 'long' });
+  };
+
+  const handleMethodologyChange = (methodology: string) => {
+    setSelectedMethodology(methodology);
+    updateFormData({ methodology });
+  };
+
+  const handleMethodologyOptionsChange = (options: Record<string, unknown>) => {
+    setMethodologyOptions(options);
+    updateFormData({ methodologyOptions: options });
+  };
+
+  const handleMethodologySettingsChange = (settings: FullSettings) => {
+    setMethodologySettings(settings);
+    updateFormData({ methodologySettings: settings });
+  };
+
+  const handleWritingStyleChange = (style: WritingStyle) => {
+    const newSettings = { ...methodologySettings, writingStyle: style };
+    setMethodologySettings(newSettings);
+    updateFormData({ methodologySettings: newSettings });
   };
 
   return (
@@ -217,6 +265,41 @@ export function Step1StorySetup() {
           ))}
         </RadioGroup>
       </FormField>
+
+      {/* Methodology Selection Toggle */}
+      <div className="border-t pt-6 mt-6">
+        <button
+          type="button"
+          onClick={() => setShowMethodology(!showMethodology)}
+          className="w-full flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+        >
+          <div className="text-left">
+            <h3 className="font-semibold">Story Creation Methodology</h3>
+            <p className="text-sm text-muted-foreground">
+              Choose how you want to create your story
+            </p>
+          </div>
+          <Label className="text-sm text-muted-foreground">
+            {showMethodology ? 'Hide options' : 'Show options'}
+          </Label>
+        </button>
+
+        {/* Methodology Selector */}
+        {showMethodology && (
+          <div className="mt-4">
+            <MethodologySelector
+              selectedMethodology={selectedMethodology}
+              onMethodologyChange={handleMethodologyChange}
+              options={methodologyOptions}
+              onOptionsChange={handleMethodologyOptionsChange}
+              writingStyle={methodologySettings.writingStyle}
+              onWritingStyleChange={handleWritingStyleChange}
+              settings={methodologySettings}
+              onSettingsChange={handleMethodologySettingsChange}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Info Box */}
       <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-md">

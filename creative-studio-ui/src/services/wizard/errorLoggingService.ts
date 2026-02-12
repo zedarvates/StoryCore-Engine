@@ -14,7 +14,7 @@ export interface ErrorLogEntry {
   url: string;
   timestamp: Date;
   sessionId: string;
-  additionalContext?: Record<string, any>;
+  additionalContext?: Record<string, unknown>;
 }
 
 export interface ErrorLogFilter {
@@ -41,7 +41,7 @@ export class ErrorLoggingService {
   /**
    * Log an error
    */
-  logError(error: AppError, additionalContext?: Record<string, any>): void {
+  logError(error: AppError, additionalContext?: Record<string, unknown>): void {
     const entry: ErrorLogEntry = {
       error,
       userAgent: navigator.userAgent,
@@ -271,7 +271,7 @@ export class ErrorLoggingService {
       const data = JSON.parse(stored);
       
       // Restore logs with Date objects
-      this.logs = data.logs.map((entry: any) => ({
+      this.logs = data.logs.map((entry: unknown) => ({
         ...entry,
         timestamp: new Date(entry.timestamp),
       }));
@@ -293,3 +293,5 @@ export function getErrorLoggingService(): ErrorLoggingService {
   }
   return errorLoggingServiceInstance;
 }
+
+

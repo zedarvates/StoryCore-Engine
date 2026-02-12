@@ -5,6 +5,7 @@ import type { WizardStep } from '../WizardStepIndicator';
 import type { World } from '@/types/world';
 import { createEmptyWorld } from '@/types/world';
 import { useStore } from '@/store';
+import { useWorldPersistence } from '@/hooks/useWorldPersistence';
 import { llmConfigService } from '@/services/llmConfigService';
 import { Step1BasicInformation } from './Step1BasicInformation';
 import { Step2WorldRules } from './Step2WorldRules';
@@ -92,6 +93,9 @@ function WorldWizardContent({ steps, onCancel, renderStepContent, onComplete }: 
 export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardProps) {
   // Get store actions
   const addWorld = useStore((state) => state.addWorld);
+
+  // Get world persistence hook
+  const { saveWorld } = useWorldPersistence();
 
   // ============================================================================
   // LLM Service Initialization
@@ -226,6 +230,14 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
       // Add to store (which also persists to localStorage and updates project)
       addWorld(world);
 
+      // Save to project directory if available
+      try {
+        await saveWorld(world);
+      } catch (error) {
+        console.warn('[WorldWizard] Failed to save world to project directory:', error);
+        // World is already in store, so we continue
+      }
+
       // Emit event for other components to subscribe to
       window.dispatchEvent(
         new CustomEvent('world-created', {
@@ -236,7 +248,7 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
       // Call the onComplete callback
       onComplete(world);
     },
-    [onComplete, addWorld]
+    [onComplete, addWorld, saveWorld]
   );
 
   // ============================================================================

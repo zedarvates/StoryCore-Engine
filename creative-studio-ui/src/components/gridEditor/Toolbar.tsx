@@ -287,6 +287,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           type="button"
           onClick={() => setShowHelp(true)}
           title="Quick Help (?) - Keyboard shortcuts and tips"
+          aria-label="Aide rapide"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -337,6 +338,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({ config, isActive, onClick }) =>
     <button
       type="button"
       title={config.title}
+      aria-label={config.title}
       onClick={onClick}
       style={{
         display: 'flex',
@@ -368,7 +370,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({ config, isActive, onClick }) =>
         }
       }}
     >
-      <div style={{ fontSize: '18px', marginBottom: '4px' }}>{config.icon}</div>
+      <div style={{ fontSize: '18px', marginBottom: '4px' }} aria-hidden="true">{config.icon}</div>
       <div>{config.label}</div>
     </button>
   );

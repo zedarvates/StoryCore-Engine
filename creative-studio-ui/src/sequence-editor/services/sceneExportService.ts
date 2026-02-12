@@ -16,7 +16,7 @@ interface Puppet {
   position: { x: number; y: number; z: number };
   rotation: { x: number; y: number; z: number };
   scale: { x: number; y: number; z: number };
-  joints: any[];
+  joints: unknown[];
   pose: string;
 }
 
@@ -319,13 +319,13 @@ function drawPuppet(
   ctx.scale(puppet.scale.x, puppet.scale.y);
   
   // Draw joints and bones
-  puppet.joints.forEach((joint: any) => {
+  puppet.joints.forEach((joint: unknown) => {
     const jointScreenX = joint.position.x * 50;
     const jointScreenY = -joint.position.y * 50;
     
     // Draw bone to parent
     if (joint.parent) {
-      const parentJoint = puppet.joints.find((j: any) => j.id === joint.parent);
+      const parentJoint = puppet.joints.find((j: unknown) => j.id === joint.parent);
       if (parentJoint) {
         const parentScreenX = parentJoint.position.x * 50;
         const parentScreenY = -parentJoint.position.y * 50;
@@ -386,3 +386,5 @@ export default {
   downloadExportedFile,
   generateExportFilename,
 };
+
+

@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import type { Project, Shot, Asset, GenerationTask, PanelSizes, ChatMessage } from '@/types';
 import type { SequencePlanWizardContext, ShotWizardContext } from '@/types/wizard';
+import type { MasterReferenceSheet, SequenceReferenceSheet, ShotReference } from '@/types/reference';
+import type { World } from '@/types/world';
+import type { Character } from '@/types/character';
 
 // Wizard type for generic wizard forms (simple forms in GenericWizardModal)
 // Multi-step wizards (world, character) are handled separately via their own modals
@@ -25,8 +28,8 @@ interface AppState {
   project: Project | null;
   shots: Shot[];
   assets: Asset[];
-  worlds: any[];
-  characters: any[];
+  worlds: World[];
+  characters: Character[];
 
   // UI state
   selectedShotId: string | null;
@@ -62,6 +65,7 @@ interface AppState {
   showWorldWizard: boolean;
   showCharacterWizard: boolean;
   showProjectSetupWizard: boolean;
+  showCreateProjectDialog: boolean;
   showStorytellerWizard: boolean;
   showLLMSettings: boolean;
   showComfyUISettings: boolean;
@@ -71,10 +75,12 @@ interface AppState {
   showWorldModal: boolean;
   showLocationsModal: boolean;
   showObjectsModal: boolean;
+  showObjectWizard: boolean;
   showImageGalleryModal: boolean;
   showDialogueEditor: boolean;
   showFeedbackPanel: boolean;
   showPendingReportsList: boolean;
+  showFactCheckModal: boolean;
 
   // Production wizards state
   showSequencePlanWizard: boolean;
@@ -97,6 +103,19 @@ interface AppState {
   characterFilters: CharacterFilters;
   isCharacterEditorOpen: boolean;
   editingCharacterId: string | null;
+
+  // Reference sheet state (Continuous Creation feature)
+  masterReferenceSheet: MasterReferenceSheet | null;
+  sequenceReferenceSheets: SequenceReferenceSheet[];
+  activeSequenceSheetId: string | null;
+  shotReferences: Record<string, ShotReference>;
+
+  // Continuous Creation dialogs state
+  showReferenceSheetManager: boolean;
+  showVideoReplicationDialog: boolean;
+  showCrossShotReferencePicker: boolean;
+  showProjectBranchingDialog: boolean;
+  showEpisodeReferenceDialog: boolean;
 
   // Undo/Redo
   history: AppState[];
@@ -129,6 +148,7 @@ interface AppState {
   setShowWorldWizard: (show: boolean) => void;
   setShowCharacterWizard: (show: boolean) => void;
   setShowProjectSetupWizard: (show: boolean) => void;
+  setShowCreateProjectDialog: (show: boolean) => void;
   setShowStorytellerWizard: (show: boolean) => void;
   setShowLLMSettings: (show: boolean) => void;
   setShowComfyUISettings: (show: boolean) => void;
@@ -138,9 +158,11 @@ interface AppState {
   setShowWorldModal: (show: boolean) => void;
   setShowLocationsModal: (show: boolean) => void;
   setShowObjectsModal: (show: boolean) => void;
+  setShowObjectWizard: (show: boolean) => void;
   setShowImageGalleryModal: (show: boolean) => void;
   setShowDialogueEditor: (show: boolean) => void;
   setShowFeedbackPanel: (show: boolean) => void;
+  setShowFactCheckModal: (show: boolean) => void;
   setShowPendingReportsList: (show: boolean) => void;
   openSequencePlanWizard: (context?: SequencePlanWizardContext) => void;
   closeSequencePlanWizard: () => void;
@@ -164,6 +186,23 @@ interface AppState {
   closeCharacterEditor: () => void;
   setOllamaStatus: (status: 'connected' | 'error' | 'disconnected' | 'connecting') => void;
   setComfyUIStatus: (status: 'connected' | 'error' | 'disconnected' | 'connecting') => void;
+
+  // Reference sheet actions (Continuous Creation feature)
+  setMasterReferenceSheet: (sheet: MasterReferenceSheet | null) => void;
+  addSequenceReferenceSheet: (sheet: SequenceReferenceSheet) => void;
+  updateSequenceReferenceSheet: (id: string, sheet: Partial<SequenceReferenceSheet>) => void;
+  removeSequenceReferenceSheet: (id: string) => void;
+  setActiveSequenceSheetId: (id: string | null) => void;
+  addShotReference: (reference: ShotReference) => void;
+  updateShotReference: (id: string, reference: Partial<ShotReference>) => void;
+  removeShotReference: (id: string) => void;
+
+  // Continuous Creation dialog actions
+  setShowReferenceSheetManager: (show: boolean) => void;
+  setShowVideoReplicationDialog: (show: boolean) => void;
+  setShowCrossShotReferencePicker: (show: boolean) => void;
+  setShowProjectBranchingDialog: (show: boolean) => void;
+  setShowEpisodeReferenceDialog: (show: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -197,6 +236,7 @@ export const useAppStore = create<AppState>((set) => ({
   installationComplete: false,
   showWorldWizard: false,
   showCharacterWizard: false,
+  showCreateProjectDialog: false,
   showProjectSetupWizard: false,
   showStorytellerWizard: false,
   showLLMSettings: false,
@@ -207,7 +247,9 @@ export const useAppStore = create<AppState>((set) => ({
   showWorldModal: false,
   showLocationsModal: false,
   showObjectsModal: false,
+  showObjectWizard: false,
   showImageGalleryModal: false,
+  showFactCheckModal: false,
   showDialogueEditor: false,
   showFeedbackPanel: false,
   showPendingReportsList: false,
@@ -230,6 +272,19 @@ export const useAppStore = create<AppState>((set) => ({
   characterFilters: {},
   isCharacterEditorOpen: false,
   editingCharacterId: null,
+
+  // Reference sheet initial state (Continuous Creation feature)
+  masterReferenceSheet: null,
+  sequenceReferenceSheets: [],
+  activeSequenceSheetId: null,
+  shotReferences: {},
+
+  // Continuous Creation dialogs initial state
+  showReferenceSheetManager: false,
+  showVideoReplicationDialog: false,
+  showCrossShotReferencePicker: false,
+  showProjectBranchingDialog: false,
+  showEpisodeReferenceDialog: false,
 
   // Actions
   setProject: (project) => set({ project }),
@@ -272,6 +327,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ showCharacterWizard: show });
   },
   setShowProjectSetupWizard: (show) => set({ showProjectSetupWizard: show }),
+  setShowCreateProjectDialog: (show) => set({ showCreateProjectDialog: show }),
   setShowStorytellerWizard: (show) => {
     console.log('[useAppStore] setShowStorytellerWizard called with:', show);
     set({ showStorytellerWizard: show });
@@ -284,7 +340,12 @@ export const useAppStore = create<AppState>((set) => ({
   setShowWorldModal: (show) => set({ showWorldModal: show }),
   setShowLocationsModal: (show) => set({ showLocationsModal: show }),
   setShowObjectsModal: (show) => set({ showObjectsModal: show }),
+  setShowObjectWizard: (show) => {
+    console.log('[useAppStore] setShowObjectWizard called with:', show);
+    set({ showObjectWizard: show });
+  },
   setShowImageGalleryModal: (show) => set({ showImageGalleryModal: show }),
+  setShowFactCheckModal: (show) => set({ showFactCheckModal: show }),
   setShowDialogueEditor: (show) => set({ showDialogueEditor: show }),
   setShowFeedbackPanel: (show) => set({ showFeedbackPanel: show }),
   setShowPendingReportsList: (show) => set({ showPendingReportsList: show }),
@@ -368,4 +429,47 @@ export const useAppStore = create<AppState>((set) => ({
     }),
   setOllamaStatus: (status) => set({ ollamaStatus: status }),
   setComfyUIStatus: (status) => set({ comfyuiStatus: status }),
+
+  // Reference sheet actions (Continuous Creation feature)
+  setMasterReferenceSheet: (sheet) => set({ masterReferenceSheet: sheet }),
+  addSequenceReferenceSheet: (sheet) =>
+    set((state) => ({
+      sequenceReferenceSheets: [...state.sequenceReferenceSheets, sheet],
+    })),
+  updateSequenceReferenceSheet: (id, updates) =>
+    set((state) => ({
+      sequenceReferenceSheets: state.sequenceReferenceSheets.map((s) =>
+        s.id === id ? { ...s, ...updates } : s
+      ),
+    })),
+  removeSequenceReferenceSheet: (id) =>
+    set((state) => ({
+      sequenceReferenceSheets: state.sequenceReferenceSheets.filter((s) => s.id !== id),
+      activeSequenceSheetId: state.activeSequenceSheetId === id ? null : state.activeSequenceSheetId,
+    })),
+  setActiveSequenceSheetId: (id) => set({ activeSequenceSheetId: id }),
+  addShotReference: (reference) =>
+    set((state) => ({
+      shotReferences: { ...state.shotReferences, [reference.id]: reference },
+    })),
+  updateShotReference: (id, updates) =>
+    set((state) => {
+      const existing = state.shotReferences[id];
+      if (!existing) return state;
+      return {
+        shotReferences: { ...state.shotReferences, [id]: { ...existing, ...updates } },
+      };
+    }),
+  removeShotReference: (id) =>
+    set((state) => {
+      const { [id]: _, ...rest } = state.shotReferences;
+      return { shotReferences: rest };
+    }),
+
+  // Continuous Creation dialog actions
+  setShowReferenceSheetManager: (show) => set({ showReferenceSheetManager: show }),
+  setShowVideoReplicationDialog: (show) => set({ showVideoReplicationDialog: show }),
+  setShowCrossShotReferencePicker: (show) => set({ showCrossShotReferencePicker: show }),
+  setShowProjectBranchingDialog: (show) => set({ showProjectBranchingDialog: show }),
+  setShowEpisodeReferenceDialog: (show) => set({ showEpisodeReferenceDialog: show }),
 }));

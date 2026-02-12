@@ -25,7 +25,7 @@ import type { ComfyUIConfig } from './comfyuiService';
 /**
  * Listener callback for settings changes
  */
-export type SettingsChangeListener = (config: any) => void | Promise<void>;
+export type SettingsChangeListener = (config: unknown) => void | Promise<void>;
 
 /**
  * Settings propagation manager

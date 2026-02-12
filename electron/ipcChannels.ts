@@ -71,6 +71,7 @@ export const IPC_CHANNELS = {
   APP_SHOW_DEVTOOLS: 'app:show-devtools',
 
   // Dialogs
+  DIALOG_SHOW_OPEN: 'dialog:show-open',
   DIALOG_SHOW_SAVE: 'dialog:show-save',
 
   // Production Wizard Draft Storage
@@ -222,6 +223,7 @@ export class IPCHandlers {
     ipcMain.removeAllListeners(IPC_CHANNELS.APP_SHOW_DEVTOOLS);
 
     // Dialog handlers
+    ipcMain.removeHandler(IPC_CHANNELS.DIALOG_SHOW_OPEN);
     ipcMain.removeHandler(IPC_CHANNELS.DIALOG_SHOW_SAVE);
 
     // Rover handlers
@@ -276,6 +278,32 @@ export class IPCHandlers {
    * Register dialog handlers
    */
   private registerDialogHandlers(): void {
+    // Show open dialog
+    ipcMain.handle(
+      IPC_CHANNELS.DIALOG_SHOW_OPEN,
+      async (event, options: Electron.OpenDialogOptions) => {
+        try {
+          const window = BrowserWindow.fromWebContents(event.sender);
+          if (!window) {
+            throw new Error('No window found');
+          }
+
+          const result = await dialog.showOpenDialog(window, options);
+          return {
+            success: true,
+            result,
+          };
+        } catch (error) {
+          console.error('Failed to show open dialog:', error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          };
+        }
+      }
+    );
+
+    // Show save dialog
     ipcMain.handle(
       IPC_CHANNELS.DIALOG_SHOW_SAVE,
       async (event, options: Electron.SaveDialogOptions) => {
@@ -1288,6 +1316,28 @@ export class IPCHandlers {
       if (window) {
         window.webContents.openDevTools();
       }
+    });
+
+    // Open folder in file explorer
+    ipcMain.on('app:open-folder', (_event, folderPath: string) => {
+      const { shell, app } = require('electron');
+      
+      // Validate path is within expected directories
+      const allowedBases = [
+        app.getPath('userData'),
+        app.getPath('documents'),
+        app.getPath('downloads')
+      ];
+      
+      const resolvedPath = require('path').resolve(folderPath);
+      const isAllowed = allowedBases.some(base => resolvedPath.startsWith(base));
+      
+      if (!isAllowed) {
+        console.error('Blocked attempt to open path outside allowed directories:', folderPath);
+        return;
+      }
+      
+      shell.openPath(folderPath);
     });
   }
 

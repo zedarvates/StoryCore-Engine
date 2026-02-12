@@ -4,7 +4,7 @@
  * Permet de voir, créer, modifier et supprimer les lieux du projet
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -32,8 +32,10 @@ import {
   CastleIcon,
   StoreIcon,
   ChurchIcon,
+  RefreshCwIcon,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
+import { useLocationStore } from '@/stores/locationStore';
 import { notificationService } from '@/services/NotificationService';
 
 interface Location {
@@ -61,6 +63,12 @@ interface LocationsModalProps {
 
 export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
   const project = useAppStore((state) => state.project);
+  const { 
+    locations: storeLocations, 
+    fetchLocations, 
+    fetchProjectLocations,
+    isLoading 
+  } = useLocationStore();
 
   // État local pour les lieux
   const [locations, setLocations] = useState<Location[]>([]);
@@ -70,12 +78,65 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  // Charger les lieux du projet
+  // Charger les lieux du projet et du backend quand le modal s'ouvre
   useEffect(() => {
     if (project && isOpen) {
-      loadLocations();
+      loadAllLocations();
     }
   }, [project, isOpen]);
+
+  // Sync store locations to local state
+  useEffect(() => {
+    if (storeLocations.length > 0) {
+      const convertedLocations = storeLocations.map(loc => ({
+        id: loc.location_id,
+        name: loc.name,
+        description: loc.metadata?.description || '',
+        type: mapLocationType(loc.location_type),
+        address: '',
+        coordinates: '',
+        owner: '',
+        purpose: '',
+        atmosphere: loc.metadata?.atmosphere || '',
+        secrets: '',
+        importance: 'medium' as const,
+        accessibility: 'public' as const,
+        tags: loc.metadata?.genre_tags || [],
+        createdAt: new Date(loc.creation_timestamp || Date.now()),
+        updatedAt: new Date()
+      }));
+      setLocations(convertedLocations);
+    }
+  }, [storeLocations.length]);
+
+  const loadAllLocations = async () => {
+    if (!project) return;
+
+    try {
+      // Fetch central locations from API
+      await fetchLocations();
+      
+      // Fetch project-local locations from lieux folder
+      const projectId = project?.path ? project.path.split(/[/\\]/).pop() || project.id : project.id;
+      await fetchProjectLocations(projectId);
+    } catch (error) {
+      console.error('Failed to load locations:', error);
+      notificationService.error('Erreur', 'Impossible de charger les lieux');
+    }
+  };
+
+  const mapLocationType = (type: string): Location['type'] => {
+    const typeMap: Record<string, Location['type']> = {
+      'interior': 'residence',
+      'exterior': 'natural',
+      'urban': 'commercial',
+      'dungeon': 'underground',
+      'landmark': 'public',
+      'religious': 'religious',
+      'military': 'military',
+    };
+    return typeMap[type] || 'other';
+  };
 
   const loadLocations = () => {
     if (!project) return;
@@ -86,7 +147,7 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
       const projectLocations = localStorage.getItem(`locations_${project.id}`);
       if (projectLocations) {
         const parsed = JSON.parse(projectLocations);
-        const locationsWithDates = parsed.map((location: any) => ({
+        const locationsWithDates = parsed.map((location: unknown) => ({
           ...location,
           createdAt: new Date(location.createdAt),
           updatedAt: new Date(location.updatedAt)
@@ -351,6 +412,7 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value as Location['type'] | 'all')}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  title="Filtrer par type de lieu"
                 >
                   <option value="all">Tous les types</option>
                   <option value="residence">Résidentiels</option>
@@ -367,6 +429,7 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
                   value={selectedImportance}
                   onChange={(e) => setSelectedImportance(e.target.value as Location['importance'] | 'all')}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  title="Filtrer par importance"
                 >
                   <option value="all">Toute importance</option>
                   <option value="high">Élevée</option>
@@ -377,6 +440,16 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
 
               {/* Actions */}
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={loadAllLocations} 
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                  title="Rafraîchir la liste"
+                >
+                  <RefreshCwIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Rafraîchir
+                </Button>
                 <Button onClick={handleCreateLocation} className="flex items-center gap-2">
                   <PlusIcon className="w-4 h-4" />
                   Nouveau lieu
@@ -579,6 +652,7 @@ function LocationEditModal({ location, isCreate, onSave, onCancel }: LocationEdi
                   value={editedLocation.type}
                   onChange={(e) => setEditedLocation(prev => ({ ...prev, type: e.target.value as Location['type'] }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  title="Sélectionner le type de lieu"
                 >
                   <option value="residence">Résidentiel</option>
                   <option value="commercial">Commercial</option>
@@ -647,6 +721,7 @@ function LocationEditModal({ location, isCreate, onSave, onCancel }: LocationEdi
                   value={editedLocation.accessibility}
                   onChange={(e) => setEditedLocation(prev => ({ ...prev, accessibility: e.target.value as Location['accessibility'] }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  title="Sélectionner le niveau d'accès"
                 >
                   <option value="public">Public</option>
                   <option value="private">Privé</option>
@@ -701,6 +776,7 @@ function LocationEditModal({ location, isCreate, onSave, onCancel }: LocationEdi
                   value={editedLocation.importance}
                   onChange={(e) => setEditedLocation(prev => ({ ...prev, importance: e.target.value as Location['importance'] }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  title="Sélectionner le niveau d'importance"
                 >
                   <option value="high">Élevée</option>
                   <option value="medium">Moyenne</option>
@@ -732,6 +808,7 @@ function LocationEditModal({ location, isCreate, onSave, onCancel }: LocationEdi
                     <button
                       onClick={() => handleRemoveTag(tag)}
                       className="ml-1 text-gray-500 hover:text-gray-700"
+                      title="Supprimer le tag"
                     >
                       <XIcon className="w-3 h-3" />
                     </button>
@@ -756,3 +833,4 @@ function LocationEditModal({ location, isCreate, onSave, onCancel }: LocationEdi
     </Dialog>
   );
 }
+

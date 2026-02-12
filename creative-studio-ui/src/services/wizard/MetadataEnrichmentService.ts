@@ -101,13 +101,13 @@ export interface EnhancedShotPlan extends ShotPlan {
     base: string;
     positive: string;
     negative: string;
-    technical: Record<string, any>;
+    technical: Record<string, unknown>;
   };
   llmSuggestions?: {
     generatedAt: Date;
     confidence: number;
     reasoning: string;
-    alternatives: any[];
+    alternatives: unknown[];
   };
 }
 
@@ -118,7 +118,7 @@ export interface EnhancedShotPlan extends ShotPlan {
 export interface FieldCompleteness {
   field: string;
   isComplete: boolean;
-  value?: any;
+  value?: unknown;
   weight: number; // Importance weight (0-1)
 }
 
@@ -549,14 +549,14 @@ export class MetadataEnrichmentService {
   /**
    * Get nested value from object using dot notation
    */
-  private getNestedValue(obj: any, path: string): any {
+  private getNestedValue(obj: unknown, path: string): unknown {
     return path.split('.').reduce((current, key) => current?.[key], obj);
   }
 
   /**
    * Check if a field value is considered complete
    */
-  private isFieldComplete(value: any): boolean {
+  private isFieldComplete(value: unknown): boolean {
     if (value === null || value === undefined) {
       return false;
     }
@@ -575,4 +575,8 @@ export class MetadataEnrichmentService {
 
 // Export singleton instance
 export const metadataEnrichmentService = new MetadataEnrichmentService();
+
+
+
+
 

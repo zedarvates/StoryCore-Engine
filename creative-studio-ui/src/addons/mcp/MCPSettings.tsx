@@ -160,7 +160,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
     }
   };
 
-  const handleConfigChange = (key: string, value: any) => {
+  const handleConfigChange = (key: string, value: unknown) => {
     updateConfig({ [key]: value });
   };
 

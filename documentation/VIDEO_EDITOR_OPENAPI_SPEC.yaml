@@ -1,0 +1,1247 @@
+openapi: 3.0.3
+info:
+  title: StoryCore Video Editor Wizard API
+  description: |
+    API complète pour l'éditeur vidéo IA de StoryCore.
+    
+    ## Fonctionnalités
+    - **Authentification** : Inscription, connexion, refresh token
+    - **Projets** : CRUD, gestion timeline, templates
+    - **Médias** : Upload, download, métadonnées
+    - **Export** : Jobs asynchrones, multiples formats
+    - **IA** : Transcription, TTS, Smart Crop, Traduction
+    
+    ## Authentification
+    Tous les endpoints (sauf auth) nécessitent un token Bearer JWT.
+    
+    ## Rate Limiting
+    - Gratuit : 10 requêtes/minute
+    - Pro : 60 requêtes/minute
+    - Team : 120 requêtes/minute
+  version: 1.0.0
+  contact:
+    name: StoryCore Support
+    email: support@storycore.ai
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000/api/video-editor
+    description: Serveur de développement
+  - url: https://api.storycore.ai/api/video-editor
+    description: Serveur de production
+
+tags:
+  - name: Auth
+    description: Endpoints d'authentification
+  - name: Projects
+    description: Gestion des projets vidéo
+  - name: Media
+    description: Gestion des fichiers médias
+  - name: Export
+    description: Export de vidéos
+  - name: AI
+    description: Services d'intelligence artificielle
+  - name: Utilities
+    description: Presets, ratios, santé du service
+
+# =============================================================================
+# Security Schemes
+# =============================================================================
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  
+  schemas:
+    # Common
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Message d'erreur détaillé
+        code:
+          type: string
+          description: Code d'erreur
+        status:
+          type: integer
+          description: Code HTTP
+    
+    # Auth
+    UserCreate:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 255
+          example: "securePassword123"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "John Doe"
+    
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+        refresh_token:
+          type: string
+          description: JWT refresh token
+        token_type:
+          type: string
+          default: bearer
+        expires_in:
+          type: integer
+          description: Expiration en secondes
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        plan:
+          type: string
+          enum: [free, pro, team]
+        created_at:
+          type: string
+          format: date-time
+    
+    # Projects
+    ProjectCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Mon projet vidéo"
+        description:
+          type: string
+          nullable: true
+        aspect_ratio:
+          type: string
+          default: "16:9"
+          enum: ["16:9", "9:16", "1:1", "4:5", "4:3", "21:9"]
+        resolution:
+          type: string
+          default: "1920x1080"
+        frame_rate:
+          type: number
+          default: 30.0
+    
+    ProjectUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        aspect_ratio:
+          type: string
+          enum: ["16:9", "9:16", "1:1", "4:5", "4:3", "21:9"]
+        resolution:
+          type: string
+        frame_rate:
+          type: number
+    
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        user_id:
+          type: string
+          format: uuid
+        aspect_ratio:
+          type: string
+        resolution:
+          type: string
+        frame_rate:
+          type: number
+        duration:
+          type: number
+          default: 0.0
+        created_at:
+          type: string
+          format: date-time
+        modified_at:
+          type: string
+          format: date-time
+        thumbnail_path:
+          type: string
+          nullable: true
+    
+    # Media
+    MediaUpload:
+      type: object
+      required:
+        - project_id
+        - media_type
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        media_type:
+          type: string
+          enum: [video, audio, image]
+        name:
+          type: string
+          nullable: true
+    
+    Media:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        media_type:
+          type: string
+          enum: [video, audio, image]
+        path:
+          type: string
+        duration:
+          type: number
+          nullable: true
+        resolution:
+          type: string
+          nullable: true
+        thumbnail_path:
+          type: string
+          nullable: true
+        file_size:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+    
+    # Export
+    ExportRequest:
+      type: object
+      required:
+        - project_id
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        format:
+          type: string
+          default: mp4
+          enum: [mp4, webm, mov, gif]
+        preset:
+          type: string
+          default: custom
+          enum: [youtube_1080p, youtube_4k, tiktok, instagram_feed, instagram_story, twitter, custom]
+        resolution:
+          type: string
+          nullable: true
+        quality:
+          type: string
+          default: high
+          enum: [low, medium, high, ultra]
+    
+    ExportResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        progress:
+          type: number
+          format: float
+        estimated_time:
+          type: integer
+          nullable: true
+        download_url:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+    
+    ExportStatus:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        progress:
+          type: number
+          format: float
+        message:
+          type: string
+        download_url:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+    
+    # AI
+    TranscriptionRequest:
+      type: object
+      required:
+        - media_id
+      properties:
+        media_id:
+          type: string
+          format: uuid
+        language:
+          type: string
+          nullable: true
+          example: "fr"
+        enable_speakers:
+          type: boolean
+          default: false
+    
+    TranscriptionResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        text:
+          type: string
+          nullable: true
+        segments:
+          type: array
+          nullable: true
+          items:
+            type: object
+            properties:
+              start:
+                type: number
+              end:
+                type: number
+              text:
+                type: string
+        language:
+          type: string
+    
+    TranslationRequest:
+      type: object
+      required:
+        - text
+        - source_language
+        - target_language
+      properties:
+        text:
+          type: string
+        source_language:
+          type: string
+          example: "fr"
+        target_language:
+          type: string
+          example: "en"
+    
+    TranslationResponse:
+      type: object
+      properties:
+        translated_text:
+          type: string
+    
+    TTSRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          maxLength: 5000
+        voice:
+          type: string
+          default: "fr-FR-Denise"
+        speed:
+          type: number
+          default: 1.0
+          minimum: 0.5
+          maximum: 2.0
+        pitch:
+          type: number
+          default: 1.0
+          minimum: 0.5
+          maximum: 2.0
+    
+    TTSResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        audio_path:
+          type: string
+          nullable: true
+    
+    SmartCropRequest:
+      type: object
+      required:
+        - media_id
+      properties:
+        media_id:
+          type: string
+          format: uuid
+        target_ratio:
+          type: string
+          default: "9:16"
+          enum: ["16:9", "9:16", "1:1", "4:5"]
+        focus_mode:
+          type: string
+          default: auto
+          enum: [auto, face, center]
+    
+    SmartCropResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        crop_regions:
+          type: array
+          nullable: true
+          items:
+            type: object
+            properties:
+              x:
+                type: number
+              y:
+                type: number
+              width:
+                type: number
+              height:
+                type: number
+    
+    # Utilities
+    PresetList:
+      type: object
+      properties:
+        presets:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              resolution:
+                type: string
+              format:
+                type: string
+    
+    AspectRatioList:
+      type: object
+      properties:
+        ratios:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              width:
+                type: integer
+              height:
+                type: integer
+    
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        services:
+          type: object
+          properties:
+            api:
+              type: string
+            database:
+              type: string
+            redis:
+              type: boolean
+
+# =============================================================================
+# Paths
+# =============================================================================
+
+paths:
+  # ===========================================================================
+  # Auth Endpoints
+  # ===========================================================================
+  
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Inscription d'un nouvel utilisateur
+      description: Crée un nouveau compte utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Email déjà enregistré ou données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Connexion utilisateur
+      description: Authentifie l'utilisateur et retourne les tokens JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Rafraîchir le token d'accès
+      description: Utilise le refresh token pour obtenir un nouveau access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Nouveau token généré
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Refresh token invalide ou expiré
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Profil utilisateur
+      description: Retourne le profil de l'utilisateur connecté
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profil récupéré
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags:
+        - Auth
+      summary: Modifier le profil
+      description: Met à jour le profil de l'utilisateur
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Profil mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ===========================================================================
+  # Project Endpoints
+  # ===========================================================================
+  
+  /projects:
+    get:
+      tags:
+        - Projects
+      summary: Lister les projets
+      description: Retourne tous les projets de l'utilisateur
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Liste des projets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      tags:
+        - Projects
+      summary: Créer un projet
+      description: Crée un nouveau projet vidéo
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+      responses:
+        '201':
+          description: Projet créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /projects/{project_id}:
+    get:
+      tags:
+        - Projects
+      summary: Détails d'un projet
+      description: Retourne les détails d'un projet spécifique
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Projet trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Projet non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags:
+        - Projects
+      summary: Modifier un projet
+      description: Met à jour les informations d'un projet
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        '200':
+          description: Projet mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Projet non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - Projects
+      summary: Supprimer un projet
+      description: Supprime définitivement un projet
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Projet supprimé
+        '404':
+          description: Projet non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ===========================================================================
+  # Media Endpoints
+  # ===========================================================================
+  
+  /media/upload:
+    post:
+      tags:
+        - Media
+      summary: Uploader un média
+      description: Upload un fichier média (vidéo, audio, image)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - project_id
+                - media_type
+              properties:
+                file:
+                  type: string
+                  format: binary
+                project_id:
+                  type: string
+                  format: uuid
+                media_type:
+                  type: string
+                  enum: [video, audio, image]
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Fichier uploadé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Media'
+        '400':
+          description: Erreur d'upload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /media/{media_id}:
+    get:
+      tags:
+        - Media
+      summary: Détails d'un média
+      description: Retourne les métadonnées d'un média
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: media_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Média trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Media'
+        '404':
+          description: Média non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - Media
+      summary: Supprimer un média
+      description: Supprime un média et ses fichiers associés
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: media_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Média supprimé
+        '404':
+          description: Média non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ===========================================================================
+  # Export Endpoints
+  # ===========================================================================
+  
+  /export:
+    post:
+      tags:
+        - Export
+      summary: Lancer un export
+      description: Démarre un job d'export vidéo asynchrone
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+      responses:
+        '202':
+          description: Job d'export accepté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportResponse'
+        '400':
+          description: Paramètres invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /export/{job_id}/status:
+    get:
+      tags:
+        - Export
+      summary: Statut d'un export
+      description: Retourne le statut et la progression d'un job d'export
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Statut récupéré
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportStatus'
+        '404':
+          description: Job non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /export/{job_id}/download:
+    get:
+      tags:
+        - Export
+      summary: Télécharger l'export
+      description: Télécharge le fichier vidéo exporté
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Fichier à télécharger
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Export non terminé
+        '404':
+          description: Job non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ===========================================================================
+  # AI Endpoints
+  # ===========================================================================
+  
+  /ai/transcribe:
+    post:
+      tags:
+        - AI
+      summary: Transcription audio/vidéo
+      description: Transcrit le contenu audio d'un média en texte
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranscriptionRequest'
+      responses:
+        '202':
+          description: Job de transcription accepté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranscriptionResponse'
+        '400':
+          description: Paramètres invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /ai/translate:
+    post:
+      tags:
+        - AI
+      summary: Traduction de texte
+      description: Traduit un texte d'une langue vers une autre
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslationRequest'
+      responses:
+        '200':
+          description: Traduction effectuée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationResponse'
+        '400':
+          description: Paramètres invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /ai/tts:
+    post:
+      tags:
+        - AI
+      summary: Synthèse vocale
+      description: Convertit un texte en audio (voix synthétique)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TTSRequest'
+      responses:
+        '202':
+          description: Job TTS accepté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TTSResponse'
+        '400':
+          description: Texte trop long ou paramètres invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /ai/smart-crop:
+    post:
+      tags:
+        - AI
+      summary: Smart Crop intelligent
+      description: Recadre automatiquement une vidéo selon un ratio cible
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmartCropRequest'
+      responses:
+        '202':
+          description: Job Smart Crop accepté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartCropResponse'
+        '400':
+          description: Paramètres invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ===========================================================================
+  # Utilities Endpoints
+  # ===========================================================================
+  
+  /health:
+    get:
+      tags:
+        - Utilities
+      summary: Santé du service
+      description: Vérifie l'état de l'API et de ses dépendances
+      responses:
+        '200':
+          description: Service opérationnel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+  
+  /presets:
+    get:
+      tags:
+        - Utilities
+      summary: Liste des presets d'export
+      description: Retourne tous les presets d'export disponibles
+      responses:
+        '200':
+          description: Liste des presets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresetList'
+  
+  /aspect-ratios:
+    get:
+      tags:
+        - Utilities
+      summary: Liste des ratios d'aspect
+      description: Retourne tous les ratios d'aspect disponibles
+      responses:
+        '200':
+          description: Liste des ratios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AspectRatioList'
+
+# =============================================================================
+# Security
+# =============================================================================
+
+security:
+  - bearerAuth: []

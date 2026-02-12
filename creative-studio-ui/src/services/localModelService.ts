@@ -376,7 +376,7 @@ export class LocalModelService {
       }
 
       const data = await response.json();
-      return data.models?.map((m: any) => m.name) || [];
+      return data.models?.map((m: unknown) => m.name) || [];
     } catch (error) {
       console.error('Failed to get installed models:', error);
       return [];
@@ -667,3 +667,4 @@ export function getLocalModelService(endpoint?: string): LocalModelService {
   }
   return localModelServiceInstance;
 }
+

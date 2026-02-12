@@ -13,8 +13,8 @@ import { AddonConfig } from './AddonManager';
 const isNodeEnvironment = typeof window === 'undefined' && typeof process !== 'undefined';
 
 // Lazy loading des modules Node.js pour éviter les erreurs dans le browser
-let fs: any = null;
-let path: any = null;
+let fs: unknown = null;
+let path: unknown = null;
 
 if (isNodeEnvironment) {
   try {
@@ -74,7 +74,7 @@ export class FileSystemService {
             }
             
             return parsed.addons;
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Gestion des erreurs spécifiques
             if (error.code === 'ENOENT') {
                 // Fichier non trouvé - essayer localStorage
@@ -143,7 +143,7 @@ export class FileSystemService {
             await fs.writeFile(filePath, JSON.stringify(fullConfig, null, 2), 'utf-8');
             
             console.log(`[FileSystemService] Configuration sauvegardée dans ${filePath}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Gestion des erreurs de permissions
             if (error.code === 'EACCES' || error.code === 'EPERM') {
                 throw new Error(`Permission refusée pour écrire le fichier ${filePath}`);
@@ -176,7 +176,7 @@ export class FileSystemService {
             try {
                 await fs.mkdir(dirPath, { recursive: true });
                 console.log(`[FileSystemService] Répertoire créé: ${dirPath}`);
-            } catch (error: any) {
+            } catch (error: unknown) {
                 // Gestion des erreurs de permissions
                 if (error.code === 'EACCES' || error.code === 'EPERM') {
                     throw new Error(`Permission refusée pour créer le répertoire ${dirPath}`);
@@ -198,7 +198,7 @@ export class FileSystemService {
             // Sauvegarder dans localStorage
             localStorage.setItem('storycore_addon_config', JSON.stringify(config));
             console.log('[FileSystemService] Configuration synchronisée avec localStorage');
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Gestion des erreurs de quota dépassé
             if (error.name === 'QuotaExceededError') {
                 throw new Error('Quota de stockage local dépassé');
@@ -240,7 +240,7 @@ export class FileSystemService {
         try {
             await fs.unlink(filePath);
             console.log(`[FileSystemService] Fichier supprimé: ${filePath}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Gestion des erreurs spécifiques
             if (error.code === 'ENOENT') {
                 // Fichier non trouvé - pas une erreur critique
@@ -261,4 +261,6 @@ export class FileSystemService {
 
 // Export de l'instance singleton
 export const fileSystemService = FileSystemService.getInstance();
+
+
 

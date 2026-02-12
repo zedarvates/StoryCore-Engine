@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { PreviewPanel } from '../PreviewPanel';
 import { useStore } from '../../store';
 import type { Shot } from '../../types';
@@ -42,6 +42,11 @@ describe('PreviewPanel', () => {
       isPlaying: false,
       currentTime: 0,
     });
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
   });
 
   it('renders preview canvas', () => {

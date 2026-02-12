@@ -10,6 +10,7 @@ from .memory import MemoryCategoryHandler
 from .qa_narrative import QANarrativeCategoryHandler
 from .prompt import PromptCategoryHandler
 from .image import ImageCategoryHandler
+from .export_integration import ExportIntegrationCategoryHandler
 
 __all__ = [
     'NarrationCategoryHandler',
@@ -18,4 +19,5 @@ __all__ = [
     'QANarrativeCategoryHandler',
     'PromptCategoryHandler',
     'ImageCategoryHandler',
+    'ExportIntegrationCategoryHandler',
 ]

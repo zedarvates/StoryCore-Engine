@@ -23,7 +23,7 @@ const memoryStorage = new Map<string, string>();
  */
 export async function persistData(
   key: string,
-  data: any,
+  data: unknown,
   options: PersistenceOptions = {}
 ): Promise<boolean> {
   const {
@@ -171,3 +171,4 @@ export async function migrateMemoryToStorage(): Promise<number> {
 
   return migrated;
 }
+

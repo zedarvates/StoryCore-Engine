@@ -4,7 +4,7 @@ import { SequencePlan } from '@/types/sequencePlan';
 
 export interface SequenceGeneratorProps {
   sequencePlan: SequencePlan;
-  onGenerationComplete: (results: any) => void;
+  onGenerationComplete: (results: unknown) => void;
   onClose: () => void;
   className?: string;
 }

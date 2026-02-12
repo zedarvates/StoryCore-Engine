@@ -509,7 +509,7 @@ Generate the storyboard:`;
    * Build prompt from template and input data
    */
   // Using 'any' for input parameter to support flexible input data structures for different wizard types
-  buildPrompt(type: PromptTemplateType, input: Record<string, any>): string {
+  buildPrompt(type: PromptTemplateType, input: Record<string, unknown>): string {
     const template = this.getPromptTemplate(type);
     const inputStr = JSON.stringify(input, null, 2);
     return template.replace('{input}', inputStr);
@@ -520,7 +520,7 @@ Generate the storyboard:`;
    */
   async generateWithTemplate(
     type: PromptTemplateType,
-    input: Record<string, any>,
+    input: Record<string, unknown>,
     options?: OllamaGenerationOptions
   ): Promise<string> {
     const prompt = this.buildPrompt(type, input);
@@ -532,7 +532,7 @@ Generate the storyboard:`;
    */
   async generateWithTemplateStreaming(
     type: PromptTemplateType,
-    input: Record<string, any>,
+    input: Record<string, unknown>,
     onChunk: StreamCallback,
     options?: OllamaGenerationOptions
   ): Promise<string> {
@@ -545,7 +545,7 @@ Generate the storyboard:`;
    * Handles cases where the model returns JSON wrapped in markdown code blocks
    */
   // Using 'any' for return type to support parsing various JSON response structures
-  parseJSONResponse(response: string): any {
+  parseJSONResponse(response: string): unknown {
     // Try to parse directly first
     try {
       return JSON.parse(response);
@@ -731,3 +731,5 @@ export async function updateOllamaClientFromSettings(): Promise<void> {
     console.error('[OllamaClient] Failed to update from settings:', error);
   }
 }
+
+

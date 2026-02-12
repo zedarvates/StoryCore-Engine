@@ -1,0 +1,350 @@
+/**
+ * Video Editor Styles
+ * CapCut-style editor interface
+ */
+
+.video-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #1a1a1a;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.video-editor .toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #252525;
+  border-bottom: 1px solid #333;
+}
+
+.video-editor .toolbar-left,
+.video-editor .toolbar-center,
+.video-editor .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.video-editor .toolbar-btn {
+  padding: 6px 12px;
+  background: #333;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.video-editor .toolbar-btn:hover {
+  background: #444;
+}
+
+.video-editor .toolbar-btn.primary {
+  background: #007bff;
+}
+
+.video-editor .toolbar-btn.primary:hover {
+  background: #0056b3;
+}
+
+/* Main Content Area */
+.video-editor-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Panels */
+.editor-panel {
+  background: #1e1e1e;
+  border-right: 1px solid #333;
+  overflow-y: auto;
+}
+
+.editor-panel.left-panel {
+  width: 280px;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.editor-panel.right-panel {
+  width: 300px;
+  min-width: 250px;
+  max-width: 450px;
+  border-right: none;
+  border-left: 1px solid #333;
+}
+
+/* Preview Area */
+.preview-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a0a;
+  padding: 20px;
+}
+
+.preview-player {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.preview-player video {
+  max-width: 100%;
+  max-height: 60vh;
+  background: #000;
+  border-radius: 4px;
+}
+
+/* Timeline Area */
+.timeline-area {
+  height: 250px;
+  min-height: 200px;
+  background: #1a1a1a;
+  border-top: 1px solid #333;
+  overflow: hidden;
+}
+
+/* Status Bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  background: #252525;
+  border-top: 1px solid #333;
+  font-size: 12px;
+  color: #888;
+}
+
+.status-bar-left,
+.status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Loading State */
+.video-editor-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #333;
+  border-top-color: #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Dialogs */
+.video-editor .dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.video-editor .dialog {
+  background: #252525;
+  border-radius: 8px;
+  padding: 24px;
+  min-width: 400px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.video-editor .dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.video-editor .dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.video-editor .dialog-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.video-editor .dialog-close:hover {
+  color: #fff;
+}
+
+.video-editor .dialog-content {
+  margin-bottom: 16px;
+}
+
+.video-editor .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Form Elements */
+.video-editor .form-group {
+  margin-bottom: 16px;
+}
+
+.video-editor .form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.video-editor .form-input,
+.video-editor .form-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.video-editor .form-input:focus,
+.video-editor .form-select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.video-editor .form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.video-editor .form-row .form-group {
+  flex: 1;
+}
+
+/* Export Presets */
+.export-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.export-preset {
+  padding: 16px;
+  background: #333;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.export-preset:hover {
+  background: #3a3a3a;
+}
+
+.export-preset.selected {
+  border-color: #007bff;
+  background: #1a3a5c;
+}
+
+.export-preset-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.export-preset-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.export-preset-details {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* Progress Bar */
+.video-editor .progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.video-editor .progress-fill {
+  height: 100%;
+  background: #007bff;
+  transition: width 0.3s;
+}
+
+.video-editor .progress-text {
+  text-align: center;
+  font-size: 13px;
+  color: #aaa;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .editor-panel.left-panel {
+    width: 240px;
+  }
+  
+  .editor-panel.right-panel {
+    width: 260px;
+  }
+}
+
+@media (max-width: 992px) {
+  .video-editor-content {
+    flex-wrap: wrap;
+  }
+  
+  .editor-panel.left-panel,
+  .editor-panel.right-panel {
+    width: 100%;
+    max-width: none;
+    border: none;
+    border-bottom: 1px solid #333;
+  }
+  
+  .preview-area {
+    order: -1;
+    min-height: 300px;
+  }
+}
+

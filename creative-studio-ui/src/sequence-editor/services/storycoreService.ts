@@ -30,7 +30,7 @@ export interface ProjectData {
   shots: Array<{
     id: string;
     prompt: string;
-    parameters: Record<string, any>;
+    parameters: Record<string, unknown>;
     referenceImages: string[];
   }>;
   settings: {
@@ -310,3 +310,4 @@ export function validateProjectForGeneration(
     errors,
   };
 }
+

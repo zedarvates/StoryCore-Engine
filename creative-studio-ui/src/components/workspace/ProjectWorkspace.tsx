@@ -4,9 +4,11 @@
  * Main workspace view displaying project tools, status, and wizard launchers
  */
 
+import React, { useState } from 'react';
 import type { ProjectWorkspaceProps } from '../../types/configuration';
 import { useActiveProject } from '../../hooks/useConfigurationHooks';
 import { WizardLauncher } from '@/components/wizard/WizardLauncher';
+import { GhostTrackerWizard } from '@/components/wizard/GhostTrackerWizard';
 import { WIZARD_DEFINITIONS } from '../../data/wizardDefinitions';
 import { useAppStore } from '../../stores/useAppStore';
 import { useEditorStore } from '../../stores/editorStore';
@@ -19,7 +21,7 @@ export function ProjectWorkspace({
   projectId,
   projectName,
   onOpenSettings,
-}: ProjectWorkspaceProps) {
+}: Readonly<ProjectWorkspaceProps>) {
   const activeProject = useActiveProject();
   const openWizard = useAppStore((state) => state.openWizard);
   const setShowWorldWizard = useAppStore((state) => state.setShowWorldWizard);
@@ -40,8 +42,6 @@ export function ProjectWorkspace({
 
   // Handle wizard launch
   const handleLaunchWizard = (wizardId: string) => {
-    ;
-    
     // Get the closeActiveWizard function from store
     const closeActiveWizard = useAppStore.getState().closeActiveWizard;
     
@@ -80,6 +80,14 @@ export function ProjectWorkspace({
       case 'shot-planning':
         openSequencePlanWizard();
         break;
+      case 'ghost-tracker-wizard':
+        // Ghost Tracker Wizard is available via the Wizards section
+        toast({
+          title: 'Ghost Tracker Wizard',
+          description: 'Access the Ghost Tracker Wizard from the Wizards section.',
+          variant: 'default',
+        });
+        break;
       default:
         logger.warn(`Unknown wizard type: ${wizardId}`);
         toast({
@@ -102,7 +110,8 @@ export function ProjectWorkspace({
         return;
       }
 
-      if (!window.electronAPI?.openFolder) {
+      const electronAPI = window.electronAPI as typeof window.electronAPI;
+      if (!electronAPI?.app?.openFolder) {
         toast({
           title: 'File Explorer Not Available',
           description: 'File explorer integration is not available in this environment.',
@@ -111,7 +120,7 @@ export function ProjectWorkspace({
         return;
       }
 
-      await window.electronAPI.openFolder(projectPath);
+      await electronAPI.app.openFolder(projectPath);
     } catch (error) {
       logger.error('Failed to open project folder:', error);
       toast({
@@ -124,14 +133,12 @@ export function ProjectWorkspace({
 
   // Handle opening Grid Editor
   const handleOpenGridEditor = () => {
-    ;
     // Navigate to editor page with grid view
-    window.location.href = '/editor?view=grid';
+    globalThis.location.href = '/editor?view=grid';
   };
 
   // Handle analytics dashboard
   const handleOpenAnalytics = () => {
-    ;
     toast({
       title: 'Coming Soon',
       description: 'Analytics dashboard will be available in a future update.',
@@ -199,10 +206,10 @@ export function ProjectWorkspace({
 
       const link = document.createElement('a');
       link.href = URL.createObjectURL(dataBlob);
-      link.download = `${projectName.replace(/[^a-zA-Z0-9]/g, '_')}_export_${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `${projectName.replaceAll(/[^a-zA-Z0-9]/g, '_')}_export_${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
       URL.revokeObjectURL(link.href);
 
       toast({
@@ -222,7 +229,6 @@ export function ProjectWorkspace({
 
   // Handle settings navigation
   const handleOpenProjectSettings = () => {
-    ;
     onOpenSettings('api');
   };
 
@@ -391,6 +397,36 @@ export function ProjectWorkspace({
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export default ProjectWorkspace;
+
+// Ghost Tracker Wizard Modal
+function GhostTrackerWizardModal({ 
+  isOpen, 
+  onClose, 
+  projectPath 
+}: Readonly<{ 
+  isOpen: boolean; 
+  onClose: () => void; 
+  projectPath?: string;
+}>) {
+  return (
+    <div className={`ghost-tracker-modal ${isOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
+      <div 
+        className="ghost-tracker-modal-overlay" 
+        onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+        role="button"
+        tabIndex={0}
+        aria-label="Close modal"
+      />
+      <div className="ghost-tracker-modal-content">
+        <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+        <GhostTrackerWizard isOpen={isOpen} onClose={onClose} projectPath={projectPath} />
       </div>
     </div>
   );

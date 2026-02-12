@@ -72,7 +72,7 @@ export default defineConfig({
     // Bundle size warning threshold (500KB target)
     chunkSizeWarningLimit: 500,
     // CSS code splitting for better caching
-    cssCodeSplit: true,
+    cssCodeSplit: false,
     rollupOptions: {
       output: {
         // Optimize chunk naming for better caching
@@ -81,15 +81,31 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash].[ext]',
         // Manual chunks for code splitting
         manualChunks: {
-          // Vendor chunks
-          'react-vendor': ['react', 'react-dom'],
+          // Vendor chunks - React core
+          'react-vendor': ['react', 'react-dom', 'react-router', 'react-router-dom'],
+          // Radix UI components
           'radix-ui': [
             '@radix-ui/react-dialog',
             '@radix-ui/react-dropdown-menu',
             '@radix-ui/react-select',
             '@radix-ui/react-tabs',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-alert-dialog',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-progress',
+            '@radix-ui/react-separator',
+            '@radix-ui/react-slider',
+            '@radix-ui/react-switch',
+            '@radix-ui/react-toggle',
+            '@radix-ui/react-toggle-group',
           ],
-          // Feature chunks
+          // PDF and export libraries
+          'pdf-export': ['jspdf', 'html2canvas'],
+          // UI libraries
+          'ui-libs': ['@mui/material', '@emotion/react', '@emotion/styled'],
+          // State management
           'zustand-store': ['zustand'],
         },
       },
@@ -116,6 +132,8 @@ export default defineConfig({
       '@radix-ui/react-dialog',
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-select',
+      '@mui/material',
+      '@mui/icons-material',
     ],
     exclude: ['@vite/client', '@vite/env'],
   },

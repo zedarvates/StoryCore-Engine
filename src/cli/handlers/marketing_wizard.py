@@ -143,16 +143,16 @@ class MarketingWizardHandler(BaseHandler):
         print(f"🎨 Recommended viral strategy: {preview.get('recommended_strategy', 'educational').title()}")
         print(f"📱 Potential platforms: {', '.join(preview.get('potential_platforms', []))}")
 
-        print("
-💡 Campaign Preview:"        print(f"   • Thumbnails: YouTube, TikTok, Instagram optimized")
+        print("\n💡 Campaign Preview:")
+        print(f"   • Thumbnails: YouTube, TikTok, Instagram optimized")
         print(f"   • Descriptions: SEO-optimized for each platform")
         print(f"   • Social Posts: Platform-specific content with engagement hooks")
         print(f"   • Trailers: Main + short versions for different audiences")
         print(f"   • Hashtags: Curated strategy for viral reach")
         print(f"   • Posting Schedule: Optimal timing for maximum engagement")
 
-        print("
-🎯 Viral Potential Analysis:"        print(f"   • Content analysis based on project genre and style")
+        print("\n🎯 Viral Potential Analysis:")
+        print(f"   • Content analysis based on project genre and style")
         print(f"   • Platform algorithm optimization")
         print(f"   • Audience targeting recommendations")
         print(f"   • Performance tracking setup")

@@ -19,7 +19,7 @@ const CONFIG_VERSION = '1.0';
  * Generate unique ID for server
  */
 function generateServerId(): string {
-  return `server-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `server-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 }
 
 /**
@@ -185,7 +185,11 @@ export class ComfyUIServersService {
       const result = await testComfyUIConnection({
         serverUrl: server.serverUrl,
         authentication: server.authentication,
-        timeout: server.timeout,
+        performance: {
+          timeout: server.timeout ?? 300000,
+          batchSize: 1,
+          maxConcurrentJobs: 1,
+        },
       });
 
       if (result.success && result.serverInfo) {
@@ -330,7 +334,7 @@ export class ComfyUIServersService {
       const defaultServer: ComfyUIServer = {
         id: 'migrated-default',
         name: 'Default Server',
-        serverUrl: parsed.serverUrl || 'http://localhost:8188',
+        serverUrl: parsed.serverUrl || 'http://localhost:8000', // ComfyUI Desktop default port
         authentication: parsed.authentication || { type: 'none' },
         isActive: true,
         status: 'disconnected',

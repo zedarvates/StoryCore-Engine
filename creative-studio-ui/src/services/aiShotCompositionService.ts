@@ -263,7 +263,7 @@ class AIShotCompositionService extends EventEmitter {
    * Import composition
    */
   async importComposition(data: string, format: 'json' | 'xml' = 'json'): Promise<ShotComposition> {
-    let compositionData: any;
+    let compositionData: unknown;
 
     if (format === 'json') {
       compositionData = JSON.parse(data);
@@ -644,7 +644,7 @@ class AIShotCompositionService extends EventEmitter {
       const saved = localStorage.getItem('ai_shot_compositions');
       if (saved) {
         const compositions = JSON.parse(saved);
-        compositions.forEach((composition: any) => {
+        compositions.forEach((composition: unknown) => {
           this.compositions.set(composition.id, {
             ...composition,
             createdAt: new Date(composition.createdAt),
@@ -675,7 +675,7 @@ class AIShotCompositionService extends EventEmitter {
 </shot_composition>`;
   }
 
-  private parseXML(xml: string): any {
+  private parseXML(xml: string): unknown {
     throw new Error('XML parsing not implemented');
   }
 }
@@ -688,3 +688,5 @@ export type {
   ShotComposition, ShotCompositionResult, CameraSettings, ShotCompositionAlternative,
   ShotCompositionConfig, CompositionAnalysis 
 };
+
+

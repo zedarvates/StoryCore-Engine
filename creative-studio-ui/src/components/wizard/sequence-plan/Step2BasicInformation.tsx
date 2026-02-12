@@ -37,7 +37,7 @@ export function Step2BasicInformation({
     setWorlds(mockWorlds);
   }, []);
 
-  const handleInputChange = (field: keyof SequencePlan, value: any) => {
+  const handleInputChange = (field: keyof SequencePlan, value: unknown) => {
     onChange({ [field]: value });
   };
 
@@ -379,3 +379,4 @@ export function Step2BasicInformation({
     </div>
   );
 }
+

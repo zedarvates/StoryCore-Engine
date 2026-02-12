@@ -1,0 +1,214 @@
+/**
+ * Camera Movement Selector Styles
+ */
+
+.camera-movement-selector {
+  --movement-bg: #1a1a2e;
+  --movement-bg-hover: #16213e;
+  --movement-border: #0f3460;
+  --movement-selected: #e94560;
+  --movement-text: #eaeaea;
+  --movement-muted: #888;
+  
+  background: var(--movement-bg);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--movement-border);
+}
+
+.movement-details {
+  background: rgba(233, 69, 96, 0.1);
+  border: 1px solid var(--movement-selected);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.movement-details-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.movement-details .movement-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  background: var(--movement-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--movement-selected);
+}
+
+.movement-details .movement-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.movement-details .movement-info h4 {
+  margin: 0 0 4px 0;
+  color: var(--movement-text);
+  font-size: 16px;
+}
+
+.movement-details .movement-info p {
+  margin: 0;
+  color: var(--movement-muted);
+  font-size: 13px;
+}
+
+.movement-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.movement-meta span {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--movement-text);
+}
+
+.movement-meta .speed.slow {
+  color: #4ecdc4;
+}
+
+.movement-meta .speed.medium {
+  color: #ffe66d;
+}
+
+.movement-meta .speed.fast {
+  color: #ff6b6b;
+}
+
+.movement-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.movement-category {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.category-title {
+  margin: 0 0 8px 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--movement-muted);
+}
+
+.category-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.movement-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--movement-bg);
+  border: 1px solid var(--movement-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 70px;
+}
+
+.movement-button:hover:not(:disabled) {
+  background: var(--movement-bg-hover);
+  border-color: var(--movement-selected);
+}
+
+.movement-button.selected {
+  background: rgba(233, 69, 96, 0.2);
+  border-color: var(--movement-selected);
+}
+
+.movement-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.movement-button .movement-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--movement-text);
+}
+
+.movement-button .movement-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.movement-button .movement-name {
+  font-size: 10px;
+  color: var(--movement-muted);
+  text-align: center;
+}
+
+.movement-button.selected .movement-name {
+  color: var(--movement-selected);
+}
+
+.movement-button.complex .movement-icon {
+  color: #aa96da;
+}
+
+.movement-button.moderate .movement-icon {
+  color: #f38181;
+}
+
+.movement-button.simple .movement-icon {
+  color: #95e1d3;
+}
+
+/* Compact Select Style */
+.camera-movement-select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--movement-bg);
+  border: 1px solid var(--movement-border);
+  border-radius: 8px;
+  color: var(--movement-text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.camera-movement-select:focus {
+  outline: none;
+  border-color: var(--movement-selected);
+}
+
+.camera-movement-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .camera-movement-selector {
+    padding: 12px;
+  }
+  
+  .category-items {
+    justify-content: center;
+  }
+  
+  .movement-button {
+    min-width: 60px;
+    padding: 6px 8px;
+  }
+}
+

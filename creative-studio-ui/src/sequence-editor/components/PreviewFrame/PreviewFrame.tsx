@@ -443,7 +443,7 @@ export const PreviewFrame: React.FC = () => {
   }, []);
   
   // Handle puppet update from 3D scene
-  const handlePuppetUpdate = useCallback((puppetData: any) => {
+  const handlePuppetUpdate = useCallback((puppetData: unknown) => {
     // TODO: Update shot configuration with puppet data
     console.log('Puppet updated:', puppetData);
   }, []);
@@ -622,4 +622,5 @@ export const PreviewFrame: React.FC = () => {
 };
 
 export default PreviewFrame;
+
 

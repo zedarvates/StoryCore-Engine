@@ -239,7 +239,7 @@ export class AudioProductionManager {
   /**
    * Validate audio project state
    */
-  private isValidAudioProjectState(state: any): state is AudioProjectState {
+  private isValidAudioProjectState(state: unknown): state is AudioProjectState {
     return (
       state &&
       typeof state === 'object' &&

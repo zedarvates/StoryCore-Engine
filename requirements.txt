@@ -65,3 +65,26 @@ psutil>=5.9.0
 # 3D rendering dependencies
 panda3d>=1.10.10
 PyOpenGL>=3.1.6
+
+# ============================================
+# Adobe Premiere Integration Dependencies
+# Added for Media Intelligence, Audio Remix, and Transcription features
+# ============================================
+
+# Vector Database for Semantic Search
+chromadb>=0.4.0
+
+# Sentence Transformers for Embeddings
+sentence-transformers>=2.2.0
+
+# Audio Analysis and Processing
+librosa>=0.10.0
+soundfile>=0.12.0
+audioread>=3.0.0
+
+# Speech Recognition (Whisper)
+openai-whisper>=2023110
+
+# Progress Bars
+tqdm>=4.66.0
+

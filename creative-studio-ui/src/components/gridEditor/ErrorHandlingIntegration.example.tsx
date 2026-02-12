@@ -193,7 +193,7 @@ export const ErrorHandlingPatterns: React.FC = () => {
   };
 
   // Pattern 2: Validation with Warning
-  const patternValidation = (value: any) => {
+  const patternValidation = (value: unknown) => {
     if (!value) {
       notifyValidationWarning('Input field', 'Value is required');
       return false;
@@ -319,7 +319,7 @@ export const GridEditorWithCustomFallback: React.FC = () => {
  * Error monitoring service integration
  */
 const errorMonitoringService = {
-  captureError: (error: Error, context?: any) => {
+  captureError: (error: Error, context?: unknown) => {
     // Send to Sentry, LogRocket, etc.
     ;
   },
@@ -361,3 +361,5 @@ export const App: React.FC = () => {
 };
 
 export default CompleteGridEditor;
+
+

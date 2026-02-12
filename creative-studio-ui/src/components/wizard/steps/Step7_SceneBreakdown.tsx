@@ -13,10 +13,10 @@ import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
-  SelectItem,
+  SelectItemWithDescription,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select-rich';
 import {
   Dialog,
   DialogContent,
@@ -592,9 +592,12 @@ export function Step7_SceneBreakdown({
                   </SelectTrigger>
                   <SelectContent className="z-[9999]">
                     {TIME_OF_DAY_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.icon} {option.label}
-                      </SelectItem>
+                      <SelectItemWithDescription
+                        key={option.value}
+                        value={option.value}
+                        label={option.label}
+                        icon={option.icon}
+                      />
                     ))}
                   </SelectContent>
                 </Select>

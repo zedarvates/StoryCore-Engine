@@ -171,7 +171,7 @@ export interface LanguageContextValue {
   setLanguage: (code: string) => void;
   
   /** Translation function for internationalization */
-  t: (key: string, params?: Record<string, any>) => string;
+  t: (key: string, params?: Record<string, unknown>) => string;
 }
 
 /**
@@ -190,7 +190,7 @@ interface LanguageProviderProps {
 /**
  * Simple translation function that doesn't require I18nProvider
  */
-function simpleTranslate(key: string, params?: Record<string, any>): string {
+function simpleTranslate(key: string, params?: Record<string, unknown>): string {
   const translations = TRANSLATIONS.en; // Default to English
   let text = translations[key] || key;
   
@@ -303,7 +303,7 @@ export function LanguageProvider({ children }: LanguageProviderProps): React.Rea
    * @param params - Optional parameters for string interpolation
    * @returns Translated string or the key itself if translation not found
    */
-  const t = useCallback((key: string, params?: Record<string, any>): string => {
+  const t = useCallback((key: string, params?: Record<string, unknown>): string => {
     return simpleTranslate(key, params);
   }, []);
 
@@ -361,4 +361,5 @@ export function useLanguage(): LanguageContextValue {
  * Export the context for advanced use cases
  */
 export { LanguageContext };
+
 

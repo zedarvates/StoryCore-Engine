@@ -175,7 +175,7 @@ export class MCPServerManager {
   private recordOperation(
     type: MCPServerOperation['type'],
     description: string,
-    details?: any
+    details?: unknown
   ): void {
     const operation: MCPServerOperation = {
       id: crypto.randomUUID(),
@@ -196,7 +196,7 @@ export class MCPServerManager {
   /**
    * Validate MCP server state
    */
-  private isValidMCPServerState(state: any): state is MCPServerState {
+  private isValidMCPServerState(state: unknown): state is MCPServerState {
     return (
       state &&
       typeof state === 'object' &&
@@ -257,3 +257,4 @@ export class MCPServerManager {
     return { status: 'healthy', message: 'Server is running normally' };
   }
 }
+

@@ -1,7 +1,75 @@
 /**
- * Sequence Service
- * Handles sequence operations with automatic fallback between Electron and Web API
+ * Sequence Service - Frontend API for Sequence Generation
+ * Handles communication with StoryCore-Engine backend for sequence generation
  */
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
+export interface SequenceGenerationRequest {
+  project_id: string;
+  prompt: string;
+  shot_count: number;
+  style?: string;
+  mood?: string;
+  characters?: string[];
+  settings?: Record<string, unknown>;
+}
+
+export type GenerationStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+
+export interface GenerationJobResponse {
+  job_id: string;
+  status: GenerationStatus;
+  progress: number;
+  current_step?: string;
+  estimated_time_remaining?: number;
+  result?: SequenceResult;
+  error?: string;
+}
+
+export interface SequenceResult {
+  id: string;
+  project_id: string;
+  name: string;
+  description?: string;
+  shots: ShotResult[];
+  total_duration: number;
+  prompt: string;
+  style?: string;
+  mood?: string;
+  created_at: string;
+}
+
+export interface ShotResult {
+  id: string;
+  order_index: number;
+  name: string;
+  prompt: string;
+  duration_seconds: number;
+  shot_type: string;
+}
+
+export interface JobListResponse {
+  jobs: JobSummary[];
+  total: number;
+}
+
+export interface JobSummary {
+  job_id: string;
+  project_id: string;
+  status: GenerationStatus;
+  progress: number;
+  created_at: string;
+}
+
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
 
 export interface SequenceData {
   id: string;
@@ -15,315 +83,202 @@ export interface SequenceData {
   updated_at?: string;
 }
 
-export interface SequenceListResponse {
-  sequences: SequenceData[];
-  total: number;
-}
+export class SequenceService {
+  private authToken = '';
 
-class SequenceService {
-  private baseUrl: string;
-
-  constructor() {
-    // Use environment variable or default to localhost
-    this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  setAuthToken(token: string) {
+    this.authToken = token;
   }
 
-  /**
-   * Check if Electron API is available
-   */
+  private getHeaders(): Record<string, string> {
+    return this.authToken ? { 'Authorization': `Bearer ${this.authToken}` } : {};
+  }
+
   private isElectronAvailable(): boolean {
-    return !!(window as any).electronAPI?.fs?.readdir;
+    return !!(window as any).electronAPI?.fs;
   }
 
-  /**
-   * Load sequences from files using Electron API
-   */
-  private async loadSequencesElectron(sequencesDir: string): Promise<SequenceData[]> {
-    const electronAPI = (window as any).electronAPI;
-    
-    if (!electronAPI?.fs?.readdir) {
-      throw new Error('Electron file system API not available');
-    }
-
-    const files = await electronAPI.fs.readdir(sequencesDir);
-    const sequenceFiles = files.filter((file: string) => 
-      file.startsWith('sequence_') && file.endsWith('.json')
-    );
-
-    const loadedSequences: SequenceData[] = [];
-
-    for (const fileName of sequenceFiles) {
+  async loadSequences(projectPath: string): Promise<SequenceData[]> {
+    if (this.isElectronAvailable()) {
+      const electronFs = (window as any).electronAPI.fs;
+      const sequencesDir = `${projectPath}/sequences`;
       try {
-        const filePath = `${sequencesDir}/${fileName}`;
-
-        if (!electronAPI?.fs?.readFile) {
-          console.warn('[SequenceService] readFile API not available, skipping file:', fileName);
-          continue;
-        }
-
-        const buffer = await electronAPI.fs.readFile(filePath);
-        const decoder = new TextDecoder();
-        const jsonString = decoder.decode(buffer);
-        const sequenceData = JSON.parse(jsonString);
-
-        // Ensure shot_ids is an array
-        if (!sequenceData.shot_ids || !Array.isArray(sequenceData.shot_ids)) {
-          sequenceData.shot_ids = [];
-        }
-
-        loadedSequences.push(sequenceData);
-      } catch (fileError) {
-        console.error(`Failed to load sequence file ${fileName}:`, fileError);
-      }
-    }
-
-    // Sort by order
-    loadedSequences.sort((a, b) => a.order - b.order);
-
-    return loadedSequences;
-  }
-
-  /**
-   * Load sequences from web API
-   */
-  private async loadSequencesWeb(projectPath: string): Promise<SequenceData[]> {
-    try {
-      // Encode project path for URL
-      const encodedPath = encodeURIComponent(projectPath);
-      const response = await fetch(`${this.baseUrl}/api/sequences/${encodedPath}/list`, {
-        signal: AbortSignal.timeout(5000) // 5 second timeout
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to load sequences: ${response.statusText}`);
-      }
-
-      const data: SequenceListResponse = await response.json();
-      return data.sequences;
-    } catch (error) {
-      // If the backend API is not available, return empty array instead of throwing
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        console.warn('[SequenceService] Backend API not available, returning empty sequences list');
+        const files = await electronFs.readdir(sequencesDir);
+        const sequenceFiles = files.filter((f: string) => f.startsWith('sequence_') && f.endsWith('.json'));
+        const sequences = await Promise.all(
+          sequenceFiles.map(async (file: string) => {
+            const content = await electronFs.readFile(`${sequencesDir}/${file}`);
+            const data = JSON.parse(new TextDecoder().decode(content));
+            return {
+              ...data,
+              shot_ids: data.shot_ids || []
+            } as SequenceData;
+          })
+        );
+        return sequences.sort((a, b) => (a.order || 0) - (b.order || 0));
+      } catch (error) {
+        console.error('Failed to load sequences via Electron:', error);
         return [];
       }
-      throw error;
+    } else {
+      // Fallback to Web API
+      const result = await apiRequest<{ sequences: SequenceData[] }>(`/sequences?project_path=${encodeURIComponent(projectPath)}`, {
+        headers: this.getHeaders()
+      });
+      return result.sequences || [];
     }
   }
 
-  /**
-   * Load all sequences for a project
-   * Automatically uses Electron API if available, otherwise falls back to web API
-   */
-  async loadSequences(projectPath: string): Promise<SequenceData[]> {
-    try {
-      if (this.isElectronAvailable()) {
-        console.log('[SequenceService] Using Electron API');
-        const sequencesDir = `${projectPath}/sequences`;
-        return await this.loadSequencesElectron(sequencesDir);
-      } else {
-        console.log('[SequenceService] Using Web API (backend server required)');
-        return await this.loadSequencesWeb(projectPath);
-      }
-    } catch (error) {
-      console.error('[SequenceService] Failed to load sequences:', error);
-      // Return empty array instead of throwing to allow the app to continue
-      return [];
-    }
-  }
-
-  /**
-   * Get a specific sequence by ID
-   */
   async getSequence(projectPath: string, sequenceId: string): Promise<SequenceData | null> {
-    try {
-      if (this.isElectronAvailable()) {
-        const sequences = await this.loadSequences(projectPath);
-        return sequences.find(s => s.id === sequenceId) || null;
-      } else {
-        const encodedPath = encodeURIComponent(projectPath);
-        const response = await fetch(`${this.baseUrl}/api/sequences/${encodedPath}/${sequenceId}`);
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            return null;
-          }
-          throw new Error(`Failed to get sequence: ${response.statusText}`);
-        }
-
-        return await response.json();
-      }
-    } catch (error) {
-      console.error('[SequenceService] Failed to get sequence:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Update a sequence
-   */
-  async updateSequence(
-    projectPath: string,
-    sequenceId: string,
-    sequenceData: SequenceData
-  ): Promise<SequenceData> {
-    try {
-      if (this.isElectronAvailable()) {
-        // Use Electron API
-        const electronAPI = (window as any).electronAPI;
-        const sequencesDir = `${projectPath}/sequences`;
-        
-        // Ensure directory exists
-        if (electronAPI?.fs?.mkdir) {
-          await electronAPI.fs.mkdir(sequencesDir, { recursive: true });
-        }
-
-        // Update timestamp
-        sequenceData.updated_at = new Date().toISOString();
-
-        // Save to file
-        const fileName = `sequence_${sequenceId.padStart(3, '0')}.json`;
-        const filePath = `${sequencesDir}/${fileName}`;
-        const jsonString = JSON.stringify(sequenceData, null, 2);
-
-        if (electronAPI?.fs?.writeFile) {
-          const encoder = new TextEncoder();
-          const dataBuffer = Buffer.from(encoder.encode(jsonString));
-          await electronAPI.fs.writeFile(filePath, dataBuffer);
-        }
-
-        return sequenceData;
-      } else {
-        // Use Web API
-        const encodedPath = encodeURIComponent(projectPath);
-        const response = await fetch(
-          `${this.baseUrl}/api/sequences/${encodedPath}/${sequenceId}`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(sequenceData),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to update sequence: ${response.statusText}`);
-        }
-
-        return await response.json();
-      }
-    } catch (error) {
-      console.error('[SequenceService] Failed to update sequence:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Create a new sequence
-   */
-  async createSequence(projectPath: string, sequenceData: SequenceData): Promise<SequenceData> {
-    try {
-      if (this.isElectronAvailable()) {
-        // Use Electron API
-        const electronAPI = (window as any).electronAPI;
-        const sequencesDir = `${projectPath}/sequences`;
-        
-        // Ensure directory exists
-        if (electronAPI?.fs?.mkdir) {
-          await electronAPI.fs.mkdir(sequencesDir, { recursive: true });
-        }
-
-        // Set timestamps
-        const now = new Date().toISOString();
-        sequenceData.created_at = now;
-        sequenceData.updated_at = now;
-
-        // Save to file
-        const fileName = `sequence_${sequenceData.id.padStart(3, '0')}.json`;
-        const filePath = `${sequencesDir}/${fileName}`;
-        const jsonString = JSON.stringify(sequenceData, null, 2);
-
-        if (electronAPI?.fs?.writeFile) {
-          const encoder = new TextEncoder();
-          const dataBuffer = Buffer.from(encoder.encode(jsonString));
-          await electronAPI.fs.writeFile(filePath, dataBuffer);
-        }
-
-        return sequenceData;
-      } else {
-        // Use Web API
-        const encodedPath = encodeURIComponent(projectPath);
-        const response = await fetch(`${this.baseUrl}/api/sequences/${encodedPath}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(sequenceData),
+    if (this.isElectronAvailable()) {
+      const sequences = await this.loadSequences(projectPath);
+      return sequences.find(s => s.id === sequenceId) || null;
+    } else {
+      try {
+        return await apiRequest<SequenceData>(`/sequences/${sequenceId}?project_path=${encodeURIComponent(projectPath)}`, {
+          headers: this.getHeaders()
         });
-
-        if (!response.ok) {
-          throw new Error(`Failed to create sequence: ${response.statusText}`);
-        }
-
-        return await response.json();
+      } catch (error) {
+        return null;
       }
-    } catch (error) {
-      console.error('[SequenceService] Failed to create sequence:', error);
-      throw error;
     }
   }
 
-  /**
-   * Delete a sequence
-   */
-  async deleteSequence(projectPath: string, sequenceId: string): Promise<void> {
-    try {
-      if (this.isElectronAvailable()) {
-        // Use Electron API
-        const electronAPI = (window as any).electronAPI;
-        const sequencesDir = `${projectPath}/sequences`;
-
-        // Find and delete the sequence file
-        const files = await electronAPI.fs.readdir(sequencesDir);
-        
-        for (const fileName of files) {
-          if (fileName.startsWith('sequence_') && fileName.endsWith('.json')) {
-            const filePath = `${sequencesDir}/${fileName}`;
-            const buffer = await electronAPI.fs.readFile(filePath);
-            const decoder = new TextDecoder();
-            const jsonString = decoder.decode(buffer);
-            const sequenceData = JSON.parse(jsonString);
-
-            if (sequenceData.id === sequenceId) {
-              if ((electronAPI.fs as any)?.unlink) {
-                await (electronAPI.fs as any).unlink(filePath);
-              }
-              return;
-            }
-          }
-        }
-
-        throw new Error(`Sequence ${sequenceId} not found`);
-      } else {
-        // Use Web API
-        const encodedPath = encodeURIComponent(projectPath);
-        const response = await fetch(
-          `${this.baseUrl}/api/sequences/${encodedPath}/${sequenceId}`,
-          {
-            method: 'DELETE',
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to delete sequence: ${response.statusText}`);
-        }
-      }
-    } catch (error) {
-      console.error('[SequenceService] Failed to delete sequence:', error);
-      throw error;
+  async createSequence(projectPath: string, sequence: SequenceData): Promise<SequenceData> {
+    if (this.isElectronAvailable()) {
+      const electronFs = (window as any).electronAPI.fs;
+      const sequencesDir = `${projectPath}/sequences`;
+      const fileName = `sequence_${sequence.id.substring(0, 8)}.json`;
+      const data = { ...sequence, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      await electronFs.writeFile(`${sequencesDir}/${fileName}`, JSON.stringify(data, null, 2));
+      return data;
+    } else {
+      return await apiRequest<SequenceData>(`/sequences?project_path=${encodeURIComponent(projectPath)}`, {
+        method: 'POST',
+        body: JSON.stringify(sequence),
+        headers: this.getHeaders()
+      });
     }
+  }
+
+  async updateSequence(projectPath: string, sequenceId: string, updates: Partial<SequenceData>): Promise<SequenceData> {
+    if (this.isElectronAvailable()) {
+      const sequence = await this.getSequence(projectPath, sequenceId);
+      if (!sequence) throw new Error(`Sequence ${sequenceId} not found`);
+
+      const updated = { ...sequence, ...updates, updated_at: new Date().toISOString() };
+      const electronFs = (window as any).electronAPI.fs;
+      const fileName = `sequence_${sequenceId.substring(0, 8)}.json`;
+      await electronFs.writeFile(`${projectPath}/sequences/${fileName}`, JSON.stringify(updated, null, 2));
+      return updated;
+    } else {
+      return await apiRequest<SequenceData>(`/sequences/${sequenceId}?project_path=${encodeURIComponent(projectPath)}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+        headers: this.getHeaders()
+      });
+    }
+  }
+
+  async deleteSequence(projectPath: string, sequenceId: string): Promise<void> {
+    if (this.isElectronAvailable()) {
+      // Ideally we find the specific file
+      const electronFs = (window as any).electronAPI.fs;
+      const fileName = `sequence_${sequenceId.substring(0, 8)}.json`;
+      // Note: electronAPI.fs might need a delete method if it exists
+      if (electronFs.removeFile) {
+        await electronFs.removeFile(`${projectPath}/sequences/${fileName}`);
+      }
+    } else {
+      await apiRequest(`/sequences/${sequenceId}?project_path=${encodeURIComponent(projectPath)}`, {
+        method: 'DELETE',
+        headers: this.getHeaders()
+      });
+    }
+  }
+
+  async generateSequence(req: SequenceGenerationRequest) {
+    return apiRequest<GenerationJobResponse>('/sequences/generate', {
+      method: 'POST',
+      body: JSON.stringify(req),
+      headers: this.getHeaders()
+    });
+  }
+
+  async getJobStatus(jobId: string) {
+    return apiRequest<GenerationJobResponse>(`/sequences/${jobId}/status`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  async getResult(jobId: string) {
+    return apiRequest<SequenceResult>(`/sequences/${jobId}/result`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  async cancelJob(jobId: string) {
+    return apiRequest<GenerationJobResponse>(`/sequences/${jobId}/cancel`, {
+      method: 'POST',
+      headers: this.getHeaders()
+    });
+  }
+
+  async listJobs(projectId?: string) {
+    const params = projectId ? `?project_id=${projectId}` : '';
+    return apiRequest<JobListResponse>(`/sequences${params}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  streamProgress(
+    jobId: string,
+    onProgress: (data: GenerationJobResponse) => void,
+    onComplete?: (data: GenerationJobResponse) => void,
+    onError?: (error: string) => void
+  ) {
+    const eventSource = new EventSource(`${API_BASE}/sequences/${jobId}/stream`);
+
+    eventSource.onmessage = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (['completed', 'failed', 'cancelled'].includes(data.status)) {
+          if (onComplete) onComplete(data);
+          eventSource.close();
+        } else {
+          onProgress(data);
+        }
+      } catch (e) {
+        console.error('Failed to parse SSE data:', e);
+      }
+    };
+
+    eventSource.onerror = () => {
+      if (onError) onError('Connection failed');
+      eventSource.close();
+    };
+
+    return () => eventSource.close();
+  }
+
+  async waitForCompletion(
+    jobId: string,
+    onProgress?: (status: GenerationJobResponse) => void,
+    maxWaitMs = 300000,
+    pollMs = 1000
+  ): Promise<SequenceResult> {
+    const start = Date.now();
+    while (Date.now() - start < maxWaitMs) {
+      const status = await this.getJobStatus(jobId);
+      if (onProgress) onProgress(status);
+      if (status.status === 'completed' && status.result) return status.result;
+      if (status.status === 'failed') throw new Error(status.error || 'Generation failed');
+      if (status.status === 'cancelled') throw new Error('Cancelled');
+      await new Promise(r => setTimeout(r, pollMs));
+    }
+    throw new Error('Timeout waiting for completion');
   }
 }
 
-// Export singleton instance
 export const sequenceService = new SequenceService();
+

@@ -6,4 +6,7 @@
 
 export { TipsSection } from './TipsSection';
 export { PlanSequencesSection } from './PlanSequencesSection';
+export { StoryPartCard } from './StoryPartCard';
+export { StoryPartsSection } from './StoryPartsSection';
+export { VaultGallery } from './VaultGallery';
 

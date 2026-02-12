@@ -164,7 +164,7 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
   /**
    * Validate configuration
    */
-  const validateConfiguration = useCallback((config: any): ValidationResult => {
+  const validateConfiguration = useCallback((config: unknown): ValidationResult => {
     return validateProjectConfiguration(config);
   }, []);
 
@@ -290,3 +290,4 @@ export function useConfiguration(): ConfigurationContextValue {
   
   return context;
 }
+

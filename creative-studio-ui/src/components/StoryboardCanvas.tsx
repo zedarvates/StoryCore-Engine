@@ -284,8 +284,9 @@ const ShotCard: React.FC<ShotCardProps> = ({ shot, index, isSelected, onClick, o
         onClick={handleDelete}
         className="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100"
         title="Delete shot"
+        aria-label="Supprimer le plan"
       >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"

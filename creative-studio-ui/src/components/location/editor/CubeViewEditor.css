@@ -1,0 +1,265 @@
+/**
+ * CubeViewEditor Styles
+ * 
+ * CSS styles for the CubeViewEditor component.
+ * 
+ * File: creative-studio-ui/src/components/location/editor/CubeViewEditor.css
+ */
+
+/* Container */
+.cube-view-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header */
+.cube-view-editor__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cube-view-editor__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.cube-view-editor__title h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Direction Toggle */
+.cube-view-editor__direction-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cube-view-editor__direction-label {
+  font-size: 14px;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.cube-view-editor__direction-btn {
+  padding: 8px 16px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cube-view-editor__direction-btn:hover {
+  border-color: var(--primary-color, #6366f1);
+}
+
+.cube-view-editor__direction-btn--active {
+  background: var(--primary-color, #6366f1);
+  border-color: var(--primary-color, #6366f1);
+  color: white;
+}
+
+/* Progress */
+.cube-view-editor__progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cube-view-editor__progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-tertiary, #333);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cube-view-editor__progress-fill {
+  height: 100%;
+  background: var(--primary-color, #6366f1);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.cube-view-editor__progress-text {
+  font-size: 13px;
+  color: var(--text-muted, #666);
+  white-space: nowrap;
+}
+
+/* 6-Panel Grid */
+.cube-view-editor__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .cube-view-editor__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .cube-view-editor__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Face Panel */
+.cube-view-editor__face {
+  background: var(--bg-secondary, #2a2a2a);
+  border: 2px solid var(--border-color, #333);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.cube-view-editor__face:hover {
+  border-color: var(--primary-color, #6366f1);
+}
+
+.cube-view-editor__face--generated {
+  border-color: var(--success-color, #22c55e);
+}
+
+.cube-view-editor__face--editing {
+  border-color: var(--primary-color, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+/* Face Header */
+.cube-view-editor__face-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--bg-tertiary, #333);
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.cube-view-editor__face-icon {
+  color: var(--primary-color, #6366f1);
+}
+
+.cube-view-editor__face-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #e5e5e5);
+}
+
+/* Face Preview */
+.cube-view-editor__face-preview {
+  aspect-ratio: 1;
+  background: var(--bg-primary, #1a1a1a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cube-view-editor__face-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cube-view-editor__face-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted, #666);
+  font-size: 13px;
+}
+
+/* Face Actions */
+.cube-view-editor__face-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border-color, #333);
+}
+
+.cube-view-editor__face-action {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.cube-view-editor__face-action--generate {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.cube-view-editor__face-action--generate:hover {
+  background: var(--primary-hover, #4f46e5);
+}
+
+.cube-view-editor__face-action--view {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.cube-view-editor__face-action--view:hover {
+  background: #444;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.cube-view-editor__face-action--regenerate {
+  background: var(--bg-tertiary, #333);
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.cube-view-editor__face-action--regenerate:hover {
+  background: #444;
+  color: var(--primary-color, #6366f1);
+}
+
+/* Face Meta */
+.cube-view-editor__face-meta {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text-muted, #666);
+  text-align: center;
+  background: var(--bg-tertiary, #333);
+}
+
+/* Modal */
+.cube-view-editor__modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.cube-view-editor__modal {
+  background: var(--card-bg, #1e1e1e);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}

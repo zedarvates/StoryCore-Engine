@@ -270,7 +270,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
         border border-border
         rounded-md shadow-lg
         py-1
-        z-50
+        z-[200]
         transition-all duration-150 ease-in-out
         origin-top
         ${position === 'left' ? 'left-0' : 'right-0'}

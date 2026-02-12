@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
+import { useToast } from '@/hooks/use-toast';
 
 /**
  * Global Keyboard Shortcuts Hook
@@ -8,10 +9,15 @@ import { useAppStore } from '@/stores/useAppStore';
  * - Ctrl/Cmd + Shift + P: Open Sequence Plan Wizard
  * - Ctrl/Cmd + Shift + S: Open Shot Wizard
  * - Ctrl/Cmd + Shift + Q: Open Quick Shot Wizard
+ * 
+ * Features:
+ * - Visual toast feedback when shortcuts are triggered
+ * - Ignores shortcuts when user is typing in input fields
  */
 export function useGlobalKeyboardShortcuts() {
   const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
   const openShotWizard = useAppStore((state) => state.openShotWizard);
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -32,6 +38,13 @@ export function useGlobalKeyboardShortcuts() {
       if (isModifierPressed && event.shiftKey && event.key === 'P') {
         event.preventDefault();
         openSequencePlanWizard({ mode: 'create', sourceLocation: 'editor' });
+        
+        // Visual feedback
+        toast({
+          title: 'Sequence Plan Wizard',
+          description: 'Opening sequence plan wizard...',
+          duration: 2000,
+        });
         return;
       }
 
@@ -39,6 +52,13 @@ export function useGlobalKeyboardShortcuts() {
       if (isModifierPressed && event.shiftKey && event.key === 'S') {
         event.preventDefault();
         openShotWizard({ mode: 'create', sourceLocation: 'storyboard' });
+        
+        // Visual feedback
+        toast({
+          title: 'Shot Wizard',
+          description: 'Opening shot wizard...',
+          duration: 2000,
+        });
         return;
       }
 
@@ -46,6 +66,13 @@ export function useGlobalKeyboardShortcuts() {
       if (isModifierPressed && event.shiftKey && event.key === 'Q') {
         event.preventDefault();
         openShotWizard({ mode: 'create', quickMode: true, sourceLocation: 'storyboard' });
+        
+        // Visual feedback
+        toast({
+          title: 'Quick Shot Wizard',
+          description: 'Opening quick shot wizard...',
+          duration: 2000,
+        });
         return;
       }
     };
@@ -57,5 +84,5 @@ export function useGlobalKeyboardShortcuts() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [openSequencePlanWizard, openShotWizard]);
+  }, [openSequencePlanWizard, openShotWizard, toast]);
 }

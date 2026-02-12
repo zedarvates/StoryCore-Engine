@@ -68,7 +68,7 @@ function saveToLocalStorage(state: RootState): void {
 /**
  * Load project state from localStorage
  */
-export function loadFromLocalStorage(): any | null {
+export function loadFromLocalStorage(): unknown | null {
   try {
     const saved = localStorage.getItem('sequence-editor-project');
     if (saved) {
@@ -154,7 +154,7 @@ export const autoSaveMiddleware: Middleware<{}, RootState> = (store) => {
   // Start the auto-save timer
   startAutoSaveTimer();
   
-  return (next) => (action: any) => {
+  return (next) => (action: unknown) => {
     // Skip save-related actions to prevent loops
     if (
       action.type === 'project/setSaveStatus' ||
@@ -189,3 +189,5 @@ export function clearAutoSave(): void {
     console.error('Failed to clear auto-save data:', error);
   }
 }
+
+

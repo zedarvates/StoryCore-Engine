@@ -579,7 +579,7 @@ export function removeEffectLayer(
  */
 export function updateEffectParameters(
   layerId: string,
-  parameters: any,
+  parameters: unknown,
   shot: Shot
 ): Layer | null {
   const layer = shot.layers.find((l) => l.id === layerId && l.type === 'effects');
@@ -598,3 +598,4 @@ export function updateEffectParameters(
     },
   };
 }
+

@@ -9,6 +9,7 @@ interface RelationshipsSectionProps {
   relationships: CharacterRelationship[];
   errors: Record<string, string[]>;
   onChange: (relationships: CharacterRelationship[]) => void;
+  id: string;
 }
 
 export function RelationshipsSection({
@@ -16,7 +17,8 @@ export function RelationshipsSection({
   relationships,
   errors,
   onChange,
-}: RelationshipsSectionProps) {
+  id,
+}: Readonly<RelationshipsSectionProps>) {
   const characterManager = useCharacterManager();
   const [isAdding, setIsAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -101,16 +103,18 @@ export function RelationshipsSection({
       {relationships.length > 0 && (
         <div className="editor-section__relationships">
           {relationships.map((rel, index) => (
-            <div key={index} className="editor-section__relationship-card">
+            <div key={rel.character_id || `relationship-${index}`} className="editor-section__relationship-card">
               {editingIndex === index ? (
                 // Edit form
                 <div className="editor-section__relationship-form">
                   <div className="editor-section__field">
-                    <label className="editor-section__label">Character</label>
+                    <label htmlFor="character-select" className="editor-section__label">Character</label>
                     <select
+                      id="character-select"
                       className="editor-section__select"
                       value={formData.character_id || ''}
                       onChange={(e) => setFormData({ ...formData, character_id: e.target.value })}
+                      aria-label="Select character"
                     >
                       <option value="">Select character</option>
                       {availableCharacters.map(char => (
@@ -122,11 +126,13 @@ export function RelationshipsSection({
                   </div>
                   
                   <div className="editor-section__field">
-                    <label className="editor-section__label">Relationship Type</label>
+                    <label htmlFor="relationship-type-select" className="editor-section__label">Relationship Type</label>
                     <select
+                      id="relationship-type-select"
                       className="editor-section__select"
                       value={formData.relationship_type || ''}
                       onChange={(e) => setFormData({ ...formData, relationship_type: e.target.value })}
+                      aria-label="Select relationship type"
                     >
                       <option value="">Select type</option>
                       <option value="parent">Parent</option>
@@ -144,8 +150,9 @@ export function RelationshipsSection({
                   </div>
                   
                   <div className="editor-section__field">
-                    <label className="editor-section__label">Description</label>
+                    <label htmlFor="description-input" className="editor-section__label">Description</label>
                     <input
+                      id="description-input"
                       type="text"
                       className="editor-section__input"
                       value={formData.description || ''}
@@ -155,8 +162,9 @@ export function RelationshipsSection({
                   </div>
                   
                   <div className="editor-section__field">
-                    <label className="editor-section__label">Dynamic</label>
+                    <label htmlFor="dynamic-input" className="editor-section__label">Dynamic</label>
                     <input
+                      id="dynamic-input"
                       type="text"
                       className="editor-section__input"
                       value={formData.dynamic || ''}
@@ -229,11 +237,13 @@ export function RelationshipsSection({
           <h4>Add New Relationship</h4>
           <div className="editor-section__relationship-form">
             <div className="editor-section__field">
-              <label className="editor-section__label">Character</label>
+              <label htmlFor="character-select-new" className="editor-section__label">Character</label>
               <select
+                id="character-select-new"
                 className="editor-section__select"
                 value={formData.character_id || ''}
                 onChange={(e) => setFormData({ ...formData, character_id: e.target.value })}
+                aria-label="Select character"
               >
                 <option value="">Select character</option>
                 {availableCharacters.map(char => (
@@ -245,11 +255,13 @@ export function RelationshipsSection({
             </div>
             
             <div className="editor-section__field">
-              <label className="editor-section__label">Relationship Type</label>
+              <label htmlFor="relationship-type-select-new" className="editor-section__label">Relationship Type</label>
               <select
+                id="relationship-type-select-new"
                 className="editor-section__select"
                 value={formData.relationship_type || ''}
                 onChange={(e) => setFormData({ ...formData, relationship_type: e.target.value })}
+                aria-label="Select relationship type"
               >
                 <option value="">Select type</option>
                 <option value="parent">Parent</option>
@@ -267,8 +279,9 @@ export function RelationshipsSection({
             </div>
             
             <div className="editor-section__field">
-              <label className="editor-section__label">Description</label>
+              <label htmlFor="description-input-new" className="editor-section__label">Description</label>
               <input
+                id="description-input-new"
                 type="text"
                 className="editor-section__input"
                 value={formData.description || ''}
@@ -278,8 +291,9 @@ export function RelationshipsSection({
             </div>
             
             <div className="editor-section__field">
-              <label className="editor-section__label">Dynamic</label>
+              <label htmlFor="dynamic-input-new" className="editor-section__label">Dynamic</label>
               <input
+                id="dynamic-input-new"
                 type="text"
                 className="editor-section__input"
                 value={formData.dynamic || ''}

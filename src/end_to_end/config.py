@@ -8,7 +8,7 @@ import json
 import os
 from pathlib import Path
 from typing import Optional, Dict, Any
-from .data_models import OrchestratorConfig
+from src.end_to_end.data_models import OrchestratorConfig
 
 
 class ConfigurationManager:

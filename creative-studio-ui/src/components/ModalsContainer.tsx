@@ -9,8 +9,10 @@ import React from 'react';
 import { InstallationWizardModal } from '@/components/installation/InstallationWizardModal';
 import { WorldWizardModal } from '@/components/wizard/WorldWizardModal';
 import { CharacterWizardModal } from '@/components/wizard/CharacterWizardModal';
+import { ObjectWizardModal } from '@/components/wizard/ObjectWizardModal';
 import { StorytellerWizardModal } from '@/components/wizard/StorytellerWizardModal';
 import { ProjectSetupWizardModal } from '@/components/wizard/ProjectSetupWizardModal';
+import { CreateProjectDialogModal } from '@/components/wizard/CreateProjectDialogModal';
 import { SequencePlanWizardModal } from '@/components/wizard/SequencePlanWizardModal';
 import { ShotWizardModal } from '@/components/wizard/ShotWizardModal';
 import { GenericWizardModal } from '@/components/wizard/GenericWizardModal';
@@ -36,15 +38,19 @@ interface ModalsContainerProps {
   // Wizards
   showWorldWizard: boolean;
   onCloseWorldWizard: () => void;
-  onCompleteWorld: (world: any) => void;
+  onCompleteWorld: (world: unknown) => void;
 
   showCharacterWizard: boolean;
   onCloseCharacterWizard: () => void;
-  onCompleteCharacter: (character: any) => void;
+  onCompleteCharacter: (character: unknown) => void;
+
+  showObjectWizard: boolean;
+  onCloseObjectWizard: () => void;
+  onCompleteObject: (object: unknown) => void;
 
   showStorytellerWizard: boolean;
   onCloseStorytellerWizard: () => void;
-  onCompleteStoryteller: (story: any) => void;
+  onCompleteStoryteller: (story: unknown) => void;
 
   // Settings
   showLLMSettings: boolean;
@@ -88,7 +94,7 @@ interface ModalsContainerProps {
   // Generic Wizard
   activeWizardType: string | null;
   onCloseActiveWizard: () => void;
-  onCompleteWizard: (output: any) => void;
+  onCompleteWizard: (output: unknown) => void;
 }
 
 /**
@@ -109,6 +115,10 @@ export function ModalsContainer({
   showCharacterWizard,
   onCloseCharacterWizard,
   onCompleteCharacter,
+
+  showObjectWizard,
+  onCloseObjectWizard,
+  onCompleteObject,
 
   showStorytellerWizard,
   onCloseStorytellerWizard,
@@ -178,6 +188,11 @@ export function ModalsContainer({
         onClose={onCloseCharacterWizard}
         onComplete={onCompleteCharacter}
       />
+      <ObjectWizardModal
+        isOpen={showObjectWizard}
+        onClose={onCloseObjectWizard}
+        onComplete={onCompleteObject}
+      />
       <StorytellerWizardModal
         isOpen={showStorytellerWizard}
         onClose={onCloseStorytellerWizard}
@@ -185,6 +200,7 @@ export function ModalsContainer({
       />
 
       {/* Production Wizards */}
+      <CreateProjectDialogModal />
       <ProjectSetupWizardModal />
       <SequencePlanWizardModal />
       <ShotWizardModal />
@@ -253,3 +269,5 @@ export function ModalsContainer({
     </>
   );
 }
+
+

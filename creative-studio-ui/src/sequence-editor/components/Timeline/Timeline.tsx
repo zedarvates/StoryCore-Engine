@@ -794,14 +794,19 @@ export const Timeline: React.FC = () => {
                 >
                   {shots
                     .filter((shot: Shot) => shot.layers.some((layer: Layer) => layer.type === track.type))
-                    .map((shot: Shot) => {
+                    .flatMap((shot: Shot) =>
+                      shot.layers
+                        .filter((layer: Layer) => layer.type === track.type)
+                        .map((layer: Layer, layerIndex: number) => ({ shot, layer, layerIndex }))
+                    )
+                    .map(({ shot, layer, layerIndex }) => {
                       const isSelected = selectedElements.includes(shot.id);
                       const shotLeft = shot.startTime * zoomLevel;
                       const shotWidth = shot.duration * zoomLevel;
-                      
+
                       return (
                         <div
-                          key={`${track.id}-${shot.id}`}
+                          key={`${track.id}-${shot.id}-${layer.id || layerIndex}`}
                           className={`timeline-shot ${isSelected ? 'selected' : ''}`}
                           style={{
                             left: `${shotLeft}px`,

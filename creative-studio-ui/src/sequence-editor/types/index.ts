@@ -73,7 +73,7 @@ export interface AudioLayerData {
 
 export interface EffectsLayerData {
   effectType: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
 }
 
 export interface TransitionLayerData {
@@ -85,7 +85,7 @@ export interface TransitionLayerData {
 export interface TextAnimation {
   type: string;
   duration: number;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
 }
 
 export interface TextLayerData {
@@ -99,7 +99,7 @@ export interface TextLayerData {
 
 export interface Keyframe {
   time: number; // Frame number
-  value: any;
+  value: unknown;
   easing?: string;
 }
 
@@ -405,7 +405,7 @@ export interface Tool {
 
 export interface ToolsState {
   activeTool: ToolType;
-  toolSettings: Record<string, any>; // Tool-specific parameters
+  toolSettings: Record<string, unknown>; // Tool-specific parameters
 }
 
 // ============================================================================
@@ -427,7 +427,7 @@ export interface PreviewState {
 export interface StateSnapshot {
   timestamp: Date;
   action: string; // Action type that created this snapshot
-  state: any; // Partial state snapshot
+  state: unknown; // Partial state snapshot
   description: string; // Human-readable description
 }
 
@@ -436,3 +436,5 @@ export interface HistoryState {
   redoStack: StateSnapshot[];
   maxStackSize: number;
 }
+
+

@@ -205,7 +205,7 @@ export class CastingManager {
   /**
    * Recover from corrupted data by using defaults
    */
-  private recoverFromCorruptedData(data: any): void {
+  private recoverFromCorruptedData(data: unknown): void {
     // Try to recover valid assignments if possible
     const recoveredAssignments: CastingAssignment[] = [];
 
@@ -400,7 +400,7 @@ export class CastingManager {
     }
   }
 
-  private isValidCastingState(state: any): state is CastingState {
+  private isValidCastingState(state: unknown): state is CastingState {
     return (
       state &&
       typeof state === 'object' &&
@@ -410,3 +410,4 @@ export class CastingManager {
     );
   }
 }
+

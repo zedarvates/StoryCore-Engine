@@ -63,7 +63,7 @@ export function ComfyUIConfigurationWindow({
   const generateServerId = () => `server_${Date.now()}`;
 
   // Handle server field changes
-  const handleServerFieldChange = (serverId: string, field: string, value: any) => {
+  const handleServerFieldChange = (serverId: string, field: string, value: unknown) => {
     setFormData(prev => {
       if (!prev) return prev;
       const newServers = prev.servers.map(server =>
@@ -198,7 +198,7 @@ export function ComfyUIConfigurationWindow({
           return { ...prev, servers: newServers };
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Network error or timeout
       let errorMessage = 'Connection failed';
       
@@ -523,3 +523,5 @@ export function ComfyUIConfigurationWindow({
     </div>
   );
 }
+
+

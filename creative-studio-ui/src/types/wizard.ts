@@ -5,6 +5,18 @@
 
 export type SupportedLanguage = 'fr' | 'en' | 'es' | 'de';
 
+// Wizard Type (imported from wizardStorage)
+export type WizardType =
+  | 'world'
+  | 'character'
+  | 'storyteller'
+  | 'dialogue-writer'
+  | 'scene-generator'
+  | 'storyboard-creator'
+  | 'style-transfer'
+  | 'sequence-plan'
+  | 'shot';
+
 export interface WizardStep {
   number: number;
   title: string;
@@ -457,6 +469,9 @@ export type WizardStepData =
 
 // Wizard State
 export interface WizardState {
+  // Wizard metadata
+  wizardType: WizardType | null;
+
   // Navigation state
   currentStep: number;
   completedSteps: Set<number>;
@@ -478,6 +493,7 @@ export interface WizardState {
   validationErrors: Map<number, ValidationError[]>;
 
   // Actions
+  setWizardType: (type: WizardType) => void;
   setCurrentStep: (step: number) => void;
   updateStepData: (step: number, data: Partial<WizardStepData>) => void;
   markStepComplete: (step: number) => void;
@@ -599,11 +615,22 @@ export interface SchemaValidationResult {
 export interface SequencePlanWizardContext {
   mode: 'create' | 'edit';
   sequenceId?: string;
-  initialData?: any;
+  initialTemplateId?: string;
+  existingSequencePlan?: unknown;
+  sourceLocation?: string;
 }
 
 export interface ShotWizardContext {
   mode: 'create' | 'edit';
   shotId?: string;
-  initialData?: any;
+  sequenceId?: string;
+  sceneId?: string;
+  shotNumber?: number;
+  initialTemplateId?: string;
+  existingShot?: unknown;
+  quickMode?: boolean;
+  sourceLocation?: string;
+  timelinePosition?: number;
+  initialData?: unknown;
 }
+

@@ -15,7 +15,7 @@ export interface PresetStyleParams {
   compositionStyle?: string;
   cropStyle?: string;
   transformStyle?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -240,3 +240,4 @@ export function createGenerationConfigWithPreset(
     presetStyleParams,
   };
 }
+

@@ -1,0 +1,243 @@
+/**
+ * LightingPresets Styles
+ * 
+ * CSS styles for the LightingPresets component.
+ * 
+ * File: creative-studio-ui/src/components/scene/LightingPresets.css
+ */
+
+/* Container */
+.lighting-presets {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Trigger Button */
+.lighting-presets__trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-primary, #e5e5e5);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lighting-presets__trigger:hover {
+  background: var(--bg-tertiary, #333);
+  border-color: var(--primary-color, #6366f1);
+}
+
+.lighting-presets__label {
+  font-weight: 500;
+}
+
+/* Button */
+.lighting-presets__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lighting-presets__btn:hover {
+  background: #3a3a3a;
+  color: var(--text-primary, #e5e5e5);
+}
+
+.lighting-presets__btn--active {
+  background: var(--primary-color, #6366f1);
+  border-color: var(--primary-color, #6366f1);
+  color: white;
+}
+
+/* Overlay */
+.lighting-presets__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
+/* Menu */
+.lighting-presets__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+/* Section */
+.lighting-presets__section {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.lighting-presets__section:last-child {
+  border-bottom: none;
+}
+
+.lighting-presets__section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lighting-presets__section-header svg {
+  color: var(--primary-color, #6366f1);
+}
+
+/* Grid */
+.lighting-presets__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+/* Option Button */
+.lighting-presets__option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: var(--bg-tertiary, #333);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lighting-presets__option:hover {
+  background: #3a3a3a;
+  border-color: var(--border-color, #555);
+  color: var(--text-primary, #e5e5e5);
+}
+
+.lighting-presets__option--active {
+  background: var(--primary-color, #6366f1);
+  border-color: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.lighting-presets__option svg {
+  flex-shrink: 0;
+}
+
+.lighting-presets__option-name {
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Sliders */
+.lighting-presets__sliders {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  min-width: 200px;
+}
+
+.lighting-presets__slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lighting-presets__slider-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #a0a0a0);
+}
+
+.lighting-presets__slider-group input[type="range"] {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary, #333);
+  border-radius: 2px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.lighting-presets__slider-group input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--primary-color, #6366f1);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.lighting-presets__slider-group input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--primary-color, #6366f1);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lighting-presets {
+    gap: 4px;
+  }
+
+  .lighting-presets__trigger {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .lighting-presets__label {
+    display: none;
+  }
+
+  .lighting-presets__menu {
+    min-width: 240px;
+  }
+
+  .lighting-presets__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

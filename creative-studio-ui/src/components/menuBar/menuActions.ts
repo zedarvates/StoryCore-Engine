@@ -16,7 +16,7 @@ interface ElectronDialogAPI {
     canceled: boolean;
     filePaths: string[];
   }>;
-  showSaveDialog: (options: any) => Promise<any>;
+  showSaveDialog: (options: unknown) => Promise<any>;
 }
 
 // Type declaration for File System Access API
@@ -145,9 +145,9 @@ export const fileActions = {
   async newProject(ctx: ActionContext): Promise<void> {
     console.log('[MenuAction] New Project');
 
-    // Use the app store to open the project setup wizard
+    // Use the app store to open the create project dialog
     const store = useAppStore.getState();
-    store.setShowProjectSetupWizard(true);
+    store.setShowCreateProjectDialog(true);
 
     ctx.services.notification.show({
       type: 'info',
@@ -218,8 +218,8 @@ export const fileActions = {
         schema_version: '1.0',
         path: projectPath,
         project_name: projectData.project_name,
-        shots: projectData.storyboard?.sequences?.flatMap((seq: any) =>
-          seq.shots?.map((shot: any) => ({
+        shots: projectData.storyboard?.flatMap((seq: unknown) =>
+          seq.shots?.map((shot: unknown) => ({
             id: shot.shot_id,
             sequenceId: seq.sequence_id,
             shotNumber: shot.shot_number,
@@ -227,7 +227,7 @@ export const fileActions = {
             status: shot.status || 'pending',
           })) || []
         ) || [],
-        assets: (projectData.assets || []).map((asset: any) => ({
+        assets: (projectData.assets || []).map((asset: unknown) => ({
           id: asset.id || `asset_${Date.now()}_${Math.random()}`,
           name: asset.filename || asset.name || 'Unnamed Asset',
           type: asset.type || 'image',
@@ -235,7 +235,7 @@ export const fileActions = {
           thumbnail: asset.thumbnail,
           metadata: asset,
         })),
-        characters: (projectData.characters || []).map((char: any) => ({
+        characters: (projectData.characters || []).map((char: unknown) => ({
           character_id: char.character_id || char.id || `char_${Date.now()}_${Math.random()}`,
           name: char.name || 'Unnamed Character',
           role: char.role || 'supporting',
@@ -247,6 +247,30 @@ export const fileActions = {
           visual_attributes: char.visual_attributes || {},
           personality: char.personality || {},
           relationships: char.relationships || [],
+          visual_identity: char.visual_identity || {
+            hair_color: '',
+            hair_style: '',
+            hair_length: '',
+            eye_color: '',
+            eye_shape: '',
+            skin_tone: '',
+            facial_structure: '',
+            distinctive_features: [],
+            age_range: '',
+            height: '',
+            build: '',
+            posture: '',
+            clothing_style: '',
+            color_palette: [],
+          },
+          background: char.background || {
+            origin: '',
+            occupation: '',
+            education: '',
+            family: '',
+            significant_events: [],
+            current_situation: '',
+          },
         })),
         capabilities: {
           grid_generation: true,
@@ -259,8 +283,6 @@ export const fileActions = {
           grid: 'pending',
           promotion: 'pending',
         },
-        storyboard: projectData.storyboard,
-        world: projectData.world,
       };
 
       // Update the app store with the loaded project
@@ -327,6 +349,50 @@ export const fileActions = {
     });
   },
 
+  async exitProject(ctx: ActionContext): Promise<void> {
+    console.log('[MenuAction] Exit Project');
+
+    const projectName = (ctx.state.project as any)?.project_name || 'Current project';
+
+    // Show confirmation notification
+    ctx.services.notification.show({
+      type: 'info',
+      message: `Exiting "${projectName}" and returning to dashboard`,
+      duration: 2000,
+    });
+
+    // Dispatch event to clear project and navigate to dashboard
+    window.dispatchEvent(new CustomEvent('storycore:exit-project'));
+
+    // Also dispatch navigate-to-dashboard event as fallback
+    window.dispatchEvent(new CustomEvent('storycore:navigate-to-dashboard'));
+  },
+
+  async quitApplication(ctx: ActionContext): Promise<void> {
+    console.log('[MenuAction] Quit Application');
+
+    // Show confirmation notification
+    ctx.services.notification.show({
+      type: 'info',
+      message: 'Quitting StoryCore...',
+      duration: 2000,
+    });
+
+    // Try to quit via Electron API
+    if (window.electronAPI?.app?.quit) {
+      try {
+        window.electronAPI.app.quit();
+      } catch (error) {
+        console.error('[MenuAction] Failed to quit via Electron:', error);
+        // Fallback to window.close()
+        window.close();
+      }
+    } else {
+      // Browser environment fallback
+      window.close();
+    }
+  },
+
   async exportJSON(ctx: ActionContext): Promise<void> {
     if (!ctx.state.project) return;
 
@@ -385,6 +451,12 @@ export const fileActions = {
         duration: 5000,
       });
     }
+  },
+
+  preferences(ctx: ActionContext): void {
+    console.log('[MenuAction] Preferences');
+    const store = useAppStore.getState();
+    store.setShowGeneralSettings(true);
   },
 };
 
@@ -477,6 +549,54 @@ export const viewActions = {
     if (ctx.onViewStateChange) {
       ctx.onViewStateChange({
         timelineVisible: !ctx.state.viewState.timelineVisible,
+      });
+    }
+  },
+
+  toggleAssetsPanel(ctx: ActionContext): void {
+    console.log('[MenuAction] Toggle Assets Panel');
+    if (ctx.onViewStateChange) {
+      const current = ctx.state.viewState.panelsVisible.assets;
+      ctx.onViewStateChange({
+        panelsVisible: {
+          ...ctx.state.viewState.panelsVisible,
+          assets: !current,
+        },
+      });
+    }
+  },
+
+  togglePreviewPanel(ctx: ActionContext): void {
+    console.log('[MenuAction] Toggle Preview Panel');
+    if (ctx.onViewStateChange) {
+      const current = ctx.state.viewState.panelsVisible.preview;
+      ctx.onViewStateChange({
+        panelsVisible: {
+          ...ctx.state.viewState.panelsVisible,
+          preview: !current,
+        },
+      });
+    }
+  },
+
+  toggleLayerManager(ctx: ActionContext): void {
+    console.log('[MenuAction] Toggle Layer Manager');
+    if (ctx.onViewStateChange) {
+      ctx.services.notification.show({
+        type: 'info',
+        message: 'Layer Manager panel toggle',
+        duration: 1000,
+      });
+    }
+  },
+
+  toggleMediaSearch(ctx: ActionContext): void {
+    console.log('[MenuAction] Toggle Media Search');
+    if (ctx.onViewStateChange) {
+      ctx.services.notification.show({
+        type: 'info',
+        message: 'Media Search panel toggle',
+        duration: 1000,
       });
     }
   },
@@ -591,6 +711,17 @@ export const viewActions = {
  * Project Menu Actions
  */
 export const projectActions = {
+  backToDashboard(ctx: ActionContext): void {
+    console.log('[MenuAction] Back to Project Dashboard');
+    // Dispatch a custom event that App.tsx will listen to
+    window.dispatchEvent(new CustomEvent('storycore:navigate-to-dashboard'));
+    ctx.services.notification.show({
+      type: 'info',
+      message: 'Returning to Project Dashboard',
+      duration: 2000,
+    });
+  },
+
   settings(ctx: ActionContext): void {
     console.log('[MenuAction] Project Settings');
     const store = useAppStore.getState();
@@ -603,6 +734,14 @@ export const projectActions = {
     // Close all other wizards first (mutual exclusion)
     store.closeActiveWizard();
     store.setShowCharacterWizard(true);
+  },
+
+  world(ctx: ActionContext): void {
+    console.log('[MenuAction] World Builder');
+    const store = useAppStore.getState();
+    // Close all other wizards first (mutual exclusion)
+    store.closeActiveWizard();
+    store.setShowWorldWizard(true);
   },
 
   sequences(ctx: ActionContext): void {
@@ -636,6 +775,12 @@ export const toolsActions = {
     store.setShowComfyUISettings(true);
   },
 
+  llmConfiguration(ctx: ActionContext): void {
+    console.log('[MenuAction] LLM Configuration');
+    const store = useAppStore.getState();
+    store.setShowLLMSettings(true);
+  },
+
   scriptWizard(ctx: ActionContext): void {
     console.log('[MenuAction] Script Wizard');
     const store = useAppStore.getState();
@@ -660,6 +805,121 @@ export const toolsActions = {
       message: 'Quality analysis feature coming soon',
       duration: 3000,
     });
+  },
+
+  factCheck(ctx: ActionContext): void {
+    console.log('[MenuAction] Fact Check');
+    const store = useAppStore.getState();
+    store.setShowFactCheckModal(true);
+  },
+};
+
+/**
+ * Wizards Menu Actions
+ * All wizard launchers in one menu
+ */
+export const wizardsActions = {
+  projectSetup(ctx: ActionContext): void {
+    console.log('[MenuAction] Project Setup Wizard');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    store.setShowProjectSetupWizard(true);
+  },
+
+  characters(ctx: ActionContext): void {
+    console.log('[MenuAction] Character Wizard');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    store.setShowCharacterWizard(true);
+  },
+
+  world(ctx: ActionContext): void {
+    console.log('[MenuAction] World Builder');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    store.setShowWorldWizard(true);
+  },
+
+  sequences(ctx: ActionContext): void {
+    console.log('[MenuAction] Story Generator');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    store.setShowStorytellerWizard(true);
+  },
+
+  sequencePlan(ctx: ActionContext): void {
+    console.log('[MenuAction] Sequence Plan Wizard');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    // Open sequence plan wizard
+    if (typeof store.openSequencePlanWizard === 'function') {
+      store.openSequencePlanWizard({ mode: 'create' });
+    } else {
+      console.warn('[MenuAction] openSequencePlanWizard not available in store');
+      ctx.services.notification.show({
+        type: 'info',
+        message: 'Sequence Plan Wizard coming soon',
+        duration: 3000,
+      });
+    }
+  },
+
+  shot(ctx: ActionContext): void {
+    console.log('[MenuAction] Shot Wizard');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    // Open shot wizard
+    if (typeof store.openShotWizard === 'function') {
+      store.openShotWizard({ mode: 'create' });
+    } else {
+      console.warn('[MenuAction] openShotWizard not available in store');
+      ctx.services.notification.show({
+        type: 'info',
+        message: 'Shot Wizard coming soon',
+        duration: 3000,
+      });
+    }
+  },
+
+  scriptWizard(ctx: ActionContext): void {
+    console.log('[MenuAction] Script Wizard');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    store.setShowDialogueWriter(true);
+  },
+
+  audioProduction(ctx: ActionContext): void {
+    console.log('[MenuAction] Audio Production Wizard');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    // Open audio production wizard
+    if (typeof store.openAudioProductionWizard === 'function') {
+      store.openAudioProductionWizard();
+    } else {
+      console.warn('[MenuAction] openAudioProductionWizard not available in store');
+      ctx.services.notification.show({
+        type: 'info',
+        message: 'Audio Production Wizard coming soon',
+        duration: 3000,
+      });
+    }
+  },
+
+  videoProduction(ctx: ActionContext): void {
+    console.log('[MenuAction] Video Production Wizard');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    // Open video production wizard
+    if (typeof store.openVideoProductionWizard === 'function') {
+      store.openVideoProductionWizard();
+    } else {
+      console.warn('[MenuAction] openVideoProductionWizard not available in store');
+      ctx.services.notification.show({
+        type: 'info',
+        message: 'Video Production Wizard coming soon',
+        duration: 3000,
+      });
+    }
   },
 };
 
@@ -705,3 +965,59 @@ export const helpActions = {
     store.setShowFeedbackPanel(true);
   },
 };
+
+/**
+ * Continuous Creation Menu Actions
+ * Three-Level Reference System, Video Replication, Style Transfer, Project Branching
+ */
+export const continuousCreationActions = {
+  referenceSheetManager(ctx: ActionContext): void {
+    console.log('[MenuAction] Reference Sheet Manager');
+    const store = useAppStore.getState();
+    store.setShowReferenceSheetManager(true);
+  },
+
+  videoReplication(ctx: ActionContext): void {
+    console.log('[MenuAction] Video Replication');
+    const store = useAppStore.getState();
+    store.setShowVideoReplicationDialog(true);
+  },
+
+  crossShotReference(ctx: ActionContext): void {
+    console.log('[MenuAction] Cross-Shot Reference Picker');
+    const store = useAppStore.getState();
+    store.setShowCrossShotReferencePicker(true);
+  },
+
+  styleTransfer(ctx: ActionContext): void {
+    console.log('[MenuAction] Style Transfer');
+    const store = useAppStore.getState();
+    store.setShowStyleTransfer(true);
+  },
+
+  projectBranching(ctx: ActionContext): void {
+    console.log('[MenuAction] Project Branching');
+    const store = useAppStore.getState();
+    store.setShowProjectBranchingDialog(true);
+  },
+
+  consistencyCheck(ctx: ActionContext): void {
+    console.log('[MenuAction] Visual Consistency Check');
+    ctx.services.notification.show({
+      type: 'info',
+      message: 'Running visual consistency check...',
+      duration: 2000,
+    });
+    // This will trigger the consistency engine via the store
+    const store = useAppStore.getState();
+    (store as any).runConsistencyCheck?.();
+  },
+
+  episodeReferences(ctx: ActionContext): void {
+    console.log('[MenuAction] Episode References');
+    const store = useAppStore.getState();
+    store.setShowEpisodeReferenceDialog(true);
+  },
+};
+
+

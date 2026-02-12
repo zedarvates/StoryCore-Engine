@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Callable
 from enum import Enum
 
-from .data_models import WorkflowStep, ProgressReport
+from src.end_to_end.data_models import WorkflowStep, ProgressReport
 
 
 class StepStatus(Enum):

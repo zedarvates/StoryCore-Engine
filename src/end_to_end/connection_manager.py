@@ -13,7 +13,7 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .data_models import ComfyUIStatus
+from src.end_to_end.data_models import ComfyUIStatus
 
 logger = logging.getLogger(__name__)
 

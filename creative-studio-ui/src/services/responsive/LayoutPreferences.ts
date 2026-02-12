@@ -16,7 +16,7 @@ export interface LayoutPreference {
   gridSize?: number;
   showGridLines?: boolean;
   snapEnabled?: boolean;
-  customSettings?: Record<string, any>;
+  customSettings?: Record<string, unknown>;
   lastUpdated: number;
 }
 
@@ -135,7 +135,7 @@ export class LayoutPreferencesManager {
   updatePreference(
     breakpoint: ResponsiveBreakpoint,
     field: keyof LayoutPreference,
-    value: any
+    value: unknown
   ): void {
     const existing = this.preferences.get(breakpoint.name) || {
       breakpointName: breakpoint.name,
@@ -226,3 +226,5 @@ export const getLayoutPreferencesManager = (): LayoutPreferencesManager => {
   }
   return instance;
 };
+
+

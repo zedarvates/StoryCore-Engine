@@ -124,7 +124,7 @@ interface Shot {
 interface VideoEditorPageProps {
   sequenceId?: string;
   sequenceName?: string;
-  initialShots?: any[];
+  initialShots?: unknown[];
   projectName?: string;
   onBackToDashboard?: () => void;
 }
@@ -395,7 +395,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     // 3. Add it to the appropriate track
   };
 
-  const handleSaveCharacter = async (character: any) => {
+  const handleSaveCharacter = async (character: unknown) => {
     try {
       // Map wizard data to Character type
       const characterData: Partial<Character> = {
@@ -451,7 +451,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     }
   };
 
-  const handleSaveStory = async (storySummary: any) => {
+  const handleSaveStory = async (storySummary: unknown) => {
     try {
       // Save story summary to project
       console.log('Story summary saved successfully:', storySummary.title);
@@ -1343,3 +1343,4 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
 };
 
 export default VideoEditorPage;
+

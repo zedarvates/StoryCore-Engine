@@ -3,12 +3,15 @@
 import { useState, useCallback } from 'react';
 import type { RecentProject } from '@/components/launcher/RecentProjectsList';
 import { useAppStore } from '@/stores/useAppStore';
+import { useEditorStore } from '@/stores/editorStore';
+import { useCharacterPersistence } from '@/hooks/useCharacterPersistence';
+import { useWorldPersistence } from '@/hooks/useWorldPersistence';
 import type { Project as StoreProject } from '@/types';
 import { generateProjectTemplate, sequencesToShots } from '@/utils/projectTemplateGenerator';
 import type { SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
 
 // Helper function to convert Electron project to Store project format
-function convertElectronProjectToStore(electronProject: any): StoreProject {
+function convertElectronProjectToStore(electronProject: unknown): StoreProject {
   // Extract config from Electron project
   const config = electronProject.config || {};
   
@@ -61,7 +64,7 @@ interface UseLandingPageReturn {
   // Actions
   handleCreateProject: () => void;
   handleOpenProject: () => void;
-  handleCreateProjectSubmit: (projectName: string, projectPath: string, format: any) => Promise<void>;
+  handleCreateProjectSubmit: (projectName: string, projectPath: string, format: unknown) => Promise<void>;
   handleOpenProjectSubmit: (projectPath: string) => Promise<void>;
   handleRecentProjectClick: (project: RecentProject) => void;
   handleRemoveRecentProject: (projectPath: string) => Promise<void>;
@@ -84,6 +87,10 @@ export function useLandingPage(): UseLandingPageReturn {
   // Get store actions
   const setProject = useAppStore((state) => state.setProject);
   const setShots = useAppStore((state) => state.setShots);
+
+  // Get persistence functions at top level (hooks can only be called at top level)
+  const { loadAndSyncCharacters } = useCharacterPersistence();
+  const { syncWorldsFromProject } = useWorldPersistence();
 
   // Load recent projects on mount
   const loadRecentProjects = useCallback(async () => {
@@ -124,7 +131,7 @@ export function useLandingPage(): UseLandingPageReturn {
         if (window.electronAPI) {
           // Create project via Electron API with format (returns Project directly, throws on error)
           // If projectPath is empty, the backend will use the default Documents directory
-          const createData: any = {
+          const createData: unknown = {
             name: projectName,
             format: format,
             initialShots: initialShots,
@@ -145,10 +152,15 @@ export function useLandingPage(): UseLandingPageReturn {
 
           // Convert Electron project to Store project format
           const storeProject = convertElectronProjectToStore(electronProject);
+          // Get the actual project path from the electron project
+          const actualProjectPath = electronProject.path || `${projectPath}/${projectName}`;
 
           // Load the created project into the store
           setProject(storeProject);
           setShots(storeProject.shots || initialShots);
+
+          // Set project path in editor store so persistence hooks can use it
+          useEditorStore.getState().setProjectPath(actualProjectPath);
 
           // Reload recent projects
           await loadRecentProjects();
@@ -216,7 +228,7 @@ export function useLandingPage(): UseLandingPageReturn {
     [loadRecentProjects, setProject, setShots]
   );
 
-  // Handle open project submission
+// Handle open project submission
   const handleOpenProjectSubmit = useCallback(
     async (projectPath: string) => {
       setIsLoading(true);
@@ -233,6 +245,15 @@ export function useLandingPage(): UseLandingPageReturn {
           // Load the opened project into the store
           setProject(storeProject);
           setShots(storeProject.shots || []);
+
+          // Set project path in editor store so persistence hooks can use it
+          useEditorStore.getState().setProjectPath(projectPath);
+
+          // Sync characters from project directory to store
+          await loadAndSyncCharacters();
+
+          // Sync worlds from project directory to store
+          await syncWorldsFromProject();
 
           // Reload recent projects
           await loadRecentProjects();
@@ -272,6 +293,15 @@ export function useLandingPage(): UseLandingPageReturn {
           setProject(demoProject);
           setShots([]);
 
+          // Set project path in editor store so persistence hooks can use it
+          useEditorStore.getState().setProjectPath(projectPath);
+
+          // Sync characters from project directory to store
+          await loadAndSyncCharacters();
+
+          // Sync worlds from project directory to store
+          await syncWorldsFromProject();
+
           setShowOpenDialog(false);
         }
       } catch (err) {
@@ -282,8 +312,10 @@ export function useLandingPage(): UseLandingPageReturn {
         setIsLoading(false);
       }
     },
-    [loadRecentProjects, setProject, setShots]
+    [loadRecentProjects, setProject, setShots, loadAndSyncCharacters, syncWorldsFromProject]
   );
+
+
 
   // ============================================================================
   // Handle open project button click
@@ -355,7 +387,7 @@ export function useLandingPage(): UseLandingPageReturn {
     }
   }, [handleOpenProjectSubmit]);
 
-  // Handle recent project click
+// Handle recent project click
   const handleRecentProjectClick = useCallback(
     async (project: RecentProject) => {
       if (project.exists === false) {
@@ -377,6 +409,15 @@ export function useLandingPage(): UseLandingPageReturn {
           // Load the opened project into the store
           setProject(storeProject);
           setShots(storeProject.shots || []);
+
+          // Set project path in editor store so persistence hooks can use it
+          useEditorStore.getState().setProjectPath(project.path);
+
+          // Sync characters from project directory to store
+          await loadAndSyncCharacters();
+
+          // Sync worlds from project directory to store
+          await syncWorldsFromProject();
 
           // Reload recent projects to update last accessed time
           await loadRecentProjects();
@@ -413,6 +454,15 @@ export function useLandingPage(): UseLandingPageReturn {
           setProject(demoProject);
           setShots([]);
 
+          // Set project path in editor store so persistence hooks can use it
+          useEditorStore.getState().setProjectPath(project.path);
+
+          // Sync characters from project directory to store
+          await loadAndSyncCharacters();
+
+          // Sync worlds from project directory to store
+          await syncWorldsFromProject();
+
           // Update last accessed time
           setRecentProjects((prev) =>
             prev.map((p) =>
@@ -428,8 +478,10 @@ export function useLandingPage(): UseLandingPageReturn {
         setIsLoading(false);
       }
     },
-    [loadRecentProjects, setProject, setShots]
+    [loadRecentProjects, setProject, setShots, loadAndSyncCharacters, syncWorldsFromProject]
   );
+
+
 
   // Handle remove recent project
   const handleRemoveRecentProject = useCallback(
@@ -478,3 +530,4 @@ export function useLandingPage(): UseLandingPageReturn {
     clearError,
   };
 }
+

@@ -53,7 +53,7 @@ export interface LLMConfiguration {
     apiKey?: string;
     model: string;
     // Using 'any' for custom provider properties to support arbitrary LLM provider configurations
-    [key: string]: any;
+    [key: string]: unknown;
   };
   defaultProvider: string;
   enableFallback: boolean;
@@ -92,7 +92,7 @@ export interface ComfyUIConfiguration {
 export interface WizardConfiguration {
   wizardId: string;
   enabled: boolean;
-  customSettings?: Record<string, any>;
+  customSettings?: Record<string, unknown>;
 }
 
 /**
@@ -137,7 +137,7 @@ export interface ProjectMetadata {
 export interface ValidationRule {
   field: string;
   // Using 'any' for validator input to support validation of any field type
-  validator: (value: any) => boolean;
+  validator: (value: unknown) => boolean;
   errorMessage: string;
 }
 
@@ -241,7 +241,7 @@ export interface ConfigurationContextValue {
   saveProjectConfig: (config: Partial<ProjectConfiguration>) => Promise<void>;
   saveGlobalConfig: (config: Partial<GlobalConfiguration>) => Promise<void>;
   // Using 'any' for config parameter to allow validation of various configuration types
-  validateConfiguration: (config: any) => ValidationResult;
+  validateConfiguration: (config: unknown) => ValidationResult;
   resetToDefaults: (scope: 'project' | 'global') => Promise<void>;
   exportConfiguration: () => Promise<string>;
   importConfiguration: (data: string) => Promise<void>;
@@ -356,3 +356,6 @@ export const DEFAULT_GLOBAL_CONFIG: GlobalConfiguration = {
   theme: 'dark',
   enableAnalytics: false,
 };
+
+
+

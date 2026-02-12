@@ -100,7 +100,7 @@ export function DialogueWriterForm({
     return isValid;
   }, [formData, onValidationChange]);
 
-  const handleFieldChange = useCallback((field: keyof DialogueInput, value: any) => {
+  const handleFieldChange = useCallback((field: keyof DialogueInput, value: unknown) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       onChange?.(updated);
@@ -225,3 +225,4 @@ export function DialogueWriterForm({
     </form>
   );
 }
+

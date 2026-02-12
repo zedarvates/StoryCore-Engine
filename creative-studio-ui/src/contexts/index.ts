@@ -6,6 +6,14 @@
 export { ProjectProvider, useProject, ProjectContext } from './ProjectContext';
 export type { ProjectContextValue, ProjectProviderProps } from './ProjectContext';
 
+export { ProjectDataProvider, useProjectData } from './ProjectDataContext';
+
+export { ShotManagementProvider, useShotManagement, PromptStatus } from './ShotManagementContext';
+export type { ShotManagementContextType } from './ShotManagementContext';
+
+export { DialogueProvider, useDialogue } from './DialogueContext';
+export type { DialogueContextType } from './DialogueContext';
+
 export { SequencePlanProvider, useSequencePlanContext } from './SequencePlanContext';
 
 export { WizardProvider, useWizard } from './WizardContext';
@@ -24,3 +32,6 @@ export type { LanguageContextValue } from './LanguageContext';
 
 export { NavigationProvider, useNavigation, NavigationContext } from './NavigationContext';
 export type { NavigationContextValue } from './NavigationContext';
+
+export { GenerationProvider, useGeneration, GenerationStatus, GenerationPhase } from './GenerationContext';
+export type { GenerationContextType } from './GenerationContext';

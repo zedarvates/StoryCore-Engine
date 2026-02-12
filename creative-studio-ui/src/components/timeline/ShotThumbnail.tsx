@@ -88,6 +88,24 @@ export const ShotThumbnail = memo<ShotThumbnailProps>(({
     );
   }
 
+  if (videoUrl) {
+    return (
+      <video
+        src={videoUrl}
+        className={`${className} object-cover`}
+        onPointerOver={(e) => (e.currentTarget as HTMLVideoElement).play()}
+        onPointerOut={(e) => {
+          const video = e.currentTarget as HTMLVideoElement;
+          video.pause();
+          video.currentTime = 0;
+        }}
+        muted
+        loop
+        playsInline
+      />
+    );
+  }
+
   return (
     <img
       src={thumbnailUrl}

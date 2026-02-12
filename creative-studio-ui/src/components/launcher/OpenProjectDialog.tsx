@@ -35,7 +35,7 @@ interface ValidationResult {
     message: string;
     path?: string;
   }>;
-  config?: any;
+  config?: unknown;
 }
 
 // ============================================================================
@@ -342,3 +342,4 @@ export function OpenProjectDialog({
     </Dialog>
   );
 }
+

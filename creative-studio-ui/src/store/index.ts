@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { StorageManager } from '../utils/storageManager';
 import { Logger } from '../utils/logger';
-import { debounce } from '../utils/debounce';
 import type {
   AppState,
   Shot,
@@ -22,7 +21,8 @@ import type { Character } from '../types/character';
 import type { Story, StoryVersion } from '../types/story';
 import type { WizardOutput } from '../services/wizard/types';
 import { getWizardService } from '../services/wizard/WizardService';
-import { eventEmitter, WizardEventType } from '../services/eventEmitter';
+import { eventEmitter } from '../services/eventEmitter';
+import type { WizardEventType } from '../services/eventEmitter';
 import type {
   WorldCreatedPayload,
   WorldUpdatedPayload,
@@ -68,6 +68,14 @@ interface StoreActions {
   getCharacterById: (id: string) => Character | undefined;
   getAllCharacters: () => Character[];
   setCharacters: (characters: Character[]) => void; // Bulk set for project loading
+  
+  // Object actions
+  addObject: (object: unknown) => void;
+  updateObject: (id: string, updates: unknown) => void;
+  deleteObject: (id: string) => void;
+  getObjectById: (id: string) => unknown | undefined;
+  getAllObjects: () => unknown[];
+  setObjects: (objects: unknown[]) => void; // Bulk set for project loading
   
   // Story actions
   addStory: (story: Story) => void;
@@ -176,6 +184,7 @@ export const useStore = create<Store>()(
         worlds: [],
         selectedWorldId: null,
         characters: [],
+        objects: [], // Initialize objects array
         stories: [],
         storyVersions: [],
         selectedShotId: null,
@@ -459,7 +468,26 @@ export const useStore = create<Store>()(
         // ====================================================================
         addCharacter: (character) =>
           set((state) => {
-            const newCharacters = [...state.characters, character];
+            // Check if character already exists to prevent duplicates
+            const existingIndex = state.characters.findIndex(
+              (c) => c.character_id === character.character_id
+            );
+            
+            let newCharacters;
+            let eventType: WizardEventType;
+            
+            if (existingIndex >= 0) {
+              // Character already exists - update it instead of adding duplicate
+              Logger.info(`[Store] Character "${character.name}" (${character.character_id}) already exists, updating instead of duplicating`);
+              newCharacters = state.characters.map((c, index) =>
+                index === existingIndex ? character : c
+              );
+              eventType = WizardEventType.CHARACTER_UPDATED;
+            } else {
+              // New character - add it
+              newCharacters = [...state.characters, character];
+              eventType = WizardEventType.CHARACTER_CREATED;
+            }
             
             // Also update the project's characters array
             const updatedProject = state.project ? {
@@ -479,13 +507,24 @@ export const useStore = create<Store>()(
               }
             }
 
-            // Emit character created event (Requirement: 7.5)
-            eventEmitter.emit<CharacterCreatedPayload>(WizardEventType.CHARACTER_CREATED, {
-              character,
-              projectName: state.project?.project_name,
-              timestamp: new Date(),
-              source: 'store',
-            });
+            // Emit character event (Requirement: 7.5)
+            if (eventType === WizardEventType.CHARACTER_CREATED) {
+              eventEmitter.emit<CharacterCreatedPayload>(WizardEventType.CHARACTER_CREATED, {
+                character,
+                projectName: state.project?.project_name,
+                timestamp: new Date(),
+                source: 'store',
+              });
+            } else {
+              // CHARACTER_UPDATED event
+              eventEmitter.emit<CharacterUpdatedPayload>(WizardEventType.CHARACTER_UPDATED, {
+                characterId: character.character_id,
+                updates: character,
+                previousCharacter: state.characters[existingIndex],
+                timestamp: new Date(),
+                source: 'store',
+              });
+            }
 
             return {
               characters: newCharacters,
@@ -599,6 +638,138 @@ export const useStore = create<Store>()(
 
             return {
               characters,
+              project: updatedProject,
+            };
+          }),
+
+        // ====================================================================
+        // Object Actions
+        // ====================================================================
+        addObject: (object) =>
+          set((state) => {
+            // Check if object already exists to prevent duplicates
+            const existingIndex = state.objects.findIndex(
+              (o) => o.id === object.id
+            );
+            
+            let newObjects;
+            
+            if (existingIndex >= 0) {
+              // Object already exists - update it instead of adding duplicate
+              Logger.info(`[Store] Object "${object.name}" (${object.id}) already exists, updating instead of duplicating`);
+              newObjects = state.objects.map((o, index) =>
+                index === existingIndex ? object : o
+              );
+            } else {
+              // New object - add it
+              newObjects = [...state.objects, object];
+            }
+            
+            // Also update the project's objects array
+            const updatedProject = state.project ? {
+              ...state.project,
+              objects: newObjects
+            } : null;
+            
+            // Persist to localStorage
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-objects`,
+                  JSON.stringify(newObjects)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist to storage:', error);
+              }
+            }
+
+            return {
+              objects: newObjects,
+              project: updatedProject,
+            };
+          }),
+
+        updateObject: (id, updates) =>
+          set((state) => {
+            const updatedObjects = state.objects.map((object) =>
+              object.id === id
+                ? { ...object, ...updates }
+                : object
+            );
+
+            // Also update the project's objects array
+            const updatedProject = state.project ? {
+              ...state.project,
+              objects: updatedObjects
+            } : null;
+
+            // Persist to localStorage
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-objects`,
+                  JSON.stringify(updatedObjects)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist to storage:', error);
+              }
+            }
+
+            return {
+              objects: updatedObjects,
+              project: updatedProject,
+            };
+          }),
+
+        deleteObject: (id) =>
+          set((state) => {
+            const newObjects = state.objects.filter((o) => o.id !== id);
+
+            // Also update the project's objects array
+            const updatedProject = state.project ? {
+              ...state.project,
+              objects: newObjects
+            } : null;
+
+            // Persist to localStorage
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-objects`,
+                  JSON.stringify(newObjects)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist to storage:', error);
+              }
+            }
+
+            return {
+              objects: newObjects,
+              project: updatedProject,
+            };
+          }),
+
+        getObjectById: (id) => {
+          const state = useStore.getState();
+          return state.objects.find((o) => o.id === id);
+        },
+
+        getAllObjects: () => {
+          const state = useStore.getState();
+          return state.objects;
+        },
+
+        setObjects: (objects) =>
+          set((state) => {
+            // Also update the project's objects array
+            const updatedProject = state.project
+              ? { ...state.project, objects }
+              : null;
+
+            Logger.info(`📦 [Store] Setting ${objects.length} objects`);
+
+            return {
+              objects,
               project: updatedProject,
             };
           }),
@@ -845,51 +1016,63 @@ export const useStore = create<Store>()(
             switch (output.type) {
               case 'character':
                 // Add character to store (Requirements: 3.4, 3.5, 3.6, 12.1)
+                // Map all fields from wizard output to Character type
                 const character: Character = {
                   character_id: output.data.id,
                   name: output.data.name,
                   creation_method: 'wizard' as const,
-                  creation_timestamp: output.data.created_at,
-                  version: '1.0',
+                  creation_timestamp: output.data.created_at || output.data.creation_timestamp,
+                  version: output.data.version || '1.0',
                   visual_identity: {
-                    hair_color: output.data.visual_attributes?.hair_color || '',
-                    hair_style: output.data.visual_attributes?.hair_style || '',
-                    hair_length: output.data.visual_attributes?.hair_length || '',
-                    eye_color: output.data.visual_attributes?.eye_color || '',
-                    eye_shape: output.data.visual_attributes?.eye_shape || '',
-                    skin_tone: output.data.visual_attributes?.skin_tone || '',
-                    facial_structure: output.data.visual_attributes?.facial_structure || '',
-                    distinctive_features: output.data.visual_attributes?.distinctive_features || [],
-                    age_range: output.data.visual_attributes?.age || '',
-                    height: output.data.visual_attributes?.height || '',
-                    build: output.data.visual_attributes?.build || '',
-                    posture: output.data.visual_attributes?.posture || '',
-                    clothing_style: output.data.visual_attributes?.clothing || '',
-                    color_palette: output.data.visual_attributes?.color_palette || [],
+                    // Hair
+                    hair_color: output.data.visual_identity?.hair_color || output.data.visual_attributes?.hair_color || output.data.hair_color || '',
+                    hair_style: output.data.visual_identity?.hair_style || output.data.visual_attributes?.hair_style || output.data.hair_style || '',
+                    hair_length: output.data.visual_identity?.hair_length || output.data.visual_attributes?.hair_length || output.data.hair_length || '',
+                    // Eyes
+                    eye_color: output.data.visual_identity?.eye_color || output.data.visual_attributes?.eye_color || output.data.eye_color || '',
+                    eye_shape: output.data.visual_identity?.eye_shape || output.data.visual_attributes?.eye_shape || output.data.eye_shape || '',
+                    // Skin & Face
+                    skin_tone: output.data.visual_identity?.skin_tone || output.data.visual_attributes?.skin_tone || output.data.skin_tone || '',
+                    facial_structure: output.data.visual_identity?.facial_structure || output.data.visual_attributes?.facial_structure || output.data.facial_structure || '',
+                    // Distinctive features
+                    distinctive_features: output.data.visual_identity?.distinctive_features || output.data.visual_attributes?.distinctive_features || output.data.distinctive_features || [],
+                    // Age range (support both 'age' and 'age_range')
+                    age_range: output.data.visual_identity?.age_range || output.data.visual_attributes?.age_range || output.data.visual_attributes?.age || output.data.age_range || output.data.age || '',
+                    // Body
+                    height: output.data.visual_identity?.height || output.data.visual_attributes?.height || output.data.height || '',
+                    build: output.data.visual_identity?.build || output.data.visual_attributes?.build || output.data.build || '',
+                    posture: output.data.visual_identity?.posture || output.data.visual_attributes?.posture || output.data.posture || '',
+                    // Clothing (support both 'clothing' and 'clothing_style')
+                    clothing_style: output.data.visual_identity?.clothing_style || output.data.visual_attributes?.clothing_style || output.data.visual_attributes?.clothing || output.data.clothing_style || output.data.clothing || '',
+                    // Color palette
+                    color_palette: output.data.visual_identity?.color_palette || output.data.visual_attributes?.color_palette || output.data.color_palette || [],
+                    // Reference images (required by type but optional for new characters)
+                    reference_images: [],
+                    reference_sheet_images: [],
                   },
                   personality: {
-                    traits: output.data.personality || [],
-                    values: output.data.values || [],
-                    fears: output.data.fears || [],
-                    desires: output.data.desires || [],
-                    flaws: output.data.flaws || [],
-                    strengths: output.data.strengths || [],
-                    temperament: output.data.temperament || '',
-                    communication_style: output.data.dialogue_style || '',
+                    traits: output.data.personality?.traits || output.data.personality || output.data.traits || [],
+                    values: output.data.personality?.values || output.data.values || [],
+                    fears: output.data.personality?.fears || output.data.fears || [],
+                    desires: output.data.personality?.desires || output.data.desires || [],
+                    flaws: output.data.personality?.flaws || output.data.flaws || [],
+                    strengths: output.data.personality?.strengths || output.data.strengths || [],
+                    temperament: output.data.personality?.temperament || output.data.temperament || '',
+                    communication_style: output.data.personality?.communication_style || output.data.dialogue_style || output.data.communication_style || '',
                   },
                   background: {
-                    origin: output.data.origin || '',
-                    occupation: output.data.occupation || '',
-                    education: output.data.education || '',
-                    family: output.data.family || '',
-                    significant_events: output.data.significant_events || [],
-                    current_situation: output.data.current_situation || '',
+                    origin: output.data.background?.origin || output.data.origin || '',
+                    occupation: output.data.background?.occupation || output.data.occupation || '',
+                    education: output.data.background?.education || output.data.education || '',
+                    family: output.data.background?.family || output.data.family || '',
+                    significant_events: output.data.background?.significant_events || output.data.significant_events || [],
+                    current_situation: output.data.background?.current_situation || output.data.current_situation || '',
                   },
                   relationships: output.data.relationships || [],
                   role: {
-                    archetype: output.data.archetype || '',
-                    narrative_function: output.data.narrative_function || '',
-                    character_arc: output.data.character_arc || '',
+                    archetype: output.data.role?.archetype || output.data.archetype || '',
+                    narrative_function: output.data.role?.narrative_function || output.data.narrative_function || '',
+                    character_arc: output.data.role?.character_arc || output.data.character_arc || '',
                   },
                 };
                 
@@ -916,7 +1099,7 @@ export const useStore = create<Store>()(
                 // Create shot entries from scene breakdown (Requirements: 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 12.2)
                 const sceneShots = output.data.shots || [];
                 // Using 'any' for shotData from wizard output to handle flexible shot data structures
-                const newShots: Shot[] = sceneShots.map((shotData: any, index: number) => {
+                const newShots: Shot[] = sceneShots.map((shotData: unknown, index: number) => {
                   const shotId = shotData.id || `shot_${Date.now()}_${index}`;
                   return {
                     id: shotId,
@@ -954,7 +1137,7 @@ export const useStore = create<Store>()(
                 }
                 
                 // Using 'any' for shotData from wizard output to handle flexible shot data structures
-                const storyboardNewShots: Shot[] = storyboardShots.map((shotData: any, index: number) => {
+                const storyboardNewShots: Shot[] = storyboardShots.map((shotData: unknown, index: number) => {
                   const shotId = shotData.id || `shot_${Date.now()}_${index}`;
                   const frameFile = output.files.find((f) => 
                     f.type === 'image' && f.path.includes(shotId)
@@ -1006,7 +1189,7 @@ export const useStore = create<Store>()(
                 // Add dialogue to shots (assuming dialogue is associated with current shots)
                 const currentShots = state.shots;
                 // Using 'any' for track data from wizard output to handle flexible dialogue track structures
-                dialogueTracks.forEach((track: any, index: number) => {
+                dialogueTracks.forEach((track: unknown, index: number) => {
                   if (index < currentShots.length) {
                     const shot = currentShots[index];
                     const audioTrack: AudioTrack = {
@@ -1509,5 +1692,8 @@ export const useProject = () => useStore((state) => state.project);
 
 // Generation status selector
 export const useGenerationStatus = () => useStore((state) => state.generationStatus);
+
+
+
 
 

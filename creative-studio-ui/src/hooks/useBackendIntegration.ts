@@ -39,7 +39,7 @@ export interface UseBackendIntegrationReturn {
   /**
    * Invoke StoryCore-Engine CLI command
    */
-  invokeCliCommand: (command: string, args: Record<string, any>) => Promise<any>;
+  invokeCliCommand: (command: string, args: Record<string, unknown>) => Promise<any>;
   
   /**
    * Current submission state
@@ -267,7 +267,7 @@ export function useBackendIntegration(
    * Invoke StoryCore-Engine CLI command
    */
   const invokeCliCommand = useCallback(
-    async (command: string, args: Record<string, any>): Promise<any> => {
+    async (command: string, args: Record<string, unknown>): Promise<any> => {
       setIsSubmitting(true);
       setError(null);
 
@@ -339,3 +339,4 @@ export function useBackendIntegration(
     clearError,
   };
 }
+

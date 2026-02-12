@@ -83,7 +83,7 @@ export function clearChatPanelState(): void {
  * @param state - The state to validate
  * @returns true if valid, false otherwise
  */
-function isValidChatPanelState(state: any): state is ChatPanelState {
+function isValidChatPanelState(state: unknown): state is ChatPanelState {
   return (
     state &&
     typeof state === 'object' &&
@@ -156,3 +156,4 @@ export function updateChatPanelMinimizedState(isMinimized: boolean): void {
   const currentState = loadChatPanelState();
   saveChatPanelState({ ...currentState, isMinimized });
 }
+

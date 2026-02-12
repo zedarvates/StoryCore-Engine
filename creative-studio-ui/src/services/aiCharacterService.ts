@@ -356,7 +356,7 @@ class AICharacterService extends EventEmitter {
    * Import character data
    */
   async importCharacter(data: string, format: 'json' | 'xml' = 'json'): Promise<CharacterProfile> {
-    let characterData: any;
+    let characterData: unknown;
 
     if (format === 'json') {
       characterData = JSON.parse(data);
@@ -653,7 +653,7 @@ class AICharacterService extends EventEmitter {
       const saved = localStorage.getItem('ai_characters');
       if (saved) {
         const characters = JSON.parse(saved);
-        characters.forEach((char: any) => {
+        characters.forEach((char: unknown) => {
           this.characters.set(char.id, {
             ...char,
             createdAt: new Date(char.createdAt),
@@ -690,7 +690,7 @@ class AICharacterService extends EventEmitter {
 </character>`;
   }
 
-  private parseXML(xml: string): any {
+  private parseXML(xml: string): unknown {
     // Simple XML parsing for import
     // In a real implementation, you'd use a proper XML parser
     throw new Error('XML parsing not implemented');
@@ -740,3 +740,5 @@ export const aiCharacterService = new AICharacterService();
 // Export types for React hooks
 export type { CharacterProfile, CharacterAppearance, CharacterPersonality, CharacterBackstory, CharacterTraits };
 export type { CharacterGenerationConfig, CharacterConsistency, CharacterAnalysis };
+
+

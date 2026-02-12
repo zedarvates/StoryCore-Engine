@@ -21,7 +21,7 @@ export interface TransitionSettings {
   direction?: 'in' | 'out' | 'left' | 'right' | 'up' | 'down';
   intensity?: number; // 0-1
   color?: string; // Hex color
-  customParams?: Record<string, any>;
+  customParams?: Record<string, unknown>;
 }
 
 export interface TransitionLibrary {

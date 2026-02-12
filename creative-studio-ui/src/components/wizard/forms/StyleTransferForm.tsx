@@ -78,7 +78,7 @@ export function StyleTransferForm({
     return isValid;
   }, [formData, onValidationChange]);
 
-  const handleFieldChange = useCallback((field: keyof StyleTransferInput, value: any) => {
+  const handleFieldChange = useCallback((field: keyof StyleTransferInput, value: unknown) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       onChange?.(updated);
@@ -246,3 +246,4 @@ export function StyleTransferForm({
     </form>
   );
 }
+

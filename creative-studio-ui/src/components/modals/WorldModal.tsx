@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import './SharedModalStyles.css';
 import {
   Dialog,
   DialogContent,
@@ -25,11 +26,8 @@ import {
   SearchIcon,
   StarIcon,
   MapPinIcon,
-  TreePineIcon,
   MountainIcon,
-  WavesIcon,
   CastleIcon,
-  HomeIcon,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import { notificationService } from '@/services/NotificationService';
@@ -63,7 +61,6 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
   const [selectedType, setSelectedType] = useState<WorldElement['type'] | 'all'>('all');
   const [selectedImportance, setSelectedImportance] = useState<WorldElement['importance'] | 'all'>('all');
   const [editingElement, setEditingElement] = useState<WorldElement | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Charger les éléments du monde du projet
   useEffect(() => {
@@ -81,7 +78,7 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
       const projectWorldElements = localStorage.getItem(`world_elements_${project.id}`);
       if (projectWorldElements) {
         const parsed = JSON.parse(projectWorldElements);
-        const elementsWithDates = parsed.map((element: any) => ({
+        const elementsWithDates = parsed.map((element: unknown) => ({
           ...element,
           createdAt: new Date(element.createdAt),
           updatedAt: new Date(element.updatedAt)
@@ -182,12 +179,10 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
     };
 
     setEditingElement(newElement);
-    setShowCreateForm(true);
   };
 
-  const handleEditElement = (element: WorldElement) => {
+const handleEditElement = (element: WorldElement) => {
     setEditingElement({ ...element });
-    setShowCreateForm(false);
   };
 
   const handleSaveElement = (element: WorldElement) => {
@@ -267,14 +262,14 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
   if (!project) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="shared-modal-dialog max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Éléments du monde</DialogTitle>
           </DialogHeader>
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center no-project-state">
             <GlobeIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Aucun projet ouvert</p>
-            <p className="text-sm">Ouvrez un projet pour gérer les éléments du monde</p>
+            <p className="title">Aucun projet ouvert</p>
+            <p className="text-sm subtitle">Ouvrez un projet pour gérer les éléments du monde</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -284,7 +279,7 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="shared-modal-dialog max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <GlobeIcon className="w-5 h-5" />
@@ -293,17 +288,18 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
           </DialogHeader>
 
           {/* Toolbar */}
-          <div className="flex-shrink-0 p-4 border-b border-gray-200">
+          <div className="flex-shrink-0 p-4 toolbar border-b border-gray-200">
             <div className="flex items-center justify-between gap-4">
               {/* Search and filters */}
               <div className="flex items-center gap-4 flex-1">
                 <div className="relative flex-1 max-w-sm">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--modal-text-muted)' }} />
                   <Input
                     placeholder="Rechercher des éléments..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
+                    aria-label="Rechercher des éléments du monde"
                   />
                 </div>
 
@@ -311,6 +307,8 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value as WorldElement['type'] | 'all')}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  aria-label="Filtrer par type"
+                  title="Filtrer les éléments par type"
                 >
                   <option value="all">Tous les types</option>
                   <option value="realm">Royaumes</option>
@@ -324,6 +322,8 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
                   value={selectedImportance}
                   onChange={(e) => setSelectedImportance(e.target.value as WorldElement['importance'] | 'all')}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  aria-label="Filtrer par importance"
+                  title="Filtrer les éléments par importance"
                 >
                   <option value="all">Toute importance</option>
                   <option value="high">Élevée</option>
@@ -346,12 +346,12 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
           <div className="flex-1 overflow-y-auto p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredElements.length === 0 ? (
-                <div className="col-span-full text-center py-12">
-                  <GlobeIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <div className="col-span-full text-center py-12 empty-state">
+                  <GlobeIcon className="w-12 h-12 mx-auto mb-4 empty-state-icon" />
+                  <h3 className="text-lg font-medium empty-state-title mb-2">
                     Aucun élément trouvé
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="empty-state-text mb-4">
                     {searchQuery || selectedType !== 'all' || selectedImportance !== 'all'
                       ? 'Essayez de modifier vos critères de recherche.'
                       : 'Créez votre premier élément de monde pour commencer.'}
@@ -367,13 +367,13 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
                 filteredElements.map(element => (
                   <div
                     key={element.id}
-                    className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                    className="element-card bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
                         {getTypeIcon(element.type)}
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-lg font-semibold element-title">
                           {element.name}
                         </h3>
                       </div>
@@ -387,14 +387,14 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
 
                     {/* Type */}
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-sm text-gray-500">Type:</span>
+                      <span className="text-sm meta-label">Type:</span>
                       <Badge variant="outline">
                         {getTypeLabel(element.type)}
                       </Badge>
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-gray-700 mb-3 line-clamp-3">
+                    <p className="text-sm element-description mb-3 line-clamp-3">
                       {element.description}
                     </p>
 
@@ -416,7 +416,7 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
 
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs element-meta">
                         Modifié {element.updatedAt.toLocaleDateString('fr-FR')}
                       </div>
                       <div className="flex items-center gap-1">
@@ -425,6 +425,8 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
                           size="sm"
                           onClick={() => handleEditElement(element)}
                           className="text-blue-600 hover:text-blue-800"
+                          aria-label={`Modifier ${element.name}`}
+                          title={`Modifier ${element.name}`}
                         >
                           <EditIcon className="w-4 h-4" />
                         </Button>
@@ -433,6 +435,8 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
                           size="sm"
                           onClick={() => handleDeleteElement(element.id)}
                           className="text-red-600 hover:text-red-800"
+                          aria-label={`Supprimer ${element.name}`}
+                          title={`Supprimer ${element.name}`}
                         >
                           <TrashIcon className="w-4 h-4" />
                         </Button>
@@ -519,13 +523,14 @@ function WorldElementEditModal({ element, isCreate, onSave, onCancel }: WorldEle
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--modal-text-secondary)' }}>
                   Type
                 </label>
                 <select
                   value={editedElement.type}
                   onChange={(e) => setEditedElement(prev => ({ ...prev, type: e.target.value as WorldElement['type'] }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  aria-label="Sélectionner le type d'élément"
                 >
                   <option value="realm">Royaume</option>
                   <option value="region">Région</option>
@@ -587,13 +592,14 @@ function WorldElementEditModal({ element, isCreate, onSave, onCancel }: WorldEle
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--modal-text-secondary)' }}>
                   Importance
                 </label>
                 <select
                   value={editedElement.importance}
                   onChange={(e) => setEditedElement(prev => ({ ...prev, importance: e.target.value as WorldElement['importance'] }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  aria-label="Sélectionner le niveau d'importance"
                 >
                   <option value="high">Élevée</option>
                   <option value="medium">Moyenne</option>
@@ -624,9 +630,9 @@ function WorldElementEditModal({ element, isCreate, onSave, onCancel }: WorldEle
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   placeholder="Ajouter un tag"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
                 />
-                <Button onClick={handleAddTag} variant="outline">
+                <Button onClick={handleAddTag} variant="outline" aria-label="Ajouter un tag" title="Ajouter un tag">
                   <PlusIcon className="w-4 h-4" />
                 </Button>
               </div>
@@ -637,6 +643,7 @@ function WorldElementEditModal({ element, isCreate, onSave, onCancel }: WorldEle
                     <button
                       onClick={() => handleRemoveTag(tag)}
                       className="ml-1 text-gray-500 hover:text-gray-700"
+                      aria-label={`Retirer le tag ${tag}`}
                     >
                       <XIcon className="w-3 h-3" />
                     </button>
@@ -661,3 +668,4 @@ function WorldElementEditModal({ element, isCreate, onSave, onCancel }: WorldEle
     </Dialog>
   );
 }
+

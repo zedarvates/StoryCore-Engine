@@ -11,10 +11,10 @@ export interface StorytellerWizardProps {
   onClose: () => void;
   onSave: (storySummary: StorySummary) => void;
   projectContext?: {
-    characters: any[];
-    world: any;
-    locations: any[];
-    previousStories: any[];
+    characters: unknown[];
+    world: unknown;
+    locations: unknown[];
+    previousStories: unknown[];
   };
 }
 
@@ -335,7 +335,7 @@ Génère au format JSON:
     onClose();
   };
 
-  const updateStoryData = (field: keyof StorytellerWizardData, value: any) => {
+  const updateStoryData = (field: keyof StorytellerWizardData, value: unknown) => {
     setStoryData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -976,3 +976,5 @@ Génère au format JSON:
     </div>
   );
 };
+
+

@@ -122,7 +122,7 @@ async function retryWithBackoff<T>(
 /**
  * Validate character schema
  */
-function validateCharacterSchema(data: any): { valid: boolean; errors: string[] } {
+function validateCharacterSchema(data: unknown): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   if (!data.character_id || typeof data.character_id !== 'string') {
@@ -649,3 +649,4 @@ export function useCharacterPersistenceOptimized() {
     clearCache,
   };
 }
+

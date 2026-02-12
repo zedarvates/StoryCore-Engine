@@ -12,7 +12,7 @@ import { modalManager, ModalManager } from './ModalManager';
 
 export interface UseModalManagerReturn {
   activeModals: Set<string>;
-  openModal: (id: string, props?: Record<string, any>) => void;
+  openModal: (id: string, props?: Record<string, unknown>) => void;
   closeModal: (id: string) => void;
   closeAll: () => void;
   isOpen: (id: string) => boolean;
@@ -39,7 +39,7 @@ export function useModalManager(manager: ModalManager = modalManager): UseModalM
   }, [manager]);
 
   const openModal = useCallback(
-    (id: string, props?: Record<string, any>) => {
+    (id: string, props?: Record<string, unknown>) => {
       manager.openModal(id, props);
     },
     [manager]
@@ -71,3 +71,4 @@ export function useModalManager(manager: ModalManager = modalManager): UseModalM
     isOpen,
   };
 }
+
