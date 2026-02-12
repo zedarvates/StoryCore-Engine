@@ -100,4 +100,3 @@ We use the following tools to monitor dependencies:
 ---
 
 **Thank you for helping keep StoryCore-Engine and its users safe!**
-

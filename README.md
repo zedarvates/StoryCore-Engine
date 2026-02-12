@@ -1,7 +1,7 @@
 # 🎬 StoryCore-Engine
 ### The Self-Correcting Multimodal Production Pipeline
 
-**From Script to Screen in less 1h — With  Visual Coherence**
+**From Script to Screen in 5 Minutes — With  Visual Coherence**
 
 ![Hackathon 2026](https://img.shields.io/badge/Hackathon-2026-blue) ![Python](https://img.shields.io/badge/Python-3.9+-green) ![React](https://img.shields.io/badge/React-18+-blue) ![ComfyUI](https://img.shields.io/badge/ComfyUI-Ready-orange) ![Deterministic AI](https://img.shields.io/badge/Deterministic-AI-purple) ![Security](https://img.shields.io/badge/Security-Validated-green) ![Resilience](https://img.shields.io/badge/Resilience-Enterprise-blue)
 
