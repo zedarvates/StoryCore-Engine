@@ -1,3 +1,4 @@
+// cspell:ignore lieux
 import { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout } from '../WizardFormLayout';
@@ -9,21 +10,27 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, MapPin, Sparkles } from 'lucide-react';
 import { useStore } from '@/store';
-import type { LocationSelectionData, LocationCreationRequest, WorldContext } from '@/types/story';
+import type { LocationSelectionData, LocationCreationRequest, WorldContext, LocationReference } from '@/types/story';
+import type { AppState } from '@/types';
+import type { World, WorldRule } from '@/types/world';
 import { createLocation } from '@/services/storyGenerationService';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
-import { useAppStore } from '@/stores/useAppStore';
+// Removed unused import
 import { LLMErrorCategory, type ErrorRecoveryOptions } from '@/services/llmService';
+import { saveLocationToProject, createLocationFromWizardData } from '@/utils/locationStorage';
+import { useLocationStore } from '@/stores/locationStore';
+import { useEditorStore } from '@/stores/editorStore';
+import type { RootState } from '@/store';
 
 // ============================================================================
 // Location Card Component
 // ============================================================================
 
 interface LocationCardProps {
-  location: any;
-  isSelected: boolean;
-  onToggle: () => void;
+  readonly location: LocationReference;
+  readonly isSelected: boolean;
+  readonly onToggle: () => void;
 }
 
 function LocationCard({ location, isSelected, onToggle }: LocationCardProps) {
@@ -31,13 +38,25 @@ function LocationCard({ location, isSelected, onToggle }: LocationCardProps) {
     <div
       className={`
         relative p-4 rounded-lg border-2 cursor-pointer transition-all
-        ${isSelected 
-          ? 'border-green-500 bg-green-50 dark:bg-green-950/20' 
+        ${isSelected
+          ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
         }
       `}
       onClick={onToggle}
-    >
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onToggle();
+        }
+      }}>
+      <input
+        type="checkbox"
+        className="opacity-0 absolute inset-0"
+        checked={isSelected}
+        onChange={onToggle}
+        aria-label={`Select ${location.name}`}
+      />
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center">
@@ -56,13 +75,19 @@ function LocationCard({ location, isSelected, onToggle }: LocationCardProps) {
           )}
         </div>
         <div className="flex-shrink-0">
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={onToggle}
-            className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div 
+            className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+              isSelected 
+                ? 'bg-green-500 border-green-500 text-white' 
+                : 'border-gray-300 bg-white'
+            }`}
+            aria-hidden="true">
+            {isSelected && (
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -75,8 +100,12 @@ function LocationCard({ location, isSelected, onToggle }: LocationCardProps) {
 
 export function Step3LocationSelection() {
   const { formData, updateFormData, validationErrors } = useWizard<LocationSelectionData>();
-  const currentWorld = useStore((state) => state.worlds?.find(w => w.id === state.selectedWorldId));
+  const currentWorld = useStore((state: AppState) => state.worlds?.find((w: World) => w.id === state.selectedWorldId));
   const locations = currentWorld?.locations || [];
+  
+  // Get project path for saving locations
+  const { projectPath } = useEditorStore();
+  const { fetchProjectLocations } = useLocationStore();
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -92,7 +121,7 @@ export function Step3LocationSelection() {
 
   const selectedLocations = formData.selectedLocations || [];
 
-  const handleToggleLocation = (location: any) => {
+  const handleToggleLocation = (location: LocationReference) => {
     const isSelected = selectedLocations.some(l => l.id === location.id);
     
     if (isSelected) {
@@ -114,7 +143,10 @@ export function Step3LocationSelection() {
   };
 
   const handleCreateLocation = async () => {
-    if (!newLocation.name || !newLocation.type) {
+    // Refactored negated condition for clarity
+    if (newLocation.name && newLocation.type) {
+      // proceed with creation
+    } else {
       setCreateError({
         message: 'Name and type are required',
         userMessage: 'Name and type are required',
@@ -135,7 +167,7 @@ export function Step3LocationSelection() {
         name: currentWorld.name,
         genre: currentWorld.genre || [],
         tone: currentWorld.tone || [],
-        rules: (currentWorld.rules || []).map(rule => ({
+        rules: (currentWorld.rules || []).map((rule: WorldRule) => ({
           id: rule.id,
           category: rule.category,
           rule: rule.rule,
@@ -147,6 +179,27 @@ export function Step3LocationSelection() {
 
       // Call LLM service to create location (worldContext is optional)
       const createdLocation = await createLocation(newLocation, worldContext);
+
+      // Get project ID from project path
+      const projectId = projectPath?.split(/[/\\]/).pop() || 'unknown';
+
+      // Save location to project's lieux folder as JSON file
+      if (projectPath && projectId !== 'unknown') {
+        const locationData = createLocationFromWizardData(
+          createdLocation.id,
+          {
+            name: createdLocation.name,
+            type: createdLocation.type || 'generic',
+            description: createdLocation.description || newLocation.description || '',
+          },
+          { projectId, worldId: currentWorld?.id }
+        );
+        
+        await saveLocationToProject(projectId, createdLocation.id, locationData);
+        
+        // Refresh project locations in the store
+        await fetchProjectLocations(projectId);
+      }
 
       // Add to world locations (update world in store)
       if (currentWorld) {
@@ -295,8 +348,7 @@ export function Step3LocationSelection() {
             {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="new-location-description">
-                Description
-                <span className="text-muted-foreground ml-1">(Optional)</span>
+                Description <span className="text-muted-foreground ml-1">(Optional)</span>
               </Label>
               <Textarea
                 id="new-location-description"
