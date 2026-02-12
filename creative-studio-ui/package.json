@@ -68,7 +68,7 @@
     "framer-motion": "^12.29.0",
     "fuse.js": "^7.1.0",
     "idb": "^8.0.3",
-    "jspdf": "^4.0.0",
+    "jspdf": "^4.1.0",
     "lucide-react": "^0.468.0",
     "react": "^19.2.0",
     "react-dnd": "^16.0.1",
