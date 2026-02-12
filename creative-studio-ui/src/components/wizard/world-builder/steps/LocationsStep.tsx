@@ -4,6 +4,7 @@ import { StepValidator } from '../StepValidator';
 import { saveLocationToProject, createLocationFromWizardData } from '../../../../utils/locationStorage';
 import { useStore } from '@/store';
 import type { RootState } from '@/store';
+import type { LocationReference } from '@/types/story';
 import { useLocationStore } from '@/stores/locationStore';
 
 export const LocationsStep: React.FC = () => {
@@ -11,7 +12,7 @@ export const LocationsStep: React.FC = () => {
   const { updateStep, markStepComplete } = useWorldBuilderActions();
   
   // Get project path from store
-  const project = useStore((state) => state.project);
+  const project = useStore((state: RootState) => state.project);
   const projectPath = project?.path || '';
   
   // Get location store actions for refreshing
@@ -28,7 +29,7 @@ export const LocationsStep: React.FC = () => {
   }, [worldData?.locations]);
 
   // Save a single location to the project
-  const saveLocation = useCallback(async (location: typeof locations[0]) => {
+  const saveLocation = useCallback(async (location: LocationReference) => {
     if (!projectPath) {
       console.warn('[LocationsStep] No project path available, skipping save');
       return;
@@ -73,7 +74,7 @@ export const LocationsStep: React.FC = () => {
     setLocations([...locations, newLocation]);
   };
 
-  const updateLocation = async (id: string, field: string, value: any) => {
+  const updateLocation = async (id: string, field: string, value: string) => {
     const newLocations = locations.map(loc =>
       loc.id === id ? { ...loc, [field]: value } : loc
     );
