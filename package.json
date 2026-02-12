@@ -64,7 +64,7 @@
     "concurrently": "^9.2.1",
     "cross-env": "^7.0.3",
     "electron": "^40.0.0",
-    "electron-builder": "^26.5.0",
+    "electron-builder": "^26.7.0",
     "electron-icon-builder": "^2.0.1",
     "electron-updater": "^6.7.3",
     "esbuild": "^0.27.2",
