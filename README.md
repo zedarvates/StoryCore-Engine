@@ -8,7 +8,9 @@
 ![Repo size](https://img.shields.io/github/repo-size/zedarvates/StoryCore-Engine)
 
 ---
-![start screen](assets/Screenshot 2026-02-15 060825.png)
+
+![Preview](assets/Screenshot 2026-02-15 060825.png)
+
 
 ---
 
@@ -41,7 +43,8 @@ These refinements will be handled in future versions.
 
 ---
 
-[![Regarder la vidéo](assets/Screenshot 2026-02-15 060825.png)](https://youtu.be/P0K7DueyICo?si=kEvpsxMy4zeFEYqO)]
+
+![Voir la vidéo](assets/Screenshot 2026-02-15 060825.png)](https://youtu.be/P0K7DueyICo?si=kEvpsxMy4zeFEYqO)
 
 ---
 
@@ -58,12 +61,11 @@ note : Be careful: even with an RTX 5060 and 32 GB of RAM — a fairly recent PC
 As for dialogue generation, it will obviously depend on the length of the dialogue and the variables you apply. And on top of that, you might also add filters. As of right now, I’m not even sure if I’ve already integrated those filters into the user interface.
 
 ---
+![Preview](assets/Screenshot 2026-02-15 060805.png)
 
-![Screenshot](assets/Screenshot 2026-02-15 060805.png)
+![Preview](assets/Screenshot 2026-02-15 060909.png)
 
-![Screenshot](assets/Screenshot 2026-02-15 060909.png)
-
-![Screenshot](assets/Screenshot 2026-02-15 060938.png)
+![Preview](assets/Screenshot 2026-02-15 060938.png)
 
 ---
 ## 🚀 Quick Start
