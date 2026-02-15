@@ -8,6 +8,8 @@
 ![Repo size](https://img.shields.io/github/repo-size/zedarvates/StoryCore-Engine)
 
 ---
+assets/Screenshot 2026-02-15 060825.png
+---
 
 > **A Message from the Creator**
 StoryCore is more than just a pipeline.
@@ -51,7 +53,10 @@ note : Be careful: even with an RTX 5060 and 32 GB of RAM — a fairly recent PC
 As for dialogue generation, it will obviously depend on the length of the dialogue and the variables you apply. And on top of that, you might also add filters. As of right now, I’m not even sure if I’ve already integrated those filters into the user interface.
 
 ---
-
+assets/Screenshot 2026-02-15 060805.png
+assets/Screenshot 2026-02-15 060909.png
+assets/Screenshot 2026-02-15 060938.png
+---
 ## 🚀 Quick Start
 
 > **New to the project?** Start with [START_HERE.md](START_HERE.md) for guided navigation based on your role.
