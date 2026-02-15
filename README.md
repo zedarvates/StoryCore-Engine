@@ -8,7 +8,7 @@
 ![Repo size](https://img.shields.io/github/repo-size/zedarvates/StoryCore-Engine)
 
 ---
-![start screen](assets/Screenshot 2026-02-15 060825.png)
+[![start screen](assets/Screenshot 2026-02-15 060825.png)]
 
 ---
 
@@ -41,7 +41,7 @@ These refinements will be handled in future versions.
 
 ---
 
-[![Regarder la vidéo](assets/Screenshot 2026-02-15 060825.png)](https://youtu.be/P0K7DueyICo?si=kEvpsxMy4zeFEYqO)
+[![Regarder la vidéo](assets/Screenshot 2026-02-15 060825.png)](https://youtu.be/P0K7DueyICo?si=kEvpsxMy4zeFEYqO)]
 
 ---
 
@@ -59,11 +59,11 @@ As for dialogue generation, it will obviously depend on the length of the dialog
 
 ---
 
-![Screenshot](assets/Screenshot 2026-02-15 060805.png)
+[![Screenshot](assets/Screenshot 2026-02-15 060805.png)]
 
-![Screenshot](assets/Screenshot 2026-02-15 060909.png)
+[![Screenshot](assets/Screenshot 2026-02-15 060909.png)]
 
-![Screenshot](assets/Screenshot 2026-02-15 060938.png)
+[![Screenshot](assets/Screenshot 2026-02-15 060938.png)]
 
 ---
 ## 🚀 Quick Start
