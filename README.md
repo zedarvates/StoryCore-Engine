@@ -43,7 +43,7 @@ These refinements will be handled in future versions.
 
 ---
 
-![ presentation ](assets/screenshot-2026-02-15-060805.png)][(https://www.youtube.com/watch?v=P0K7DueyICo](https://youtu.be/P0K7DueyICo?si=kEvpsxMy4zeFEYqO))
+![ presentation ](assets/Screenshot-2026-02-15060805.png.png)][(https://www.youtube.com/watch?v=P0K7DueyICo](https://youtu.be/P0K7DueyICo?si=kEvpsxMy4zeFEYqO))
 
 
 ---
