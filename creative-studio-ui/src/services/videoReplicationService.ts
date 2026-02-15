@@ -5,6 +5,7 @@
 
 import { getPerformanceMonitoringService } from './performanceMonitoringService';
 import { videoFrameCache, estimateSize } from '../utils/memoryMonitor';
+import { logger } from '../utils/logger';
 
 // ============================================================================
 // Types
@@ -155,7 +156,7 @@ export class VideoReplicationService {
   private replicationProjects: Map<string, ReplicationProject> = new Map();
 
   private constructor() {
-    console.log('[VideoReplicationService] Initialized');
+    logger.debug('[VideoReplicationService] Initialized');
   }
 
   static getInstance(): VideoReplicationService {
@@ -175,7 +176,7 @@ export class VideoReplicationService {
   async uploadReferenceVideo(file: File): Promise<ReferenceVideo> {
     const timer = getPerformanceMonitoringService().createTimer('uploadReferenceVideo');
     
-    console.log('[VideoReplicationService] Uploading reference video:', file.name);
+    logger.debug('[VideoReplicationService] Uploading reference video:', file.name);
 
     const id = this.generateId();
     const fileUrl = URL.createObjectURL(file);
@@ -208,7 +209,7 @@ export class VideoReplicationService {
     const duration = timer.stop({ videoId: id, duration: metadata.duration, fps: metadata.fps });
     getPerformanceMonitoringService().trackVideoReplication(100, duration);
 
-    console.log('[VideoReplicationService] Reference video uploaded:', id);
+    logger.debug('[VideoReplicationService] Reference video uploaded:', id);
     return referenceVideo;
   }
 
@@ -243,7 +244,7 @@ export class VideoReplicationService {
    * Analyze shot composition, transitions, and scene changes
    */
   async analyzeVideoStructure(videoUrl: string): Promise<VideoStructureAnalysis> {
-    console.log('[VideoReplicationService] Analyzing video structure:', videoUrl);
+    logger.debug('[VideoReplicationService] Analyzing video structure:', videoUrl);
 
     // Simulated analysis - in production, this would use computer vision
     const shots = await this.detectShots(videoUrl);
@@ -342,7 +343,7 @@ export class VideoReplicationService {
    * Extract keyframes from video
    */
   async extractKeyframes(videoUrl: string): Promise<Keyframe[]> {
-    console.log('[VideoReplicationService] Extracting keyframes:', videoUrl);
+    logger.debug('[VideoReplicationService] Extracting keyframes:', videoUrl);
 
     const keyframes: Keyframe[] = [];
     const duration = await this.getVideoDuration(videoUrl);
@@ -408,7 +409,7 @@ export class VideoReplicationService {
    * Detect and analyze digital human elements in video
    */
   async analyzeDigitalHuman(videoUrl: string): Promise<DigitalHumanAnalysis> {
-    console.log('[VideoReplicationService] Analyzing digital human:', videoUrl);
+    logger.debug('[VideoReplicationService] Analyzing digital human:', videoUrl);
 
     const subjects = await this.detectHumanSubjects(videoUrl);
 
@@ -459,7 +460,7 @@ export class VideoReplicationService {
    * Extract detailed features from a detected human subject
    */
   async extractHumanFeatures(subjectId: string): Promise<HumanFeatures> {
-    console.log('[VideoReplicationService] Extracting features for subject:', subjectId);
+    logger.debug('[VideoReplicationService] Extracting features for subject:', subjectId);
 
     // Simulated feature extraction - in production, use pose estimation and analysis
     return {
@@ -496,7 +497,7 @@ export class VideoReplicationService {
    * Create a new replication project from a reference video
    */
   async createReplicationProject(referenceVideoId: string): Promise<ReplicationProject> {
-    console.log('[VideoReplicationService] Creating replication project from:', referenceVideoId);
+    logger.debug('[VideoReplicationService] Creating replication project from:', referenceVideoId);
 
     const referenceVideo = this.referenceVideos.get(referenceVideoId);
     if (!referenceVideo) {
@@ -543,7 +544,7 @@ export class VideoReplicationService {
     settings: ReplicationSettings,
     shotIds?: string[]
   ): Promise<{ projectId: string; processedCount: number }> {
-    console.log('[VideoReplicationService] Starting replication for project:', projectId);
+    logger.debug('[VideoReplicationService] Starting replication for project:', projectId);
 
     const project = this.replicationProjects.get(projectId);
     if (!project) {
@@ -588,7 +589,7 @@ export class VideoReplicationService {
       processedCount++;
     }
 
-    console.log('[VideoReplicationService] Replication complete:', processedCount, 'shots processed');
+    logger.debug('[VideoReplicationService] Replication complete:', processedCount, 'shots processed');
     return { projectId, processedCount };
   }
 
@@ -596,7 +597,7 @@ export class VideoReplicationService {
    * Replicate an individual shot from the reference
    */
   async replicateShot(shotId: string, options: ReplicationOptions): Promise<Shot> {
-    console.log('[VideoReplicationService] Replicating shot:', shotId, options);
+    logger.debug('[VideoReplicationService] Replicating shot:', shotId, options);
 
     // Simulated shot replication - in production, integrate with generation services
     const shot: Shot = {
@@ -627,7 +628,7 @@ export class VideoReplicationService {
    * Replicate an entire sequence of shots
    */
   async replicateSequence(sequenceId: string, options: ReplicationOptions): Promise<Sequence> {
-    console.log('[VideoReplicationService] Replicating sequence:', sequenceId, options);
+    logger.debug('[VideoReplicationService] Replicating sequence:', sequenceId, options);
 
     const sequence: Sequence = {
       id: sequenceId,
@@ -647,7 +648,7 @@ export class VideoReplicationService {
    * Apply digital human features to a shot
    */
   async applyDigitalHuman(shotId: string, humanFeatures: HumanFeatures): Promise<boolean> {
-    console.log('[VideoReplicationService] Applying digital human to shot:', shotId);
+    logger.debug('[VideoReplicationService] Applying digital human to shot:', shotId);
 
     // Simulated digital human application
     // In production, this would integrate with character generation services
@@ -670,7 +671,7 @@ export class VideoReplicationService {
    * Transfer composition style from source video to target shot
    */
   transferCompositionStyle(sourceVideoUrl: string, targetShotId: string): void {
-    console.log('[VideoReplicationService] Transferring composition style:', { sourceVideoUrl, targetShotId });
+    logger.debug('[VideoReplicationService] Transferring composition style:', { sourceVideoUrl, targetShotId });
 
     // Get composition info from source
     // Apply to target shot
@@ -681,7 +682,7 @@ export class VideoReplicationService {
    * Transfer transition patterns from source video to target sequence
    */
   transferTransitions(sourceVideoUrl: string, targetSequenceId: string): void {
-    console.log('[VideoReplicationService] Transferring transitions:', { sourceVideoUrl, targetSequenceId });
+    logger.debug('[VideoReplicationService] Transferring transitions:', { sourceVideoUrl, targetSequenceId });
 
     // Get transition info from source
     // Apply to target sequence
@@ -692,7 +693,7 @@ export class VideoReplicationService {
    * Match overall visual style from source to target sequence
    */
   matchVisualStyle(sourceVideoUrl: string, targetSequenceId: string): void {
-    console.log('[VideoReplicationService] Matching visual style:', { sourceVideoUrl, targetSequenceId });
+    logger.debug('[VideoReplicationService] Matching visual style:', { sourceVideoUrl, targetSequenceId });
 
     // Analyze style from source
     // Apply to target sequence

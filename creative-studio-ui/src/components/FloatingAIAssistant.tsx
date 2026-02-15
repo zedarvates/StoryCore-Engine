@@ -11,7 +11,8 @@ export const FloatingAIAssistant: React.FC = () => {
     setShowChat,
     setChatPanelPosition,
     setChatPanelSize,
-    setChatPanelMinimized
+    setChatPanelMinimized,
+    project
   } = useAppStore();
 
   // Subscribe to pipeline state for notification badge
@@ -97,14 +98,14 @@ export const FloatingAIAssistant: React.FC = () => {
   return (
     <>
       <ChatPanel />
-      {/* Notification badge overlay — visible when chat is closed */}
-      {!showChat && notificationBadge.count > 0 && (
+      {/* Notification badge overlay — visible when chat is closed and project is open */}
+      {!showChat && notificationBadge.count > 0 && project && (
         <div
           title={tooltipText}
           onClick={() => setShowChat(true)}
           style={{
             position: 'fixed',
-            bottom: 24,
+            bottom: 114,
             right: 24,
             width: 48,
             height: 48,
@@ -147,3 +148,4 @@ export const FloatingAIAssistant: React.FC = () => {
     </>
   );
 };
+

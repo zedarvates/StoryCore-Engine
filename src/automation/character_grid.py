@@ -159,14 +159,20 @@ class CharacterGridConfig:
     camera_angles: List[CameraAngle] = field(default_factory=lambda: [CameraAngle.EYE_LEVEL])
     lighting_types: List[LightingType] = field(default_factory=lambda: [LightingType.CINEMATIC])
     
-    # Paramètres de sortie
+    # Paramètres de sortie - RESOLUTION CORRIGÉE: 1024 par défaut
     output_dir: str = "assets/characters"
     image_format: str = "png"
-    resolution: int = 512
+    resolution: int = 1024  # Changé de 512 à 1024 pour haute qualité
+    
+    # Paramètres de style - AJOUTÉS
+    style: str = "realistic"  # Style du projet (realistic, anime, fantasy, etc.)
+    use_character_reference: bool = True  # Utiliser la première image comme référence
+    reference_strength: float = 0.8  # Force de la référence (0.0 - 1.0)
     
     # Métadonnées
     style_reference: Optional[str] = None
     description: Optional[str] = None
+    character_description: Optional[str] = None  # Description du personnage pour les prompts
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -181,8 +187,12 @@ class CharacterGridConfig:
             "output_dir": self.output_dir,
             "image_format": self.image_format,
             "resolution": self.resolution,
+            "style": self.style,
+            "use_character_reference": self.use_character_reference,
+            "reference_strength": self.reference_strength,
             "style_reference": self.style_reference,
-            "description": self.description
+            "description": self.description,
+            "character_description": self.character_description
         }
 
 
@@ -272,6 +282,20 @@ class CharacterGridAutomation:
                 (i, j) for i in range(4) for j in range(4)
             ]
         }
+    }
+    
+    # Mappings pour les styles
+    STYLE_TAGS = {
+        "realistic": ["photorealistic", "realistic", "detailed skin texture", "natural lighting"],
+        "anime": ["anime style", "manga style", "cel shaded", "big eyes", "colorful hair"],
+        "fantasy": ["fantasy art", "magical", "ethereal", "fantasy character", "ornate details"],
+        "science_fiction": ["sci-fi", "futuristic", "cyberpunk", "high tech", "mechanical details"],
+        "oil_painting": ["oil painting", "impressionist", "brushstrokes", "classical art"],
+        "watercolor": ["watercolor", "soft colors", "flowing", "artistic", "delicate"],
+        "photographic": ["photograph", "35mm", "depth of field", "professional photography"],
+        "cyberpunk": ["cyberpunk", "neon lights", "high tech low life", "urban fantasy"],
+        "gothic": ["gothic", "dark fantasy", "dramatic shadows", "macabre"],
+        "minimalist": ["minimalist", "clean", "simple", "modern", "flat design"]
     }
     
     # Mappings pour la génération de prompts
@@ -490,14 +514,29 @@ class CharacterGridAutomation:
         return prompts
     
     def _build_base_prompt(self, config: CharacterGridConfig) -> str:
-        """Construit le prompt de base pour le personnage."""
-        parts = [f"character portrait of {config.character_name}"]
+        """Construit le prompt de base pour le personnage avec les tags de style."""
+        parts = []
         
-        # Ajouter la référence de style si disponible
+        # Ajouter la description du personnage si disponible
+        if config.character_description:
+            parts.append(config.character_description)
+        else:
+            parts.append(f"character portrait of {config.character_name}")
+        
+        # Ajouter les tags de style selon le style configuré
+        style_key = config.style.lower()
+        if style_key in self.STYLE_TAGS:
+            style_tags = self.STYLE_TAGS[style_key]
+            parts.extend(style_tags)
+        else:
+            # Par défaut: realistic
+            parts.extend(self.STYLE_TAGS["realistic"])
+        
+        # Ajouter la référence de style explicite si disponible
         if config.style_reference:
             parts.append(f"in the style of {config.style_reference}")
         
-        # Ajouter la description si disponible
+        # Ajouter la description additionnelle si disponible
         if config.description:
             parts.append(config.description)
         

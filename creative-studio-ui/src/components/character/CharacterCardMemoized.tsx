@@ -44,7 +44,7 @@ export interface CharacterCardProps {
 const formatDate = (timestamp: string): string => {
   try {
     const date = new Date(timestamp);
-    if (isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
       return 'Unknown date';
     }
     return date.toLocaleDateString('en-US', {
@@ -217,15 +217,15 @@ const CharacterCardComponent = ({
       {/* Content */}
       <div className="character-card__content">
         <div className="character-card__header">
-          <h3 className="character-card__name">{character.name}</h3>
-          <p className="character-card__archetype">{character.role.archetype}</p>
+          <h3 className="character-card__name">{character.name || 'Unnamed Character'}</h3>
+          <p className="character-card__archetype">{character.role?.archetype || 'Unspecified'}</p>
         </div>
 
         <div className="character-card__details">
           <div className="character-card__detail">
             <span className="character-card__detail-label">Age:</span>
             <span className="character-card__detail-value">
-              {character.visual_identity.age_range || 'Not specified'}
+              {character.visual_identity?.age_range || 'Not specified'}
             </span>
           </div>
           <div className="character-card__detail">
@@ -299,12 +299,22 @@ function arePropsEqual(
   const prevChar = prevProps.character;
   const nextChar = nextProps.character;
 
+  // Add null checks for potentially undefined properties
+  const prevName = prevChar?.name ?? '';
+  const nextName = nextChar?.name ?? '';
+  const prevArchetype = prevChar?.role?.archetype ?? '';
+  const nextArchetype = nextChar?.role?.archetype ?? '';
+  const prevAgeRange = prevChar?.visual_identity?.age_range ?? '';
+  const nextAgeRange = nextChar?.visual_identity?.age_range ?? '';
+  const prevTimestamp = prevChar?.creation_timestamp ?? '';
+  const nextTimestamp = nextChar?.creation_timestamp ?? '';
+
   if (
     prevChar.character_id !== nextChar.character_id ||
-    prevChar.name !== nextChar.name ||
-    prevChar.role.archetype !== nextChar.role.archetype ||
-    prevChar.visual_identity.age_range !== nextChar.visual_identity.age_range ||
-    prevChar.creation_timestamp !== nextChar.creation_timestamp
+    prevName !== nextName ||
+    prevArchetype !== nextArchetype ||
+    prevAgeRange !== nextAgeRange ||
+    prevTimestamp !== nextTimestamp
   ) {
     return false;
   }

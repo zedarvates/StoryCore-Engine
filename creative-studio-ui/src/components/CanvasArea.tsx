@@ -3,7 +3,6 @@ import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import { useEditorStore } from '@/stores/editorStore';
 import { GridEditorCanvas } from '@/components/gridEditor';
 import { Timeline } from '@/components/Timeline';
-import { DialogueWriterWizard } from '@/components/wizard';
 import { EffectPreviewRenderer } from '@/components/editor/effects';
 import {
   Plus,
@@ -31,6 +30,7 @@ import {
   AlertCircle,
   Timer,
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 // Placeholder components for effects system
 const EffectLibrary = ({ onEffectApply }: { onEffectApply: (effect: unknown) => void }) => (
@@ -71,9 +71,8 @@ const EffectStack = ({
         <div
           key={effect.id}
           onClick={() => onEffectSelect(effect)}
-          className={`p-2 rounded cursor-pointer ${
-            selectedEffectId === effect.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-          }`}
+          className={`p - 2 rounded cursor - pointer ${selectedEffectId === effect.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+            } `}
         >
           {effect.name}
         </div>
@@ -155,7 +154,7 @@ interface CanvasAreaProps {
 }
 
 export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
-  const { project } = useAppStore();
+  const { project, characters } = useAppStore();
   const {
     shots,
     selectedShotId,
@@ -164,6 +163,8 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
     activeWizard,
     closeWizard,
   } = useEditorStore();
+  const { updateShot } = useAppStore();
+  const { toast } = useToast();
 
   // Canvas state
   const [activeView, setActiveView] = useState<'storyboard' | 'timeline' | 'grid' | 'effects'>('storyboard');
@@ -227,7 +228,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
     setIsCreatingShot(true);
     try {
       const shot = await createShot({
-        title: `Shot ${shots.length + 1}`,
+        title: `Shot ${shots.length + 1} `,
         description: 'New shot',
         duration: 5,
       });
@@ -244,9 +245,14 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
   const handleLaunchWizard = (wizardId: string) => {
     ;
 
+    // Special handling for dialogue writer wizard
+    if (wizardId === 'dialogue-writer' || wizardId === 'dialogue-wizard') {
+      useEditorStore.getState().openWizard('dialogue-writer', 1);
+      return;
+    }
+
     // Map wizard IDs to WizardType
     const wizardTypeMap: Record<string, WizardType> = {
-      'dialogue-writer': 'dialogue-writer',
       'scene-generator': 'scene-generator',
       'storyboard-creator': 'storyboard-creator',
       'style-transfer': 'style-transfer',
@@ -267,7 +273,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
   };
 
   return (
-    <div className={`flex-1 flex flex-col ${className || ''}`}>
+    <div className={`flex - 1 flex flex - col ${className || ''} `}>
       {/* Top Bar */}
       <div className="h-12 border-b border-border bg-card flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
@@ -280,7 +286,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
             <ArrowLeft className="w-4 h-4" />
             <span className="text-sm font-medium">Dashboard</span>
           </button>
-          
+
           {/* Project Info */}
           {project && (
             <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-md">
@@ -294,42 +300,38 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
           )}
           <button
             onClick={() => setActiveView('storyboard')}
-            className={`px-3 py-1.5 text-sm rounded-md ${
-              activeView === 'storyboard'
+            className={`px - 3 py - 1.5 text - sm rounded - md ${activeView === 'storyboard'
                 ? 'bg-primary text-primary-foreground'
                 : 'hover:bg-muted'
-            }`}
+              } `}
           >
             Storyboard
           </button>
           <button
             onClick={() => setActiveView('timeline')}
-            className={`px-3 py-1.5 text-sm rounded-md ${
-              activeView === 'timeline'
+            className={`px - 3 py - 1.5 text - sm rounded - md ${activeView === 'timeline'
                 ? 'bg-primary text-primary-foreground'
                 : 'hover:bg-muted'
-            }`}
+              } `}
           >
             Timeline
           </button>
           <button
             onClick={() => setActiveView('grid')}
-            className={`px-3 py-1.5 text-sm rounded-md flex items-center gap-1 ${
-              activeView === 'grid'
+            className={`px - 3 py - 1.5 text - sm rounded - md flex items - center gap - 1 ${activeView === 'grid'
                 ? 'bg-primary text-primary-foreground'
                 : 'hover:bg-muted'
-            }`}
+              } `}
           >
             <Grid3x3 className="w-4 h-4" />
             Grid Editor
           </button>
           <button
             onClick={() => setActiveView('effects')}
-            className={`px-3 py-1.5 text-sm rounded-md flex items-center gap-1 ${
-              activeView === 'effects'
+            className={`px - 3 py - 1.5 text - sm rounded - md flex items - center gap - 1 ${activeView === 'effects'
                 ? 'bg-primary text-primary-foreground'
                 : 'hover:bg-muted'
-            }`}
+              } `}
           >
             <Layers className="w-4 h-4" />
             Effects
@@ -416,7 +418,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                 const currentEffects = appliedEffects[selectedShotId || ''] || [];
                 const newEffect = {
                   ...effect,
-                  id: `${effect.id}_${Date.now()}`,
+                  id: `${effect.id}_${Date.now()} `,
                   enabled: true,
                   order: currentEffects.length,
                 };
@@ -491,7 +493,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                 if (effectToDuplicate) {
                   const duplicatedEffect = {
                     ...effectToDuplicate,
-                    id: `${effectToDuplicate.id}_${Date.now()}`,
+                    id: `${effectToDuplicate.id}_${Date.now()} `,
                     name: `${effectToDuplicate.name} (Copie)`,
                     order: currentEffects.length,
                   };
@@ -563,51 +565,49 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                   const effectsCount = shot.effects?.length || 0;
                   const hasImage = !!shot.image;
                   const shotNumber = (shot.position != null ? shot.position : 0) + 1;
-                  
+
                   return (
                     <div
                       key={shot.id}
                       onClick={() => selectShot(shot.id)}
-                      className={`group bg-card border-2 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 ${
-                        selectedShotId === shot.id
+                      className={`group bg - card border - 2 rounded - xl overflow - hidden cursor - pointer transition - all duration - 300 hover: shadow - xl hover: shadow - primary / 10 hover: -translate - y - 1 ${selectedShotId === shot.id
                           ? 'border-primary shadow-lg shadow-primary/20'
                           : 'border-border hover:border-primary/50'
-                      }`}
-                      aria-label={`Select shot ${shot.title}`}
+                        } `}
+                      aria-label={`Select shot ${shot.title} `}
                     >
                       {/* Shot Preview with Overlay */}
                       <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center relative overflow-hidden">
                         {shot.image ? (
                           <>
-                            <img 
-                              src={shot.image} 
-                              alt={shot.title} 
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                            <img
+                              src={shot.image}
+                              alt={shot.title}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                           </>
                         ) : (
                           <ImageIcon className="w-14 h-14 text-muted-foreground/50" />
                         )}
-                        
+
                         {/* Shot Number Badge */}
                         <div className="absolute top-3 left-3 bg-primary/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-sm font-bold text-primary-foreground shadow-lg">
                           #{shotNumber}
                         </div>
-                        
+
                         {/* Status Badge */}
-                        <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${
-                          hasImage 
-                            ? 'bg-green-500/80 text-white' 
+                        <div className={`absolute top - 3 right - 3 px - 2 py - 1 rounded - full text - xs font - medium backdrop - blur - sm ${hasImage
+                            ? 'bg-green-500/80 text-white'
                             : 'bg-amber-500/80 text-white'
-                        }`}>
+                          } `}>
                           {hasImage ? '✓ Ready' : '⚠ Draft'}
                         </div>
-                        
+
                         {/* Duration Badge */}
                         <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs text-white font-medium">
                           <Clock className="w-3.5 h-3.5" />
-                          {shot.duration != null ? `${shot.duration}s` : 'N/A'}
+                          {shot.duration != null ? `${shot.duration} s` : 'N/A'}
                         </div>
 
                         {/* Hover Overlay with Quick Actions */}
@@ -623,7 +623,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                             }}
                             className="p-2.5 bg-white/90 hover:bg-white rounded-full transition-colors shadow-lg"
                             title="Edit shot"
-                            aria-label={`Edit shot ${shot.title}`}
+                            aria-label={`Edit shot ${shot.title} `}
                           >
                             <Edit className="w-5 h-5 text-gray-800" />
                           </button>
@@ -660,7 +660,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                             <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                           )}
                         </div>
-                        
+
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-3 min-h-[2.5rem]">
                           {shot.description || 'No description'}
                         </p>
@@ -675,7 +675,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                                 <span className="font-medium">{audioCount}</span>
                               </div>
                             )}
-                            
+
                             {/* Effects indicator */}
                             {effectsCount > 0 && (
                               <div className="flex items-center gap-1.5 text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
@@ -684,7 +684,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                               </div>
                             )}
                           </div>
-                          
+
                           {/* Quick action button */}
                           <button
                             onClick={(e) => {
@@ -719,17 +719,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
       )}
 
       {/* Active Wizard Modal */}
-      {activeWizard?.wizardId === 'dialogue-writer' && (
-        <DialogueWriterWizard
-          isOpen={true}
-          onClose={closeWizard}
-          onComplete={() => {
-            closeWizard();
-          }}
-          characters={[]}
-          initialData={activeWizard.formData}
-        />
-      )}
+      {/* Dialogue Writer is now handled by DialogueWriterWizardModal via ModalsContainer */}
     </div>
   );
 }

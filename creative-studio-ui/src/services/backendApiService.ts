@@ -9,6 +9,7 @@
 
 import type { Project, GenerationTask } from '@/types';
 import type { ComfyUIConfig } from './comfyuiService';
+import { BACKEND_URL } from '../config/apiConfig';
 
 /**
  * Backend API configuration
@@ -24,8 +25,8 @@ export interface BackendConfig {
  * Default backend configuration
  */
 const DEFAULT_CONFIG: BackendConfig = {
-  baseUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000',
-  timeout: 30000, // 30 seconds
+  baseUrl: import.meta.env.VITE_BACKEND_URL || BACKEND_URL,
+  timeout: 180000, // 3 minutes (for LLM endpoints)
   retryAttempts: 3,
 };
 
@@ -410,6 +411,42 @@ export class BackendApiService {
   updateComfyUIConfig(comfyuiConfig: ComfyUIConfig): void {
     this.config.comfyui = comfyuiConfig;
   }
+
+  /**
+   * GET request helper
+   */
+  async get<T>(url: string): Promise<T> {
+    const response = await this.fetchWithRetry(url, { method: 'GET' });
+    if (!response.ok) {
+      throw new Error(`GET request failed: ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  /**
+   * POST request helper
+   */
+  async post<T>(url: string, data: unknown): Promise<T> {
+    const response = await this.fetchWithRetry(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error(`POST request failed: ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  /**
+   * DELETE request helper
+   */
+  async delete(url: string): Promise<void> {
+    const response = await this.fetchWithRetry(url, { method: 'DELETE' });
+    if (!response.ok) {
+      throw new Error(`DELETE request failed: ${response.statusText}`);
+    }
+  }
 }
 
 /**
@@ -423,3 +460,8 @@ export function createBackendApi(config?: Partial<BackendConfig>): BackendApiSer
  * Default instance for convenience
  */
 export const backendApi = createBackendApi();
+
+/**
+ * Legacy export for backward compatibility
+ */
+export const backendApiService = backendApi;

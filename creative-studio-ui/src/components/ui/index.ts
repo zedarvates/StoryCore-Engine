@@ -138,3 +138,15 @@ export type {
   SettingsSectionProps, 
   SettingsItemProps 
 } from './settings-panel';
+
+// Pagination Components
+export { 
+  Pagination, 
+  PaginationCompact, 
+  PaginationInfo 
+} from './pagination';
+export type { 
+  PaginationProps, 
+  PaginationCompactProps, 
+  PaginationInfoProps 
+} from './pagination';

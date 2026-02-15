@@ -6,6 +6,7 @@
  */
 
 import { OllamaClient, type ModelMetadata } from './OllamaClient';
+import { logger } from '@/utils/logger';
 
 export interface LLMConfig {
   provider: 'local' | 'openai' | 'anthropic' | 'custom';
@@ -51,10 +52,10 @@ export class MultiModelManager {
         this.modelCache.set(model.name, true);
       });
 
-      console.log(`[MultiModelManager] Detected ${models.length} models`);
+      logger.debug(`[MultiModelManager] Detected ${models.length} models`);
       return models;
     } catch (error) {
-      console.error('[MultiModelManager] Failed to detect models:', error);
+      logger.error('[MultiModelManager] Failed to detect models:', error);
       return [];
     }
   }

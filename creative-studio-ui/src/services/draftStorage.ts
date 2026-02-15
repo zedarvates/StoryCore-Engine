@@ -5,6 +5,7 @@
 
 import { SequencePlan } from '../types/sequencePlan';
 import { ProductionShot } from '../types/shot';
+import { logger } from '@/utils/logger';
 
 export interface DraftMetadata {
   id: string;
@@ -17,6 +18,29 @@ export interface DraftMetadata {
 
 // Union type for all production wizard data
 export type ProductionWizardData = SequencePlan | ProductionShot;
+
+/**
+ * Electron secure storage API interface
+ */
+interface ElectronSecureStorageAPI {
+  encrypt(data: string): Promise<string>;
+  decrypt(encryptedData: string): Promise<string>;
+  set(key: string, value: string): Promise<void>;
+  get(key: string): Promise<string | null>;
+  delete(key: string): Promise<void>;
+  list(): Promise<string[]>;
+}
+
+/**
+ * Internal draft data structure
+ */
+interface DraftData {
+  id: string;
+  wizardType: string;
+  timestamp: number;
+  data: ProductionWizardData;
+  version: string;
+}
 
 /**
  * Storage interface for platform-specific implementations
@@ -32,12 +56,14 @@ interface StorageAdapter {
  * Electron secure storage adapter
  */
 class ElectronStorageAdapter implements StorageAdapter {
-  private electronAPI: unknown;
+  private readonly electronAPI: ElectronSecureStorageAPI | null;
 
   constructor() {
     // Get Electron API if available
-    this.electronAPI = typeof window !== 'undefined' &&
-                       (window as any).electron?.secureStorage;
+    const hasGlobalThis = typeof globalThis !== 'undefined';
+    const hasWindow = hasGlobalThis && typeof globalThis.window !== 'undefined';
+    const windowObj = hasWindow ? globalThis.window as unknown as { electron?: { secureStorage: ElectronSecureStorageAPI } } : null;
+    this.electronAPI = windowObj?.electron?.secureStorage ?? null;
   }
 
   async save(key: string, data: string): Promise<void> {
@@ -150,7 +176,7 @@ class ElectronStorageAdapter implements StorageAdapter {
  * Draft Storage Service
  */
 export class DraftStorageService {
-  private storage: StorageAdapter;
+  private readonly storage: StorageAdapter;
   private maxDraftsPerType = 5;
 
   constructor() {
@@ -184,7 +210,7 @@ export class DraftStorageService {
 
       return draftId;
     } catch (error) {
-      console.error('Failed to save draft:', error);
+      logger.error('[DraftStorage] Failed to save draft:', error);
       throw new Error(`Draft save failed: ${error}`);
     }
   }
@@ -204,7 +230,7 @@ export class DraftStorageService {
 
       // Validate draft structure
       if (!this.isValidDraft(draftData)) {
-        console.warn(`Corrupted draft detected: ${wizardType}-${draftId}`);
+        logger.warn(`[DraftStorage] Corrupted draft detected: ${wizardType}-${draftId}`);
         await this.deleteDraft(wizardType, draftId);
         return null;
       }
@@ -212,14 +238,14 @@ export class DraftStorageService {
       // Check if draft is too old (30 days)
       const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
       if (Date.now() - draftData.timestamp > maxAge) {
-        console.info(`Draft expired: ${wizardType}-${draftId}`);
+        logger.debug(`[DraftStorage] Draft expired: ${wizardType}-${draftId}`);
         await this.deleteDraft(wizardType, draftId);
         return null;
       }
 
       return draftData.data as T;
     } catch (error) {
-      console.error('Failed to load draft:', error);
+      logger.error('[DraftStorage] Failed to load draft:', error);
       // Attempt to clean up corrupted draft
       try {
         await this.deleteDraft(wizardType, draftId);
@@ -265,7 +291,7 @@ export class DraftStorageService {
 
       return drafts;
     } catch (error) {
-      console.error('Failed to list drafts:', error);
+      logger.error('[DraftStorage] Failed to list drafts:', error);
       return [];
     }
   }
@@ -277,7 +303,7 @@ export class DraftStorageService {
     try {
       await this.storage.delete(`${wizardType}-${draftId}`);
     } catch (error) {
-      console.error('Failed to delete draft:', error);
+      logger.error('[DraftStorage] Failed to delete draft:', error);
       throw new Error(`Draft deletion failed: ${error}`);
     }
   }
@@ -292,7 +318,7 @@ export class DraftStorageService {
         keys.map(key => this.storage.delete(`${wizardType}-${key}`))
       );
     } catch (error) {
-      console.error('Failed to clear all drafts:', error);
+      logger.error('[DraftStorage] Failed to clear all drafts:', error);
       throw new Error(`Clear all drafts failed: ${error}`);
     }
   }
@@ -301,21 +327,24 @@ export class DraftStorageService {
    * Generate a unique draft ID
    */
   private generateDraftId(): string {
-    return `draft-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `draft-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**
    * Validate draft data structure
    */
-  private isValidDraft(draftData: unknown): boolean {
+  private isValidDraft(draftData: unknown): draftData is DraftData {
+    if (!draftData || typeof draftData !== 'object') {
+      return false;
+    }
+    
+    const draft = draftData as Record<string, unknown>;
     return (
-      draftData &&
-      typeof draftData === 'object' &&
-      typeof draftData.id === 'string' &&
-      typeof draftData.wizardType === 'string' &&
-      typeof draftData.timestamp === 'number' &&
-      draftData.data !== undefined &&
-      draftData.version === '1.0'
+      typeof draft.id === 'string' &&
+      typeof draft.wizardType === 'string' &&
+      typeof draft.timestamp === 'number' &&
+      draft.data !== undefined &&
+      draft.version === '1.0'
     );
   }
 
@@ -365,7 +394,7 @@ export class DraftStorageService {
         }
       }
     } catch (error) {
-      console.warn('Failed to enforce max drafts limit:', error);
+      logger.warn('[DraftStorage] Failed to enforce max drafts limit:', error);
     }
   }
 

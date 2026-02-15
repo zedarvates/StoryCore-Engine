@@ -259,7 +259,33 @@ class CharacterWizardOrchestrator:
         
         # Get genre
         params.genre = input("Genre (fantasy, sci-fi, modern, horror, etc.): ").strip() or "fantasy"
-        
+
+        # Get gender identity (for AI prompts)
+        print("\nGender Identity (for AI prompts):")
+        print("1. Masculin (Male)")
+        print("2. Féminin (Female)")
+        print("3. Non genré (Non-binary)")
+        print("4. Autre (Other - for aliens, robots, etc.)")
+
+        gender_choice = input("Select gender (1-4): ").strip()
+        gender_map = {
+            "1": "male",
+            "2": "female",
+            "3": "non_binary",
+            "4": "other"
+        }
+        selected_gender = gender_map.get(gender_choice)
+
+        # Import Gender enum and set the value
+        from .models import Gender
+        if selected_gender:
+            params.gender = Gender(selected_gender)
+
+        # If "Other" is selected, ask for custom gender specification
+        if selected_gender == "other":
+            custom_gender = input("Specify custom gender (e.g., alien, robotic, genderless, etc.): ").strip()
+            params.gender_custom = custom_gender
+
         # Get age range
         print("\nAge Range:")
         print("1. Child (5-12)")
@@ -422,6 +448,8 @@ class CharacterWizardOrchestrator:
             character_dict = {
                 "character_id": character.character_id,
                 "name": character.name,
+                "gender": character.visual_identity.gender.value if character.visual_identity.gender else None,
+                "gender_custom": character.visual_identity.gender_custom,
                 "creation_method": character.creation_method.value,
                 "creation_timestamp": character.creation_timestamp,
                 "version": character.version,

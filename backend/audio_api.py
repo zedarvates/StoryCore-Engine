@@ -12,6 +12,12 @@ Endpoints:
 
 Requirements: Q1 2026 - Audio Processing API
 """
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 import asyncio
 import os
@@ -28,13 +34,9 @@ from pydantic_settings import BaseSettings
 
 from backend.auth import verify_jwt_token
 from backend.storage import JSONFileStorage
+from backend.config import settings as app_settings
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Logger already configured at top of file; duplicate configuration removed.
 
 # Create router
 router = APIRouter()
@@ -42,13 +44,26 @@ router = APIRouter()
 
 class Settings(BaseSettings):
     """Application settings for audio processing"""
-    audio_output_directory: str = Field(default="./data/audio", env='AUDIO_OUTPUT_DIRECTORY')
-    max_audio_duration_seconds: float = Field(default=600, env='MAX_AUDIO_DURATION_SECONDS')
-    default_sample_rate: int = Field(default=44100, env='DEFAULT_SAMPLE_RATE')
+    audio_output_directory: str = Field(default="./data/audio")
+    max_audio_duration_seconds: float = Field(default=600)
+    default_sample_rate: int = Field(default=44100)
+    
+    # Timeout settings (can be overridden from centralized config)
+    audio_generation_timeout: int = Field(default=300)
+    audio_mix_timeout: int = Field(default=180)
     
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # Ignore extra environment variables
+    
+    @classmethod
+    def from_central_config(cls) -> 'Settings':
+        """Create settings instance with values from centralized config"""
+        return cls(
+            audio_generation_timeout=app_settings.AUDIO_GENERATION_TIMEOUT,
+            audio_mix_timeout=app_settings.AUDIO_MIX_TIMEOUT,
+        )
 
 
 try:
@@ -153,10 +168,11 @@ async def run_audio_generation(job_id: str, request: AudioGenerationRequest):
     Background task to run audio generation.
     
     In production, this would integrate with TTS and audio processing services.
+    Uses timeout from centralized configuration.
     """
     logger.info(f"Starting audio generation job {job_id}")
     
-    try:
+    async def _generate():
         # Simulate generation steps
         steps = [
             ("Preparing text", 10),
@@ -187,13 +203,25 @@ async def run_audio_generation(job_id: str, request: AudioGenerationRequest):
             "created_at": now.isoformat()
         }
         
-        audio_storage.save(audio_id, audio_data)
+        try:
+            audio_storage.save(audio_id, audio_data)
+        except (IOError, json.JSONDecodeError) as e:
+            logger.exception(f"Failed to save audio data for {audio_id}: {e}")
+            raise HTTPException(status_code=500, detail="Failed to persist audio data")
+        except Exception as e:
+            logger.exception(f"Unexpected error saving audio data for {audio_id}: {e}")
+            raise HTTPException(status_code=500, detail="Unexpected error while saving audio data")
         audio_files[audio_id] = os.path.join(settings.audio_output_directory, f"{audio_id}.wav")
         
         logger.info(f"Audio generation job {job_id} completed")
-        
+    
+    try:
+        # Run generation with timeout from configuration
+        await asyncio.wait_for(_generate(), timeout=settings.audio_generation_timeout)
+    except asyncio.TimeoutError:
+        logger.error(f"Audio generation job {job_id} timed out after {settings.audio_generation_timeout} seconds")
     except Exception as e:
-        logger.error(f"Audio generation job {job_id} failed: {e}")
+        logger.exception(f"Audio generation job {job_id} failed: {e}")
 
 
 @router.post("/audio/generate", response_model=AudioGenerationJobResponse, status_code=status.HTTP_202_ACCEPTED)
@@ -665,7 +693,7 @@ async def run_multitrack_generation(
         )
         
     except Exception as e:
-        logger.error(f"Multi-track generation job {job_id} failed: {e}")
+        logger.exception(f"Multi-track generation job {job_id} failed: {e}")
         return MultitrackGenerationResponse(
             job_id=job_id,
             status="failed",
@@ -800,7 +828,7 @@ async def build_profile(
         )
         
     except Exception as e:
-        logger.error(f"Profile building failed: {e}")
+        logger.exception(f"Profile building failed: {e}")
         return ProfileBuildResponse(
             success=False,
             profile_type=request.profile_type.value,
@@ -884,7 +912,7 @@ async def apply_automix(
             )
             
     except Exception as e:
-        logger.error(f"Auto-mix failed: {e}")
+        logger.exception(f"Auto-mix failed: {e}")
         return AutoMixResponse(
             success=False,
             configuration=None,

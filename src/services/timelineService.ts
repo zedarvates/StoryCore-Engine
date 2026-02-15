@@ -1,4 +1,19 @@
-import { Event, Sequence } from '../ui/TimelineEditor';
+// Define Event and Sequence interfaces locally to avoid circular dependency
+interface Event {
+  id: string;
+  title: string;
+  startTime: number;
+  endTime: number;
+  description?: string;
+  mediaUrl?: string;
+}
+
+interface Sequence {
+  id: string;
+  title: string;
+  events: Event[];
+}
+
 import ApiService from './apiService';
 
 class TimelineService {
@@ -54,3 +69,4 @@ class TimelineService {
 }
 
 export default new TimelineService();
+

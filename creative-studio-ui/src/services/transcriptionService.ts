@@ -1,9 +1,10 @@
 /**
- * Transcription Service - Frontend pour Transcription Engine
- * Transcription audio et montage basé sur le texte
+ * Transcription Service - Frontend for Transcription Engine
+ * Audio transcription and text-based montage
  */
 
 import { backendApiService } from './backendApiService';
+import { logger } from '@/utils/logger';
 
 export type SegmentType = 'dialogue' | 'narration' | 'music' | 'sound-effect' | 'silence';
 export type MontageStyle = 'chronological' | 'highlights' | 'compact' | 'conversation';
@@ -108,12 +109,12 @@ class TranscriptionServiceImpl implements TranscriptionService {
     const cached = this.transcriptCache.get(cacheKey);
     
     if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-      console.log(`[Transcription] Cache hit for: ${audioId}`);
+      logger.debug(`[Transcription] Cache hit for: ${audioId}`);
       return cached.transcript;
     }
 
     try {
-      console.log(`[Transcription] Starting transcription: ${audioUrl}`);
+      logger.debug(`[Transcription] Starting transcription: ${audioUrl}`);
 
       const response = await backendApiService.post<Transcript>(
         `${this.baseUrl}/transcribe`,
@@ -131,17 +132,17 @@ class TranscriptionServiceImpl implements TranscriptionService {
         timestamp: Date.now()
       });
 
-      console.log(`[Transcription] Complete: ${response.wordCount} words, ${response.speakerCount} speakers`);
+      logger.debug(`[Transcription] Complete: ${response.wordCount} words, ${response.speakerCount} speakers`);
       return response;
     } catch (error) {
-      console.error('[Transcription] Failed:', error);
+      logger.error('[Transcription] Failed:', error);
       throw error;
     }
   }
 
   async generateMontage(request: MontageRequest): Promise<MontageResult> {
     try {
-      console.log(`[Transcription] Generating ${request.style} montage`);
+      logger.debug(`[Transcription] Generating ${request.style} montage`);
 
       const response = await backendApiService.post<MontageResult>(
         `${this.baseUrl}/generate-montage`,
@@ -154,10 +155,10 @@ class TranscriptionServiceImpl implements TranscriptionService {
         timestamp: Date.now()
       });
 
-      console.log(`[Transcription] Montage complete: ${response.shots.length} shots, ${response.totalDuration.toFixed(1)}s`);
+      logger.debug(`[Transcription] Montage complete: ${response.shots.length} shots, ${response.totalDuration.toFixed(1)}s`);
       return response;
     } catch (error) {
-      console.error('[Transcription] Montage generation failed:', error);
+      logger.error('[Transcription] Montage generation failed:', error);
       throw error;
     }
   }
@@ -168,7 +169,7 @@ class TranscriptionServiceImpl implements TranscriptionService {
         `${this.baseUrl}/${transcriptId}/export/srt`
       );
     } catch (error) {
-      console.error('[Transcription] SRT export failed:', error);
+      logger.error('[Transcription] SRT export failed:', error);
       throw error;
     }
   }
@@ -179,7 +180,7 @@ class TranscriptionServiceImpl implements TranscriptionService {
         `${this.baseUrl}/${transcriptId}/export/vtt`
       );
     } catch (error) {
-      console.error('[Transcription] VTT export failed:', error);
+      logger.error('[Transcription] VTT export failed:', error);
       throw error;
     }
   }
@@ -190,7 +191,7 @@ class TranscriptionServiceImpl implements TranscriptionService {
         `${this.baseUrl}/${transcriptId}/export/ass`
       );
     } catch (error) {
-      console.error('[Transcription] ASS export failed:', error);
+      logger.error('[Transcription] ASS export failed:', error);
       throw error;
     }
   }
@@ -216,7 +217,7 @@ class TranscriptionServiceImpl implements TranscriptionService {
       });
       return response;
     } catch (error) {
-      console.error('[Transcription] Get transcript failed:', error);
+      logger.error('[Transcription] Get transcript failed:', error);
       return null;
     }
   }
@@ -239,13 +240,13 @@ class TranscriptionServiceImpl implements TranscriptionService {
       });
       return response;
     } catch (error) {
-      console.error('[Transcription] Get montage failed:', error);
+      logger.error('[Transcription] Get montage failed:', error);
       return null;
     }
   }
 
   /**
-   * Parser un fichier SRT importé
+   * Parse an imported SRT file
    */
   parseSrt(content: string): Array<{ start: number; end: number; text: string }> {
     const segments: Array<{ start: number; end: number; text: string }> = [];

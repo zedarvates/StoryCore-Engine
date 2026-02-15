@@ -1,7 +1,8 @@
 /**
- * LocationsModal - Modale de gestion des lieux
+ * LocationsModal - Location management modal
  *
- * Permet de voir, créer, modifier et supprimer les lieux du projet
+ * Allows viewing, creating, editing, and deleting project locations.
+ * Unfied with the global location system and file-based storage.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   FileTextIcon,
   PlusIcon,
@@ -37,24 +39,8 @@ import {
 import { useAppStore } from '@/stores/useAppStore';
 import { useLocationStore } from '@/stores/locationStore';
 import { notificationService } from '@/services/NotificationService';
-
-interface Location {
-  id: string;
-  name: string;
-  description: string;
-  type: 'residence' | 'commercial' | 'public' | 'natural' | 'religious' | 'military' | 'underground' | 'other';
-  address: string;
-  coordinates: string;
-  owner: string;
-  purpose: string;
-  atmosphere: string;
-  secrets: string;
-  importance: 'high' | 'medium' | 'low';
-  accessibility: 'public' | 'private' | 'restricted';
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Location, LocationType } from '@/types/location';
+import { saveLocationToProject, deleteLocationFromProject } from '@/utils/locationStorage';
 
 interface LocationsModalProps {
   isOpen: boolean;
@@ -63,51 +49,28 @@ interface LocationsModalProps {
 
 export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
   const project = useAppStore((state) => state.project);
-  const { 
-    locations: storeLocations, 
-    fetchLocations, 
+  const {
+    locations: storeLocations,
+    fetchLocations,
     fetchProjectLocations,
-    isLoading 
+    addLocation,
+    updateLocation,
+    deleteLocation,
+    isLoading
   } = useLocationStore();
 
-  // État local pour les lieux
-  const [locations, setLocations] = useState<Location[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<Location['type'] | 'all'>('all');
-  const [selectedImportance, setSelectedImportance] = useState<Location['importance'] | 'all'>('all');
+  const [selectedType, setSelectedType] = useState<string>('all');
+  const [selectedImportance, setSelectedImportance] = useState<string>('all');
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  // Charger les lieux du projet et du backend quand le modal s'ouvre
+  // Load locations from the project and central API when the modal opens
   useEffect(() => {
     if (project && isOpen) {
       loadAllLocations();
     }
-  }, [project, isOpen]);
-
-  // Sync store locations to local state
-  useEffect(() => {
-    if (storeLocations.length > 0) {
-      const convertedLocations = storeLocations.map(loc => ({
-        id: loc.location_id,
-        name: loc.name,
-        description: loc.metadata?.description || '',
-        type: mapLocationType(loc.location_type),
-        address: '',
-        coordinates: '',
-        owner: '',
-        purpose: '',
-        atmosphere: loc.metadata?.atmosphere || '',
-        secrets: '',
-        importance: 'medium' as const,
-        accessibility: 'public' as const,
-        tags: loc.metadata?.genre_tags || [],
-        createdAt: new Date(loc.creation_timestamp || Date.now()),
-        updatedAt: new Date()
-      }));
-      setLocations(convertedLocations);
-    }
-  }, [storeLocations.length]);
+  }, [project, isOpen, fetchLocations, fetchProjectLocations]);
 
   const loadAllLocations = async () => {
     if (!project) return;
@@ -115,454 +78,266 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
     try {
       // Fetch central locations from API
       await fetchLocations();
-      
-      // Fetch project-local locations from lieux folder
+
+      // Fetch project-local locations from locations folder
       const projectId = project?.path ? project.path.split(/[/\\]/).pop() || project.id : project.id;
       await fetchProjectLocations(projectId);
     } catch (error) {
       console.error('Failed to load locations:', error);
-      notificationService.error('Erreur', 'Impossible de charger les lieux');
+      notificationService.error('Error', 'Failed to load locations');
     }
   };
 
-  const mapLocationType = (type: string): Location['type'] => {
-    const typeMap: Record<string, Location['type']> = {
-      'interior': 'residence',
-      'exterior': 'natural',
-      'urban': 'commercial',
-      'dungeon': 'underground',
-      'landmark': 'public',
-      'religious': 'religious',
-      'military': 'military',
-    };
-    return typeMap[type] || 'other';
-  };
-
-  const loadLocations = () => {
-    if (!project) return;
-
-    try {
-      // Dans un vrai système, cela viendrait du projet ou d'une API
-      // Pour l'instant, on simule avec des données locales
-      const projectLocations = localStorage.getItem(`locations_${project.id}`);
-      if (projectLocations) {
-        const parsed = JSON.parse(projectLocations);
-        const locationsWithDates = parsed.map((location: unknown) => ({
-          ...location,
-          createdAt: new Date(location.createdAt),
-          updatedAt: new Date(location.updatedAt)
-        }));
-        setLocations(locationsWithDates);
-      } else {
-        // Lieux par défaut pour la démonstration
-        const defaultLocations: Location[] = [
-          {
-            id: 'loc_1',
-            name: 'Château d\'Eldoria',
-            description: 'Le majestueux château royal, siège du pouvoir politique du royaume.',
-            type: 'military',
-            address: 'Colline centrale d\'Eldoria',
-            coordinates: '45.123, 2.456',
-            owner: 'Roi Arthur',
-            purpose: 'Siège du gouvernement, résidence royale, centre administratif',
-            atmosphere: 'Majestueuse et intimidante, avec des salles immenses et des tapisseries anciennes',
-            secrets: 'Passages secrets menant aux cachots et à la salle du trésor',
-            importance: 'high',
-            accessibility: 'restricted',
-            tags: ['château', 'royal', 'politique', 'histoire'],
-            createdAt: new Date(),
-            updatedAt: new Date()
-          },
-          {
-            id: 'loc_2',
-            name: 'Taverne du Sanglier Rieur',
-            description: 'Une taverne populaire fréquentée par les aventuriers et les marchands.',
-            type: 'commercial',
-            address: 'Rue des Marchands, Quartier Sud',
-            coordinates: '45.089, 2.412',
-            owner: 'Madame Gertrude',
-            purpose: 'Restauration, logement temporaire, lieu de rencontre pour les quêtes',
-            atmosphere: 'Chaude et conviviale, remplie de rires et de musique',
-            secrets: 'Pièce secrète pour les transactions illégales',
-            importance: 'medium',
-            accessibility: 'public',
-            tags: ['taverne', 'rencontre', 'commerce', 'aventure'],
-            createdAt: new Date(),
-            updatedAt: new Date()
-          },
-          {
-            id: 'loc_3',
-            name: 'Grotte des Anciens',
-            description: 'Une grotte mystérieuse cachée dans la forêt, abritant des ruines elfiques.',
-            type: 'natural',
-            address: 'Forêt de Cristal, 5km au nord du village',
-            coordinates: '45.234, 2.567',
-            owner: 'Aucun (site naturel)',
-            purpose: 'Lieu de pèlerinage, source de magie ancienne',
-            atmosphere: 'Mystérieuse et sacrée, avec une aura magique palpable',
-            secrets: 'Artefacts elfiques cachés, accès à une dimension parallèle',
-            importance: 'high',
-            accessibility: 'restricted',
-            tags: ['grotte', 'magie', 'elfes', 'mystère'],
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }
-        ];
-        setLocations(defaultLocations);
-        saveLocations(defaultLocations);
-      }
-    } catch (error) {
-      console.error('Failed to load locations:', error);
-      notificationService.error('Erreur', 'Impossible de charger les lieux');
-    }
-  };
-
-  const saveLocations = (locs: Location[]) => {
-    if (!project) return;
-
-    try {
-      localStorage.setItem(`locations_${project.id}`, JSON.stringify(locs));
-    } catch (error) {
-      console.error('Failed to save locations:', error);
-      notificationService.error('Erreur', 'Impossible de sauvegarder les lieux');
-    }
-  };
-
-  const filteredLocations = locations.filter(location => {
+  const filteredLocations = storeLocations.filter(location => {
     const matchesSearch = searchQuery === '' ||
       location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      location.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      location.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      location.metadata.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      location.metadata.genre_tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesType = selectedType === 'all' || location.type === selectedType;
-    const matchesImportance = selectedImportance === 'all' || location.importance === selectedImportance;
+    const matchesType = selectedType === 'all' || location.location_type === selectedType;
+    const matchesImportance = selectedImportance === 'all' || location.metadata.importance === selectedImportance;
 
     return matchesSearch && matchesType && matchesImportance;
   });
 
   const handleCreateLocation = () => {
     const newLocation: Location = {
-      id: `loc_${Date.now()}`,
+      location_id: `loc_${Date.now()}`,
       name: '',
-      description: '',
-      type: 'other',
-      address: '',
-      coordinates: '',
-      owner: '',
-      purpose: '',
-      atmosphere: '',
-      secrets: '',
-      importance: 'low',
-      accessibility: 'public',
-      tags: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
+      creation_method: 'manual',
+      creation_timestamp: new Date().toISOString(),
+      version: '1.0',
+      location_type: 'exterior',
+      texture_direction: 'outward',
+      metadata: {
+        description: '',
+        atmosphere: '',
+        genre_tags: [],
+        importance: 'medium',
+        accessibility: 'public',
+      },
+      cube_textures: {},
+      placed_assets: [],
+      is_world_derived: false,
     };
 
     setEditingLocation(newLocation);
-    setShowCreateForm(true);
+    setShowEditModal(true);
   };
 
   const handleEditLocation = (location: Location) => {
     setEditingLocation({ ...location });
-    setShowCreateForm(false);
+    setShowEditModal(true);
   };
 
-  const handleSaveLocation = (location: Location) => {
+  const handleSaveLocation = async (location: Location) => {
     if (!location.name.trim()) {
-      notificationService.warning('Erreur', 'Le nom du lieu est requis');
+      notificationService.warning('Error', 'Location name is required');
       return;
     }
 
-    const updatedLocations = editingLocation?.id
-      ? locations.map(l => l.id === location.id ? { ...location, updatedAt: new Date() } : l)
-      : [...locations, location];
+    try {
+      if (project) {
+        const projectId = project?.path ? project.path.split(/[/\\]/).pop() || project.id : project.id;
 
-    setLocations(updatedLocations);
-    saveLocations(updatedLocations);
+        // Save to file system if possible
+        await saveLocationToProject(projectId, location.location_id, location);
+
+        // Update store
+        const exists = storeLocations.some(l => l.location_id === location.location_id);
+        if (exists) {
+          await updateLocation(location.location_id, location);
+        } else {
+          await addLocation(location);
+        }
+
+        notificationService.success(
+          'Location saved',
+          `Location "${location.name}" has been ${exists ? 'updated' : 'created'} successfully.`
+        );
+      }
+    } catch (error) {
+      console.error('Failed to save location:', error);
+      notificationService.error('Error', 'Failed to save location');
+    }
+
     setEditingLocation(null);
-
-    notificationService.success(
-      'Lieu sauvegardé',
-      `Le lieu "${location.name}" a été ${editingLocation?.id ? 'modifié' : 'créé'} avec succès.`
-    );
+    setShowEditModal(false);
   };
 
-  const handleDeleteLocation = (locationId: string) => {
-    const location = locations.find(l => l.id === locationId);
+  const handleDeleteLocation = async (locationId: string) => {
+    const location = storeLocations.find(l => l.location_id === locationId);
     if (!location) return;
 
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le lieu "${location.name}" ?`)) {
-      const updatedLocations = locations.filter(l => l.id !== locationId);
-      setLocations(updatedLocations);
-      saveLocations(updatedLocations);
-
-      notificationService.info('Lieu supprimé', `Le lieu "${location.name}" a été supprimé.`);
+    if (confirm(`Are you sure you want to delete "${location.name}"?`)) {
+      try {
+        if (project) {
+          const projectId = project?.path ? project.path.split(/[/\\]/).pop() || project.id : project.id;
+          await deleteLocationFromProject(projectId, locationId);
+        }
+        await deleteLocation(locationId);
+        notificationService.info('Location deleted', `Location "${location.name}" has been removed.`);
+      } catch (error) {
+        console.error('Failed to delete location:', error);
+        notificationService.error('Error', 'Failed to delete location');
+      }
     }
   };
 
-  const getTypeIcon = (type: Location['type']) => {
+  const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'residence':
-        return <HomeIcon className="w-4 h-4 text-blue-500" />;
-      case 'commercial':
-        return <StoreIcon className="w-4 h-4 text-green-500" />;
-      case 'public':
-        return <BuildingIcon className="w-4 h-4 text-gray-500" />;
-      case 'natural':
-        return <TreePineIcon className="w-4 h-4 text-green-600" />;
-      case 'religious':
-        return <ChurchIcon className="w-4 h-4 text-purple-500" />;
-      case 'military':
-        return <CastleIcon className="w-4 h-4 text-red-500" />;
-      case 'underground':
-        return <MountainIcon className="w-4 h-4 text-brown-500" />;
-      case 'other':
-        return <MapPinIcon className="w-4 h-4 text-gray-400" />;
+      case 'interior': return <HomeIcon className="w-4 h-4" />;
+      case 'exterior': return <TreePineIcon className="w-4 h-4" />;
+      default: return <MapPinIcon className="w-4 h-4" />;
     }
   };
 
-  const getTypeLabel = (type: Location['type']) => {
-    switch (type) {
-      case 'residence':
-        return 'Résidentiel';
-      case 'commercial':
-        return 'Commercial';
-      case 'public':
-        return 'Public';
-      case 'natural':
-        return 'Naturel';
-      case 'religious':
-        return 'Religieux';
-      case 'military':
-        return 'Militaire';
-      case 'underground':
-        return 'Souterrain';
-      case 'other':
-        return 'Autre';
+  const getImportanceColor = (imp?: string) => {
+    switch (imp) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'low': return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-
-  const getImportanceColor = (importance: Location['importance']) => {
-    switch (importance) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getAccessibilityColor = (accessibility: Location['accessibility']) => {
-    switch (accessibility) {
-      case 'public':
-        return 'bg-green-100 text-green-800';
-      case 'private':
-        return 'bg-blue-100 text-blue-800';
-      case 'restricted':
-        return 'bg-red-100 text-red-800';
-    }
-  };
-
-  if (!project) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Lieux du projet</DialogTitle>
-          </DialogHeader>
-          <div className="p-8 text-center text-gray-500">
-            <FileTextIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Aucun projet ouvert</p>
-            <p className="text-sm">Ouvrez un projet pour gérer ses lieux</p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="flex items-center gap-2">
-              <FileTextIcon className="w-5 h-5" />
-              Lieux - {project.project_name}
-            </DialogTitle>
+        <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0 overflow-hidden bg-white">
+          <DialogHeader className="p-6 border-b bg-black text-white shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/10 rounded-lg">
+                  <MapPinIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold text-white">Location Management</DialogTitle>
+                  <p className="text-sm text-gray-400">View and manage story locations</p>
+                </div>
+              </div>
+              <Button
+                onClick={handleCreateLocation}
+                className="bg-white text-black hover:bg-gray-200"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                New Location
+              </Button>
+            </div>
           </DialogHeader>
 
-          {/* Toolbar */}
-          <div className="flex-shrink-0 p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between gap-4">
-              {/* Search and filters */}
-              <div className="flex items-center gap-4 flex-1">
-                <div className="relative flex-1 max-w-sm">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Rechercher des lieux..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value as Location['type'] | 'all')}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  title="Filtrer par type de lieu"
-                >
-                  <option value="all">Tous les types</option>
-                  <option value="residence">Résidentiels</option>
-                  <option value="commercial">Commerciaux</option>
-                  <option value="public">Publics</option>
-                  <option value="natural">Naturels</option>
-                  <option value="religious">Religieux</option>
-                  <option value="military">Militaires</option>
-                  <option value="underground">Souterrains</option>
-                  <option value="other">Autres</option>
-                </select>
-
-                <select
-                  value={selectedImportance}
-                  onChange={(e) => setSelectedImportance(e.target.value as Location['importance'] | 'all')}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  title="Filtrer par importance"
-                >
-                  <option value="all">Toute importance</option>
-                  <option value="high">Élevée</option>
-                  <option value="medium">Moyenne</option>
-                  <option value="low">Faible</option>
-                </select>
+          <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-4 mb-6 sticky top-0 z-10 bg-gray-50/95 py-2 backdrop-blur-sm">
+              <div className="relative flex-1 max-w-sm">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Search locations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-10"
+                />
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={loadAllLocations} 
-                  disabled={isLoading}
-                  className="flex items-center gap-2"
-                  title="Rafraîchir la liste"
-                >
-                  <RefreshCwIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  Rafraîchir
-                </Button>
-                <Button onClick={handleCreateLocation} className="flex items-center gap-2">
-                  <PlusIcon className="w-4 h-4" />
-                  Nouveau lieu
-                </Button>
-              </div>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="w-[180px] h-10">
+                  <SelectValue placeholder="All types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All types</SelectItem>
+                  <SelectItem value="interior">Interior</SelectItem>
+                  <SelectItem value="exterior">Exterior</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedImportance} onValueChange={setSelectedImportance}>
+                <SelectTrigger className="w-[180px] h-10">
+                  <SelectValue placeholder="All importance" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All importance</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button variant="ghost" className="h-10 ml-auto" onClick={loadAllLocations}>
+                <RefreshCwIcon className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Reload
+              </Button>
             </div>
-          </div>
 
-          {/* Locations List - Scrollable */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredLocations.length === 0 ? (
-                <div className="col-span-full text-center py-12">
-                  <FileTextIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Aucun lieu trouvé
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    {searchQuery || selectedType !== 'all' || selectedImportance !== 'all'
-                      ? 'Essayez de modifier vos critères de recherche.'
-                      : 'Créez votre premier lieu pour commencer.'}
-                  </p>
-                  {!searchQuery && selectedType === 'all' && selectedImportance === 'all' && (
-                    <Button onClick={handleCreateLocation} className="flex items-center gap-2">
-                      <PlusIcon className="w-4 h-4" />
-                      Créer un lieu
-                    </Button>
-                  )}
+                <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-400">
+                  <MapPinIcon className="w-12 h-12 mb-4 opacity-20" />
+                  <p className="text-lg">No locations found</p>
+                  <p className="text-sm">Try changing your filters or create a new location.</p>
                 </div>
               ) : (
-                filteredLocations.map(location => (
+                filteredLocations.map((location) => (
                   <div
-                    key={location.id}
-                    className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                    key={location.location_id}
+                    className="group bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col h-full"
                   >
-                    {/* Header */}
                     <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        {getTypeIcon(location.type)}
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {location.name}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Badge className={getImportanceColor(location.importance)}>
-                          {location.importance === 'high' ? 'Élevé' :
-                           location.importance === 'medium' ? 'Moyen' : 'Faible'}
-                        </Badge>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                          {getTypeIcon(location.location_type)}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                            {location.name}
+                          </h3>
+                          <Badge variant="outline" className={`text-[10px] mt-1 ${getImportanceColor(location.metadata.importance)}`}>
+                            {location.metadata.importance?.toUpperCase() || 'MEDIUM'}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Type and Accessibility */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="outline">
-                        {getTypeLabel(location.type)}
-                      </Badge>
-                      <Badge className={getAccessibilityColor(location.accessibility)}>
-                        {location.accessibility === 'public' ? 'Public' :
-                         location.accessibility === 'private' ? 'Privé' : 'Restreint'}
-                      </Badge>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-gray-700 mb-3 line-clamp-3">
-                      {location.description}
+                    <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
+                      {location.metadata.description}
                     </p>
 
-                    {/* Address */}
-                    {location.address && (
-                      <div className="text-xs text-gray-600 mb-2">
-                        📍 {location.address}
-                      </div>
-                    )}
+                    <div className="space-y-2 mb-4">
+                      {location.metadata.address && (
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <MapPinIcon className="w-3 h-3" />
+                          <span className="truncate">{location.metadata.address}</span>
+                        </div>
+                      )}
 
-                    {/* Tags */}
-                    {location.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {location.tags.slice(0, 3).map(tag => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {location.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{location.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
+                      {location.metadata.genre_tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {location.metadata.genre_tags.slice(0, 3).map(tag => (
+                            <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="text-xs text-gray-500">
-                        Modifié {location.updatedAt.toLocaleDateString('fr-FR')}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditLocation(location)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <EditIcon className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteLocation(location.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </Button>
-                      </div>
+                    <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-100">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditLocation(location)}
+                        className="h-8 px-2 text-gray-600 hover:text-blue-600"
+                      >
+                        <EditIcon className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteLocation(location.location_id)}
+                        className="h-8 px-2 text-gray-600 hover:text-red-600"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 ))
@@ -572,265 +347,170 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Edit/Create Modal */}
+      {/* Edit Modal */}
       {editingLocation && (
         <LocationEditModal
           location={editingLocation}
-          isCreate={!locations.some(l => l.id === editingLocation.id)}
           onSave={handleSaveLocation}
-          onCancel={() => setEditingLocation(null)}
+          onCancel={() => {
+            setEditingLocation(null);
+            setShowEditModal(false);
+          }}
+          isOpen={showEditModal}
         />
       )}
     </>
   );
 }
 
-/**
- * LocationEditModal - Modale d'édition de lieu
- */
 interface LocationEditModalProps {
   location: Location;
-  isCreate: boolean;
   onSave: (location: Location) => void;
   onCancel: () => void;
+  isOpen: boolean;
 }
 
-function LocationEditModal({ location, isCreate, onSave, onCancel }: LocationEditModalProps) {
+function LocationEditModal({ location, onSave, onCancel, isOpen }: LocationEditModalProps) {
   const [editedLocation, setEditedLocation] = useState<Location>(location);
   const [newTag, setNewTag] = useState('');
 
-  const handleSave = () => {
-    onSave(editedLocation);
+  const handleUpdateMetadata = (updates: Partial<typeof location.metadata>) => {
+    setEditedLocation(prev => ({
+      ...prev,
+      metadata: { ...prev.metadata, ...updates }
+    }));
   };
 
   const handleAddTag = () => {
-    if (newTag.trim() && !editedLocation.tags.includes(newTag.trim())) {
-      setEditedLocation(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
+    if (newTag.trim() && !editedLocation.metadata.genre_tags.includes(newTag.trim())) {
+      handleUpdateMetadata({
+        genre_tags: [...editedLocation.metadata.genre_tags, newTag.trim()]
+      });
       setNewTag('');
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setEditedLocation(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
+    handleUpdateMetadata({
+      genre_tags: editedLocation.metadata.genre_tags.filter(t => t !== tagToRemove)
+    });
   };
 
   return (
-    <Dialog open={true} onOpenChange={() => {}}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle>
-            {isCreate ? 'Créer un lieu' : 'Modifier le lieu'}
+    <Dialog open={isOpen} onOpenChange={onCancel}>
+      <DialogContent className="max-w-2xl bg-white p-0 overflow-hidden">
+        <DialogHeader className="p-6 bg-gray-900 text-white">
+          <DialogTitle className="text-xl">
+            {location.name ? `Edit Location: ${location.name}` : 'New Location'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-6">
-            {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom *
-                </label>
-                <Input
-                  value={editedLocation.name}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Nom du lieu"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Type
-                </label>
-                <select
-                  value={editedLocation.type}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, type: e.target.value as Location['type'] }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  title="Sélectionner le type de lieu"
-                >
-                  <option value="residence">Résidentiel</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="public">Public</option>
-                  <option value="natural">Naturel</option>
-                  <option value="religious">Religieux</option>
-                  <option value="military">Militaire</option>
-                  <option value="underground">Souterrain</option>
-                  <option value="other">Autre</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <Textarea
-                value={editedLocation.description}
-                onChange={(e) => setEditedLocation(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Courte description du lieu"
-                rows={3}
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Location Name</label>
+              <Input
+                value={editedLocation.name}
+                onChange={(e) => setEditedLocation({ ...editedLocation, name: e.target.value })}
+                placeholder="Ex: Whispering Forest"
               />
             </div>
-
-            {/* Location Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Adresse
-                </label>
-                <Input
-                  value={editedLocation.address}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="Adresse ou emplacement"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Coordonnées
-                </label>
-                <Input
-                  value={editedLocation.coordinates}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, coordinates: e.target.value }))}
-                  placeholder="Latitude, Longitude"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Propriétaire
-                </label>
-                <Input
-                  value={editedLocation.owner}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, owner: e.target.value }))}
-                  placeholder="Propriétaire ou responsable"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Accessibilité
-                </label>
-                <select
-                  value={editedLocation.accessibility}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, accessibility: e.target.value as Location['accessibility'] }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  title="Sélectionner le niveau d'accès"
-                >
-                  <option value="public">Public</option>
-                  <option value="private">Privé</option>
-                  <option value="restricted">Restreint</option>
-                </select>
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Type</label>
+              <Select
+                value={editedLocation.location_type}
+                onValueChange={(val: any) => setEditedLocation({ ...editedLocation, location_type: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="interior">Interior</SelectItem>
+                  <SelectItem value="exterior">Exterior</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
 
-            {/* Detailed Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Fonction
-                </label>
-                <Textarea
-                  value={editedLocation.purpose}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, purpose: e.target.value }))}
-                  placeholder="Rôle et fonction du lieu"
-                  rows={3}
-                />
-              </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Short Description</label>
+            <Textarea
+              value={editedLocation.metadata.description}
+              onChange={(e) => handleUpdateMetadata({ description: e.target.value })}
+              placeholder="Describe this location..."
+              className="min-h-[100px]"
+            />
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Atmosphère
-                </label>
-                <Textarea
-                  value={editedLocation.atmosphere}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, atmosphere: e.target.value }))}
-                  placeholder="Ambiance et sensations"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Secrets
-                </label>
-                <Textarea
-                  value={editedLocation.secrets}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, secrets: e.target.value }))}
-                  placeholder="Secrets et éléments cachés"
-                  rows={2}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Importance
-                </label>
-                <select
-                  value={editedLocation.importance}
-                  onChange={(e) => setEditedLocation(prev => ({ ...prev, importance: e.target.value as Location['importance'] }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  title="Sélectionner le niveau d'importance"
-                >
-                  <option value="high">Élevée</option>
-                  <option value="medium">Moyenne</option>
-                  <option value="low">Faible</option>
-                </select>
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Atmosphere</label>
+              <Input
+                value={editedLocation.metadata.atmosphere}
+                onChange={(e) => handleUpdateMetadata({ atmosphere: e.target.value })}
+                placeholder="Ex: Dark and spooky"
+              />
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Importance</label>
+              <Select
+                value={editedLocation.metadata.importance || 'medium'}
+                onValueChange={(val: any) => handleUpdateMetadata({ importance: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-            {/* Tags */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tags
-              </label>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="Ajouter un tag"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-                />
-                <Button onClick={handleAddTag} variant="outline">
-                  <PlusIcon className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {editedLocation.tags.map(tag => (
-                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                    {tag}
-                    <button
-                      onClick={() => handleRemoveTag(tag)}
-                      className="ml-1 text-gray-500 hover:text-gray-700"
-                      title="Supprimer le tag"
-                    >
-                      <XIcon className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Address / Location</label>
+            <Input
+              value={editedLocation.metadata.address || ''}
+              onChange={(e) => handleUpdateMetadata({ address: e.target.value })}
+              placeholder="Ex: South of the village"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Tags</label>
+            <div className="flex gap-2 mb-2">
+              <Input
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                placeholder="Add a tag..."
+                onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+              />
+              <Button onClick={handleAddTag} type="button">Add</Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {editedLocation.metadata.genre_tags.map(tag => (
+                <Badge key={tag} className="flex items-center gap-1">
+                  {tag}
+                  <XIcon
+                    className="w-3 h-3 cursor-pointer hover:text-red-200"
+                    onClick={() => handleRemoveTag(tag)}
+                  />
+                </Badge>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex-shrink-0 flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-          <Button variant="outline" onClick={onCancel}>
-            Annuler
-          </Button>
-          <Button onClick={handleSave} className="flex items-center gap-2">
-            <SaveIcon className="w-4 h-4" />
-            Sauvegarder
+        <div className="p-6 border-t flex justify-end gap-3 bg-gray-50">
+          <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button onClick={() => onSave(editedLocation)} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <SaveIcon className="w-4 h-4 mr-2" />
+            Save Location
           </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-

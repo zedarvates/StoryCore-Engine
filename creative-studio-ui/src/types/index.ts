@@ -8,6 +8,29 @@ import type { Character } from './character';
 import type { Story, StoryVersion } from './story';
 // Import Asset types
 import type { AssetMetadata } from './asset';
+// Import StoryObject types
+import type { StoryObject } from './object';
+// Import Location Logic Loop types
+import type {
+  LocationFunctionType,
+  LocationSubFunction,
+  ConstraintType,
+  ConstraintSeverity,
+  LocationConstraint,
+  LocationConstraints,
+  LocationCulture,
+  LocationReputation,
+  EmergentDetails,
+  LocationLogicLoop,
+  LogicLoopGenerationRequest,
+  LogicLoopLocationResponse,
+  FunctionOption,
+  FrameworkInfo,
+  ExampleLocation,
+  getFunctionOptions,
+  getConstraintTypes,
+  createEmptyLogicLoop
+} from './locationLogicLoop';
 
 // ============================================================================
 // Shot and Related Types
@@ -666,6 +689,74 @@ export interface GenerationTask {
   scheduler?: string;
 }
 
+/**
+ * Task queue item from backend API
+ */
+export interface TaskQueueItem {
+  job_id: string;
+  project_id: string;
+  prompt: string;
+  shot_count: number;
+  style?: string;
+  mood?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  progress: number;
+  current_step?: string;
+  priority: number; // 1 = highest, 10 = lowest
+  estimated_time?: number;
+  error?: string;
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+}
+
+/**
+ * Task queue response from backend API
+ */
+export interface TaskQueueResponse {
+  tasks: TaskQueueItem[];
+  total: number;
+  pending: number;
+  processing: number;
+  completed: number;
+  failed: number;
+  cancelled: number;
+}
+
+/**
+ * Priority update response from backend API
+ */
+export interface PriorityUpdateResponse {
+  job_id: string;
+  old_priority: number;
+  new_priority: number;
+  message: string;
+}
+
+/**
+ * Retry response from backend API
+ */
+export interface RetryResponse {
+  job_id: string;
+  old_status: string;
+  new_status: string;
+  message: string;
+}
+
+/**
+ * Queue statistics response from backend API
+ */
+export interface QueueStatsResponse {
+  total_jobs: number;
+  pending_jobs: number;
+  processing_jobs: number;
+  completed_jobs: number;
+  failed_jobs: number;
+  cancelled_jobs: number;
+  average_wait_time: number;
+  estimated_completion_time?: number;
+}
+
 // ============================================================================
 // UI State Types
 // ============================================================================
@@ -686,7 +777,7 @@ export interface AppState {
   characters: Character[]; // Characters for the project
   stories: Story[]; // Stories for the project
   storyVersions: StoryVersion[]; // Version history for stories
-  objects?: unknown[]; // Story objects, props, and artifacts
+  objects: StoryObject[]; // Story objects, props, and artifacts
 
   // UI state
   selectedShotId: string | null;
@@ -751,6 +842,36 @@ export interface Voice {
   gender: 'male' | 'female' | 'neutral';
   language: string;
   preview_url?: string;
+}
+
+// ============================================================================
+// Voice Recording Types
+// ============================================================================
+
+/**
+ * Voice recording data for upload to backend
+ */
+export interface VoiceRecording {
+  audioBlob: Blob;
+  filename: string;
+  userId: string;
+  sessionId: string;
+  timestamp: string;
+  duration: number;
+  sampleRate: number;
+}
+
+/**
+ * Phrase data for synchronization with backend
+ */
+export interface PhraseData {
+  id: string;
+  text: string;
+  startTime?: number;
+  endTime?: number;
+  speakerId?: string;
+  emotion?: string;
+  recordingId?: string;
 }
 
 // ============================================================================

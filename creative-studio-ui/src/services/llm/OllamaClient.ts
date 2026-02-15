@@ -5,6 +5,9 @@
  * generation, and health checks.
  */
 
+import { OLLAMA_URL } from '../../config/apiConfig';
+import { logger } from '@/utils/logger';
+
 export interface ModelMetadata {
   name: string;
   category: 'vision' | 'storytelling' | 'quick' | 'technical' | 'general';
@@ -18,6 +21,7 @@ export interface OllamaGenerateOptions {
   temperature?: number;
   maxTokens?: number;
   stream?: boolean;
+  signal?: AbortSignal;
 }
 
 export interface OllamaGenerateResponse {
@@ -31,12 +35,26 @@ export interface OllamaGenerateResponse {
 }
 
 /**
+ * Ollama API response model structure
+ */
+interface OllamaApiResponse {
+  models: OllamaModel[];
+}
+
+interface OllamaModel {
+  name: string;
+  size: number;
+  digest?: string;
+  modified_at?: string;
+}
+
+/**
  * Ollama API Client
  */
 export class OllamaClient {
-  private baseURL: string;
+  private readonly baseURL: string;
 
-  constructor(baseURL: string = 'http://localhost:11434') {
+  constructor(baseURL: string = OLLAMA_URL) {
     this.baseURL = baseURL;
   }
 
@@ -51,9 +69,9 @@ export class OllamaClient {
         throw new Error(`Failed to list models: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: OllamaApiResponse = await response.json();
 
-      return data.models.map((model: unknown) => ({
+      return data.models.map((model) => ({
         name: model.name,
         size: this.formatSize(model.size),
         available: true,
@@ -62,7 +80,7 @@ export class OllamaClient {
         recommendedFor: this.getRecommendations(model.name),
       }));
     } catch (error) {
-      console.error('[OllamaClient] Failed to list models:', error);
+      logger.error('[OllamaClient] Failed to list models:', error);
       throw error;
     }
   }
@@ -73,9 +91,24 @@ export class OllamaClient {
   async generate(
     model: string,
     prompt: string,
-    options?: OllamaGenerateOptions
+    options?: OllamaGenerateOptions,
+    signal?: AbortSignal
   ): Promise<string> {
+    const startTime = Date.now();
+    logger.info(`[OllamaClient] 🚀 Starting generation for model: ${model}`);
+    logger.debug(`[OllamaClient] 📝 Prompt length: ${prompt.length} chars, maxTokens: ${options?.maxTokens || 2000}`);
+    
+    // DIAGNOSTIC: Check if Ollama is reachable before attempting generation
+    const isHealthy = await this.healthCheck();
+    if (!isHealthy) {
+      logger.error(`[OllamaClient] ❌ Ollama service NOT reachable at ${this.baseURL}`);
+      throw new Error(`Ollama service not reachable at ${this.baseURL}. Please ensure Ollama is running.`);
+    }
+    logger.info(`[OllamaClient] ✅ Ollama health check passed`);
+    
     try {
+      logger.debug(`[OllamaClient] 📤 Sending generate request to ${this.baseURL}/api/generate`);
+      
       const response = await fetch(`${this.baseURL}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,16 +121,31 @@ export class OllamaClient {
           },
           stream: false,
         }),
+        signal,
       });
 
+      const elapsedMs = Date.now() - startTime;
+      logger.info(`[OllamaClient] ⏱️ Response received after ${elapsedMs}ms (status: ${response.status})`);
+
       if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unable to read error response');
+        logger.error(`[OllamaClient] ❌ Generation failed with status ${response.status}: ${errorText}`);
         throw new Error(`Generation failed: ${response.statusText}`);
       }
 
       const data: OllamaGenerateResponse = await response.json();
+      const totalMs = Date.now() - startTime;
+      logger.info(`[OllamaClient] ✅ Generation complete in ${totalMs}ms, response length: ${data.response?.length || 0} chars`);
+      
       return data.response;
     } catch (error) {
-      console.error('[OllamaClient] Generation failed:', error);
+      const elapsedMs = Date.now() - startTime;
+      logger.error(`[OllamaClient] ❌ Generation failed after ${elapsedMs}ms:`, error);
+      
+      // DIAGNOSTIC: Add more context to the error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        logger.error(`[OllamaClient] 💡 This appears to be a network error - Ollama may not be running at ${this.baseURL}`);
+      }
       throw error;
     }
   }
@@ -109,7 +157,8 @@ export class OllamaClient {
     model: string,
     prompt: string,
     onChunk: (chunk: string) => void,
-    options?: OllamaGenerateOptions
+    options?: OllamaGenerateOptions,
+    signal?: AbortSignal
   ): Promise<string> {
     try {
       const response = await fetch(`${this.baseURL}/api/generate`, {
@@ -124,6 +173,7 @@ export class OllamaClient {
           },
           stream: true,
         }),
+        signal,
       });
 
       if (!response.ok) {
@@ -132,7 +182,7 @@ export class OllamaClient {
 
       return await this.processStream(response, onChunk);
     } catch (error) {
-      console.error('[OllamaClient] Streaming generation failed:', error);
+      logger.error('[OllamaClient] Streaming generation failed:', error);
       throw error;
     }
   }
@@ -168,7 +218,8 @@ export class OllamaClient {
               onChunk(parsed.response);
             }
           } catch (e) {
-            // Skip invalid JSON chunks
+            // Skip invalid JSON chunks - this is expected for partial/malformed streaming data
+            logger.debug('[OllamaClient] Skipped invalid JSON chunk:', e);
           }
         }
       }
@@ -210,7 +261,7 @@ export class OllamaClient {
 
       return await response.json();
     } catch (error) {
-      console.error('[OllamaClient] Failed to get model info:', error);
+      logger.error('[OllamaClient] Failed to get model info:', error);
       throw error;
     }
   }

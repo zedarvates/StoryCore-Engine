@@ -8,7 +8,17 @@
 ---
 
 > **A Message from the Creator**
->
+StoryCore is more than just a pipeline.
+It’s a system that lets you control ComfyUI or other tools through add‑ons.
+It helps you organize your entire workflow for video creation — from the written story, to the script, to the dialogue.
+From 3D scene creation, to image generation, to text‑to‑image, to video, all the way to your cinematic work.
+From long takes to individual shots, from visual planning to music.
+From style to theme to genre — whatever you want to use.
+Automation or semi‑automation powered by AI accelerates your entire creative process.
+
+>The future of the internet? And of cinema? It’s on‑demand videos built according to people’s tastes. According to each customer. Directly on their TV. Basically, it’s instant, made‑to‑order cinema. But we’ll only really see that in five to ten years, I think.
+For now, in any video you create, you have to tell a story. If it’s sloppy, meaningless content or just random life footage with no intention behind it, there’s no real reason for anyone to watch your video—except maybe for the emotional manipulation, where you’re really trying to influence the viewer’s mind
+
 > I wanted to create a tool that modernizes long‑form video production without losing the soul of the craft. We start from the classic storyboard methods—the ones that shaped generations of creators—and we bring them into the present with the tools of our era.
 >
 > This isn't just another AI generator. It's a complete production pipeline: storyboard, visual coherence, narrative continuity, scene organization, character tracking, location consistency. The system remembers the entire project, just like a full team dedicated to artistic supervision.
@@ -19,59 +29,26 @@
 >
 > In short, I wanted to build a bridge between yesterday and today: the rigor and poetry of traditional methods, combined with the speed and power of modern tools. A tool that accelerates production, secures your workflow, and frees creativity.
 
+On top of all that, I’ve added an automated system for scientific checks.
+If you’re working on documentaries, this can be extremely useful — or even for science‑fiction projects.
+There are still a few adjustments to make to make the output a bit less strictly scientific, because right now it tends to be a little rigid on that part.
+These refinements will be handled in future versions.
+
 ---
-i know they are a lot of problems in the UI but i can do more in time for the competition 
----------------------------------------------------------------------------------------
-you must
----------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------
 
-SETUP FOR THE USER:
+## 📋 System Requirements
 
-win11:
+### Minimum Hardware
+- **Display**: 1 screen, mouse, keyboard (microphone optional)
+- **GPU**: NVIDIA RTX 3060 with 12GB VRAM (RTX 4070+ recommended)
+- **RAM**: 32GB system memory
+- **Storage**: ~500GB (includes ComfyUI models)
+- **Software**: CUDA, PyTorch, Python 3.11+, latest GPU drivers
 
-1. Install Ollama:
-2. Install ComfyUI desktop CORS and enable it ( others may not work actually )
-3. Install StoryCore with the setup
-4. Launch ComfyUI on port 8000 with CORS * and install the correction flow plugin, enable automatic model download, and if possible, download the models in advance
-5. Launch StoryCore
+note : Be careful: even with an RTX 5060 and 32 GB of RAM — a fairly recent PC — generating a single image can take around 5 minutes. Generating a video can take anywhere from 15 to 30 minutes. Creating background music can take about 5 minutes.
+As for dialogue generation, it will obviously depend on the length of the dialogue and the variables you apply. And on top of that, you might also add filters. As of right now, I’m not even sure if I’ve already integrated those filters into the user interface.
 
----------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------
-
-Minimal Hardware:
-
-1 screen, 1 mouse, 1 keyboard, optionnal microphone 
-GPU : 3060 12 go rtx 
-cuda / pytorch / pythons (3.11 +) / drivers / ....
-Pc ram : 32 go
-Espace disque : need to be defined but more or less  500GO with models in comfyui
-
----------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------
-
-In the Future Roadmaps :
-
-MCP ui render in the storycore assistant
-Upscalling Boutons in the user's UI
-Embedded Boutons  in the user's UI
-Regenerated Boutons assets by selection 
-Brutal AI images corrections ( paint tool )
-World API (3d scene construction with one image)
-3d characters puppet 
-3d assets 
-3d video Sprites for Anime
-Characters pose en "cliché" bank 
-Auto asset generators 
-Auto real photo exploitations 
-Clawdbot facilitator (reduces capacity consumption, quickest as possible, skills, logics integrations)
-Your Second Brain Obsidian inspiration to story
-Community Bank Assets 
-Layerings optimization (statics and animed)
-Video loop optimizations (First and last images with auto caption, first frame and last frame)
-
-Fixes and Ameliorations : mixing audio video and story , workfows , goal user identification, improve  fact checker, UI...... more comfyui workflows like 1st image to end image flux.2 Klein, add more possibilities in user UI allready in scripted in .py
-
+---
 
 ## 🚀 Quick Start
 
@@ -167,26 +144,47 @@ Graceful Degradation
 Error Analytics
 
 ---
-🛡️ Error Handling & Resilience
+note : If you’re really in a hurry and you have Grok accounts, a Seeddance King account, and all the rest of that ecosystem — and if your video is just for testing and not a production at the peak of your capabilities — then it’s better to use those tools.
+You can still rely on StoryCore to build the foundation, the story, and all that, because as of right now, they don’t yet have all the features I’ve added for creating long‑form videos. So you take the pre‑generated prompts from StoryCore, and you can run everything on their platform as your project progresses. That’s also a valid workflow.
+
+---
+## 🛡️ Error Handling & Resilience
+
 StoryCore-Engine includes comprehensive error handling and resilience patterns for production reliability.
-Resilience Patterns
-Retry Mechanism
+
+**Resilience Patterns:**
+- Retry Mechanism with exponential backoff
+- Circuit Breaker for fault tolerance
+- Fallback Chains for graceful degradation
+- Error Analytics for monitoring
+
+---
 
 ## 📁 Project Structure
 
 ```
 storycore-engine/
-├── README.md              # This file
-├── storycore.py           # Main CLI entry point
-├── src/                   # Core engine modules
-│   ├── grid_generator.py  # Visual coherence generation
-│   ├── promotion_engine.py
-│   ├── qa_engine.py       # Quality assessment
-│   └── ...
-├── creative-studio-ui/    # React/TypeScript UI
-├── workflows/             # ComfyUI workflows
-├── docs/                  # Documentation
-└── tests/                 # Test suite
+├── README.md                 # This file
+├── storycore.py              # Main CLI entry point
+├── backend/                  # FastAPI backend services
+│   ├── main_api.py           # API server entry point
+│   ├── llm_api.py            # LLM integration endpoints
+│   ├── project_api.py        # Project management API
+│   ├── video_editor_api.py   # Video editing endpoints
+│   └── ...                   # Additional API modules
+├── src/                      # Core engine modules
+│   ├── grid_generator.py     # Visual coherence generation
+│   ├── promotion_engine.py   # Content promotion pipeline
+│   ├── qa_engine.py          # Quality assessment
+│   ├── video_engine.py       # Video processing
+│   ├── comfyui_manager.py    # ComfyUI integration
+│   ├── narrative_engine.py   # Story processing
+│   └── ...                   # Additional engine modules
+├── creative-studio-ui/       # React/TypeScript frontend
+├── workflows/                # ComfyUI workflow definitions
+├── docs/                     # Documentation
+├── documentation/            # Technical documentation
+└── tests/                    # Test suite
 ```
 
 ---
@@ -218,17 +216,17 @@ npm run package:linux # Linux
 ---
 
 ## 🎯 Future Roadmap (Post-Launch Enhancements)
-Future Enhancements
 
-Advanced Camera Movements: Bezier curves and complex transitions
-Multi-format Export: MP4 generation from video plans
-Collaborative Features: Multi-user project management
-Performance Optimization: Parallel processing and caching
-Plugin Architecture: Custom engine extensions
-Cloud Deployment: Scalable cloud infrastructure
-Real-time Monitoring Dashboard: Enhanced monitoring with alerting
-Multi-character Scenes: Advanced scene composition
-Professional Studio Integration: Enterprise deployment and scaling
+**Planned Features:**
+- Advanced Camera Movements: Bezier curves and complex transitions
+- Multi-format Export: MP4 generation from video plans
+- Collaborative Features: Multi-user project management
+- Performance Optimization: Parallel processing and caching
+- Plugin Architecture: Custom engine extensions
+- Cloud Deployment: Scalable cloud infrastructure
+- Real-time Monitoring Dashboard: Enhanced monitoring with alerting
+- Multi-character Scenes: Advanced scene composition
+- Professional Studio Integration: Enterprise deployment and scaling
 
 ---
 
@@ -255,12 +253,13 @@ Professional Studio Integration: Enterprise deployment and scaling
 
 
 
-
 ---
-🏅 Built for Hackathon 2026
-Team: StoryCore-Engine Development Team
-Duration: + 210 hours
-Focus: Coherence-first, measurable multimodal pipeline
-Result: Production Marquette-ready system with interfaces
 
-Redefining how creators interact with multimodal AI through guaranteed visual coherence and autonomous quality control.
+## 🏅 Built for Hackathon 2026
+
+**Team:** StoryCore-Engine Development Team  
+**Duration:** 210+ hours  
+**Focus:** Coherence-first, measurable multimodal pipeline  
+**Result:** Production-ready system with professional interfaces
+
+*Redefining how creators interact with multimodal AI through guaranteed visual coherence and autonomous quality control.*

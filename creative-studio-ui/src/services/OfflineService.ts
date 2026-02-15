@@ -1,12 +1,13 @@
 /**
- * OfflineService - Service de mode hors-ligne amélioré
+ * OfflineService - Enhanced Offline Mode Service
  *
- * Gère le cache intelligent des suggestions, la fonctionnalité de base hors ligne,
- * et la synchronisation automatique à la reconnexion.
+ * Manages intelligent suggestion caching, basic offline functionality,
+ * and automatic synchronization on reconnection.
  */
 
-import { promptSuggestionService, type PromptSuggestion } from './PromptSuggestionService';
+import { promptSuggestionService, type PromptSuggestion, type Message } from './PromptSuggestionService';
 import { notificationService } from './NotificationService';
+import { logger } from '@/utils/logger';
 
 export interface CachedSuggestion {
   id: string;
@@ -14,6 +15,17 @@ export interface CachedSuggestion {
   context: string;
   timestamp: Date;
   expiresAt: Date;
+}
+
+/**
+ * Serialized format for cached suggestions in localStorage
+ */
+interface SerializedCachedSuggestion {
+  id: string;
+  suggestions: PromptSuggestion[];
+  context: string;
+  timestamp: string;
+  expiresAt: string;
 }
 
 export interface OfflineCapabilities {
@@ -38,8 +50,8 @@ export interface SyncStatus {
 export class OfflineService {
   private static instance: OfflineService;
   private cachedSuggestions: CachedSuggestion[] = [];
-  private capabilities: OfflineCapabilities;
-  private syncStatus: SyncStatus;
+  private readonly capabilities: OfflineCapabilities;
+  private readonly syncStatus: SyncStatus;
   private syncListeners: Array<(status: SyncStatus) => void> = [];
   private onlineCheckInterval: NodeJS.Timeout | null = null;
 
@@ -90,25 +102,27 @@ export class OfflineService {
     try {
       const cached = localStorage.getItem('offline-suggestions-cache');
       if (cached) {
-        const parsed = JSON.parse(cached);
-        this.cachedSuggestions = parsed.map((item: unknown) => ({
-          ...item,
+        const parsed: SerializedCachedSuggestion[] = JSON.parse(cached);
+        this.cachedSuggestions = parsed.map((item) => ({
+          id: item.id,
+          suggestions: item.suggestions,
+          context: item.context,
           timestamp: new Date(item.timestamp),
           expiresAt: new Date(item.expiresAt)
         }));
 
-        // Nettoyer les éléments expirés
+        // Clean expired items
         this.cleanExpiredCache();
         this.syncStatus.cachedItems = this.cachedSuggestions.length;
       }
     } catch (error) {
-      console.warn('Failed to load cached suggestions:', error);
+      logger.warn('[OfflineService] Failed to load cached suggestions:', error);
       this.cachedSuggestions = [];
     }
   }
 
   /**
-   * Sauvegarde les données en cache
+   * Save cached data
    */
   private saveCachedData(): void {
     try {
@@ -121,12 +135,12 @@ export class OfflineService {
       this.syncStatus.cachedItems = this.cachedSuggestions.length;
       this.notifySyncListeners();
     } catch (error) {
-      console.warn('Failed to save cached suggestions:', error);
+      logger.warn('[OfflineService] Failed to save cached suggestions:', error);
     }
   }
 
   /**
-   * Nettoie le cache expiré
+   * Clean expired cache
    */
   private cleanExpiredCache(): void {
     const now = new Date();
@@ -150,8 +164,8 @@ export class OfflineService {
     }, 30000);
 
     // Écouter les événements de changement de connexion
-    window.addEventListener('online', () => this.handleOnline());
-    window.addEventListener('offline', () => this.handleOffline());
+    globalThis.addEventListener('online', () => this.handleOnline());
+    globalThis.addEventListener('offline', () => this.handleOffline());
   }
 
   /**
@@ -230,13 +244,14 @@ export class OfflineService {
       );
 
     } catch (error) {
+      logger.error('[OfflineService] Sync failed:', error);
       notificationService.error(
         'Erreur de synchronisation',
         'Impossible de synchroniser les données. Réessayer plus tard.',
         [
           {
             label: 'Réessayer',
-            action: () => this.performSync(),
+            action: () => { this.performSync(); },
             primary: true
           }
         ]
@@ -251,7 +266,7 @@ export class OfflineService {
    * Génère des suggestions avec cache intelligent
    */
   async generateOfflineSuggestions(
-    messages: unknown[],
+    messages: Message[],
     language: string,
     currentInput: string = ''
   ): Promise<PromptSuggestion[]> {
@@ -274,12 +289,12 @@ export class OfflineService {
           currentInput
         );
       } catch (error) {
-        console.warn('Failed to generate suggestions:', error);
-        // Fallback vers les suggestions par défaut
+        logger.warn('[OfflineService] Failed to generate suggestions:', error);
+        // Fallback to default suggestions
         suggestions = promptSuggestionService.getDefaultSuggestions(language as any);
       }
     } else {
-      // Mode dégradé : seulement les suggestions par défaut
+      // Degraded mode: only default suggestions
       suggestions = promptSuggestionService.getDefaultSuggestions(language as any);
     }
 
@@ -294,7 +309,7 @@ export class OfflineService {
   /**
    * Génère une clé de cache
    */
-  private generateCacheKey(messages: unknown[], language: string, input: string): string {
+  private generateCacheKey(messages: Message[], language: string, input: string): string {
     const recentMessages = messages.slice(-3);
     const content = recentMessages.map(m => m.content).join('') + input + language;
     return btoa(content).substring(0, 32); // Hash simple

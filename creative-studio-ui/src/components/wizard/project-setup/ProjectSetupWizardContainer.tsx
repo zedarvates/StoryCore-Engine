@@ -9,7 +9,7 @@ import React, { useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
 import { validateString, validateNonEmptyArray, validateArray, validateReactNode, validateFunction } from '@/utils/propValidator';
-import { Logger } from '@/utils/logger';
+import { logger as Logger } from '@/utils/logger';
 import type { ProjectSetupData } from './Step1ProjectInfo';
 import './ProjectSetupWizardContainer.css';
 
@@ -27,7 +27,7 @@ export function ProjectSetupWizardContainer({
   children,
   onCancel,
   onComplete,
-}: ProjectSetupWizardContainerProps) {
+}: Readonly<ProjectSetupWizardContainerProps>) {
   // Validate props
   try {
     validateString(title, 'title');
@@ -92,9 +92,10 @@ export function ProjectSetupWizardContainer({
         {/* Progress Bar */}
         <div className="project-setup-wizard-header__progress">
           <div className="project-setup-wizard-header__progress-bar">
+            {/* eslint-disable-next-line no-inline-styles -- CSS custom property requires inline style for dynamic value */}
             <div
               className="project-setup-wizard-header__progress-fill"
-              style={{ width: `${progress}%` }}
+              style={{ '--progress-width': `${progress}%` } as React.CSSProperties}
             />
           </div>
           <p className="project-setup-wizard-header__progress-text">
@@ -105,26 +106,29 @@ export function ProjectSetupWizardContainer({
 
       {/* Step Indicators */}
       <div className="project-setup-wizard-steps" role="tablist" aria-label="Wizard steps">
-        {steps.map((step, index) => (
-          <div
-            key={step.id}
-            role="tab"
-            aria-selected={index + 1 === currentStep}
-            aria-label={`Step ${index + 1}: ${step.title}${index + 1 < currentStep ? ' (completed)' : ''}`}
-            className={`project-setup-wizard-step ${
-              index + 1 === currentStep ? 'project-setup-wizard-step--active' : ''
-            } ${index + 1 < currentStep ? 'project-setup-wizard-step--completed' : ''}`}
-          >
-            <div className="project-setup-wizard-step__indicator">
-              {index + 1 < currentStep ? (
-                <Check className="project-setup-wizard-step__icon" aria-hidden="true" />
-              ) : (
-                <span className="project-setup-wizard-step__number">{index + 1}</span>
-              )}
+        {steps.map((step, index) => {
+          const isSelected = index + 1 === currentStep;
+          const isCompleted = index + 1 < currentStep;
+          return (
+            <div
+              key={step.id}
+              role="tab"
+              aria-label={`Step ${index + 1}: ${step.title}${isCompleted ? ' (completed)' : ''}`}
+              className={`project-setup-wizard-step ${
+                isSelected ? 'project-setup-wizard-step--active' : ''
+              } ${isCompleted ? 'project-setup-wizard-step--completed' : ''}`}
+            >
+              <div className="project-setup-wizard-step__indicator">
+                {isCompleted ? (
+                  <Check className="project-setup-wizard-step__icon" aria-hidden="true" />
+                ) : (
+                  <span className="project-setup-wizard-step__number">{index + 1}</span>
+                )}
+              </div>
+              <span className="project-setup-wizard-step__label">{step.title}</span>
             </div>
-            <span className="project-setup-wizard-step__label">{step.title}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Content */}

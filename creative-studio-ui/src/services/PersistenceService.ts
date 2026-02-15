@@ -1,8 +1,8 @@
 /**
- * PersistenceService - Service unifié de persistance multi-couches
+ * PersistenceService - Unified multi-layer persistence service
  *
- * Fournit une persistance robuste avec fallbacks et retry logic
- * pour garantir que les données sont sauvegardées même en cas de failure
+ * Provides robust persistence with fallbacks and retry logic
+ * to ensure data is saved even in case of failure
  * 
  * FIXES applied:
  * - Deduplication before save to prevent redundant operations
@@ -12,7 +12,7 @@
 
 import { World } from '@/types/world';
 import { Character } from '@/types/character';
-import { loggingService } from './LoggingService';
+import { logger } from '@/utils/logger';
 
 export interface PersistenceResult {
   success: boolean;
@@ -56,7 +56,7 @@ export class PersistenceService {
     const lastSave = this.lastSaveTimes.get(characterId) || 0;
     const now = Date.now();
     if (now - lastSave < this.MIN_SAVE_INTERVAL) {
-      console.log(`[PersistenceService] Skipping duplicate save for character ${characterId} (${Math.round((now - lastSave)/1000)}s since last save)`);
+      logger.debug(`[PersistenceService] Skipping duplicate save for character ${characterId} (${Math.round((now - lastSave)/1000)}s since last save)`);
       return false;
     }
     this.lastSaveTimes.set(characterId, now);
@@ -81,16 +81,16 @@ export class PersistenceService {
         // Only update if there were duplicates
         if (unique.length !== parsed.length) {
           localStorage.setItem(key, JSON.stringify(unique));
-          console.log(`[PersistenceService] Cleaned up ${parsed.length - unique.length} duplicates from ${key}`);
+          logger.debug(`[PersistenceService] Cleaned up ${parsed.length - unique.length} duplicates from ${key}`);
         }
       }
     } catch (error) {
-      console.warn('[PersistenceService] Cleanup failed:', error);
+      logger.warn('[PersistenceService] Cleanup failed:', error);
     }
   }
 
   /**
-   * Sauvegarde un personnage avec multi-layer persistance
+   * Save a character with multi-layer persistence
    */
   async saveCharacter(character: Character, projectPath?: string): Promise<PersistenceResult[]> {
     const results: PersistenceResult[] = [];
@@ -117,7 +117,7 @@ export class PersistenceService {
     try {
       results.push(await this.saveCharacterToStore(normalizedCharacter));
     } catch (error) {
-      console.warn('[PersistenceService] Store save failed:', error);
+      logger.warn('[PersistenceService] Store save failed:', error);
       results.push({
         success: false,
         layer: 'store',
@@ -129,7 +129,7 @@ export class PersistenceService {
     try {
       results.push(await this.saveCharacterToLocalStorage(normalizedCharacter, projectPath));
     } catch (error) {
-      console.warn('[PersistenceService] localStorage save failed:', error);
+      logger.warn('[PersistenceService] localStorage save failed:', error);
       results.push({
         success: false,
         layer: 'localStorage',
@@ -142,7 +142,7 @@ export class PersistenceService {
       try {
         results.push(await this.saveCharacterToFile(normalizedCharacter, projectPath));
       } catch (error) {
-        console.warn('[PersistenceService] File save failed:', error);
+        logger.warn('[PersistenceService] File save failed:', error);
         results.push({
           success: false,
           layer: 'file',
@@ -157,7 +157,7 @@ export class PersistenceService {
       try {
         results.push(await this.saveCharacterToFallback(normalizedCharacter));
       } catch (error) {
-        console.error('[PersistenceService] All persistence layers failed:', error);
+        logger.error('[PersistenceService] All persistence layers failed:', error);
       }
     }
 
@@ -180,7 +180,7 @@ export class PersistenceService {
     try {
       results.push(await this.saveToStore(world));
     } catch (error) {
-      console.warn('[PersistenceService] Store save failed:', error);
+      logger.warn('[PersistenceService] Store save failed:', error);
       results.push({
         success: false,
         layer: 'store',
@@ -192,7 +192,7 @@ export class PersistenceService {
     try {
       results.push(await this.saveToLocalStorage(world, projectPath));
     } catch (error) {
-      console.warn('[PersistenceService] localStorage save failed:', error);
+      logger.warn('[PersistenceService] localStorage save failed:', error);
       results.push({
         success: false,
         layer: 'localStorage',
@@ -205,7 +205,7 @@ export class PersistenceService {
       try {
         results.push(await this.saveToFile(world, projectPath));
       } catch (error) {
-        console.warn('[PersistenceService] File save failed:', error);
+        logger.warn('[PersistenceService] File save failed:', error);
         results.push({
           success: false,
           layer: 'file',
@@ -220,7 +220,7 @@ export class PersistenceService {
       try {
         results.push(await this.saveToFallback(world));
       } catch (error) {
-        console.error('[PersistenceService] All persistence layers failed:', error);
+        logger.error('[PersistenceService] All persistence layers failed:', error);
       }
     }
 
@@ -237,7 +237,7 @@ export class PersistenceService {
         const world = await this.loadFromFile(worldId, projectPath);
         if (world) return world;
       } catch (error) {
-        console.warn('[PersistenceService] File load failed:', error);
+        logger.warn('[PersistenceService] File load failed:', error);
       }
     }
 
@@ -246,7 +246,7 @@ export class PersistenceService {
       const world = await this.loadFromLocalStorage(worldId, projectPath);
       if (world) return world;
     } catch (error) {
-      console.warn('[PersistenceService] localStorage load failed:', error);
+      logger.warn('[PersistenceService] localStorage load failed:', error);
     }
 
     // Enfin le store
@@ -254,7 +254,7 @@ export class PersistenceService {
       const world = await this.loadFromStore(worldId);
       if (world) return world;
     } catch (error) {
-      console.warn('[PersistenceService] Store load failed:', error);
+      logger.warn('[PersistenceService] Store load failed:', error);
     }
 
     return null;
@@ -305,18 +305,15 @@ export class PersistenceService {
         const fileName = `world_${world.id}.json`;
         const filePath = `${worldsDir}/${fileName}`;
 
-        // S'assurer que le dossier existe
-        if (window.electronAPI.fs.ensureDir) {
-          await window.electronAPI.fs.ensureDir(worldsDir);
+        // S'assurer que le dossier existe (use mkdir with recursive option)
+        if (window.electronAPI.fs.mkdir) {
+          await window.electronAPI.fs.mkdir(worldsDir, { recursive: true });
         }
 
         const jsonData = JSON.stringify(world, null, 2);
         
-        // Use Uint8Array instead of Buffer for browser compatibility
-        const encoder = new TextEncoder();
-        const dataBuffer = encoder.encode(jsonData);
-
-        await window.electronAPI.fs.writeFile(filePath, dataBuffer);
+        // Convert to string or Buffer - electron fs API accepts string or Buffer
+        await window.electronAPI.fs.writeFile(filePath, jsonData);
 
         return { success: true, layer: 'file' as const };
       }
@@ -451,11 +448,8 @@ export class PersistenceService {
 
         const jsonData = JSON.stringify(character, null, 2);
         
-        // Use Uint8Array instead of Buffer for browser compatibility
-        const encoder = new TextEncoder();
-        const dataBuffer = encoder.encode(jsonData);
-
-        await window.electronAPI.fs.writeFile(filePath, dataBuffer);
+        // Convert to string or Buffer - electron fs API accepts string or Buffer
+        await window.electronAPI.fs.writeFile(filePath, jsonData);
 
         return { success: true, layer: 'file' as const };
       }
@@ -556,34 +550,21 @@ export class PersistenceService {
       errors.push('Character name is required');
     }
 
-    // Note: world_id is optional in the Character type, so we don't validate it as required
-    // This allows characters to exist independently before being assigned to a world
-    if (character.world_id && typeof character.world_id !== 'string') {
-      errors.push('World ID must be a string if provided');
-    }
-
     // Validate role field - handle both object and legacy string formats
     if (!character.role) {
       warnings.push('Character role is recommended for better consistency');
-    } else if (typeof character.role === 'object' && character.role !== null) {
+    } else {
+      const role = character.role as { archetype?: string; narrative_function?: string; character_arc?: string };
       // Role is an object with archetype, narrative_function, character_arc
-      if (!character.role.archetype || typeof character.role.archetype !== 'string' || character.role.archetype.trim().length === 0) {
+      if (!role.archetype || typeof role.archetype !== 'string' || role.archetype.trim().length === 0) {
         warnings.push('Character archetype is recommended for better consistency');
       }
-      if (character.role.narrative_function && typeof character.role.narrative_function === 'string' && character.role.narrative_function.trim().length === 0) {
+      if (role.narrative_function && typeof role.narrative_function === 'string' && role.narrative_function.trim().length === 0) {
         warnings.push('Character narrative function should not be empty if provided');
       }
-      if (character.role.character_arc && typeof character.role.character_arc === 'string' && character.role.character_arc.trim().length === 0) {
+      if (role.character_arc && typeof role.character_arc === 'string' && role.character_arc.trim().length === 0) {
         warnings.push('Character arc should not be empty if provided');
       }
-    } else if (typeof character.role === 'string') {
-      // Legacy string format - convert to object format
-      if (character.role.trim().length === 0) {
-        warnings.push('Character role is recommended for better consistency');
-      }
-    } else {
-      // Invalid type
-      errors.push('Character role must be an object with archetype, narrative_function, and character_arc properties');
     }
 
     // Validation des traits de personnalité
@@ -695,7 +676,7 @@ export class PersistenceService {
 
         if (attempt < maxRetries) {
           const delay = baseDelay * Math.pow(2, attempt);
-          console.warn(`[PersistenceService] Operation failed, retrying in ${delay}ms...`, error);
+          logger.warn(`[PersistenceService] Operation failed, retrying in ${delay}ms...`, error);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
@@ -716,10 +697,10 @@ export class PersistenceService {
             this.retryQueue.delete(id);
           } catch (error) {
             this.retryQueue.set(id, { operation, retries: retries + 1 });
-            console.warn(`[PersistenceService] Queued operation ${id} failed again (${retries + 1}/3)`);
+            logger.warn(`[PersistenceService] Queued operation ${id} failed again (${retries + 1}/3)`);
           }
         } else {
-          console.error(`[PersistenceService] Queued operation ${id} failed permanently after 3 retries`);
+          logger.error(`[PersistenceService] Queued operation ${id} failed permanently after 3 retries`);
           this.retryQueue.delete(id);
         }
       }
@@ -744,12 +725,12 @@ export class PersistenceService {
           await this.saveWorld(world, projectPath);
           synced++;
         } catch (error) {
-          console.error(`[PersistenceService] Sync failed for world ${world.id}:`, error);
+          logger.error(`[PersistenceService] Sync failed for world ${world.id}:`, error);
           errors++;
         }
       }
     } catch (error) {
-      console.error('[PersistenceService] Sync process failed:', error);
+      logger.error('[PersistenceService] Sync process failed:', error);
       errors++;
     }
 

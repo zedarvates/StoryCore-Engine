@@ -75,12 +75,12 @@ function searchCharactersOptimized(
   const results: Character[] = [];
 
   for (const character of characters) {
-    // Early exit if we find a match
+    // Early exit if we find a match - with null checks
     if (
-      character.name.toLowerCase().includes(normalizedQuery) ||
-      character.role.archetype.toLowerCase().includes(normalizedQuery) ||
-      character.personality.traits.some((trait) =>
-        trait.toLowerCase().includes(normalizedQuery)
+      character?.name?.toLowerCase()?.includes(normalizedQuery) ||
+      character?.role?.archetype?.toLowerCase()?.includes(normalizedQuery) ||
+      character?.personality?.traits?.some((trait) =>
+        trait?.toLowerCase()?.includes(normalizedQuery)
       )
     ) {
       results.push(character);
@@ -110,20 +110,20 @@ function filterCharactersOptimized(
   const results: Character[] = [];
 
   for (const character of characters) {
-    // Check archetype filter
+    // Check archetype filter with null checks
     if (hasArchetypeFilter) {
       const matchesArchetype = filters.archetype!.some(
         (archetype) =>
-          character.role.archetype.toLowerCase() === archetype.toLowerCase()
+          character?.role?.archetype?.toLowerCase() === archetype.toLowerCase()
       );
       if (!matchesArchetype) continue;
     }
 
-    // Check age range filter
+    // Check age range filter with null checks
     if (hasAgeRangeFilter) {
       const matchesAgeRange = filters.ageRange!.some(
         (ageRange) =>
-          character.visual_identity.age_range.toLowerCase() ===
+          character?.visual_identity?.age_range?.toLowerCase() ===
           ageRange.toLowerCase()
       );
       if (!matchesAgeRange) continue;

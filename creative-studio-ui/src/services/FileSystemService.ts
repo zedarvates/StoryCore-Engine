@@ -1,35 +1,74 @@
 /**
- * FileSystemService - Service de gestion du système de fichiers pour StoryCore
+ * FileSystemService - File System Management Service for StoryCore
  *
- * Fournit des méthodes pour lire et écrire des fichiers de configuration
- * avec gestion des erreurs et synchronisation avec localStorage
+ * Provides methods to read and write configuration files
+ * with error handling and localStorage synchronization
  * 
- * Compatible avec les environnements browser et Node.js
+ * Compatible with browser and Node.js environments
  */
 
 import { AddonConfig } from './AddonManager';
+import { logger } from '@/utils/logger';
 
-// Type guard pour vérifier si on est dans un environnement Node.js
-const isNodeEnvironment = typeof window === 'undefined' && typeof process !== 'undefined';
+/**
+ * Node.js fs.promises interface
+ */
+interface NodeFsPromises {
+  readFile(path: string, encoding: string): Promise<string>;
+  writeFile(path: string, data: string, encoding: string): Promise<void>;
+  access(path: string): Promise<void>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  unlink(path: string): Promise<void>;
+}
 
-// Lazy loading des modules Node.js pour éviter les erreurs dans le browser
-let fs: unknown = null;
-let path: unknown = null;
+/**
+ * Node.js path module interface
+ */
+interface NodePath {
+  dirname(path: string): string;
+  join(...paths: string[]): string;
+  resolve(...paths: string[]): string;
+}
+
+/**
+ * Error with code property (Node.js style error)
+ */
+interface NodeJSError extends Error {
+  code?: string;
+}
+
+/**
+ * Type guard to check if an error has a code property
+ */
+function isNodeJSError(error: unknown): error is NodeJSError {
+  return error instanceof Error && 'code' in error;
+}
+
+// Type guard to check if we are in a Node.js environment
+const isNodeEnvironment = typeof globalThis !== 'undefined' && 
+                          typeof globalThis.window === 'undefined' && 
+                          typeof process !== 'undefined';
+
+// Lazy loading of Node.js modules to avoid errors in browser
+let fs: NodeFsPromises | null = null;
+let path: NodePath | null = null;
 
 if (isNodeEnvironment) {
   try {
-    const nodeFs = require('fs');
-    const nodePath = require('path');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const nodeFs = require('node:fs');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const nodePath = require('node:path');
     fs = nodeFs.promises;
     path = nodePath;
   } catch (error) {
-    console.warn('[FileSystemService] Impossible de charger les modules Node.js:', error);
+    logger.warn('[FileSystemService] Unable to load Node.js modules:', error);
   }
 }
 
 export class FileSystemService {
     private static instance: FileSystemService;
-    private useFileSystem: boolean;
+    private readonly useFileSystem: boolean;
     
     private constructor() {
         this.useFileSystem = isNodeEnvironment && fs !== null;
@@ -60,7 +99,7 @@ export class FileSystemService {
      */
     async readConfigFile(filePath: string): Promise<AddonConfig> {
         // Utiliser localStorage en premier dans le browser
-        if (!this.isFileSystemAvailable()) {
+        if (!this.isFileSystemAvailable() || !fs) {
             return this.readFromLocalStorage();
         }
         
@@ -75,30 +114,30 @@ export class FileSystemService {
             
             return parsed.addons;
         } catch (error: unknown) {
-            // Gestion des erreurs spécifiques
-            if (error.code === 'ENOENT') {
-                // Fichier non trouvé - essayer localStorage
-                console.warn(`[FileSystemService] Fichier non trouvé: ${filePath}, fallback sur localStorage`);
+            // Handle specific errors
+            if (isNodeJSError(error) && error.code === 'ENOENT') {
+                // File not found - try localStorage
+                logger.warn(`[FileSystemService] File not found: ${filePath}, fallback to localStorage`);
                 return this.readFromLocalStorage();
             }
             
             if (error instanceof SyntaxError) {
-                throw new Error(`Format JSON invalide dans ${filePath}: ${error.message}`);
+                throw new Error(`Invalid JSON format in ${filePath}: ${error.message}`);
             }
             
-            // Gestion des erreurs de permissions
-            if (error.code === 'EACCES' || error.code === 'EPERM') {
-                throw new Error(`Permission refusée pour lire le fichier ${filePath}`);
+            // Handle permission errors
+            if (isNodeJSError(error) && (error.code === 'EACCES' || error.code === 'EPERM')) {
+                throw new Error(`Permission denied to read file ${filePath}`);
             }
             
-            // En cas d'erreur, essayer localStorage
-            console.warn(`[FileSystemService] Erreur lors de la lecture du fichier, fallback sur localStorage:`, error);
+            // On error, try localStorage
+            logger.warn(`[FileSystemService] Error reading file, fallback to localStorage:`, error);
             return this.readFromLocalStorage();
         }
     }
     
     /**
-     * Lit la configuration depuis localStorage
+     * Reads configuration from localStorage
      */
     private readFromLocalStorage(): Promise<AddonConfig> {
         try {
@@ -107,7 +146,7 @@ export class FileSystemService {
                 return Promise.resolve(JSON.parse(data));
             }
         } catch (error) {
-            console.warn('[FileSystemService] Erreur lors de la lecture depuis localStorage:', error);
+            logger.warn('[FileSystemService] Error reading from localStorage:', error);
         }
         return Promise.resolve({});
     }
@@ -119,103 +158,105 @@ export class FileSystemService {
      * @throws Error Si l'écriture du fichier échoue
      */
     async writeConfigFile(filePath: string, config: AddonConfig): Promise<void> {
-        // Synchroniser avec localStorage dans tous les cas
+        // Sync with localStorage in all cases
         await this.syncWithLocalStorage(config);
         
-        // Si pas de système de fichiers disponible, arrêter ici
-        if (!this.isFileSystemAvailable()) {
-            console.log('[FileSystemService] Configuration sauvegardée dans localStorage uniquement (browser)');
+        // If no file system available, stop here
+        if (!this.isFileSystemAvailable() || !fs || !path) {
+            logger.debug('[FileSystemService] Configuration saved to localStorage only (browser)');
             return;
         }
         
         try {
-            // S'assurer que le répertoire existe
+            // Ensure directory exists
             await this.ensureDirectoryExists(path.dirname(filePath));
             
-            // Créer la structure complète avec métadonnées
+            // Create complete structure with metadata
             const fullConfig = {
                 version: '1.0',
                 timestamp: new Date().toISOString(),
                 addons: config
             };
             
-            // Écrire le fichier avec un formatage JSON lisible
+            // Write file with readable JSON formatting
             await fs.writeFile(filePath, JSON.stringify(fullConfig, null, 2), 'utf-8');
             
-            console.log(`[FileSystemService] Configuration sauvegardée dans ${filePath}`);
+            logger.debug(`[FileSystemService] Configuration saved to ${filePath}`);
         } catch (error: unknown) {
-            // Gestion des erreurs de permissions
-            if (error.code === 'EACCES' || error.code === 'EPERM') {
-                throw new Error(`Permission refusée pour écrire le fichier ${filePath}`);
+            // Handle permission errors
+            if (isNodeJSError(error) && (error.code === 'EACCES' || error.code === 'EPERM')) {
+                throw new Error(`Permission denied to write file ${filePath}`);
             }
             
-            // Gestion des erreurs d'espace disque
-            if (error.code === 'ENOSPC') {
-                throw new Error(`Espace disque insuffisant pour écrire le fichier ${filePath}`);
+            // Handle disk space errors
+            if (isNodeJSError(error) && error.code === 'ENOSPC') {
+                throw new Error(`Insufficient disk space to write file ${filePath}`);
             }
             
-            console.error(`[FileSystemService] Échec de l'écriture du fichier ${filePath}:`, error);
-            // Ne pas throw car la sync avec localStorage a réussi
+            logger.error(`[FileSystemService] Failed to write file ${filePath}:`, error);
+            // Don't throw since localStorage sync succeeded
         }
     }
     
     /**
-     * S'assure que le répertoire existe, le crée si nécessaire
-     * @param dirPath Chemin du répertoire
+     * Ensures the directory exists, creates it if necessary
+     * @param dirPath Directory path
      */
     async ensureDirectoryExists(dirPath: string): Promise<void> {
-        if (!this.isFileSystemAvailable()) {
+        if (!this.isFileSystemAvailable() || !fs) {
             return;
         }
         
         try {
-            // Vérifier si le répertoire existe
+            // Check if directory exists
             await fs.access(dirPath);
         } catch {
-            // Répertoire n'existe pas, le créer récursivement
+            // Directory doesn't exist, create it recursively
             try {
                 await fs.mkdir(dirPath, { recursive: true });
-                console.log(`[FileSystemService] Répertoire créé: ${dirPath}`);
+                logger.debug(`[FileSystemService] Directory created: ${dirPath}`);
             } catch (error: unknown) {
-                // Gestion des erreurs de permissions
-                if (error.code === 'EACCES' || error.code === 'EPERM') {
-                    throw new Error(`Permission refusée pour créer le répertoire ${dirPath}`);
+                // Handle permission errors
+                if (isNodeJSError(error) && (error.code === 'EACCES' || error.code === 'EPERM')) {
+                    throw new Error(`Permission denied to create directory ${dirPath}`);
                 }
                 
-                console.error(`[FileSystemService] Échec de la création du répertoire ${dirPath}:`, error);
-                throw new Error(`Échec de la création du répertoire: ${error.message}`);
+                logger.error(`[FileSystemService] Failed to create directory ${dirPath}:`, error);
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                throw new Error(`Failed to create directory: ${errorMessage}`);
             }
         }
     }
     
     /**
-     * Synchronise la configuration avec localStorage
-     * @param config Configuration à synchroniser
-     * @throws Error Si la synchronisation avec localStorage échoue
+     * Synchronizes configuration with localStorage
+     * @param config Configuration to synchronize
+     * @throws Error If localStorage synchronization fails
      */
     async syncWithLocalStorage(config: AddonConfig): Promise<void> {
         try {
-            // Sauvegarder dans localStorage
+            // Save to localStorage
             localStorage.setItem('storycore_addon_config', JSON.stringify(config));
-            console.log('[FileSystemService] Configuration synchronisée avec localStorage');
+            logger.debug('[FileSystemService] Configuration synchronized with localStorage');
         } catch (error: unknown) {
-            // Gestion des erreurs de quota dépassé
-            if (error.name === 'QuotaExceededError') {
-                throw new Error('Quota de stockage local dépassé');
+            // Handle quota exceeded errors
+            if (error instanceof Error && error.name === 'QuotaExceededError') {
+                throw new Error('Local storage quota exceeded');
             }
             
-            console.error('[FileSystemService] Échec de la synchronisation avec localStorage:', error);
-            throw new Error(`Échec de la synchronisation avec localStorage: ${error.message}`);
+            logger.error('[FileSystemService] Failed to synchronize with localStorage:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            throw new Error(`Failed to synchronize with localStorage: ${errorMessage}`);
         }
     }
     
     /**
-     * Vérifie si un fichier existe
-     * @param filePath Chemin du fichier
-     * @returns true si le fichier existe, false sinon
+     * Checks if a file exists
+     * @param filePath File path
+     * @returns true if file exists, false otherwise
      */
     async fileExists(filePath: string): Promise<boolean> {
-        if (!this.isFileSystemAvailable()) {
+        if (!this.isFileSystemAvailable() || !fs) {
             return false;
         }
         
@@ -228,33 +269,34 @@ export class FileSystemService {
     }
     
     /**
-     * Supprime un fichier de configuration
-     * @param filePath Chemin du fichier à supprimer
-     * @throws Error Si la suppression échoue
+     * Deletes a configuration file
+     * @param filePath Path of the file to delete
+     * @throws Error If deletion fails
      */
     async deleteConfigFile(filePath: string): Promise<void> {
-        if (!this.isFileSystemAvailable()) {
+        if (!this.isFileSystemAvailable() || !fs) {
             return;
         }
         
         try {
             await fs.unlink(filePath);
-            console.log(`[FileSystemService] Fichier supprimé: ${filePath}`);
+            logger.debug(`[FileSystemService] File deleted: ${filePath}`);
         } catch (error: unknown) {
-            // Gestion des erreurs spécifiques
-            if (error.code === 'ENOENT') {
-                // Fichier non trouvé - pas une erreur critique
-                console.warn(`[FileSystemService] Fichier non trouvé pour suppression: ${filePath}`);
+            // Handle specific errors
+            if (isNodeJSError(error) && error.code === 'ENOENT') {
+                // File not found - not a critical error
+                logger.warn(`[FileSystemService] File not found for deletion: ${filePath}`);
                 return;
             }
             
-            // Gestion des erreurs de permissions
-            if (error.code === 'EACCES' || error.code === 'EPERM') {
-                throw new Error(`Permission refusée pour supprimer le fichier ${filePath}`);
+            // Handle permission errors
+            if (isNodeJSError(error) && (error.code === 'EACCES' || error.code === 'EPERM')) {
+                throw new Error(`Permission denied to delete file ${filePath}`);
             }
             
-            console.error(`[FileSystemService] Échec de la suppression du fichier ${filePath}:`, error);
-            throw new Error(`Échec de la suppression du fichier: ${error.message}`);
+            logger.error(`[FileSystemService] Failed to delete file ${filePath}:`, error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            throw new Error(`Failed to delete file: ${errorMessage}`);
         }
     }
 }

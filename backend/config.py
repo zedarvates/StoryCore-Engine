@@ -25,7 +25,8 @@ Usage:
     print(settings.DATABASE_URL)
 """
 
-from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field
 from typing import Optional
 import os
 
@@ -49,10 +50,38 @@ class Settings(BaseSettings):
     # =======================
     # JWT Authentication
     # =======================
-    JWT_SECRET: str = Field(
-        default="your-super-secret-key-change-in-production",
-        description="Secret key for JWT token generation"
+    # SECURITY: JWT_SECRET must be set via environment variable in production
+    # The default None ensures we fail fast if not configured properly
+    JWT_SECRET: Optional[str] = Field(
+        default=None,
+        description="Secret key for JWT token generation (MUST be set in production)"
     )
+    
+    def get_jwt_secret(self) -> str:
+        """
+        Get JWT secret with production safety check.
+        
+        Returns:
+            str: JWT secret key
+            
+        Raises:
+            ValueError: If JWT_SECRET is not set (required for production)
+        """
+        if not self.JWT_SECRET:
+            # Allow None only in development mode with explicit warning
+            if self.is_development():
+                import warnings
+                warnings.warn(
+                    "JWT_SECRET not set. Using insecure default for development only. "
+                    "Set JWT_SECRET environment variable for production!",
+                    UserWarning
+                )
+                return "dev-only-insecure-secret-key-do-not-use-in-production"
+            raise ValueError(
+                "JWT_SECRET environment variable must be set for production use. "
+                "Generate a secure key with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+            )
+        return self.JWT_SECRET
     JWT_ALGORITHM: str = Field(default="HS256", description="JWT algorithm")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, description="Token expiration time")
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, description="Refresh token expiration")
@@ -198,6 +227,20 @@ class Settings(BaseSettings):
     FFMPEG_PATH: Optional[str] = Field(
         default=None,
         description="Custom FFmpeg path"
+    )
+    
+    # Audio/Video timeouts
+    AUDIO_GENERATION_TIMEOUT: int = Field(
+        default=300,
+        description="Timeout for audio generation in seconds"
+    )
+    AUDIO_MIX_TIMEOUT: int = Field(
+        default=180,
+        description="Timeout for audio mixing in seconds"
+    )
+    VIDEO_EXPORT_TIMEOUT: int = Field(
+        default=1800,
+        description="Timeout for video export in seconds"
     )
     
     # =======================

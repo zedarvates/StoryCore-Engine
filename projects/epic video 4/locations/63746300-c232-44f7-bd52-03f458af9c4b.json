@@ -1,0 +1,18 @@
+{
+  "location_id": "63746300-c232-44f7-bd52-03f458af9c4b",
+  "name": "The Curious Conservatory",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T18:59:59.365Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A lush oasis amidst the steel and smoke of urban London, where rare plants and curiosities from around the world are on display. Its proprietor, the enigmatic Professor Pocketwatch, cultivates an air of eccentricity.",
+    "atmosphere": "Whimsical opulence: greenhouses burst with exotic flora, while taxidermied beasts gaze down from shelves, and pocket watches tick away in ornate timekeepers.",
+    "genre_tags": [],
+    "significance": "A location where players may uncover obscure knowledge or artifacts with hidden potential."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

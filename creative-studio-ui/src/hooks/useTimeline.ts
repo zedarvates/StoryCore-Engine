@@ -66,6 +66,8 @@ export function useTimeline(initialPath?: string): UseTimelineReturn {
     if (initialPath) {
       loadTimeline(initialPath);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Only run when initialPath changes - loadTimeline is intentionally excluded
   }, [initialPath]);
 
   // Subscribe to timeline updates

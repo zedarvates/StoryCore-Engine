@@ -2,11 +2,13 @@
  * Story Object Types
  * 
  * Defines types for story objects (props, items, artifacts, etc.)
+ * Updated to support both narrative and game-like attributes.
  */
 
-export type ObjectType = 
+export type ObjectType =
   | 'prop'           // Physical props (furniture, tools, etc.)
   | 'weapon'         // Weapons and combat items
+  | 'armor'          // Armor and protective gear
   | 'artifact'       // Magical or special artifacts
   | 'vehicle'        // Vehicles and transportation
   | 'technology'     // Tech items and gadgets
@@ -14,13 +16,19 @@ export type ObjectType =
   | 'consumable'     // Food, potions, etc.
   | 'document'       // Books, letters, maps
   | 'treasure'       // Valuable items
+  | 'tool'           // General tools
+  | 'magical'        // Purely magical items
+  | 'quest'          // Quest-specific items
+  | 'key'            // Keys and access items
   | 'other';         // Other objects
 
-export type ObjectRarity = 
+export type ObjectRarity =
   | 'common'
   | 'uncommon'
   | 'rare'
+  | 'epic'
   | 'legendary'
+  | 'mythical'
   | 'unique';
 
 export type ObjectCondition =
@@ -31,13 +39,13 @@ export type ObjectCondition =
   | 'broken';
 
 export interface ObjectProperties {
-  weight?: string;           // e.g., "2 kg", "light", "heavy"
+  weight?: string | number;  // e.g., "2 kg" or 2.0
   size?: string;             // e.g., "small", "medium", "large"
   material?: string;         // e.g., "wood", "metal", "crystal"
   color?: string;            // Primary color
   durability?: ObjectCondition;
   magical?: boolean;         // Is it magical/special?
-  value?: string;            // Monetary or symbolic value
+  value?: string | number;   // Monetary or symbolic value
   origin?: string;           // Where it came from
 }
 
@@ -55,34 +63,40 @@ export interface StoryObject {
   type: ObjectType;
   rarity: ObjectRarity;
   description: string;
-  appearance: string;        // Physical description
-  
+  appearance?: string;       // Physical description
+  lore?: string;             // Backstory/Legend
+  power?: number;            // Power level (0-100)
+
   // Properties
   properties: ObjectProperties;
-  
-  // Abilities/Powers (if any)
+
+  // Abilities/Powers
   abilities?: ObjectAbility[];
-  
+  abilityStrings?: string[]; // Simplified abilities for AI generation
+
+  // Requirements
+  requirements?: string;
+
   // Story context
-  significance: string;      // Why is this object important?
-  history?: string;          // Object's backstory
+  significance?: string;     // Why is this object important?
+  history?: string;          // Alias for lore
   currentOwner?: string;     // Character ID who owns it
   location?: string;         // Where it's currently located
-  
+
   // Relationships
   relatedCharacters?: string[];  // Character IDs
   relatedLocations?: string[];   // Location IDs
   relatedObjects?: string[];     // Other object IDs
-  
+
   // Generation metadata
   imageUrl?: string;
   imagePrompt?: string;
   generatedBy?: 'user' | 'ai';
-  
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Tags for organization
   tags?: string[];
 }
@@ -96,9 +110,7 @@ export function createEmptyObject(): Partial<StoryObject> {
     type: 'prop',
     rarity: 'common',
     description: '',
-    appearance: '',
     properties: {},
-    significance: '',
     abilities: [],
     tags: [],
     generatedBy: 'user',
@@ -113,6 +125,7 @@ export function createEmptyObject(): Partial<StoryObject> {
 export const OBJECT_TYPE_LABELS: Record<ObjectType, string> = {
   prop: 'Prop / Item',
   weapon: 'Weapon',
+  armor: 'Armor',
   artifact: 'Artifact',
   vehicle: 'Vehicle',
   technology: 'Technology',
@@ -120,6 +133,10 @@ export const OBJECT_TYPE_LABELS: Record<ObjectType, string> = {
   consumable: 'Consumable',
   document: 'Document',
   treasure: 'Treasure',
+  tool: 'Tool',
+  magical: 'Magical Item',
+  quest: 'Quest Item',
+  key: 'Key / Access',
   other: 'Other',
 };
 
@@ -130,7 +147,9 @@ export const OBJECT_RARITY_LABELS: Record<ObjectRarity, string> = {
   common: 'Common',
   uncommon: 'Uncommon',
   rare: 'Rare',
+  epic: 'Epic',
   legendary: 'Legendary',
+  mythical: 'Mythical',
   unique: 'Unique',
 };
 

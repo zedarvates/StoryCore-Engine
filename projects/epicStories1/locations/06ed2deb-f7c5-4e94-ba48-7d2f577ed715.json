@@ -1,0 +1,18 @@
+{
+  "location_id": "06ed2deb-f7c5-4e94-ba48-7d2f577ed715",
+  "name": "New Tumbleweed",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T21:02:49.999Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A sprawling metropolis built from scavenged materials in the ruins of an old city. Skyscrapers made of salvaged steel and concrete stretch towards the smog-choked sky, while makeshift shelters and shantytowns sprawl across the surrounding wasteland.",
+    "atmosphere": "Energetic, chaotic, and slightly lawless, with a hint of nostalgia for the lost past.",
+    "genre_tags": [],
+    "significance": "Hub for trade and commerce in the post-apocalyptic world, where Vivas Guardians often gather information and resources for their missions."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

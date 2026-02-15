@@ -44,14 +44,15 @@ router = APIRouter()
 
 class Settings(BaseSettings):
     """Application settings for sequence generation"""
-    max_sequence_length: int = Field(default=100, env='MAX_SEQUENCE_LENGTH')
-    default_shot_duration: float = Field(default=5.0, env='DEFAULT_SHOT_DURATION')
-    generation_timeout_seconds: int = Field(default=300, env='GENERATION_TIMEOUT_SECONDS')
-    queue_worker_count: int = Field(default=4, env='QUEUE_WORKER_COUNT')
+    max_sequence_length: int = Field(default=100)
+    default_shot_duration: float = Field(default=5.0)
+    generation_timeout_seconds: int = Field(default=300)
+    queue_worker_count: int = Field(default=4)
     
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # Ignore extra environment variables
 
 
 try:
@@ -128,6 +129,8 @@ class GenerationJob(BaseModel):
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     user_id: str
+    priority: int = 10  # Lower number = higher priority (1 = highest, 10 = lowest)
+    estimated_time: Optional[int] = None  # Estimated time remaining in seconds
 
 
 class GenerationJobResponse(BaseModel):
@@ -353,6 +356,9 @@ async def generate_sequence_endpoint(
     job_id = str(uuid.uuid4())
     now = datetime.utcnow()
     
+    # Estimate time based on shot count (10 seconds per shot)
+    estimated_time = request.shot_count * 10
+    
     job = {
         "id": job_id,
         "project_id": request.project_id,
@@ -369,7 +375,9 @@ async def generate_sequence_endpoint(
         "created_at": now.isoformat(),
         "started_at": None,
         "completed_at": None,
-        "user_id": user_id
+        "user_id": user_id,
+        "priority": 10,  # Default priority (10 = lowest, 1 = highest)
+        "estimated_time": estimated_time
     }
     
     # Save job

@@ -80,10 +80,26 @@ export class RoverBackend implements StorageBackend {
     }
 
     /**
-     * Delete project (not supported via RoverBackend for now)
+     * Delete project file
+     * @param key - The key identifying the project (typically 'project.json')
      */
     async delete(key: string): Promise<void> {
-        throw new Error('Delete not implemented in RoverBackend');
+        if (!window.electronAPI?.fs) {
+            throw new Error('FS API not available for delete operation');
+        }
+
+        try {
+            const filePath = pathJoin(this.projectPath, 'project.json');
+            const exists = await window.electronAPI.fs.exists(filePath);
+
+            if (exists) {
+                await window.electronAPI.fs.unlink(filePath);
+                console.log('[RoverBackend] Project deleted:', filePath);
+            }
+        } catch (error) {
+            console.error('[RoverBackend] Delete failed:', error);
+            throw error;
+        }
     }
 
     /**

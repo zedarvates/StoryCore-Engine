@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { logger } from '../utils/logger';
 
 // Types
 export interface Addon {
@@ -473,7 +474,7 @@ export const useAddonStore = create<AddonStore>()(
           }>('/updates/check');
           
           // TODO: Handle updates (show notification, etc.)
-          console.log(`${response.updates_available} updates available`);
+          logger.debug(`${response.updates_available} updates available`);
         } catch (error) {
           console.error('Failed to check updates:', error);
         }

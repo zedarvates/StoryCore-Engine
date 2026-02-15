@@ -24,6 +24,8 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
       setIsOllamaAvailable(available);
     }
     checkOllama();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount - Ollama status check is a one-time operation
   }, []);
 
   // Auto-scroll to bottom when new messages arrive

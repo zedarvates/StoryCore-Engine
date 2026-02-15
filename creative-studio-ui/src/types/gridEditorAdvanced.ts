@@ -212,7 +212,7 @@ export interface ContextMenuProps {
 // Undo/Redo Types
 // ============================================================================
 
-export interface HistoryEntry<T = any> {
+export interface HistoryEntry<T = unknown> {
   id: string;
   timestamp: number;
   description: string;
@@ -220,7 +220,7 @@ export interface HistoryEntry<T = any> {
   inverseAction?: () => void;
 }
 
-export interface UndoRedoState<T = any> {
+export interface UndoRedoState<T = unknown> {
   undoStack: HistoryEntry<T>[];
   redoStack: HistoryEntry<T>[];
   currentState: T;

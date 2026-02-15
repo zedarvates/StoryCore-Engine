@@ -1,0 +1,18 @@
+{
+  "location_id": "7e7823e8-1c87-48bf-8d6f-2fa9b8db0574",
+  "name": "The Aetherhaven",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T06:36:35.820Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A sprawling, gothic metropolis built atop a series of ancient ley lines, where arcane energies seep from the very stones and buildings seem to twist and writhe in impossible ways. The city's elite indulge in forbidden knowledge and dark arts, while its underclass struggles to survive amidst the shadowy intrigue.",
+    "atmosphere": "Whimsical, decadent, foreboding",
+    "genre_tags": [],
+    "significance": "The Aetherhaven serves as a hub of magical experimentation, attracting mages and alchemists from across Eldora. However, whispers speak of a growing darkness at the heart of the city, where ancient pacts with malevolent entities begin to unravel."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { StorageManager } from '../utils/storageManager';
-import { Logger } from '../utils/logger';
+import { logger as Logger } from '../utils/logger';
 import type {
   AppState,
   Shot,
@@ -19,10 +19,10 @@ import type {
 } from '../types';
 import type { Character } from '../types/character';
 import type { Story, StoryVersion } from '../types/story';
+import type { StoryObject } from '../types/object';
 import type { WizardOutput } from '../services/wizard/types';
 import { getWizardService } from '../services/wizard/WizardService';
-import { eventEmitter } from '../services/eventEmitter';
-import type { WizardEventType } from '../services/eventEmitter';
+import { eventEmitter, WizardEventType } from '../services/eventEmitter';
 import type {
   WorldCreatedPayload,
   WorldUpdatedPayload,
@@ -70,12 +70,12 @@ interface StoreActions {
   setCharacters: (characters: Character[]) => void; // Bulk set for project loading
   
   // Object actions
-  addObject: (object: unknown) => void;
-  updateObject: (id: string, updates: unknown) => void;
+  addObject: (object: StoryObject) => void;
+  updateObject: (id: string, updates: Partial<StoryObject>) => void;
   deleteObject: (id: string) => void;
-  getObjectById: (id: string) => unknown | undefined;
-  getAllObjects: () => unknown[];
-  setObjects: (objects: unknown[]) => void; // Bulk set for project loading
+  getObjectById: (id: string) => StoryObject | undefined;
+  getAllObjects: () => StoryObject[];
+  setObjects: (objects: StoryObject[]) => void; // Bulk set for project loading
   
   // Story actions
   addStory: (story: Story) => void;
@@ -222,7 +222,7 @@ export const useStore = create<Store>()(
           };
         }),
         
-        updateProject: (updates) =>
+        updateProject: (updates: Partial<Project>) =>
           set((state) => {
             if (!state.project) return { project: null };
             
@@ -474,7 +474,7 @@ export const useStore = create<Store>()(
             );
             
             let newCharacters;
-            let eventType: WizardEventType;
+            let eventType: typeof WizardEventType[keyof typeof WizardEventType];
             
             if (existingIndex >= 0) {
               // Character already exists - update it instead of adding duplicate
@@ -750,13 +750,11 @@ export const useStore = create<Store>()(
           }),
 
         getObjectById: (id) => {
-          const state = useStore.getState();
-          return state.objects.find((o) => o.id === id);
+          return get().objects.find((o) => o.id === id);
         },
 
         getAllObjects: () => {
-          const state = useStore.getState();
-          return state.objects;
+          return get().objects;
         },
 
         setObjects: (objects) =>
@@ -999,7 +997,8 @@ export const useStore = create<Store>()(
             
             // Validation 3: Vérifier les données spécifiques par type
             if (output.type === 'character') {
-              if (!output.data.id || !output.data.name) {
+              const charData = output.data as Record<string, unknown>;
+              if (!charData.id || !charData.name) {
                 throw new Error('Invalid character data: missing id or name');
               }
             }
@@ -1017,62 +1016,68 @@ export const useStore = create<Store>()(
               case 'character':
                 // Add character to store (Requirements: 3.4, 3.5, 3.6, 12.1)
                 // Map all fields from wizard output to Character type
+                // Using type assertion for flexible wizard data structure
+                const charData = output.data as Record<string, any>;
+                const visualIdentity = charData.visual_identity || charData.visual_attributes || {};
+                const personalityData = charData.personality || {};
+                const backgroundData = charData.background || {};
+                
                 const character: Character = {
-                  character_id: output.data.id,
-                  name: output.data.name,
+                  character_id: charData.id,
+                  name: charData.name,
                   creation_method: 'wizard' as const,
-                  creation_timestamp: output.data.created_at || output.data.creation_timestamp,
-                  version: output.data.version || '1.0',
+                  creation_timestamp: charData.created_at || charData.creation_timestamp,
+                  version: charData.version || '1.0',
                   visual_identity: {
                     // Hair
-                    hair_color: output.data.visual_identity?.hair_color || output.data.visual_attributes?.hair_color || output.data.hair_color || '',
-                    hair_style: output.data.visual_identity?.hair_style || output.data.visual_attributes?.hair_style || output.data.hair_style || '',
-                    hair_length: output.data.visual_identity?.hair_length || output.data.visual_attributes?.hair_length || output.data.hair_length || '',
+                    hair_color: visualIdentity.hair_color || charData.hair_color || '',
+                    hair_style: visualIdentity.hair_style || charData.hair_style || '',
+                    hair_length: visualIdentity.hair_length || charData.hair_length || '',
                     // Eyes
-                    eye_color: output.data.visual_identity?.eye_color || output.data.visual_attributes?.eye_color || output.data.eye_color || '',
-                    eye_shape: output.data.visual_identity?.eye_shape || output.data.visual_attributes?.eye_shape || output.data.eye_shape || '',
+                    eye_color: visualIdentity.eye_color || charData.eye_color || '',
+                    eye_shape: visualIdentity.eye_shape || charData.eye_shape || '',
                     // Skin & Face
-                    skin_tone: output.data.visual_identity?.skin_tone || output.data.visual_attributes?.skin_tone || output.data.skin_tone || '',
-                    facial_structure: output.data.visual_identity?.facial_structure || output.data.visual_attributes?.facial_structure || output.data.facial_structure || '',
+                    skin_tone: visualIdentity.skin_tone || charData.skin_tone || '',
+                    facial_structure: visualIdentity.facial_structure || charData.facial_structure || '',
                     // Distinctive features
-                    distinctive_features: output.data.visual_identity?.distinctive_features || output.data.visual_attributes?.distinctive_features || output.data.distinctive_features || [],
+                    distinctive_features: visualIdentity.distinctive_features || charData.distinctive_features || [],
                     // Age range (support both 'age' and 'age_range')
-                    age_range: output.data.visual_identity?.age_range || output.data.visual_attributes?.age_range || output.data.visual_attributes?.age || output.data.age_range || output.data.age || '',
+                    age_range: visualIdentity.age_range || visualIdentity.age || charData.age_range || charData.age || '',
                     // Body
-                    height: output.data.visual_identity?.height || output.data.visual_attributes?.height || output.data.height || '',
-                    build: output.data.visual_identity?.build || output.data.visual_attributes?.build || output.data.build || '',
-                    posture: output.data.visual_identity?.posture || output.data.visual_attributes?.posture || output.data.posture || '',
+                    height: visualIdentity.height || charData.height || '',
+                    build: visualIdentity.build || charData.build || '',
+                    posture: visualIdentity.posture || charData.posture || '',
                     // Clothing (support both 'clothing' and 'clothing_style')
-                    clothing_style: output.data.visual_identity?.clothing_style || output.data.visual_attributes?.clothing_style || output.data.visual_attributes?.clothing || output.data.clothing_style || output.data.clothing || '',
+                    clothing_style: visualIdentity.clothing_style || visualIdentity.clothing || charData.clothing_style || charData.clothing || '',
                     // Color palette
-                    color_palette: output.data.visual_identity?.color_palette || output.data.visual_attributes?.color_palette || output.data.color_palette || [],
+                    color_palette: visualIdentity.color_palette || charData.color_palette || [],
                     // Reference images (required by type but optional for new characters)
                     reference_images: [],
                     reference_sheet_images: [],
                   },
                   personality: {
-                    traits: output.data.personality?.traits || output.data.personality || output.data.traits || [],
-                    values: output.data.personality?.values || output.data.values || [],
-                    fears: output.data.personality?.fears || output.data.fears || [],
-                    desires: output.data.personality?.desires || output.data.desires || [],
-                    flaws: output.data.personality?.flaws || output.data.flaws || [],
-                    strengths: output.data.personality?.strengths || output.data.strengths || [],
-                    temperament: output.data.personality?.temperament || output.data.temperament || '',
-                    communication_style: output.data.personality?.communication_style || output.data.dialogue_style || output.data.communication_style || '',
+                    traits: personalityData.traits || charData.traits || [],
+                    values: personalityData.values || charData.values || [],
+                    fears: personalityData.fears || charData.fears || [],
+                    desires: personalityData.desires || charData.desires || [],
+                    flaws: personalityData.flaws || charData.flaws || [],
+                    strengths: personalityData.strengths || charData.strengths || [],
+                    temperament: personalityData.temperament || charData.temperament || '',
+                    communication_style: personalityData.communication_style || charData.dialogue_style || charData.communication_style || '',
                   },
                   background: {
-                    origin: output.data.background?.origin || output.data.origin || '',
-                    occupation: output.data.background?.occupation || output.data.occupation || '',
-                    education: output.data.background?.education || output.data.education || '',
-                    family: output.data.background?.family || output.data.family || '',
-                    significant_events: output.data.background?.significant_events || output.data.significant_events || [],
-                    current_situation: output.data.background?.current_situation || output.data.current_situation || '',
+                    origin: backgroundData.origin || charData.origin || '',
+                    occupation: backgroundData.occupation || charData.occupation || '',
+                    education: backgroundData.education || charData.education || '',
+                    family: backgroundData.family || charData.family || '',
+                    significant_events: backgroundData.significant_events || charData.significant_events || [],
+                    current_situation: backgroundData.current_situation || charData.current_situation || '',
                   },
-                  relationships: output.data.relationships || [],
+                  relationships: charData.relationships || [],
                   role: {
-                    archetype: output.data.role?.archetype || output.data.archetype || '',
-                    narrative_function: output.data.role?.narrative_function || output.data.narrative_function || '',
-                    character_arc: output.data.role?.character_arc || output.data.character_arc || '',
+                    archetype: charData.role?.archetype || charData.archetype || '',
+                    narrative_function: charData.role?.narrative_function || charData.narrative_function || '',
+                    character_arc: charData.role?.character_arc || charData.character_arc || '',
                   },
                 };
                 
@@ -1082,11 +1087,15 @@ export const useStore = create<Store>()(
                 const charImageFile = output.files.find((f) => f.type === 'image');
                 if (charImageFile) {
                   const charAsset: Asset = {
-                    id: `asset_${Date.now()}_${output.data.id}`,
+                    id: `asset_${Date.now()}_${charData.id}`,
                     name: charImageFile.filename,
                     type: 'image',
                     url: charImageFile.path,
                     metadata: {
+                      id: `meta_${Date.now()}_${charData.id}`,
+                      filename: charImageFile.filename,
+                      type: 'image',
+                      path: charImageFile.path,
                       size: 0, // Size not available from wizard output
                       imported_at: new Date().toISOString(),
                     },
@@ -1097,9 +1106,10 @@ export const useStore = create<Store>()(
                 
               case 'scene':
                 // Create shot entries from scene breakdown (Requirements: 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 12.2)
-                const sceneShots = output.data.shots || [];
-                // Using 'any' for shotData from wizard output to handle flexible shot data structures
-                const newShots: Shot[] = sceneShots.map((shotData: unknown, index: number) => {
+                const sceneData = output.data as Record<string, any>;
+                const sceneShots = sceneData.shots || [];
+                // Using type assertion for flexible shot data structures
+                const newShots: Shot[] = sceneShots.map((shotData: Record<string, any>, index: number) => {
                   const shotId = shotData.id || `shot_${Date.now()}_${index}`;
                   return {
                     id: shotId,
@@ -1127,8 +1137,9 @@ export const useStore = create<Store>()(
                 
               case 'storyboard':
                 // Generate images for each shot and create entries (Requirements: 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 12.3)
-                const storyboardShots = output.data.shots || [];
-                const mode = output.data.mode || 'append';
+                const storyboardData = output.data as Record<string, any>;
+                const storyboardShots = storyboardData.shots || [];
+                const mode = storyboardData.mode || 'append';
                 
                 // Handle replace vs append mode
                 if (mode === 'replace') {
@@ -1136,8 +1147,8 @@ export const useStore = create<Store>()(
                   state.reorderShots([]);
                 }
                 
-                // Using 'any' for shotData from wizard output to handle flexible shot data structures
-                const storyboardNewShots: Shot[] = storyboardShots.map((shotData: unknown, index: number) => {
+                // Using type assertion for flexible shot data structures
+                const storyboardNewShots: Shot[] = storyboardShots.map((shotData: Record<string, any>, index: number) => {
                   const shotId = shotData.id || `shot_${Date.now()}_${index}`;
                   const frameFile = output.files.find((f) => 
                     f.type === 'image' && f.path.includes(shotId)
@@ -1174,6 +1185,10 @@ export const useStore = create<Store>()(
                     type: 'image',
                     url: file.path,
                     metadata: {
+                      id: `meta_${Date.now()}_${file.filename}`,
+                      filename: file.filename,
+                      type: 'image',
+                      path: file.path,
                       size: 0,
                       imported_at: new Date().toISOString(),
                     },
@@ -1184,12 +1199,13 @@ export const useStore = create<Store>()(
                 
               case 'dialogue':
                 // Parse dialogue and add to shot metadata (Requirements: 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 12.4)
-                const dialogueTracks = output.data.dialogue_tracks || [];
+                const dialogueData = output.data as Record<string, any>;
+                const dialogueTracks = dialogueData.dialogue_tracks || [];
                 
                 // Add dialogue to shots (assuming dialogue is associated with current shots)
                 const currentShots = state.shots;
-                // Using 'any' for track data from wizard output to handle flexible dialogue track structures
-                dialogueTracks.forEach((track: unknown, index: number) => {
+                // Using type assertion for flexible dialogue track structures
+                dialogueTracks.forEach((track: Record<string, any>, index: number) => {
                   if (index < currentShots.length) {
                     const shot = currentShots[index];
                     const audioTrack: AudioTrack = {
@@ -1204,6 +1220,9 @@ export const useStore = create<Store>()(
                       fadeIn: 0,
                       fadeOut: 0,
                       pan: 0,
+                      muted: false,
+                      solo: false,
+                      effects: [],
                       metadata: {
                         speaker: track.speaker,
                         emotion: track.emotion,
@@ -1216,29 +1235,30 @@ export const useStore = create<Store>()(
                 
               case 'world':
                 // Save world definition and make available (Requirements: 7.2, 7.3, 7.4, 7.5, 12.5)
+                const worldData = output.data as Record<string, any>;
                 const world: World = {
-                  id: output.data.id,
-                  name: output.data.name,
-                  genre: output.data.genre || [],
-                  timePeriod: output.data.time_period || '',
-                  tone: output.data.tone || [],
-                  locations: output.data.locations || [],
-                  rules: output.data.rules || [],
-                  atmosphere: output.data.lore || output.data.atmosphere || '',
-                  culturalElements: output.data.culture || {
+                  id: worldData.id,
+                  name: worldData.name,
+                  genre: worldData.genre || [],
+                  timePeriod: worldData.time_period || '',
+                  tone: worldData.tone || [],
+                  locations: worldData.locations || [],
+                  rules: worldData.rules || [],
+                  atmosphere: worldData.lore || worldData.atmosphere || '',
+                  culturalElements: worldData.culture || {
                     languages: [],
                     religions: [],
                     traditions: [],
                     historicalEvents: [],
                     culturalConflicts: [],
                   },
-                  technology: output.data.technology || '',
-                  magic: output.data.magic || '',
-                  conflicts: output.data.conflicts || [],
-                  technologyMagic: output.data.technology_magic || '',
-                  threats: output.data.threats || [],
-                  createdAt: new Date(output.data.created_at || Date.now()),
-                  updatedAt: new Date(output.data.created_at || Date.now()),
+                  technology: worldData.technology || '',
+                  magic: worldData.magic || '',
+                  conflicts: worldData.conflicts || [],
+                  technologyMagic: worldData.technology_magic || '',
+                  threats: worldData.threats || [],
+                  createdAt: new Date(worldData.created_at || Date.now()),
+                  updatedAt: new Date(worldData.created_at || Date.now()),
                 };
                 
                 state.addWorld(world);
@@ -1246,7 +1266,8 @@ export const useStore = create<Store>()(
                 
               case 'style':
                 // Save styled image and update shot metadata (Requirements: 8.2, 8.3, 8.4, 8.5, 8.6, 12.6)
-                const originalShotId = output.data.original_shot_id;
+                const styleData = output.data as Record<string, any>;
+                const originalShotId = styleData.original_shot_id;
                 const styledFile = output.files.find((f) => f.type === 'image');
                 
                 if (styledFile) {
@@ -1254,7 +1275,7 @@ export const useStore = create<Store>()(
                   state.updateShot(originalShotId, {
                     metadata: {
                       ...state.shots.find((s) => s.id === originalShotId)?.metadata,
-                      styled_version: output.data.styled_shot_id,
+                      styled_version: styleData.styled_shot_id,
                       styled_path: styledFile.path,
                       original_preserved: true,
                     },
@@ -1267,6 +1288,10 @@ export const useStore = create<Store>()(
                     type: 'image',
                     url: styledFile.path,
                     metadata: {
+                      id: `meta_${Date.now()}_${styledFile.filename}`,
+                      filename: styledFile.filename,
+                      type: 'image',
+                      path: styledFile.path,
                       size: 0,
                       imported_at: new Date().toISOString(),
                     },

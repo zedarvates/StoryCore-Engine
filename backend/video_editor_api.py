@@ -24,6 +24,7 @@ import jwt
 import os
 import logging
 import re
+import bcrypt  # SECURITY: Using bcrypt for secure password hashing
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,7 +55,9 @@ VIDEO_EDITOR_ROUTER = APIRouter(prefix="/api/video-editor", tags=["Video Editor 
 
 # JWT Configuration - Using centralized settings
 # =============================================================================
-SECRET_KEY = settings.JWT_SECRET
+# SECURITY: JWT secret is now retrieved via get_jwt_secret() which ensures
+# the secret is properly configured in production
+SECRET_KEY = settings.get_jwt_secret()
 ALGORITHM = settings.JWT_ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
@@ -288,13 +291,52 @@ def get_redis():
 # =============================================================================
 
 def hash_password(password: str) -> str:
-    """Hash password using SHA-256."""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """
+    Hash password using bcrypt with automatic salt generation.
+    
+    SECURITY: Uses bcrypt which is resistant to rainbow table attacks and
+    incorporates a work factor (cost) that can be adjusted as hardware improves.
+    
+    Args:
+        password: Plain text password to hash
+        
+    Returns:
+        str: Bcrypt hashed password as string
+    """
+    # bcrypt generates a salt automatically and includes it in the hash
+    salt = bcrypt.gensalt(rounds=12)  # Cost factor of 12 (default is 12)
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash."""
-    return hash_password(password) == hashed
+    """
+    Verify password against a bcrypt hash.
+    
+    Supports both bcrypt hashes (new) and legacy SHA-256 hashes (old) for
+    backward compatibility during migration.
+    
+    Args:
+        password: Plain text password to verify
+        hashed: Stored password hash (bcrypt or legacy SHA-256)
+        
+    Returns:
+        bool: True if password matches, False otherwise
+    """
+    # Check if this is a bcrypt hash (starts with $2b$)
+    if hashed.startswith('$2b$') or hashed.startswith('$2a$'):
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    
+    # LEGACY SUPPORT: Fall back to SHA-256 for existing passwords
+    # This allows gradual migration of passwords as users log in
+    # TODO: Remove this fallback after all passwords have been migrated
+    import warnings
+    warnings.warn(
+        "Verifying legacy SHA-256 password hash. "
+        "Consider re-hashing with bcrypt on next login.",
+        DeprecationWarning
+    )
+    return hashlib.sha256(password.encode()).hexdigest() == hashed
 
 
 def create_access_token(user_id: str, email: str) -> Tuple[str, datetime]:
@@ -932,10 +974,24 @@ def process_export(job_id: str):
         job["message"] = "Export completed"
         job["download_url"] = f"/api/video-editor/export/{job_id}/file"
         
-    except Exception as e:
+    except FileNotFoundError as e:
+        # Export file or project file not found
         job["status"] = "failed"
-        job["error"] = str(e)
-        job["message"] = f"Export failed: {str(e)}"
+        job["error"] = f"File not found: {e.filename}"
+        job["message"] = f"Export failed - file not found: {e.filename}"
+        logger.error(f"Export file not found: {e}")
+    except PermissionError as e:
+        # Permission denied for output directory
+        job["status"] = "failed"
+        job["error"] = f"Permission denied: {e.filename}"
+        job["message"] = f"Export failed - permission denied: {e.filename}"
+        logger.error(f"Export permission denied: {e}")
+    except OSError as e:
+        # System error (disk full, etc.)
+        job["status"] = "failed"
+        job["error"] = f"System error: {e}"
+        job["message"] = f"Export failed - system error: {e}"
+        logger.error(f"Export system error: {e}")
 
 
 # =============================================================================
@@ -1060,9 +1116,16 @@ def process_transcription(job_id: str):
             {"start": 0.0, "end": 2.0, "text": "Transcribed text would appear here."}
         ]
         
-    except Exception as e:
+    except FileNotFoundError as e:
+        # Media file not found for transcription
         job["status"] = "failed"
-        job["error"] = str(e)
+        job["error"] = f"Media file not found: {e.filename}"
+        logger.error(f"Transcription media file not found: {e}")
+    except OSError as e:
+        # System error during transcription processing
+        job["status"] = "failed"
+        job["error"] = f"System error: {e}"
+        logger.error(f"Transcription system error: {e}")
 
 
 def process_tts(job_id: str):
@@ -1082,9 +1145,16 @@ def process_tts(job_id: str):
         job["status"] = "completed"
         job["audio_path"] = str(audio_path)
         
-    except Exception as e:
+    except PermissionError as e:
+        # Permission denied for TTS output directory
         job["status"] = "failed"
-        job["error"] = str(e)
+        job["error"] = f"Permission denied: {e.filename}"
+        logger.error(f"TTS permission denied: {e}")
+    except OSError as e:
+        # System error during TTS processing
+        job["status"] = "failed"
+        job["error"] = f"System error: {e}"
+        logger.error(f"TTS system error: {e}")
 
 
 def process_smart_crop(job_id: str):
@@ -1101,9 +1171,16 @@ def process_smart_crop(job_id: str):
             {"x": 0.1, "y": 0.1, "width": 0.8, "height": 0.8}
         ]
         
-    except Exception as e:
+    except FileNotFoundError as e:
+        # Media file not found for smart crop
         job["status"] = "failed"
-        job["error"] = str(e)
+        job["error"] = f"Media file not found: {e.filename}"
+        logger.error(f"Smart crop media file not found: {e}")
+    except OSError as e:
+        # System error during smart crop processing
+        job["status"] = "failed"
+        job["error"] = f"System error: {e}"
+        logger.error(f"Smart crop system error: {e}")
 
 
 # =============================================================================

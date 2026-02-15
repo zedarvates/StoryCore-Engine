@@ -2,6 +2,140 @@ import { Shot } from '../../types';
 import { clipboardManager } from '../clipboard/ClipboardManager';
 
 /**
+ * Show an async input dialog that works in both Electron and browser environments
+ * Replaces the synchronous prompt() which is not supported in Electron
+ */
+export const showInputDialog = async (
+  message: string,
+  defaultValue: string = ''
+): Promise<string | null> => {
+  // Check if Electron API is available with dialog support
+  if (window.electronAPI?.showInputDialog) {
+    try {
+      const result = await window.electronAPI.showInputDialog(message, defaultValue);
+      return result;
+    } catch (error) {
+      console.error('[ContextMenuActions] Electron dialog failed:', error);
+      return null;
+    }
+  }
+  
+  // Fallback: Create a custom modal dialog
+  return new Promise((resolve) => {
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    `;
+    
+    // Create dialog box
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+      background: var(--bg-primary, #1e1e1e);
+      border-radius: 8px;
+      padding: 20px;
+      min-width: 300px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    `;
+    
+    // Create message
+    const messageEl = document.createElement('p');
+    messageEl.textContent = message;
+    messageEl.style.cssText = `
+      margin: 0 0 15px 0;
+      color: var(--text-primary, #ffffff);
+      font-size: 14px;
+    `;
+    
+    // Create input
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = defaultValue;
+    input.style.cssText = `
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color, #333);
+      border-radius: 4px;
+      background: var(--bg-secondary, #2d2d2d);
+      color: var(--text-primary, #ffffff);
+      font-size: 14px;
+      box-sizing: border-box;
+    `;
+    
+    // Create buttons container
+    const buttons = document.createElement('div');
+    buttons.style.cssText = `
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 15px;
+    `;
+    
+    // Create cancel button
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = `
+      padding: 8px 16px;
+      border: 1px solid var(--border-color, #333);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-secondary, #888);
+      cursor: pointer;
+    `;
+    
+    // Create confirm button
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'OK';
+    confirmBtn.style.cssText = `
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      background: var(--accent-primary, #0078d4);
+      color: white;
+      cursor: pointer;
+    `;
+    
+    // Assemble dialog
+    dialog.appendChild(messageEl);
+    dialog.appendChild(input);
+    buttons.appendChild(cancelBtn);
+    buttons.appendChild(confirmBtn);
+    dialog.appendChild(buttons);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    
+    // Focus input
+    input.focus();
+    
+    // Handle cleanup and resolve
+    const cleanup = (value: string | null) => {
+      document.body.removeChild(overlay);
+      resolve(value);
+    };
+    
+    // Event handlers
+    cancelBtn.addEventListener('click', () => cleanup(null));
+    confirmBtn.addEventListener('click', () => cleanup(input.value || null));
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) cleanup(null);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') cleanup(input.value || null);
+      if (e.key === 'Escape') cleanup(null);
+    });
+  });
+};
+
+/**
  * Generate a unique name for a duplicated shot
  * Adds a numeric suffix like " (2)", " (3)", etc.
  */
@@ -165,13 +299,16 @@ export const tagShots = (
   tag: string,
   onUpdate: (shots: Shot[]) => void
 ): void => {
-  const updatedShots = shots.map(shot => ({
-    ...shot,
-    metadata: {
-      ...shot.metadata,
-      tags: [...(shot.metadata?.tags || []), tag]
-    }
-  }));
+  const updatedShots = shots.map(shot => {
+    const existingTags = (shot.metadata?.tags as string[] | undefined) || [];
+    return {
+      ...shot,
+      metadata: {
+        ...shot.metadata,
+        tags: [...existingTags, tag]
+      }
+    };
+  });
   
   onUpdate(updatedShots);
 };
@@ -256,8 +393,8 @@ export const executeContextMenuAction = async (
       
     case 'tag':
       if (handlers.onTag) {
-        // This would typically show a dialog to enter the tag
-        const tag = prompt('Enter tag:');
+        // Use async dialog instead of prompt() which is not supported in Electron
+        const tag = await showInputDialog('Enter tag:');
         if (tag) {
           tagShots(shots, tag, (tagged) => {
             handlers.onTag!(tagged, tag);

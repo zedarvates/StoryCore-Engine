@@ -100,8 +100,186 @@ Output a JSON object matching the Location interface.
 `;
 
 // ============================================================================
+// Dynamic Timeout Configuration
+// ============================================================================
+
+/**
+ * Calculate timeout based on story length
+ * @param length Story length identifier
+ * @returns Timeout in milliseconds
+ */
+export function getTimeoutForStoryLength(length: string): number {
+  const timeoutMap: Record<string, number> = {
+    short: 120000,      // 2 minutes
+    medium: 180000,     // 3 minutes
+    long: 300000,       // 5 minutes
+    novel: 600000,      // 10 minutes
+    epic_novel: 900000, // 15 minutes
+    scene: 120000,      // 2 minutes
+    short_story: 180000, // 3 minutes
+    novella: 300000,    // 5 minutes
+  };
+  return timeoutMap[length] || 300000; // Default 5 minutes
+}
+
+// ============================================================================
+// Helper Functions for Building Descriptions
+// ============================================================================
+
+/**
+ * Build character description for prompt
+ * @param char Character data
+ * @returns Formatted character description string
+ */
+function buildCharacterDescription(char: unknown): string {
+  const c = char as { 
+    name?: string; 
+    archetype?: string; 
+    role?: string; 
+    personality_traits?: string[]; 
+    backstory?: string; 
+    visual_identity?: { 
+      hair_color?: string; 
+      eye_color?: string; 
+      build?: string; 
+    } 
+  };
+  const parts = [
+    `**${c.name || 'Unknown'}** (${c.archetype || c.role || 'Character'})`,
+  ];
+
+  if (c.personality_traits && c.personality_traits.length > 0) {
+    parts.push(`  Personality: ${c.personality_traits.join(', ')}`);
+  }
+
+  if (c.backstory) {
+    parts.push(`  Background: ${c.backstory}`);
+  }
+
+  if (c.visual_identity) {
+    const visual = c.visual_identity;
+    const visualParts = [];
+    if (visual.hair_color) visualParts.push(`${visual.hair_color} hair`);
+    if (visual.eye_color) visualParts.push(`${visual.eye_color} eyes`);
+    if (visual.build) visualParts.push(`${visual.build} build`);
+    if (visualParts.length > 0) {
+      parts.push(`  Appearance: ${visualParts.join(', ')}`);
+    }
+  }
+
+  return parts.join('\n');
+}
+
+/**
+ * Build location description for prompt
+ * @param loc Location data
+ * @returns Formatted location description string
+ */
+function buildLocationDescription(loc: unknown): string {
+  const l = loc as { 
+    name?: string; 
+    type?: string; 
+    description?: string; 
+    atmosphere?: string; 
+    significance?: string; 
+  };
+  const parts = [
+    `**${l.name || 'Unknown'}** (${l.type || 'Location'})`,
+  ];
+
+  if (l.description) {
+    parts.push(`  ${l.description}`);
+  }
+
+  if (l.atmosphere) {
+    parts.push(`  Atmosphere: ${l.atmosphere}`);
+  }
+
+  if (l.significance) {
+    parts.push(`  Significance: ${l.significance}`);
+  }
+
+  return parts.join('\n');
+}
+
+/**
+ * Build world context description for prompts
+ * @param worldContext World context data
+ * @returns Array of world context description lines
+ */
+function buildWorldContextDescription(worldContext: WorldContext | undefined): string[] {
+  const worldContextDescription: string[] = [];
+
+  if (!worldContext) {
+    return worldContextDescription;
+  }
+
+  if (worldContext.name) {
+    worldContextDescription.push(`World: ${worldContext.name}`);
+  }
+
+  if (worldContext.atmosphere) {
+    worldContextDescription.push(`Atmosphere: ${worldContext.atmosphere}`);
+  }
+
+  if (worldContext.rules && worldContext.rules.length > 0) {
+    worldContextDescription.push('\nWorld Rules:');
+    worldContext.rules.forEach((rule) => {
+      worldContextDescription.push(`- ${rule.rule}: ${rule.description}`);
+    });
+  }
+
+  if (worldContext.culturalElements) {
+    const cultural = worldContext.culturalElements;
+    if (cultural.languages && cultural.languages.length > 0) {
+      worldContextDescription.push(`\nLanguages: ${cultural.languages.join(', ')}`);
+    }
+    if (cultural.customs && cultural.customs.length > 0) {
+      worldContextDescription.push(`Customs: ${cultural.customs.join(', ')}`);
+    }
+    if (cultural.socialStructure) {
+      worldContextDescription.push(`Social Structure: ${cultural.socialStructure}`);
+    }
+  }
+
+  return worldContextDescription;
+}
+
+/**
+ * Extract JSON from markdown code blocks
+ * @param text Text that may contain JSON in markdown code blocks
+ * @returns Extracted JSON string or original text
+ */
+function extractJsonFromMarkdown(text: string): string {
+  const jsonRegex = /```(?:json)?\s*(\{[\s\S]*\})\s*```/;
+  const match = jsonRegex.exec(text);
+  return match ? match[1] : text;
+}
+
+// ============================================================================
 // Story Generation Service
 // ============================================================================
+
+/** Generated character result from LLM */
+export interface GeneratedCharacterResult {
+  name: string;
+  archetype: string;
+  role: string;
+  visual_identity?: Partial<import('../types/character').VisualIdentity>;
+  personality?: Partial<import('../types/character').Personality>;
+  background?: Partial<import('../types/character').Background>;
+  [key: string]: unknown;
+}
+
+/** Generated location result from LLM */
+export interface GeneratedLocationResult {
+  name: string;
+  type: string;
+  description?: string;
+  atmosphere?: string;
+  significance?: string;
+  [key: string]: unknown;
+}
 
 export interface StoryGenerationService {
   generateStoryContent(params: StoryGenerationParams): Promise<string>;
@@ -109,11 +287,11 @@ export interface StoryGenerationService {
   createCharacter(
     request: CharacterCreationRequest,
     worldContext: WorldContext
-  ): Promise<any>;
+  ): Promise<GeneratedCharacterResult>;
   createLocation(
     request: LocationCreationRequest,
     worldContext: WorldContext
-  ): Promise<any>;
+  ): Promise<GeneratedLocationResult>;
 }
 
 /**
@@ -141,93 +319,18 @@ export async function generateStoryContent(
   };
   const targetWordCount = wordCountMap[params.length];
 
-  // Build character descriptions
+  // Build character descriptions using helper function
   const characterDescriptions = params.characters
-    .map((char: unknown) => {
-      const parts = [
-        `**${char.name}** (${char.archetype || char.role || 'Character'})`,
-      ];
-
-      if (char.personality_traits && char.personality_traits.length > 0) {
-        parts.push(`  Personality: ${char.personality_traits.join(', ')}`);
-      }
-
-      if (char.backstory) {
-        parts.push(`  Background: ${char.backstory}`);
-      }
-
-      if (char.visual_identity) {
-        const visual = char.visual_identity;
-        const visualParts = [];
-        if (visual.hair_color) visualParts.push(`${visual.hair_color} hair`);
-        if (visual.eye_color) visualParts.push(`${visual.eye_color} eyes`);
-        if (visual.build) visualParts.push(`${visual.build} build`);
-        if (visualParts.length > 0) {
-          parts.push(`  Appearance: ${visualParts.join(', ')}`);
-        }
-      }
-
-      return parts.join('\n');
-    })
+    .map((char: unknown) => buildCharacterDescription(char))
     .join('\n\n');
 
-  // Build location descriptions
+  // Build location descriptions using helper function
   const locationDescriptions = params.locations
-    .map((loc: unknown) => {
-      const parts = [
-        `**${loc.name}** (${loc.type || 'Location'})`,
-      ];
-
-      if (loc.description) {
-        parts.push(`  ${loc.description}`);
-      }
-
-      if (loc.atmosphere) {
-        parts.push(`  Atmosphere: ${loc.atmosphere}`);
-      }
-
-      if (loc.significance) {
-        parts.push(`  Significance: ${loc.significance}`);
-      }
-
-      return parts.join('\n');
-    })
+    .map((loc: unknown) => buildLocationDescription(loc))
     .join('\n\n');
 
-  // Build world context description
-  const worldContextDescription = [];
-
-  if (params.worldContext) {
-    const ctx = params.worldContext;
-
-    if (ctx.name) {
-      worldContextDescription.push(`World: ${ctx.name}`);
-    }
-
-    if (ctx.atmosphere) {
-      worldContextDescription.push(`Atmosphere: ${ctx.atmosphere}`);
-    }
-
-    if (ctx.rules && ctx.rules.length > 0) {
-      worldContextDescription.push('\nWorld Rules:');
-      ctx.rules.forEach((rule: unknown) => {
-        worldContextDescription.push(`- ${rule.rule}: ${rule.description}`);
-      });
-    }
-
-    if (ctx.culturalElements) {
-      const cultural = ctx.culturalElements;
-      if (cultural.languages && cultural.languages.length > 0) {
-        worldContextDescription.push(`\nLanguages: ${cultural.languages.join(', ')}`);
-      }
-      if (cultural.customs && cultural.customs.length > 0) {
-        worldContextDescription.push(`\nCustoms: ${cultural.customs.join(', ')}`);
-      }
-      if (cultural.socialStructure) {
-        worldContextDescription.push(`\nSocial Structure: ${cultural.socialStructure}`);
-      }
-    }
-  }
+  // Build world context description using helper function
+  const worldContextDescription = buildWorldContextDescription(params.worldContext);
 
   // Substitute parameters in the prompt template
   const prompt = STORY_GENERATION_PROMPT
@@ -238,12 +341,15 @@ export async function generateStoryContent(
     .replace('{locationDescriptions}', locationDescriptions || 'No specific locations provided')
     .replace('{worldContext}', worldContextDescription.join('\n') || 'No specific world context provided');
 
+  // Calculate max tokens based on story length
+  const maxTokens = params.length === 'short' ? 1500 : params.length === 'medium' ? 3000 : 6000;
+
   // Call LLM service with retry logic
   try {
     const storyContent = await retryWithBackoff(async () => {
       const response = await llmService.generateText(prompt, {
         temperature: 0.7,
-        maxTokens: params.length === 'short' ? 1500 : params.length === 'medium' ? 3000 : 6000,
+        maxTokens,
       });
 
       // Validate that we got content
@@ -300,6 +406,58 @@ export async function generateStorySummary(content: string): Promise<string> {
 }
 
 /**
+ * Build extended world context description for character/location creation
+ * @param worldContext World context data
+ * @returns Array of world context description lines
+ */
+function buildExtendedWorldContextDescription(worldContext: WorldContext | undefined): string[] {
+  const worldContextDescription: string[] = [];
+
+  if (!worldContext) {
+    worldContextDescription.push('No specific world context provided');
+    return worldContextDescription;
+  }
+
+  if (worldContext.name) {
+    worldContextDescription.push(`World: ${worldContext.name}`);
+  }
+
+  if (worldContext.genre && worldContext.genre.length > 0) {
+    worldContextDescription.push(`Genre: ${worldContext.genre.join(', ')}`);
+  }
+
+  if (worldContext.tone && worldContext.tone.length > 0) {
+    worldContextDescription.push(`Tone: ${worldContext.tone.join(', ')}`);
+  }
+
+  if (worldContext.atmosphere) {
+    worldContextDescription.push(`Atmosphere: ${worldContext.atmosphere}`);
+  }
+
+  if (worldContext.rules && worldContext.rules.length > 0) {
+    worldContextDescription.push('\nWorld Rules:');
+    worldContext.rules.forEach((rule) => {
+      worldContextDescription.push(`- ${rule.rule}: ${rule.description}`);
+    });
+  }
+
+  if (worldContext.culturalElements) {
+    const cultural = worldContext.culturalElements;
+    if (cultural.languages && cultural.languages.length > 0) {
+      worldContextDescription.push(`\nLanguages: ${cultural.languages.join(', ')}`);
+    }
+    if (cultural.customs && cultural.customs.length > 0) {
+      worldContextDescription.push(`Customs: ${cultural.customs.join(', ')}`);
+    }
+    if (cultural.socialStructure) {
+      worldContextDescription.push(`Social Structure: ${cultural.socialStructure}`);
+    }
+  }
+
+  return worldContextDescription;
+}
+
+/**
  * Create a new character using LLM
  * @param request Character creation request
  * @param worldContext World context for consistency
@@ -313,48 +471,8 @@ export async function createCharacter(
   const { getLLMService } = await import('./llmService');
   const llmService = getLLMService();
 
-  // Build world context description
-  const worldContextDescription = [];
-
-  if (worldContext) {
-    if (worldContext.name) {
-      worldContextDescription.push(`World: ${worldContext.name}`);
-    }
-
-    if (worldContext.genre && worldContext.genre.length > 0) {
-      worldContextDescription.push(`Genre: ${worldContext.genre.join(', ')}`);
-    }
-
-    if (worldContext.tone && worldContext.tone.length > 0) {
-      worldContextDescription.push(`Tone: ${worldContext.tone.join(', ')}`);
-    }
-
-    if (worldContext.atmosphere) {
-      worldContextDescription.push(`Atmosphere: ${worldContext.atmosphere}`);
-    }
-
-    if (worldContext.rules && worldContext.rules.length > 0) {
-      worldContextDescription.push('\nWorld Rules:');
-      worldContext.rules.forEach((rule) => {
-        worldContextDescription.push(`- ${rule.rule}: ${rule.description}`);
-      });
-    }
-
-    if (worldContext.culturalElements) {
-      const cultural = worldContext.culturalElements;
-      if (cultural.languages && cultural.languages.length > 0) {
-        worldContextDescription.push(`\nLanguages: ${cultural.languages.join(', ')}`);
-      }
-      if (cultural.customs && cultural.customs.length > 0) {
-        worldContextDescription.push(`Customs: ${cultural.customs.join(', ')}`);
-      }
-      if (cultural.socialStructure) {
-        worldContextDescription.push(`Social Structure: ${cultural.socialStructure}`);
-      }
-    }
-  } else {
-    worldContextDescription.push('No specific world context provided');
-  }
+  // Build world context description using helper function
+  const worldContextDescription = buildExtendedWorldContextDescription(worldContext);
 
   // Substitute parameters in the prompt template
   const prompt = CHARACTER_CREATION_PROMPT
@@ -379,12 +497,10 @@ export async function createCharacter(
       return response.trim();
     });
 
-    // Parse JSON response
+    // Parse JSON response using helper function
     let character;
     try {
-      // Try to extract JSON from markdown code blocks if present
-      const jsonMatch = characterJson.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-      const jsonString = jsonMatch ? jsonMatch[1] : characterJson;
+      const jsonString = extractJsonFromMarkdown(characterJson);
       character = JSON.parse(jsonString);
     } catch (parseError) {
       throw new Error(`Failed to parse character JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
@@ -417,48 +533,8 @@ export async function createLocation(
   const { getLLMService } = await import('./llmService');
   const llmService = getLLMService();
 
-  // Build world context description
-  const worldContextDescription = [];
-
-  if (worldContext) {
-    if (worldContext.name) {
-      worldContextDescription.push(`World: ${worldContext.name}`);
-    }
-
-    if (worldContext.genre && worldContext.genre.length > 0) {
-      worldContextDescription.push(`Genre: ${worldContext.genre.join(', ')}`);
-    }
-
-    if (worldContext.tone && worldContext.tone.length > 0) {
-      worldContextDescription.push(`Tone: ${worldContext.tone.join(', ')}`);
-    }
-
-    if (worldContext.atmosphere) {
-      worldContextDescription.push(`Atmosphere: ${worldContext.atmosphere}`);
-    }
-
-    if (worldContext.rules && worldContext.rules.length > 0) {
-      worldContextDescription.push('\nWorld Rules:');
-      worldContext.rules.forEach((rule) => {
-        worldContextDescription.push(`- ${rule.rule}: ${rule.description}`);
-      });
-    }
-
-    if (worldContext.culturalElements) {
-      const cultural = worldContext.culturalElements;
-      if (cultural.languages && cultural.languages.length > 0) {
-        worldContextDescription.push(`\nLanguages: ${cultural.languages.join(', ')}`);
-      }
-      if (cultural.customs && cultural.customs.length > 0) {
-        worldContextDescription.push(`Customs: ${cultural.customs.join(', ')}`);
-      }
-      if (cultural.socialStructure) {
-        worldContextDescription.push(`Social Structure: ${cultural.socialStructure}`);
-      }
-    }
-  } else {
-    worldContextDescription.push('No specific world context provided');
-  }
+  // Build world context description using helper function
+  const worldContextDescription = buildExtendedWorldContextDescription(worldContext);
 
   // Substitute parameters in the prompt template
   const prompt = LOCATION_CREATION_PROMPT
@@ -483,12 +559,10 @@ export async function createLocation(
       return response.trim();
     });
 
-    // Parse JSON response
+    // Parse JSON response using helper function
     let location;
     try {
-      // Try to extract JSON from markdown code blocks if present
-      const jsonMatch = locationJson.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-      const jsonString = jsonMatch ? jsonMatch[1] : locationJson;
+      const jsonString = extractJsonFromMarkdown(locationJson);
       location = JSON.parse(jsonString);
     } catch (parseError) {
       throw new Error(`Failed to parse location JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
@@ -526,35 +600,42 @@ export async function generateStory(
     params = data as StoryGenerationParams;
   } else {
     // Transform partial story to generation params
-    // Using loose typing temporarily for wizard data compatibility
-    const d = data as any;
+    const d = data;
+    const worldContext: WorldContext = d.worldId 
+      ? { id: d.worldId } as WorldContext 
+      : { id: 'default' } as WorldContext;
     params = {
       genre: d.genre || [],
       tone: d.tone || [],
       length: d.length || 'medium',
-      characters: d.charactersUsed || d.characters || [],
-      locations: d.locationsUsed || d.locations || [],
-      worldContext: d.worldContext || (d.worldId ? { id: d.worldId } as any : { id: 'default' } as any),
+      characters: d.charactersUsed || [],
+      locations: d.locationsUsed || [],
+      worldContext,
       totalTitle: d.title,
     };
   }
 
-  const generatedStory = await storyWeaver.weaveStory(params, onProgress);
+  const generatedStory = await storyWeaver.weaveStory(params, undefined, undefined, onProgress);
 
   // Build final story object
+  const storyId = ('id' in data && data.id) ? data.id : crypto.randomUUID();
+  
   return {
-    id: ('id' in data ? (data as any).id : null) || crypto.randomUUID(),
+    id: storyId,
     title: params.totalTitle || 'Untitled Story',
     genre: params.genre,
     tone: params.tone,
-    length: params.length as any,
+    length: params.length,
     content: generatedStory.content || '',
     summary: generatedStory.summary || '',
     parts: generatedStory.parts || [],
     createdAt: new Date(),
     updatedAt: new Date(),
     version: 1,
-    ...('worldContext' in data ? {} : data as any), // Preserve other fields if it was a Story
+    charactersUsed: [],
+    locationsUsed: [],
+    autoGeneratedElements: [],
+    ...('worldContext' in data ? {} : data), // Preserve other fields if it was a Story
   } as Story;
 }
 
@@ -597,22 +678,24 @@ export async function retryWithBackoff<T>(
  * @returns User-friendly error message
  */
 export function handleLLMError(error: unknown): string {
-  if (error.message?.includes('network')) {
+  const err = error instanceof Error ? error : new Error(String(error));
+  
+  if (err.message?.includes('network')) {
     return 'Network error: Unable to connect to LLM service. Please check your connection.';
   }
 
-  if (error.message?.includes('timeout')) {
+  if (err.message?.includes('timeout')) {
     return 'Request timeout: The LLM service took too long to respond. Please try again.';
   }
 
-  if (error.message?.includes('rate limit')) {
+  if (err.message?.includes('rate limit')) {
     return 'Rate limit exceeded: Too many requests. Please wait a moment and try again.';
   }
 
-  if (error.message?.includes('content filter')) {
+  if (err.message?.includes('content filter')) {
     return 'Content filter: The generated content was filtered. Please adjust your parameters.';
   }
 
-  return `Generation error: ${error.message || 'Unknown error occurred'}`;
+  return `Generation error: ${err.message || 'Unknown error occurred'}`;
 }
 

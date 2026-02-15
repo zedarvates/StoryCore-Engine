@@ -7,11 +7,12 @@
  */
 
 import React, { useCallback } from 'react';
-import { useDrop } from 'react-dnd';
+import { useDrop, DropTargetMonitor } from 'react-dnd';
 import { DND_ITEM_TYPES, type DraggedAssetItem } from '../AssetLibrary/DraggableAsset';
 import { useAppDispatch } from '../../store';
-import { addShot } from '../../store/slices/timelineSlice';
-import type { Track, LayerType, Asset } from '../../types';
+import { addShot, addLayer } from '../../store/slices/timelineSlice';
+import type { Track, LayerType, Asset, Shot, Layer } from '../../types';
+import { v4 as uuidv4 } from 'uuid';
 
 // ============================================================================
 // Types
@@ -27,20 +28,29 @@ interface TimelineDropTargetProps {
 /**
  * Validates if an asset type is compatible with a track type
  */
-function isAssetCompatibleWithTrack(assetType: Asset['type'], trackType: LayerType): boolean {
+function isAssetCompatibleWithTrack(assetType: Asset['type'] | string, trackType: LayerType): boolean {
+  // Transitions track only accepts transitions
+  if (trackType === 'transitions') {
+    return assetType === 'template' || assetType === 'transition';
+  }
+
   // Media track accepts most visual assets
   if (trackType === 'media') {
     return ['character', 'environment', 'prop', 'camera-preset', 'template'].includes(assetType);
   }
-  
-  // Effects track accepts visual styles
+
+  // Effects track accepts visual styles and general template effects
   if (trackType === 'effects') {
-    return assetType === 'visual-style';
+    return assetType === 'visual-style' || assetType === 'template';
   }
-  
+
+  // Audio track accepts audio assets
+  if (trackType === 'audio') {
+    return assetType === 'audio' || assetType === 'camera-preset'; // Some presets might have audio
+  }
+
   // Other tracks have specific requirements
-  // For now, default to media track for most assets
-  return trackType === 'media';
+  return false;
 }
 
 // ============================================================================
@@ -56,7 +66,7 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
   const dispatch = useAppDispatch();
 
   // Calculate drop position from mouse coordinates
-  const getDropPosition = useCallback((monitor: unknown): number => {
+  const getDropPosition = useCallback((monitor: DropTargetMonitor): number => {
     const clientOffset = monitor.getClientOffset();
     if (!clientOffset) return 0;
 
@@ -66,86 +76,82 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
 
     const rect = timelineElement.getBoundingClientRect();
     const relativeX = clientOffset.x - rect.left;
-    
+
     // Convert pixel position to frame position
     const framePosition = Math.max(0, Math.floor(relativeX / zoomLevel));
     return framePosition;
   }, [zoomLevel]);
 
   // Handle asset drop
-  const handleDrop = useCallback((item: DraggedAssetItem, monitor: unknown) => {
+  const handleDrop = useCallback((item: DraggedAssetItem, monitor: DropTargetMonitor) => {
     const dropPosition = getDropPosition(monitor);
-    
-    // Support multi-select in the future by wrapping single asset in array
     const assets = [item.asset];
-    
-    console.log('Asset(s) dropped on timeline:', {
-      assets: assets.map(a => a.name),
-      track: track.type,
-      position: dropPosition,
-    });
 
-    // Call custom handler if provided
-    if (onAssetDrop) {
-      onAssetDrop(assets, dropPosition, track.type);
-      return;
-    }
-
-    // Default behavior: Create new shot(s) with the asset(s)
+    // Default behavior depends on track and asset type
     assets.forEach((asset, index) => {
-      const offsetPosition = dropPosition + (index * 120); // Offset each shot by 5 seconds
-      
-      const newShot = {
-        id: `shot-${Date.now()}-${index}`,
-        name: asset.name,
-        startTime: offsetPosition,
-        duration: 120, // Default 5 seconds at 24fps
-        layers: [
-          {
-            id: `layer-${Date.now()}-${index}`,
-            type: track.type,
-            startTime: 0,
-            duration: 120,
-            locked: false,
-            hidden: false,
-            opacity: 1,
-            blendMode: 'normal',
-            data: {
-              sourceUrl: asset.thumbnailUrl,
-              trim: { start: 0, end: 120 },
-              transform: {
-                position: { x: 0, y: 0 },
-                scale: { x: 1, y: 1 },
-                rotation: 0,
-                anchor: { x: 0.5, y: 0.5 },
-              },
+      const isTransition = asset.metadata?.category === 'transition' || asset.name.toLowerCase().includes('transition');
+      const isEffect = asset.metadata?.category === 'effect' || asset.metadata?.category === 'lut';
+
+      // If dropped on media/audio track, create new shot
+      if (track.type === 'media' || track.type === 'audio') {
+        const newShot: Shot = {
+          id: `shot-${uuidv4()}`,
+          name: asset.name,
+          startTime: dropPosition + (index * 120),
+          duration: 120,
+          layers: [
+            {
+              id: `layer-${uuidv4()}`,
+              type: track.type,
+              startTime: 0,
+              duration: 120,
+              locked: false,
+              hidden: false,
+              opacity: 1,
+              blendMode: 'normal',
+              data: (track.type as string) === 'media' ? {
+                sourceUrl: asset.thumbnailUrl || '',
+                trim: { start: 0, end: 120 },
+                transform: {
+                  position: { x: 0, y: 0 },
+                  scale: { x: 1, y: 1 },
+                  rotation: 0,
+                  anchor: { x: 0.5, y: 0.5 },
+                },
+              } : {
+                sourceUrl: asset.thumbnailUrl || '',
+                volume: 1.0,
+                fadeIn: 0,
+                fadeOut: 0,
+              } as any, // TODO: Define proper type for audio layer data
             },
-          },
-        ],
-        referenceImages: [
-          {
-            id: `ref-${Date.now()}-${index}`,
+          ],
+          referenceImages: asset.thumbnailUrl ? [{
+            id: `ref-${uuidv4()}`,
             url: asset.thumbnailUrl,
             weight: 1.0,
-            source: 'library' as const,
+            source: 'library',
+          }] : [],
+          prompt: asset.metadata?.description || `Generate ${asset.name}`,
+          parameters: {
+            seed: Math.floor(Math.random() * 1000000),
+            denoising: 0.7,
+            steps: 30,
+            guidance: 7.5,
+            sampler: 'euler',
+            scheduler: 'normal',
           },
-        ],
-        prompt: asset.metadata.description || `Generate ${asset.name}`,
-        parameters: {
-          seed: Math.floor(Math.random() * 1000000),
-          denoising: 0.7,
-          steps: 30,
-          guidance: 7.5,
-          sampler: 'euler',
-          scheduler: 'normal',
-        },
-        generationStatus: 'pending' as const,
-      };
-
-      // Dispatch action (will be captured by history middleware for undo/redo)
-      dispatch(addShot(newShot));
+          generationStatus: 'pending',
+        };
+        dispatch(addShot(newShot));
+      } else if (track.type === 'transitions' || track.type === 'effects') {
+        // Find existing shot at drop position to apply transition/effect
+        // This would normally be handled by a more sophisticated logic
+        console.log(`Applying ${track.type} to track at position ${dropPosition}`);
+        // TODO: Implement finding the shot at position and calling addLayer
+      }
     });
-  }, [dispatch, track, getDropPosition, onAssetDrop]);
+  }, [dispatch, track, getDropPosition]);
 
   // Set up drop target
   const [{ isOver, canDrop }, drop] = useDrop<
@@ -174,7 +180,7 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
 
   return (
     <div
-      ref={drop}
+      ref={(node) => { drop(node); }}
       className={`timeline-drop-target ${isActive ? 'drop-active' : ''} ${isInvalid ? 'drop-invalid' : ''} ${canDrop && !isOver ? 'drop-ready' : ''}`}
       style={{
         position: 'relative',
@@ -183,7 +189,7 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
       }}
     >
       {children}
-      
+
       {/* Drop indicator overlay */}
       {isActive && (
         <div className="drop-indicator">
@@ -193,7 +199,7 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
           </div>
         </div>
       )}
-      
+
       {/* Invalid drop indicator */}
       {isInvalid && (
         <div className="drop-indicator invalid">

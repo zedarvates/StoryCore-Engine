@@ -117,7 +117,7 @@ export function CharacterSelector({
                   value={character.character_id}
                 >
                   <div className="flex flex-col">
-                    <span className="font-medium">{character.name}</span>
+                    <span className="font-medium">{character.name || 'Unnamed Character'}</span>
                     <span className="text-xs text-muted-foreground">
                       {character.visual_identity?.age_range && (
                         <>{character.visual_identity.age_range}</>
@@ -148,7 +148,7 @@ export function CharacterSelector({
         {characters.map((character) => (
           <SelectItem key={character.character_id} value={character.character_id}>
             <div className="flex flex-col">
-              <span className="font-medium">{character.name}</span>
+              <span className="font-medium">{character.name || 'Unnamed Character'}</span>
               <span className="text-xs text-muted-foreground">
                 {getCharacterSummary(character)}
               </span>
@@ -226,13 +226,13 @@ export function MultiCharacterSelector({
                 key={character.character_id}
                 className="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm"
               >
-                <span className="font-medium">{character.name}</span>
+                <span className="font-medium">{character.name || 'Unnamed Character'}</span>
                 <button
                   type="button"
                   onClick={() => handleToggle(character.character_id)}
                   disabled={disabled}
                   className="text-muted-foreground hover:text-foreground"
-                  aria-label={`Remove ${character.name}`}
+                  aria-label={`Remove ${character.name || 'Unnamed Character'}`}
                 >
                   ×
                 </button>
@@ -259,7 +259,7 @@ export function MultiCharacterSelector({
                   value={character.character_id}
                 >
                   <div className="flex flex-col">
-                    <span className="font-medium">{character.name}</span>
+                    <span className="font-medium">{character.name || 'Unnamed Character'}</span>
                     <span className="text-xs text-muted-foreground">
                       {getCharacterSummary(character)}
                     </span>

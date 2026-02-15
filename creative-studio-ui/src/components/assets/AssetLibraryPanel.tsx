@@ -2,6 +2,8 @@
  * AssetLibraryPanel Component
  * Displays assets organized by type with drag-drop import support
  * Requirements: 9.9
+ * 
+ * Updated: Added pagination support for large asset lists
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -13,6 +15,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SearchIcon, ImageIcon, MusicIcon, VideoIcon, FileIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { usePagination } from '@/hooks/usePagination';
+import { Pagination } from '@/components/ui/pagination';
 
 export interface AssetLibraryPanelProps {
   projectPath: string;
@@ -66,6 +70,20 @@ export function AssetLibraryPanel({
 
     return filtered;
   }, [assets, activeCategory, searchQuery]);
+
+  /**
+   * Pagination for filtered assets
+   */
+  const {
+    paginatedItems,
+    pagination,
+    goToPage,
+    setPageSize,
+  } = usePagination({
+    items: filteredAssets,
+    pageSize: 12,
+    resetOnItemsChange: true,
+  });
 
   /**
    * Get count for each category
@@ -202,52 +220,63 @@ export function AssetLibraryPanel({
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredAssets.map((asset) => {
-                    const Icon = getAssetIcon(asset.type);
-                    const isSelected = selectedAssetId === asset.id;
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {paginatedItems.map((asset) => {
+                      const Icon = getAssetIcon(asset.type);
+                      const isSelected = selectedAssetId === asset.id;
 
-                    return (
-                      <Card
-                        key={asset.id}
-                        className={`cursor-pointer transition-all hover:shadow-md ${
-                          isSelected ? 'ring-2 ring-primary' : ''
-                        }`}
-                        onClick={() => handleAssetSelect(asset.id)}
-                      >
-                        <CardContent className="p-4">
-                          {/* Thumbnail or Icon */}
-                          <div className="aspect-video bg-muted rounded-md mb-3 flex items-center justify-center overflow-hidden">
-                            {asset.thumbnail ? (
-                              <img
-                                src={asset.thumbnail}
-                                alt={asset.filename}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Icon className="h-12 w-12 text-muted-foreground" />
-                            )}
-                          </div>
-
-                          {/* Asset Info */}
-                          <div className="space-y-1">
-                            <p className="font-medium text-sm truncate" title={asset.filename}>
-                              {asset.filename}
-                            </p>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span className="capitalize">{asset.type}</span>
-                              <span>{formatFileSize(asset.size)}</span>
+                      return (
+                        <Card
+                          key={asset.id}
+                          className={`cursor-pointer transition-all hover:shadow-md ${
+                            isSelected ? 'ring-2 ring-primary' : ''
+                          }`}
+                          onClick={() => handleAssetSelect(asset.id)}
+                        >
+                          <CardContent className="p-4">
+                            {/* Thumbnail or Icon */}
+                            <div className="aspect-video bg-muted rounded-md mb-3 flex items-center justify-center overflow-hidden">
+                              {asset.thumbnail ? (
+                                <img
+                                  src={asset.thumbnail}
+                                  alt={asset.filename}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <Icon className="h-12 w-12 text-muted-foreground" />
+                              )}
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(asset.imported_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
+
+                            {/* Asset Info */}
+                            <div className="space-y-1">
+                              <p className="font-medium text-sm truncate" title={asset.filename}>
+                                {asset.filename}
+                              </p>
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span className="capitalize">{asset.type}</span>
+                                <span>{formatFileSize(asset.size)}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(asset.imported_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Pagination Controls */}
+                  <Pagination
+                    pagination={pagination}
+                    onPageChange={goToPage}
+                    onPageSizeChange={setPageSize}
+                    showPageSizeSelector
+                    className="mt-4 pt-4 border-t"
+                  />
+                </>
+               )}
             </TabsContent>
           ))}
         </ScrollArea>

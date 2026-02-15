@@ -1,0 +1,20 @@
+{
+  "engine": "seedance-v2-turbo",
+  "fps": 60,
+  "resolution": "2k",
+  "creativity_scale": 0.5,
+  "physics_fidelity": "high",
+  "enable_audio": true,
+  "enable_3d_export": true,
+  "api_endpoint": "https://api.seedance.ai/v2",
+  "api_key": "",
+  "timeout": 300,
+  "max_retries": 3,
+  "default_aspect_ratio": "16:9",
+  "quality_preset": "high",
+  "seed": -1,
+  "output_format": "mp4",
+  "audio_format": "wav",
+  "3d_format": "glb"
+}
+

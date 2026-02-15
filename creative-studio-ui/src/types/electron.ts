@@ -133,6 +133,9 @@ export interface UpdateStatus {
  * Electron API interface
  */
 export interface StoryCoreElectronAPI {
+  // Dialog helpers
+  showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;
+
   // System information
   platform: string;
   versions: {

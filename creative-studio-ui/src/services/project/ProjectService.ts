@@ -16,7 +16,40 @@ import type {
   GenerationStatus,
   ShotInput,
   ValidationResult,
+  CharacterReference,
+  WorldDefinition,
 } from '../../types/project';
+import { logger } from '@/utils/logger';
+
+/**
+ * File System Access API type declarations
+ * These types are not included in TypeScript's DOM lib by default
+ */
+interface FileSystemFileHandle {
+  getFile(): Promise<File>;
+  createWritable(): Promise<FileSystemWritableFileStream>;
+}
+
+interface FileSystemWritableFileStream extends WritableStream {
+  write(data: string | BufferSource | Blob): Promise<void>;
+  close(): Promise<void>;
+}
+
+interface SaveFilePickerOptions {
+  suggestedName?: string;
+  types?: Array<{
+    description?: string;
+    accept: Record<string, string[]>;
+  }>;
+}
+
+interface WindowWithFileSystemAccess {
+  showSaveFilePicker?(options?: SaveFilePickerOptions): Promise<FileSystemFileHandle>;
+}
+
+declare global {
+  interface Window extends WindowWithFileSystemAccess {}
+}
 
 /**
  * Cross-platform path joining utility
@@ -42,7 +75,7 @@ export class ProjectService {
       let projectJson: string | undefined;
 
       // Debug: Log environment information
-      console.log('[ProjectService] Environment check:', {
+      logger.debug('[ProjectService] Environment check:', {
         isElectron: typeof window !== 'undefined' && 'electronAPI' in window,
         electronAPI: window?.electronAPI,
         electronAPI_fs: window?.electronAPI?.fs,
@@ -53,31 +86,31 @@ export class ProjectService {
       // Check if we're running in Electron environment
       if (window.electronAPI?.fs) {
         // Use Electron API for file system access
-        console.log('[ProjectService] Using Electron API for file access');
+        logger.debug('[ProjectService] Using Electron API for file access');
         const buffer = await window.electronAPI.fs.readFile(projectFilePath);
         projectJson = buffer.toString('utf-8');
 
         // Debug: Log raw file content to check for encoding issues
-        console.log('[ProjectService] Raw file content (first 100 chars):', projectJson?.substring(0, 100));
-        console.log('[ProjectService] File content length:', projectJson?.length);
+        logger.debug('[ProjectService] Raw file content (first 100 chars):', projectJson?.substring(0, 100));
+        logger.debug('[ProjectService] File content length:', projectJson?.length);
         
         // Check for BOM or encoding issues
         if (projectJson && projectJson.charCodeAt(0) === 0xFEFF) {
-          console.warn('[ProjectService] BOM detected, removing...');
+          logger.warn('[ProjectService] BOM detected, removing...');
           projectJson = projectJson.substring(1);
         }
 
       } else {
         // In browser environment, don't attempt file picker during component initialization
         // File picker requires user interaction and cannot be called automatically
-        console.log('[ProjectService] Running in browser environment - using mock data');
+        logger.debug('[ProjectService] Running in browser environment - using mock data');
         projectJson = undefined;
       }
 
       // If we didn't get projectJson from file system access, use fallback
       if (!projectJson) {
         // Development/fallback mode - use mock data
-        console.warn('[ProjectService] Running in non-Electron environment without File System Access API. Using fallback data.');
+        logger.warn('[ProjectService] Running in non-Electron environment without File System Access API. Using fallback data.');
         
         // Return mock project data for development
         const mockProjectData: ProjectData = {
@@ -106,13 +139,13 @@ export class ProjectService {
         return mockProjectData;
       }
 
-      console.log('[ProjectService] Attempting to parse JSON...');
+      logger.debug('[ProjectService] Attempting to parse JSON...');
       const data = JSON.parse(projectJson);
-      console.log('[ProjectService] JSON parsed successfully');
+      logger.debug('[ProjectService] JSON parsed successfully');
 
       // Debug: Log the parsed data structure
-      console.log('[ProjectService] Parsed data keys:', Object.keys(data));
-      console.log('[ProjectService] Data structure preview:', {
+      logger.debug('[ProjectService] Parsed data keys:', Object.keys(data));
+      logger.debug('[ProjectService] Data structure preview:', {
         schema_version: data.schema_version,
         project_name: data.project_name,
         has_storyboard: 'storyboard' in data,
@@ -123,15 +156,15 @@ export class ProjectService {
 
       // Validate the loaded data
       const validation = this.validateProjectData(data);
-      console.log('[ProjectService] Validation result:', { valid: validation.valid, errors: validation.errors, warnings: validation.warnings });
+      logger.debug('[ProjectService] Validation result:', { valid: validation.valid, errors: validation.errors, warnings: validation.warnings });
 
       if (!validation.valid) {
-        console.warn('Project data validation warnings:', validation.warnings);
-        console.error('Project data validation errors:', validation.errors);
+        logger.warn('Project data validation warnings:', validation.warnings);
+        logger.error('Project data validation errors:', validation.errors);
         
         // Attempt migration if schema version is missing or old
         if (!data.schema_version || data.schema_version !== '1.0') {
-          console.log('[ProjectService] Attempting migration to Data Contract v1...');
+          logger.debug('[ProjectService] Attempting migration to Data Contract v1...');
           return this.migrateToDataContractV1(data);
         }
         
@@ -140,7 +173,7 @@ export class ProjectService {
       
       return data as ProjectData;
     } catch (error) {
-      console.error('Error loading project:', error);
+      logger.error('Error loading project:', error);
       throw new Error(`Failed to load project from ${projectPath}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -165,7 +198,7 @@ export class ProjectService {
       // Check if we're running in Electron environment
       if (window.electronAPI?.fs) {
         // Use Electron API for file system access
-        console.log('[ProjectService] Using Electron API for file save');
+        logger.debug('[ProjectService] Using Electron API for file save');
         
         // Convert string to Uint8Array for Electron
         const encoder = new TextEncoder();
@@ -174,7 +207,7 @@ export class ProjectService {
 
       } else if (typeof window !== 'undefined' && window.showSaveFilePicker) {
         // Fallback: Use browser File System Access API if available
-        console.log('[ProjectService] Using browser File System Access API for save');
+        logger.debug('[ProjectService] Using browser File System Access API for save');
         
         try {
           // Create file handle
@@ -194,14 +227,14 @@ export class ProjectService {
           await writable.close();
           
         } catch (filePickerError) {
-          console.error('[ProjectService] File System Access API save error:', filePickerError);
+          logger.error('[ProjectService] File System Access API save error:', filePickerError);
           throw new Error(`Failed to save file: ${filePickerError instanceof Error ? filePickerError.message : String(filePickerError)}`);
         }
 
       } else {
         // Development/fallback mode - log instead of saving
-        console.warn('[ProjectService] Running in non-Electron environment without File System Access API. Save operation skipped.');
-        console.log('[ProjectService] Project data that would be saved:', data);
+        logger.warn('[ProjectService] Running in non-Electron environment without File System Access API. Save operation skipped.');
+        logger.debug('[ProjectService] Project data that would be saved:', data);
         
         // In development mode, we can also update the in-memory project
         // This allows the UI to reflect changes even if they're not persisted
@@ -209,7 +242,7 @@ export class ProjectService {
       }
 
     } catch (error) {
-      console.error('Error saving project:', error);
+      logger.error('Error saving project:', error);
       throw new Error(`Failed to save project to ${projectPath}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -266,7 +299,7 @@ export class ProjectService {
       
       return shot;
     } catch (error) {
-      console.error('Error creating shot:', error);
+      logger.error('Error creating shot:', error);
       throw new Error(`Failed to create shot: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -308,7 +341,7 @@ export class ProjectService {
       await this.saveProject(projectPath, project);
       
     } catch (error) {
-      console.error('Error updating shot:', error);
+      logger.error('Error updating shot:', error);
       throw new Error(`Failed to update shot ${shotId}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -356,11 +389,11 @@ export class ProjectService {
             if (exists) {
               // Note: deleteFile method needs to be added to ElectronAPI
               // For now, we'll skip file deletion in Electron environment
-              console.warn(`File deletion not yet implemented in Electron: ${filePath}`);
+              logger.warn(`File deletion not yet implemented in Electron: ${filePath}`);
             }
           }
         } catch (error) {
-          console.warn(`Failed to delete file ${filePath}:`, error);
+          logger.warn(`Failed to delete file ${filePath}:`, error);
           // Continue with deletion even if file cleanup fails
         }
       }
@@ -377,7 +410,7 @@ export class ProjectService {
       await this.saveProject(projectPath, project);
       
     } catch (error) {
-      console.error('Error deleting shot:', error);
+      logger.error('Error deleting shot:', error);
       throw new Error(`Failed to delete shot ${shotId}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -406,7 +439,7 @@ export class ProjectService {
       await this.saveProject(projectPath, project);
       
     } catch (error) {
-      console.error('Error adding shots to storyboard:', error);
+      logger.error('Error adding shots to storyboard:', error);
       throw new Error(`Failed to add shots to storyboard: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -449,7 +482,7 @@ export class ProjectService {
       await this.saveProject(projectPath, project);
       
     } catch (error) {
-      console.error('Error reordering shots:', error);
+      logger.error('Error reordering shots:', error);
       throw new Error(`Failed to reorder shots: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -475,7 +508,7 @@ export class ProjectService {
       await this.saveProject(projectPath, project);
       
     } catch (error) {
-      console.error('Error updating capabilities:', error);
+      logger.error('Error updating capabilities:', error);
       throw new Error(`Failed to update capabilities: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -501,7 +534,7 @@ export class ProjectService {
       await this.saveProject(projectPath, project);
       
     } catch (error) {
-      console.error('Error updating generation status:', error);
+      logger.error('Error updating generation status:', error);
       throw new Error(`Failed to update generation status: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -524,7 +557,7 @@ export class ProjectService {
       await this.saveProject(projectPath, project);
       
     } catch (error) {
-      console.error('Error updating global resume:', error);
+      logger.error('Error updating global resume:', error);
       throw new Error(`Failed to update global resume: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -539,7 +572,7 @@ export class ProjectService {
       const project = await this.loadProject(projectPath);
       return project.global_resume;
     } catch (error) {
-      console.error('Error getting global resume:', error);
+      logger.error('Error getting global resume:', error);
       throw new Error(`Failed to get global resume: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -573,64 +606,69 @@ export class ProjectService {
     const errors: string[] = [];
     const warnings: string[] = [];
     
+    // Cast to Record<string, unknown> for type-safe property access
+    const dataRecord = data as Record<string, unknown>;
+    
     // Check required fields
-    if (!data.schema_version) {
+    if (!dataRecord.schema_version) {
       errors.push('Missing required field: schema_version');
-    } else if (data.schema_version !== '1.0') {
-      warnings.push(`Schema version ${data.schema_version} may not be fully compatible with Data Contract v1`);
+    } else if (dataRecord.schema_version !== '1.0') {
+      warnings.push(`Schema version ${dataRecord.schema_version} may not be fully compatible with Data Contract v1`);
     }
     
-    if (!data.project_name) {
+    if (!dataRecord.project_name) {
       errors.push('Missing required field: project_name');
     }
     
-    if (!data.capabilities) {
+    if (!dataRecord.capabilities) {
       errors.push('Missing required field: capabilities');
     } else {
       // Validate capabilities structure - be more flexible for migration
       const requiredCapabilities = ['grid_generation', 'promotion_engine', 'qa_engine', 'autofix_engine'];
+      const capabilitiesRecord = dataRecord.capabilities as Record<string, unknown>;
       for (const cap of requiredCapabilities) {
-        if (data.capabilities[cap] === undefined) {
+        if (capabilitiesRecord[cap] === undefined) {
           warnings.push(`Missing capability: ${cap} - will be set to default`);
-        } else if (typeof data.capabilities[cap] !== 'boolean') {
+        } else if (typeof capabilitiesRecord[cap] !== 'boolean') {
           errors.push(`Invalid capability: ${cap} must be boolean`);
         }
       }
     }
     
-    if (!data.generation_status) {
+    if (!dataRecord.generation_status) {
       errors.push('Missing required field: generation_status');
     } else {
       // Validate generation status - be more flexible
-      const validStatuses = ['pending', 'done', 'failed', 'passed'];
-      if (data.generation_status.grid && !validStatuses.includes(data.generation_status.grid)) {
-        errors.push(`Invalid generation_status.grid: ${data.generation_status.grid}`);
+      const validStatuses = new Set(['pending', 'done', 'failed', 'passed']);
+      const genStatus = dataRecord.generation_status as Record<string, unknown>;
+      if (genStatus.grid && !validStatuses.has(genStatus.grid as string)) {
+        errors.push(`Invalid generation_status.grid: ${genStatus.grid}`);
       }
-      if (data.generation_status.promotion && !validStatuses.includes(data.generation_status.promotion)) {
-        errors.push(`Invalid generation_status.promotion: ${data.generation_status.promotion}`);
+      if (genStatus.promotion && !validStatuses.has(genStatus.promotion as string)) {
+        errors.push(`Invalid generation_status.promotion: ${genStatus.promotion}`);
       }
     }
     
-    if (!Array.isArray(data.storyboard)) {
+    if (!Array.isArray(dataRecord.storyboard)) {
       errors.push('Missing or invalid field: storyboard (must be an array)');
-    } else if (data.storyboard.length === 0) {
+    } else if (dataRecord.storyboard.length === 0) {
       warnings.push('Empty storyboard - project has no shots');
     }
     
-    if (!Array.isArray(data.assets)) {
+    if (!Array.isArray(dataRecord.assets)) {
       errors.push('Missing or invalid field: assets (must be an array)');
     }
     
-    if (!Array.isArray(data.characters)) {
+    if (!Array.isArray(dataRecord.characters)) {
       warnings.push('Missing field: characters (optional but recommended)');
     }
     
-    if (!Array.isArray(data.scenes)) {
+    if (!Array.isArray(dataRecord.scenes)) {
       warnings.push('Missing field: scenes (optional but recommended)');
     }
     
     // Validate global_resume if present
-    if (data.global_resume !== undefined && typeof data.global_resume !== 'string') {
+    if (dataRecord.global_resume !== undefined && typeof dataRecord.global_resume !== 'string') {
       errors.push('Invalid field: global_resume must be a string');
     }
     
@@ -647,71 +685,94 @@ export class ProjectService {
    * @returns Migrated ProjectData
    */
   migrateToDataContractV1(data: unknown): ProjectData {
-    console.log('[ProjectService] Starting migration to Data Contract v1');
-    console.log('[ProjectService] Source data structure:', Object.keys(data));
+    logger.debug('[ProjectService] Starting migration to Data Contract v1');
+    logger.debug('[ProjectService] Source data structure:', Object.keys(data as object));
+    
+    // Cast to Record<string, unknown> for type-safe property access
+    const dataRecord = data as Record<string, unknown>;
     
     // Debug: Check for global_resume in metadata
-    if (data.metadata?.globalResume) {
-      console.log('[ProjectService] Found globalResume in metadata, will migrate to global_resume');
+    const metadata = dataRecord.metadata as Record<string, unknown> | undefined;
+    if (metadata?.globalResume) {
+      logger.debug('[ProjectService] Found globalResume in metadata, will migrate to global_resume');
     }
     
     // Handle the specific case where shots array needs to be converted to storyboard format
-    let storyboard = [];
-    if (Array.isArray(data.storyboard)) {
-      storyboard = data.storyboard;
-    } else if (Array.isArray(data.shots)) {
+    let storyboard: Shot[] = [];
+    if (Array.isArray(dataRecord.storyboard)) {
+      storyboard = dataRecord.storyboard as Shot[];
+    } else if (Array.isArray(dataRecord.shots)) {
       // Convert shots to storyboard format
-      console.log('[ProjectService] Converting shots array to storyboard format');
-      storyboard = data.shots.map((shot: unknown) => ({
-        id: shot.id || `shot_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-        title: shot.title || 'Untitled Shot',
-        description: shot.description || '',
-        duration: shot.duration || 60,
-        position: shot.order || 0,
-        audioTracks: [],
-        effects: [],
-        textLayers: [],
-        animations: [],
-        metadata: {
-          source: 'migrated',
-          created_at: shot.metadata?.created_at || new Date().toISOString(),
-          status: shot.metadata?.status || 'draft',
-        },
-      }));
+      logger.debug('[ProjectService] Converting shots array to storyboard format');
+      storyboard = dataRecord.shots.map((shot: unknown) => {
+        const shotRecord = shot as Record<string, unknown>;
+        const shotMetadata = shotRecord.metadata as Record<string, unknown> | undefined;
+        return {
+          id: (shotRecord.id as string) || `shot_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+          title: (shotRecord.title as string) || 'Untitled Shot',
+          description: (shotRecord.description as string) || '',
+          duration: (shotRecord.duration as number) || 60,
+          position: (shotRecord.order as number) || 0,
+          audioTracks: [],
+          effects: [],
+          textLayers: [],
+          animations: [],
+          metadata: {
+            source: 'migrated',
+            created_at: (shotMetadata?.created_at as string) || new Date().toISOString(),
+            status: (shotMetadata?.status as string) || 'draft',
+          },
+        };
+      });
     }
+    
+    // Cast data for capabilities access
+    const capabilitiesData = dataRecord.capabilities as Record<string, unknown> | undefined;
+    const genStatusData = dataRecord.generation_status as Record<string, unknown> | undefined;
+    const metadataData = dataRecord.metadata as Record<string, unknown> | undefined;
+    
+    // Helper to cast generation status values
+    const castGenStatus = (val: unknown): 'pending' | 'done' | 'failed' | 'passed' => {
+      const validStatuses = ['pending', 'done', 'failed', 'passed'];
+      return validStatuses.includes(val as string) ? val as 'pending' | 'done' | 'failed' | 'passed' : 'pending';
+    };
     
     // Create base Data Contract v1 structure
     const migratedData: ProjectData = {
       schema_version: '1.0',
-      project_name: data.project_name || data.name || 'Untitled Project',
+      project_name: (dataRecord.project_name as string) || (dataRecord.name as string) || 'Untitled Project',
       capabilities: {
-        grid_generation: data.capabilities?.grid_generation ?? false,
-        promotion_engine: data.capabilities?.promotion_engine ?? false,
-        qa_engine: data.capabilities?.qa_engine ?? false,
-        autofix_engine: data.capabilities?.autofix_engine ?? false,
-        wizard_generation: data.capabilities?.wizard_generation ?? false,
+        grid_generation: (capabilitiesData?.grid_generation as boolean) ?? false,
+        promotion_engine: (capabilitiesData?.promotion_engine as boolean) ?? false,
+        qa_engine: (capabilitiesData?.qa_engine as boolean) ?? false,
+        autofix_engine: (capabilitiesData?.autofix_engine as boolean) ?? false,
+        wizard_generation: (capabilitiesData?.wizard_generation as boolean) ?? false,
       },
       generation_status: {
-        grid: data.generation_status?.grid || 'pending',
-        promotion: data.generation_status?.promotion || 'pending',
-        wizard: data.generation_status?.wizard || 'pending',
+        grid: castGenStatus(genStatusData?.grid),
+        promotion: castGenStatus(genStatusData?.promotion),
+        wizard: castGenStatus(genStatusData?.wizard),
       },
       storyboard: storyboard,
-      assets: Array.isArray(data.assets) ? data.assets : [],
-      characters: Array.isArray(data.characters) ? data.characters.map((char: unknown) => ({
-        id: char.character_id || char.id,
-        name: char.name,
-        reference_image_path: char.visual_identity?.reference_image || '',
-        created_at: char.creation_timestamp || new Date().toISOString(),
-      })) : [],
-      scenes: Array.isArray(data.scenes) ? data.scenes : [],
-      world: data.world || data.selectedWorld,
-      global_resume: data.global_resume || data.resume || data.metadata?.globalResume || undefined,
+      assets: Array.isArray(dataRecord.assets) ? dataRecord.assets : [],
+      characters: Array.isArray(dataRecord.characters) ? dataRecord.characters.map((char: unknown): CharacterReference => {
+        const charRecord = char as Record<string, unknown>;
+        const visualIdentity = charRecord.visual_identity as Record<string, unknown> | undefined;
+        return {
+          id: String(charRecord.character_id || charRecord.id || ''),
+          name: String(charRecord.name || ''),
+          reference_image_path: String(visualIdentity?.reference_image || ''),
+          created_at: String(charRecord.creation_timestamp || new Date().toISOString()),
+        };
+      }) : [],
+      scenes: Array.isArray(dataRecord.scenes) ? dataRecord.scenes : [],
+      world: dataRecord.world as WorldDefinition | undefined,
+      global_resume: (dataRecord.global_resume as string) || (dataRecord.resume as string) || (metadataData?.globalResume as string) || undefined,
     };
     
-    console.log('[ProjectService] Migration completed successfully');
-    console.log('[ProjectService] Migrated data keys:', Object.keys(migratedData));
-    console.log('[ProjectService] Storyboard length:', migratedData.storyboard.length);
+    logger.debug('[ProjectService] Migration completed successfully');
+    logger.debug('[ProjectService] Migrated data keys:', Object.keys(migratedData));
+    logger.debug('[ProjectService] Storyboard length:', migratedData.storyboard.length);
     
     return migratedData;
   }

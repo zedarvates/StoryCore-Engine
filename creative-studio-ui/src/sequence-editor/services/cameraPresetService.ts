@@ -11,13 +11,13 @@ import type { Asset, CameraMetadata } from '../types';
 // Types
 // ============================================================================
 
-export type CameraMovementType = 
-  | 'static' 
-  | 'pan' 
-  | 'tilt' 
-  | 'dolly' 
-  | 'zoom' 
-  | 'crane' 
+export type CameraMovementType =
+  | 'static'
+  | 'pan'
+  | 'tilt'
+  | 'dolly'
+  | 'zoom'
+  | 'crane'
   | 'tracking';
 
 export interface CameraPresetParameters {
@@ -77,7 +77,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['static', 'wide', 'establishing', 'fixed'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
   {
     id: 'camera-static-medium',
@@ -104,7 +104,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['static', 'medium', 'dialogue', 'character'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
   {
     id: 'camera-static-closeup',
@@ -131,7 +131,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['static', 'closeup', 'emotional', 'detail'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
 
   // Pan Presets
@@ -164,7 +164,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['pan', 'left', 'slow', 'smooth', 'horizontal'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
   {
     id: 'camera-pan-right-fast',
@@ -194,7 +194,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['pan', 'right', 'fast', 'dynamic', 'action'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
 
   // Tilt Presets
@@ -226,7 +226,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['tilt', 'up', 'vertical', 'reveal'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
   {
     id: 'camera-tilt-down',
@@ -256,7 +256,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['tilt', 'down', 'vertical', 'dramatic'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
 
   // Dolly Presets
@@ -290,7 +290,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['dolly', 'in', 'forward', 'focus', 'tension'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
   {
     id: 'camera-dolly-out',
@@ -321,7 +321,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['dolly', 'out', 'backward', 'reveal', 'context'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
 
   // Zoom Presets
@@ -352,7 +352,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['zoom', 'in', 'focus', 'dramatic', 'detail'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
   {
     id: 'camera-zoom-out',
@@ -381,7 +381,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['zoom', 'out', 'context', 'reveal', 'perspective'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
 
   // Crane Presets
@@ -416,7 +416,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['crane', 'up', 'aerial', 'epic', 'reveal'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
   {
     id: 'camera-crane-down',
@@ -448,7 +448,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['crane', 'down', 'descending', 'dramatic', 'entry'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
 
   // Tracking Presets
@@ -480,7 +480,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['tracking', 'follow', 'character', 'action', 'dynamic'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
   {
     id: 'camera-tracking-orbit',
@@ -510,7 +510,7 @@ const BUILTIN_CAMERA_PRESETS: CameraPreset[] = [
     },
     tags: ['tracking', 'orbit', '360', 'reveal', 'showcase'],
     source: 'builtin',
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date('2024-01-01').getTime(),
   },
 ];
 
@@ -546,7 +546,7 @@ export function getCameraPresetById(id: string): CameraPreset | undefined {
  */
 export function getCameraPresetTypes(): Array<{ type: CameraMovementType; count: number }> {
   const types: CameraMovementType[] = ['static', 'pan', 'tilt', 'dolly', 'zoom', 'crane', 'tracking'];
-  
+
   return types.map((type) => ({
     type,
     count: getCameraPresetsByType(type).length,
@@ -594,7 +594,7 @@ export function createCustomCameraPreset(
     },
     tags,
     source: 'user',
-    createdAt: new Date(),
+    createdAt: Date.now(),
   };
 }
 

@@ -23,12 +23,15 @@ import {
   Clock,
   Volume2,
   Speaker,
-  Package
+  Package,
+  Image as ImageIcon,
+  Video
 } from 'lucide-react';
 import { SequencePlan } from '@/types/sequencePlan';
 import { ScenePlanningCanvas } from './ScenePlanningCanvas';
 import { AIPromptGenerator } from './AIPromptGenerator';
 import { SequenceGenerator } from './SequenceGenerator';
+import { SceneMediaPanel } from './SceneMediaPanel';
 import { PuppetLibrary } from './PuppetLibrary';
 import { SceneLibrary } from './SceneLibrary';
 import { ObjectLibrary } from './ObjectLibrary';
@@ -59,11 +62,16 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
   const [planningState, setPlanningState] = useState<PlanningState>({
     currentScene: {
       id: sequencePlan.scenes[0]?.id || '',
-      name: sequencePlan.scenes[0]?.name || '',
+      title: sequencePlan.scenes[0]?.title || '',
+      description: sequencePlan.scenes[0]?.description || '',
+      actId: sequencePlan.scenes[0]?.actId || '',
+      number: sequencePlan.scenes[0]?.number || 1,
+      locationId: sequencePlan.scenes[0]?.locationId || '',
+      characterIds: sequencePlan.scenes[0]?.characterIds || [],
       elements: [],
       camera: { position: { x: 0, y: 0, z: 5 }, target: { x: 0, y: 0, z: 0 }, fov: 75 },
       lighting: { ambient: 0.5, directional: { x: 1, y: 1, z: 1 } }
-    },
+    } as any,
     selectedElement: null,
     viewMode: '2d',
     showGrid: true,
@@ -78,7 +86,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
   });
 
   const [leftPanel, setLeftPanel] = useState<'puppets' | 'scenes' | 'objects' | 'properties'>('puppets');
-  const [rightPanel, setRightPanel] = useState<'prompt' | 'generator' | 'audio' | 'dialogue' | 'none'>('none');
+  const [rightPanel, setRightPanel] = useState<'prompt' | 'generator' | 'audio' | 'dialogue' | 'media' | 'none'>('none');
   const [surroundMode, setSurroundMode] = useState<'5.1' | '7.1'>('5.1');
   const [audioSpatializationEnabled, setAudioSpatializationEnabled] = useState(true);
 
@@ -92,11 +100,16 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
       updatePlanningState({
         currentScene: {
           id: scene.id,
-          name: scene.name,
+          title: scene.title,
+          description: scene.description,
+          actId: scene.actId,
+          number: scene.number,
+          locationId: scene.locationId,
+          characterIds: scene.characterIds,
           elements: [], // TODO: Load elements from scene data
           camera: { position: { x: 0, y: 0, z: 5 }, target: { x: 0, y: 0, z: 0 }, fov: 75 },
           lighting: { ambient: 0.5, directional: { x: 1, y: 1, z: 1 } }
-        },
+        } as any,
         selectedElement: null
       });
     }
@@ -108,7 +121,8 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
 
   const handleElementUpdate = useCallback((elementId: string, updates: Partial<CanvasElement>) => {
     setPlanningState(prev => {
-      const updatedElements = prev.currentScene.elements.map(el =>
+      const elements = prev.currentScene.elements || [];
+      const updatedElements = elements.map(el =>
         el.id === elementId ? { ...el, ...updates } : el
       );
       return {
@@ -122,7 +136,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
   }, []);
 
   const handleGeneratePrompt = useCallback(() => {
-    updatePlanningState({ showPromptGenerator: true });
+    // updatePlanningState({ showPromptGenerator: true }); // Property doesn't exist on PlanningState
     setRightPanel('prompt');
   }, [updatePlanningState]);
 
@@ -145,7 +159,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
 
   // Audio spatialization hook
   useAudioSpatialization(
-    planningState.currentScene.elements,
+    planningState.currentScene.elements || [],
     surroundMode,
     audioSpatializationEnabled,
     handleElementUpdate
@@ -298,6 +312,14 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
             <Volume2 size={16} />
             Dialogues
           </button>
+          <button
+            className={`tool-btn ${rightPanel === 'media' ? 'active' : ''}`}
+            onClick={() => setRightPanel(rightPanel === 'media' ? 'none' : 'media')}
+            title="Génération Média de Scène"
+          >
+            <ImageIcon size={16} />
+            Média
+          </button>
         </div>
 
         <div className="toolbar-section">
@@ -319,17 +341,17 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
           {leftPanel === 'puppets' && (
             <PuppetLibrary
               worldId={sequencePlan.worldId}
-              onElementSelect={handleElementSelect}
+              onElementSelect={(el: any) => handleElementSelect(el)}
             />
           )}
           {leftPanel === 'scenes' && (
             <SceneLibrary
-              onElementSelect={handleElementSelect}
+              onElementSelect={(el: any) => handleElementSelect(el)}
             />
           )}
           {leftPanel === 'objects' && (
             <ObjectLibrary
-              onElementSelect={handleElementSelect}
+              onElementSelect={(el: any) => handleElementSelect(el)}
             />
           )}
           {leftPanel === 'properties' && (
@@ -382,16 +404,17 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
           {rightPanel === 'audio' && (
             <AudioSurroundPreview
               surroundMode={surroundMode}
-              elements={planningState.currentScene.elements}
+              elements={planningState.currentScene.elements || []}
             />
           )}
           {rightPanel === 'dialogue' && selectedScene && (
             <DialogueGenerator
               shot={{
                 id: selectedScene.id,
-                name: selectedScene.name,
+                title: selectedScene.title,
+                description: selectedScene.description,
                 composition: {
-                  characterIds: planningState.currentScene.elements
+                  characterIds: (planningState.currentScene.elements || [])
                     .filter(el => el.type === 'puppet')
                     .map(el => el.id),
                   characterPositions: [], // TODO: Get positions from elements
@@ -412,7 +435,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
                   soundEffects: [],
                   dialogues: dialogueState.dialogues
                 }
-              }}
+              } as any}
               onDialoguesGenerated={(dialogues) => {
                 // Les dialogues sont déjà gérés par le hook useDialogueManagement
                 console.log('Dialogues mis à jour:', dialogues);
@@ -420,10 +443,31 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
               surroundMode={surroundMode}
               onSurroundModeChange={setSurroundMode}
               dialogueState={dialogueState}
-              onDialogueSelect={selectDialogue}
               onDialogueUpdate={updateDialogue}
               onDialogueDelete={deleteDialogue}
               onDialogueSpatializationUpdate={updateDialogueSpatialization}
+            />
+          )}
+          {rightPanel === 'media' && planningState.currentScene && (
+            <SceneMediaPanel
+              scene={planningState.currentScene}
+              onUpdate={(updates: any) => {
+                // Update local state
+                const updatedScene = { ...planningState.currentScene, ...updates };
+                updatePlanningState({ currentScene: updatedScene });
+
+                // Update parent plan (persist changes)
+                const updatedScenes = sequencePlan.scenes.map(s =>
+                  s.id === planningState.currentScene.id ? { ...s, ...updates } : s
+                );
+
+                onSequenceUpdate({
+                  ...sequencePlan,
+                  scenes: updatedScenes
+                });
+              }}
+              onClose={() => setRightPanel('none')}
+              projectId={sequencePlan.id}
             />
           )}
         </div>

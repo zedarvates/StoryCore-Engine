@@ -232,22 +232,8 @@ export function ObjectWizard({
     );
   }
 
-  // Show info if LLM not configured (but allow continuing)
-  if (!llmConfigured) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 space-y-4 min-h-[400px]">
-        <AlertCircle className="h-8 w-8 text-amber-500" />
-        <p className="text-sm text-muted-foreground">AI service not connected</p>
-        <p className="text-xs text-muted-foreground">You can still create objects manually</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  // Show info if LLM not configured (info only, don't block)
+  const showLLMWarning = !llmChecking && !llmConfigured;
 
   return (
     <WizardProvider<StoryObject>

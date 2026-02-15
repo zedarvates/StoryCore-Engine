@@ -60,6 +60,7 @@
   background: #ffffff;
   border-radius: 2px;
   transition: width 0.3s ease;
+  width: var(--progress-width, 0%);
 }
 
 .project-setup-wizard-header__progress-text {

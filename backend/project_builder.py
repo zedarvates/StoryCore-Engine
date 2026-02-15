@@ -309,10 +309,11 @@ class ProjectBuilder:
     Creates asset files for characters, locations, objects with image prompts.
     """
     
-    def __init__(self, scenario: StructuredScenario, project_id: Optional[str] = None):
+    def __init__(self, scenario: StructuredScenario, project_id: Optional[str] = None, style: str = "cinematic"):
         self.scenario = scenario
         self.project_id = project_id or str(uuid.uuid4())
         self.project_path = os.path.join("./projects", self.project_id)
+        self.style = style  # Style configurable pour le projet
         
         # Asset storage
         self.characters: List[CharacterAsset] = []
@@ -486,7 +487,7 @@ class ProjectBuilder:
     
     def _build_prompts(self):
         """Build image generation prompts for all assets"""
-        # Character prompts
+        # Character prompts - 1024x1024
         for char in self.characters:
             prompt = PromptAsset(
                 id=str(uuid.uuid4()),
@@ -496,7 +497,7 @@ class ProjectBuilder:
                 target_name=char.nom,
                 positive_prompt=char.prompt_image,
                 negative_prompt=char.negative_prompt,
-                style="cinematic",
+                style=self.style,
                 width=1024,
                 height=1024,
                 cfg_scale=7.0,
@@ -508,7 +509,7 @@ class ProjectBuilder:
             prompt.save(self.project_path)
             self.prompts.append(prompt)
         
-        # Location prompts
+        # Location prompts - 1920x1080 (cinematic)
         for loc in self.locations:
             prompt = PromptAsset(
                 id=str(uuid.uuid4()),
@@ -518,7 +519,7 @@ class ProjectBuilder:
                 target_name=loc.nom,
                 positive_prompt=loc.prompt_image,
                 negative_prompt=loc.negative_prompt,
-                style="cinematic",
+                style=self.style,
                 width=1920,
                 height=1080,
                 cfg_scale=7.0,
@@ -530,7 +531,7 @@ class ProjectBuilder:
             prompt.save(self.project_path)
             self.prompts.append(prompt)
         
-        # Object prompts
+        # Object prompts - CORRIGÉ: 1024x1024 au lieu de 512x512
         for obj in self.objects:
             prompt = PromptAsset(
                 id=str(uuid.uuid4()),
@@ -540,9 +541,9 @@ class ProjectBuilder:
                 target_name=obj.nom,
                 positive_prompt=obj.prompt_image,
                 negative_prompt=obj.negative_prompt,
-                style="cinematic",
-                width=512,
-                height=512,
+                style=self.style,
+                width=1024,
+                height=1024,
                 cfg_scale=7.0,
                 steps=25,
                 sampler="Euler a",

@@ -89,6 +89,8 @@ class Location:
     name: str
     description: str
     visual_description: str
+    significance: str = ""
+    atmosphere: str = ""
 
 
 @dataclass

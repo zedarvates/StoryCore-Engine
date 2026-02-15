@@ -2,7 +2,7 @@
  * Location Storage Utilities
  * 
  * Provides functions to save and load location data as JSON files in project directories.
- * Locations are stored in: ./projects/{project_id}/lieux/{location_id}.json
+ * Locations are stored in: ./projects/{project_id}/locations/{location_id}.json
  */
 
 import type { Location, LocationType, LocationMetadata } from '@/types/location';
@@ -34,7 +34,7 @@ export function createLocationFromWizardData(
   }
 ): Location {
   // Map wizard type to LocationType
-  const locationType: LocationType = 
+  const locationType: LocationType =
     options.worldId || options.worldLocationId ? 'exterior' : 'interior';
 
   // Build metadata from wizard data
@@ -64,7 +64,7 @@ export function createLocationFromWizardData(
 }
 
 /**
- * Saves a location to the project's lieux directory
+ * Saves a location to the project's locations directory
  * 
  * @param projectId - The project ID
  * @param locationId - The location UUID
@@ -89,31 +89,31 @@ export async function saveLocationToProject(
     // Check if Electron API is available
     if (!window.electronAPI?.fs) {
       console.warn('[locationStorage] Electron API not available, falling back to localStorage');
-      
+
       // Fallback: Save to localStorage
       const key = `project-${projectId}-locations`;
       const existingLocations = JSON.parse(localStorage.getItem(key) || '{}');
       existingLocations[locationId] = locationData;
       localStorage.setItem(key, JSON.stringify(existingLocations));
-      
-      return { 
-        success: true, 
-        filePath: `localStorage://${projectId}/lieux/${locationId}.json` 
+
+      return {
+        success: true,
+        filePath: `localStorage://${projectId}/locations/${locationId}.json`
       };
     }
 
     // Build file path
-    const lieuxDir = `./projects/${projectId}/lieux`;
-    const filePath = `${lieuxDir}/${locationId}.json`;
+    const locationsDir = `./projects/${projectId}/locations`;
+    const filePath = `${locationsDir}/${locationId}.json`;
 
-    // Ensure directory exists using mkdir
+    // Ensure directory exists using mkdir (recursive to create parent directories if needed)
     if (window.electronAPI.fs.mkdir) {
-      await window.electronAPI.fs.mkdir(lieuxDir);
+      await window.electronAPI.fs.mkdir(locationsDir, { recursive: true });
     }
 
     // Create JSON content
     const jsonData = JSON.stringify(locationData, null, 2);
-    
+
     // Write file (convert string to Buffer for compatibility)
     await window.electronAPI.fs.writeFile(filePath, jsonData);
 
@@ -122,9 +122,9 @@ export async function saveLocationToProject(
     return { success: true, filePath };
   } catch (error) {
     console.error('[locationStorage] Failed to save location:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
@@ -157,8 +157,8 @@ export async function loadLocationFromProject(
       return existingLocations[locationId] || null;
     }
 
-    const filePath = `./projects/${projectId}/lieux/${locationId}.json`;
-    
+    const filePath = `./projects/${projectId}/locations/${locationId}.json`;
+
     const exists = await window.electronAPI.fs.exists(filePath);
     if (!exists) {
       return null;
@@ -167,7 +167,7 @@ export async function loadLocationFromProject(
     const fileContent = await window.electronAPI.fs.readFile(filePath);
     const decoder = new TextDecoder();
     const jsonData = decoder.decode(fileContent);
-    
+
     return JSON.parse(jsonData) as Location;
   } catch (error) {
     console.error('[locationStorage] Failed to load location:', error);
@@ -189,14 +189,14 @@ export async function listLocationsInProject(
       return Object.keys(existingLocations);
     }
 
-    const lieuxDir = `./projects/${projectId}/lieux`;
-    
-    const exists = await window.electronAPI.fs.exists(lieuxDir);
+    const locationsDir = `./projects/${projectId}/locations`;
+
+    const exists = await window.electronAPI.fs.exists(locationsDir);
     if (!exists) {
       return [];
     }
 
-    const files = await window.electronAPI.fs.readdir(lieuxDir);
+    const files = await window.electronAPI.fs.readdir(locationsDir);
     return files
       .filter((file: string) => file.endsWith('.json'))
       .map((file: string) => file.replace('.json', ''));
@@ -223,21 +223,17 @@ export async function deleteLocationFromProject(
       return true;
     }
 
-    const filePath = `./projects/${projectId}/lieux/${locationId}.json`;
-    
+    const filePath = `./projects/${projectId}/locations/${locationId}.json`;
+
     // Try to delete the file, but don't fail if it doesn't exist
     try {
-      // Use type assertion to bypass TypeScript checking for deleteFile
-      const fs = window.electronAPI.fs as Record<string, unknown>;
-      if (typeof fs.deleteFile === 'function') {
-        await fs.deleteFile(filePath);
-      } else {
-        console.warn('[locationStorage] deleteFile not available, file will be orphaned');
+      if (window.electronAPI.fs.unlink) {
+        await window.electronAPI.fs.unlink(filePath);
       }
     } catch {
       // Ignore deletion errors - file may not exist
     }
-    
+
     return true;
   } catch (error) {
     console.error('[locationStorage] Failed to delete location:', error);

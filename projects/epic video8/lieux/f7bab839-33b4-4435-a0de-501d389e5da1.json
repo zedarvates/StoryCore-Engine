@@ -1,0 +1,18 @@
+{
+  "location_id": "f7bab839-33b4-4435-a0de-501d389e5da1",
+  "name": "Cairnwall Keep",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T06:36:35.808Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A foreboding, fortified stronghold perched atop a craggy outcropping of black rock, its walls covered in ancient runes that seem to pulse with a dark energy. The keep's gates are guarded by skeletal sentinels and the air is heavy with the stench of decay.",
+    "atmosphere": "Ominous, foreboding, heavy",
+    "genre_tags": [],
+    "significance": "Cairnwall Keep serves as the stronghold of the enigmatic and ruthless Lord Arcturus, ruler of Eldora's shadowy underworld. Rumors whisper that he holds dark pacts with malevolent forces beyond the veil."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

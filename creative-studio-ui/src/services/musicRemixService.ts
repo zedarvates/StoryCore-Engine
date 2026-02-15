@@ -1,9 +1,10 @@
 /**
- * Music Remix Service - Frontend pour Audio Remix Engine
- * Adaptation intelligente de musique à la durée vidéo
+ * Music Remix Service - Frontend for Audio Remix Engine
+ * Intelligent music adaptation to video duration
  */
 
 import { backendApiService } from './backendApiService';
+import { logger } from '@/utils/logger';
 
 export type RemixStyle = 'smooth' | 'beat-cut' | 'structural' | 'dynamic' | 'ai-generative';
 
@@ -136,7 +137,7 @@ class MusicRemixServiceImpl implements MusicRemixService {
     const cached = this.structureCache.get(cacheKey);
     
     if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-      console.log(`[MusicRemix] Cache hit for: ${audioUrl}`);
+      logger.debug(`[MusicRemix] Cache hit for: ${audioUrl}`);
       return cached.structure;
     }
 
@@ -152,7 +153,7 @@ class MusicRemixServiceImpl implements MusicRemixService {
         timestamp: Date.now()
       });
 
-      console.log(`[MusicRemix] Analyzed structure: ${response.structure.tempo} BPM, ${response.structure.sections.length} sections`);
+      logger.debug(`[MusicRemix] Analyzed structure: ${response.structure.tempo} BPM, ${response.structure.sections.length} sections`);
       return response.structure;
     } catch (error) {
       console.error('[MusicRemix] Structure analysis failed:', error);
@@ -163,7 +164,7 @@ class MusicRemixServiceImpl implements MusicRemixService {
 
   async remix(request: RemixRequest): Promise<RemixResult> {
     try {
-      console.log(`[MusicRemix] Starting remix: ${request.audioId} -> ${request.targetDuration}s`);
+      logger.debug(`[MusicRemix] Starting remix: ${request.audioId} -> ${request.targetDuration}s`);
 
       const response = await backendApiService.post<RemixResult>(
         `${this.baseUrl}/remix`,
@@ -176,7 +177,7 @@ class MusicRemixServiceImpl implements MusicRemixService {
         timestamp: Date.now()
       });
 
-      console.log(`[MusicRemix] Remix complete: ${response.cuts.length} cuts, ${response.finalDuration.toFixed(1)}s duration`);
+      logger.debug(`[MusicRemix] Remix complete: ${response.cuts.length} cuts, ${response.finalDuration.toFixed(1)}s duration`);
       return response;
     } catch (error) {
       console.error('[MusicRemix] Remix failed:', error);

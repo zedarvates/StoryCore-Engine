@@ -4,6 +4,8 @@
  * Grid layout for displaying location cards with filter and create functionality.
  * 
  * File: creative-studio-ui/src/components/location/LocationList.tsx
+ * 
+ * Updated: Added pagination support for large location lists
  */
 
 import React, { useMemo } from 'react';
@@ -11,6 +13,8 @@ import { Plus, Grid, List, Filter, Search } from 'lucide-react';
 import { LocationCard } from './LocationCard';
 import type { Location, LocationType } from '@/types/location';
 import { useLocationStore, getFilteredLocations } from '@/stores/locationStore';
+import { usePagination } from '@/hooks/usePagination';
+import { Pagination } from '@/components/ui/pagination';
 import './LocationList.css';
 
 // ============================================================================
@@ -84,6 +88,20 @@ export function LocationList({
     () => getFilteredLocations(useLocationStore.getState()),
     [locations, filterType, filterWorld, searchQuery]
   );
+  
+  /**
+   * Pagination for locations
+   */
+  const {
+    paginatedItems,
+    pagination,
+    goToPage,
+    setPageSize,
+  } = usePagination({
+    items: filteredLocations,
+    pageSize: 12,
+    resetOnItemsChange: true,
+  });
   
   const handleLocationClick = (location: Location) => {
     selectLocation(location.location_id);
@@ -200,22 +218,33 @@ export function LocationList({
           )}
         </div>
       ) : (
-        <div className="location-list__grid">
-          {filteredLocations.map((location) => (
-            <LocationCard
-              key={location.location_id}
-              location={location}
-              onClick={() => handleLocationClick(location)}
-              selectable={selectable}
-              selected={selectedIds.includes(location.location_id)}
-              onSelect={(selected) => handleSelectionChange(location, selected)}
-              showActions={showActions}
-              onEdit={() => onEditLocation(location)}
-              onDelete={() => onDeleteLocation(location)}
-            />
-          ))}
-        </div>
-      )}
+        <>
+          <div className="location-list__grid">
+            {paginatedItems.map((location) => (
+              <LocationCard
+                key={location.location_id}
+                location={location}
+                onClick={() => handleLocationClick(location)}
+                selectable={selectable}
+                selected={selectedIds.includes(location.location_id)}
+                onSelect={(selected) => handleSelectionChange(location, selected)}
+                showActions={showActions}
+                onEdit={() => onEditLocation(location)}
+                onDelete={() => onDeleteLocation(location)}
+              />
+            ))}
+          </div>
+          
+          {/* Pagination Controls */}
+          <Pagination
+            pagination={pagination}
+            onPageChange={goToPage}
+            onPageSizeChange={setPageSize}
+            showPageSizeSelector
+            className="location-list__pagination"
+          />
+        </>
+       )}
     </div>
   );
 }

@@ -6,6 +6,8 @@
  */
 
 import { ollamaClient } from './llm/OllamaClient';
+import { OLLAMA_URL } from '../config/apiConfig';
+import { logger } from '../utils/logger';
 
 /**
  * Supported LLM providers
@@ -285,7 +287,7 @@ const DEFAULT_CONFIG: LLMConfig = {
     characterGeneration: 'You are a character development expert...',
     dialogueGeneration: 'You are a dialogue writing specialist...',
   },
-  timeout: 30000,
+  timeout: 300000, // 300 seconds (5 minutes) - local models like Ollama need more time for model loading and generation
   retryAttempts: 3,
   streamingEnabled: true,
 };
@@ -303,14 +305,15 @@ abstract class LLMProviderBase {
   /**
    * Generate completion
    */
-  abstract generateCompletion(request: LLMRequest): Promise<LLMResponse>;
+  abstract generateCompletion(request: LLMRequest, signal?: AbortSignal): Promise<LLMResponse>;
 
   /**
    * Generate streaming completion
    */
   abstract generateStreamingCompletion(
     request: LLMRequest,
-    onChunk: StreamChunkCallback
+    onChunk: StreamChunkCallback,
+    signal?: AbortSignal
   ): Promise<LLMResponse>;
 
   /**
@@ -322,6 +325,11 @@ abstract class LLMProviderBase {
    * Get provider name
    */
   abstract getProviderName(): string;
+
+  /**
+   * Generate image (optional, only supported by some providers)
+   */
+  generateImage?(options: ImageGenerationOptions): Promise<GeneratedImage>;
 
   /**
    * Update configuration
@@ -348,7 +356,7 @@ class OpenAIProvider extends LLMProviderBase {
     return 'OpenAI';
   }
 
-  async generateCompletion(request: LLMRequest): Promise<LLMResponse> {
+  async generateCompletion(request: LLMRequest, signal?: AbortSignal): Promise<LLMResponse> {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -368,6 +376,7 @@ class OpenAIProvider extends LLMProviderBase {
         presence_penalty: this.config.parameters.presencePenalty,
         stream: false,
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -396,7 +405,8 @@ class OpenAIProvider extends LLMProviderBase {
 
   async generateStreamingCompletion(
     request: LLMRequest,
-    onChunk: StreamChunkCallback
+    onChunk: StreamChunkCallback,
+    signal?: AbortSignal
   ): Promise<LLMResponse> {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
@@ -417,6 +427,7 @@ class OpenAIProvider extends LLMProviderBase {
         presence_penalty: this.config.parameters.presencePenalty,
         stream: true,
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -529,7 +540,7 @@ class OpenAIProvider extends LLMProviderBase {
     const image = data.data[0];
 
     return {
-      id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `img_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       url: image.url,
       prompt: options.prompt,
       size: options.size || '1024x1024',
@@ -554,7 +565,7 @@ class AnthropicProvider extends LLMProviderBase {
     return 'Anthropic';
   }
 
-  async generateCompletion(request: LLMRequest): Promise<LLMResponse> {
+  async generateCompletion(request: LLMRequest, signal?: AbortSignal): Promise<LLMResponse> {
     const response = await fetch(`${this.baseUrl}/messages`, {
       method: 'POST',
       headers: {
@@ -572,6 +583,7 @@ class AnthropicProvider extends LLMProviderBase {
         ],
         stream: false,
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -599,7 +611,8 @@ class AnthropicProvider extends LLMProviderBase {
 
   async generateStreamingCompletion(
     request: LLMRequest,
-    onChunk: StreamChunkCallback
+    onChunk: StreamChunkCallback,
+    signal?: AbortSignal
   ): Promise<LLMResponse> {
     const response = await fetch(`${this.baseUrl}/messages`, {
       method: 'POST',
@@ -618,6 +631,7 @@ class AnthropicProvider extends LLMProviderBase {
         ],
         stream: true,
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -716,8 +730,8 @@ class CustomProvider extends LLMProviderBase {
     return this.config.provider === 'local' ? 'Local' : 'Custom';
   }
 
-  async generateCompletion(request: LLMRequest): Promise<LLMResponse> {
-    const endpoint = this.config.apiEndpoint || 'http://localhost:11434';
+  async generateCompletion(request: LLMRequest, signal?: AbortSignal): Promise<LLMResponse> {
+    const endpoint = this.config.apiEndpoint || OLLAMA_URL;
 
     try {
       // Use Ollama's native API format
@@ -733,7 +747,7 @@ class CustomProvider extends LLMProviderBase {
       const response = await ollamaClient.generate(this.config.model, prompt, {
         temperature: request.temperature ?? this.config.parameters.temperature,
         maxTokens: numPredict,
-      });
+      }, signal);
 
       return {
         content: response || '',
@@ -767,9 +781,10 @@ class CustomProvider extends LLMProviderBase {
 
   async generateStreamingCompletion(
     request: LLMRequest,
-    onChunk: StreamChunkCallback
+    onChunk: StreamChunkCallback,
+    signal?: AbortSignal
   ): Promise<LLMResponse> {
-    const endpoint = this.config.apiEndpoint || 'http://localhost:11434';
+    const endpoint = this.config.apiEndpoint || OLLAMA_URL;
 
     try {
       // Use Ollama's native API format with streaming
@@ -794,6 +809,7 @@ class CustomProvider extends LLMProviderBase {
             num_predict: numPredict,
           },
         }),
+        signal,
       });
 
       if (!response.ok) {
@@ -942,7 +958,7 @@ class CustomProvider extends LLMProviderBase {
 
   async validateConnection(): Promise<boolean> {
     try {
-      const endpoint = this.config.apiEndpoint || 'http://localhost:11434';
+      const endpoint = this.config.apiEndpoint || OLLAMA_URL;
       const response = await fetch(`${endpoint}/api/tags`, {
         method: 'GET',
       });
@@ -959,7 +975,7 @@ class CustomProvider extends LLMProviderBase {
 export class LLMService {
   private provider: LLMProviderBase;
   private config: LLMConfig;
-  private abortControllers: Map<string, AbortController> = new Map();
+  private readonly abortControllers: Map<string, AbortController> = new Map();
 
   constructor(config?: Partial<LLMConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -991,24 +1007,35 @@ export class LLMService {
     const abortController = new AbortController();
     this.abortControllers.set(id, abortController);
 
+    // DIAGNOSTIC: Log request details and configuration
+    logger.info(`[LLMService] 🚀 Starting generateCompletion (requestId: ${id})`);
+    logger.info(`[LLMService] ⚙️ Config: provider=${this.config.provider}, model=${this.config.model}, timeout=${this.config.timeout}ms, retryAttempts=${this.config.retryAttempts}`);
+    logger.debug(`[LLMService] 📝 Prompt length: ${request.prompt?.length || 0} chars, maxTokens: ${request.maxTokens || this.config.parameters.maxTokens}`);
+
     try {
       return await this.withRetry(async () => {
         if (abortController.signal.aborted) {
           throw new LLMError('Request cancelled', 'cancelled', false, undefined, LLMErrorCategory.UNKNOWN);
         }
 
-        const response = await this.withTimeout(
-          this.provider.generateCompletion(request),
-          this.config.timeout,
-          abortController.signal
-        );
+        const startTime = Date.now();
+        logger.debug(`[LLMService] 📤 Calling provider.generateCompletion (timeout: ${this.config.timeout}ms)`);
+        
+        // Create a timeout controller that combines timeout and abort signal
+        const timeoutController = this.createTimeoutController(this.config.timeout, abortController.signal);
+        
+        const response = await this.provider.generateCompletion(request, timeoutController.signal);
+        
+        const elapsedMs = Date.now() - startTime;
+        logger.info(`[LLMService] ✅ Provider response received in ${elapsedMs}ms`);
+        
         return {
           success: true,
           data: response,
         };
       });
     } catch (error) {
-      console.error('[LLMService] Generate completion failed:', error);
+      logger.error('[LLMService] Generate completion failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1062,18 +1089,17 @@ export class LLMService {
           throw new LLMError('Request cancelled', 'cancelled', false, undefined, LLMErrorCategory.UNKNOWN);
         }
 
-        const response = await this.withTimeout(
-          this.provider.generateStreamingCompletion(request, onChunk),
-          this.config.timeout,
-          abortController.signal
-        );
+        // Create a timeout controller that combines timeout and abort signal
+        const timeoutController = this.createTimeoutController(this.config.timeout, abortController.signal);
+        
+        const response = await this.provider.generateStreamingCompletion(request, onChunk, timeoutController.signal);
         return {
           success: true,
           data: response,
         };
       });
     } catch (error) {
-      console.error('[LLMService] Generate streaming completion failed:', error);
+      logger.error('[LLMService] Generate streaming completion failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1109,7 +1135,7 @@ export class LLMService {
    * Generate unique request ID
    */
   private generateRequestId(): string {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**
@@ -1126,7 +1152,7 @@ export class LLMService {
         data: isValid,
       };
     } catch (error) {
-      console.error('[LLMService] Connection validation failed:', error);
+      logger.error('[LLMService] Connection validation failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Connection validation failed',
@@ -1143,15 +1169,30 @@ export class LLMService {
   ): Promise<ApiResponse<T>> {
     let lastError: LLMError | Error | null = null;
 
+    logger.info(`[LLMService] 🔄 Starting retry loop (max attempts: ${this.config.retryAttempts})`);
+
     for (let attempt = 0; attempt < this.config.retryAttempts; attempt++) {
+      const attemptStartTime = Date.now();
+      logger.info(`[LLMService] 🔄 Attempt ${attempt + 1}/${this.config.retryAttempts} starting...`);
+      
       try {
-        return await operation();
+        const result = await operation();
+        logger.info(`[LLMService] ✅ Attempt ${attempt + 1} succeeded after ${Date.now() - attemptStartTime}ms`);
+        return result;
       } catch (error) {
+        const attemptDuration = Date.now() - attemptStartTime;
         lastError = error instanceof Error ? error : new Error('Unknown error');
+        
+        logger.warn(`[LLMService] ⚠️ Attempt ${attempt + 1} failed after ${attemptDuration}ms: ${lastError.message}`);
+        
+        // DIAGNOSTIC: Log error details
+        if (error instanceof LLMError) {
+          logger.warn(`[LLMService] 🏷️ LLMError - code: ${error.code}, retryable: ${error.retryable}, category: ${error.category}`);
+        }
 
         // Don't retry if error is not retryable
         if (error instanceof LLMError && !error.retryable) {
-          console.warn(`[LLMService] Non-retryable error on attempt ${attempt + 1}:`, error.message);
+          logger.warn(`[LLMService] ❌ Non-retryable error on attempt ${attempt + 1}:`, error.message);
           return {
             success: false,
             error: error.message,
@@ -1161,17 +1202,21 @@ export class LLMService {
 
         // Don't retry on last attempt
         if (attempt === this.config.retryAttempts - 1) {
+          logger.error(`[LLMService] ❌ Final attempt ${attempt + 1} failed, no more retries`);
           break;
         }
 
         // Exponential backoff: 1s, 2s, 4s, 8s, etc.
         const delayMs = Math.pow(2, attempt) * 1000;
-        console.log(`[LLMService] Retrying in ${delayMs}ms (attempt ${attempt + 1}/${this.config.retryAttempts})`);
+        logger.info(`[LLMService] ⏳ Retrying in ${delayMs}ms (attempt ${attempt + 1}/${this.config.retryAttempts})`);
         await this.delay(delayMs);
       }
     }
 
-    console.error('[LLMService] Request failed after all retry attempts');
+    logger.error('[LLMService] ❌ Request failed after all retry attempts');
+    logger.error(`[LLMService] 💡 DIAGNOSTIC: Last error was: ${lastError?.message}`);
+    logger.error(`[LLMService] 💡 DIAGNOSTIC: Config - provider: ${this.config.provider}, timeout: ${this.config.timeout}ms`);
+    
     return {
       success: false,
       error: lastError?.message || 'Request failed after retries',
@@ -1181,23 +1226,78 @@ export class LLMService {
 
   /**
    * Timeout wrapper with cancellation support
+   * Creates an AbortController that can be triggered by either timeout or external signal
+   * Returns both the timeout signal (to pass to fetch) and the result promise
    */
-  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number, signal?: AbortSignal): Promise<T> {
-    return Promise.race([
-      promise,
-      new Promise<T>((_, reject) => {
-        const timeoutId = setTimeout(
-          () => reject(new LLMError('Request timeout', 'timeout', true, undefined, LLMErrorCategory.TIMEOUT)),
-          timeoutMs
-        );
+  private createTimeoutController(timeoutMs: number, signal?: AbortSignal): AbortController {
+    const timeoutController = new AbortController();
+    
+    // If external signal is already aborted, abort our controller too
+    if (signal?.aborted) {
+      timeoutController.abort(signal.reason);
+    }
+    
+    // Listen for external signal abort
+    signal?.addEventListener('abort', () => {
+      timeoutController.abort(signal.reason);
+    });
+    
+    // Set up timeout
+    const timeoutId = setTimeout(() => {
+      const error = new LLMError(
+        'Request timeout',
+        'timeout',
+        true,
+        `Request exceeded ${timeoutMs}ms limit`,
+        LLMErrorCategory.TIMEOUT
+      );
+      timeoutController.abort(error);
+    }, timeoutMs);
+    
+    // Clear timeout when controller is aborted (cleanup)
+    const originalAbort = timeoutController.abort.bind(timeoutController);
+    timeoutController.abort = (reason?: any) => {
+      clearTimeout(timeoutId);
+      originalAbort(reason);
+    };
+    
+    return timeoutController;
+  }
 
-        // Clear timeout if signal is aborted
-        signal?.addEventListener('abort', () => {
-          clearTimeout(timeoutId);
-          reject(new LLMError('Request cancelled', 'cancelled', false, undefined, LLMErrorCategory.UNKNOWN));
-        });
-      }),
-    ]);
+  /**
+   * Timeout wrapper with cancellation support
+   * Uses AbortController to properly cancel the underlying HTTP request on timeout
+   */
+  private async withTimeout<T>(
+    promise: Promise<T>, 
+    timeoutMs: number, 
+    signal?: AbortSignal
+  ): Promise<T> {
+    logger.debug(`[LLMService] ⏱️ Setting up timeout for ${timeoutMs}ms`);
+    
+    const timeoutController = this.createTimeoutController(timeoutMs, signal);
+    
+    const timeoutPromise = new Promise<T>((_, reject) => {
+      const timeoutId = setTimeout(() => {
+        logger.error(`[LLMService] ⏰ TIMEOUT! Request exceeded ${timeoutMs}ms limit`);
+        logger.error(`[LLMService] 💡 DIAGNOSTIC: Consider increasing timeout in config (current: ${timeoutMs}ms)`);
+        reject(new LLMError('Request timeout', 'timeout', true, undefined, LLMErrorCategory.TIMEOUT));
+      }, timeoutMs);
+
+      // Clear timeout if signal is aborted
+      signal?.addEventListener('abort', () => {
+        clearTimeout(timeoutId);
+        reject(new LLMError('Request cancelled', 'cancelled', false, undefined, LLMErrorCategory.UNKNOWN));
+      });
+      
+      // Also listen to our timeout controller
+      timeoutController.signal.addEventListener('abort', () => {
+        clearTimeout(timeoutId);
+        reject(timeoutController.signal.reason);
+      });
+    });
+
+    return Promise.race([promise, timeoutPromise]);
   }
 
   /**
@@ -1258,8 +1358,10 @@ export class LLMService {
           throw new LLMError('Image generation cancelled', 'cancelled', false, undefined, LLMErrorCategory.UNKNOWN);
         }
 
+        // Cast to OpenAIProvider since we've already checked instanceof
+        const openAIProvider = this.provider as OpenAIProvider;
         const image = await this.withTimeout(
-          this.provider.generateImage(options),
+          openAIProvider.generateImage(options),
           this.config.timeout * 2, // Double timeout for image generation
           abortController.signal
         );
@@ -1354,6 +1456,7 @@ export function getLLMService(): LLMService {
           model: config.model,
           parameters: config.parameters,
           streamingEnabled: config.streamingEnabled,
+          timeout: 180000, // 3 minutes - local models need more time
           systemPrompts: config.systemPrompts || {
             worldGeneration: 'You are a creative world-building assistant...',
             characterGeneration: 'You are a character development expert...',
@@ -1365,7 +1468,7 @@ export function getLLMService(): LLMService {
         defaultService = new LLMService();
       }
     } catch (error) {
-      console.warn('Could not load ConfigManager, using default LLM config:', error);
+      logger.warn('Could not load ConfigManager, using default LLM config:', error);
       defaultService = new LLMService();
     }
   }
@@ -1532,7 +1635,7 @@ export function getAvailableProviders(): LLMProviderInfo[] {
       ],
       requiresApiKey: false,
       supportsStreaming: true,
-      defaultEndpoint: 'http://localhost:11434',
+      defaultEndpoint: OLLAMA_URL,
     },
     {
       id: 'custom',

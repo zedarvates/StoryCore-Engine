@@ -1,9 +1,10 @@
 /**
- * Media Search Service - Frontend pour Media Intelligence
- * Recherche d'assets multimédias par langage naturel
+ * Media Search Service - Frontend for Media Intelligence
+ * Natural language multimedia asset search
  */
 
 import { backendApiService } from './backendApiService';
+import { logger } from '@/utils/logger';
 
 export type AssetType = 'image' | 'video' | 'audio' | 'text';
 export type SearchMode = 'semantic' | 'keyword' | 'hybrid' | 'similarity';
@@ -72,7 +73,7 @@ class MediaSearchServiceImpl implements MediaSearchService {
     const cached = this.cache.get(cacheKey);
     
     if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-      console.log(`[MediaSearch] Cache hit for: ${request.query}`);
+      logger.debug(`[MediaSearch] Cache hit for: ${request.query}`);
       return cached.results;
     }
 
@@ -82,7 +83,7 @@ class MediaSearchServiceImpl implements MediaSearchService {
         request
       );
 
-      // Cache les résultats
+      // Cache the results
       this.cache.set(cacheKey, {
         results: response.results,
         timestamp: Date.now()
@@ -90,8 +91,8 @@ class MediaSearchServiceImpl implements MediaSearchService {
 
       return response.results;
     } catch (error) {
-      console.error('[MediaSearch] Search failed:', error);
-      // Fallback: recherche locale basique
+      logger.error('[MediaSearch] Search failed:', error);
+      // Fallback: basic local search
       return this.localSearchFallback(request);
     }
   }
@@ -105,13 +106,13 @@ class MediaSearchServiceImpl implements MediaSearchService {
         errors: string[];
       }>(`${this.baseUrl}/index`, { projectId });
 
-      console.log(`[MediaSearch] Indexed ${response.indexedAssets} assets for project ${projectId}`);
+      logger.debug(`[MediaSearch] Indexed ${response.indexedAssets} assets for project ${projectId}`);
       return {
         indexedAssets: response.indexedAssets,
         durationSeconds: response.durationSeconds
       };
     } catch (error) {
-      console.error('[MediaSearch] Indexing failed:', error);
+      logger.error('[MediaSearch] Indexing failed:', error);
       throw error;
     }
   }
@@ -128,12 +129,12 @@ class MediaSearchServiceImpl implements MediaSearchService {
         { filePath, projectId, tags, description }
       );
 
-      // Invalider le cache
+      // Invalidate cache
       this.cache.clear();
 
       return response.assetId;
     } catch (error) {
-      console.error('[MediaSearch] Add asset failed:', error);
+      logger.error('[MediaSearch] Add asset failed:', error);
       throw error;
     }
   }
@@ -142,12 +143,12 @@ class MediaSearchServiceImpl implements MediaSearchService {
     try {
       await backendApiService.delete(`${this.baseUrl}/${assetId}`);
       
-      // Invalider le cache
+      // Invalidate cache
       this.cache.clear();
 
       return true;
     } catch (error) {
-      console.error('[MediaSearch] Remove asset failed:', error);
+      logger.error('[MediaSearch] Remove asset failed:', error);
       return false;
     }
   }
@@ -156,7 +157,7 @@ class MediaSearchServiceImpl implements MediaSearchService {
     try {
       return await backendApiService.get<AssetMetadata>(`${this.baseUrl}/${assetId}`);
     } catch (error) {
-      console.error('[MediaSearch] Get metadata failed:', error);
+      logger.error('[MediaSearch] Get metadata failed:', error);
       return null;
     }
   }
@@ -165,7 +166,7 @@ class MediaSearchServiceImpl implements MediaSearchService {
     try {
       return await backendApiService.get<IndexStats>(`${this.baseUrl}/stats`);
     } catch (error) {
-      console.error('[MediaSearch] Get stats failed:', error);
+      logger.error('[MediaSearch] Get stats failed:', error);
       return {
         totalAssets: 0,
         indexedAssets: 0,
@@ -176,20 +177,20 @@ class MediaSearchServiceImpl implements MediaSearchService {
   }
 
   /**
-   * Recherche locale basique (fallback)
+   * Basic local search (fallback)
    */
   private async localSearchFallback(request: SearchRequest): Promise<SearchResult[]> {
-    // Implémentation simple de recherche par mots-clés
+    // Simple keyword search implementation
     const queryWords = request.query.toLowerCase().split(' ');
     
-    //TODO: Intégrer avec le système d'assets existant
-    console.log('[MediaSearch] Using local fallback search');
+    //TODO: Integrate with existing asset system
+    logger.debug('[MediaSearch] Using local fallback search');
     
     return [];
   }
 
   /**
-   * Vider le cache
+   * Clear the cache
    */
   clearCache(): void {
     this.cache.clear();

@@ -1,0 +1,18 @@
+{
+  "location_id": "c74d652b-2fa0-437e-a06b-f00a907b72de",
+  "name": "The Gilded Grotto",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T18:59:59.321Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A subterranean club hidden beneath the streets of London, where patrons don elaborate masks and engage in high-stakes games of chance and wit.",
+    "atmosphere": "Sinister elegance: candelabras flicker, velvet drapes sway to the rhythm of jazz bands, and masked strangers whisper secrets in dark corners.",
+    "genre_tags": [],
+    "significance": "A hub for espionage and intrigue, where players may uncover hidden agendas and unexpected alliances."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

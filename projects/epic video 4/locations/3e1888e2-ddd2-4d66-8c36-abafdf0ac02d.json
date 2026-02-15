@@ -1,0 +1,18 @@
+{
+  "location_id": "3e1888e2-ddd2-4d66-8c36-abafdf0ac02d",
+  "name": "The Clockwork Cathedral",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T18:59:59.362Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A marvel of modern engineering, where intricate clockwork mechanisms govern the rhythms of time itself. The structure is home to a mysterious order of clockworkers who tend the gears with devotion.",
+    "atmosphere": "Labyrinthine mysticism: towering clock faces loom overhead, their hands ticking away as mysterious chanting echoes through the corridors.",
+    "genre_tags": [],
+    "significance": "A location where players may gain insight into the workings of time and possibly manipulate its flow for their own purposes."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

@@ -130,7 +130,13 @@ class CharacterGridRequest(BaseModel):
     expressions: List[str] = ["neutral", "happy", "angry", "determined"]
     camera_angles: List[str] = ["eye_level"]
     lighting_types: List[str] = ["cinematic"]
-    resolution: int = 512
+    resolution: int = 1024  # CORRIGÉ: 1024 par défaut au lieu de 512
+    
+    # Nouveaux paramètres de style
+    style: str = "realistic"  # Style du projet (realistic, anime, fantasy, etc.)
+    use_character_reference: bool = True  # Utiliser la première image comme référence
+    reference_strength: float = 0.8  # Force de la référence
+    character_description: Optional[str] = None  # Description du personnage
 
 
 class GridPanelResponse(BaseModel):
@@ -397,7 +403,11 @@ async def generate_character_grid(request: CharacterGridRequest):
             expressions=expressions,
             camera_angles=camera_angles,
             lighting_types=lighting_types,
-            resolution=request.resolution
+            resolution=request.resolution,
+            style=request.style,  # NOUVEAU: Style du projet
+            use_character_reference=request.use_character_reference,  # NOUVEAU: Utiliser référence
+            reference_strength=request.reference_strength,  # NOUVEAU: Force de référence
+            character_description=request.character_description  # NOUVEAU: Description du personnage
         )
         
         # Générer la grille

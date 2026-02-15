@@ -24,6 +24,7 @@ import type {
   TransitionType,
 } from '../types/reference';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '../utils/logger';
 
 // ============================================================================
 // Storage Path Helpers
@@ -218,7 +219,7 @@ export class ReferenceSheetService {
     const filePath = getMasterSheetPath(this.projectPath);
     await this.writeJsonFile(filePath, masterSheet);
 
-    console.log('[ReferenceSheetService] Created master reference sheet:', masterSheet.id);
+    logger.debug('[ReferenceSheetService] Created master reference sheet:', masterSheet.id);
     return masterSheet;
   }
 
@@ -256,7 +257,7 @@ export class ReferenceSheetService {
     const filePath = getMasterSheetPath(this.projectPath);
     await this.writeJsonFile(filePath, updatedSheet);
 
-    console.log('[ReferenceSheetService] Updated master reference sheet:', updatedSheet.id);
+    logger.debug('[ReferenceSheetService] Updated master reference sheet:', updatedSheet.id);
   }
 
   /**
@@ -270,7 +271,7 @@ export class ReferenceSheetService {
     const filePath = getMasterSheetPath(this.projectPath);
     await this.deleteFile(filePath);
 
-    console.log('[ReferenceSheetService] Deleted master reference sheet for project:', projectId);
+    logger.debug('[ReferenceSheetService] Deleted master reference sheet for project:', projectId);
   }
 
   // ============================================================================
@@ -292,7 +293,7 @@ export class ReferenceSheetService {
     masterSheet.characterSheets.push(character);
     await this.updateMasterReferenceSheet(masterSheet);
 
-    console.log('[ReferenceSheetService] Added character appearance:', character.id);
+    logger.debug('[ReferenceSheetService] Added character appearance:', character.id);
   }
 
   /**
@@ -315,7 +316,7 @@ export class ReferenceSheetService {
     masterSheet.characterSheets[index] = appearance;
     await this.updateMasterReferenceSheet(masterSheet);
 
-    console.log('[ReferenceSheetService] Updated character appearance:', appearance.id);
+    logger.debug('[ReferenceSheetService] Updated character appearance:', appearance.id);
   }
 
   /**
@@ -330,7 +331,7 @@ export class ReferenceSheetService {
     masterSheet.characterSheets = masterSheet.characterSheets.filter(c => c.id !== characterId);
     await this.updateMasterReferenceSheet(masterSheet);
 
-    console.log('[ReferenceSheetService] Removed character appearance:', characterId);
+    logger.debug('[ReferenceSheetService] Removed character appearance:', characterId);
   }
 
   // ============================================================================
@@ -352,7 +353,7 @@ export class ReferenceSheetService {
     masterSheet.locationSheets.push(location);
     await this.updateMasterReferenceSheet(masterSheet);
 
-    console.log('[ReferenceSheetService] Added location appearance:', location.id);
+    logger.debug('[ReferenceSheetService] Added location appearance:', location.id);
   }
 
   /**
@@ -375,7 +376,7 @@ export class ReferenceSheetService {
     masterSheet.locationSheets[index] = appearance;
     await this.updateMasterReferenceSheet(masterSheet);
 
-    console.log('[ReferenceSheetService] Updated location appearance:', appearance.id);
+    logger.debug('[ReferenceSheetService] Updated location appearance:', appearance.id);
   }
 
   /**
@@ -390,7 +391,7 @@ export class ReferenceSheetService {
     masterSheet.locationSheets = masterSheet.locationSheets.filter(l => l.id !== locationId);
     await this.updateMasterReferenceSheet(masterSheet);
 
-    console.log('[ReferenceSheetService] Removed location appearance:', locationId);
+    logger.debug('[ReferenceSheetService] Removed location appearance:', locationId);
   }
 
   // ============================================================================
@@ -409,7 +410,7 @@ export class ReferenceSheetService {
     masterSheet.styleSheet = style;
     await this.updateMasterReferenceSheet(masterSheet);
 
-    console.log('[ReferenceSheetService] Updated global style:', style.id);
+    logger.debug('[ReferenceSheetService] Updated global style:', style.id);
   }
 
   /**
@@ -424,7 +425,7 @@ export class ReferenceSheetService {
     masterSheet.styleSheet.moodBoard.push(image);
     await this.updateMasterReferenceSheet(masterSheet);
 
-    console.log('[ReferenceSheetService] Added mood board image:', image.id);
+    logger.debug('[ReferenceSheetService] Added mood board image:', image.id);
   }
 
   // ============================================================================
@@ -465,7 +466,7 @@ export class ReferenceSheetService {
     const filePath = getSequenceSheetPath(this.projectPath, sequenceId);
     await this.writeJsonFile(filePath, sequenceSheet);
 
-    console.log('[ReferenceSheetService] Created sequence reference sheet:', sequenceSheet.id);
+    logger.debug('[ReferenceSheetService] Created sequence reference sheet:', sequenceSheet.id);
     return sequenceSheet;
   }
 
@@ -492,7 +493,7 @@ export class ReferenceSheetService {
     const filePath = getSequenceSheetPath(this.projectPath, sheet.sequenceId);
     await this.writeJsonFile(filePath, sheet);
 
-    console.log('[ReferenceSheetService] Updated sequence reference sheet:', sheet.id);
+    logger.debug('[ReferenceSheetService] Updated sequence reference sheet:', sheet.id);
   }
 
   /**
@@ -515,7 +516,7 @@ export class ReferenceSheetService {
 
     await this.updateSequenceReferenceSheet(sequenceSheet);
 
-    console.log('[ReferenceSheetService] Linked sequence to master:', sequenceId, masterSheetId);
+    logger.debug('[ReferenceSheetService] Linked sequence to master:', sequenceId, masterSheetId);
   }
 
   /**
@@ -533,7 +534,7 @@ export class ReferenceSheetService {
     sequenceSheet.episodeReferences.push(episode);
     await this.updateSequenceReferenceSheet(sequenceSheet);
 
-    console.log('[ReferenceSheetService] Added episode reference:', episode.episodeId);
+    logger.debug('[ReferenceSheetService] Added episode reference:', episode.episodeId);
   }
 
   // ============================================================================
@@ -566,7 +567,7 @@ export class ReferenceSheetService {
     const filePath = getShotReferencePath(this.projectPath, shotId);
     await this.writeJsonFile(filePath, shotReference);
 
-    console.log('[ReferenceSheetService] Created shot reference:', shotReference.id);
+    logger.debug('[ReferenceSheetService] Created shot reference:', shotReference.id);
     return shotReference;
   }
 
@@ -593,7 +594,7 @@ export class ReferenceSheetService {
     const filePath = getShotReferencePath(this.projectPath, reference.shotId);
     await this.writeJsonFile(filePath, reference);
 
-    console.log('[ReferenceSheetService] Updated shot reference:', reference.id);
+    logger.debug('[ReferenceSheetService] Updated shot reference:', reference.id);
   }
 
   /**
@@ -608,7 +609,7 @@ export class ReferenceSheetService {
     shotReference.localReferenceImages.push(image);
     await this.updateShotReference(shotReference);
 
-    console.log('[ReferenceSheetService] Added local reference to shot:', shotId, image.id);
+    logger.debug('[ReferenceSheetService] Added local reference to shot:', shotId, image.id);
   }
 
   /**
@@ -623,7 +624,7 @@ export class ReferenceSheetService {
     shotReference.localReferenceImages = shotReference.localReferenceImages.filter(i => i.id !== imageId);
     await this.updateShotReference(shotReference);
 
-    console.log('[ReferenceSheetService] Removed local reference from shot:', shotId, imageId);
+    logger.debug('[ReferenceSheetService] Removed local reference from shot:', shotId, imageId);
   }
 
   /**
@@ -651,7 +652,7 @@ export class ReferenceSheetService {
 
     await this.updateShotReference(shotReference);
 
-    console.log('[ReferenceSheetService] Added inherited reference to shot:', shotId, inheritedId, source);
+    logger.debug('[ReferenceSheetService] Added inherited reference to shot:', shotId, inheritedId, source);
   }
 
   /**
@@ -666,7 +667,7 @@ export class ReferenceSheetService {
     shotReference.consistencyOverrides.push(override);
     await this.updateShotReference(shotReference);
 
-    console.log('[ReferenceSheetService] Added consistency override to shot:', shotId, override.id);
+    logger.debug('[ReferenceSheetService] Added consistency override to shot:', shotId, override.id);
   }
 
   /**
@@ -681,7 +682,7 @@ export class ReferenceSheetService {
     shotReference.consistencyOverrides = shotReference.consistencyOverrides.filter(o => o.id !== overrideId);
     await this.updateShotReference(shotReference);
 
-    console.log('[ReferenceSheetService] Removed consistency override from shot:', shotId, overrideId);
+    logger.debug('[ReferenceSheetService] Removed consistency override from shot:', shotId, overrideId);
   }
 
   // ============================================================================

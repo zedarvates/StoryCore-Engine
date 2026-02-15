@@ -1,0 +1,18 @@
+{
+  "location_id": "62ef7a08-763e-49b4-be94-c29cb99bbe00",
+  "name": "The Undercroft",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T21:02:50.030Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A network of hidden tunnels and caverns beneath New Tumbleweed's streets. The air is thick with the scent of mold and decay, while flickering luminescent mushrooms cast eerie shadows on the walls.",
+    "atmosphere": "Mysterious, claustrophobic, and slightly unsettling, with a hint of danger lurking in every shadow.",
+    "genre_tags": [],
+    "significance": "Secret hideout for Vivas Guardians, where they plan their missions and analyze data from their adventures."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

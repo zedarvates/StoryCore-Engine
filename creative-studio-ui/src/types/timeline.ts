@@ -15,6 +15,7 @@ export interface TimelineTrack {
 }
 
 export interface TimelineState {
+  projectId: string;
   tracks: TimelineTrack[];
   currentTime: number;
   isPlaying: boolean;

@@ -54,6 +54,8 @@ export interface Scene {
   shotIds: string[];
   beats: string[]; // Narrative beats/moments
   assetTemplates: string[]; // IDs of AssetTemplate
+  coverImage?: string; // URL/Path to generated concept art
+  videoUrl?: string; // URL/Path to generated animatic/video
 }
 
 // ============================================================================
@@ -82,6 +84,8 @@ export const SceneSchema = z.object({
   shotIds: z.array(z.string()),
   beats: z.array(z.string()),
   assetTemplates: z.array(z.string()),
+  coverImage: z.string().optional(),
+  videoUrl: z.string().optional(),
 });
 
 export const SequencePlanSchema = z.object({

@@ -27,6 +27,16 @@ export interface Location {
   description: string;
   significance: string;
   atmosphere: string;
+  // Extended properties for enhanced location support
+  type?: string;
+  tile_image_path?: string;
+  metadata?: {
+    description?: string;
+    atmosphere?: string;
+    significance?: string;
+    tile_image_path?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface WorldRule {

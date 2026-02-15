@@ -10,10 +10,10 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { 
-  Location, 
-  CubeFace, 
-  LocationType, 
+import type {
+  Location,
+  CubeFace,
+  LocationType,
   CubeTextureMapping,
   CubeFaceTexture,
   PlacedAsset,
@@ -21,19 +21,20 @@ import type {
   SceneLocation
 } from '@/types/location';
 import { listLocationsInProject, loadLocationFromProject } from '@/utils/locationStorage';
+import { API_BASE_URL } from '../config/apiConfig';
 
 // ============================================================================
 // API Configuration
 // ============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+// API_BASE_URL is now imported from central config
 
 /**
  * Fetch wrapper with error handling
  */
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   try {
     const response = await fetch(url, {
       ...options,
@@ -42,11 +43,11 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
         ...options?.headers,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
-    
+
     return response.json();
   } catch (error) {
     // Don't log error in offline mode (Electron without backend)
@@ -67,30 +68,30 @@ interface LocationState {
   locations: Location[];
   sceneLocations: SceneLocation[];
   projectLocationIds: string[];
-  
+
   // UI State
   selectedLocationId: string | null;
   editingLocationId: string | null;
   selectedSceneLocationId: string | null;
-  
+
   // Editor state
   cubeViewRotation: { x: number; y: number };
   selectedCubeFace: CubeFace | null;
   textureDirection: 'inward' | 'outward';
-  
+
   // Filters
   filterType: LocationType | 'all';
   filterWorld: string | 'all';
   searchQuery: string;
-  
+
   // Loading states
   isLoading: boolean;
   isSaving: boolean;
   generationProgress: Map<string, number>;
-  
+
   // Error state
   error: string | null;
-  
+
   // Actions - Locations CRUD
   setLocations: (locations: Location[]) => void;
   fetchLocations: () => Promise<void>;
@@ -99,37 +100,37 @@ interface LocationState {
   addLocation: (location: Location) => Promise<void>;
   updateLocation: (id: string, updates: Partial<Location>) => Promise<void>;
   deleteLocation: (id: string) => Promise<void>;
-  
+
   // Selection
   selectLocation: (id: string | null) => void;
   openEditor: (id: string) => void;
   closeEditor: () => void;
-  
+
   // Cube editing
   setCubeViewRotation: (rotation: { x: number; y: number }) => void;
   selectCubeFace: (face: CubeFace | null) => void;
   setTextureDirection: (direction: 'inward' | 'outward') => void;
   updateCubeTexture: (locationId: string, face: CubeFace, texture: CubeFaceTexture) => Promise<void>;
   removeCubeTexture: (locationId: string, face: CubeFace) => Promise<void>;
-  
+
   // Filters
   setFilterType: (type: LocationType | 'all') => void;
   setFilterWorld: (worldId: string | 'all') => void;
   setSearchQuery: (query: string) => void;
-  
+
   // Progress
   setGenerationProgress: (faceId: string, progress: number) => void;
   setLoading: (loading: boolean) => void;
   setSaving: (saving: boolean) => void;
   setError: (error: string | null) => void;
-  
+
   // Scene placement
   addSceneLocation: (sceneLocation: SceneLocation) => void;
   updateSceneLocation: (instanceId: string, updates: Partial<SceneLocation>) => void;
   removeSceneLocation: (instanceId: string) => void;
   selectSceneLocation: (instanceId: string | null) => void;
   updateSceneLocationTransform: (instanceId: string, transform: Partial<Transform3D>) => void;
-  
+
   // Assets
   addPlacedAsset: (locationId: string, asset: PlacedAsset) => void;
   updatePlacedAsset: (locationId: string, assetId: string, updates: Partial<PlacedAsset>) => void;
@@ -161,10 +162,10 @@ export const useLocationStore = create<LocationState>()(
         isSaving: false,
         generationProgress: new Map(),
         error: null,
-        
+
         // Actions - Locations CRUD
         setLocations: (locations) => set({ locations }),
-        
+
         fetchLocations: async () => {
           set({ isLoading: true, error: null });
           try {
@@ -186,14 +187,14 @@ export const useLocationStore = create<LocationState>()(
             set({ isLoading: false });
           }
         },
-        
+
         fetchProjectLocations: async (projectId: string) => {
           set({ isLoading: true, error: null });
           try {
-            // List all location files in the project's lieux folder
+            // List all location files in the project's locations folder
             const locationIds = await listLocationsInProject(projectId);
             set({ projectLocationIds: locationIds });
-            
+
             // Load each location
             const projectLocations: Location[] = [];
             for (const locationId of locationIds) {
@@ -202,18 +203,18 @@ export const useLocationStore = create<LocationState>()(
                 projectLocations.push(location);
               }
             }
-            
+
             // Merge with existing locations, avoiding duplicates by location_id
             set((state) => {
               const existingIds = new Set(state.locations.map(l => l.location_id));
               const newLocations = [...state.locations];
-              
+
               for (const location of projectLocations) {
                 if (!existingIds.has(location.location_id)) {
                   newLocations.push(location);
                 }
               }
-              
+
               return { locations: newLocations };
             });
           } catch (error) {
@@ -223,11 +224,11 @@ export const useLocationStore = create<LocationState>()(
             set({ isLoading: false });
           }
         },
-        
+
         mergeProjectLocations: async (projectId: string) => {
           await get().fetchProjectLocations(projectId);
         },
-        
+
         addLocation: async (location) => {
           set({ isSaving: true, error: null });
           try {
@@ -263,7 +264,7 @@ export const useLocationStore = create<LocationState>()(
             set({ isSaving: false });
           }
         },
-        
+
         updateLocation: async (id, updates) => {
           set({ isSaving: true, error: null });
           try {
@@ -295,7 +296,7 @@ export const useLocationStore = create<LocationState>()(
             set({ isSaving: false });
           }
         },
-        
+
         deleteLocation: async (id) => {
           set({ isSaving: true, error: null });
           try {
@@ -322,17 +323,17 @@ export const useLocationStore = create<LocationState>()(
             set({ isSaving: false });
           }
         },
-        
+
         // Selection
         selectLocation: (id) => set({ selectedLocationId: id }),
         openEditor: (id) => set({ editingLocationId: id }),
         closeEditor: () => set({ editingLocationId: null, selectedCubeFace: null }),
-        
+
         // Cube editing
         setCubeViewRotation: (rotation) => set({ cubeViewRotation: rotation }),
         selectCubeFace: (face) => set({ selectedCubeFace: face }),
         setTextureDirection: (direction) => set({ textureDirection: direction }),
-        
+
         updateCubeTexture: async (locationId, face, texture) => {
           set({ isSaving: true, error: null });
           try {
@@ -362,7 +363,7 @@ export const useLocationStore = create<LocationState>()(
             set({ isSaving: false });
           }
         },
-        
+
         removeCubeTexture: async (locationId, face) => {
           set({ isSaving: true, error: null });
           try {
@@ -379,41 +380,41 @@ export const useLocationStore = create<LocationState>()(
             set({ isSaving: false });
           }
         },
-        
+
         // Filters
         setFilterType: (type) => set({ filterType: type }),
         setFilterWorld: (worldId) => set({ filterWorld: worldId }),
         setSearchQuery: (query) => set({ searchQuery: query }),
-        
+
         // Progress
         setGenerationProgress: (faceId, progress) => set((state) => {
           const newProgress = new Map(state.generationProgress);
           newProgress.set(faceId, progress);
           return { generationProgress: newProgress };
         }),
-        
+
         setLoading: (loading) => set({ isLoading: loading }),
         setSaving: (saving) => set({ isSaving: saving }),
         setError: (error) => set({ error }),
-        
+
         // Scene placement
         addSceneLocation: (sceneLocation) => set((state) => ({
           sceneLocations: [...state.sceneLocations, sceneLocation],
         })),
-        
+
         updateSceneLocation: (instanceId, updates) => set((state) => ({
           sceneLocations: state.sceneLocations.map((sl) =>
             sl.instance_id === instanceId ? { ...sl, ...updates } : sl
           ),
         })),
-        
+
         removeSceneLocation: (instanceId) => set((state) => ({
           sceneLocations: state.sceneLocations.filter((sl) => sl.instance_id !== instanceId),
           selectedSceneLocationId: state.selectedSceneLocationId === instanceId ? null : state.selectedSceneLocationId,
         })),
-        
+
         selectSceneLocation: (instanceId) => set({ selectedSceneLocationId: instanceId }),
-        
+
         updateSceneLocationTransform: (instanceId, transform) => set((state) => ({
           sceneLocations: state.sceneLocations.map((sl) =>
             sl.instance_id === instanceId
@@ -421,7 +422,7 @@ export const useLocationStore = create<LocationState>()(
               : sl
           ),
         })),
-        
+
         // Assets
         addPlacedAsset: (locationId, asset) => set((state) => ({
           locations: state.locations.map((loc) => {
@@ -432,7 +433,7 @@ export const useLocationStore = create<LocationState>()(
             };
           }),
         })),
-        
+
         updatePlacedAsset: (locationId, assetId, updates) => set((state) => ({
           locations: state.locations.map((loc) => {
             if (loc.location_id !== locationId) return loc;
@@ -444,7 +445,7 @@ export const useLocationStore = create<LocationState>()(
             };
           }),
         })),
-        
+
         removePlacedAsset: (locationId, assetId) => set((state) => ({
           locations: state.locations.map((loc) => {
             if (loc.location_id !== locationId) return loc;
@@ -477,17 +478,17 @@ export const useLocationStore = create<LocationState>()(
  */
 export function getFilteredLocations(state: LocationState): Location[] {
   let filtered = [...state.locations];
-  
+
   // Filter by type
   if (state.filterType !== 'all') {
     filtered = filtered.filter((loc) => loc.location_type === state.filterType);
   }
-  
+
   // Filter by world
   if (state.filterWorld !== 'all') {
     filtered = filtered.filter((loc) => loc.world_id === state.filterWorld);
   }
-  
+
   // Filter by search query
   if (state.searchQuery) {
     const query = state.searchQuery.toLowerCase();
@@ -497,7 +498,7 @@ export function getFilteredLocations(state: LocationState): Location[] {
       loc.metadata?.genre_tags?.some((tag) => tag.toLowerCase().includes(query))
     );
   }
-  
+
   return filtered;
 }
 

@@ -24,6 +24,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { ProductionShot } from '@/types/shot';
+import { ComfyUIService } from '@/services/comfyuiService';
+import { useToast } from '@/hooks/use-toast';
 
 const CAMERA_TYPES = [
   'Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up',
@@ -62,16 +64,27 @@ export function ShotWizardModal({
   sequenceId,
   mode,
 }: ShotWizardModalProps) {
-  const [formData, setFormData] = useState({
+  const { toast } = useToast();
+  const [formData, setFormData] = useState<{
+    title: string;
+    description: string;
+    duration: number;
+    position: number;
+    cameraType: string;
+    visualStyle: string;
+    transition: string;
+    characters: string;
+    referenceImage: string;
+  }>({
     title: initialShot?.title || '',
-    description: initialShot?.description || '',
-    duration: initialShot?.duration || 5,
+    description: (initialShot as any)?.description || '',
+    duration: (initialShot as any)?.duration || 5,
     position: initialShot?.position || 1,
-    cameraType: initialShot?.metadata?.camera_type || 'Medium Shot',
-    visualStyle: initialShot?.metadata?.visual_style || 'cinematic',
-    transition: initialShot?.metadata?.transition || 'Cut',
-    characters: initialShot?.metadata?.characters || '',
-    referenceImage: initialShot?.referenceImage || '',
+    cameraType: (initialShot as any)?.metadata?.camera_type || 'Medium Shot',
+    visualStyle: (initialShot as any)?.metadata?.visual_style || 'cinematic',
+    transition: (initialShot as any)?.metadata?.transition || 'Cut',
+    characters: (initialShot as any)?.metadata?.characters || '',
+    referenceImage: (initialShot as any)?.referenceImage || '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -81,6 +94,9 @@ export function ShotWizardModal({
   const [generationStatus, setGenerationStatus] = useState<'processing' | 'completed' | 'failed' | null>(null);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
+
+  const [imagePrompt, setImagePrompt] = useState(initialShot?.description || '');
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const ollamaStatus = useAppStore((state) => state.ollamaStatus);
   const project = useAppStore((state) => state.project);
@@ -163,6 +179,80 @@ Réponds uniquement avec la description, sans préambule.`;
     } catch (err) {
       console.error('[ShotWizard] Video generation failed:', err);
       setGenerationStatus('failed');
+    } finally {
+      setIsGeneratingVideo(false);
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    if (!imagePrompt.trim()) return;
+    setIsGeneratingImage(true);
+    try {
+      const url = await ComfyUIService.getInstance().generateImage({
+        prompt: imagePrompt,
+        width: 1024,
+        height: 576,
+        steps: 20,
+        cfgScale: 7.0,
+        model: 'default',
+        sampler: 'euler',
+        scheduler: 'normal'
+      });
+
+      if (url) {
+        setFormData(prev => ({ ...prev, referenceImage: url }));
+      }
+    } catch (err) {
+      console.error('[ShotWizard] Image generation failed:', err);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  const handleProlongVideo = async () => {
+    if (!generatedVideoUrl) return;
+
+    setIsGeneratingVideo(true);
+    setGenerationStatus('processing'); // Changed from 'pending' to match type
+    setGenerationProgress(0);
+
+    try {
+      const projectId = project?.id || 'default_project';
+      const shotId = initialShot?.id || `shot_${Date.now()}`; // Use known ID or generate temp one
+
+      const params = {
+        width: 1024,
+        height: 576,
+        steps: 20,
+        cfgScale: 7.5,
+        sampler: 'euler',
+        scheduler: 'normal',
+        // Add specific extension params if needed, e.g. motion_bucket_id
+      };
+
+      const result = await videoEditorAPI.extendVideo(
+        projectId,
+        shotId,
+        generatedVideoUrl,
+        params
+      );
+
+      setGenerationTaskId(result.taskId);
+      setGenerationStatus('processing');
+      setGenerationProgress(0.1);
+
+      toast({
+        title: "Extension lancée",
+        description: "La vidéo est en cours de prolongation...",
+      });
+    } catch (err) {
+      console.error('[ShotWizard] Video extension failed:', err);
+      setGenerationStatus('failed');
+      toast({
+        title: "Erreur",
+        description: "Échec de l'extension de la vidéo.",
+        variant: "destructive"
+      });
     } finally {
       setIsGeneratingVideo(false);
     }
@@ -471,7 +561,33 @@ Réponds uniquement avec la description, sans préambule.`;
                 )}
               </div>
 
-              <div className="space-y-4">
+              {/* Image Generation Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-yellow-500" />
+                  <h3 className="text-lg font-semibold">Génération d&apos;Image (Prompt)</h3>
+                </div>
+                <div className="space-y-2">
+                  <Label>Prompt Image</Label>
+                  <Textarea
+                    value={imagePrompt}
+                    onChange={(e) => setImagePrompt(e.target.value)}
+                    placeholder="Décrivez l'image à générer..."
+                    rows={3}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleGenerateImage}
+                  disabled={isGeneratingImage || !imagePrompt.trim()}
+                  className="w-full"
+                >
+                  {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
+                  Générer la première image
+                </Button>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t">
                 <div className="flex items-center gap-2 mb-2">
                   <Video className="w-5 h-5 text-purple-500" />
                   <h3 className="text-lg font-semibold">Génération Vidéo AI</h3>
@@ -486,23 +602,37 @@ Réponds uniquement avec la description, sans préambule.`;
                     <span>Cette opération utilise ComfyUI. Assurez-vous que le serveur est démarré.</span>
                   </div>
 
-                  <Button
-                    type="button"
-                    className="w-full gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
-                    disabled={!formData.referenceImage || isGeneratingVideo}
-                    onClick={handleGenerateVideo}
-                  >
-                    {isGeneratingVideo ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Génération en cours...</>
-                    ) : (
-                      <><Video className="w-4 h-4" /> Générer la Vidéo AI</>
+                  <div className="flex gap-2 w-full">
+                    <Button
+                      type="button"
+                      className="flex-1 gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
+                      disabled={!formData.referenceImage || isGeneratingVideo}
+                      onClick={handleGenerateVideo}
+                    >
+                      {isGeneratingVideo ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> Génération...</>
+                      ) : (
+                        <><Video className="w-4 h-4" /> Générer Vidéo</>
+                      )}
+                    </Button>
+
+                    {generatedVideoUrl && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="flex-1 gap-2 border-purple-500/50"
+                        onClick={handleProlongVideo}
+                        title="Prolonger la vidéo existante"
+                      >
+                        <Video className="w-4 h-4" /> Prolonger
+                      </Button>
                     )}
-                  </Button>
+                  </div>
 
                   {generationTaskId && (
                     <div className={`p-3 border rounded-md text-xs font-medium text-center space-y-2 ${generationStatus === 'completed' ? 'bg-green-500/10 border-green-500/20 text-green-600' :
-                        generationStatus === 'failed' ? 'bg-red-500/10 border-red-500/20 text-red-600' :
-                          'bg-blue-500/10 border-blue-500/20 text-blue-600'
+                      generationStatus === 'failed' ? 'bg-red-500/10 border-red-500/20 text-red-600' :
+                        'bg-blue-500/10 border-blue-500/20 text-blue-600'
                       }`}>
                       <div className="flex justify-between items-center mb-1">
                         <span>{generationStatus === 'completed' ? 'Génération terminée !' :
@@ -513,8 +643,8 @@ Réponds uniquement avec la description, sans préambule.`;
                       <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                         <div
                           className={`h-full transition-all duration-500 ${generationStatus === 'completed' ? 'bg-green-500' :
-                              generationStatus === 'failed' ? 'bg-red-500' :
-                                'bg-blue-500'
+                            generationStatus === 'failed' ? 'bg-red-500' :
+                              'bg-blue-500'
                             }`}
                           style={{ width: `${generationProgress * 100}%` }}
                         ></div>

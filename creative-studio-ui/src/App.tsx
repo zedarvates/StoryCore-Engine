@@ -2,6 +2,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import { useStore } from '@/store';
+import { useEditorStore } from '@/stores/editorStore';
+import type { Story } from '@/types/story';
 import { LLMProvider } from '@/providers/LLMProvider';
 import { SecretModeProvider, useSecretMode } from '@/contexts/SecretModeContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -115,6 +117,12 @@ function AppContent() {
     setShowPendingReportsList,
     showFactCheckModal,
     setShowFactCheckModal,
+    showSequencePlanWizard,
+    closeSequencePlanWizard,
+    sequencePlanWizardContext,
+    showShotWizard,
+    closeShotWizard,
+    shotWizardContext,
     // Generic wizard state (simple forms in GenericWizardModal)
     showDialogueWriter,
     showSceneGenerator,
@@ -295,7 +303,7 @@ function AppContent() {
       setShots([]);
       setCurrentView('dashboard');
       setSelectedSequenceId(undefined);
-      
+
       // Also dispatch navigate-to-dashboard as a fallback
       setTimeout(() => {
         setCurrentView('dashboard');
@@ -304,7 +312,7 @@ function AppContent() {
 
     window.addEventListener('storycore:navigate-to-dashboard', handleNavigateToDashboard);
     window.addEventListener('storycore:exit-project', handleExitProject);
-    
+
     return () => {
       window.removeEventListener('storycore:navigate-to-dashboard', handleNavigateToDashboard);
       window.removeEventListener('storycore:exit-project', handleExitProject);
@@ -494,7 +502,7 @@ function AppContent() {
       const characterExistsInStore = store.characters?.some(
         c => c.character_id === character.character_id
       );
-      
+
       if (!characterExistsInStore) {
         useStore.getState().addCharacter(character);
         devLog('[App] Character added to Zustand store:', character.character_id);
@@ -507,7 +515,7 @@ function AppContent() {
         const characterExistsInProject = projectCharacters.some(
           c => c.character_id === character.character_id
         );
-        
+
         if (!characterExistsInProject) {
           useAppStore.setState({
             project: {
@@ -554,7 +562,7 @@ function AppContent() {
       const objectExistsInStore = store.objects?.some(
         o => o.id === object.id
       );
-      
+
       if (!objectExistsInStore) {
         useStore.getState().addObject(object);
         devLog('[App] Object added to Zustand store:', object.id);
@@ -567,7 +575,7 @@ function AppContent() {
         const objectExistsInProject = projectObjects.some(
           o => o.id === object.id
         );
-        
+
         if (!objectExistsInProject) {
           useAppStore.setState({
             project: {
@@ -603,17 +611,37 @@ function AppContent() {
     }
   };
 
-  const handleStorytellerComplete = (story: unknown) => {
+  const handleStorytellerComplete = async (story: unknown) => {
     try {
-      if (!story || !story.id) {
+      const storyData = story as Story;
+      if (!storyData || !storyData.id) {
         throw new Error('Invalid story data');
+      }
+
+      // Initialize the first shot/sequence with the story intro
+      // This corresponds to the intro.md file content
+      const introPart = storyData.parts?.find(p => p.type === 'intro' || p.title?.toLowerCase().includes('intro'));
+      const introContent = introPart ? introPart.content : (storyData.summary || storyData.content?.substring(0, 500));
+
+      if (introContent && project) {
+        try {
+          const { createShot } = useEditorStore.getState();
+          await createShot({
+            title: 'Intro',
+            description: introContent,
+            duration: 5, // Default duration for intro
+          });
+          console.log('[App] First shot initialized from story intro');
+        } catch (error) {
+          console.error('[App] Failed to create initial shot:', error);
+        }
       }
 
       setShowStorytellerWizard(false);
 
       toast({
         title: 'Story Created',
-        description: `"${story.title || 'Untitled Story'}" has been generated and saved`,
+        description: `"${storyData.title || 'Untitled Story'}" has been generated and saved. Initial shot created.`,
       });
     } catch (error) {
       console.error('Failed to complete storyteller wizard:', error);
@@ -624,6 +652,59 @@ function AppContent() {
         variant: 'destructive',
       });
     }
+  };
+
+  // Sequence Plan Wizard Handler
+  const handleSequencePlanComplete = (plan: any) => {
+    // Save to project structure
+    if (project) {
+      const updatedProject = { ...project };
+      // Assuming project has a sequences array or we store it in metadata for now
+      // This adapts to the available structure. If sequences doesn't exist, we init it.
+      // real implementation should likely have a dedicated store slice or project property
+      const sequences = (updatedProject.metadata as any).sequences || [];
+      const existingIndex = sequences.findIndex((s: any) => s.id === plan.id);
+
+      if (existingIndex >= 0) {
+        sequences[existingIndex] = plan;
+      } else {
+        sequences.push(plan);
+      }
+
+      updatedProject.metadata = {
+        ...updatedProject.metadata,
+        sequences
+      };
+
+      setProject(updatedProject);
+    }
+
+    console.log('Sequence Plan saved:', plan);
+    closeSequencePlanWizard();
+    toast({
+      title: 'Plan de séquence sauvegardé',
+      description: `Le plan "${plan.name}" a été enregistré avec succès.`
+    });
+  };
+
+  // Shot Wizard Handler
+  const handleShotComplete = (shot: any) => {
+    // Use store actions to update shots
+    const { shots, addShot, updateShot } = useAppStore.getState();
+    const existingShot = shots.find(s => s.id === shot.id);
+
+    if (existingShot) {
+      updateShot(shot.id, shot);
+    } else {
+      addShot(shot);
+    }
+
+    console.log('Shot saved:', shot);
+    closeShotWizard();
+    toast({
+      title: 'Plan (Shot) sauvegardé',
+      description: `Le plan "${shot.title}" a été enregistré avec succès.`
+    });
   };
 
   // Generic wizard completion handler (Requirement 5.3, 9.1)
@@ -773,8 +854,21 @@ function AppContent() {
       <ProjectSetupWizardModal />
 
       {/* Production Wizards */}
-      <SequencePlanWizardModal />
-      <ShotWizardModal />
+      <SequencePlanWizardModal
+        isOpen={showSequencePlanWizard}
+        onClose={closeSequencePlanWizard}
+        onComplete={handleSequencePlanComplete}
+        mode={sequencePlanWizardContext?.mode || 'create'}
+        initialPlan={sequencePlanWizardContext?.existingSequencePlan as any}
+      />
+      <ShotWizardModal
+        isOpen={showShotWizard}
+        onClose={closeShotWizard}
+        onComplete={handleShotComplete}
+        mode={shotWizardContext?.mode || 'create'}
+        initialShot={shotWizardContext?.existingShot as any}
+        sequenceId={shotWizardContext?.sequenceId}
+      />
 
       {/* Generic Wizard Modal (Requirements 1.2, 1.3, 1.4) */}
       <GenericWizardModal

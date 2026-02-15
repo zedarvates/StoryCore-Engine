@@ -80,7 +80,9 @@ class Settings(BaseSettings):
         RATE_LIMIT_THRESHOLD: Maximum requests per IP per hour (default: 10)
         MAX_PAYLOAD_SIZE_MB: Maximum payload size in MB (default: 10)
     """
-    github_api_token: str = Field(..., env='GITHUB_API_TOKEN')
+    # Security Fix: Make GitHub token optional with None default instead of placeholder
+    # GitHub features will be disabled if token is not configured
+    github_api_token: Optional[str] = Field(default=None, env='GITHUB_API_TOKEN')
     cors_origins: str = Field(
         default="http://localhost:3000,http://localhost:5173",
         env='CORS_ORIGINS'
@@ -88,22 +90,28 @@ class Settings(BaseSettings):
     rate_limit_threshold: int = Field(default=10, env='RATE_LIMIT_THRESHOLD')
     max_payload_size_mb: int = Field(default=10, env='MAX_PAYLOAD_SIZE_MB')
     github_repo_owner: str = Field(default="zedarvates", env='GITHUB_REPO_OWNER')
-    github_repo_name: str = Field(default="StoryCore-Engine", env='GITHUB_REPO_NAME')
+    github_repo_name: str = Field(default="StoryCore-Engine")
     
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # Ignore extra environment variables
 
 
 # Initialize settings
+# Security Fix: No longer using PLACEHOLDER_TOKEN - use environment variable or disable features
 try:
     settings = Settings()
-    logger.info("Settings loaded successfully")
+    if not settings.github_api_token:
+        logger.warning("GITHUB_API_TOKEN not set - GitHub features disabled. "
+                      "Set GITHUB_API_TOKEN environment variable to enable GitHub integration.")
+    else:
+        logger.info("Settings loaded successfully with GitHub API token")
 except Exception as e:
     logger.error(f"Failed to load settings: {e}")
-    logger.warning("Using default settings - GitHub API token must be set via environment variable")
-    # Create settings with minimal defaults for development
-    settings = Settings(github_api_token="PLACEHOLDER_TOKEN")
+    # Create settings with no GitHub token - features will be disabled gracefully
+    settings = Settings()
+    logger.warning("Using default settings without GitHub token - GitHub features disabled")
 
 
 # Initialize FastAPI application

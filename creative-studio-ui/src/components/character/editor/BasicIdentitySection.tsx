@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Character } from '@/types/character';
+import { CHARACTER_ARCHETYPES, AGE_RANGES, GENDER_OPTIONS } from '@/constants/characterOptions';
 import './EditorSection.css';
 
 interface BasicIdentitySectionProps {
@@ -19,7 +20,7 @@ export function BasicIdentitySection({
   return (
     <div className="editor-section">
       <h3 className="editor-section__title">Basic Identity</h3>
-      
+
       {/* Name */}
       <div className="editor-section__field">
         <label htmlFor="name" className="editor-section__label">
@@ -41,7 +42,7 @@ export function BasicIdentitySection({
           </div>
         )}
       </div>
-      
+
       {/* Archetype */}
       <div className="editor-section__field">
         <label htmlFor="archetype" className="editor-section__label">
@@ -54,14 +55,11 @@ export function BasicIdentitySection({
           onChange={(e) => onNestedChange('role', 'archetype', e.target.value)}
         >
           <option value="">Select archetype</option>
-          <option value="Hero">Hero</option>
-          <option value="Mentor">Mentor</option>
-          <option value="Ally">Ally</option>
-          <option value="Guardian">Guardian</option>
-          <option value="Trickster">Trickster</option>
-          <option value="Shapeshifter">Shapeshifter</option>
-          <option value="Shadow">Shadow</option>
-          <option value="Herald">Herald</option>
+          {CHARACTER_ARCHETYPES.map((archetype) => (
+            <option key={archetype} value={archetype}>
+              {archetype}
+            </option>
+          ))}
         </select>
         {errors['role.archetype'] && (
           <div className="editor-section__error">
@@ -84,11 +82,11 @@ export function BasicIdentitySection({
           onChange={(e) => onNestedChange('visual_identity', 'age_range', e.target.value)}
         >
           <option value="">Select age range</option>
-          <option value="Child (0-12)">Child (0-12)</option>
-          <option value="Teenager (13-19)">Teenager (13-19)</option>
-          <option value="Young Adult (20-35)">Young Adult (20-35)</option>
-          <option value="Middle-aged (36-55)">Middle-aged (36-55)</option>
-          <option value="Senior (56+)">Senior (56+)</option>
+          {AGE_RANGES.map((range) => (
+            <option key={range} value={range}>
+              {range}
+            </option>
+          ))}
         </select>
         {errors['visual_identity.age_range'] && (
           <div className="editor-section__error">
@@ -98,7 +96,55 @@ export function BasicIdentitySection({
           </div>
         )}
       </div>
-      
+
+      {/* Gender */}
+      <div className="editor-section__field">
+        <label htmlFor="gender" className="editor-section__label">
+          Gender <span className="editor-section__required">*</span>
+        </label>
+        <select
+          id="gender"
+          className={`editor-section__select ${errors['visual_identity.gender'] ? 'editor-section__select--error' : ''}`}
+          value={
+            GENDER_OPTIONS.includes(data.visual_identity?.gender as typeof GENDER_OPTIONS[number])
+              ? data.visual_identity?.gender || ''
+              : data.visual_identity?.gender ? 'Other' : ''
+          }
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val === 'Other') {
+              onNestedChange('visual_identity', 'gender', 'Other');
+            } else {
+              onNestedChange('visual_identity', 'gender', val);
+            }
+          }}
+        >
+          <option value="">Select gender</option>
+          {GENDER_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        {data.visual_identity?.gender &&
+          !['Male', 'Female', 'Non-binary'].includes(data.visual_identity.gender) && (
+            <input
+              type="text"
+              className="editor-section__input mt-2"
+              value={data.visual_identity.gender === 'Other' ? '' : data.visual_identity.gender}
+              onChange={(e) => onNestedChange('visual_identity', 'gender', e.target.value || 'Other')}
+              placeholder="Specify gender..."
+            />
+          )}
+        {errors['visual_identity.gender'] && (
+          <div className="editor-section__error">
+            {errors['visual_identity.gender'].map((error, index) => (
+              <p key={index}>{error}</p>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Narrative Function */}
       <div className="editor-section__field">
         <label htmlFor="narrative_function" className="editor-section__label">
@@ -113,7 +159,7 @@ export function BasicIdentitySection({
           placeholder="e.g., Protagonist, Antagonist, Supporting"
         />
       </div>
-      
+
       {/* Character Arc */}
       <div className="editor-section__field">
         <label htmlFor="character_arc" className="editor-section__label">

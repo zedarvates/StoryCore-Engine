@@ -10,16 +10,13 @@ import { Step2CharacterSelection } from './Step2CharacterSelection';
 import { Step3LocationSelection } from './Step3LocationSelection';
 import { Step4StoryGeneration } from './Step4StoryGeneration';
 import { Step5ReviewExport } from './Step5ReviewExport';
-import { 
-  saveStoryToDisk, 
-  loadStoryPartsFromDisk,
-  storyToMarkdown, 
-  markdownToStory 
-} from '@/utils/storyFileIO';
+import { saveStoryToDisk } from '@/utils/storyFileIO';
 import { toast } from '@/utils/toast';
+import { Button } from '@/components/ui/button';
+import { FileText, Plus, RefreshCw } from 'lucide-react';
 
 // ============================================================================
-// Storyteller Wizard Component - LLM-Optimized Version
+// Storyteller Wizard Component - Updated to use hasSavedProgress
 // ============================================================================
 
 export interface StorytellerWizardProps {
@@ -29,35 +26,15 @@ export interface StorytellerWizardProps {
 }
 
 const WIZARD_STEPS: WizardStep[] = [
-  {
-    number: 1,
-    title: 'Story Setup',
-    description: 'Genre, tone, and length',
-  },
-  {
-    number: 2,
-    title: 'Characters',
-    description: 'Select or create',
-  },
-  {
-    number: 3,
-    title: 'Locations',
-    description: 'Select or create',
-  },
-  {
-    number: 4,
-    title: 'Generate',
-    description: 'AI story creation',
-  },
-  {
-    number: 5,
-    title: 'Review & Export',
-    description: 'Finalize and save',
-  },
+  { number: 1, title: 'Story Setup', description: 'Genre, tone, and length' },
+  { number: 2, title: 'Characters', description: 'Select or create' },
+  { number: 3, title: 'Locations', description: 'Select or create' },
+  { number: 4, title: 'Generate', description: 'AI story creation' },
+  { number: 5, title: 'Review & Export', description: 'Finalize and save' },
 ];
 
 // ============================================================================
-// Storyteller Wizard Content (uses wizard context)
+// Storyteller Wizard Content
 // ============================================================================
 
 interface StorytellerWizardContentProps {
@@ -82,29 +59,144 @@ function StorytellerWizardContent({ steps, onCancel, renderStepContent }: Storyt
   );
 }
 
+// ============================================================================
+// Continue Dialog Component - Shown when hasSavedProgress() returns true
+// ============================================================================
+
+interface ContinueDialogProps {
+  onContinuePrevious: () => void;
+  onStartFresh: () => void;
+  isLoading: boolean;
+}
+
+function ContinueDialog({ onContinuePrevious, onStartFresh, isLoading }: ContinueDialogProps) {
+  return (
+    <div className="flex items-center justify-center h-[500px]">
+      <div className="text-center p-8 max-w-md">
+        <FileText className="w-16 h-16 mx-auto mb-4 text-primary" />
+        <h2 className="text-xl font-bold mb-2">Saved Progress Found</h2>
+        <p className="text-muted-foreground mb-6">
+          You have saved progress from a previous session. Would you like to continue where you left off or start fresh?
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Button onClick={onContinuePrevious} className="gap-2" disabled={isLoading}>
+            {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+            Continue Previous
+          </Button>
+          <Button onClick={onStartFresh} variant="outline" className="gap-2" disabled={isLoading}>
+            <Plus className="w-4 h-4" />
+            Start Fresh
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Storyteller Wizard Inner - Has access to wizard context via useWizard()
+// ============================================================================
+
+interface StorytellerWizardInnerProps {
+  steps: WizardStep[];
+  onCancel: () => void;
+  renderStepContent: (step: number) => React.ReactNode;
+}
+
+function StorytellerWizardInner({ steps, onCancel, renderStepContent }: StorytellerWizardInnerProps) {
+  const { hasSavedProgress, loadProgress, clearSavedProgress } = useWizard();
+  const [showContinueDialog, setShowContinueDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [wizardReady, setWizardReady] = useState(false);
+
+  // Check for saved progress on mount using hasSavedProgress()
+  useEffect(() => {
+    if (hasSavedProgress()) {
+      setShowContinueDialog(true);
+    } else {
+      setWizardReady(true);
+    }
+  }, [hasSavedProgress]);
+
+  // Handle continue previous - call loadProgress() manually
+  const handleContinuePrevious = useCallback(() => {
+    setIsLoading(true);
+    try {
+      loadProgress();
+      setShowContinueDialog(false);
+      setWizardReady(true);
+      toast.success('Progress Loaded', 'Your previous progress has been restored');
+    } catch (error) {
+      console.error('Failed to load progress:', error);
+      toast.error('Load Failed', 'Failed to load saved progress');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadProgress]);
+
+  // Handle start fresh - call clearSavedProgress()
+  const handleStartFresh = useCallback(() => {
+    try {
+      clearSavedProgress();
+      setShowContinueDialog(false);
+      setWizardReady(true);
+    } catch (error) {
+      console.error('Failed to clear progress:', error);
+      // Still proceed even if clear fails
+      setShowContinueDialog(false);
+      setWizardReady(true);
+    }
+  }, [clearSavedProgress]);
+
+  // Show continue dialog if hasSavedProgress() returned true
+  if (showContinueDialog) {
+    return (
+      <ContinueDialog
+        onContinuePrevious={handleContinuePrevious}
+        onStartFresh={handleStartFresh}
+        isLoading={isLoading}
+      />
+    );
+  }
+
+  // Show loading state while initializing
+  if (!wizardReady) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 mx-auto mb-4 animate-spin" />
+          <p className="text-muted-foreground">Initializing wizard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <StorytellerWizardContent
+      steps={steps}
+      onCancel={onCancel}
+      renderStepContent={renderStepContent}
+    />
+  );
+}
+
+// ============================================================================
+// Main Storyteller Wizard Component
+// ============================================================================
+
 export function StorytellerWizard({ onComplete, onCancel, initialData }: StorytellerWizardProps) {
-  // Get store actions
   const addStory = useStore((state) => state.addStory);
   const currentProject = useStore((state) => state.project);
-
-  // Loading state for file operations
-  const [isLoadingStory, setIsLoadingStory] = useState(false);
-  const [loadedStoryData, setLoadedStoryData] = useState<Partial<Story> | null>(null);
-
-  // ============================================================================
-  // Pre-fill with project metadata
-  // ============================================================================
 
   const getInitialStoryData = useCallback((): Partial<Story> => {
     const baseData = initialData || createEmptyStory();
 
     if (currentProject?.metadata) {
       const projectMeta = currentProject.metadata;
-
       return {
         ...baseData,
-        genre: projectMeta.genre || baseData.genre,
-        tone: projectMeta.tone || baseData.tone,
+        genre: (projectMeta.genre as string[]) || baseData.genre,
+        tone: (projectMeta.tone as string[]) || baseData.tone,
         length: projectMeta.projectType === 'court-metrage' ? 'scene' :
           projectMeta.projectType === 'moyen-metrage' ? 'short_story' :
             projectMeta.projectType === 'long-metrage-standard' ? 'novella' :
@@ -113,209 +205,89 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
                   baseData.length,
       };
     }
-
     return baseData;
   }, [currentProject, initialData]);
 
-  // ============================================================================
-  // Load story parts on mount (if project exists)
-  // ============================================================================
-
-  useEffect(() => {
-    const loadExistingStory = async () => {
-      if (!window.electronAPI || !currentProject) {
-        return;
-      }
-
-      setIsLoadingStory(true);
-
-      try {
-        const projectPath = currentProject.path || currentProject.project_name;
-        
-        // Try to load parts from the new LLM-optimized structure
-        const parts = await loadStoryPartsFromDisk(projectPath);
-        
-        if (parts && parts.length > 0) {
-          // Combine parts into story content
-          const combinedContent = parts.map(p => `### ${p.title}\n\n${p.content}`).join('\n\n');
-          const lastPart = parts[parts.length - 1];
-          
-          setLoadedStoryData({
-            ...getInitialStoryData(),
-            content: combinedContent,
-            summary: lastPart.summary,
-            parts: parts,
-          });
-
-          toast.success(
-            'Story Loaded',
-            `Loaded ${parts.length} story parts from LLM-optimized files`
-          );
-        } else {
-          // Fallback to legacy story.md
-          const storyFilePath = `${projectPath}/story.md`;
-          const exists = await window.electronAPI.fs.exists(storyFilePath);
-
-          if (exists) {
-            const fileBuffer = await window.electronAPI.fs.readFile(storyFilePath);
-            const markdown = fileBuffer.toString('utf-8');
-            const story = markdownToStory(markdown, getInitialStoryData());
-
-            setLoadedStoryData(story);
-
-            toast.success(
-              'Story Loaded',
-              'Existing story content has been loaded from story.md'
-            );
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to load story:', error);
-      } finally {
-        setIsLoadingStory(false);
-      }
-    };
-
-    loadExistingStory();
-  }, [currentProject, getInitialStoryData]);
-
-  // ============================================================================
-  // Validation
-  // ============================================================================
-
   const validateStep = useCallback(
-    async (step: number, data: unknown): Promise<Record<string, string[]>> => {
+    async (step: number, data: Record<string, unknown>): Promise<Record<string, string[]>> => {
       const errors: Record<string, string[]> = {};
 
       switch (step) {
         case 1:
-          // Validate genre - allow empty initially (will use project defaults)
-          if (data.genre !== undefined && Array.isArray(data.genre) && data.genre.length === 0) {
-            // Warning only, not blocking
-            console.warn('[StorytellerWizard] No genre selected, will use project defaults');
-          }
-          // Validate tone - allow empty initially (will use project defaults)
-          if (data.tone !== undefined && Array.isArray(data.tone) && data.tone.length === 0) {
-            // Warning only, not blocking
-            console.warn('[StorytellerWizard] No tone selected, will use project defaults');
-          }
-          // Validate length - allow empty initially (will use project defaults)
-          if (data.length !== undefined && data.length === '') {
-            // Warning only, not blocking
-            console.warn('[StorytellerWizard] No length selected, will use project defaults');
-          }
+          // Allow empty - will use project defaults
           break;
-
         case 2:
         case 3:
-          // Optional - no validation required
           break;
-
         case 4:
-          // Story generation step - allow skipping
-          // No blocking validation needed
           break;
-
         case 5:
-          // Review step - validate that story content exists (but allow placeholder)
-          if (!data.generatedContent || data.generatedContent.trim() === '') {
-            errors.content = ['Story content is required. You can enter it manually if generation was skipped.'];
+          if (!data.generatedContent || (data.generatedContent as string).trim() === '') {
+            errors.content = ['Story content is required'];
           }
-          if (!data.generatedSummary || data.generatedSummary.trim() === '') {
-            errors.summary = ['Story summary is required. You can enter it manually if generation was skipped.'];
+          if (!data.generatedSummary || (data.generatedSummary as string).trim() === '') {
+            errors.summary = ['Story summary is required'];
           }
           break;
       }
-
-      // Debug logging for validation
-      if (Object.keys(errors).length > 0) {
-        console.log('[StorytellerWizard] Validation errors for step', step, ':', errors);
-      }
-
       return errors;
     },
     []
   );
 
-  // ============================================================================
-  // Submission - Save with LLM-Optimized Format
-  // ============================================================================
-
   const handleSubmit = useCallback(
-    async (data: unknown) => {
-      const characterIds = (data.selectedCharacters || []).map((c: unknown) => c.id);
+    async (data: Record<string, unknown>) => {
+      const selectedChars = (data.selectedCharacters as Array<{ id: string }>) || [];
+      const characterRefs = selectedChars.map(c => ({ id: c.id })) as Story['charactersUsed'];
+      const selectedLocs = (data.selectedLocations as Array<{ id: string; name: string }>) || [];
+      const locationRefs = selectedLocs.map(l => ({ id: l.id, name: l.name, significance: 'present' })) as Story['locationsUsed'];
 
       const story: Story = {
         id: crypto.randomUUID(),
-        title: data.title || 'Untitled Story',
-        content: data.generatedContent || '',
-        summary: data.generatedSummary || '',
-        genre: data.genre || [],
-        tone: data.tone || [],
-        length: data.length || 'medium',
-        charactersUsed: characterIds,
-        locationsUsed: data.selectedLocations || [],
-        autoGeneratedElements: data.autoGeneratedElements || [],
+        title: (data.title as string) || 'Untitled Story',
+        content: (data.generatedContent as string) || '',
+        summary: (data.generatedSummary as string) || '',
+        genre: (data.genre as string[]) || [],
+        tone: (data.tone as string[]) || [],
+        length: (data.length as Story['length']) || 'medium',
+        charactersUsed: characterRefs,
+        locationsUsed: locationRefs,
+        autoGeneratedElements: (data.autoGeneratedElements as Story['autoGeneratedElements']) || [],
         createdAt: new Date(),
         updatedAt: new Date(),
         version: 1,
-        worldId: data.worldId,
-        parts: data.parts,
+        worldId: data.worldId as string | undefined,
+        parts: data.parts as Story['parts'],
         fileFormat: 'md',
       };
 
-      // Add to store
       addStory(story);
 
-      // Save story to disk with LLM-optimized format
       if (window.electronAPI && currentProject) {
         try {
           const projectPath = currentProject.path || currentProject.project_name;
           await saveStoryToDisk(projectPath, story);
-
-          toast.success(
-            'Story Saved',
-            'Your story has been saved with LLM-optimized structure (intro, chapters, ending, summary)'
-          );
+          toast.success('Story Saved', 'Your story has been saved');
         } catch (error) {
-          console.error('Failed to save story to disk:', error);
-          toast.error(
-            'Save Failed',
-            'Failed to save story to disk. The story is still saved in the application.'
-          );
+          console.error('Failed to save story:', error);
+          toast.error('Save Failed', 'Failed to save story to disk');
         }
       }
 
-      // Emit event
-      window.dispatchEvent(
-        new CustomEvent('story-created', {
-          detail: { story },
-        })
-      );
-
+      window.dispatchEvent(new CustomEvent('story-created', { detail: { story } }));
       onComplete(story);
     },
     [onComplete, addStory, currentProject]
   );
 
-  // ============================================================================
-  // Render Step Content
-  // ============================================================================
-
   const renderStepContent = (currentStep: number) => {
     switch (currentStep) {
-      case 1:
-        return <Step1StorySetup />;
-      case 2:
-        return <Step2CharacterSelection />;
-      case 3:
-        return <Step3LocationSelection />;
-      case 4:
-        return <Step4StoryGeneration />;
-      case 5:
-        return <Step5ReviewExport />;
-      default:
-        return null;
+      case 1: return <Step1StorySetup />;
+      case 2: return <Step2CharacterSelection />;
+      case 3: return <Step3LocationSelection />;
+      case 4: return <Step4StoryGeneration />;
+      case 5: return <Step5ReviewExport />;
+      default: return null;
     }
   };
 
@@ -323,28 +295,18 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
     <WizardProvider
       wizardType="storyteller"
       totalSteps={5}
-      initialData={loadedStoryData || getInitialStoryData()}
-      onSubmit={handleSubmit}
-      onValidateStep={validateStep}
+      initialData={getInitialStoryData()}
+      onSubmit={handleSubmit as (data: unknown) => Promise<void>}
+      onValidateStep={validateStep as (step: number, data: unknown) => Promise<Record<string, string[]>>}
       autoSave={true}
       autoSaveDelay={2000}
+      autoLoad={false}
     >
-      {isLoadingStory ? (
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading story...</p>
-          </div>
-        </div>
-      ) : (
-        <StorytellerWizardContent
-          steps={WIZARD_STEPS}
-          onCancel={onCancel}
-          renderStepContent={renderStepContent}
-        />
-      )}
+      <StorytellerWizardInner
+        steps={WIZARD_STEPS}
+        onCancel={onCancel}
+        renderStepContent={renderStepContent}
+      />
     </WizardProvider>
   );
 }
-
-

@@ -74,6 +74,7 @@ export interface LocationReference {
   id: string;
   name: string;
   significance: string;
+  type?: string;
 }
 
 /**

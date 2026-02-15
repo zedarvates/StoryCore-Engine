@@ -2,13 +2,44 @@ import React, { useState } from 'react';
 import { Image, Loader2, AlertCircle, MapPin } from 'lucide-react';
 import { ComfyUIService } from '@/services/comfyuiService';
 import { useAppStore } from '@/stores/useAppStore';
-import type { Location } from '@/types/location';
 import './LocationImageGenerator.css';
 
+// ============================================================================
+// Common Types for Location Image Generation
+// ============================================================================
+
+/**
+ * Common interface for location data needed for image generation.
+ * This interface is compatible with both:
+ * - Location from @/types/location (uses location_id)
+ * - Location from @/types/world (uses id)
+ */
+export interface LocationImageData {
+  /** Unique identifier (maps to location_id or id depending on source) */
+  id?: string;
+  /** Location identifier from @/types/location */
+  location_id?: string;
+  /** Display name of the location */
+  name?: string;
+  /** Location type for scene context */
+  location_type?: 'exterior' | 'interior';
+  /** Metadata containing description, atmosphere, etc. */
+  metadata?: {
+    description?: string;
+    atmosphere?: string;
+    significance?: string;
+    time_period?: string;
+    key_features?: string[];
+    color_palette?: string[];
+    genre_tags?: string[];
+    [key: string]: unknown;
+  };
+}
+
 interface LocationImageGeneratorProps {
-  location: Partial<Location>;
-  onImageGenerated?: (imageUrl: string) => void;
-  disabled?: boolean;
+  readonly location: LocationImageData;
+  readonly onImageGenerated?: (imageUrl: string) => void;
+  readonly disabled?: boolean;
 }
 
 /**
@@ -159,7 +190,7 @@ export function LocationImageGenerator({
         width: 512,
         height: 512,
         steps: 4,
-        cfgScale: 1.0,
+        cfgScale: 1,
         seed: Math.floor(Math.random() * 1000000),
         model: 'z_image_turbo_bf16.safetensors',
         sampler: 'res_multistep',
@@ -196,7 +227,7 @@ export function LocationImageGenerator({
         {generatedImage ? (
           <img
             src={generatedImage}
-            alt={`Tile image of ${location.name || 'location'}`}
+            alt={location.name || 'Generated location tile'}
             className="location-image-generator__image"
           />
         ) : (

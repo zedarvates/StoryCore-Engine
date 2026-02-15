@@ -5,7 +5,7 @@
  * Requirements: 19.6, 20.1, 22.1
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -25,6 +25,13 @@ import { RecoveryDialog } from './components/RecoveryDialog/RecoveryDialog';
 import { UnsavedChangesDialog } from './components/UnsavedChangesDialog/UnsavedChangesDialog';
 import { LayerManager } from './components/LayerManager/LayerManager';
 import { LayerPropertiesPanel } from './components/LayerPropertiesPanel/LayerPropertiesPanel';
+
+// Import new enhancement panels
+import { TransitionsPanel } from './components/TransitionsPanel';
+import { AIFeaturesPanel } from './components/AIFeaturesPanel';
+import { AudioMixerPanel } from './components/AudioMixerPanel';
+import { ExportPanel } from './components/ExportPanel';
+import { EffectsPanel } from './components/EffectsPanel';
 
 // Import hooks
 import { useProjectRecovery } from './hooks/useProjectRecovery';
@@ -62,6 +69,12 @@ const SequenceEditorContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { selectedElements } = useAppSelector((state) => state.timeline);
   const { showLayerManager } = useAppSelector((state) => state.panels);
+  
+  // State for right panel tabs (new enhancement panels)
+  const [activeRightPanel, setActiveRightPanel] = useState<'shotConfig' | 'transitions' | 'aiFeatures' | 'effects'>('shotConfig');
+  
+  // State for bottom panel (audio mixer and export)
+  const [activeBottomPanel, setActiveBottomPanel] = useState<'timeline' | 'audioMixer' | 'export'>('timeline');
 
   // Initialize accessibility features
   useAccessibilityInit();
@@ -168,28 +181,92 @@ const SequenceEditorContent: React.FC = () => {
           resizeDirection="horizontal"
           minWidth={200}
           className="sequence-editor-shot-config"
-          ariaLabel={showLayerManager ? "Layer Manager Panel" : "Shot Configuration Panel"}
+          ariaLabel="Right Panel"
         >
-          {showLayerManager ? (
-            <>
-              <LayerManager />
-              <LayerPropertiesPanel />
-            </>
-          ) : (
-            <ShotConfigPanel shotId={selectedShotId} />
-          )}
+          {/* Right Panel Tabs for Enhancement Panels */}
+          <div className="right-panel-tabs">
+            <button
+              className={`panel-tab ${activeRightPanel === 'shotConfig' ? 'active' : ''}`}
+              onClick={() => setActiveRightPanel('shotConfig')}
+            >
+              Shot
+            </button>
+            <button
+              className={`panel-tab ${activeRightPanel === 'transitions' ? 'active' : ''}`}
+              onClick={() => setActiveRightPanel('transitions')}
+            >
+              Transitions
+            </button>
+            <button
+              className={`panel-tab ${activeRightPanel === 'aiFeatures' ? 'active' : ''}`}
+              onClick={() => setActiveRightPanel('aiFeatures')}
+            >
+              AI Features
+            </button>
+            <button
+              className={`panel-tab ${activeRightPanel === 'effects' ? 'active' : ''}`}
+              onClick={() => setActiveRightPanel('effects')}
+            >
+              Effects
+            </button>
+          </div>
+          
+          {/* Panel Content */}
+          <div className="right-panel-content">
+            {showLayerManager ? (
+              <>
+                <LayerManager />
+                <LayerPropertiesPanel />
+              </>
+            ) : activeRightPanel === 'shotConfig' ? (
+              <ShotConfigPanel shotId={selectedShotId} />
+            ) : activeRightPanel === 'transitions' ? (
+              <TransitionsPanel />
+            ) : activeRightPanel === 'aiFeatures' ? (
+              <AIFeaturesPanel />
+            ) : activeRightPanel === 'effects' ? (
+              <EffectsPanel />
+            ) : null}
+          </div>
         </ResizablePanel>
       </div>
 
-      {/* Bottom Panel - Timeline */}
+      {/* Bottom Panel - Timeline / Audio Mixer / Export */}
       <ResizablePanel
         panelId="timeline"
         resizeDirection="vertical"
         minHeight={150}
         className="sequence-editor-timeline"
-        ariaLabel="Timeline Panel"
+        ariaLabel="Bottom Panel"
       >
-        <Timeline />
+        {/* Bottom Panel Tabs */}
+        <div className="bottom-panel-tabs">
+          <button
+            className={`panel-tab ${activeBottomPanel === 'timeline' ? 'active' : ''}`}
+            onClick={() => setActiveBottomPanel('timeline')}
+          >
+            Timeline
+          </button>
+          <button
+            className={`panel-tab ${activeBottomPanel === 'audioMixer' ? 'active' : ''}`}
+            onClick={() => setActiveBottomPanel('audioMixer')}
+          >
+            Audio Mixer
+          </button>
+          <button
+            className={`panel-tab ${activeBottomPanel === 'export' ? 'active' : ''}`}
+            onClick={() => setActiveBottomPanel('export')}
+          >
+            Export
+          </button>
+        </div>
+        
+        {/* Bottom Panel Content */}
+        <div className="bottom-panel-content">
+          {activeBottomPanel === 'timeline' && <Timeline />}
+          {activeBottomPanel === 'audioMixer' && <AudioMixerPanel />}
+          {activeBottomPanel === 'export' && <ExportPanel />}
+        </div>
       </ResizablePanel>
 
       {/* Status Bar */}

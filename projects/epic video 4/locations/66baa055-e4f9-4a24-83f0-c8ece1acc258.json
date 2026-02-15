@@ -1,0 +1,18 @@
+{
+  "location_id": "66baa055-e4f9-4a24-83f0-c8ece1acc258",
+  "name": "The Smoke-Hazed Canalway",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T18:59:59.366Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A network of waterways shrouded in perpetual fog, where steam-powered vessels ply the misty routes. Along the canalbanks, players may encounter enigmatic riverboat captains and their passengers.",
+    "atmosphere": "Steampunk eeriness: wisps of fog cling to brick arches as paddlewheels churn the dark waters, while lanterns cast flickering shadows on the mist-shrouded banks.",
+    "genre_tags": [],
+    "significance": "A location for clandestine meetings or smuggling operations."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

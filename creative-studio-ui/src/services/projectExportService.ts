@@ -13,6 +13,7 @@
  */
 
 import type { Project, Shot, Asset } from '@/types';
+import { logger } from '@/utils/logger';
 
 /**
  * Export result interface
@@ -187,31 +188,31 @@ export function importProjectFromJSON(jsonString: string): Project | null {
 
     // Validate schema version
     if (project.schema_version !== '1.0') {
-      console.error('Invalid schema version:', project.schema_version);
+      logger.error('[ProjectExportService] Invalid schema version:', project.schema_version);
       return null;
     }
 
     // Validate required fields
     if (!project.project_name || !project.shots || !project.assets) {
-      console.error('Missing required fields in project');
+      logger.error('[ProjectExportService] Missing required fields in project');
       return null;
     }
 
     // Validate capabilities
     if (!project.capabilities) {
-      console.error('Missing capabilities in project');
+      logger.error('[ProjectExportService] Missing capabilities in project');
       return null;
     }
 
     // Validate generation status
     if (!project.generation_status) {
-      console.error('Missing generation_status in project');
+      logger.error('[ProjectExportService] Missing generation_status in project');
       return null;
     }
 
     return project;
   } catch (error) {
-    console.error('Failed to parse project JSON:', error);
+    logger.error('[ProjectExportService] Failed to parse project JSON:', error);
     return null;
   }
 }
@@ -331,7 +332,7 @@ export class ProjectExportService {
         return { success: true, filePath: filename };
       }
     } catch (error) {
-      console.error('JSON export failed:', error);
+      logger.error('[ProjectExportService] JSON export failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error : new Error('Unknown error'),
@@ -411,7 +412,7 @@ export class ProjectExportService {
         };
       }
     } catch (error) {
-      console.error('PDF export failed:', error);
+      logger.error('[ProjectExportService] PDF export failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error : new Error('Unknown error'),
@@ -501,7 +502,7 @@ export class ProjectExportService {
         };
       }
     } catch (error) {
-      console.error('Video export failed:', error);
+      logger.error('[ProjectExportService] Video export failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error : new Error('Unknown error'),
@@ -678,7 +679,7 @@ export class ProjectExportService {
 
       return doc.output('blob');
     } catch (error) {
-      console.error('PDF generation failed:', error);
+      logger.error('[ProjectExportService] PDF generation failed:', error);
       throw new Error('Failed to generate PDF');
     }
   }
@@ -720,7 +721,7 @@ export class ProjectExportService {
       // Return the manifest as a JSON blob (stand-in for the video)
       return new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
     } catch (error) {
-      console.error('Video sequence generation failed:', error);
+      logger.error('[ProjectExportService] Video sequence generation failed:', error);
       this.reportProgress(0, `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }

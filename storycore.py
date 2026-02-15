@@ -288,6 +288,7 @@ if __name__ == "__main__":
     # Initialize ComfyUI integration before running CLI
     initialize_comfyui_integration()
     
+    exit_code = 0
     try:
         # Run CLI
         exit_code = main()

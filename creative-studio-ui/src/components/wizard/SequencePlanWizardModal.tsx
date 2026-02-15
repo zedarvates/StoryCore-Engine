@@ -13,6 +13,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Loader2, Sparkles, Camera } from 'lucide-react';
+import { ComfyUIService } from '@/services/comfyuiService';
+
+export interface Shot {
+  id: string;
+  title: string;
+  description: string;
+  duration: number;
+  position: number;
+}
 
 export interface SequencePlan {
   id: string;
@@ -23,14 +33,7 @@ export interface SequencePlan {
   duration: number;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface Shot {
-  id: string;
-  title: string;
-  description: string;
-  duration: number;
-  position: number;
+  coverImage?: string;
 }
 
 interface SequencePlanWizardModalProps {
@@ -55,10 +58,13 @@ export function SequencePlanWizardModal({
       shots: [],
       order: 1,
       duration: 0,
+      coverImage: '',
     }
   );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [imagePrompt, setImagePrompt] = useState(initialPlan?.description || '');
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -73,6 +79,31 @@ export function SequencePlanWizardModal({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleGenerateImage = async () => {
+    if (!imagePrompt.trim()) return;
+    setIsGeneratingImage(true);
+    try {
+      const url = await ComfyUIService.getInstance().generateImage({
+        prompt: imagePrompt,
+        width: 1024,
+        height: 576,
+        steps: 20,
+        cfgScale: 7.0,
+        model: 'default',
+        sampler: 'euler',
+        scheduler: 'normal'
+      });
+
+      if (url) {
+        setFormData(prev => ({ ...prev, coverImage: url }));
+      }
+    } catch (err) {
+      console.error('[SequencePlanWizard] Image generation failed:', err);
+    } finally {
+      setIsGeneratingImage(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -91,6 +122,7 @@ export function SequencePlanWizardModal({
       duration: formData.duration || 0,
       createdAt: initialPlan?.createdAt || new Date(),
       updatedAt: new Date(),
+      coverImage: formData.coverImage,
     };
 
     onComplete(plan);
@@ -113,7 +145,7 @@ export function SequencePlanWizardModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {mode === 'create' ? 'Créer un plan de séquence' : 'Modifier le plan de séquence'}
@@ -150,6 +182,39 @@ export function SequencePlanWizardModal({
             {errors.description && (
               <p className="text-sm text-red-500">{errors.description}</p>
             )}
+          </div>
+
+          {/* Image Generation Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-yellow-500" />
+              <h3 className="text-lg font-semibold">Génération de couverture (Prompt)</h3>
+            </div>
+            <div className="space-y-2">
+              <Label>Prompt Image</Label>
+              <Textarea
+                value={imagePrompt}
+                onChange={(e) => setImagePrompt(e.target.value)}
+                placeholder="Décrivez l'image de couverture à générer..."
+                rows={3}
+              />
+            </div>
+
+            {formData.coverImage && (
+              <div className="mb-4 rounded-md overflow-hidden border">
+                <img src={formData.coverImage} alt="Cover" className="w-full h-48 object-cover" />
+              </div>
+            )}
+
+            <Button
+              type="button"
+              onClick={handleGenerateImage}
+              disabled={isGeneratingImage || !imagePrompt.trim()}
+              className="w-full"
+            >
+              {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
+              Générer la première image (Couverture)
+            </Button>
           </div>
 
           {/* Ordre */}

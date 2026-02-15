@@ -8,6 +8,8 @@
  * - Model recommendations based on system capabilities
  */
 
+import { logger } from '@/utils/logger';
+
 export interface LocalModel {
   id: string;
   name: string;
@@ -340,7 +342,7 @@ export const LOCAL_MODELS: LocalModel[] = [
  * Local Model Service Class
  */
 export class LocalModelService {
-  private endpoint: string;
+  private readonly endpoint: string;
 
   constructor(endpoint: string = 'http://localhost:11434') {
     this.endpoint = endpoint;
@@ -357,7 +359,7 @@ export class LocalModelService {
       });
       return response.ok;
     } catch (error) {
-      console.warn('Ollama connection check failed:', error);
+      logger.warn('[LocalModelService] Ollama connection check failed:', error);
       return false;
     }
   }
@@ -376,9 +378,9 @@ export class LocalModelService {
       }
 
       const data = await response.json();
-      return data.models?.map((m: unknown) => m.name) || [];
+      return data.models?.map((m: { name: string }) => m.name) || [];
     } catch (error) {
-      console.error('Failed to get installed models:', error);
+      logger.error('[LocalModelService] Failed to get installed models:', error);
       return [];
     }
   }
@@ -507,7 +509,7 @@ export class LocalModelService {
             }
           } catch (e) {
             if (e instanceof SyntaxError) {
-              console.warn('Failed to parse JSON line:', line);
+              logger.warn('[LocalModelService] Failed to parse JSON line:', line);
             } else {
               throw e;
             }
@@ -528,9 +530,9 @@ export class LocalModelService {
       return true;
 
     } catch (error) {
-      console.error('Failed to download model:', error);
+      logger.error('[LocalModelService] Failed to download model:', error);
       const errorMessage = error instanceof Error ? error.message : 'Download failed';
-      
+
       if (onProgress) {
         onProgress({
           modelId,
@@ -562,7 +564,7 @@ export class LocalModelService {
 
       return response.ok;
     } catch (error) {
-      console.error('Failed to delete model:', error);
+      logger.error('[LocalModelService] Failed to delete model:', error);
       return false;
     }
   }

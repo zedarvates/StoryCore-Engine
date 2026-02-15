@@ -623,7 +623,75 @@ DOMAIN_MAX 1.0 1.0 1.0
   }
 
   private parseXML(xml: string): unknown {
-    throw new Error('XML parsing not implemented');
+    // Parse XML color grading data
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'text/xml');
+      
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) {
+        throw new Error(`XML parse error: ${parseError.textContent}`);
+      }
+
+      const gradingElement = doc.querySelector('color_grading');
+      if (!gradingElement) {
+        throw new Error('Invalid color grading XML: missing color_grading root element');
+      }
+
+      const id = gradingElement.getAttribute('id') || '';
+      const videoId = gradingElement.querySelector('video_id')?.textContent || '';
+      const gradingScore = parseFloat(gradingElement.querySelector('grading_score')?.textContent || '0');
+      const targetMood = gradingElement.querySelector('target_mood')?.textContent || 'neutral';
+
+      // Return a partial grading object that can be merged
+      return {
+        id,
+        videoId,
+        grading: {
+          colorCharacteristics: [],
+          gradingPresets: [],
+          colorBalance: {
+            temperature: 0,
+            tint: 0,
+            contrast: 0,
+            saturation: 0
+          },
+          moodEnhancement: {
+            targetMood: targetMood as ColorMood,
+            moodAlignment: 0.5,
+            emotionalImpact: 0.5,
+            atmosphereScore: 0.5,
+            suggestedEnhancements: []
+          },
+          technicalQuality: {
+            colorAccuracy: 0.8,
+            dynamicRange: 0.8,
+            skinToneAccuracy: 0.8,
+            shadowDetail: 0.7,
+            highlightDetail: 0.7,
+            noiseLevel: 0.1,
+            compressionArtifacts: 0.1,
+            overallQuality: 0.8
+          },
+          recommendations: [],
+          gradingScore,
+          compatibilityReport: {
+            broadcastCompliance: true,
+            webOptimization: true,
+            mobileOptimization: true,
+            issues: [],
+            recommendations: [],
+            colorSpace: 'sRGB',
+            bitDepth: 8
+          }
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('[AIColorGradingService] Failed to parse XML:', error);
+      throw new Error(`Failed to parse color grading XML: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   // Storage methods

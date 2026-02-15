@@ -87,6 +87,8 @@ export function useAssetLibrary(projectPath?: string): UseAssetLibraryReturn {
     });
 
     return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount - subscription should be established once
   }, []);
 
   // Search assets

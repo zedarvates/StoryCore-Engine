@@ -1,0 +1,22 @@
+{
+  "location_id": "a36bcdef-ae9b-42b1-a11c-54281ba1d7ae",
+  "name": "Nakamura's Necropolis",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T15:24:20.014Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A sprawling cemetery built into the city's oldest hill. Weathered mausoleums and crumbling headstones are overgrown with vines and moss, while a perpetual mist shrouds the area in an eerie gloom.",
+    "atmosphere": {
+      "lighting": "flickering gas lamps",
+      "temperature": "cool, misty",
+      "sounds": "creaking wooden coffins, distant sighs, dripping water"
+    },
+    "genre_tags": [],
+    "significance": "Nakamura's Necropolis is said to be the final resting place for Néo Tokyo's most powerful figures: inventors, industrialists, and politicians who have shaped the city into its current form. However, whispers speak of a dark conspiracy brewing among the tombs..."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

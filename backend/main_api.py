@@ -10,6 +10,7 @@ Requirements: Q1 2026 - Backend API Integration
 import os
 import sys
 import logging
+import traceback
 from datetime import datetime
 from contextlib import asynccontextmanager
 
@@ -19,6 +20,9 @@ from fastapi.responses import JSONResponse
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import centralized configuration
+from backend.config import settings
 
 # Import API routers
 from backend.project_api import router as project_router
@@ -71,32 +75,46 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Default CORS origins for development
-DEFAULT_CORS_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-]
+# Default CORS origins for development - use centralized config
+DEFAULT_CORS_ORIGINS = settings.get_cors_origins_list()
 
 
 def get_cors_origins() -> list:
     """
     Get CORS allowed origins from environment variable or defaults.
     
-    Environment variable CORS_ALLOWED_ORIGINS can contain comma-separated origins.
-    Set to "*" to allow all origins (NOT recommended for production).
+    Security Fix: In production environment, localhost origins are not allowed
+    unless explicitly configured. This prevents accidental exposure of the API
+    to local development origins in production deployments.
+    
+    Environment Variables:
+        CORS_ALLOWED_ORIGINS: Comma-separated list of allowed origins
+        ENVIRONMENT: Set to "production" to enforce production CORS rules
     """
     env_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    is_production = environment in ("production", "prod", "live")
     
     if env_origins:
         if env_origins == "*":
+            if is_production:
+                logger.error("CORS_ALLOWED_ORIGINS='*' is NOT allowed in production! Using empty origins.")
+                return []
             logger.warning("CORS_ALLOWED_ORIGINS='*' allows all origins - NOT recommended for production!")
             return ["*"]
         # Parse comma-separated list
-        return [origin.strip() for origin in env_origins.split(",")]
+        origins = [origin.strip() for origin in env_origins.split(",")]
+        logger.info(f"CORS origins configured from environment: {origins}")
+        return origins
     
-    # Return default origins for development
+    # Security Fix: In production, don't allow localhost origins by default
+    if is_production:
+        logger.warning("No CORS_ALLOWED_ORIGINS configured in production environment. "
+                      "API will not be accessible from browsers.")
+        return []
+    
+    # Return default origins for development only
+    logger.info(f"Using default development CORS origins: {DEFAULT_CORS_ORIGINS}")
     return DEFAULT_CORS_ORIGINS
 
 
@@ -157,18 +175,51 @@ app.include_router(scenario_router, prefix="/api")
 # Include rigging API router
 from backend.rigging_api import router as rigging_router
 app.include_router(rigging_router, prefix="/api")
+# Include task queue API router
+from backend.task_queue_api import router as task_queue_router
+app.include_router(task_queue_router, prefix="/api")
+# Include location logic loop API router
+from backend.location_logic_loop_api import router as location_logic_loop_router
+app.include_router(location_logic_loop_router, prefix="/api")
 
 
 # Exception handlers
+# Security Fix: Determine debug mode from environment for stack trace handling
+DEBUG_MODE = os.getenv("DEBUG", "false").lower() == "true"
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
+IS_PRODUCTION = ENVIRONMENT in ("production", "prod", "live")
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
-    """Global exception handler"""
+    """
+    Global exception handler.
+    
+    Security Fix: Stack traces are only exposed in debug mode (DEBUG=true).
+    In production, only a generic error message is returned to prevent
+    leaking implementation details that could aid attackers.
+    """
+    # Always log the full error with traceback for debugging
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    
+    # In production, never expose error details or stack traces
+    if IS_PRODUCTION or not DEBUG_MODE:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal server error",
+                "detail": "An unexpected error occurred. Please try again later."
+            }
+        )
+    
+    # In development/debug mode, provide detailed error information
     return JSONResponse(
         status_code=500,
         content={
             "error": "Internal server error",
-            "detail": str(exc) if os.getenv("DEBUG") else "An unexpected error occurred"
+            "detail": str(exc),
+            "traceback": traceback.format_exc(),
+            "type": type(exc).__name__
         }
     )
 

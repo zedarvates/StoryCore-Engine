@@ -1,0 +1,22 @@
+{
+  "location_id": "54644a53-3a7d-4aec-a085-5afa93f4a855",
+  "name": "Renni's Railyard",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T15:24:20.016Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A maze-like yard filled with steam-powered locomotives and cargo wagons. The air is thick with smoke, grease, and the acrid scent of coal.",
+    "atmosphere": {
+      "lighting": "dim, with steam-powered lanterns",
+      "temperature": "warm, thick with smoke",
+      "sounds": "panting engines, clanging tracks, shouting porters"
+    },
+    "genre_tags": [],
+    "significance": "Renni's Railyard serves as both a transportation hub for Néo Tokyo's goods and a black market exchange point for illicit materials. Rumors speak of a shadowy figure known only as 'The Engineer' who controls the flow of goods and information through this yard..."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

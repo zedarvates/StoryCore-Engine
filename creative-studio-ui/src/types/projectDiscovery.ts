@@ -47,7 +47,7 @@ export interface ScanProjectsOptions {
  * Base response interface for IPC handlers
  * Mirrors: electron/types/ipc.IPCResponse
  */
-export interface IPCResponse<T = any> {
+export interface IPCResponse<T = unknown> {
   success: boolean;
   error?: string;
   errorCode?: string;

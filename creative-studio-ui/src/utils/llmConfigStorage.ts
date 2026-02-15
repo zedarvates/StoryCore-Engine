@@ -69,7 +69,7 @@ export const STORAGE_KEYS = {
  */
 export const DEFAULT_LLM_CONFIG: ChatboxLLMConfig = {
   provider: 'local',
-  model: 'llama3.2:1b', // Modèle Ollama léger par défaut
+  model: 'llama3.2:1b', // Lightweight Ollama model by default
   temperature: 0.7,
   maxTokens: 2000,
   apiKey: '',

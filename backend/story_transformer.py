@@ -97,6 +97,77 @@ class LieuCategorie(str, Enum):
     AUTRE = "autre"
 
 
+# =============================================================================
+# LOCATION LOGIC LOOP ENUMS AND CLASSES
+# Ref: "Writing Blueprint That Turns Generic Settings Into Compelling Worlds"
+# Framework: Function → Constraints → Culture → Reputation → Emergent Details
+# =============================================================================
+
+class LocationFunction(str, Enum):
+    """Primary function/purpose of a location"""
+    ECONOMIC = "economic"           # Trade hub, resource extraction, market
+    DEFENSIVE = "defensive"         # Fortress, garrison, watchtower
+    SOCIAL = "social"               # Pilgrimage site, university, sanctuary
+    LOGISTICAL = "logistical"       # Way station, refueling depot, resupply
+
+
+class LocationSubFunction(str, Enum):
+    """Sub-functions for more specific categorization"""
+    # Economic sub-functions
+    TRADE_HUB = "trade_hub"         # Crossroads of commerce
+    MINING = "mining"               # Resource extraction
+    FISHING = "fishing"             # Maritime resources
+    AGRICULTURAL = "agricultural"  # Farming region
+    MANUFACTURING = "manufacturing" # Production center
+    
+    # Defensive sub-functions
+    FORTRESS = "fortress"           # Impregnable stronghold
+    BORDER_POST = "border_post"      # Frontier garrison
+    WATCHTOWER = "watchtower"       # Surveillance outpost
+    SANCTUARY = "sanctuary"         # Protected refuge
+    
+    # Social/Religious sub-functions
+    PILGRIMAGE = "pilgrimage"       # Holy site
+    UNIVERSITY = "university"       # Knowledge center
+    RESISTANCE = "resistance"       # Underground headquarters
+    ROYAL_COURT = "royal_court"     # Political center
+    
+    # Logistical sub-functions
+    WAYSTATION = "waystation"       # Army resupply
+    SPACE_STATION = "space_station" # Space refueling
+    CARAVAN_STOP = "caravan_stop"   # Trade route rest point
+    COMMUNICATION = "communication" # Message relay hub
+
+
+class ConstraintType(str, Enum):
+    """Types of constraints a location faces"""
+    ENVIRONMENTAL = "environmental"  # Weather, terrain, natural disasters
+    RESOURCE_SCARCITY = "resource_scarcity"  # Missing essential resources
+    EXTERNAL_THREAT = "external_threat"      # Enemies, monsters, rivals
+
+
+class ExternalThreatType(str, Enum):
+    """Specific external threat categories"""
+    NATURAL_DISASTER = "natural_disaster"    # Earthquakes, floods, volcanoes
+    MONSTERS = "monsters"                    # Dragons, creatures, supernatural
+    HOSTILE_FACTION = "hostile_faction"     # Rival kingdoms, pirates, raiders
+    DISEASE = "disease"                     # Plague, sickness
+    ECONOMIC = "economic"                   # Blockades, trade wars
+
+
+class CulturalAdaptationType(str, Enum):
+    """How culture adapts to constraints"""
+    ARCHITECTURE = "architecture"           # Building styles, materials
+    SOCIAL_STRUCTURE = "social_structure"   # Guilds, castes, hierarchies
+    RELIGION = "religion"                   # Faiths, rituals, beliefs
+    LAWS = "laws"                           # Legal systems, punishments
+    TECHNOLOGY = "technology"               # Tools, innovations, techniques
+    TRADITIONS = "traditions"               # Festivals, customs, rituals
+    FASHION = "fashion"                    # Clothing, adornment
+    CUISINE = "cuisine"                    # Food, eating habits
+    ARTISANry = "artisanry"                # Craft traditions, valued skills
+
+
 class EclairageType(str, Enum):
     JOUR = "jour"
     NUIT = "nuit"
@@ -201,6 +272,180 @@ class Lieu:
     
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
+
+# =============================================================================
+# LOCATION LOGIC LOOP DATA CLASSES
+# Ref: "Writing Blueprint That Turns Generic Settings Into Compelling Worlds"
+# Framework: Function → Constraints → Culture → Reputation → Emergent Details
+# =============================================================================
+
+@dataclass
+class LocationConstraint:
+    """Constraints that shape a location's development"""
+    type: str  # environmental, resource_scarcity, external_threat
+    description: str
+    severity: str  # low, medium, high, critical
+    impact_on_function: str  # How this constraint affects the location's primary function
+    
+    # Specific constraint details
+    environmental_pressure: Optional[str] = None  # Weather, terrain, natural disasters
+    resource_scarcity: Optional[str] = None  # What resources are lacking
+    external_threat: Optional[str] = None  # Monsters, enemies, rivals
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class LocationCulture:
+    """Cultural adaptations resulting from function + constraints"""
+    # How the culture has adapted
+    behaviors: List[str]  # Daily behaviors shaped by constraints
+    traditions: List[str]  # Traditions that emerged to cope with challenges
+    laws: List[str]  # Laws that address specific constraints
+    technologies: List[str]  # Innovations developed to overcome limitations
+    
+    # Social structure shaped by constraints
+    social_hierarchy: str  # How society is organized
+    valued_skills: List[str]  # Skills highly valued in this culture
+    revered_professions: List[str]  # Jobs that earn respect
+    
+    # Cultural identity
+    worldview: str  # How people see their world
+    attitude_towards_danger: str  # How they view the threats they face
+    relationship_with_environment: str  # Harmony, struggle, adaptation
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class LocationReputation:
+    """External perception vs internal reality"""
+    # What outsiders believe
+    external_reputation: str  # Simplified external view (e.g., "dangerous mining town")
+    rumored_wealth: str  # What people think they can find here
+    perceived_danger: str  # How dangerous outsiders think it is
+    
+    # The reality gap
+    reality_vs_rumor: str  # How reality differs from reputation
+    what_locals_know: str  # What locals know that outsiders don't
+    
+    # Local attitude towards reputation
+    pride_shame: str  # Source of pride or shame
+    how_locals_handle_it: str  # Do they lean into it or fight against it?
+    
+    # Who is attracted here
+    who_comes_here: List[str]  # Who is drawn to this place (desperate, greedy, brave?)
+    who_avoids: List[str]  # Who stays away
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class EmergentDetails:
+    """Names, landmarks, and features that emerge from the logic"""
+    # Name etymology
+    name_origin: str  # Why this name (fossilized history)
+    name_meaning: str  # What the name means in local terms
+    historical_names: List[str]  # Previous names if any
+    
+    # Landmarks that emerged
+    landmarks: List[Dict[str, str]]  # [{"name": "", "description": "", "significance": ""}]
+    notable_buildings: List[Dict[str, str]]  # [{"name": "", "type": "", "description": ""}]
+    
+    # Geography shaped by function/constraints
+    layout_principle: str  # How the geography serves function
+    key_geographical_features: List[str]  # Mountains, rivers, etc.
+    defensive_features: List[str]  # Walls, towers, etc.
+    
+    # Visual identity
+    architectural_style: str  # Style influenced by constraints
+    color_palette: List[str]  # Colors common in this place
+    common_materials: List[str]  # Building materials used
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class LogicLoopLocation:
+    """
+    Enhanced location with full Location Logic Loop integration.
+    
+    This dataclass represents a location built using the 5-question framework:
+    1. Function - Why does it exist?
+    2. Constraints - What pressures/challenges?
+    3. Culture - How do people adapt?
+    4. Reputation - How do others see it?
+    5. Emergent Details - Names, landmarks, geography
+    """
+    # Basic info (from original Lieu)
+    id: int
+    nom: str
+    type: str
+    categorie: str
+    description: str
+    atmosphere: str
+    ambiance_sonore: List[str]
+    elements_visuels: List[str]
+    eclairage: str
+    historique: str
+    significance_narrative: str
+    props: List[Dict[str, str]]
+    apparitions_scenes: List[int]
+    
+    # LOCATION LOGIC LOOP FIELDS
+    
+    # Layer 1: Function
+    function: str  # economic, defensive, social, logistical
+    sub_function: str  # More specific category
+    function_description: str  # Detailed explanation of purpose
+    
+    # Layer 2: Constraints
+    constraints: List[Dict[str, Any]]  # List of LocationConstraint dicts
+    
+    # Layer 3: Culture
+    culture: Dict[str, Any]  # LocationCulture dict
+    
+    # Layer 4: Reputation
+    reputation: Dict[str, Any]  # LocationReputation dict
+    
+    # Layer 5: Emergent Details
+    emergent_details: Dict[str, Any]  # EmergentDetails dict
+    
+    # Story potential
+    story_hooks: List[str]  # Narrative possibilities from the logic
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "nom": self.nom,
+            "type": self.type,
+            "categorie": self.categorie,
+            "description": self.description,
+            "atmosphere": self.atmosphere,
+            "ambiance_sonore": self.ambiance_sonore,
+            "elements_visuels": self.elements_visuels,
+            "eclairage": self.eclairage,
+            "historique": self.historique,
+            "significance_narrative": self.significance_narrative,
+            "props": self.props,
+            "apparitions_scenes": self.apparitions_scenes,
+            # Location Logic Loop
+            "function": {
+                "primary": self.function,
+                "sub_function": self.sub_function,
+                "description": self.function_description
+            },
+            "constraints": self.constraints,
+            "culture": self.culture,
+            "reputation": self.reputation,
+            "emergent_details": self.emergent_details,
+            "story_hooks": self.story_hooks
+        }
 
 
 # =============================================================================
@@ -803,17 +1048,680 @@ def transform_story_to_scenario(raw_story: str, title: Optional[str] = None) -> 
     return StoryTransformer(raw_story, title).transform()
 
 
-if __name__ == "__main__":
-    sample = """
-    Marie est une jeune scientifique qui decouvre un secret dangereux dans son laboratoire.
-    Elle doit choisir entre sa carriere et la verite.
-    Son mentor, le Professeur Dubois, l'aide dans saquete.
-    Mais l'antagoniste, M. Noir, veut utiliser la decouverte pour le mal.
-    Dans un laboratoire secret, Marie fait une rencontre inattendue.
-    La course contre le temps commence.
-    Elle devra affronter ses peurs et trouver la force de reveler la verite.
+# =============================================================================
+# LOCATION LOGIC LOOP GENERATOR
+# Ref: "Writing Blueprint That Turns Generic Settings Into Compelling Worlds"
+# Framework: Function → Constraints → Culture → Reputation → Emergent Details
+# =============================================================================
+
+def generate_logic_loop_location(
+    location_name: str,
+    genre: str,
+    tone: str,
+    function: str,
+    constraints: List[Dict[str, Any]],
+    story_context: str = ""
+) -> Dict[str, Any]:
     """
-    scenario = transform_story_to_scenario(sample, "La Decouverte")
-    scenario.save_to_file("./data/scenario.json")
-    print(scenario.to_json())
+    Generate a complete location using the Location Logic Loop framework.
+    
+    This function creates a location by applying the 5-question framework:
+    1. Function - Why does it exist?
+    2. Constraints - What pressures/challenges?
+    3. Culture - How do people adapt?
+    4. Reputation - How do others see it?
+    5. Emergent Details - Names, landmarks, geography
+    
+    Args:
+        location_name: Name of the location
+        genre: Story genre (fantasy, sci-fi, etc.)
+        tone: Story tone (dark, light, gritty, etc.)
+        function: Primary function (economic, defensive, social, logistical)
+        constraints: List of constraint dicts with type, description, severity
+        story_context: Optional additional story context
+    
+    Returns:
+        Complete LogicLoopLocation dict with all layers populated
+    """
+    # Determine type and category based on function
+    is_interieur = any(w in location_name.lower() for w in ['maison', 'bureau', 'laboratoire', 'appartement', 'chambre', 'salle'])
+    loc_type = LieuType.INTERIEUR.value if is_interieur else LieuType.EXTERIEUR.value
+    loc_categorie = LieuCategorie.AUTRE.value
+    
+    # Determine sub_function based on function and name
+    sub_function = _infer_sub_function(location_name, function)
+    
+    # Build function description
+    function_description = _build_function_description(location_name, function, sub_function)
+    
+    # Generate culture from function + constraints
+    culture = _generate_culture(function, constraints, tone)
+    
+    # Generate reputation from function + constraints + culture
+    reputation = _generate_reputation(function, constraints, culture, location_name)
+    
+    # Generate emergent details from all above
+    emergent_details = _generate_emergent_details(
+        location_name, function, sub_function, constraints, culture, genre
+    )
+    
+    # Generate story hooks
+    story_hooks = _generate_story_hooks(function, constraints, culture, reputation)
+    
+    # Build atmosphere based on constraints and tone
+    atmosphere = _derive_atmosphere(constraints, tone, function)
+    
+    # Build soundscape based on function and constraints
+    ambiance_sonore = _derive_soundscape(function, constraints)
+    
+    # Build visual elements
+    elements_visuels = _derive_visual_elements(emergent_details, function, constraints)
+    
+    # Determine lighting
+    eclairage = _derive_lighting(constraints, function)
+    
+    # Build historical context
+    historique = _build_history(location_name, function, constraints, emergent_details)
+    
+    # Determine narrative significance
+    significance_narrative = _derive_significance(location_name, function, constraints, story_context)
+    
+    # Create the full location dict
+    location = {
+        "id": 1,
+        "nom": location_name,
+        "type": loc_type,
+        "categorie": loc_categorie,
+        "description": f"{location_name}: {function_description[:100]}...",
+        "atmosphere": atmosphere,
+        "ambiance_sonore": ambiance_sonore,
+        "elements_visuels": elements_visuels,
+        "eclairage": eclairage,
+        "historique": historique,
+        "significance_narrative": significance_narrative,
+        "props": [],
+        "apparitions_scenes": [],
+        # Location Logic Loop
+        "function": {
+            "primary": function,
+            "sub_function": sub_function,
+            "description": function_description
+        },
+        "constraints": constraints,
+        "culture": culture,
+        "reputation": reputation,
+        "emergent_details": emergent_details,
+        "story_hooks": story_hooks
+    }
+    
+    return location
+
+
+def _infer_sub_function(name: str, primary_function: str) -> str:
+    """Infer sub-function based on name and primary function"""
+    name_lower = name.lower()
+    
+    if primary_function == "economic":
+        if any(w in name_lower for w in ['mine', 'mineur', 'cristal', 'or', 'argent']):
+            return "mining"
+        elif any(w in name_lower for w in ['port', 'marche', 'commerce', 'route']):
+            return "trade_hub"
+        elif any(w in name_lower for w in ['ferme', 'agri', 'champ']):
+            return "agricultural"
+        return "trade_hub"
+    
+    elif primary_function == "defensive":
+        if any(w in name_lower for w in ['fort', 'citadel', 'bastion']):
+            return "fortress"
+        elif any(w in name_lower for w in ['tour', 'guet', 'surveill']):
+            return "watchtower"
+        elif any(w in name_lower for w in ['frontiere', 'bord', 'limite']):
+            return "border_post"
+        return "fortress"
+    
+    elif primary_function == "social":
+        if any(w in name_lower for w in ['temple', 'pilier', 'sacré', 'saint']):
+            return "pilgrimage"
+        elif any(w in name_lower for w in ['universite', 'bibliotheque', 'sage']):
+            return "university"
+        elif any(w in name_lower for w in ['refuge', 'sanctuaire', 'abri']):
+            return "sanctuary"
+        return "pilgrimage"
+    
+    elif primary_function == "logistical":
+        if any(w in name_lower for w in ['station', 'depot', 'ravitail']):
+            return "waystation"
+        elif any(w in name_lower for w in ['caravane', 'relais']):
+            return "caravan_stop"
+        return "waystation"
+    
+    return "trade_hub"
+
+
+def _build_function_description(name: str, function: str, sub_function: str) -> str:
+    """Build detailed function description"""
+    descriptions = {
+        "economic": {
+            "mining": f"{name} exists to extract precious resources from the earth. It was established at a location rich in minerals or magical crystals, and everything about it serves the extraction industry.",
+            "trade_hub": f"{name} exists as a crossroads of commerce. Merchants, travelers, and traders converge here because of its strategic location, making it essential for the flow of goods.",
+            "agricultural": f"{name} exists to cultivate and harvest the land. Its purpose is to produce food and resources that sustain the region.",
+        },
+        "defensive": {
+            "fortress": f"{name} exists to provide impregnable defense. It was built to withstand siege and protect what lies behind its walls.",
+            "watchtower": f"{name} exists to watch and warn. From its vantage point, guardians survey the horizon for approaching threats.",
+            "border_post": f"{name} exists to control who enters and exits. It is the first line of defense and the last checkpoint before the unknown.",
+        },
+        "social": {
+            "pilgrimage": f"{name} exists as a sacred destination. People travel here seeking spiritual connection, healing, or divine intervention.",
+            "university": f"{name} exists to gather and share knowledge. Scholars, students, and seekers of wisdom come to learn and teach.",
+            "sanctuary": f"{name} exists to protect those who cannot protect themselves. It offers refuge to the persecuted, the desperate, the seeking.",
+        },
+        "logistical": {
+            "waystation": f"{name} exists to resupply and refresh. Armies, travelers, and merchants stop here to rest, refuel, and continue their journey.",
+            "caravan_stop": f"{name} exists as a rest point on long routes. Those traveling far find shelter and provisions here.",
+        }
+    }
+    
+    func_descriptions = descriptions.get(function, {})
+    return func_descriptions.get(sub_function, f"{name} serves a specific purpose defined by its function as a {function} location.")
+
+
+def _generate_culture(function: str, constraints: List[Dict[str, Any]], tone: str) -> Dict[str, Any]:
+    """Generate culture based on function + constraints"""
+    
+    # Determine social hierarchy based on function
+    hierarchy_by_function = {
+        "economic": "Guild-based system where merchants and artisans hold power alongside local nobles",
+        "defensive": "Military hierarchy with warriors and strategists at the top",
+        "social": "Meritocratic system valuing wisdom, spirituality, or lineage depending on type",
+        "logistical": "Efficiency-focused hierarchy where organizers and providers are valued"
+    }
+    
+    # Determine valued skills based on constraints
+    valued_skills = ["Navigation", "Local knowledge"]
+    revered_professions = []
+    
+    for constraint in constraints:
+        ctype = constraint.get("type", "")
+        if ctype == "environmental":
+            valued_skills.extend(["Survival", "Weather reading", "Terrain navigation"])
+        elif ctype == "resource_scarcity":
+            valued_skills.extend(["Conservation", "Resource management", "Trade negotiation"])
+            revered_professions.append("Traders who bring scarce resources")
+        elif ctype == "external_threat":
+            valued_skills.extend(["Combat", "Vigilance", "Self-defense"])
+            revered_professions.append("Warriors and guards")
+    
+    # Add function-specific revered professions
+    func_professions = {
+        "economic": ["Merchants", "Artisans", "Miners"],
+        "defensive": ["Soldiers", "Strategists", "Watchmen"],
+        "social": ["Priests", "Scholars", "Healers"],
+        "logistical": ["Guides", "Stablemasters", "Suppliers"]
+    }
+    revered_professions.extend(func_professions.get(function, []))
+    
+    # Generate worldview based on constraints and tone
+    danger_count = sum(1 for c in constraints if c.get("severity") in ["high", "critical"])
+    
+    if danger_count > 0:
+        worldview = f"A people who understand that survival requires constant vigilance. They know the world is harsh and only the prepared endure."
+    else:
+        worldview = f"A people shaped by their purpose. They see their role in the world as essential to something larger than themselves."
+    
+    # Attitude towards danger
+    if tone == "dark":
+        attitude = "They view danger as an old companion—expected, respected, but never fully accepted."
+    elif tone == "hopeful":
+        attitude = "They believe every challenge can be overcome with ingenuity and community."
+    else:
+        attitude = "They've learned to balance respect for danger with the determination to thrive."
+    
+    # Relationship with environment
+    env_pressure = any(c.get("type") == "environmental" for c in constraints)
+    if env_pressure:
+        relationship = "A relationship of constant negotiation—with nature as both adversary and provider."
+    else:
+        relationship = "Harmony with their surroundings, shaped by generations of adaptation."
+    
+    return {
+        "behaviors": [
+            f"Daily routines adapted to {constraints[0].get('type', 'challenges') if constraints else 'their purpose'}",
+            "Customs that mark the turning of seasons or shifts in fortune",
+            "Rituals that connect them to their ancestors and their purpose"
+        ],
+        "traditions": [
+            "Celebrations tied to their function",
+            "Remembrance of those lost to their purpose",
+            "Passing down of essential skills to the young"
+        ],
+        "laws": [
+            "Strict rules protecting their core function",
+            "Hospitality laws for travelers and traders",
+            "Punishments severe for those who threaten their survival"
+        ],
+        "technologies": [
+            "Tools specialized for their function",
+            "Innovations born from necessity",
+            "Techniques refined over generations"
+        ],
+        "social_hierarchy": hierarchy_by_function.get(function, "A structured society"),
+        "valued_skills": list(set(valued_skills)),
+        "revered_professions": list(set(revered_professions)),
+        "worldview": worldview,
+        "attitude_towards_danger": attitude,
+        "relationship_with_environment": relationship
+    }
+
+
+def _generate_reputation(function: str, constraints: List[Dict[str, Any]], culture: Dict[str, Any], name: str) -> Dict[str, Any]:
+    """Generate reputation based on function + constraints + culture"""
+    
+    # External reputation based on function
+    func_reputations = {
+        "economic": f"A place where fortunes can be made—or lost. {name} draws the desperate and the ambitious.",
+        "defensive": f"A stronghold that outsiders either respect or fear. {name} is known for its warriors.",
+        "social": f"A destination of spiritual or intellectual significance. {name} attracts seekers.",
+        "logistical": f"A necessary stop on the road. Travelers know to expect shelter but not luxury."
+    }
+    
+    external = func_reputations.get(function, f"{name} is known among those who travel here.")
+    
+    # Rumored wealth
+    rumored_wealth = {
+        "economic": "Rich in trade goods, rare materials, or the fruits of labor",
+        "defensive": "Weapons, training, and the security that comes from strength",
+        "social": "Wisdom, healing, or spiritual riches unavailable elsewhere",
+        "logistical": "Supplies, rest, and the opportunity to continue one's journey"
+    }
+    
+    # Perceived danger
+    danger_severities = [c.get("severity") for c in constraints if c.get("type") == "external_threat"]
+    if "critical" in danger_severities or "high" in danger_severities:
+        perceived_danger = "Known as genuinely dangerous. Outsiders approach with real caution."
+    elif danger_severities:
+        perceived_danger = "Respected as having real risks, but manageable for the prepared."
+    else:
+        perceived_danger = "Generally safe, with ordinary precautions."
+    
+    # Reality vs rumor
+    reality_gap = "The reality is more nuanced than rumors suggest. "
+    if culture.get("worldview"):
+        reality_gap += "Locals understand truths that outsiders miss."
+    
+    # What locals know
+    what_locals = "They know which paths are safe, which strangers can be trusted, and how to read the signs that others miss."
+    
+    # Pride or shame
+    pride_shame = f"Source of quiet pride. They know what they've built and what it costs to maintain."
+    
+    # How locals handle reputation
+    how_handled = "They neither confirm nor deny the rumors. Let outsiders believe what they will."
+    
+    # Who comes here
+    who_comes = ["Traders seeking profit", "Travelers needing rest"]
+    if any(c.get("type") == "resource_scarcity" for c in constraints):
+        who_comes.append("Those desperate enough to risk everything")
+    
+    # Who avoids
+    who_avoids = ["Those who fear genuine challenge", "The comfortable who prefer certainty"]
+    
+    return {
+        "external_reputation": external,
+        "rumored_wealth": rumored_wealth.get(function, "Various riches"),
+        "perceived_danger": perceived_danger,
+        "reality_vs_rumor": reality_gap,
+        "what_locals_know": what_locals,
+        "pride_shame": pride_shame,
+        "how_locals_handle_it": how_handled,
+        "who_comes_here": who_comes,
+        "who_avoids": who_avoids
+    }
+
+
+def _generate_emergent_details(
+    name: str,
+    function: str,
+    sub_function: str,
+    constraints: List[Dict[str, Any]],
+    culture: Dict[str, Any],
+    genre: str
+) -> Dict[str, Any]:
+    """Generate emergent details (names, landmarks, geography) from the logic"""
+    
+    # Name origin (fossilized history)
+    name_origin = f"The name '{name}' originates from the language of the founders, reflecting their original purpose."
+    name_meaning = "The name suggests purpose, struggle, or aspiration—whichever defined those who first settled here."
+    
+    # Generate landmarks based on function
+    landmarks = []
+    func_landmarks = {
+        "economic": [
+            {"name": "Market Square", "description": "The heart of commerce where deals are struck", "significance": "Center of all economic activity"},
+            {"name": "Merchant's Guild Hall", "description": "Where traders gather to set prices", "significance": "Power center of the economy"}
+        ],
+        "defensive": [
+            {"name": "The Walls", "description": "Imposing barriers that have stood for generations", "significance": "Symbol of security and determination"},
+            {"name": "Watchtower", "description": "The highest point, watching for threats", "significance": "Eyes of the community"}
+        ],
+        "social": [
+            {"name": "The Sacred Site", "description": "Where spiritual practices occur", "significance": "Heart of the community's faith"},
+            {"name": "Hall of Gathering", "description": "Where communities meet and decide", "significance": "Center of social life"}
+        ],
+        "logistical": [
+            {"name": "The Resting Grounds", "description": "Where travelers camp and recover", "significance": "Essential to the location's purpose"},
+            {"name": "Supply Depot", "description": "Storage for provisions", "significance": "What makes continued travel possible"}
+        ]
+    }
+    landmarks = func_landmarks.get(function, [])
+    
+    # Add constraint-influenced landmarks
+    for constraint in constraints:
+        if constraint.get("type") == "external_threat":
+            landmarks.append({
+                "name": "Memorial of the Fallen",
+                "description": "A place honoring those lost to threats",
+                "significance": "Reminder of what protection costs"
+            })
+        elif constraint.get("type") == "environmental":
+            landmarks.append({
+                "name": "Shelter of the Storm",
+                "description": "Refuge from the environmental dangers",
+                "significance": "Proof that they can survive anything"
+            })
+    
+    # Notable buildings
+    notable_buildings = []
+    for lm in landmarks[:2]:
+        notable_buildings.append({
+            "name": lm["name"],
+            "type": "Landmark",
+            "description": lm["description"]
+        })
+    
+    # Geography based on function
+    layout_principle = "Organized around the primary function, with everything serving the core purpose."
+    geo_features = ["The surrounding terrain that defines their world"]
+    defensive_features = []
+    
+    if function == "defensive":
+        layout_principle = "Built for defense first, with sightlines and barriers in mind."
+        geo_features = ["Natural barriers that enhance defense", "Elevated positions", "Water sources that can be controlled"]
+        defensive_features = ["Walls", "Towers", "Barriers", "Controlled entry points"]
+    elif function == "economic":
+        layout_principle = "Built for access, with trade routes flowing through."
+        geo_features = ["Strategic crossroads", "Natural harbors or roads", "Resource deposits nearby"]
+    
+    # Visual identity
+    style_by_genre = {
+        "fantasy": "Stone and wood, with organic curves and mystical touches",
+        "sci-fi": "Metallic surfaces, geometric patterns, and functional design",
+        "horror": "Dark surfaces, oppressive architecture, and shadowed spaces",
+        "romantic": "Flowing lines, natural materials, and beautiful details"
+    }
+    architectural_style = style_by_genre.get(genre, "Practical construction suited to their needs")
+    
+    color_palette = ["Earth tones", "Weathered surfaces", "Functional colors"]
+    if function == "economic":
+        color_palette = ["Rich colors of trade goods", "Gold and silver accents", "Vibrant market colors"]
+    elif function == "defensive":
+        color_palette = ["Stark grays", "Weathered stone", "Dark metals"]
+    
+    common_materials = {
+        "economic": ["Wood", "Stone", "Import materials"],
+        "defensive": ["Stone", "Iron", "Reinforced materials"],
+        "social": ["Sacred materials appropriate to faith", "Artistic representations", "Historic stones"],
+        "logistical": ["Practical materials", "Repairable structures", "Functional designs"]
+    }
+    common_materials = common_materials.get(function, ["Local materials"])
+    
+    return {
+        "name_origin": name_origin,
+        "name_meaning": name_meaning,
+        "historical_names": [],
+        "landmarks": landmarks,
+        "notable_buildings": notable_buildings,
+        "layout_principle": layout_principle,
+        "key_geographical_features": geo_features,
+        "defensive_features": defensive_features,
+        "architectural_style": architectural_style,
+        "color_palette": color_palette,
+        "common_materials": common_materials
+    }
+
+
+def _generate_story_hooks(function: str, constraints: List[Dict[str, Any]], culture: Dict[str, Any], reputation: Dict[str, Any]) -> List[str]:
+    """Generate narrative hooks based on the Location Logic Loop analysis"""
+    
+    hooks = []
+    
+    # Function-based hooks
+    func_hooks = {
+        "economic": [
+            "A merchant arrives with a secret that could destabilize the local economy",
+            "A new trade route threatens to bypass the location entirely"
+        ],
+        "defensive": [
+            "The ancient defenses are tested by a threat no one anticipated",
+            "A spy infiltrates, seeking to understand the true strength of the fortress"
+        ],
+        "social": [
+            "A heretical question challenges the foundational beliefs of the community",
+            "A seeker arrives claiming to have proof that the sacred site is elsewhere"
+        ],
+        "logistical": [
+            "The supply lines are cut, forcing impossible choices",
+            "A VIP arrives requiring protection through dangerous territory"
+        ]
+    }
+    hooks.extend(func_hooks.get(function, []))
+    
+    # Constraint-based hooks
+    for constraint in constraints:
+        ctype = constraint.get("type", "")
+        severity = constraint.get("severity", "medium")
+        
+        if ctype == "external_threat":
+            hooks.append(f"The external threat escalates: {constraint.get('description', 'The danger grows')}")
+        elif ctype == "resource_scarcity":
+            hooks.append(f"Resource scarcity reaches crisis levels. Someone must make a terrible choice.")
+        elif ctype == "environmental":
+            hooks.append(f"The environment becomes hostile: {constraint.get('description', 'Nature turns against them')}")
+    
+    # Culture-based hooks
+    if culture.get("secrets"):
+        hooks.append(f"A secret from the culture's past resurfaces, challenging everything they believed.")
+    
+    # Reputation-based hooks
+    if reputation.get("reality_vs_rumor"):
+        hooks.append("An outsider discovers the truth behind the reputation—and decides what to do with it.")
+    
+    return hooks
+
+
+def _derive_atmosphere(constraints: List[Dict[str, Any]], tone: str, function: str) -> str:
+    """Derive atmosphere from constraints, tone, and function"""
+    
+    # Base atmosphere on the most severe constraint
+    severe_constraints = [c for c in constraints if c.get("severity") in ["high", "critical"]]
+    
+    if severe_constraints:
+        c = severe_constraints[0]
+        ctype = c.get("type", "")
+        if ctype == "environmental":
+            return "Atmosphere of endurance against natural challenges"
+        elif ctype == "resource_scarcity":
+            return "Tense atmosphere where resources are never taken for granted"
+        elif ctype == "external_threat":
+            return "Vigilant atmosphere where danger could arrive at any moment"
+    
+    # Base on tone
+    if tone == "dark":
+        return "Heavy atmosphere where hope is scarce"
+    elif tone == "hopeful":
+        return "Warm atmosphere despite difficulties"
+    elif tone == "mysterious":
+        return "Shrouded atmosphere full of secrets"
+    
+    # Base on function
+    func_atmospheres = {
+        "economic": "Busy, energetic atmosphere of commerce and deal-making",
+        "defensive": "Serious, watchful atmosphere of those who protect",
+        "social": "Contemplative or spiritual atmosphere depending on type",
+        "logistical": "Practical atmosphere of those focused on the next journey"
+    }
+    return func_atmospheres.get(function, "Functional atmosphere shaped by purpose")
+
+
+def _derive_soundscape(function: str, constraints: List[Dict[str, Any]]) -> List[str]:
+    """Derive soundscape from function and constraints"""
+    
+    sounds = []
+    
+    # Function-based sounds
+    func_sounds = {
+        "economic": ["Market chatter", "Coins exchanging hands", "Cart wheels on cobblestones"],
+        "defensive": ["Watch bells", "Training drills", "Commands being called"],
+        "social": ["Chants or prayers", "Discussions of wisdom", "Ceremonial music"],
+        "logistical": ["Loading cargo", "Whips of caravans", "Resting travelers"]
+    }
+    sounds.extend(func_sounds.get(function, []))
+    
+    # Constraint-based sounds
+    for constraint in constraints:
+        if constraint.get("type") == "external_threat":
+            sounds.extend(["Warning bells", "Weapons being readied"])
+        elif constraint.get("type") == "environmental":
+            sounds.extend(["Wind howling", "Rain or storms"])
+    
+    return sounds
+
+
+def _derive_visual_elements(emergent: Dict[str, Any], function: str, constraints: List[Dict[str, Any]]) -> List[str]:
+    """Derive visual elements from emergent details, function, and constraints"""
+    
+    elements = []
+    
+    # From emergent details
+    if emergent.get("landmarks"):
+        elements.append(f"Prominent landmarks defining the skyline")
+    
+    if emergent.get("architectural_style"):
+        elements.append(f"Architecture reflecting {emergent['architectural_style']}")
+    
+    # From constraints
+    for constraint in constraints:
+        if constraint.get("type") == "environmental":
+            elements.append(f"Evidence of environmental adaptation in every structure")
+        elif constraint.get("type") == "external_threat":
+            elements.append(f"Defensive features integrated into daily life")
+    
+    # From function
+    func_elements = {
+        "economic": ["Trading goods on display", "Evidence of wealth and poverty"],
+        "defensive": ["Weapons as common sight", "Training grounds visible"],
+        "social": ["Sacred or scholarly symbols", "Places of gathering"],
+        "logistical": ["Supplies in piles", "Vehicles and animals"]
+    }
+    elements.extend(func_elements.get(function, []))
+    
+    return elements
+
+
+def _derive_lighting(constraints: List[Dict[str, Any]], function: str) -> str:
+    """Determine primary lighting based on constraints and function"""
+    
+    # Check for night-related constraints
+    for constraint in constraints:
+        if "dark" in constraint.get("description", "").lower():
+            return "Often dim, lit by fire and torch"
+    
+    # Check for underground
+    for constraint in constraints:
+        if "cave" in constraint.get("description", "").lower() or "underground" in constraint.get("description", "").lower():
+            return "Artificial lighting required, pockets of shadow"
+    
+    # Function-based lighting
+    func_lighting = {
+        "economic": "Bright during trading hours, dim at night",
+        "defensive": "Watchtowers lit through the night, shadowed streets",
+        "social": "Natural light in sacred spaces, candles in halls",
+        "logistical": "Practical lighting for work, darkness for rest areas"
+    }
+    return func_lighting.get(function, "Natural light dominating")
+
+
+def _build_history(name: str, function: str, constraints: List[Dict[str, Any]], emergent: Dict[str, Any]) -> str:
+    """Build historical context for the location"""
+    
+    history = f"{name} was established to serve its function. "
+    
+    if constraints:
+        severe = constraints[0]
+        history += f"The founders faced {severe.get('description', 'significant challenges')}. "
+        history += "These challenges shaped everything that followed."
+    else:
+        history += "Over time, it grew and adapted to serve its purpose ever more effectively."
+    
+    if emergent.get("historical_names"):
+        history += f" It has been known by other names in the past: {', '.join(emergent['historical_names'][:3])}."
+    
+    return history
+
+
+def _derive_significance(name: str, function: str, constraints: List[Dict[str, Any]], story_context: str) -> str:
+    """Determine narrative significance"""
+    
+    sig = f"{name} plays a crucial role in the region because of its function as a {function} location. "
+    
+    if constraints:
+        sig += f"Its struggles with {constraints[0].get('type', 'challenges')} have made it resilient and determined. "
+    
+    if story_context:
+        sig += f"Within the larger story, {name} represents {story_context}."
+    else:
+        sig += "It is a place where important events unfold."
+    
+    return sig
+
+
+# Alias for backward compatibility
+LocationLogicLoopGenerator = {
+    "generate": generate_logic_loop_location,
+    "infer_sub_function": _infer_sub_function,
+    "build_function_description": _build_function_description,
+    "generate_culture": _generate_culture,
+    "generate_reputation": _generate_reputation,
+    "generate_emergent_details": _generate_emergent_details,
+    "generate_story_hooks": _generate_story_hooks
+}
+
+
+if __name__ == "__main__":
+    # Example usage of the Location Logic Loop
+    example_constraints = [
+        {
+            "type": "external_threat",
+            "description": "Territorial dragons nesting in the nearby mountains",
+            "severity": "high",
+            "impact_on_function": "Mining operations must avoid dragon flight paths"
+        },
+        {
+            "type": "resource_scarcity",
+            "description": "No timber for miles - everything must be stone or imported",
+            "severity": "medium",
+            "impact_on_function": "Building repairs are expensive and slow"
+        }
+    ]
+    
+    location = generate_logic_loop_location(
+        location_name="Crystal Deep",
+        genre="fantasy",
+        tone="dark",
+        function="economic",
+        constraints=example_constraints,
+        story_context="a place where wealth and death walk hand in hand"
+    )
+    
+    print(json.dumps(location, indent=2, default=str))
 

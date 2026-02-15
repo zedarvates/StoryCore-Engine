@@ -4,6 +4,7 @@ import type { SequencePlanWizardContext, ShotWizardContext } from '@/types/wizar
 import type { MasterReferenceSheet, SequenceReferenceSheet, ShotReference } from '@/types/reference';
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
+import { logger } from '@/utils/logger';
 
 // Wizard type for generic wizard forms (simple forms in GenericWizardModal)
 // Multi-step wizards (world, character) are handled separately via their own modals
@@ -323,13 +324,13 @@ export const useAppStore = create<AppState>((set) => ({
   setInstallationComplete: (complete) => set({ installationComplete: complete }),
   setShowWorldWizard: (show) => set({ showWorldWizard: show }),
   setShowCharacterWizard: (show) => {
-    console.log('[useAppStore] setShowCharacterWizard called with:', show);
+    logger.debug('[useAppStore] setShowCharacterWizard called with:', show);
     set({ showCharacterWizard: show });
   },
   setShowProjectSetupWizard: (show) => set({ showProjectSetupWizard: show }),
   setShowCreateProjectDialog: (show) => set({ showCreateProjectDialog: show }),
   setShowStorytellerWizard: (show) => {
-    console.log('[useAppStore] setShowStorytellerWizard called with:', show);
+    logger.debug('[useAppStore] setShowStorytellerWizard called with:', show);
     set({ showStorytellerWizard: show });
   },
   setShowLLMSettings: (show) => set({ showLLMSettings: show }),
@@ -341,7 +342,7 @@ export const useAppStore = create<AppState>((set) => ({
   setShowLocationsModal: (show) => set({ showLocationsModal: show }),
   setShowObjectsModal: (show) => set({ showObjectsModal: show }),
   setShowObjectWizard: (show) => {
-    console.log('[useAppStore] setShowObjectWizard called with:', show);
+    logger.debug('[useAppStore] setShowObjectWizard called with:', show);
     set({ showObjectWizard: show });
   },
   setShowImageGalleryModal: (show) => set({ showImageGalleryModal: show }),

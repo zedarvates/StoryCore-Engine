@@ -11,3 +11,6 @@ export { ShotWizardModal } from './ShotWizardModal';
 // Re-export common wizard types
 export type { WizardStep } from '@/types/wizard';
 
+export { DialogueWriterWizard } from './DialogueWriterWizard';
+export { DialogueWriterWizardModal } from './DialogueWriterWizardModal';
+

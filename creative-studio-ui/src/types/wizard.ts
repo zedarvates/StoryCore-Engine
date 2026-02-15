@@ -564,7 +564,7 @@ export interface ProjectExport {
 }
 
 // Component Props Types
-export interface StepComponentProps<T = any> {
+export interface StepComponentProps<T = unknown> {
   data: T;
   onUpdate: (data: Partial<T>) => void;
   onValidate: () => ValidationResult;

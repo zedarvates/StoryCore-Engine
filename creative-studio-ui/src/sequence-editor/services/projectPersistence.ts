@@ -21,8 +21,8 @@ export interface ProjectFile {
     metadata: {
       name: string;
       path: string;
-      created: Date;
-      modified: Date;
+      created: number;
+      modified: number;
       author: string;
       description: string;
     };
@@ -69,26 +69,26 @@ export interface ProjectFile {
  */
 export function exportProjectToJSON(state: RootState): ProjectFile {
   const now = Date.now();
-  
+
   // Handle null metadata by creating default values
   const metadata = state.project.metadata || {
     name: 'Untitled Project',
     path: '',
-    created: new Date(now),
-    modified: new Date(now),
+    created: now,
+    modified: now,
     author: '',
     description: '',
   };
-  
+
   return {
     version: '1.0.0',
     schema_version: '1.0',
-    created: metadata.created.toISOString(),
+    created: new Date(metadata.created).toISOString(),
     modified: new Date(now).toISOString(),
     project: {
       metadata: {
         ...metadata,
-        modified: new Date(now),
+        modified: now,
       },
       settings: state.project.settings,
       saveStatus: {
@@ -128,20 +128,20 @@ export function exportProjectToJSON(state: RootState): ProjectFile {
 export function parseProjectFile(jsonString: string): ProjectFile {
   try {
     const data = JSON.parse(jsonString);
-    
+
     // Validate required fields
     if (!data.version || !data.schema_version) {
       throw new Error('Invalid project file: missing version information');
     }
-    
+
     if (data.schema_version !== '1.0') {
       throw new Error(`Unsupported schema version: ${data.schema_version}`);
     }
-    
+
     if (!data.project || !data.timeline || !data.assets) {
       throw new Error('Invalid project file: missing required sections');
     }
-    
+
     return data as ProjectFile;
   } catch (error) {
     if (error instanceof SyntaxError) {
@@ -160,22 +160,22 @@ export function saveProjectToFile(state: RootState, filename?: string): void {
     const projectData = exportProjectToJSON(state);
     const jsonString = JSON.stringify(projectData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
-    
+
     // Generate filename if not provided
     const projectName = state.project.metadata?.name || 'untitled';
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
     const finalFilename = filename || `${projectName}-${timestamp}.json`;
-    
+
     // Create download link
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = finalFilename;
-    
+
     // Trigger download
     document.body.appendChild(link);
     link.click();
-    
+
     // Cleanup
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
@@ -194,7 +194,7 @@ export function saveProjectToFile(state: RootState, filename?: string): void {
 export function loadProjectFromFile(file: File): Promise<ProjectFile> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    
+
     reader.onload = (event) => {
       try {
         const jsonString = event.target?.result as string;
@@ -204,11 +204,11 @@ export function loadProjectFromFile(file: File): Promise<ProjectFile> {
         reject(error);
       }
     };
-    
+
     reader.onerror = () => {
       reject(new Error('Failed to read file'));
     };
-    
+
     reader.readAsText(file);
   });
 }
@@ -232,12 +232,12 @@ export function validateProjectCompatibility(projectData: ProjectFile): {
 } {
   const warnings: string[] = [];
   const errors: string[] = [];
-  
+
   // Check schema version
   if (projectData.schema_version !== '1.0') {
     errors.push(`Unsupported schema version: ${projectData.schema_version}`);
   }
-  
+
   // Check for required sections
   if (!projectData.project) {
     errors.push('Missing project section');
@@ -248,13 +248,13 @@ export function validateProjectCompatibility(projectData: ProjectFile): {
   if (!projectData.assets) {
     errors.push('Missing assets section');
   }
-  
+
   // Check version compatibility
   const [major] = projectData.version.split('.').map(Number);
   if (major > 1) {
     warnings.push(`Project was created with a newer version (${projectData.version})`);
   }
-  
+
   return {
     compatible: errors.length === 0,
     warnings,

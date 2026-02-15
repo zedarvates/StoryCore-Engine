@@ -31,19 +31,19 @@ export interface Character {
   creation_method: 'wizard' | 'auto_generated' | 'manual';
   creation_timestamp: string;
   version: string;
-  
+
   // Visual identity
   visual_identity: VisualIdentity;
-  
+
   // Personality
   personality: Personality;
-  
+
   // Background
   background: Background;
-  
+
   // Relationships
   relationships: CharacterRelationship[];
-  
+
   // Role in story
   role: Role;
 }
@@ -58,13 +58,14 @@ export interface VisualIdentity {
   facial_structure: string;
   distinctive_features: string[];
   age_range: string;
+  gender: string;
   height: string;
   build: string;
   posture: string;
   clothing_style: string;
   color_palette: string[];
   generated_portrait?: string; // Path to generated portrait image (relative to project or indexeddb://)
-  
+
   // Reference images and sheets for multi-view generation
   reference_images: ReferenceImageData[];  // Generated reference images
   reference_sheet_images: SheetImageData[];  // Multi-view sheet images (front, left, right, back)
@@ -125,6 +126,7 @@ export function createEmptyCharacter(): Partial<Character> {
       facial_structure: '',
       distinctive_features: [],
       age_range: '',
+      gender: '',
       height: '',
       build: '',
       posture: '',
@@ -165,6 +167,7 @@ export function isCharacterComplete(character: Partial<Character>): boolean {
   return !!(
     character.name &&
     character.role?.archetype &&
-    character.visual_identity?.age_range
+    character.visual_identity?.age_range &&
+    character.visual_identity?.gender
   );
 }

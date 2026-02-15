@@ -45,12 +45,13 @@ router = APIRouter()
 
 class Settings(BaseSettings):
     """Application settings for scenario management"""
-    scenarios_directory: str = Field(default="./data/scenarios", env='SCENARIOS_DIRECTORY')
-    max_story_length: int = Field(default=50000, env='MAX_STORY_LENGTH')
+    scenarios_directory: str = Field(default="./data/scenarios")
+    max_story_length: int = Field(default=50000)
     
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # Ignore extra environment variables
 
 
 try:

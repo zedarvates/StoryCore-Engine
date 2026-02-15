@@ -88,7 +88,7 @@ async function generateThumbnail(
 
     sendProgress(id, 30);
 
-    // Charger la vidéo
+    // Load the video
     await new Promise<void>((resolve, reject) => {
       video.onloadedmetadata = () => resolve();
       video.onerror = () => reject(new Error('Failed to load video'));
@@ -117,7 +117,7 @@ async function generateThumbnail(
 
     sendProgress(id, 90);
 
-    // Convertir en blob
+    // Convert to blob
     const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.8 });
 
     sendProgress(id, 100);
@@ -406,7 +406,7 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
   }
 };
 
-// Export pour TypeScript
+// Export for TypeScript
 export {};
 
 

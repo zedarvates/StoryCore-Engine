@@ -51,10 +51,10 @@ function getIconPath(): string | undefined {
 function createWindow(url: string): void {
   // Disable the native menu bar
   Menu.setApplicationMenu(null);
-  
+
   // Get icon path with environment-aware resolution and fallback
   const iconPath = getIconPath();
-  
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -106,8 +106,11 @@ function createWindow(url: string): void {
     console.log('DOM is ready');
   });
 
-  // Always open DevTools for debugging
-  mainWindow!.webContents.openDevTools();
+  // Only open DevTools in development mode
+  if (isDevelopment) {
+    mainWindow!.webContents.openDevTools();
+    console.log('DevTools opened (development mode)');
+  }
 
   // Show window when ready to prevent flickering
   mainWindow!.once('ready-to-show', () => {
@@ -153,12 +156,12 @@ async function checkServerRunning(port: number): Promise<boolean> {
  */
 async function startServer(): Promise<void> {
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
+
   if (isDevelopment) {
     // In development mode, check if Vite server is already running
     const defaultPort = 5173;
     const isRunning = await checkServerRunning(defaultPort);
-    
+
     if (isRunning) {
       // Server is already running, just connect to it
       console.log(`Vite server already running on http://localhost:${defaultPort}`);
@@ -166,7 +169,7 @@ async function startServer(): Promise<void> {
     } else {
       // Start the Vite server
       serverManager = new ViteServerManager();
-      
+
       const config: LauncherConfig = {
         vitePort: defaultPort,
         fallbackPorts: [5174, 5175, 5176, 5177, 5178, 5179, 5180, 5181, 5182, 5183],
@@ -178,7 +181,7 @@ async function startServer(): Promise<void> {
         console.log('Starting Vite server...');
         const serverInfo = await serverManager.start(config);
         console.log(`Vite server started on ${serverInfo.url}`);
-        
+
         // Create window with the server URL
         createWindow(serverInfo.url);
       } catch (error) {
@@ -220,7 +223,7 @@ async function startServer(): Promise<void> {
 function initializeServices(): void {
   // Get app data directory
   const appDataPath = app.getPath('userData');
-  
+
   // Initialize configuration storage (for future use)
   const configFilePath = path.join(appDataPath, 'config.json');
   new ConfigStorage(configFilePath);
@@ -255,7 +258,7 @@ async function initialize(): Promise<void> {
     // DISABLED: Terms of Service dialog
     // The TOS dialog has been disabled as it doesn't have the desired appearance
     // Uncomment the code below to re-enable it
-    
+
     /*
     // Check if TOS already accepted (Requirements: 4.2.2, 4.2.3, 4.2.4)
     const tosStorage = new TOSStorageService('1.0');

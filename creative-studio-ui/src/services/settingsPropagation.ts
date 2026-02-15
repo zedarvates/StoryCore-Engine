@@ -17,6 +17,7 @@ import { getLLMService, setDefaultLLMService, createLLMService } from './llmServ
 import type { LLMConfig } from './llmService';
 import { backendApi } from './backendApiService';
 import type { ComfyUIConfig } from './comfyuiService';
+import { logger } from '@/utils/logger';
 
 // ============================================================================
 // Settings Change Listeners
@@ -47,7 +48,7 @@ class SettingsPropagationManager {
    */
   initialize(): void {
     if (this.initialized) {
-      console.warn('Settings propagation already initialized');
+      logger.warn('[SettingsPropagation] Settings propagation already initialized');
       return;
     }
 
@@ -111,7 +112,7 @@ class SettingsPropagationManager {
           if (import.meta.env.DEV) {
           }
         } catch (error) {
-          console.error('[SettingsPropagation] Failed to update OllamaClient:', error);
+          logger.error('[SettingsPropagation] Failed to update OllamaClient:', error);
         }
       }
 
@@ -122,7 +123,7 @@ class SettingsPropagationManager {
       if (import.meta.env.DEV) {
       }
     } catch (error) {
-      console.error('[SettingsPropagation] Failed to propagate LLM settings:', error);
+      logger.error('[SettingsPropagation] Failed to propagate LLM settings:', error);
     }
   }
 
@@ -162,7 +163,7 @@ class SettingsPropagationManager {
       if (import.meta.env.DEV) {
       }
     } catch (error) {
-      console.error('[SettingsPropagation] Failed to propagate ComfyUI settings:', error);
+      logger.error('[SettingsPropagation] Failed to propagate ComfyUI settings:', error);
     }
   }
 
@@ -188,7 +189,7 @@ class SettingsPropagationManager {
 
       return config;
     } catch (error) {
-      console.error('[SettingsPropagation] Failed to load LLM config from storage:', error);
+      logger.error('[SettingsPropagation] Failed to load LLM config from storage:', error);
       return null;
     }
   }
@@ -215,7 +216,7 @@ class SettingsPropagationManager {
 
       return config;
     } catch (error) {
-      console.error('[SettingsPropagation] Failed to load ComfyUI config from storage:', error);
+      logger.error('[SettingsPropagation] Failed to load ComfyUI config from storage:', error);
       return null;
     }
   }
@@ -232,7 +233,7 @@ class SettingsPropagationManager {
       try {
         await listener(config);
       } catch (error) {
-        console.error('[SettingsPropagation] Error in LLM listener:', error);
+        logger.error('[SettingsPropagation] Error in LLM listener:', error);
       }
     });
 
@@ -251,7 +252,7 @@ class SettingsPropagationManager {
       try {
         await listener(config);
       } catch (error) {
-        console.error('[SettingsPropagation] Error in ComfyUI listener:', error);
+        logger.error('[SettingsPropagation] Error in ComfyUI listener:', error);
       }
     });
 

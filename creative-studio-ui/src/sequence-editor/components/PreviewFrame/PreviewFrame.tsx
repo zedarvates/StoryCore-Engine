@@ -13,7 +13,8 @@ import { PreviewDropTarget } from './PreviewDropTarget';
 import { ViewModeToggle, type ViewMode } from './ViewModeToggle';
 import { SceneView3D } from './SceneView3D';
 import { FrameCache, createCanvasRenderFunction } from './FrameCache';
-import type { PlaybackState } from '../../types';
+import { TransformOverlay } from './TransformOverlay';
+import type { PlaybackState, Shot, Layer } from '../../types';
 import './previewFrame.css';
 import './previewDropTarget.css';
 import './viewModeToggle.css';
@@ -57,12 +58,12 @@ function getFrameFromPosition(position: number, zoomLevel: number): number {
 
 export const PreviewFrame: React.FC = () => {
   const dispatch = useAppDispatch();
-  
+
   // Redux state
-  const { playheadPosition, zoomLevel, duration, shots } = useAppSelector((state) => state.timeline);
+  const { playheadPosition, zoomLevel, duration, shots, selectedElements } = useAppSelector((state) => state.timeline);
   const { playbackState, playbackSpeed } = useAppSelector((state) => state.preview);
   const { settings } = useAppSelector((state) => state.project);
-  
+
   // Local state
   const [viewMode, setViewMode] = useState<ViewMode>('video');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -72,37 +73,50 @@ export const PreviewFrame: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [cachedImageData, setCachedImageData] = useState<ImageData | null>(null);
-  
+
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const frameCacheRef = useRef<FrameCache | null>(null);
-  
+
   // Calculate current frame
   const currentFrame = useMemo(() => {
     return getFrameFromPosition(playheadPosition, zoomLevel);
   }, [playheadPosition, zoomLevel]);
-  
+
   // Get current shot for preview
   const currentShot = useMemo(() => {
-    return shots.find((shot) =>
+    return shots.find((shot: Shot) =>
       playheadPosition >= shot.startTime * zoomLevel &&
       playheadPosition < (shot.startTime + shot.duration) * zoomLevel
     );
   }, [shots, playheadPosition, zoomLevel]);
-  
+
+  // Get selected layer for transform overlay
+  const selectedLayer = useMemo(() => {
+    if (selectedElements.length === 0) return null;
+    const targetId = selectedElements[0];
+
+    // Check if it's a layer ID within a shot
+    for (const shot of shots) {
+      const layer = shot.layers.find((l: Layer) => l.id === targetId);
+      if (layer) return layer;
+    }
+    return null;
+  }, [shots, selectedElements]);
+
   // Calculate total frames
   const totalFrames = useMemo(() => {
     return Math.ceil(duration / zoomLevel);
   }, [duration, zoomLevel]);
-  
+
   // Canvas dimensions
   const canvasWidth = settings?.resolution?.width || 1280;
   const canvasHeight = settings?.resolution?.height || 720;
   const aspectRatio = canvasWidth / canvasHeight;
-  
+
   // Initialize frame cache
   useEffect(() => {
     if (!frameCacheRef.current) {
@@ -114,12 +128,12 @@ export const PreviewFrame: React.FC = () => {
         renderTimeout: 200,
       });
     }
-    
+
     return () => {
       frameCacheRef.current?.clear();
     };
   }, []);
-  
+
   // Create render function
   const renderFunction = useMemo(() => {
     if (!canvasRef.current) return null;
@@ -130,31 +144,31 @@ export const PreviewFrame: React.FC = () => {
       settings?.fps || DEFAULT_FPS
     );
   }, [shots, zoomLevel, settings?.fps]);
-  
+
   // Render frame to canvas
   const renderFrame = useCallback((frame: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
+
     // Use cached image data if available
     if (cachedImageData) {
       // Clear canvas
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       // Draw cached image data
       ctx.putImageData(cachedImageData, 0, 0);
-      
+
       // Draw shot info overlay
       if (currentShot) {
         ctx.fillStyle = '#ffffff';
         ctx.font = '24px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(currentShot.name, canvas.width / 2, canvas.height / 2 - 20);
-        
+
         ctx.font = '16px sans-serif';
         ctx.fillStyle = '#aaaaaa';
         ctx.fillText(`Frame: ${frame} | Time: ${formatTimecode(frame)}`, canvas.width / 2, canvas.height / 2 + 20);
@@ -163,30 +177,30 @@ export const PreviewFrame: React.FC = () => {
       // Fallback rendering (placeholder)
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       if (currentShot) {
         const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
         gradient.addColorStop(0, '#1a1a2e');
         gradient.addColorStop(1, '#16213e');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+
         ctx.fillStyle = '#ffffff';
         ctx.font = '24px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(currentShot.name, canvas.width / 2, canvas.height / 2 - 20);
-        
+
         ctx.font = '16px sans-serif';
         ctx.fillStyle = '#aaaaaa';
         ctx.fillText(`Frame: ${frame} | Time: ${formatTimecode(frame)}`, canvas.width / 2, canvas.height / 2 + 20);
-        
+
         if (currentShot.prompt) {
           ctx.font = '14px sans-serif';
           const words = currentShot.prompt.split(' ');
           const lines: string[] = [];
           let currentLine = '';
-          
-          words.forEach((word) => {
+
+          words.forEach((word: string) => {
             if ((currentLine + word).length < 50) {
               currentLine += word + ' ';
             } else {
@@ -195,7 +209,7 @@ export const PreviewFrame: React.FC = () => {
             }
           });
           if (currentLine) lines.push(currentLine);
-          
+
           ctx.fillStyle = '#888888';
           ctx.textAlign = 'left';
           lines.slice(0, 3).forEach((line, i) => {
@@ -209,12 +223,12 @@ export const PreviewFrame: React.FC = () => {
         ctx.fillText('No shot at current position', canvas.width / 2, canvas.height / 2);
       }
     }
-    
+
     // Draw safe zones if enabled
     if (showSafeZones) {
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
       ctx.lineWidth = 1;
-      
+
       // Action safe (90%)
       const actionSafeMargin = 0.05;
       ctx.strokeRect(
@@ -223,7 +237,7 @@ export const PreviewFrame: React.FC = () => {
         canvas.width * (1 - actionSafeMargin * 2),
         canvas.height * (1 - actionSafeMargin * 2)
       );
-      
+
       // Title safe (80%)
       const titleSafeMargin = 0.1;
       ctx.strokeRect(
@@ -232,7 +246,7 @@ export const PreviewFrame: React.FC = () => {
         canvas.width * (1 - titleSafeMargin * 2),
         canvas.height * (1 - titleSafeMargin * 2)
       );
-      
+
       // Center cross
       ctx.beginPath();
       ctx.moveTo(canvas.width / 2 - 20, canvas.height / 2);
@@ -242,33 +256,33 @@ export const PreviewFrame: React.FC = () => {
       ctx.stroke();
     }
   }, [currentShot, showSafeZones, cachedImageData]);
-  
+
   // Render frame when playhead changes
   useEffect(() => {
     renderFrame(currentFrame);
   }, [currentFrame, renderFrame]);
-  
+
   // Update cached frame with debouncing and adaptive quality
   useEffect(() => {
     const frameCache = frameCacheRef.current;
     const renderFn = renderFunction;
-    
+
     if (!frameCache || !renderFn) return;
-    
+
     // Determine quality based on playback state
     const quality = playbackState === 'playing' ? 'low' : 'high';
-    
+
     // Debounced update for current frame
     frameCache.debouncedUpdate(currentFrame, quality, renderFn, (imageData) => {
       setCachedImageData(imageData);
     });
-    
+
     // Preload frames around current position when paused
     if (playbackState === 'paused' || playbackState === 'stopped') {
       frameCache.preloadFrames(currentFrame, 'high', renderFn);
     }
   }, [currentFrame, playbackState, renderFunction]);
-  
+
   // Invalidate cache when shots change
   useEffect(() => {
     const frameCache = frameCacheRef.current;
@@ -277,33 +291,33 @@ export const PreviewFrame: React.FC = () => {
       setCachedImageData(null);
     }
   }, [shots]);
-  
+
   // Playback loop
   const playbackLoop = useCallback((timestamp: number) => {
     if (playbackState !== 'playing') return;
-    
+
     const fps = settings?.fps || DEFAULT_FPS;
     const frameInterval = 1000 / fps;
     const elapsed = timestamp - lastFrameTimeRef.current;
-    
+
     if (elapsed >= frameInterval) {
       const framesToAdvance = Math.floor(elapsed / frameInterval);
       const newPosition = playheadPosition + framesToAdvance * zoomLevel * playbackSpeed;
-      
+
       if (newPosition >= duration * zoomLevel) {
         // Loop or stop at end
         dispatch(setPlayheadPosition(0));
         dispatch(setPlaybackState('stopped'));
         return;
       }
-      
+
       dispatch(setPlayheadPosition(newPosition));
       lastFrameTimeRef.current = timestamp - (elapsed % frameInterval);
     }
-    
+
     animationFrameRef.current = requestAnimationFrame(playbackLoop);
   }, [playbackState, playheadPosition, zoomLevel, duration, playbackSpeed, settings, dispatch]);
-  
+
   // Start/stop playback
   useEffect(() => {
     if (playbackState === 'playing') {
@@ -314,50 +328,50 @@ export const PreviewFrame: React.FC = () => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     }
-    
+
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
   }, [playbackState, playbackLoop]);
-  
+
   // Playback controls
   const handlePlayPause = useCallback(() => {
     const newState: PlaybackState = playbackState === 'playing' ? 'paused' : 'playing';
     dispatch(setPlaybackState(newState));
   }, [playbackState, dispatch]);
-  
+
   const handleStop = useCallback(() => {
     dispatch(setPlaybackState('stopped'));
     dispatch(setPlayheadPosition(0));
   }, [dispatch]);
-  
+
   const handleFrameStep = useCallback((direction: 'forward' | 'backward') => {
     const frameAdvance = direction === 'forward' ? zoomLevel : -zoomLevel;
     dispatch(setPlayheadPosition(Math.max(0, playheadPosition + frameAdvance)));
   }, [dispatch, playheadPosition, zoomLevel]);
-  
+
   const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const progress = parseFloat(e.target.value);
     const newPosition = (progress / 100) * duration * zoomLevel;
     dispatch(setPlayheadPosition(newPosition));
   }, [dispatch, duration, zoomLevel]);
-  
+
   // Zoom controls
   const handleZoomIn = useCallback(() => {
     setZoom((prev) => Math.min(prev * 1.25, 4));
   }, []);
-  
+
   const handleZoomOut = useCallback(() => {
     setZoom((prev) => Math.max(prev / 1.25, 0.25));
   }, []);
-  
+
   const handleZoomReset = useCallback(() => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
   }, []);
-  
+
   // Pan controls
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0) { // Left click for pan
@@ -365,7 +379,7 @@ export const PreviewFrame: React.FC = () => {
       setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
     }
   }, [pan]);
-  
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isDragging) {
       setPan({
@@ -374,11 +388,11 @@ export const PreviewFrame: React.FC = () => {
       });
     }
   }, [isDragging, dragStart]);
-  
+
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
   }, []);
-  
+
   // Fullscreen
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -389,7 +403,7 @@ export const PreviewFrame: React.FC = () => {
       setIsFullscreen(false);
     }
   }, []);
-  
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -397,7 +411,7 @@ export const PreviewFrame: React.FC = () => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
-      
+
       switch (e.code) {
         case 'Space':
           e.preventDefault();
@@ -428,26 +442,26 @@ export const PreviewFrame: React.FC = () => {
           break;
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePlayPause, handleFrameStep, dispatch, duration, zoomLevel]);
-  
+
   // Calculate canvas display size
   const containerWidth = 640;
   const containerHeight = 360;
-  
+
   // Handle view mode change
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode);
   }, []);
-  
+
   // Handle puppet update from 3D scene
   const handlePuppetUpdate = useCallback((puppetData: unknown) => {
     // TODO: Update shot configuration with puppet data
     console.log('Puppet updated:', puppetData);
   }, []);
-  
+
   return (
     <PreviewDropTarget>
       <div className="preview-frame" ref={containerRef}>
@@ -456,7 +470,7 @@ export const PreviewFrame: React.FC = () => {
           currentMode={viewMode}
           onModeChange={handleViewModeChange}
         />
-        
+
         {/* Canvas Container - Video Preview Mode */}
         {viewMode === 'video' && (
           <>
@@ -479,14 +493,40 @@ export const PreviewFrame: React.FC = () => {
                   transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
                 }}
               />
-              
+
+              {/* Transform Overlay for selected layer */}
+              {selectedLayer && currentShot && (
+                <div
+                  className="transform-overlay-container"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: canvasWidth,
+                    height: canvasHeight,
+                    transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
+                    pointerEvents: 'none',
+                    transformOrigin: '0 0'
+                  }}
+                >
+                  <TransformOverlay
+                    shot={currentShot}
+                    layer={selectedLayer}
+                    canvasWidth={canvasWidth}
+                    canvasHeight={canvasHeight}
+                    zoom={zoom}
+                    pan={pan}
+                  />
+                </div>
+              )}
+
               {/* Timecode Overlay */}
               <div className="timecode-overlay">
                 <span className="current-timecode">{formatTimecode(currentFrame)}</span>
                 <span className="separator">/</span>
                 <span className="total-timecode">{formatTimecode(totalFrames)}</span>
               </div>
-              
+
               {/* Safe Zones Toggle */}
               <button
                 className={`safe-zone-btn ${showSafeZones ? 'active' : ''}`}
@@ -498,7 +538,7 @@ export const PreviewFrame: React.FC = () => {
             </div>
           </>
         )}
-        
+
         {/* 3D Scene View Mode */}
         {viewMode === '3d-scene' && (
           <div className="preview-canvas-container">
@@ -510,113 +550,113 @@ export const PreviewFrame: React.FC = () => {
             />
           </div>
         )}
-      
-      {/* Playback Controls */}
-      <div className="playback-controls">
-        {/* Time Slider */}
-        <div className="time-slider-container">
-          <input
-            type="range"
-            className="time-slider"
-            min={0}
-            max={100}
-            step={0.1}
-            value={duration > 0 ? (playheadPosition / (duration * zoomLevel)) * 100 : 0}
-            onChange={handleSeek}
-          />
-        </div>
-        
-        {/* Control Buttons */}
-        <div className="control-buttons">
-          {/* Skip to start */}
-          <button
-            className="control-btn"
-            onClick={() => dispatch(setPlayheadPosition(0))}
-            title="Go to start (Home)"
-          >
-            ⏮
-          </button>
-          
-          {/* Frame back */}
-          <button
-            className="control-btn"
-            onClick={() => handleFrameStep('backward')}
-            title="Previous frame (←)"
-          >
-            ⏪
-          </button>
-          
-          {/* Stop */}
-          <button
-            className="control-btn"
-            onClick={handleStop}
-            title="Stop (K)"
-          >
-            ⏹
-          </button>
-          
-          {/* Play/Pause */}
-          <button
-            className={`control-btn play-btn ${playbackState === 'playing' ? 'playing' : ''}`}
-            onClick={handlePlayPause}
-            title="Play/Pause (Space)"
-          >
-            {playbackState === 'playing' ? '⏸' : '▶️'}
-          </button>
-          
-          {/* Frame forward */}
-          <button
-            className="control-btn"
-            onClick={() => handleFrameStep('forward')}
-            title="Next frame (→)"
-          >
-            ⏩
-          </button>
-          
-          {/* Skip to end */}
-          <button
-            className="control-btn"
-            onClick={() => dispatch(setPlayheadPosition(duration * zoomLevel))}
-            title="Go to end (End)"
-          >
-            ⏭
-          </button>
-        </div>
-        
-        {/* Right Controls */}
-        <div className="right-controls">
-          {/* Playback Speed */}
-          <select
-            className="speed-select"
-            value={playbackSpeed}
-            onChange={(e) => dispatch(setPlaybackSpeed(parseFloat(e.target.value)))}
-          >
-            {PLAYBACK_SPEEDS.map((speed) => (
-              <option key={speed} value={speed}>
-                {speed}x
-              </option>
-            ))}
-          </select>
-          
-          {/* Zoom Controls */}
-          <div className="zoom-controls">
-            <button className="zoom-btn" onClick={handleZoomOut} title="Zoom out">−</button>
-            <span className="zoom-level">{Math.round(zoom * 100)}%</span>
-            <button className="zoom-btn" onClick={handleZoomIn} title="Zoom in">+</button>
-            <button className="zoom-btn" onClick={handleZoomReset} title="Reset zoom">⟲</button>
+
+        {/* Playback Controls */}
+        <div className="playback-controls">
+          {/* Time Slider */}
+          <div className="time-slider-container">
+            <input
+              type="range"
+              className="time-slider"
+              min={0}
+              max={100}
+              step={0.1}
+              value={duration > 0 ? (playheadPosition / (duration * zoomLevel)) * 100 : 0}
+              onChange={handleSeek}
+            />
           </div>
-          
-          {/* Fullscreen */}
-          <button
-            className="control-btn fullscreen-btn"
-            onClick={toggleFullscreen}
-            title="Toggle fullscreen"
-          >
-            {isFullscreen ? '⛶' : '⛶'}
-          </button>
+
+          {/* Control Buttons */}
+          <div className="control-buttons">
+            {/* Skip to start */}
+            <button
+              className="control-btn"
+              onClick={() => dispatch(setPlayheadPosition(0))}
+              title="Go to start (Home)"
+            >
+              ⏮
+            </button>
+
+            {/* Frame back */}
+            <button
+              className="control-btn"
+              onClick={() => handleFrameStep('backward')}
+              title="Previous frame (←)"
+            >
+              ⏪
+            </button>
+
+            {/* Stop */}
+            <button
+              className="control-btn"
+              onClick={handleStop}
+              title="Stop (K)"
+            >
+              ⏹
+            </button>
+
+            {/* Play/Pause */}
+            <button
+              className={`control-btn play-btn ${playbackState === 'playing' ? 'playing' : ''}`}
+              onClick={handlePlayPause}
+              title="Play/Pause (Space)"
+            >
+              {playbackState === 'playing' ? '⏸' : '▶️'}
+            </button>
+
+            {/* Frame forward */}
+            <button
+              className="control-btn"
+              onClick={() => handleFrameStep('forward')}
+              title="Next frame (→)"
+            >
+              ⏩
+            </button>
+
+            {/* Skip to end */}
+            <button
+              className="control-btn"
+              onClick={() => dispatch(setPlayheadPosition(duration * zoomLevel))}
+              title="Go to end (End)"
+            >
+              ⏭
+            </button>
+          </div>
+
+          {/* Right Controls */}
+          <div className="right-controls">
+            {/* Playback Speed */}
+            <select
+              className="speed-select"
+              value={playbackSpeed}
+              onChange={(e) => dispatch(setPlaybackSpeed(parseFloat(e.target.value)))}
+            >
+              {PLAYBACK_SPEEDS.map((speed) => (
+                <option key={speed} value={speed}>
+                  {speed}x
+                </option>
+              ))}
+            </select>
+
+            {/* Zoom Controls */}
+            <div className="zoom-controls">
+              <button className="zoom-btn" onClick={handleZoomOut} title="Zoom out">−</button>
+              <span className="zoom-level">{Math.round(zoom * 100)}%</span>
+              <button className="zoom-btn" onClick={handleZoomIn} title="Zoom in">+</button>
+              <button className="zoom-btn" onClick={handleZoomReset} title="Reset zoom">⟲</button>
+            </div>
+
+            {/* Fullscreen */}
+            <button
+              className="control-btn fullscreen-btn"
+              onClick={toggleFullscreen}
+              title="Toggle fullscreen"
+            >
+              {isFullscreen ? '⛶' : '⛶'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
     </PreviewDropTarget>
   );
 };

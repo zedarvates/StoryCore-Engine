@@ -8,6 +8,8 @@
  * - Default configuration management
  */
 
+import { logger } from '@/utils/logger';
+
 export interface LLMConfig {
   // Existing fields
   provider: 'local' | 'openai' | 'anthropic';
@@ -112,7 +114,7 @@ export class ConfigManager {
       return this.validateAndMerge(config);
       
     } catch (error) {
-      console.error('Error loading LLM config:', error);
+      logger.error('[ConfigManager] Error loading LLM config:', error);
       return { ...DEFAULT_CONFIG };
     }
   }
@@ -140,10 +142,10 @@ export class ConfigManager {
       // Save to localStorage
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedConfig));
       
-      console.log('LLM config saved successfully');
+      logger.debug('[ConfigManager] LLM config saved successfully');
       
     } catch (error) {
-      console.error('Error saving LLM config:', error);
+      logger.error('[ConfigManager] Error saving LLM config:', error);
       throw error;
     }
   }
@@ -154,9 +156,9 @@ export class ConfigManager {
   static resetToDefaults(): void {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CONFIG));
-      console.log('LLM config reset to defaults');
+      logger.debug('[ConfigManager] LLM config reset to defaults');
     } catch (error) {
-      console.error('Error resetting LLM config:', error);
+      logger.error('[ConfigManager] Error resetting LLM config:', error);
       throw error;
     }
   }
@@ -165,7 +167,7 @@ export class ConfigManager {
    * Migrate old configuration to new schema
    */
   private static migrateConfig(oldConfig: LLMConfig): LLMConfig {
-    console.log('Migrating LLM config from version', oldConfig.schemaVersion || '1.0', 'to', CURRENT_SCHEMA_VERSION);
+    logger.debug(`[ConfigManager] Migrating LLM config from version ${oldConfig.schemaVersion || '1.0'} to ${CURRENT_SCHEMA_VERSION}`);
     
     // Start with default config
     const migratedConfig: LLMConfig = { ...DEFAULT_CONFIG };
@@ -349,7 +351,7 @@ export class ConfigManager {
       this.saveLLMConfig(config);
       
     } catch (error) {
-      console.error('Error importing config:', error);
+      logger.error('[ConfigManager] Error importing config:', error);
       throw new Error('Failed to import configuration: Invalid JSON or format');
     }
   }

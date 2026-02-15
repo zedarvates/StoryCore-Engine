@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, X } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
+import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
 import type { StoryContext } from './CharacterWizard';
@@ -24,6 +25,9 @@ interface Step4BackgroundProps {
 export function Step4Background({ worldContext }: Step4BackgroundProps) {
   const { formData, updateFormData } = useWizard<Character>();
   const [newEvent, setNewEvent] = useState('');
+
+  // Check if LLM service is configured
+  const { llmConfigured, llmChecking } = useServiceStatus();
 
   // LLM generation for background suggestions
   const {
@@ -116,14 +120,14 @@ Example:
   const parseLLMBackground = (response: string): Partial<Character['background']> | null => {
     try {
       ;
-      
+
       // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
           const parsed = JSON.parse(jsonMatch[0]);
           const result: Partial<Character['background']> = {};
-          
+
           // Map all fields with aliases
           if (parsed.origin) result.origin = parsed.origin;
           if (parsed.occupation) result.occupation = parsed.occupation;
@@ -135,7 +139,7 @@ Example:
           if (parsed.current_situation || parsed.currentSituation) {
             result.current_situation = parsed.current_situation || parsed.currentSituation;
           }
-          
+
           // Check if we got any data
           if (Object.keys(result).length > 0) {
             ;
@@ -145,21 +149,21 @@ Example:
           console.warn('JSON parsing failed, trying text parsing');
         }
       }
-      
+
       // Fallback: Parse as structured text
       ;
       const result: Partial<Character['background']> = {};
       const lines = response.split('\n');
-      
+
       const significantEvents: string[] = [];
       let inEventsSection = false;
       let currentField: string | null = null;
       let currentValue = '';
-      
+
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
-        
+
         // Detect significant events section
         if (/significant\s*(?:life\s*)?events?:/i.test(trimmed)) {
           if (currentField && currentValue) {
@@ -175,7 +179,7 @@ Example:
           currentValue = '';
           continue;
         }
-        
+
         // Parse list items in events section
         if (inEventsSection) {
           const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '');
@@ -189,7 +193,7 @@ Example:
             continue;
           }
         }
-        
+
         // Parse field headers and values
         const fieldMatch = trimmed.match(/^(origin|occupation|education|family|current\s*situation)(?:\s*and\s*upbringing)?:\s*(.+)/i);
         if (fieldMatch) {
@@ -201,18 +205,18 @@ Example:
             else if (currentField === 'family') result.family = currentValue;
             else if (currentField === 'current_situation') result.current_situation = currentValue;
           }
-          
+
           currentField = fieldMatch[1].toLowerCase().replace(/\s+/g, '_');
           currentValue = fieldMatch[2].trim();
           continue;
         }
-        
+
         // Continue multi-line field value
         if (currentField && trimmed.length > 10 && !trimmed.endsWith(':')) {
           currentValue += ' ' + trimmed;
         }
       }
-      
+
       // Save last field
       if (currentField && currentValue) {
         if (currentField === 'origin') result.origin = currentValue;
@@ -221,20 +225,20 @@ Example:
         else if (currentField === 'family') result.family = currentValue;
         else if (currentField === 'current_situation') result.current_situation = currentValue;
       }
-      
+
       if (significantEvents.length > 0) result.significant_events = significantEvents;
-      
+
       // Check if we got any data
       if (Object.keys(result).length > 0) {
         ;
         return result;
       }
-      
+
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
       console.error('Response was:', response);
     }
-    
+
     console.warn('Could not parse any background data from response');
     return null;
   };
@@ -290,13 +294,33 @@ Example:
             </div>
             <Button
               onClick={handleGenerateBackground}
-              disabled={isLoading || !formData.personality?.traits?.length}
+              disabled={isLoading || llmChecking || !formData.personality?.traits?.length || !llmConfigured}
               className="gap-2"
             >
               <Sparkles className="h-4 w-4" />
-              {isLoading ? 'Generating...' : 'Generate Background'}
+              {isLoading ? 'Generating...' : llmChecking ? 'Checking...' : 'Generate Background'}
             </Button>
           </div>
+
+          {/* Checking State */}
+          {llmChecking && (
+            <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+              <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+              <span className="text-sm text-blue-700 dark:text-blue-300">
+                Checking LLM service configuration...
+              </span>
+            </div>
+          )}
+
+          {/* Service Warning */}
+          {!llmChecking && !llmConfigured && (
+            <ServiceWarning
+              service="llm"
+              onConfigure={() => {
+                window.dispatchEvent(new CustomEvent('open-llm-settings'));
+              }}
+            />
+          )}
 
           {/* Loading State */}
           {isLoading && (

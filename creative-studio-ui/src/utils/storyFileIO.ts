@@ -6,13 +6,13 @@
 // 
 // File Structure (all .md format):
 //   story/
-//   ├── story-index.md       # Index avec métadonnées et liens vers les parties
-//   ├── story-intro.md       # Introduction avec contexte
-//   ├── story-chapter-01.md  # Chapitres numérotés
+//   ├── story-index.md       # Index with metadata and links to parts
+//   ├── story-intro.md       # Introduction with context
+//   ├── story-chapter-01.md  # Numbered chapters
 //   ├── story-chapter-02.md
 //   ├── ...
 //   ├── story-ending.md      # Conclusion
-//   └── story-summary.md     # Résumé roulant pour contexte LLM
+//   └── story-summary.md     # Rolling summary for LLM context
 //
 // Each file includes YAML frontmatter for LLM parsing
 // ============================================================================

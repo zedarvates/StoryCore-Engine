@@ -15,6 +15,7 @@ import { ProjectSetupWizardModal } from '@/components/wizard/ProjectSetupWizardM
 import { CreateProjectDialogModal } from '@/components/wizard/CreateProjectDialogModal';
 import { SequencePlanWizardModal } from '@/components/wizard/SequencePlanWizardModal';
 import { ShotWizardModal } from '@/components/wizard/ShotWizardModal';
+import { DialogueWriterWizardModal } from '@/components/wizard/DialogueWriterWizardModal';
 import { GenericWizardModal } from '@/components/wizard/GenericWizardModal';
 import { LLMSettingsModal } from '@/components/settings/LLMSettingsModal';
 import { ComfyUISettingsModal } from '@/components/settings/ComfyUISettingsModal';
@@ -204,6 +205,7 @@ export function ModalsContainer({
       <ProjectSetupWizardModal />
       <SequencePlanWizardModal />
       <ShotWizardModal />
+      <DialogueWriterWizardModal />
 
       {/* Generic Wizard Modal */}
       <GenericWizardModal

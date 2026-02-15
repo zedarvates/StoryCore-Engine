@@ -1,0 +1,36 @@
+{
+  "name": "Grok Imagine",
+  "version": "1.0.0",
+  "type": "video_generation",
+  "author": "StoryCore Team",
+  "description": "Intégration avec l'API Grok Imagine (xAI) pour génération d'images et vidéos IA",
+  "compatibility": {
+    "engine_version": ">=2.0.0"
+  },
+  "permissions": [
+    "network_access",
+    "file_system_read",
+    "file_system_write"
+  ],
+  "entry_points": {
+    "main": "src/main.py"
+  },
+  "dependencies": {
+    "aiohttp": ">=3.8.0",
+    "pillow": ">=9.0.0"
+  },
+  "metadata": {
+    "category": "video_generation",
+    "engine": "grok-imagine-v1",
+    "supported_features": [
+      "image_generation",
+      "video_generation",
+      "multishot",
+      "character_consistency",
+      "text_to_video",
+      "text_to_image"
+    ],
+    "api_endpoint": "https://api.x.ai/v1/imagine"
+  }
+}
+

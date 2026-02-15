@@ -43,6 +43,7 @@ class ProjectStructure:
     assets_images_path: Path
     assets_audio_path: Path
     exports_path: Path
+    locations_path: Path
 
 
 @dataclass
@@ -112,8 +113,9 @@ class ProjectStructureBuilder:
         assets_images_path = assets_path / "images"
         assets_audio_path = assets_path / "audio"
         exports_path = project_path / "exports"
+        locations_path = project_path / "locations"
         
-        for directory in [assets_path, assets_images_path, assets_audio_path, exports_path]:
+        for directory in [assets_path, assets_images_path, assets_audio_path, exports_path, locations_path]:
             self._create_directory(directory)
             logger.debug(f"Created directory: {directory}")
         
@@ -149,7 +151,8 @@ class ProjectStructureBuilder:
             music_description_path=music_description_path,
             assets_images_path=assets_images_path,
             assets_audio_path=assets_audio_path,
-            exports_path=exports_path
+            exports_path=exports_path,
+            locations_path=locations_path
         )
         
         logger.info(f"Project structure created successfully: {project_name}")
@@ -187,6 +190,12 @@ class ProjectStructureBuilder:
             
             # Save world_config.json (Requirement 4.5)
             world_data = self._serialize_component(components.world_config)
+            # Save locations as separate files and update world_config to have references
+            world_data = self._save_locations_and_update_world_config(
+                project_path, 
+                components.world_config.key_locations, 
+                world_data
+            )
             self._save_json_file(project_path / "world_config.json", world_data)
             logger.debug("Saved world_config.json")
             
@@ -258,7 +267,8 @@ class ProjectStructureBuilder:
             "assets",
             "assets/images",
             "assets/audio",
-            "exports"
+            "exports",
+            "locations"
         ]
         
         for dir_name in required_dirs:
@@ -453,3 +463,76 @@ class ProjectStructureBuilder:
             "has_dialogue": components.dialogue_script is not None and len(components.dialogue_script.scenes) > 0,
             "music_genre": components.music_description.genre
         }
+    
+    def _save_locations_and_update_world_config(
+        self,
+        project_path: Path,
+        locations: List[Any],
+        world_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Save each location as a separate JSON file and update world_config to have references.
+        
+        Args:
+            project_path: Path to the project directory
+            locations: List of Location objects
+            world_data: The serialized world config data
+            
+        Returns:
+            Updated world_data with location references instead of full data
+        """
+        from src.end_to_end.data_models import Location
+        
+        locations_dir = project_path / "locations"
+        location_references = []
+        
+        for location in locations:
+            # Serialize the location
+            location_dict = self._serialize_component(location)
+            
+            # Use location_id as filename, or generate one if not present
+            location_id = location.location_id if hasattr(location, 'location_id') else str(hash(location.name))
+            
+            # Save location as separate JSON file
+            location_file = locations_dir / f"{location_id}.json"
+            self._save_json_file(location_file, location_dict)
+            logger.debug(f"Saved location file: {location_file}")
+            
+            # Add reference to the list
+            location_references.append({
+                "id": location_id,
+                "name": location.name,
+                "file": f"locations/{location_id}.json"
+            })
+        
+        # Update world_data to have location references instead of full data
+        world_data["key_locations"] = location_references
+        
+        return world_data
+    
+    def load_locations(self, project_path: Path) -> List[Dict[str, Any]]:
+        """
+        Load all locations from the locations directory.
+        
+        Args:
+            project_path: Path to the project directory
+            
+        Returns:
+            List of location dictionaries
+        """
+        locations_dir = project_path / "locations"
+        locations = []
+        
+        if not locations_dir.exists():
+            return locations
+        
+        for location_file in locations_dir.glob("*.json"):
+            try:
+                with open(location_file, 'r', encoding='utf-8') as f:
+                    location_data = json.load(f)
+                    locations.append(location_data)
+            except (json.JSONDecodeError, IOError) as e:
+                logger.error(f"Error loading location {location_file}: {e}")
+                continue
+        
+        return locations

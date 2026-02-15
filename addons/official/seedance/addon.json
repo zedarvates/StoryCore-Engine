@@ -1,0 +1,35 @@
+{
+  "name": "Seedance 2.0",
+  "version": "1.0.0",
+  "type": "processing_addon",
+  "author": "StoryCore Team",
+  "description": "Intégration avec l'API Seedance 2.0 pour génération de vidéos, audio natif et export 3D",
+  "compatibility": {
+    "engine_version": ">=2.0.0"
+  },
+  "permissions": [
+    "network_access",
+    "file_system_read",
+    "file_system_write"
+  ],
+  "entry_points": {
+    "main": "src/main.py"
+  },
+  "dependencies": {
+    "aiohttp": ">=3.8.0",
+    "pillow": ">=9.0.0"
+  },
+  "metadata": {
+    "category": "video_generation",
+    "engine": "seedance-v2-turbo",
+    "supported_features": [
+      "video_generation",
+      "audio_generation",
+      "3d_export",
+      "multishot",
+      "character_consistency"
+    ],
+    "api_endpoint": "https://api.seedance.ai/v2"
+  }
+}
+

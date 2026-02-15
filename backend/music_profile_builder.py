@@ -193,18 +193,20 @@ class MusicProfile:
     - Action context
     - Multi-track configuration
     """
-    # Identity
+    # Identity (required)
     id: str
     project_id: str
+    
+    # Normalized inputs (Section 3) - with defaults
+    project_type: FilmGenre = FilmGenre.DRAMA
+    location: str = ""
+    themes: List[str] = field(default_factory=list)
+    visual_style: str = ""
+    emotional_intensity: Intensity = Intensity.MEDIUM
+    
+    # Identity - timestamps (with defaults)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
-    
-    # Normalized inputs (Section 3)
-    project_type: FilmGenre
-    location: str
-    themes: List[str]
-    visual_style: str
-    emotional_intensity: Intensity
     
     # Action context (Section 4.2)
     action: Optional[ActionContext] = None

@@ -17,7 +17,7 @@ export interface StyleApplication {
   styleName: string;
   intensity: number; // 0-100
   parameters: StyleParameters;
-  appliedAt: Date;
+  appliedAt: number;
 }
 
 export interface StyleParameters {
@@ -81,7 +81,7 @@ export function applyStyleToShot(
     styleName: style.name,
     intensity,
     parameters,
-    appliedAt: new Date(),
+    appliedAt: Date.now(),
   };
 
   // Update shot with style application
@@ -200,7 +200,7 @@ export function haveShotsConsistentStyle(shots: Shot[]): boolean {
       shot.visualStyle.styleId === firstStyle.styleId &&
       shot.visualStyle.intensity === firstStyle.intensity &&
       JSON.stringify(shot.visualStyle.parameters) ===
-        JSON.stringify(firstStyle.parameters)
+      JSON.stringify(firstStyle.parameters)
     );
   });
 }

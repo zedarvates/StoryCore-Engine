@@ -7,6 +7,8 @@
 import { WizardDefinition } from '../../types/configuration';
 import { getComfyUIServersService } from '../comfyuiServersService';
 import { testComfyUIConnection } from '../comfyuiService';
+import { OLLAMA_URL, COMFYUI_URL } from '../../config/apiConfig';
+import { logger } from '@/utils/logger';
 
 export interface WizardLaunchResult {
   success: boolean;
@@ -54,7 +56,7 @@ export class WizardService {
       };
 
     } catch (error) {
-      console.error(`Failed to launch wizard ${wizardId}:`, error);
+      logger.error(`Failed to launch wizard ${wizardId}:`, error);
       return {
         success: false,
         message: 'Failed to launch wizard',
@@ -89,16 +91,16 @@ export class WizardService {
   private buildShotReferenceCommand(options: Record<string, unknown>): string {
     let command = 'storycore shot-reference-wizard';
 
-    if (options.style) {
+    if (options.style && typeof options.style === 'string') {
       command += ` --style ${options.style}`;
     }
 
-    if (options.quality) {
+    if (options.quality && typeof options.quality === 'string') {
       command += ` --quality ${options.quality}`;
     }
 
     if (options.shots && Array.isArray(options.shots)) {
-      command += ` --shots ${options.shots.join(' ')}`;
+      command += ` --shots ${(options.shots as string[]).join(' ')}`;
     }
 
     if (options.preview) {
@@ -115,7 +117,9 @@ export class WizardService {
     let command = 'storycore dialogue-wizard';
 
     if (options.quick && options.characters && options.topic) {
-      command += ` --quick --characters ${options.characters.join(' ')} --topic "${options.topic}"`;
+      const characters = Array.isArray(options.characters) ? options.characters : [options.characters];
+      const topic = typeof options.topic === 'string' ? options.topic : String(options.topic);
+      command += ` --quick --characters ${characters.join(' ')} --topic "${topic}"`;
     } else if (options.interactive) {
       command += ' --interactive';
     } else {
@@ -123,11 +127,11 @@ export class WizardService {
       command += ' --interactive';
     }
 
-    if (options.tone) {
+    if (options.tone && typeof options.tone === 'string') {
       command += ` --tone ${options.tone}`;
     }
 
-    if (options.purpose) {
+    if (options.purpose && typeof options.purpose === 'string') {
       command += ` --purpose ${options.purpose}`;
     }
 
@@ -218,7 +222,7 @@ export class WizardService {
       };
 
     } catch (error) {
-      console.error('Command execution error:', error);
+      logger.error('Command execution error:', error);
       return {
         success: false,
         message: 'Command execution failed',
@@ -231,9 +235,10 @@ export class WizardService {
    * Check Ollama connection status
    */
   async checkOllamaConnection(): Promise<ConnectionStatus> {
+    const ollamaEndpoint = OLLAMA_URL;
     try {
       // Try to connect to Ollama API
-      const response = await fetch('http://localhost:11434/api/tags', {
+      const response = await fetch(`${ollamaEndpoint}/api/tags`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -245,13 +250,13 @@ export class WizardService {
         return {
           connected: true,
           service: 'ollama',
-          endpoint: 'http://localhost:11434'
+          endpoint: ollamaEndpoint
         };
       } else {
         return {
           connected: false,
           service: 'ollama',
-          endpoint: 'http://localhost:11434',
+          endpoint: ollamaEndpoint,
           error: `HTTP ${response.status}: ${response.statusText}`
         };
       }
@@ -259,7 +264,7 @@ export class WizardService {
       return {
         connected: false,
         service: 'ollama',
-        endpoint: 'http://localhost:11434',
+        endpoint: ollamaEndpoint,
         error: error instanceof Error ? error.message : 'Connection failed'
       };
     }
@@ -278,7 +283,7 @@ export class WizardService {
       
       if (availableServer) {
         // Use the available server's URL
-        console.log('[WizardService] Using active ComfyUI server:', availableServer.serverUrl);
+        logger.debug('[WizardService] Using active ComfyUI server:', availableServer.serverUrl);
         
         // Test the connection using the ComfyUI service
         const testResult = await testComfyUIConnection({
@@ -288,14 +293,14 @@ export class WizardService {
         });
         
         if (testResult.success) {
-          console.log('[WizardService] ComfyUI connection successful using configured server:', availableServer.serverUrl);
+          logger.debug('[WizardService] ComfyUI connection successful using configured server:', availableServer.serverUrl);
           return {
             connected: true,
             service: 'comfyui',
             endpoint: availableServer.serverUrl
           };
         } else {
-          console.log('[WizardService] ComfyUI connection failed:', testResult.message);
+          logger.debug('[WizardService] ComfyUI connection failed:', testResult.message);
           return {
             connected: false,
             service: 'comfyui',
@@ -305,7 +310,7 @@ export class WizardService {
         }
       } else {
         // No servers configured - return disconnected without attempting connection
-        console.log('[WizardService] No ComfyUI server configured');
+        logger.debug('[WizardService] No ComfyUI server configured');
         return {
           connected: false,
           service: 'comfyui',
@@ -314,12 +319,12 @@ export class WizardService {
         };
       }
     } catch (error) {
-      console.error('[WizardService] Error checking ComfyUI connection:', error instanceof Error ? error.message : 'Unknown error');
+      logger.error('[WizardService] Error checking ComfyUI connection:', error instanceof Error ? error.message : 'Unknown error');
       
       return {
         connected: false,
         service: 'comfyui',
-        endpoint: 'http://localhost:8188',
+        endpoint: COMFYUI_URL,
         error: error instanceof Error ? error.message : 'Connection failed'
       };
     }
@@ -386,12 +391,13 @@ export class WizardService {
     }
 
     // Check project data requirements
-    if (projectData) {
-      if (wizard.requiresCharacters && (!projectData.characters || projectData.characters.length === 0)) {
+    if (projectData && typeof projectData === 'object') {
+      const data = projectData as Record<string, unknown>;
+      if (wizard.requiresCharacters && (!data.characters || !Array.isArray(data.characters) || data.characters.length === 0)) {
         errors.push('This wizard requires at least one character. Please create characters first.');
       }
 
-      if (wizard.requiresShots && (!projectData.shots || projectData.shots.length === 0)) {
+      if (wizard.requiresShots && (!data.shots || !Array.isArray(data.shots) || data.shots.length === 0)) {
         errors.push('This wizard requires shot planning data. Please create shots first.');
       }
     }
@@ -421,26 +427,118 @@ export class WizardService {
     const configMet = wizard.requiredConfig?.every(req => availableConfig.includes(req)) || !wizard.requiredConfig;
 
     // Check project data requirements
-    const charactersMet = !wizard.requiresCharacters || (projectData?.characters && projectData.characters.length > 0);
-    const shotsMet = !wizard.requiresShots || (projectData?.shots && projectData.shots.length > 0);
+    let charactersMet = true;
+    let shotsMet = true;
+    
+    if (projectData && typeof projectData === 'object') {
+      const data = projectData as Record<string, unknown>;
+      const hasCharacters = Array.isArray(data.characters) && data.characters.length > 0;
+      const hasShots = Array.isArray(data.shots) && data.shots.length > 0;
+      charactersMet = !wizard.requiresCharacters || hasCharacters;
+      shotsMet = !wizard.requiresShots || hasShots;
+    } else {
+      charactersMet = !wizard.requiresCharacters;
+      shotsMet = !wizard.requiresShots;
+    }
 
     return configMet && charactersMet && shotsMet;
   }
 
   /**
    * Save wizard output to the project directory
+   * @param output - The wizard output data to save
+   * @param projectPath - The project directory path
+   * @param outputFileName - Optional custom filename for the output
    */
-  async saveWizardOutput(output: unknown, projectPath: string): Promise<void> {
-    // Implementation would save wizard output to files
-    // For now, this is a placeholder
+  async saveWizardOutput(output: unknown, projectPath: string, outputFileName?: string): Promise<void> {
+    if (!window.electronAPI?.fs) {
+      throw new Error('File system API not available for saving wizard output');
+    }
+
+    try {
+      const fs = window.electronAPI.fs;
+      const outputDir = `${projectPath}/wizard_outputs`;
+      
+      // Ensure output directory exists
+      const dirExists = await fs.exists(outputDir).catch(() => false);
+      if (!dirExists) {
+        await fs.mkdir(outputDir).catch(() => {});
+      }
+
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = outputFileName || `wizard_output_${timestamp}.json`;
+      const filePath = `${outputDir}/${fileName}`;
+
+      // Write output to file
+      const outputData = JSON.stringify(output, null, 2);
+      await fs.writeFile(filePath, outputData);
+      
+      logger.debug(`[WizardService] Saved wizard output to: ${filePath}`);
+    } catch (error) {
+      logger.error('[WizardService] Failed to save wizard output:', error);
+      throw error;
+    }
   }
 
   /**
    * Update project data with wizard results
+   * @param projectPath - The project directory path
+   * @param output - The wizard output containing updates
    */
   async updateProjectData(projectPath: string, output: unknown): Promise<void> {
-    // Implementation would update project.json with new references
-    // For now, this is a placeholder
+    if (!window.electronAPI?.fs) {
+      throw new Error('File system API not available for updating project data');
+    }
+
+    try {
+      const fs = window.electronAPI.fs;
+      const projectFilePath = `${projectPath}/project.json`;
+
+      // Check if project file exists
+      const exists = await fs.exists(projectFilePath);
+      if (!exists) {
+        logger.warn('[WizardService] No project.json found to update');
+        return;
+      }
+
+      // Read existing project data
+      const buffer = await fs.readFile(projectFilePath);
+      const projectData = JSON.parse(buffer.toString('utf-8'));
+
+      // Merge wizard output based on type
+      const wizardOutput = output as Record<string, unknown>;
+      
+      if (wizardOutput.characters && Array.isArray(wizardOutput.characters)) {
+        projectData.characters = [...(projectData.characters || []), ...wizardOutput.characters];
+      }
+      
+      if (wizardOutput.shots && Array.isArray(wizardOutput.shots)) {
+        projectData.shots = [...(projectData.shots || []), ...wizardOutput.shots];
+      }
+      
+      if (wizardOutput.sequences && Array.isArray(wizardOutput.sequences)) {
+        projectData.sequences = [...(projectData.sequences || []), ...wizardOutput.sequences];
+      }
+      
+      if (wizardOutput.references && Array.isArray(wizardOutput.references)) {
+        projectData.references = [...(projectData.references || []), ...wizardOutput.references];
+      }
+
+      // Update metadata
+      projectData.lastModified = new Date().toISOString();
+      if (wizardOutput.wizardId) {
+        projectData.lastWizardRun = wizardOutput.wizardId;
+      }
+
+      // Write updated project data
+      await fs.writeFile(projectFilePath, JSON.stringify(projectData, null, 2));
+      
+      logger.debug(`[WizardService] Updated project data at: ${projectFilePath}`);
+    } catch (error) {
+      logger.error('[WizardService] Failed to update project data:', error);
+      throw error;
+    }
   }
 }
 

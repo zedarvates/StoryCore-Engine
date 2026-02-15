@@ -10,6 +10,17 @@ import { Sparkles, X } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  TEMPERAMENTS,
+  COMMUNICATION_STYLES,
+} from '@/constants/characterOptions';
 import type { Character } from '@/types/character';
 import type { StoryContext } from './CharacterWizard';
 
@@ -115,14 +126,14 @@ Example:
   const parseLLMPersonality = (response: string): Partial<Character['personality']> | null => {
     try {
       ;
-      
+
       // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
           const parsed = JSON.parse(jsonMatch[0]);
           const result: Partial<Character['personality']> = {};
-          
+
           // Map all fields
           if (Array.isArray(parsed.traits)) result.traits = parsed.traits;
           if (Array.isArray(parsed.values)) result.values = parsed.values;
@@ -134,7 +145,7 @@ Example:
           if (parsed.communication_style || parsed.communicationStyle) {
             result.communication_style = parsed.communication_style || parsed.communicationStyle;
           }
-          
+
           // Check if we got any data
           if (Object.keys(result).length > 0) {
             ;
@@ -144,7 +155,7 @@ Example:
           console.warn('JSON parsing failed, trying text parsing');
         }
       }
-      
+
       // Fallback: Parse as structured text
       ;
       const result: Partial<Character['personality']> = {
@@ -155,14 +166,14 @@ Example:
         flaws: [],
         strengths: [],
       };
-      
+
       const lines = response.split('\n');
       let currentSection: 'traits' | 'values' | 'fears' | 'desires' | 'flaws' | 'strengths' | null = null;
-      
+
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
-        
+
         // Detect section headers
         if (/(?:core\s*)?(?:personality\s*)?traits?:/i.test(trimmed)) {
           currentSection = 'traits';
@@ -188,7 +199,7 @@ Example:
           currentSection = 'strengths';
           continue;
         }
-        
+
         // Parse temperament
         const tempMatch = trimmed.match(/temperament:\s*(.+)/i);
         if (tempMatch) {
@@ -196,7 +207,7 @@ Example:
           currentSection = null;
           continue;
         }
-        
+
         // Parse communication style
         const commMatch = trimmed.match(/communication\s*style:\s*(.+)/i);
         if (commMatch) {
@@ -204,7 +215,7 @@ Example:
           currentSection = null;
           continue;
         }
-        
+
         // Parse list items in current section
         if (currentSection) {
           const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '');
@@ -213,22 +224,22 @@ Example:
           }
         }
       }
-      
+
       // Check if we got any data
-      const hasData = Object.values(result).some(val => 
+      const hasData = Object.values(result).some(val =>
         Array.isArray(val) ? val.length > 0 : !!val
       );
-      
+
       if (hasData) {
         ;
         return result;
       }
-      
+
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
       console.error('Response was:', response);
     }
-    
+
     console.warn('Could not parse any personality data from response');
     return null;
   };
@@ -267,6 +278,15 @@ Example:
       personality: {
         ...(formData.personality || {}),
         [field]: e.target.value,
+      } as Character['personality'],
+    });
+  };
+
+  const handleSelectChange = (field: keyof Character['personality']) => (value: string) => {
+    updateFormData({
+      personality: {
+        ...(formData.personality || {}),
+        [field]: value,
       } as Character['personality'],
     });
   };
@@ -570,12 +590,29 @@ Example:
         {/* Temperament */}
         <div className="space-y-2">
           <Label htmlFor="temperament">Temperament</Label>
-          <Input
-            id="temperament"
-            value={formData.personality?.temperament || ''}
-            onChange={handleInputChange('temperament')}
-            placeholder="e.g., Melancholic, Sanguine, Choleric, Phlegmatic"
-          />
+          <Select
+            value={TEMPERAMENTS.includes(formData.personality?.temperament as any) ? formData.personality?.temperament : (formData.personality?.temperament ? 'Other' : '')}
+            onValueChange={(val) => handleSelectChange('temperament')(val === 'Other' ? '' : val)}
+          >
+            <SelectTrigger id="temperament" className="wizard-select-trigger">
+              <SelectValue placeholder="Select temperament" />
+            </SelectTrigger>
+            <SelectContent className="wizard-select-content">
+              {TEMPERAMENTS.map(t => (
+                <SelectItem key={t} value={t} className="wizard-select-item">{t}</SelectItem>
+              ))}
+              <SelectItem value="Other" className="wizard-select-item font-semibold border-t">Other / Custom...</SelectItem>
+            </SelectContent>
+          </Select>
+          {((!TEMPERAMENTS.includes(formData.personality?.temperament as any) && formData.personality?.temperament) || formData.personality?.temperament === '') && (
+            <Input
+              id="temperament-custom"
+              value={formData.personality?.temperament || ''}
+              onChange={handleInputChange('temperament')}
+              placeholder="Custom temperament..."
+              className="mt-1"
+            />
+          )}
           <p className="text-sm text-muted-foreground">
             Overall emotional disposition
           </p>
@@ -584,15 +621,32 @@ Example:
         {/* Communication Style */}
         <div className="space-y-2">
           <Label htmlFor="communication-style">Communication Style</Label>
-          <Textarea
-            id="communication-style"
-            value={formData.personality?.communication_style || ''}
-            onChange={handleInputChange('communication_style')}
-            placeholder="How does this character speak and interact with others?"
-            rows={3}
-          />
+          <Select
+            value={COMMUNICATION_STYLES.includes(formData.personality?.communication_style as any) ? formData.personality?.communication_style : (formData.personality?.communication_style ? 'Other' : '')}
+            onValueChange={(val) => handleSelectChange('communication_style')(val === 'Other' ? '' : val)}
+          >
+            <SelectTrigger id="communication-style" className="wizard-select-trigger">
+              <SelectValue placeholder="Select communication style" />
+            </SelectTrigger>
+            <SelectContent className="wizard-select-content">
+              {COMMUNICATION_STYLES.map(s => (
+                <SelectItem key={s} value={s} className="wizard-select-item">{s}</SelectItem>
+              ))}
+              <SelectItem value="Other" className="wizard-select-item font-semibold border-t">Other / Custom...</SelectItem>
+            </SelectContent>
+          </Select>
+          {((!COMMUNICATION_STYLES.includes(formData.personality?.communication_style as any) && formData.personality?.communication_style) || formData.personality?.communication_style === '') && (
+            <Textarea
+              id="communication-style-custom"
+              value={formData.personality?.communication_style || ''}
+              onChange={handleInputChange('communication_style')}
+              placeholder="Describe their unique communication style..."
+              rows={2}
+              className="mt-1"
+            />
+          )}
           <p className="text-sm text-muted-foreground">
-            Example: "Direct and blunt, often uses humor to deflect serious topics"
+            How do they speak and interact?
           </p>
         </div>
       </div>

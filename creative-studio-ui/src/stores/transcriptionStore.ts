@@ -15,6 +15,7 @@ import {
   MontageStyle,
   SegmentType
 } from '../services/transcriptionService';
+import { logger } from '../utils/logger';
 
 export interface EditHistoryEntry {
   id: string;
@@ -349,7 +350,7 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
       const segment = transcript.segments.find(s => s.segmentId === segmentId);
       if (segment) {
         // In a full implementation, this would call the API
-        console.log('Saving segment:', segment);
+        logger.debug('Saving segment:', segment);
       }
       set({ isSaving: false });
     } catch (error) {

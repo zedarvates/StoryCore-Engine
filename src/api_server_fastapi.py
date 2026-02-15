@@ -310,6 +310,24 @@ app.include_router(video_editor_router)
 logger.info("Video Editor AI routes registered")
 
 # ============================================
+# ADDON ROUTES
+# ============================================
+
+from src.api.addon_routes import router as addon_router
+
+app.include_router(addon_router)
+logger.info("Addon routes registered")
+
+# ============================================
+# SEEDANCE ROUTES
+# ============================================
+
+from src.api.seedance_routes import router as seedance_router
+
+app.include_router(seedance_router)
+logger.info("Seedance routes registered")
+
+# ============================================
 # INCLUDE API ROUTER
 # ============================================
 

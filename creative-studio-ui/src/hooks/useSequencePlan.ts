@@ -60,6 +60,8 @@ export function useSequencePlan(): UseSequencePlanReturn {
       setPlans(initialPlans);
     };
     loadInitialPlans();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount - initial plan loading is a one-time operation
   }, []);
 
   // Subscribe to plan list updates
@@ -69,6 +71,8 @@ export function useSequencePlan(): UseSequencePlanReturn {
     });
 
     return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount - subscription should be established once
   }, []);
 
   // Subscribe to plan updates
@@ -92,6 +96,8 @@ export function useSequencePlan(): UseSequencePlanReturn {
     });
 
     return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount - subscription should be established once
   }, []);
 
   // Load a specific plan

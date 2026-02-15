@@ -1,30 +1,14 @@
 /**
- * ObjectsAIService - Service IA pour la gestion des objets
+ * ObjectsAIService - AI Service for Object Management
  *
- * Génère automatiquement des objets, analyse leur rôle narratif,
- * et propose des connexions avec personnages et lieux
+ * Automatically generates objects, analyzes their narrative role,
+ * and proposes connections with characters and locations.
  */
 
-import { promptSuggestionService, type PromptSuggestion } from './PromptSuggestionService';
+import { llmConfigService } from './llmConfigService';
 import { notificationService } from './NotificationService';
 import { LanguageCode } from '@/utils/llmConfigStorage';
-
-export interface GameObject {
-  id: string;
-  name: string;
-  description: string;
-  type: 'weapon' | 'armor' | 'artifact' | 'consumable' | 'tool' | 'treasure' | 'magical' | 'quest' | 'key';
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythical';
-  power: number; // 1-100
-  lore: string;
-  abilities: string[];
-  requirements: string;
-  value: number;
-  weight: number;
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { StoryObject, ObjectType, ObjectRarity } from '@/types/object';
 
 export interface ObjectAnalysis {
   narrativeRole: 'plot_device' | 'character_development' | 'world_building' | 'macguffin' | 'red_herring' | 'chekhovs_gun';
@@ -46,8 +30,8 @@ export interface ObjectAnalysis {
 export interface ObjectGenerationOptions {
   theme: string;
   powerLevel: number;
-  objectType: GameObject['type'];
-  rarity: GameObject['rarity'];
+  objectType: ObjectType;
+  rarity: ObjectRarity;
   connectedTo?: {
     characters?: string[];
     locations?: string[];
@@ -56,14 +40,14 @@ export interface ObjectGenerationOptions {
 }
 
 /**
- * Service IA pour la gestion des objets
+ * AI Service for Object Management
  */
 export class ObjectsAIService {
   private static instance: ObjectsAIService;
-  private objectsCache: Map<string, GameObject[]> = new Map();
+  private objectsCache: Map<string, StoryObject[]> = new Map();
   private analysisCache: Map<string, ObjectAnalysis> = new Map();
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): ObjectsAIService {
     if (!ObjectsAIService.instance) {
@@ -73,43 +57,56 @@ export class ObjectsAIService {
   }
 
   /**
-   * Génère un objet automatiquement avec IA
+   * Generates an object automatically with AI
    */
-  async generateObject(options: ObjectGenerationOptions, language: LanguageCode = 'fr'): Promise<GameObject> {
+  async generateObject(options: ObjectGenerationOptions, language: LanguageCode = 'fr'): Promise<StoryObject> {
     try {
       const prompt = this.buildObjectGenerationPrompt(options, language);
-      const suggestions = await promptSuggestionService.generateSuggestions(
-        [{ role: 'user', content: prompt }],
-        language,
-        ''
-      );
 
-      const generatedObject = this.parseGeneratedObject(suggestions[0]?.content || '', options);
+      const llmService = llmConfigService.getService();
+      if (!llmService) {
+        throw new Error('LLM Service not configured');
+      }
+
+      const response = await llmService.generateCompletion({
+        prompt: prompt,
+        systemPrompt: language === 'fr'
+          ? 'Tu es un expert en game design et en world building. Crée un objet détaillé au format JSON.'
+          : 'You are an expert game designer and world builder. Create a detailed object in JSON format.'
+      });
+
+      const content = response.success ? response.data?.content : null;
+      const generatedObject = this.parseGeneratedObject(content || '', options);
 
       notificationService.success(
-        'Objet généré',
-        `L'objet "${generatedObject.name}" a été créé avec succès.`
+        language === 'fr' ? 'Objet généré' : 'Object Generated',
+        language === 'fr'
+          ? `L'objet "${generatedObject.name}" a été créé avec succès.`
+          : `Object "${generatedObject.name}" created successfully.`
       );
 
       return generatedObject;
     } catch (error) {
       console.error('Failed to generate object:', error);
-      notificationService.error('Erreur de génération', 'Impossible de générer l\'objet.');
+      notificationService.error(
+        language === 'fr' ? 'Erreur de génération' : 'Generation Error',
+        language === 'fr' ? 'Impossible de générer l\'objet.' : 'Failed to generate object.'
+      );
 
-      // Fallback: créer un objet basique
+      // Fallback: create a basic object
       return this.createFallbackObject(options);
     }
   }
 
   /**
-   * Analyse le rôle narratif d'un objet
+   * Analyzes the narrative role of an object
    */
-  async analyzeObject(object: GameObject, context?: {
-    characters?: Array<{ id: string; name: string; role: string }>;
-    locations?: Array<{ id: string; name: string; type: string }>;
+  async analyzeObject(object: StoryObject, context?: {
+    characters?: Array<{ id: string; name: string; role?: string }>;
+    locations?: Array<{ id: string; name: string; type?: string }>;
     plotElements?: string[];
   }): Promise<ObjectAnalysis> {
-    // Vérifier le cache
+    // Check cache
     const cacheKey = `analysis_${object.id}`;
     if (this.analysisCache.has(cacheKey)) {
       return this.analysisCache.get(cacheKey)!;
@@ -117,34 +114,40 @@ export class ObjectsAIService {
 
     try {
       const prompt = this.buildAnalysisPrompt(object, context);
-      const suggestions = await promptSuggestionService.generateSuggestions(
-        [{ role: 'user', content: prompt }],
-        'fr',
-        ''
-      );
 
-      const analysis = this.parseAnalysis(suggestions[0]?.content || '');
+      const llmService = llmConfigService.getService();
+      if (!llmService) {
+        throw new Error('LLM Service not configured');
+      }
+
+      const response = await llmService.generateCompletion({
+        prompt: prompt,
+        systemPrompt: 'Tu es un expert en narration cinématographique. Analyse le rôle de cet objet dans l\'histoire.'
+      });
+
+      const content = response.success ? response.data?.content : null;
+      const analysis = this.parseAnalysis(content || '');
       this.analysisCache.set(cacheKey, analysis);
 
       return analysis;
     } catch (error) {
       console.error('Failed to analyze object:', error);
 
-      // Fallback: analyse basique
+      // Fallback: basic analysis
       return this.createFallbackAnalysis(object);
     }
   }
 
   /**
-   * Génère plusieurs objets pour une quête ou un trésor
+   * Generates multiple objects for a quest or treasure
    */
   async generateObjectSet(
     theme: string,
     count: number,
-    baseRarity: GameObject['rarity'] = 'common',
+    baseRarity: ObjectRarity = 'common',
     language: LanguageCode = 'fr'
-  ): Promise<GameObject[]> {
-    const objects: GameObject[] = [];
+  ): Promise<StoryObject[]> {
+    const objects: StoryObject[] = [];
 
     for (let i = 0; i < count; i++) {
       const options: ObjectGenerationOptions = {
@@ -157,24 +160,26 @@ export class ObjectsAIService {
       const object = await this.generateObject(options, language);
       objects.push(object);
 
-      // Petit délai pour éviter la surcharge
+      // Small delay to avoid overloading
       if (i < count - 1) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
 
     notificationService.success(
-      'Ensemble d\'objets généré',
-      `${count} objets ont été créés pour le thème "${theme}".`
+      language === 'fr' ? 'Ensemble d\'objets généré' : 'Object Set Generated',
+      language === 'fr'
+        ? `${count} objets ont été créés pour le thème "${theme}".`
+        : `${count} objects created for theme "${theme}".`
     );
 
     return objects;
   }
 
   /**
-   * Propose des améliorations d'objet
+   * Suggests object improvements
    */
-  async suggestObjectImprovements(object: GameObject): Promise<{
+  async suggestObjectImprovements(object: StoryObject): Promise<{
     nameSuggestions: string[];
     abilitySuggestions: string[];
     loreEnhancements: string[];
@@ -189,7 +194,7 @@ Rareté: ${object.rarity}
 Puissance: ${object.power}
 Description: ${object.description}
 Lore: ${object.lore}
-Capacités: ${object.abilities.join(', ')}
+Capacités: ${(object.abilityStrings || []).join(', ')}
 
 Propose:
 1. 3 noms alternatifs plus immersifs
@@ -197,15 +202,20 @@ Propose:
 3. Améliorations de l'histoire/lore
 4. Ajustements d'équilibrage (puissance, rareté, etc.)
 
-Réponds en format structuré.`;
+Réponds en format JSON structuré.`;
 
-      const suggestions = await promptSuggestionService.generateSuggestions(
-        [{ role: 'user', content: prompt }],
-        'fr',
-        ''
-      );
+      const llmService = llmConfigService.getService();
+      if (!llmService) {
+        throw new Error('LLM Service not configured');
+      }
 
-      return this.parseImprovementSuggestions(suggestions[0]?.content || '');
+      const response = await llmService.generateCompletion({
+        prompt: prompt,
+        systemPrompt: 'Tu es un expert en design d\'objets. Propose des améliorations pertinentes.'
+      });
+
+      const content = response.success ? response.data?.content : null;
+      return this.parseImprovementSuggestions(content || '');
     } catch (error) {
       console.error('Failed to generate improvements:', error);
       return {
@@ -218,10 +228,10 @@ Réponds en format structuré.`;
   }
 
   /**
-   * Trouve des connexions entre objets
+   * Finds connections between objects
    */
   async findObjectConnections(
-    objects: GameObject[],
+    objects: StoryObject[],
     context?: {
       characters?: Array<{ id: string; name: string }>;
       locations?: Array<{ id: string; name: string }>;
@@ -238,20 +248,26 @@ Réponds en format structuré.`;
 
     try {
       const prompt = this.buildConnectionsPrompt(objects, context);
-      const suggestions = await promptSuggestionService.generateSuggestions(
-        [{ role: 'user', content: prompt }],
-        'fr',
-        ''
-      );
 
-      return this.parseConnections(suggestions[0]?.content || '', objects);
+      const llmService = llmConfigService.getService();
+      if (!llmService) {
+        throw new Error('LLM Service not configured');
+      }
+
+      const response = await llmService.generateCompletion({
+        prompt: prompt,
+        systemPrompt: 'Tu es un expert en conception de systèmes de jeu. Identifie les synergies entre objets.'
+      });
+
+      const content = response.success ? response.data?.content : null;
+      return this.parseConnections(content || '', objects);
     } catch (error) {
       console.error('Failed to find connections:', error);
       return [];
     }
   }
 
-  // === MÉTHODES PRIVÉES ===
+  // === PRIVATE METHODS ===
 
   private buildObjectGenerationPrompt(options: ObjectGenerationOptions, language: LanguageCode): string {
     const lang = language === 'fr' ? 'français' : 'english';
@@ -289,35 +305,41 @@ Format de réponse JSON:
 }`;
   }
 
-  private parseGeneratedObject(response: string, options: ObjectGenerationOptions): GameObject {
+  private parseGeneratedObject(response: string, options: ObjectGenerationOptions): StoryObject {
     try {
-      // Essayer de parser le JSON directement
-      const parsed = JSON.parse(response.trim());
+      const jsonStart = response.indexOf('{');
+      const jsonEnd = response.lastIndexOf('}');
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error('No JSON found');
+
+      const jsonContent = response.substring(jsonStart, jsonEnd + 1);
+      const parsed = JSON.parse(jsonContent);
 
       return {
-        id: `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `obj_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
         name: parsed.name || 'Objet mystérieux',
         description: parsed.description || '',
         type: options.objectType,
         rarity: options.rarity,
         power: options.powerLevel,
         lore: parsed.lore || '',
-        abilities: Array.isArray(parsed.abilities) ? parsed.abilities : [],
+        abilityStrings: Array.isArray(parsed.abilities) ? parsed.abilities : [],
         requirements: parsed.requirements || '',
-        value: parsed.value || 100,
-        weight: parsed.weight || 1,
+        properties: {
+          value: parsed.value || 100,
+          weight: parsed.weight || 1,
+        },
         tags: [options.theme, options.objectType],
+        generatedBy: 'ai',
         createdAt: new Date(),
         updatedAt: new Date()
       };
     } catch {
-      // Fallback: extraire manuellement
       return this.createFallbackObject(options);
     }
   }
 
-  private createFallbackObject(options: ObjectGenerationOptions): GameObject {
-    const fallbackNames = {
+  private createFallbackObject(options: ObjectGenerationOptions): StoryObject {
+    const fallbackNames: Record<string, string[]> = {
       weapon: ['Épée ancienne', 'Bâton runique', 'Arc elfique'],
       armor: ['Armure enchantée', 'Bouclier sacré', 'Cape magique'],
       artifact: ['Cristal mystique', 'Amulette ancienne', 'Relique perdue'],
@@ -332,35 +354,41 @@ Format de réponse JSON:
     const names = fallbackNames[options.objectType] || ['Objet mystérieux'];
 
     return {
-      id: `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `obj_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: names[Math.floor(Math.random() * names.length)],
       description: `Un objet ${options.objectType} ${options.rarity} lié au thème ${options.theme}.`,
       type: options.objectType,
       rarity: options.rarity,
       power: options.powerLevel,
       lore: `Légende liée au thème ${options.theme}.`,
-      abilities: ['Capacité spéciale 1', 'Capacité spéciale 2'],
+      abilityStrings: ['Capacité spéciale 1', 'Capacité spéciale 2'],
       requirements: 'Aucune condition particulière',
-      value: 100 * options.powerLevel,
-      weight: Math.max(0.1, options.powerLevel / 20),
+      properties: {
+        value: 100 * options.powerLevel,
+        weight: Math.max(0.1, options.powerLevel / 20),
+      },
       tags: [options.theme, options.objectType, options.rarity],
+      generatedBy: 'ai',
       createdAt: new Date(),
       updatedAt: new Date()
     };
   }
 
-  private buildAnalysisPrompt(object: GameObject, context?: unknown): string {
+  private buildAnalysisPrompt(object: StoryObject, context?: {
+    characters?: Array<{ id: string; name: string }>;
+    locations?: Array<{ id: string; name: string }>;
+  }): string {
     return `Analyse le rôle narratif de cet objet dans une histoire:
 
 Objet: ${object.name}
 Type: ${object.type}
 Description: ${object.description}
 Lore: ${object.lore}
-Capacités: ${object.abilities.join(', ')}
+Capacités: ${(object.abilityStrings || []).join(', ')}
 
 ${context ? `Contexte:
-${context.characters ? `Personnages: ${context.characters.map((c: unknown) => c.name).join(', ')}` : ''}
-${context.locations ? `Lieux: ${context.locations.map((l: unknown) => l.name).join(', ')}` : ''}
+${context.characters ? `Personnages: ${context.characters.map(c => c.name).join(', ')}` : ''}
+${context.locations ? `Lieux: ${context.locations.map(l => l.name).join(', ')}` : ''}
 ` : ''}
 
 Détermine:
@@ -376,7 +404,13 @@ Réponds en format JSON structuré.`;
 
   private parseAnalysis(response: string): ObjectAnalysis {
     try {
-      const parsed = JSON.parse(response.trim());
+      const jsonStart = response.indexOf('{');
+      const jsonEnd = response.lastIndexOf('}');
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error('No JSON found');
+
+      const jsonContent = response.substring(jsonStart, jsonEnd + 1);
+      const parsed = JSON.parse(jsonContent);
+
       return {
         narrativeRole: parsed.narrativeRole || 'world_building',
         thematicConnections: Array.isArray(parsed.thematicConnections) ? parsed.thematicConnections : [],
@@ -386,11 +420,11 @@ Réponds en format JSON structuré.`;
         conflictPotential: parsed.conflictPotential || 'medium'
       };
     } catch {
-      return this.createFallbackAnalysis({} as GameObject);
+      return this.createFallbackAnalysis({} as StoryObject);
     }
   }
 
-  private createFallbackAnalysis(object: GameObject): ObjectAnalysis {
+  private createFallbackAnalysis(object: StoryObject): ObjectAnalysis {
     return {
       narrativeRole: 'world_building',
       thematicConnections: ['magie', 'aventure', 'mystère'],
@@ -401,17 +435,35 @@ Réponds en format JSON structuré.`;
     };
   }
 
-  private parseImprovementSuggestions(response: string): unknown {
-    // Parser les suggestions d'amélioration
-    return {
-      nameSuggestions: ['Nom alternatif 1', 'Nom alternatif 2', 'Nom alternatif 3'],
-      abilitySuggestions: ['Nouvelle capacité 1', 'Nouvelle capacité 2'],
-      loreEnhancements: ['Amélioration de l\'histoire'],
-      balanceAdjustments: ['Ajustement d\'équilibrage']
-    };
+  private parseImprovementSuggestions(response: string): any {
+    try {
+      const jsonStart = response.indexOf('{');
+      const jsonEnd = response.lastIndexOf('}');
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error('No JSON found');
+
+      const jsonContent = response.substring(jsonStart, jsonEnd + 1);
+      const parsed = JSON.parse(jsonContent);
+
+      return {
+        nameSuggestions: parsed.nameSuggestions || [],
+        abilitySuggestions: parsed.abilitySuggestions || [],
+        loreEnhancements: parsed.loreEnhancements || [],
+        balanceAdjustments: parsed.balanceAdjustments || []
+      };
+    } catch {
+      return {
+        nameSuggestions: ['Nom alternatif 1', 'Nom alternatif 2', 'Nom alternatif 3'],
+        abilitySuggestions: ['Nouvelle capacité 1', 'Nouvelle capacité 2'],
+        loreEnhancements: ['Amélioration de l\'histoire'],
+        balanceAdjustments: ['Ajustement d\'équilibrage']
+      };
+    }
   }
 
-  private buildConnectionsPrompt(objects: GameObject[], context?: unknown): string {
+  private buildConnectionsPrompt(objects: StoryObject[], context?: {
+    characters?: Array<{ id: string; name: string }>;
+    locations?: Array<{ id: string; name: string }>;
+  }): string {
     const objectList = objects.map(obj => `- ${obj.name} (${obj.type}, ${obj.rarity})`).join('\n');
 
     return `Analyse les connexions possibles entre ces objets:
@@ -419,8 +471,8 @@ Réponds en format JSON structuré.`;
 ${objectList}
 
 ${context ? `Contexte:
-${context.characters ? `Personnages: ${context.characters.map((c: unknown) => c.name).join(', ')}` : ''}
-${context.locations ? `Lieux: ${context.locations.map((l: unknown) => l.name).join(', ')}` : ''}
+${context.characters ? `Personnages: ${context.characters.map(c => c.name).join(', ')}` : ''}
+${context.locations ? `Lieux: ${context.locations.map(l => l.name).join(', ')}` : ''}
 ` : ''}
 
 Pour chaque objet, identifie les relations avec les autres:
@@ -432,39 +484,47 @@ Pour chaque objet, identifie les relations avec les autres:
 Réponds en format JSON structuré.`;
   }
 
-  private parseConnections(response: string, objects: GameObject[]): unknown[] {
-    // Parser les connexions
-    return objects.map(obj => ({
-      objectId: obj.id,
-      connections: []
-    }));
+  private parseConnections(response: string, objects: StoryObject[]): any[] {
+    try {
+      const jsonStart = response.indexOf('[');
+      const jsonEnd = response.lastIndexOf(']');
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error('No JSON sequence found');
+
+      const jsonContent = response.substring(jsonStart, jsonEnd + 1);
+      return JSON.parse(jsonContent);
+    } catch {
+      return objects.map(obj => ({
+        objectId: obj.id,
+        connections: []
+      }));
+    }
   }
 
-  private getRandomPowerLevel(rarity: GameObject['rarity']): number {
-    const ranges = {
+  private getRandomPowerLevel(rarity: ObjectRarity): number {
+    const ranges: Record<string, [number, number]> = {
       common: [1, 30],
       uncommon: [20, 50],
       rare: [40, 70],
       epic: [60, 85],
       legendary: [80, 95],
-      mythical: [90, 100]
+      mythical: [90, 100],
+      unique: [1, 100]
     };
 
-    const [min, max] = ranges[rarity];
+    const [min, max] = ranges[rarity as string] || [1, 50];
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  private getRandomObjectType(): GameObject['type'] {
-    const types: GameObject['type'][] = ['weapon', 'armor', 'artifact', 'consumable', 'tool', 'treasure', 'magical', 'quest', 'key'];
+  private getRandomObjectType(): ObjectType {
+    const types: ObjectType[] = ['weapon', 'armor', 'artifact', 'consumable', 'tool', 'treasure', 'magical', 'quest', 'key'];
     return types[Math.floor(Math.random() * types.length)];
   }
 
-  private adjustRarity(baseRarity: GameObject['rarity'], index: number, total: number): GameObject['rarity'] {
-    // Distribuer les raretés de manière équilibrée
-    const rarityLevels: GameObject['rarity'][] = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythical'];
+  private adjustRarity(baseRarity: ObjectRarity, index: number, total: number): ObjectRarity {
+    const rarityLevels: ObjectRarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythical'];
     const baseIndex = rarityLevels.indexOf(baseRarity);
+    if (baseIndex === -1) return baseRarity;
 
-    // Ajouter une variation basée sur la position
     const variation = Math.floor((index / total) * 3) - 1; // -1, 0, or 1
     const newIndex = Math.max(0, Math.min(rarityLevels.length - 1, baseIndex + variation));
 
@@ -472,7 +532,5 @@ Réponds en format JSON structuré.`;
   }
 }
 
-// Export de l'instance singleton
+// Export of the singleton instance
 export const objectsAIService = ObjectsAIService.getInstance();
-
-

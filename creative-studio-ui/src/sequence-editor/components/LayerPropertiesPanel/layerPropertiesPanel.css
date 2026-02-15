@@ -260,6 +260,26 @@
   text-transform: uppercase;
 }
 
+.property-value-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex: 1;
+}
+
+.property-value-pair {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.property-unit-label {
+  font-size: 10px;
+  color: var(--text-secondary, #888888);
+  font-weight: 600;
+  width: 12px;
+}
+
 /* Property Data Preview */
 .property-data-preview {
   padding: 8px;

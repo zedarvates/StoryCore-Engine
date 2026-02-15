@@ -18,7 +18,11 @@ security = HTTPBearer()
 
 def get_jwt_secret() -> str:
     """
-    Get JWT secret from environment variable or video_editor_api.
+    Get JWT secret from centralized configuration.
+    
+    Uses backend.config.settings.get_jwt_secret() which ensures:
+    - Environment variable is set in production
+    - Proper error handling for missing secrets
     
     Returns:
         str: JWT secret key
@@ -26,23 +30,19 @@ def get_jwt_secret() -> str:
     Raises:
         ValueError: If JWT_SECRET is not configured
     """
-    jwt_secret = os.getenv("JWT_SECRET")
-    
-    if not jwt_secret:
-        # Import from video_editor_api which may have generated a key
-        try:
-            from backend.video_editor_api import SECRET_KEY
-            return SECRET_KEY
-        except ImportError:
-            pass
-    
-    if not jwt_secret:
-        raise ValueError(
-            "JWT_SECRET environment variable is not configured. "
-            "Please set JWT_SECRET for production use."
-        )
-    
-    return jwt_secret
+    # Import from centralized config which handles production safety
+    try:
+        from backend.config import settings
+        return settings.get_jwt_secret()
+    except ImportError:
+        # Fallback to environment variable if config not available
+        jwt_secret = os.getenv("JWT_SECRET")
+        if not jwt_secret:
+            raise ValueError(
+                "JWT_SECRET environment variable is not configured. "
+                "Please set JWT_SECRET for production use."
+            )
+        return jwt_secret
 
 
 def decode_jwt_token(token: str) -> Dict[str, Any]:

@@ -3,7 +3,7 @@
   "productName": "StoryCore Creative Studio",
   "files": [
     "dist/**/*",
-    "creative-studio-ui/dist/**/*",
+    "src/ui/dist/**/*",
     "package.json"
   ],
   "extraMetadata": {

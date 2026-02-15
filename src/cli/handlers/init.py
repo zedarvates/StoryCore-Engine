@@ -287,8 +287,8 @@ class InitHandler(BaseHandler):
         # Build configuration
         config = build_project_configuration(wizard_state)
         
-        # Create project files
-        success = create_project_files(config, args.path)
+        # Create project files (pass wizard_state for story documentation)
+        success = create_project_files(config, args.path, wizard_state)
         
         if success:
             project_path = Path(args.path) / config.project_name
@@ -298,6 +298,18 @@ class InitHandler(BaseHandler):
             print(f"   ✓ project.json (main configuration)")
             print(f"   ✓ README.md (project documentation)")
             print(f"   ✓ Directory structure (assets, exports, etc.)")
+            
+            # Show story documentation files if generated
+            story_path = project_path / "story"
+            if story_path.exists():
+                print(f"   ✓ Story documentation (story/):")
+                print(f"      - 00_master_outline.md")
+                print(f"      - 01_plot_core.md")
+                print(f"      - 02_lore_worldbuilding.md")
+                print(f"      - 03_conspiracy_hidden_truth.md")
+                print(f"      - 04_character_bibles/")
+                print(f"      - 05_timelines.md")
+                print(f"      - 06_style_guide.md")
             
             # Initialize memory system if requested
             if args.enable_memory or self._should_enable_memory_wizard(wizard_state):

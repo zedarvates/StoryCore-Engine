@@ -1,0 +1,263 @@
+/**
+ * Export Panel Styles
+ */
+
+.export-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+  background: var(--panel-bg, #1e1e1e);
+  color: var(--text-primary, #e0e0e0);
+  overflow-y: auto;
+}
+
+.export-panel-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.export-panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+}
+
+/* Sections */
+.export-section {
+  margin-bottom: 20px;
+}
+
+.export-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #aaa);
+  text-transform: uppercase;
+}
+
+/* Platform Groups */
+.platform-group {
+  margin-bottom: 16px;
+}
+
+.platform-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #888);
+  margin-bottom: 8px;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.preset-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px;
+  background: var(--button-bg, #2a2a2a);
+  border: 2px solid var(--border-color, #333);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-btn:hover:not(:disabled) {
+  background: var(--button-hover, #3a3a3a);
+}
+
+.preset-btn.selected {
+  border-color: var(--accent-color, #4a90d9);
+  background: rgba(74, 144, 217, 0.1);
+}
+
+.preset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.preset-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.preset-resolution {
+  font-size: 11px;
+  color: var(--text-muted, #666);
+  margin-top: 2px;
+}
+
+/* Custom Settings */
+.custom-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.custom-field {
+  flex: 1;
+}
+
+.custom-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: var(--text-secondary, #aaa);
+}
+
+.custom-input,
+.custom-select {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--input-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  color: var(--text-primary, #e0e0e0);
+  font-size: 13px;
+}
+
+.custom-input:focus,
+.custom-select:focus {
+  outline: none;
+  border-color: var(--accent-color, #4a90d9);
+}
+
+.custom-input:disabled,
+.custom-select:disabled {
+  opacity: 0.5;
+}
+
+.custom-separator {
+  padding-bottom: 8px;
+  color: var(--text-muted, #666);
+}
+
+/* Summary */
+.export-summary {
+  padding: 16px;
+  background: var(--input-bg, #2a2a2a);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--text-secondary, #aaa);
+}
+
+.summary-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary, #e0e0e0);
+}
+
+/* Progress */
+.export-progress {
+  margin-bottom: 16px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--text-secondary, #aaa);
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--border-color, #333);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-color, #4a90d9);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  width: var(--progress-width, 0%);
+}
+
+/* Error */
+.export-error {
+  padding: 12px;
+  background: rgba(217, 74, 74, 0.1);
+  border: 1px solid #d94a4a;
+  border-radius: 6px;
+  color: #d94a4a;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+/* Actions */
+.export-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.export-btn,
+.cancel-btn,
+.download-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-btn {
+  background: var(--accent-color, #4a90d9);
+  color: white;
+}
+
+.export-btn:hover:not(:disabled) {
+  background: #3a7fc8;
+}
+
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: var(--danger-color, #d94a4a);
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #c03939;
+}
+
+.download-btn {
+  background: var(--success-color, #4ad97a);
+  color: #1e1e1e;
+}
+
+.download-btn:hover {
+  background: #3bc468;
+}
+

@@ -1,4 +1,4 @@
-Ah./**
+/**
  * New Project Dashboard Component
  * 
  * Redesigned dashboard with:
@@ -36,13 +36,18 @@ import { CharactersSection } from '../character/CharactersSection';
 import { CharacterEditor } from '../character/CharacterEditor';
 import { LocationSection } from '../location/LocationSection';
 import { ObjectsSection } from '../objects/ObjectsSection';
+import { LocationsModal } from '../modals/LocationsModal';
+import { ObjectsModal } from '../modals/ObjectsModal';
+import { ObjectWizard } from '../wizard/object/ObjectWizard';
 import { GenerationButtonToolbar } from '@/components/generation-buttons/GenerationButtonToolbar';
 import { ProjectResumeSection } from './ProjectResumeSection';
 import { useNotifications } from '@/components/NotificationSystem';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { InlineLoading } from '@/components/ui/LoadingFeedback';
+import { useObjectStore } from '@/stores/objectStore';
 import type { Character } from '@/types/character';
 import type { GeneratedAsset } from '@/types/generation';
+import type { StoryObject } from '@/types/object';
 import {
   Film,
   Map,
@@ -242,56 +247,6 @@ export interface LongTakeSequenceData extends SequenceData {
   characteristics?: string[];
 }
 
-/**
- * Film type configuration
- */
-interface FilmTypeConfig {
-  type: FilmType;
-  name: string;
-  minDuration: number;
-  maxDuration: number;
-  introLongTake: boolean;
-  endingLongTake: boolean;
-  avgSequences: number;
-  description: string;
-}
-
-/**
- * Film type configurations
- */
-const FILM_TYPE_CONFIGS: FilmTypeConfig[] = [
-  {
-    type: 'short_film',
-    name: 'Court-métrage (3-20 min)',
-    minDuration: 3,
-    maxDuration: 20,
-    introLongTake: true,
-    endingLongTake: true,
-    avgSequences: 3,
-    description: 'Le plan-séquence est souvent utilisé comme signature.',
-  },
-  {
-    type: 'medium_film',
-    name: 'Moyen métrage (20-60 min)',
-    minDuration: 20,
-    maxDuration: 60,
-    introLongTake: true,
-    endingLongTake: true,
-    avgSequences: 5,
-    description: 'Un plan-séquence notable pour l\'intro et un autre pour la fin.',
-  },
-  {
-    type: 'feature_film',
-    name: 'Long métrage (60+ min)',
-    minDuration: 60,
-    maxDuration: 300,
-    introLongTake: false,
-    endingLongTake: false,
-    avgSequences: 12,
-    description: '0-1 plan-séquence notable pour poser le ton à l\'intro.',
-  },
-];
-
 interface ProjectDashboardNewProps {
   onOpenEditor: (sequenceId?: string) => void;
 }
@@ -326,6 +281,11 @@ export function ProjectDashboardNew({
   const setShowWorldModal = useAppStore((state) => state.setShowWorldModal);
   const setShowGeneralSettings = useAppStore((state) => state.setShowGeneralSettings);
   const setShowImageGalleryModal = useAppStore((state) => state.setShowImageGalleryModal);
+  const showLocationsModal = useAppStore((state) => state.showLocationsModal);
+  const setShowLocationsModal = useAppStore((state) => state.setShowLocationsModal);
+  const showObjectsModal = useAppStore((state) => state.showObjectsModal);
+  const setShowObjectsModal = useAppStore((state) => state.setShowObjectsModal);
+  const showObjectWizard = useAppStore((state) => state.showObjectWizard);
   const setShowObjectWizard = useAppStore((state) => state.setShowObjectWizard);
   const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
 
@@ -521,8 +481,8 @@ export function ProjectDashboardNew({
       }
 
       try {
-
-        const migrationNeeded = await migrationService.isMigrationNeeded(project.metadata.path);
+        const projectPath = (project?.metadata?.path || project?.path) as string;
+        const migrationNeeded = await migrationService.isMigrationNeeded(projectPath);
 
         if (migrationNeeded) {
 
@@ -535,7 +495,7 @@ export function ProjectDashboardNew({
           };
 
           // Démarrer la migration
-          const migrationResult = await migrationService.migrateAllData(project.metadata.path);
+          const migrationResult = await migrationService.migrateAllData(projectPath);
 
           if (migrationResult.success) {
 
@@ -548,7 +508,7 @@ export function ProjectDashboardNew({
             };
 
             // Déclencher une synchronisation complète
-            await syncManager.fullSync(project.metadata.path);
+            await syncManager.fullSync(projectPath);
 
           } else {
             logger.error('[ProjectDashboard] Migration failed:', migrationResult.errors);
@@ -603,7 +563,7 @@ export function ProjectDashboardNew({
       const response = await videoEditorAPI.listProjectAssets(project.id);
       if (response && response.assets) {
         // Sort by date (newest first) and take top 5
-        const sorted = [...response.assets].sort((a, b) =>
+        const sorted = [...response.assets].sort((a: any, b: any) =>
           new Date(b.added_at || 0).getTime() - new Date(a.added_at || 0).getTime()
         );
         setRecentAssets(sorted.slice(0, 5));
@@ -628,7 +588,7 @@ export function ProjectDashboardNew({
       activities.push({
         id: 'creation',
         action: 'Project initialized',
-        time: new Date(project.metadata.created_at).toLocaleDateString(),
+        time: new Date(project.metadata.created_at as any).toLocaleDateString(),
         icon: CheckCircle2,
       });
     }
@@ -721,7 +681,7 @@ export function ProjectDashboardNew({
         return;
       }
 
-      const projectPath = project.metadata.path;
+      const projectPath = (project?.metadata?.path as string) || '';
 
       // Use the sequence service which handles both Electron and Web API
       const loadedSequences = await sequenceService.loadSequences(projectPath);
@@ -742,14 +702,14 @@ export function ProjectDashboardNew({
       for (const sequence of loadedSequences) {
         // Update shots that belong to this sequence
         if (sequence.shot_ids && Array.isArray(sequence.shot_ids)) {
-          const sequenceShots = updatedShots.filter((shot: unknown) =>
-            sequence.shot_ids && sequence.shot_ids.includes(shot.id)
+          const sequenceShots = updatedShots.filter((shot: Shot) =>
+            sequence.shot_ids && (sequence.shot_ids as any).includes(shot.id)
           );
-          sequenceShots.forEach((shot: unknown) => {
-            shot.sequence_id = sequence.id;
+          sequenceShots.forEach((shot: Shot) => {
+            (shot as any).sequence_id = sequence.id;
             // Update sequence metadata in shot
-            shot.metadata = {
-              ...shot.metadata,
+            (shot as any).metadata = {
+              ...(shot.metadata || {}),
               sequence_order: sequence.order,
               sequence_duration: sequence.duration,
               sequence_shots_count: sequence.shots_count,
@@ -788,7 +748,7 @@ export function ProjectDashboardNew({
         return;
       }
 
-      const projectPath = project.metadata.path;
+      const projectPath = (project.metadata.path as string) || '';
       const sequencesDir = `${projectPath}/sequences`;
 
       // Ensure sequences directory exists
@@ -906,7 +866,7 @@ export function ProjectDashboardNew({
         return;
       }
 
-      const projectPath = project.metadata.path;
+      const projectPath = (project?.metadata?.path as string) || '';
       const sequencesDir = `${projectPath}/sequences`;
 
       // Find the sequence
@@ -935,7 +895,7 @@ export function ProjectDashboardNew({
       }
 
       // Find associated shots
-      const associatedShots = shots.filter((shot: unknown) => shot.sequence_id === sequenceId);
+      const associatedShots = shots.filter((shot: any) => shot.sequence_id === sequenceId);
 
       // Delete shot JSON files
       const shotsDir = `${projectPath}/shots`;
@@ -957,7 +917,7 @@ export function ProjectDashboardNew({
       }
 
       // Remove shots from store
-      const updatedShots = shots.filter((shot: unknown) => shot.sequence_id !== sequenceId);
+      const updatedShots = shots.filter((shot: any) => shot.sequence_id !== sequenceId);
       setShots(updatedShots);
 
       // Check if reordering needed
@@ -978,7 +938,7 @@ export function ProjectDashboardNew({
 
         // Update shots for remaining sequences
         for (const seq of remainingSequences) {
-          const seqShots = updatedShots.filter((shot: unknown) => shot.sequence_id === seq.id);
+          const seqShots = updatedShots.filter((shot: any) => shot.sequence_id === seq.id);
           for (const shot of seqShots) {
             if (window.electronAPI?.sequence?.updateShot) {
               await window.electronAPI.sequence.updateShot(projectPath, seq.id, shot.id, {
@@ -1030,7 +990,7 @@ export function ProjectDashboardNew({
     try {
       // Get the main story (first one or selected)
       const mainStory = stories[0];
-      
+
       // Extract story content for analysis
       const storyContent = mainStory.content || '';
       const storySummary = mainStory.summary || '';
@@ -1047,15 +1007,15 @@ export function ProjectDashboardNew({
       // Process each sequence and its associated shots
       for (const sequence of sequences) {
         // Find shots associated with this sequence
-        const sequenceShots = shots.filter((shot: unknown) => shot.sequence_id === sequence.id);
-        
+        const sequenceShots = shots.filter((shot: any) => shot.sequence_id === sequence.id);
+
         if (sequenceShots.length === 0) {
           continue;
         }
 
         // Calculate content segment for this sequence based on its order
         const contentSegment = distributeStoryContent(storyContent, sequence.order, sequences.length);
-        
+
         // Generate image prompt from story content
         const imagePrompt = generateImagePrompt(
           contentSegment,
@@ -1162,17 +1122,17 @@ export function ProjectDashboardNew({
    */
   function distributeStoryContent(content: string, sequenceOrder: number, totalSequences: number): string {
     if (!content) return '';
-    
+
     // Split content by paragraphs or sentences
     const paragraphs = content.split(/\n\n+/).filter(p => p.trim());
-    
+
     if (paragraphs.length === 0) return content;
-    
+
     // Calculate distribution
     const itemsPerSequence = Math.ceil(paragraphs.length / totalSequences);
     const startIndex = (sequenceOrder - 1) * itemsPerSequence;
     const endIndex = startIndex + itemsPerSequence;
-    
+
     return paragraphs.slice(startIndex, endIndex).join('\n\n');
   }
 
@@ -1182,26 +1142,26 @@ export function ProjectDashboardNew({
   function generateImagePrompt(content: string, genre: string, tone: string, characters: string): string {
     // Extract key visual elements from content
     const visualKeywords = extractVisualKeywords(content);
-    
+
     // Build prompt
     const promptParts = [];
-    
+
     if (visualKeywords) {
       promptParts.push(visualKeywords);
     }
-    
+
     if (genre) {
       promptParts.push(`genre: ${genre}`);
     }
-    
+
     if (tone) {
       promptParts.push(`tone: ${tone}`);
     }
-    
+
     if (characters) {
       promptParts.push(`characters: ${characters}`);
     }
-    
+
     return promptParts.join(', ');
   }
 
@@ -1210,14 +1170,14 @@ export function ProjectDashboardNew({
    */
   function generateNegativePrompt(tone: string): string {
     const negatives = ['blurry', 'low quality', 'distorted', 'deformed'];
-    
+
     // Add tone-specific negatives
     if (tone.toLowerCase().includes('dark')) {
       negatives.push('bright', 'cartoonish');
     } else if (tone.toLowerCase().includes('happy')) {
       negatives.push('sad', 'gloomy');
     }
-    
+
     return negatives.join(', ');
   }
 
@@ -1234,16 +1194,16 @@ export function ProjectDashboardNew({
       /close-up\s+of\s+([^.]+)/gi,
       /wide\s+shot\s+of\s+([^.]+)/gi,
     ];
-    
+
     const keywords: string[] = [];
-    
+
     for (const pattern of visualPatterns) {
       const matches = content.match(pattern);
       if (matches) {
         keywords.push(...matches.slice(0, 2)); // Take up to 2 matches per pattern
       }
     }
-    
+
     // Clean up and limit
     return keywords.slice(0, 5).join(' ').substring(0, 500);
   }
@@ -1255,11 +1215,11 @@ export function ProjectDashboardNew({
     // Extract dialogue lines (text between quotes)
     const dialoguePattern = /"([^"]+)"/g;
     const matches = [...content.matchAll(dialoguePattern)];
-    
+
     if (matches.length > 0) {
       return matches.map(m => m[1]).join(' ');
     }
-    
+
     return '';
   }
 
@@ -1270,20 +1230,20 @@ export function ProjectDashboardNew({
     // Simple language detection based on common words
     const frenchWords = ['le', 'la', 'les', 'un', 'une', 'des', 'et', 'est', 'dans', 'qui', 'il', 'elle'];
     const spanishWords = ['el', 'la', 'los', 'las', 'un', 'una', 'y', 'es', 'en', 'que', 'él', 'ella'];
-    
+
     const words = content.toLowerCase().split(/\s+/);
-    
+
     let frenchCount = 0;
     let spanishCount = 0;
-    
+
     for (const word of words.slice(0, 100)) { // Check first 100 words
       if (frenchWords.includes(word)) frenchCount++;
       if (spanishWords.includes(word)) spanishCount++;
     }
-    
+
     if (frenchCount > spanishCount) return 'fr-FR';
     if (spanishCount > frenchCount) return 'es-ES';
-    
+
     return 'en-US'; // Default to English
   }
 
@@ -1292,16 +1252,16 @@ export function ProjectDashboardNew({
    */
   function generateSequenceResume(summary: string, order: number, total: number): string {
     if (!summary) return `Sequence ${order} of ${total}`;
-    
+
     // Take a portion of the summary based on sequence order
     const parts = summary.split('. ').filter(p => p.length > 10);
-    
+
     if (parts.length === 0) return `Sequence ${order} of ${total}`;
-    
+
     const itemsPerSequence = Math.ceil(parts.length / total);
     const startIndex = (order - 1) * itemsPerSequence;
     const endIndex = startIndex + itemsPerSequence;
-    
+
     return parts.slice(startIndex, endIndex).join('. ') + (parts.slice(startIndex, endIndex).length > 0 ? '.' : '');
   }
 
@@ -1328,7 +1288,7 @@ export function ProjectDashboardNew({
         return;
       }
 
-      const projectPath = project.metadata.path;
+      const projectPath = (project?.metadata?.path as string) || '';
       const sequencesDir = `${projectPath}/sequences`;
 
       // Ensure sequences directory exists
@@ -1380,7 +1340,7 @@ export function ProjectDashboardNew({
 
       // Update shots associated with this sequence
       if (shots && shots.length > 0) {
-        const sequenceShots = shots.filter((shot: unknown) => shot.sequence_id === updatedSequence.id);
+        const sequenceShots = shots.filter((shot: any) => shot.sequence_id === updatedSequence.id);
         for (const shot of sequenceShots) {
           if (window.electronAPI?.sequence?.updateShot) {
             await window.electronAPI.sequence.updateShot(projectPath, updatedSequence.id, shot.id, {
@@ -1394,8 +1354,9 @@ export function ProjectDashboardNew({
       }
 
       // Force refresh by updating project metadata (triggers re-render of sequences)
+      const projectPathStr = (project?.metadata?.path as string) || '';
       if (window.electronAPI?.project?.updateMetadata) {
-        await window.electronAPI.project.updateMetadata(projectPath, {
+        await window.electronAPI.project.updateMetadata(projectPathStr, {
           lastSequenceUpdate: new Date().toISOString(),
         });
       }
@@ -1415,8 +1376,8 @@ export function ProjectDashboardNew({
     const filePath = `${sequencesDir}/${fileName}`;
 
     // Get shots for this sequence
-    const sequenceShots = shots?.filter((shot: unknown) => shot.sequence_id === sequence.id) || [];
-    const shotIds = sequenceShots.map((shot: unknown) => shot.id);
+    const sequenceShots = shots?.filter((shot: any) => shot.sequence_id === sequence.id) || [];
+    const shotIds = sequenceShots.map((shot: any) => shot.id);
 
     const sequenceData = {
       id: sequence.id,
@@ -1528,12 +1489,12 @@ export function ProjectDashboardNew({
     if (story) {
       const updatedStory = {
         ...story,
-        parts: updatedParts,
+        parts: updatedParts as any[],
         updatedAt: new Date(),
         version: story.version + 1,
       };
       // Update in store
-      useStore.getState().updateStory(storyId, updatedStory);
+      useStore.getState().updateStory(storyId, updatedStory as any);
       console.log('[ProjectDashboard] Story parts updated:', updatedStory);
     }
   };
@@ -1666,13 +1627,13 @@ export function ProjectDashboardNew({
 
     // Add or update shot in store
     if (shot.id) {
-      const existingShot = shots.find((s: unknown) => s.id === shot.id);
+      const existingShot = shots.find((s: any) => s.id === shot.id);
       if (existingShot) {
         // Update existing shot
-        const updatedShots = shots.map((s: unknown) =>
-          s.id === shot.id ? { ...s, ...shot } : s
+        const updatedShots = shots.map((s: any) =>
+          s.id === shot.id ? { ...s as any, ...shot as any } : s
         );
-        setShots(updatedShots);
+        setShots(updatedShots as Shot[]);
       } else {
         // Add new shot
         addShot(shot as any);
@@ -1702,7 +1663,7 @@ export function ProjectDashboardNew({
   /**
      * Open Shot Wizard Modal for editing an existing shot
      */
-  const editShot = (shot: unknown) => {
+  const editShot = (shot: any) => {
     setEditingShot(shot);
     setSelectedSequenceId(shot.sequence_id);
     setShowShotWizardModal(true);
@@ -1806,7 +1767,7 @@ export function ProjectDashboardNew({
 
           {/* Board Name Display */}
           <div className="status-item board-name">
-            <span>Board: {project?.metadata?.name || 'My First Story'}</span>
+            <span>Board: {(project?.metadata?.name as string) || 'My First Story'}</span>
           </div>
 
           {/* Service Status Indicators */}
@@ -2063,8 +2024,8 @@ export function ProjectDashboardNew({
               setShowObjectWizard(true);
             }}
             onObjectClick={(objectId) => {
-              // Open object editor
-              console.log('Object clicked:', objectId);
+              // Open objects collection modal
+              setShowObjectsModal(true);
             }}
           />
         </div>
@@ -2185,8 +2146,8 @@ export function ProjectDashboardNew({
           onComplete={handleMarketingWizardComplete}
           projectData={{
             projectId: project?.id || 'default',
-            projectName: project?.metadata?.name || 'Untitled Project',
-            storySummary: project?.metadata?.description,
+            projectName: (project?.metadata?.name as string) || 'Untitled Project',
+            storySummary: project?.metadata?.description as string || '',
             characters: characters?.map(c => c.name) || [],
             scenes: shots?.map(s => s.title) || []
           }}
@@ -2216,6 +2177,35 @@ export function ProjectDashboardNew({
           initialShot={editingShot}
           sequenceId={selectedSequenceId}
           mode={editingShot ? 'edit' : 'create'}
+        />
+      )}
+
+      {/* Locations Modal */}
+      {showLocationsModal && (
+        <LocationsModal
+          isOpen={showLocationsModal}
+          onClose={() => setShowLocationsModal(false)}
+        />
+      )}
+
+      {/* Objects Modal */}
+      {showObjectsModal && (
+        <ObjectsModal
+          isOpen={showObjectsModal}
+          onClose={() => setShowObjectsModal(false)}
+        />
+      )}
+
+      {/* Object Wizard Modal */}
+      {showObjectWizard && (
+        <ObjectWizard
+          onComplete={async (object: StoryObject) => {
+            const projectId = project?.id || 'unknown';
+            await useObjectStore.getState().addObject(projectId, object);
+            setShowObjectWizard(false);
+            showSuccess(`Object "${object.name}" created successfully`);
+          }}
+          onCancel={() => setShowObjectWizard(false)}
         />
       )}
     </div>

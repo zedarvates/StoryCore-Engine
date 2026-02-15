@@ -298,8 +298,9 @@ class FFmpegService:
             path = shutil.which("ffprobe")
             if path:
                 return path
-        except Exception:
-            pass
+        except OSError as e:
+            # Handle shutil.which() errors (e.g., permission issues, path problems)
+            logger.debug(f"Could not search for ffprobe in PATH: {e}")
         
         # Try common variations
         return self.ffmpeg_path.replace("ffmpeg", "ffprobe").replace("FFmpeg", "FFprobe")
@@ -329,9 +330,18 @@ class FFmpegService:
             else:
                 logger.error("FFmpeg installation check failed")
                 raise RuntimeError("FFmpeg not properly installed")
-        except Exception as e:
-            logger.error(f"Error checking FFmpeg: {e}")
-            raise
+        except FileNotFoundError as e:
+            # FFmpeg binary not found at the specified path
+            logger.error(f"FFmpeg binary not found at {self.ffmpeg_path}: {e}")
+            raise RuntimeError(f"FFmpeg not found at {self.ffmpeg_path}") from e
+        except asyncio.TimeoutError as e:
+            # FFmpeg version check timed out
+            logger.error(f"FFmpeg version check timed out: {e}")
+            raise RuntimeError("FFmpeg version check timed out") from e
+        except OSError as e:
+            # System-level error (permissions, etc.)
+            logger.error(f"System error checking FFmpeg: {e}")
+            raise RuntimeError(f"System error checking FFmpeg: {e}") from e
     
     # =============================================================================
     # Video Information
@@ -452,12 +462,22 @@ class FFmpegService:
             logger.info(f"Transcode completed: {options.output_path}")
             return True, None
             
-        except subprocess.TimeoutExpired:
-            return False, "Transcode operation timed out"
-        except Exception as e:
-            error_msg = str(e)
-            logger.error(f"Transcode error: {error_msg}")
-            return False, error_msg
+        except subprocess.TimeoutExpired as e:
+            # Transcode operation exceeded the 1-hour timeout
+            logger.error(f"Transcode operation timed out after {e.timeout} seconds")
+            return False, f"Transcode operation timed out after {e.timeout} seconds"
+        except FileNotFoundError as e:
+            # FFmpeg binary or input file not found
+            logger.error(f"File not found during transcode: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied accessing input/output files
+            logger.error(f"Permission denied during transcode: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System-level error (disk full, etc.)
+            logger.error(f"System error during transcode: {e}")
+            return False, f"System error: {e}"
     
     def _build_transcode_command(self, options: TranscodeOptions) -> List[str]:
         """Build FFmpeg command for transcoding."""
@@ -577,11 +597,26 @@ class FFmpegService:
                     message=f"Transcode failed with code {process.returncode}"
                 ))
                 
-        except Exception as e:
+        except FileNotFoundError as e:
+            # FFmpeg binary or input file not found
             callback(ProgressCallback(
                 progress=0,
                 status="error",
-                message=str(e)
+                message=f"File not found: {e.filename}"
+            ))
+        except PermissionError as e:
+            # Permission denied accessing files
+            callback(ProgressCallback(
+                progress=0,
+                status="error",
+                message=f"Permission denied: {e.filename}"
+            ))
+        except OSError as e:
+            # System-level error
+            callback(ProgressCallback(
+                progress=0,
+                status="error",
+                message=f"System error: {e}"
             ))
     
     def _parse_progress(
@@ -714,8 +749,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # GIF conversion timed out
+            logger.error(f"GIF conversion timed out for {input_path}")
+            return False, "GIF conversion timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for GIF conversion: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied
+            logger.error(f"Permission denied for GIF conversion: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during GIF conversion: {e}")
+            return False, f"System error: {e}"
     
     def extract_frames(
         self,
@@ -766,8 +815,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Frame extraction timed out
+            logger.error(f"Frame extraction timed out for {input_path}")
+            return False, "Frame extraction timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for frame extraction: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for frame extraction: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during frame extraction: {e}")
+            return False, f"System error: {e}"
     
     # =============================================================================
     # Thumbnail Generation
@@ -822,8 +885,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Thumbnail generation timed out
+            logger.error(f"Thumbnail generation timed out for {input_path}")
+            return False, "Thumbnail generation timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for thumbnail generation: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for thumbnail generation: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during thumbnail generation: {e}")
+            return False, f"System error: {e}"
     
     def generate_sprite_sheet(
         self,
@@ -867,8 +944,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Sprite sheet generation timed out
+            logger.error(f"Sprite sheet generation timed out for {input_path}")
+            return False, "Sprite sheet generation timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for sprite sheet generation: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for sprite sheet generation: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during sprite sheet generation: {e}")
+            return False, f"System error: {e}"
     
     # =============================================================================
     # Audio Processing
@@ -923,8 +1014,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Audio extraction timed out
+            logger.error(f"Audio extraction timed out for {options.input_path}")
+            return False, "Audio extraction timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for audio extraction: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for audio extraction: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during audio extraction: {e}")
+            return False, f"System error: {e}"
     
     def normalize_audio(
         self,
@@ -963,8 +1068,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Audio normalization timed out
+            logger.error(f"Audio normalization timed out for {input_path}")
+            return False, "Audio normalization timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for audio normalization: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for audio normalization: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during audio normalization: {e}")
+            return False, f"System error: {e}"
     
     def remove_silence(
         self,
@@ -998,8 +1117,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Silence removal timed out
+            logger.error(f"Silence removal timed out for {options.input_path}")
+            return False, "Silence removal timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for silence removal: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for silence removal: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during silence removal: {e}")
+            return False, f"System error: {e}"
     
     def merge_audio_video(
         self,
@@ -1054,8 +1187,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Audio-video merge timed out
+            logger.error(f"Audio-video merge timed out for {video_path}")
+            return False, "Audio-video merge timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for audio-video merge: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for audio-video merge: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during audio-video merge: {e}")
+            return False, f"System error: {e}"
     
     # =============================================================================
     # Video Concatenation
@@ -1118,8 +1265,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Video concatenation timed out
+            logger.error(f"Video concatenation timed out")
+            return False, "Video concatenation timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for video concatenation: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for video concatenation: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during video concatenation: {e}")
+            return False, f"System error: {e}"
     
     def concatenate_with_transitions(
         self,
@@ -1172,8 +1333,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Video concatenation with transitions timed out
+            logger.error(f"Video concatenation with transitions timed out")
+            return False, "Video concatenation with transitions timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for concatenation with transitions: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for concatenation with transitions: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during concatenation with transitions: {e}")
+            return False, f"System error: {e}"
     
     # =============================================================================
     # Advanced Video Processing
@@ -1220,8 +1395,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Filter application timed out
+            logger.error(f"Filter application timed out for {input_path}")
+            return False, "Filter application timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for filter application: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for filter application: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during filter application: {e}")
+            return False, f"System error: {e}"
     
     def add_subtitles(
         self,
@@ -1279,8 +1468,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Subtitle addition timed out
+            logger.error(f"Subtitle addition timed out for {input_path}")
+            return False, "Subtitle addition timed out"
+        except FileNotFoundError as e:
+            # Input file, subtitle file, or FFmpeg not found
+            logger.error(f"File not found for subtitle addition: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for subtitle addition: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during subtitle addition: {e}")
+            return False, f"System error: {e}"
     
     def change_speed(
         self,
@@ -1343,8 +1546,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Speed change timed out
+            logger.error(f"Speed change timed out for {input_path}")
+            return False, "Speed change timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for speed change: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for speed change: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during speed change: {e}")
+            return False, f"System error: {e}"
     
     def add_watermark(
         self,
@@ -1398,8 +1615,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Watermark addition timed out
+            logger.error(f"Watermark addition timed out for {input_path}")
+            return False, "Watermark addition timed out"
+        except FileNotFoundError as e:
+            # Input file, watermark, or FFmpeg not found
+            logger.error(f"File not found for watermark addition: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for watermark addition: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during watermark addition: {e}")
+            return False, f"System error: {e}"
     
     def trim_video(
         self,
@@ -1444,8 +1675,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Video trim timed out
+            logger.error(f"Video trim timed out for {input_path}")
+            return False, "Video trim timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for video trim: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for video trim: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during video trim: {e}")
+            return False, f"System error: {e}"
     
     def extract_segment(
         self,
@@ -1489,8 +1734,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Segment extraction timed out
+            logger.error(f"Segment extraction timed out for {input_path}")
+            return False, "Segment extraction timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for segment extraction: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for segment extraction: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during segment extraction: {e}")
+            return False, f"System error: {e}"
     
     # =============================================================================
     # GPU Encoding Support
@@ -1552,8 +1811,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # NVENC transcoding timed out
+            logger.error(f"NVENC transcoding timed out for {input_path}")
+            return False, "NVENC transcoding timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for NVENC transcoding: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for NVENC transcoding: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error (includes GPU/driver issues)
+            logger.error(f"System error during NVENC transcoding: {e}")
+            return False, f"System error: {e}"
     
     def get_gpu_info(self) -> Dict[str, Any]:
         """
@@ -1581,8 +1854,12 @@ class FFmpegService:
                 gpu_info["nvenc"] = True
             if "hevc_nvenc" in result.stdout:
                 gpu_info["nvenc_hevc"] = True
-        except Exception:
-            pass
+        except subprocess.TimeoutExpired:
+            logger.debug("FFmpeg encoder check timed out")
+        except FileNotFoundError:
+            logger.debug("FFmpeg not found for encoder check")
+        except OSError as e:
+            logger.debug(f"OS error checking FFmpeg encoders: {e}")
         
         # Check for VAAPI
         try:
@@ -1594,8 +1871,12 @@ class FFmpegService:
             )
             if "vaapi" in result.stdout:
                 gpu_info["vaapi"] = True
-        except Exception:
-            pass
+        except subprocess.TimeoutExpired:
+            logger.debug("FFmpeg hwaccels check timed out")
+        except FileNotFoundError:
+            logger.debug("FFmpeg not found for hwaccels check")
+        except OSError as e:
+            logger.debug(f"OS error checking FFmpeg hwaccels: {e}")
         
         return gpu_info
     
@@ -1647,7 +1928,11 @@ class FFmpegService:
                     json=progress.__dict__,
                     timeout=5
                 )
-            except Exception as e:
+            except requests.Timeout:
+                logger.warning(f"SSE progress callback timed out for {callback_url}")
+            except requests.ConnectionError as e:
+                logger.warning(f"SSE progress callback connection error: {e}")
+            except requests.RequestException as e:
                 logger.warning(f"Failed to send SSE progress: {e}")
         
         return await self.transcode_async(options, send_progress)
@@ -1686,7 +1971,14 @@ class FFmpegService:
             supported = format_names.get(format, [])
             return any(name in result.stdout.lower() for name in supported)
             
-        except Exception:
+        except subprocess.TimeoutExpired:
+            logger.debug("Format support check timed out")
+            return False
+        except FileNotFoundError:
+            logger.debug("FFmpeg not found for format support check")
+            return False
+        except OSError as e:
+            logger.debug(f"OS error checking format support: {e}")
             return False
     
     def get_supported_codecs(self, codec_type: str = "encoder") -> List[str]:
@@ -1716,7 +2008,14 @@ class FFmpegService:
             
             return codecs
             
-        except Exception:
+        except subprocess.TimeoutExpired:
+            logger.debug("Codec list retrieval timed out")
+            return []
+        except FileNotFoundError:
+            logger.debug("FFmpeg not found for codec list")
+            return []
+        except OSError as e:
+            logger.debug(f"OS error getting codec list: {e}")
             return []
     
     def get_encoder_info(self, codec: str) -> Dict[str, Any]:
@@ -1745,7 +2044,14 @@ class FFmpegService:
             
             return options
             
-        except Exception:
+        except subprocess.TimeoutExpired:
+            logger.debug("Encoder info retrieval timed out")
+            return {}
+        except FileNotFoundError:
+            logger.debug("FFmpeg not found for encoder info")
+            return {}
+        except OSError as e:
+            logger.debug(f"OS error getting encoder info: {e}")
             return {}
     
     def estimate_transcode_time(
@@ -1834,8 +2140,22 @@ class FFmpegService:
             
             return True, None
             
-        except Exception as e:
-            return False, str(e)
+        except subprocess.TimeoutExpired:
+            # Preview creation timed out
+            logger.error(f"Preview creation timed out for {input_path}")
+            return False, "Preview creation timed out"
+        except FileNotFoundError as e:
+            # Input file or FFmpeg not found
+            logger.error(f"File not found for preview creation: {e}")
+            return False, f"File not found: {e.filename}"
+        except PermissionError as e:
+            # Permission denied for output directory
+            logger.error(f"Permission denied for preview creation: {e}")
+            return False, f"Permission denied: {e.filename}"
+        except OSError as e:
+            # System error
+            logger.error(f"System error during preview creation: {e}")
+            return False, f"System error: {e}"
 
 
 # =============================================================================

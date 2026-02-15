@@ -1,0 +1,366 @@
+/* ProjectWorkspace Component Styles — Dark Theme */
+
+.project-workspace {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.workspace-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Project Header */
+.project-header {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.project-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.project-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.project-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-indicator {
+  padding: 4px 12px;
+  border-radius: var(--radius-xl);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-indicator.active {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+.status-indicator.idle {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid var(--warning-border);
+}
+
+.status-indicator.processing {
+  background: var(--info-bg);
+  color: var(--info);
+  border: 1px solid var(--info-border);
+}
+
+.project-id {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.project-metadata {
+  display: flex;
+  gap: 24px;
+}
+
+.metadata-item {
+  display: flex;
+  gap: 8px;
+}
+
+.metadata-item .label {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.metadata-item .value {
+  color: var(--text-secondary);
+}
+
+/* Workspace Content */
+.workspace-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* Workspace Sections */
+.workspace-section {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.workspace-section:hover {
+  border-color: var(--border-hover);
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Pipeline Status */
+.status-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.status-item:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.status-value {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Quick Access Assets */
+.assets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.asset-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  background: var(--bg-tertiary);
+}
+
+.asset-item:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.asset-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.asset-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.asset-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Activity Logs */
+.activity-feed {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-timestamp {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  min-width: 80px;
+}
+
+.activity-message {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Configuration Menu */
+.config-menu {
+  grid-column: 1 / -1;
+}
+
+.config-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.config-info {
+  padding: 12px 16px;
+  background: var(--accent-subtle);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  margin-top: 16px;
+}
+
+.config-info p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.config-info strong {
+  color: var(--accent-hover);
+  font-weight: 600;
+}
+
+.config-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  color: var(--text-primary);
+}
+
+.config-button:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow);
+}
+
+.config-icon {
+  font-size: 1.5rem;
+}
+
+.config-label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .project-workspace {
+    padding: 16px;
+  }
+
+  .project-header {
+    padding: 20px;
+  }
+
+  .project-info {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .project-title {
+    font-size: 1.5rem;
+  }
+
+  .project-metadata {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .config-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .assets-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .assets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-button {
+    padding: 12px;
+  }
+
+  .config-icon {
+    font-size: 1.25rem;
+  }
+}

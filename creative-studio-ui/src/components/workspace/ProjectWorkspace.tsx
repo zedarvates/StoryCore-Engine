@@ -44,10 +44,10 @@ export function ProjectWorkspace({
   const handleLaunchWizard = (wizardId: string) => {
     // Get the closeActiveWizard function from store
     const closeActiveWizard = useAppStore.getState().closeActiveWizard;
-    
+
     // Close ALL wizards first (mutual exclusion)
     closeActiveWizard();
-    
+
     // Map wizard IDs to appropriate wizard openers
     // Multi-step wizards (world, character) use separate modals
     // Simple form wizards use GenericWizardModal
@@ -72,7 +72,7 @@ export function ProjectWorkspace({
         break;
       case 'dialogue-writer':
       case 'dialogue-wizard':
-        setShowDialogueWriter(true);
+        useEditorStore.getState().openWizard('dialogue-writer', 1);
         break;
       case 'style-transfer':
         openWizard('style-transfer');
@@ -254,7 +254,7 @@ export function ProjectWorkspace({
             )}
           </div>
         </div>
-        
+
         <div className="project-actions">
           <button
             className="settings-button"
@@ -291,7 +291,7 @@ export function ProjectWorkspace({
               <div className="status-value">Ready</div>
             </div>
           </div>
-          
+
           <div className="status-card">
             <div className="status-icon">🎬</div>
             <div className="status-info">
@@ -299,7 +299,7 @@ export function ProjectWorkspace({
               <div className="status-value">0 generated</div>
             </div>
           </div>
-          
+
           <div className="status-card">
             <div className="status-icon">🖼️</div>
             <div className="status-info">
@@ -307,7 +307,7 @@ export function ProjectWorkspace({
               <div className="status-value">0 generated</div>
             </div>
           </div>
-          
+
           <div className="status-card">
             <div className="status-icon">🎵</div>
             <div className="status-info">
@@ -328,16 +328,16 @@ export function ProjectWorkspace({
       <div className="quick-access">
         <h3>Quick Access</h3>
         <div className="quick-access-grid">
-          <button 
-            className="quick-access-card" 
+          <button
+            className="quick-access-card"
             onClick={handleOpenProjectFiles}
             title="Open project folder in file explorer"
           >
             <div className="quick-access-icon">📁</div>
             <div className="quick-access-label">Project Files</div>
           </button>
-          
-          <button 
+
+          <button
             className="quick-access-card"
             onClick={handleOpenGridEditor}
             title="Open Master Coherence Sheet Editor (3x3 Grid)"
@@ -345,8 +345,8 @@ export function ProjectWorkspace({
             <div className="quick-access-icon">🎨</div>
             <div className="quick-access-label">Grid Editor</div>
           </button>
-          
-          <button 
+
+          <button
             className="quick-access-card"
             onClick={handleOpenAnalytics}
             title="View project analytics and statistics"
@@ -354,8 +354,8 @@ export function ProjectWorkspace({
             <div className="quick-access-icon">📊</div>
             <div className="quick-access-label">Analytics</div>
           </button>
-          
-          <button 
+
+          <button
             className="quick-access-card"
             onClick={handleExport}
             title="Export project content"
@@ -363,8 +363,8 @@ export function ProjectWorkspace({
             <div className="quick-access-icon">📤</div>
             <div className="quick-access-label">Export</div>
           </button>
-          
-          <button 
+
+          <button
             className="quick-access-card"
             onClick={handleOpenProjectSettings}
             title="Open project settings"
@@ -388,7 +388,7 @@ export function ProjectWorkspace({
               </div>
             </div>
           </div>
-          
+
           <div className="activity-item">
             <div className="activity-icon">⚙️</div>
             <div className="activity-content">
@@ -405,19 +405,19 @@ export function ProjectWorkspace({
 export default ProjectWorkspace;
 
 // Ghost Tracker Wizard Modal
-function GhostTrackerWizardModal({ 
-  isOpen, 
-  onClose, 
-  projectPath 
-}: Readonly<{ 
-  isOpen: boolean; 
-  onClose: () => void; 
+function GhostTrackerWizardModal({
+  isOpen,
+  onClose,
+  projectPath
+}: Readonly<{
+  isOpen: boolean;
+  onClose: () => void;
   projectPath?: string;
 }>) {
   return (
     <div className={`ghost-tracker-modal ${isOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
-      <div 
-        className="ghost-tracker-modal-overlay" 
+      <div
+        className="ghost-tracker-modal-overlay"
         onClick={onClose}
         onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
         role="button"

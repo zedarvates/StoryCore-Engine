@@ -4,7 +4,7 @@
  * Runtime validation for component props to catch bugs early
  */
 
-import { Logger } from './logger';
+import { logger as Logger } from './logger';
 
 /**
  * Validate that a value is not null or undefined

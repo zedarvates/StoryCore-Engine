@@ -434,7 +434,7 @@ export class SequencePlanner {
         components.push('in the ' + parsed.timePeriod);
       }
     } else if (shotType === 'MCU' || shotType === 'CU' || shotType === 'ECU') {
-      if (parsed.characters.length > 0) {
+      if (parsed.characters.length > 0 && parsed.characters[0]?.name) {
         const character = parsed.characters[0];
         components.push(character.name.toLowerCase());
         if (character.description) {
@@ -655,7 +655,8 @@ export class SequencePlanner {
     duration: number,
     shotIndex: number
   ): DialogueLine[] {
-    if (Math.random() > 0.4) {
+    // Ensure characters array is not empty and first character has a valid name
+    if (!characters || characters.length === 0 || !characters[0]?.name) {
       return [];
     }
     

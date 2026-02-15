@@ -1,13 +1,17 @@
 /**
  * ObjectsSection Component
  * 
- * Displays story objects (props, items, artifacts) in the project dashboard
+ * Displays story objects (props, items, artifacts) in the project dashboard.
+ * Integrated with the new objectStore for file-based persistence.
  */
 
-import React from 'react';
-import { useStore } from '@/store';
-import { Package, Plus } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { useAppStore } from '@/stores/useAppStore';
+import { useObjectStore } from '@/stores/objectStore';
+import { Package, Plus, Sparkles, Zap, Shield, Crown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import './ObjectsSection.css';
+import { StoryObject } from '@/types/object';
 
 export interface ObjectsSectionProps {
   onCreateObject?: () => void;
@@ -18,15 +22,37 @@ export function ObjectsSection({
   onCreateObject,
   onObjectClick,
 }: ObjectsSectionProps) {
-  // Get objects from store with safe fallback
-  const objects = useStore((state) => {
-    try {
-      return state.objects || [];
-    } catch (error) {
-      console.warn('Failed to get objects from store:', error);
-      return [];
+  const project = useAppStore((state) => state.project);
+  const { objects, fetchProjectObjects, isLoading } = useObjectStore();
+
+  // Load objects on mount
+  useEffect(() => {
+    if (project) {
+      const projectId = project?.path ? project.path.split(/[/\\]/).pop() || project.id : project.id;
+      fetchProjectObjects(projectId);
     }
-  });
+  }, [project, fetchProjectObjects]);
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'weapon': return <Zap size={16} />;
+      case 'armor': return <Shield size={16} />;
+      case 'artifact': return <Sparkles size={16} />;
+      case 'treasure': return <Crown size={16} />;
+      default: return <Package size={16} />;
+    }
+  };
+
+  const getRarityClass = (rarity: string) => {
+    switch (rarity) {
+      case 'uncommon': return 'rarity-uncommon';
+      case 'rare': return 'rarity-rare';
+      case 'epic': return 'rarity-epic';
+      case 'legendary': return 'rarity-legendary';
+      case 'mythical': return 'rarity-mythical';
+      default: return 'rarity-common';
+    }
+  };
 
   return (
     <div className="objects-section dashboard-card">
@@ -47,7 +73,12 @@ export function ObjectsSection({
       </div>
 
       <div className="objects-grid">
-        {objects.length === 0 ? (
+        {isLoading && objects.length === 0 ? (
+          <div className="loading-state py-10 text-center text-gray-400">
+            <RefreshCw size={24} className="animate-spin mx-auto mb-2" />
+            <p>Loading objects...</p>
+          </div>
+        ) : objects.length === 0 ? (
           <div className="empty-state">
             <Package size={48} className="empty-icon" />
             <p className="empty-title">No objects yet</p>
@@ -60,30 +91,38 @@ export function ObjectsSection({
             </button>
           </div>
         ) : (
-          objects.map((object: unknown) => (
+          objects.map((object: StoryObject) => (
             <div
               key={object.id}
-              className="object-card"
+              className={`object-card ${getRarityClass(object.rarity)}`}
               onClick={() => onObjectClick?.(object.id)}
             >
-              <div className="object-image">
-                {object.image ? (
-                  <img src={object.image} alt={object.name} />
-                ) : (
-                  <div className="object-placeholder">
-                    <Package size={32} />
+              <div className="object-header">
+                <div className="object-icon-wrapper">
+                  {getTypeIcon(object.type)}
+                </div>
+                <div className="object-meta">
+                  <h4 className="object-name truncate">{object.name}</h4>
+                  <div className="flex items-center gap-1">
+                    <span className="object-type-badge">{object.type}</span>
+                    {object.power && (
+                      <span className="object-power-badge">Pwr {object.power}</span>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-              <div className="object-info">
-                <h4 className="object-name">{object.name}</h4>
-                {object.type && (
-                  <span className="object-type">{object.type}</span>
-                )}
-                {object.description && (
-                  <p className="object-description">{object.description}</p>
-                )}
-              </div>
+
+              <p className="object-description line-clamp-2">
+                {object.description}
+              </p>
+
+              {object.tags && object.tags.length > 0 && (
+                <div className="object-tags mt-2 flex flex-wrap gap-1">
+                  {object.tags.slice(0, 2).map(tag => (
+                    <span key={tag} className="tag-pill text-[9px]">{tag}</span>
+                  ))}
+                </div>
+              )}
             </div>
           ))
         )}
@@ -92,5 +131,7 @@ export function ObjectsSection({
   );
 }
 
-export default ObjectsSection;
+// Add RefreshCw import that was missed above
+import { RefreshCw } from 'lucide-react';
 
+export default ObjectsSection;

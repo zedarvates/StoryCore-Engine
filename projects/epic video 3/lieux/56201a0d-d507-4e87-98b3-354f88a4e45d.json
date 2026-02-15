@@ -1,0 +1,22 @@
+{
+  "location_id": "56201a0d-d507-4e87-98b3-354f88a4e45d",
+  "name": "Kurokawa's Clockwork Cathedral",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T15:24:19.959Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A foreboding, Gothic-inspired temple built into the side of a skyscraper in the heart of Néo Tokyo. The exterior is a labyrinthine web of iron latticework and stained glass, while the interior is a maze of ticking clockwork organs and whispering pipes.",
+    "atmosphere": {
+      "lighting": "dim, flickering",
+      "temperature": "cool, drafts of cold air",
+      "sounds": "whirring gears, ticking clocks, whispered prayers"
+    },
+    "genre_tags": [],
+    "significance": "Kurokawa's Clockwork Cathedral serves as both a place of worship for the city's Clockworkers' Guild and a hub of innovation for Néo Tokyo's engineers. However, rumors abound about Kurokawa's true intentions: some say he seeks to replace humanity with clockwork creations."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

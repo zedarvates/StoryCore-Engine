@@ -1,0 +1,18 @@
+{
+  "location_id": "ca01fbc0-82b7-4896-8380-8fb62f63576d",
+  "name": "The Wastes of Erebo",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T21:02:50.016Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A vast expanse of irradiated desert stretching as far as the eye can see. The sandy dunes are dotted with strange rock formations, abandoned vehicles, and the occasional twisted tree.",
+    "atmosphere": "Foreboding, eerie, and unforgiving, with an undercurrent of dread and unease.",
+    "genre_tags": [],
+    "significance": "Breeding ground for the mutated creatures that Vivas Guardians must contend with, as well as a testing ground for new technologies and strategies."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

@@ -365,7 +365,8 @@ class AIScriptAnalysisService extends EventEmitter {
     } else if (format === 'xml') {
       return this.convertToXML(analysis);
     } else {
-      throw new Error('PDF export not implemented');
+      // PDF export - generate a formatted text representation
+      return this.convertToPDF(analysis);
     }
   }
 
@@ -701,8 +702,108 @@ class AIScriptAnalysisService extends EventEmitter {
 </script_analysis>`;
   }
 
+  /**
+   * Convert analysis to PDF-friendly format
+   * Returns a structured text representation that can be used with PDF libraries
+   */
+  private convertToPDF(analysis: ScriptAnalysis): string {
+    const lines = [
+      '================================',
+      '     SCRIPT ANALYSIS REPORT     ',
+      '================================',
+      '',
+      `ID: ${analysis.id}`,
+      `Title: ${analysis.title}`,
+      '',
+      '--- METRICS ---',
+      `Total Scenes: ${analysis.analysis.metrics.totalScenes}`,
+      `Total Characters: ${analysis.analysis.metrics.totalCharacters}`,
+      `Total Dialogue Lines: ${analysis.analysis.metrics.totalDialogueLines}`,
+      `Average Scene Length: ${analysis.analysis.metrics.averageSceneLength.toFixed(1)} pages`,
+      `Quality Score: ${(analysis.analysis.qualityScore * 100).toFixed(1)}%`,
+      '',
+      '--- CHARACTERS ---',
+      ...analysis.analysis.characters.slice(0, 10).map((char, i) => 
+        `${i + 1}. ${char.name} (${char.role}) - ${char.dialogueCount} dialogues`
+      ),
+      '',
+      '--- SCENES ---',
+      ...analysis.analysis.scenes.slice(0, 10).map((scene, i) => 
+        `${i + 1}. Scene ${scene.sceneNumber}: ${scene.location} (${scene.sceneType})`
+      ),
+      '',
+      '--- STORY STRUCTURE ---',
+      `Acts: ${analysis.analysis.storyStructure.acts.length}`,
+      `Plot Points: ${analysis.analysis.storyStructure.plotPoints.length}`,
+      '',
+      '--- RECOMMENDATIONS ---',
+      ...analysis.analysis.recommendations.map(rec => `• ${rec}`),
+      '',
+      `Created: ${analysis.createdAt.toISOString()}`,
+      `Updated: ${analysis.updatedAt.toISOString()}`,
+      '================================'
+    ];
+    return lines.join('\n');
+  }
+
   private parseXML(xml: string): unknown {
-    throw new Error('XML parsing not implemented');
+    // Parse XML script analysis data
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'text/xml');
+      
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) {
+        throw new Error(`XML parse error: ${parseError.textContent}`);
+      }
+
+      const analysisElement = doc.querySelector('script_analysis');
+      if (!analysisElement) {
+        throw new Error('Invalid script analysis XML: missing script_analysis root element');
+      }
+
+      const id = analysisElement.getAttribute('id') || '';
+      const title = analysisElement.querySelector('title')?.textContent || '';
+      const totalScenes = parseInt(analysisElement.querySelector('total_scenes')?.textContent || '0', 10);
+      const totalCharacters = parseInt(analysisElement.querySelector('total_characters')?.textContent || '0', 10);
+      const qualityScore = parseFloat(analysisElement.querySelector('quality_score')?.textContent || '0');
+
+      // Return a partial analysis object that can be merged
+      return {
+        id,
+        title,
+        content: '',
+        analysis: {
+          characters: [],
+          scenes: [],
+          dialogues: [],
+          storyStructure: {
+            acts: [],
+            plotPoints: [],
+            pacingAnalysis: {},
+            tensionCurve: [],
+            characterDevelopment: {}
+          },
+          metrics: {
+            totalScenes,
+            totalCharacters,
+            totalDialogues: 0,
+            totalPages: 0,
+            averageSceneLength: 0,
+            averageDialogueLength: 0,
+            emotionalIntensity: 0,
+            pacingScore: 0
+          },
+          recommendations: [],
+          qualityScore
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('[AIScriptAnalysisService] Failed to parse XML:', error);
+      throw new Error(`Failed to parse script analysis XML: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 

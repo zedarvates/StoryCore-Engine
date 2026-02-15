@@ -21,6 +21,7 @@ export interface OllamaGenerationOptions {
   num_predict?: number;
   seed?: number;
   stream?: boolean;
+  [key: string]: unknown;
 }
 
 /**
@@ -44,7 +45,7 @@ export type PromptTemplateType =
 export class OllamaClient {
   private endpoint: string;
   private model: string;
-  private logger = getLogger();
+  private readonly logger = getLogger();
   private defaultOptions: OllamaGenerationOptions;
 
   constructor(
@@ -658,7 +659,8 @@ export async function getOllamaClient(): Promise<OllamaClient> {
         ollamaClientInstance = new OllamaClient();
       }
     } catch (error) {
-      console.warn('[OllamaClient] Failed to load LLM settings, using defaults:', error);
+      const logger = getLogger();
+      logger.warn('ollama', 'Failed to load LLM settings, using defaults:', { error });
       ollamaClientInstance = new OllamaClient();
     }
   }
@@ -728,7 +730,8 @@ export async function updateOllamaClientFromSettings(): Promise<void> {
       ollamaClientInstance = null;
     }
   } catch (error) {
-    console.error('[OllamaClient] Failed to update from settings:', error);
+    const logger = getLogger();
+    logger.error('ollama', 'Failed to update from settings:', error as Error);
   }
 }
 

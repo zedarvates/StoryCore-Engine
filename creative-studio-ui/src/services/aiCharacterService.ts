@@ -691,9 +691,92 @@ class AICharacterService extends EventEmitter {
   }
 
   private parseXML(xml: string): unknown {
-    // Simple XML parsing for import
-    // In a real implementation, you'd use a proper XML parser
-    throw new Error('XML parsing not implemented');
+    // Parse XML character data
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'text/xml');
+      
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) {
+        throw new Error(`XML parse error: ${parseError.textContent}`);
+      }
+
+      const characterElement = doc.querySelector('character');
+      if (!characterElement) {
+        throw new Error('Invalid character XML: missing character root element');
+      }
+
+      const id = characterElement.getAttribute('id') || '';
+      const name = characterElement.querySelector('name')?.textContent || 'Unknown';
+      const archetype = characterElement.querySelector('archetype')?.textContent || 'hero';
+      const role = characterElement.querySelector('role')?.textContent || 'protagonist';
+      const age = parseInt(characterElement.querySelector('age')?.textContent || '25', 10);
+
+      // Parse personality traits from XML
+      const personalityElement = characterElement.querySelector('personality');
+      const traits: Record<string, number> = {};
+      if (personalityElement) {
+        const traitElements = personalityElement.children;
+        for (let i = 0; i < traitElements.length; i++) {
+          const trait = traitElements[i];
+          traits[trait.tagName] = parseFloat(trait.textContent || '0.5');
+        }
+      }
+
+      // Return a partial character object that can be merged
+      return {
+        id,
+        name,
+        archetype: archetype as CharacterArchetype,
+        role: role as CharacterRole,
+        age,
+        gender: 'unspecified',
+        appearance: {
+          height: 170,
+          build: 'average',
+          hairColor: 'brown',
+          hairStyle: 'short',
+          eyeColor: 'brown',
+          skinTone: 'medium',
+          distinctiveFeatures: [],
+          clothingStyle: 'casual',
+          accessories: []
+        },
+        personality: {
+          traits: traits as Record<PersonalityTrait, number>,
+          coreBeliefs: [],
+          motivations: [],
+          fears: [],
+          strengths: [],
+          weaknesses: [],
+          speechPatterns: []
+        },
+        backstory: {
+          origin: '',
+          keyEvents: [],
+          relationships: {},
+          skills: [],
+          secrets: [],
+          goals: [],
+          conflicts: []
+        },
+        traits: {
+          courage: 0.5,
+          intelligence: 0.5,
+          charisma: 0.5,
+          humility: 0.5,
+          ambition: 0.5,
+          loyalty: 0.5,
+          cunning: 0.5,
+          compassion: 0.5
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('[AICharacterService] Failed to parse XML:', error);
+      throw new Error(`Failed to parse character XML: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 

@@ -7,7 +7,7 @@ import { createEmptyCharacter } from '@/types/character';
 import type { World } from '@/types/world';
 import type { Story } from '@/types/story';
 import { useCharacterPersistence } from '@/hooks/useCharacterPersistence';
-import { useServiceStatus } from '@/hooks/useServiceStatus';
+import { useServiceStatus } from '@/components/ui/service-warning';
 import { eventEmitter, CharacterEventType, createCharacterCreatedPayload } from '@/services/eventEmitter';
 import { Step1BasicIdentity } from './Step1BasicIdentity';
 import { Step2PhysicalAppearance } from './Step2PhysicalAppearance';
@@ -95,11 +95,11 @@ function CharacterWizardContent({
 
   const handleComplete = async () => {
     await submitWizard();
-      onComplete?.();
-      };
-      
-      return (
-      <ProductionWizardContainer
+    onComplete?.();
+  };
+
+  return (
+    <ProductionWizardContainer
       title="Create Character"
       steps={steps}
       onCancel={onCancel}
@@ -129,8 +129,8 @@ export function CharacterWizard({
   // ============================================================================
 
   // Check LLM service status
-  const { ollama: llmStatus } = useServiceStatus();
-  
+  const { llmConfigured, llmChecking } = useServiceStatus();
+
   // Character Persistence hook
   const { saveCharacter } = useCharacterPersistence();
 
@@ -150,8 +150,11 @@ export function CharacterWizard({
           if (!data.role?.archetype || data.role.archetype.trim() === '') {
             errors.archetype = ['Character archetype is required'];
           }
+          if (!data.visual_identity?.gender || data.visual_identity.gender.trim() === '') {
+            errors.gender = ['Gender is required'];
+          }
           if (!data.visual_identity?.age_range || data.visual_identity.age_range.trim() === '') {
-            errors.age_range = ['Age range is required'];
+            errors.age_range = ['Age Range is required'];
           }
           break;
 
@@ -193,6 +196,12 @@ export function CharacterWizard({
           if (!data.role?.archetype || data.role.archetype.trim() === '') {
             errors.archetype = ['Character archetype is required'];
           }
+          if (!data.visual_identity?.gender || data.visual_identity.gender.trim() === '') {
+            errors.gender = ['Gender is required'];
+          }
+          if (!data.visual_identity?.age_range || data.visual_identity.age_range.trim() === '') {
+            errors.age_range = ['Age Range is required'];
+          }
           break;
       }
 
@@ -227,12 +236,12 @@ export function CharacterWizard({
         onComplete(savedCharacter, storyContext);
       } catch (error) {
         console.error('Failed to save character:', error);
-        
+
         // Create a detailed error message based on the error type
         let errorMessage = 'Failed to save character: ';
         if (error instanceof Error) {
           errorMessage += error.message;
-          
+
           // Add specific guidance for common error types
           if (error.message.includes('permission') || error.message.includes('access')) {
             errorMessage += '\nPlease check your file system permissions.';
@@ -244,10 +253,10 @@ export function CharacterWizard({
         } else {
           errorMessage += 'Unknown error occurred.';
         }
-        
+
         // Show error to user
         alert(errorMessage);
-        
+
         // Still create the character object for the callback
         // even if persistence failed
         // Generate UUID with fallback
@@ -263,7 +272,7 @@ export function CharacterWizard({
             });
           }
         }
-        
+
         const character: Character = {
           character_id: characterId,
           name: data.name || '',
@@ -280,11 +289,14 @@ export function CharacterWizard({
             facial_structure: data.visual_identity?.facial_structure || '',
             distinctive_features: data.visual_identity?.distinctive_features || [],
             age_range: data.visual_identity?.age_range || '',
+            gender: data.visual_identity?.gender || '',
             height: data.visual_identity?.height || '',
             build: data.visual_identity?.build || '',
             posture: data.visual_identity?.posture || '',
             clothing_style: data.visual_identity?.clothing_style || '',
             color_palette: data.visual_identity?.color_palette || [],
+            reference_images: data.visual_identity?.reference_images || [],
+            reference_sheet_images: data.visual_identity?.reference_sheet_images || [],
           },
           personality: {
             traits: data.personality?.traits || [],
@@ -361,40 +373,11 @@ export function CharacterWizard({
     }
   };
 
-  // Derived state from hooks (AFTER all hooks are called)
-  const llmChecking = llmStatus === 'checking';
-  const llmConfigured = llmStatus === 'connected';
 
   // ============================================================================
   // CONDITIONAL RENDERING (after all hooks)
   // ============================================================================
 
-  // Show loading state while checking LLM service
-  if (llmChecking) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 space-y-4 min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Checking AI service status...</p>
-      </div>
-    );
-  }
-
-  // Show info if LLM is not configured
-  if (!llmConfigured) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 space-y-4 min-h-[400px]">
-        <AlertCircle className="h-8 w-8 text-amber-500" />
-        <p className="text-sm text-muted-foreground">AI service not connected</p>
-        <p className="text-xs text-muted-foreground">Configure Ollama to enable AI-assisted character generation</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
 
   return (
     <WizardProvider<Character>

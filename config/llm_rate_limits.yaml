@@ -1,0 +1,222 @@
+# LLM Rate Limits Configuration
+# StoryCore-Engine - AI/LLM Assistant Enhancement
+#
+# This file defines rate limits for LLM API calls across multiple tiers.
+# Limits are enforced using a token bucket algorithm.
+#
+# Configuration Schema:
+# - global: System-wide limits (all users combined)
+# - per_user: Limits per authenticated user
+# - per_feature: Limits per feature type
+# - per_provider: Limits per LLM provider
+
+rate_limits:
+  # Global limits - System-wide resource protection
+  # These protect the backend from being overwhelmed
+  global:
+    requests_per_minute: 100
+    tokens_per_minute: 100000
+    requests_per_hour: 1000
+    tokens_per_hour: 1000000
+    description: "System-wide limits to protect backend resources"
+
+  # Per-user limits - Fair resource allocation
+  # Default tier for all users
+  per_user:
+    default:
+      requests_per_minute: 20
+      tokens_per_minute: 20000
+      requests_per_hour: 200
+      tokens_per_hour: 200000
+      requests_per_day: 1000
+      tokens_per_day: 1000000
+      description: "Default limits for standard users"
+    
+    # Premium tier for paid subscribers
+    premium:
+      requests_per_minute: 60
+      tokens_per_minute: 60000
+      requests_per_hour: 600
+      tokens_per_hour: 600000
+      requests_per_day: 5000
+      tokens_per_day: 5000000
+      description: "Enhanced limits for premium users"
+    
+    # Developer tier for internal testing
+    developer:
+      requests_per_minute: 100
+      tokens_per_minute: 100000
+      requests_per_hour: 1000
+      tokens_per_hour: 1000000
+      requests_per_day: 10000
+      tokens_per_day: 10000000
+      description: "Unrestricted limits for development/testing"
+
+  # Per-feature limits - Feature-specific throttling
+  # Different features have different resource requirements
+  per_feature:
+    # Story generation is resource-intensive
+    story_generation:
+      requests_per_minute: 5
+      tokens_per_minute: 10000
+      requests_per_hour: 50
+      tokens_per_hour: 100000
+      description: "Story generation - high resource usage"
+    
+    # Character dialogue is moderate
+    character_dialogue:
+      requests_per_minute: 10
+      tokens_per_minute: 5000
+      requests_per_hour: 100
+      tokens_per_hour: 50000
+      description: "Character dialogue - moderate resource usage"
+    
+    # Shot descriptions are quick
+    shot_description:
+      requests_per_minute: 15
+      tokens_per_minute: 3000
+      requests_per_hour: 150
+      tokens_per_hour: 30000
+      description: "Shot descriptions - low resource usage"
+    
+    # World building is complex
+    world_building:
+      requests_per_minute: 5
+      tokens_per_minute: 10000
+      requests_per_hour: 50
+      tokens_per_hour: 100000
+      description: "World building - high resource usage"
+    
+    # Chat is frequent but light
+    chat:
+      requests_per_minute: 30
+      tokens_per_minute: 5000
+      requests_per_hour: 300
+      tokens_per_hour: 50000
+      description: "Chat interactions - frequent but light"
+    
+    # Name generation is quick
+    name_generation:
+      requests_per_minute: 20
+      tokens_per_minute: 2000
+      requests_per_hour: 200
+      tokens_per_hour: 20000
+      description: "Name generation - very light"
+    
+    # Location logic is complex
+    location_logic:
+      requests_per_minute: 5
+      tokens_per_minute: 8000
+      requests_per_hour: 50
+      tokens_per_hour: 80000
+      description: "Location logic loop - complex processing"
+    
+    # General fallback
+    general:
+      requests_per_minute: 15
+      tokens_per_minute: 5000
+      requests_per_hour: 150
+      tokens_per_hour: 50000
+      description: "General requests - default feature limits"
+
+  # Per-provider limits - API quota protection
+  # Protects against exhausting external API quotas
+  per_provider:
+    openai:
+      requests_per_minute: 30
+      tokens_per_minute: 50000
+      requests_per_hour: 300
+      tokens_per_hour: 500000
+      description: "OpenAI API limits"
+    
+    anthropic:
+      requests_per_minute: 30
+      tokens_per_minute: 50000
+      requests_per_hour: 300
+      tokens_per_hour: 500000
+      description: "Anthropic API limits"
+    
+    ollama:
+      requests_per_minute: 60
+      tokens_per_minute: 100000  # Local, so higher limits
+      requests_per_hour: 600
+      tokens_per_hour: 1000000
+      description: "Ollama local LLM - higher limits (local processing)"
+    
+    local:
+      requests_per_minute: 60
+      tokens_per_minute: 100000
+      requests_per_hour: 600
+      tokens_per_hour: 1000000
+      description: "Local models - no external API limits"
+
+# Token bucket settings
+token_bucket:
+  # How often to refill tokens (in seconds)
+  refill_interval: 1
+  
+  # Whether to allow burst requests (use full bucket capacity)
+  allow_burst: true
+  
+  # How many tokens to add per refill interval
+  # Calculated as: limit_per_minute / 60 * refill_interval
+
+# Response headers configuration
+headers:
+  # Include rate limit info in response headers
+  enabled: true
+  
+  # Standard headers to include
+  standard_headers:
+    - "X-RateLimit-Limit"        # Maximum requests allowed
+    - "X-RateLimit-Remaining"    # Remaining requests in window
+    - "X-RateLimit-Reset"        # Unix timestamp when limit resets
+    - "X-RateLimit-Reset-After"  # Seconds until reset
+  
+  # Token-specific headers
+  token_headers:
+    - "X-RateLimit-Token-Limit"
+    - "X-RateLimit-Token-Remaining"
+    - "X-RateLimit-Token-Reset"
+
+# Retry configuration for rate-limited requests
+retry:
+  # Whether to automatically retry on 429 responses
+  auto_retry: false
+  
+  # Maximum retry attempts
+  max_retries: 3
+  
+  # Base delay between retries (exponential backoff)
+  base_delay_seconds: 1
+  
+  # Maximum delay between retries
+  max_delay_seconds: 60
+
+# Logging configuration
+logging:
+  # Log level for rate limit events
+  level: "INFO"
+  
+  # Log when limits are approaching (percentage of limit)
+  warning_threshold: 80
+  
+  # Log all rate-limited requests
+  log_limited_requests: true
+
+# Budget alerts (optional)
+budget_alerts:
+  # Enable budget alerts
+  enabled: false
+  
+  # Alert when user reaches this percentage of daily token budget
+  warning_percentage: 75
+  
+  # Alert when user reaches this percentage (critical)
+  critical_percentage: 95
+  
+  # Webhook URL for alerts (optional)
+  webhook_url: null
+  
+  # Email recipients for alerts (optional)
+  email_recipients: []

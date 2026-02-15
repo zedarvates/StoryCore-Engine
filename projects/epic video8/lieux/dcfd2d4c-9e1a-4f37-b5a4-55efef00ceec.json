@@ -1,0 +1,18 @@
+{
+  "location_id": "dcfd2d4c-9e1a-4f37-b5a4-55efef00ceec",
+  "name": "The Shattered Spires",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T06:36:35.804Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A twisted, nightmarish landscape of broken spires and shattered minarets, where the ruins of a ancient city pierce the sky like jagged teeth. The air is thick with an otherworldly mist that seems to writhe and twist in the flickering torchlight.",
+    "atmosphere": "Foreboding, eerie, oppressive",
+    "genre_tags": [],
+    "significance": "The Shattered Spires are the remnants of the ancient Eldorian metropolis, said to hold secrets of the world's downfall and the source of the mysterious energy known as 'The Devouring'."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

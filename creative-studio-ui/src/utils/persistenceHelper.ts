@@ -5,7 +5,7 @@
  */
 
 import { StorageManager } from './storageManager';
-import { Logger } from './logger';
+import { logger as Logger } from './logger';
 
 interface PersistenceOptions {
   maxRetries?: number;

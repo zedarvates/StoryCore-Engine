@@ -477,7 +477,7 @@ export const updatePlan = async (id: string, plan: SequencePlan) => {
   const updatedData = await sequencePlanService.updateSequencePlan(id, {
     name: plan.name,
     description: plan.description || '',
-    shots: plan.shots as any, // Cast to avoid type mismatch for now
+    shots: plan.shots as unknown as Shot[], // Cast to handle ProductionShot to Shot conversion
     totalDuration: plan.targetDuration || 0,
     frameRate: plan.frameRate || 24,
     resolution: plan.resolution,

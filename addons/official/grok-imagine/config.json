@@ -1,0 +1,22 @@
+{
+  "engine": "grok-imagine-v1",
+  "model": "grok-image-v1",
+  "fps": 30,
+  "resolution": "1080p",
+  "aspect_ratio": "16:9",
+  "style": "cinematic",
+  "quality": "high",
+  "duration_seconds": 8,
+  "enable_motion": true,
+  "creativity_scale": 0.5,
+  "negative_prompt": "blurry, low quality, artifacts, text, watermark, deformed, distorted",
+  "api_endpoint": "https://api.x.ai/v1/imagine",
+  "api_key": "",
+  "timeout": 300,
+  "max_retries": 3,
+  "quality_preset": "high",
+  "seed": -1,
+  "output_format": "mp4",
+  "image_format": "png"
+}
+

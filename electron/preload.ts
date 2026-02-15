@@ -369,6 +369,49 @@ const electronAPI: ElectronAPI = {
       return result.data;
     },
   },
+
+// Command execution
+  executeCommand: async (options: { command: string; cwd?: string; shell?: boolean; timeout?: number; env?: Record<string, string> }) => {
+    const result = await ipcRenderer.invoke('command:execute', options);
+    return result;
+  },
+
+  // Configuration management (secure IPC bridge)
+  config: {
+    saveProject: async (projectId: string, config: any) => {
+      const result = await ipcRenderer.invoke('config:save-project', projectId, config);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save project configuration');
+      }
+    },
+    loadProject: async (projectId: string) => {
+      const result = await ipcRenderer.invoke('config:load-project', projectId);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to load project configuration');
+      }
+      return result.config;
+    },
+    saveGlobal: async (config: any) => {
+      const result = await ipcRenderer.invoke('config:save-global', config);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save global configuration');
+      }
+    },
+    loadGlobal: async () => {
+      const result = await ipcRenderer.invoke('config:load-global');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to load global configuration');
+      }
+      return result.config;
+    },
+    validate: async (config: any, rules: any[]) => {
+      const result = await ipcRenderer.invoke('config:validate', config, rules);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to validate configuration');
+      }
+      return result.result;
+    },
+  },
 };
 
 // Expose the API to the renderer process

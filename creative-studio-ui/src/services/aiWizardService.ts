@@ -736,8 +736,54 @@ class AIWizardService extends EventEmitter {
 
   private parseImportedXML(xml: string): SavedSessionData {
     // Simple XML parser for wizard session import
-    // In production, use a proper XML parser library
-    throw new Error('XML parsing not implemented');
+    // Parses XML format exported by convertToXML method
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'text/xml');
+      
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) {
+        throw new Error(`XML parse error: ${parseError.textContent}`);
+      }
+
+      const sessionElement = doc.querySelector('wizard_session');
+      if (!sessionElement) {
+        throw new Error('Invalid wizard session XML: missing wizard_session root element');
+      }
+
+      const id = sessionElement.getAttribute('id') || '';
+      const type = sessionElement.querySelector('type')?.textContent || 'character';
+      const status = sessionElement.querySelector('status')?.textContent || 'idle';
+      const progress = parseFloat(sessionElement.querySelector('progress')?.textContent || '0');
+
+      // Build the SavedSessionData object with default config values
+      const sessionData: SavedSessionData = {
+        id,
+        type: type as WizardType,
+        config: {
+          taskType: 'general',
+          complexity: 'moderate',
+          qualityLevel: 'standard',
+          constraints: [],
+          preferences: []
+        },
+        state: {
+          status: status as WizardState['status'],
+          currentStep: 0,
+          totalSteps: 0,
+          progress,
+          results: [],
+          errors: []
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      return sessionData;
+    } catch (error) {
+      console.error('[AIWizardService] Failed to parse XML:', error);
+      throw new Error(`Failed to parse wizard session XML: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   // Storage methods

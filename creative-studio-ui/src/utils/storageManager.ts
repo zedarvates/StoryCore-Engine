@@ -55,23 +55,23 @@ export class StorageManager {
         );
       }
 
-      // Vérifier si on peut stocker
+      // Check if we can store
       if (!this.canStore(value)) {
         console.error(
           `❌ Storage limit exceeded. Need ${value.length} bytes, ` +
           `available ${stats.available} bytes`
         );
         
-        // Essayer de nettoyer les données anciennes
+        // Try to clean up old data
         this.cleanup();
         
-        // Réessayer
+        // Retry
         if (this.canStore(value)) {
           localStorage.setItem(key, value);
           return true;
         }
         
-        // Basculer vers IndexedDB
+        // Switch to IndexedDB
         return this.setItemIndexedDB(key, value);
       }
 
@@ -80,7 +80,7 @@ export class StorageManager {
     } catch (error) {
       console.error('Failed to set item in localStorage:', error);
       
-      // Basculer vers IndexedDB
+      // Switch to IndexedDB
       return this.setItemIndexedDB(key, value);
     }
   }
@@ -104,18 +104,18 @@ export class StorageManager {
 
   private static cleanup(): void {
     try {
-      // Supprimer les données les plus anciennes
+      // Delete oldest data
       const keys = Object.keys(localStorage);
       const timestampKeys = keys.filter(key => key.includes('timestamp'));
       
       if (timestampKeys.length === 0) {
-        // Si pas de timestamp, supprimer les 10% les plus anciens par clé
+        // If no timestamp, delete the oldest 10% by key
         const toDelete = Math.ceil(keys.length * 0.1);
         for (let i = 0; i < toDelete && i < keys.length; i++) {
           localStorage.removeItem(keys[i]);
         }
       } else {
-        // Supprimer les 10% les plus anciens par timestamp
+        // Delete the oldest 10% by timestamp
         const sorted = timestampKeys.sort((a, b) => {
           const timeA = parseInt(localStorage.getItem(a) || '0');
           const timeB = parseInt(localStorage.getItem(b) || '0');
@@ -145,7 +145,7 @@ export class StorageManager {
       request.onsuccess = () => {
         const db = request.result;
         
-        // Créer object store si nécessaire
+        // Create object store if necessary
         if (!db.objectStoreNames.contains('data')) {
           const version = db.version + 1;
           db.close();

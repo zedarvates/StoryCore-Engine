@@ -4,7 +4,7 @@
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { TimelineState, Shot, Track, ReferenceImage, TimelineMarker, TimelineRegion, Layer } from '../../types';
+import type { TimelineState, Shot, Track, ReferenceImage, TimelineMarker, TimelineRegion, Layer, StyleApplication, StyleParameters } from '../../types';
 
 // Default track configuration
 const DEFAULT_TRACKS: Track[] = [
@@ -17,6 +17,7 @@ const DEFAULT_TRACKS: Track[] = [
 ];
 
 const initialState: TimelineState = {
+  projectId: '',
   shots: [],
   tracks: DEFAULT_TRACKS,
   playheadPosition: 0,
@@ -203,6 +204,13 @@ const timelineSlice = createSlice({
         }
       }
     },
+    splitShot: (state, action: PayloadAction<{ shotId: string; leftShot: Shot; rightShot: Shot }>) => {
+      const { shotId, leftShot, rightShot } = action.payload;
+      const index = state.shots.findIndex((s) => s.id === shotId);
+      if (index !== -1) {
+        state.shots.splice(index, 1, leftShot, rightShot);
+      }
+    },
     deleteLayer: (state, action: PayloadAction<{ shotId: string; layerId: string }>) => {
       const { shotId, layerId } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
@@ -260,7 +268,7 @@ const timelineSlice = createSlice({
       }
     },
     // Visual style actions
-    applyStyleToShot: (state, action: PayloadAction<{ shotId: string; styleApplication: unknown }>) => {
+    applyStyleToShot: (state, action: PayloadAction<{ shotId: string; styleApplication: StyleApplication }>) => {
       const { shotId, styleApplication } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
       if (shot) {
@@ -268,12 +276,12 @@ const timelineSlice = createSlice({
         shot.modified = true;
       }
     },
-    applyStyleToMultipleShots: (state, action: PayloadAction<{ shotIds: string[]; styleApplication: unknown }>) => {
+    applyStyleToMultipleShots: (state, action: PayloadAction<{ shotIds: string[]; styleApplication: StyleApplication }>) => {
       const { shotIds, styleApplication } = action.payload;
       shotIds.forEach((shotId) => {
         const shot = state.shots.find((s) => s.id === shotId);
         if (shot) {
-          shot.visualStyle = { ...styleApplication, shotId };
+          shot.visualStyle = { ...styleApplication, shotId } as any;
           shot.modified = true;
         }
       });
@@ -293,22 +301,59 @@ const timelineSlice = createSlice({
         shot.modified = true;
       }
     },
-    updateStyleParameters: (state, action: PayloadAction<{ shotId: string; parameters: unknown }>) => {
+    updateStyleParameters: (state, action: PayloadAction<{ shotId: string; parameters: Partial<StyleParameters> }>) => {
       const { shotId, parameters } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
       if (shot && shot.visualStyle) {
-        shot.visualStyle.parameters = { ...shot.visualStyle.parameters, ...parameters };
+        shot.visualStyle.parameters = { ...shot.visualStyle.parameters, ...parameters } as any;
+        shot.modified = true;
+      }
+    },
+    // Transition actions (Phase 1 - R&D)
+    addTransition: (state, action: PayloadAction<{ clipId: string; transitionType: string; position: 'in' | 'out'; duration: number }>) => {
+      const { clipId, transitionType, position, duration } = action.payload;
+      const shot = state.shots.find((s) => s.id === clipId);
+      if (shot) {
+        if (!shot.transitions) {
+          shot.transitions = {};
+        }
+        shot.transitions[position] = {
+          type: transitionType,
+          duration,
+          appliedAt: Date.now(),
+        };
+        shot.modified = true;
+      }
+    },
+    removeTransition: (state, action: PayloadAction<{ clipId: string; position: 'in' | 'out' }>) => {
+      const { clipId, position } = action.payload;
+      const shot = state.shots.find((s) => s.id === clipId);
+      if (shot && shot.transitions) {
+        delete shot.transitions[position];
+        shot.modified = true;
+      }
+    },
+    updateTransition: (state, action: PayloadAction<{ clipId: string; position: 'in' | 'out'; updates: { transitionType?: string; duration?: number } }>) => {
+      const { clipId, position, updates } = action.payload;
+      const shot = state.shots.find((s) => s.id === clipId);
+      if (shot && shot.transitions && shot.transitions[position]) {
+        Object.assign(shot.transitions[position]!, {
+          ...updates,
+          appliedAt: Date.now()
+        });
         shot.modified = true;
       }
     },
   },
 });
 
+// Export actions
 export const {
   addShot,
   updateShot,
   deleteShot,
   reorderShots,
+  splitShot,
   addTrack,
   updateTrack,
   deleteTrack,
@@ -350,6 +395,10 @@ export const {
   removeStyleFromShot,
   updateStyleIntensity,
   updateStyleParameters,
+  // Transition actions
+  addTransition,
+  removeTransition,
+  updateTransition,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

@@ -8,6 +8,7 @@ import { ipcMain, dialog, BrowserWindow } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
+import { exec } from 'child_process';
 import { ProjectService, NewProjectData } from './ProjectService';
 import { RecentProjectsManager, RecentProject } from './RecentProjectsManager';
 import { RoverService } from './services/RoverService';
@@ -17,6 +18,7 @@ import { UpdateManager } from './UpdateManager';
 import { ProjectDiscoveryService, DiscoveryResult } from './services/ProjectDiscoveryService';
 import { ComfyUIService } from './services/ComfyUIService';
 import { LLMService } from './services/LLMService';
+import { ConfigurationStore } from './configurationStore';
 import {
   ScanProjectsOptions,
   ScanProjectsResponse,
@@ -111,6 +113,16 @@ export const IPC_CHANNELS = {
   FS_STAT: 'fs:stat',
   FS_MKDIR: 'fs:mkdir',
   FS_UNLINK: 'fs:unlink',
+
+  // Command execution
+  COMMAND_EXECUTE: 'command:execute',
+
+  // Configuration management
+  CONFIG_SAVE_PROJECT: 'config:save-project',
+  CONFIG_LOAD_PROJECT: 'config:load-project',
+  CONFIG_SAVE_GLOBAL: 'config:save-global',
+  CONFIG_LOAD_GLOBAL: 'config:load-global',
+  CONFIG_VALIDATE: 'config:validate',
 } as const;
 
 /**
@@ -125,6 +137,7 @@ export class IPCHandlers {
   private comfyuiService: ComfyUIService;
   private llmService: LLMService;
   private roverService: RoverService;
+  private configurationStore: ConfigurationStore;
 
   constructor(
     projectService: ProjectService,
@@ -140,12 +153,13 @@ export class IPCHandlers {
     this.comfyuiService = new ComfyUIService();
     this.llmService = new LLMService();
     this.roverService = new RoverService();
+    this.configurationStore = new ConfigurationStore();
   }
 
   /**
    * Register all IPC handlers
    */
-  registerHandlers(): void {
+registerHandlers(): void {
     this.registerProjectHandlers();
     this.registerSequenceHandlers();
     this.registerRecentProjectsHandlers();
@@ -159,6 +173,8 @@ export class IPCHandlers {
     this.registerFSHandlers();
     this.registerDialogHandlers();
     this.registerRoverHandlers();
+    this.registerCommandHandlers();
+    this.registerConfigHandlers();
   }
 
   /**
@@ -1526,11 +1542,14 @@ export class IPCHandlers {
     // Execute workflow
     ipcMain.handle(IPC_CHANNELS.COMFYUI_EXECUTE_WORKFLOW, async (_event, workflowData: any) => {
       try {
-        // TODO: Implement ComfyUI workflow execution via Python backend
-        console.log('ComfyUI workflow execution requested:', workflowData);
+        const result = await this.comfyuiService.executeWorkflow({
+          workflow: workflowData,
+          clientId: 'storycore-electron',
+        });
         return {
-          success: false,
-          error: 'ComfyUI integration not yet implemented',
+          success: result.success,
+          queueId: result.queueId,
+          error: result.error,
         };
       } catch (error) {
         console.error('Failed to execute ComfyUI workflow:', error);
@@ -1544,13 +1563,11 @@ export class IPCHandlers {
     // Get queue status
     ipcMain.handle(IPC_CHANNELS.COMFYUI_GET_QUEUE_STATUS, async () => {
       try {
-        // TODO: Implement queue status retrieval
+        const result = await this.comfyuiService.getQueueStatus();
         return {
-          success: true,
-          queue: {
-            running: [],
-            pending: [],
-          },
+          success: result.success,
+          queue: result.queue,
+          error: result.error,
         };
       } catch (error) {
         console.error('Failed to get ComfyUI queue status:', error);
@@ -1562,13 +1579,13 @@ export class IPCHandlers {
     });
 
     // Upload media
-    ipcMain.handle(IPC_CHANNELS.COMFYUI_UPLOAD_MEDIA, async (_event, mediaPath: string) => {
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_UPLOAD_MEDIA, async (_event, mediaPath: string, filename: string) => {
       try {
-        // TODO: Implement media upload to ComfyUI
-        console.log('Media upload requested:', mediaPath);
+        const result = await this.comfyuiService.uploadMedia(mediaPath, filename);
         return {
-          success: false,
-          error: 'Media upload not yet implemented',
+          success: result.success,
+          url: result.url,
+          error: result.error,
         };
       } catch (error) {
         console.error('Failed to upload media to ComfyUI:', error);
@@ -1580,13 +1597,13 @@ export class IPCHandlers {
     });
 
     // Download output
-    ipcMain.handle(IPC_CHANNELS.COMFYUI_DOWNLOAD_OUTPUT, async (_event, outputId: string) => {
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_DOWNLOAD_OUTPUT, async (_event, outputId: string, outputPath: string) => {
       try {
-        // TODO: Implement output download from ComfyUI
-        console.log('Output download requested:', outputId);
+        const result = await this.comfyuiService.downloadOutput(outputId, outputPath);
         return {
-          success: false,
-          error: 'Output download not yet implemented',
+          success: result.success,
+          path: result.path,
+          error: result.error,
         };
       } catch (error) {
         console.error('Failed to download ComfyUI output:', error);
@@ -1726,6 +1743,69 @@ export class IPCHandlers {
   }
 
   /**
+   * Register command execution handlers
+   */
+  private registerCommandHandlers(): void {
+    // Execute command
+ipcMain.handle(IPC_CHANNELS.COMMAND_EXECUTE, async (_event, options: { command: string; cwd?: string; shell?: string; timeout?: number; env?: Record<string, string> }) => {
+      return new Promise((resolve) => {
+        try {
+          const { command, cwd, shell, timeout, env } = options;
+          
+          // Validate command
+          if (!command || typeof command !== 'string') {
+            resolve({
+              success: false,
+              error: 'Invalid command: command is required and must be a string',
+            });
+            return;
+          }
+
+const execOptions: {
+            cwd?: string;
+            shell?: string;
+            timeout?: number;
+            env?: Record<string, string>;
+            encoding: BufferEncoding;
+          } = {
+            encoding: 'utf-8',
+          };
+          
+          if (cwd) execOptions.cwd = cwd;
+          if (shell) execOptions.shell = shell;
+          if (timeout) execOptions.timeout = timeout;
+          if (env) execOptions.env = env;
+
+          exec(command, execOptions, (error, stdout, stderr) => {
+            if (error) {
+              const execError = error as NodeJS.ErrnoException;
+              resolve({
+                success: false,
+                output: stdout,
+                error: error.message,
+                exitCode: execError.code,
+              });
+            } else {
+              resolve({
+                success: true,
+                output: stdout,
+                error: stderr,
+                exitCode: 0,
+              });
+            }
+          });
+        } catch (error) {
+          console.error('Failed to execute command:', error);
+          resolve({
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      });
+    });
+  }
+
+  /**
    * Verify project directory structure
    * @param projectPath Path to the project directory
    * @returns Verification result
@@ -1796,7 +1876,69 @@ export class IPCHandlers {
       };
     } catch (error) {
       errors.push(`Verification failed: ${error instanceof Error ? error.message : String(error)}`);
-      return { success: false, errors, warnings };
+return { success: false, errors, warnings };
     }
+  }
+
+  /**
+   * Register configuration handlers
+   * These handlers provide secure IPC bridge for configuration operations
+   * that previously directly accessed Node.js fs APIs from renderer
+   */
+  private registerConfigHandlers(): void {
+    // Save project configuration
+    ipcMain.handle(IPC_CHANNELS.CONFIG_SAVE_PROJECT, async (_event, projectId: string, config: any) => {
+      try {
+        await this.configurationStore.saveProjectConfig(projectId, config);
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to save project config:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Load project configuration
+    ipcMain.handle(IPC_CHANNELS.CONFIG_LOAD_PROJECT, async (_event, projectId: string) => {
+      try {
+        const config = await this.configurationStore.loadProjectConfig(projectId);
+        return { success: true, config };
+      } catch (error) {
+        console.error('Failed to load project config:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Save global configuration
+    ipcMain.handle(IPC_CHANNELS.CONFIG_SAVE_GLOBAL, async (_event, config: any) => {
+      try {
+        await this.configurationStore.saveGlobalConfig(config);
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to save global config:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Load global configuration
+    ipcMain.handle(IPC_CHANNELS.CONFIG_LOAD_GLOBAL, async () => {
+      try {
+        const config = await this.configurationStore.loadGlobalConfig();
+        return { success: true, config };
+      } catch (error) {
+        console.error('Failed to load global config:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Validate configuration
+    ipcMain.handle(IPC_CHANNELS.CONFIG_VALIDATE, async (_event, config: any, rules: any[]) => {
+      try {
+        const result = this.configurationStore.validateConfig(config, rules);
+        return { success: true, result };
+      } catch (error) {
+        console.error('Failed to validate config:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
   }
 }

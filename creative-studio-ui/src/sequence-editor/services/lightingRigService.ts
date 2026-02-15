@@ -14,6 +14,7 @@ export interface LightingRig {
   previewUrl?: string;
   metadata: LightingRigMetadata;
   parameters: LightingRigParameters;
+  createdAt: number;
 }
 
 export interface LightingRigMetadata {
@@ -109,7 +110,8 @@ export const LIGHTING_RIG_PRESETS: LightingRig[] = [
         softness: 30,
         color: '#000000'
       }
-    }
+    },
+    createdAt: new Date('2024-01-01').getTime()
   },
   {
     id: 'dramatic-spotlight',
@@ -149,7 +151,8 @@ export const LIGHTING_RIG_PRESETS: LightingRig[] = [
         softness: 20,
         color: '#000000'
       }
-    }
+    },
+    createdAt: new Date('2024-01-01').getTime()
   },
 
   // Soft Lighting
@@ -213,7 +216,8 @@ export const LIGHTING_RIG_PRESETS: LightingRig[] = [
         softness: 90,
         color: '#D3D3D3'
       }
-    }
+    },
+    createdAt: new Date('2024-01-01').getTime()
   },
 
   // Natural Lighting
@@ -266,7 +270,8 @@ export const LIGHTING_RIG_PRESETS: LightingRig[] = [
         softness: 70,
         color: '#4A5568'
       }
-    }
+    },
+    createdAt: new Date('2024-01-01').getTime()
   },
 
   // Studio Lighting
@@ -330,7 +335,8 @@ export const LIGHTING_RIG_PRESETS: LightingRig[] = [
         softness: 60,
         color: '#808080'
       }
-    }
+    },
+    createdAt: new Date('2024-01-01').getTime()
   },
 
   // Cinematic Lighting
@@ -405,7 +411,8 @@ export const LIGHTING_RIG_PRESETS: LightingRig[] = [
         softness: 50,
         color: '#2C2C54'
       }
-    }
+    },
+    createdAt: new Date('2024-01-01').getTime()
   },
 
   // Horror Lighting
@@ -458,7 +465,8 @@ export const LIGHTING_RIG_PRESETS: LightingRig[] = [
         softness: 40,
         color: '#000000'
       }
-    }
+    },
+    createdAt: new Date('2024-01-01').getTime()
   },
 
   // Romantic Lighting
@@ -522,7 +530,8 @@ export const LIGHTING_RIG_PRESETS: LightingRig[] = [
         softness: 85,
         color: '#8B7355'
       }
-    }
+    },
+    createdAt: new Date('2024-01-01').getTime()
   }
 ];
 
@@ -590,14 +599,14 @@ export class LightingRigService {
     // Deep copy to avoid mutation
     const updatedParams = JSON.parse(JSON.stringify(parameters));
     const lightIndex = updatedParams.lights.findIndex((light: LightConfiguration) => light.id === lightId);
-    
+
     if (lightIndex !== -1) {
       updatedParams.lights[lightIndex] = {
         ...updatedParams.lights[lightIndex],
         ...updates
       };
     }
-    
+
     return updatedParams;
   }
 
@@ -662,7 +671,8 @@ export class LightingRigService {
         recommendedUse: ['Custom setup'],
         tags: ['custom', mood]
       },
-      parameters
+      parameters,
+      createdAt: Date.now()
     };
   }
 }

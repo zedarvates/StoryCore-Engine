@@ -43,6 +43,14 @@ class HumorStyle(Enum):
     NONE = "none"
 
 
+class Gender(Enum):
+    """Character gender for prompt generation and character identity"""
+    MALE = "male"
+    FEMALE = "female"
+    NON_BINARY = "non_binary"
+    OTHER = "other"
+
+
 @dataclass
 class ColorPalette:
     """Color palette specification"""
@@ -216,6 +224,10 @@ class CharacterProfile:
     creation_timestamp: str = field(default_factory=lambda: datetime.datetime.now().isoformat())
     version: str = "1.0"
     
+    # Gender Identity (for prompts and character identity)
+    gender: Optional[Gender] = None
+    gender_custom: str = ""  # For custom gender specification (e.g., alien genders)
+    
     # Visual Identity
     visual_identity: VisualIdentity = field(default_factory=VisualIdentity)
     coherence_anchors: CoherenceAnchors = field(default_factory=CoherenceAnchors)
@@ -243,6 +255,8 @@ class AutoGenerationParams:
     role: str = ""  # protagonist, antagonist, supporting, etc.
     genre: str = ""  # fantasy, sci-fi, modern, etc.
     age_range: str = ""  # child, teen, adult, elderly
+    gender: Optional[Gender] = None  # male, female, non_binary, other
+    gender_custom: str = ""  # For custom gender specification (e.g., alien genders)
     style_preferences: Dict[str, str] = field(default_factory=dict)
     cultural_context: Optional[str] = None
     archetype: Optional[str] = None

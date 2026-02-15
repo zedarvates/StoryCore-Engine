@@ -176,9 +176,10 @@ export const useGenerationStore = create<GenerationStore>((set, get) => ({
     if (!state.currentPipeline) return;
 
     const updatedPipeline = { ...state.currentPipeline };
-    updatedPipeline.stages[stage] = {
+    // Use type assertion to handle the union type assignment
+    (updatedPipeline.stages[stage] as StageState<GeneratedPrompt | GeneratedAsset>) = {
       status: 'completed',
-      result: result as any,
+      result: result,
       attempts: updatedPipeline.stages[stage].attempts + 1,
     };
 
@@ -187,7 +188,7 @@ export const useGenerationStore = create<GenerationStore>((set, get) => ({
     const currentIndex = stageOrder.indexOf(stage);
     const nextStage = currentIndex < stageOrder.length - 1 ? stageOrder[currentIndex + 1] : 'complete';
 
-    updatedPipeline.currentStage = nextStage as any;
+    updatedPipeline.currentStage = nextStage as GenerationPipelineState['currentStage'];
     updatedPipeline.updatedAt = Date.now();
 
     set({ currentPipeline: updatedPipeline });
@@ -211,7 +212,7 @@ export const useGenerationStore = create<GenerationStore>((set, get) => ({
     if (!state.currentPipeline) return;
 
     const updatedPipeline = { ...state.currentPipeline };
-    updatedPipeline.stages[stage] = {
+    (updatedPipeline.stages[stage] as StageState<GeneratedPrompt | GeneratedAsset>) = {
       ...updatedPipeline.stages[stage],
       status: 'failed',
       error,
@@ -227,7 +228,7 @@ export const useGenerationStore = create<GenerationStore>((set, get) => ({
     if (!state.currentPipeline) return;
 
     const updatedPipeline = { ...state.currentPipeline };
-    updatedPipeline.stages[stage] = {
+    (updatedPipeline.stages[stage] as StageState<GeneratedPrompt | GeneratedAsset>) = {
       ...updatedPipeline.stages[stage],
       status: 'skipped',
     };
@@ -237,7 +238,7 @@ export const useGenerationStore = create<GenerationStore>((set, get) => ({
     const currentIndex = stageOrder.indexOf(stage);
     const nextStage = currentIndex < stageOrder.length - 1 ? stageOrder[currentIndex + 1] : 'complete';
 
-    updatedPipeline.currentStage = nextStage as any;
+    updatedPipeline.currentStage = nextStage as GenerationPipelineState['currentStage'];
     updatedPipeline.updatedAt = Date.now();
 
     set({ currentPipeline: updatedPipeline });
@@ -248,7 +249,7 @@ export const useGenerationStore = create<GenerationStore>((set, get) => ({
     if (!state.currentPipeline) return;
 
     const updatedPipeline = { ...state.currentPipeline };
-    updatedPipeline.stages[stage] = {
+    (updatedPipeline.stages[stage] as StageState<GeneratedPrompt | GeneratedAsset>) = {
       ...updatedPipeline.stages[stage],
       status: 'in_progress',
       progress,

@@ -1,0 +1,18 @@
+{
+  "location_id": "89ba7c44-580a-47ba-8d3f-6a8b38d5ded2",
+  "name": "The Mire of Echoes",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T06:36:35.817Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A treacherous expanse of quagmire and quicksand that seems to shift and writhe like a living entity. The air is thick with the whispers of the past, echoes of long-forgotten events that seem to sear themselves into the minds of those who dare to tread this deadly terrain.",
+    "atmosphere": "Unsettling, disorienting, nightmarish",
+    "genre_tags": [],
+    "significance": "The Mire of Echoes holds secrets of Eldora's dark history and serves as a testing ground for initiates seeking to join the shadowy cults that lurk in the fringes of society. Those who venture too deep risk becoming trapped in the mire, forever lost in its labyrinthine paths."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

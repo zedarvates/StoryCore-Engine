@@ -1,12 +1,13 @@
 /**
- * SyncManager - Gestionnaire de synchronisation bidirectionnelle
+ * SyncManager - Bidirectional synchronization manager
  *
- * Synchronise les données entre le store Zustand et les fichiers JSON
- * avec détection et résolution automatique des conflits
+ * Synchronizes data between Zustand store and JSON files
+ * with automatic conflict detection and resolution
  */
 
 import { persistenceService } from './PersistenceService';
-import { dataValidator } from './DataValidator';
+import { logger } from '@/utils/logger';
+import type { World } from '@/types/world';
 
 export interface SyncConflict {
   entityType: string;
@@ -23,6 +24,11 @@ export interface SyncResult {
   conflicts: SyncConflict[];
   errors: string[];
   duration: number;
+}
+
+// Type guard function to check if value is a plain object
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
@@ -51,7 +57,7 @@ export class SyncManager {
    */
   async fullSync(projectPath?: string): Promise<SyncResult> {
     if (this.syncInProgress) {
-      console.warn('[SyncManager] Sync already in progress, skipping...');
+      logger.warn('[SyncManager] Sync already in progress, skipping...');
       return { synced: 0, conflicts: [], errors: ['Sync already in progress'], duration: 0 };
     }
 
@@ -133,7 +139,7 @@ export class SyncManager {
             }
           }
         } catch (error) {
-          console.error(`[SyncManager] Error syncing world ${world.id}:`, error);
+          logger.error(`[SyncManager] Error syncing world ${world.id}:`, error);
         }
       }
 
@@ -142,7 +148,7 @@ export class SyncManager {
 
       return { synced, conflicts };
     } catch (error) {
-      console.error('[SyncManager] Error syncing worlds:', error);
+      logger.error('[SyncManager] Error syncing worlds:', error);
       return { synced: 0, conflicts: [] };
     }
   }
@@ -166,13 +172,13 @@ export class SyncManager {
           await persistenceService.saveCharacter(character, projectPath);
           synced++;
         } catch (error) {
-          console.error(`[SyncManager] Error syncing character ${character.character_id}:`, error);
+          logger.error(`[SyncManager] Error syncing character ${character.character_id}:`, error);
         }
       }
 
       return { synced, conflicts };
     } catch (error) {
-      console.error('[SyncManager] Error syncing characters:', error);
+      logger.error('[SyncManager] Error syncing characters:', error);
       return { synced: 0, conflicts: [] };
     }
   }
@@ -205,26 +211,31 @@ export class SyncManager {
    * Détection de conflits entre versions
    */
   private detectConflict(storeVersion: unknown, fileVersion: unknown, entityType: string): SyncConflict | null {
+    // Type guard to check if it's a valid object with timestamps
+    if (!isObject(storeVersion) || !isObject(fileVersion)) {
+      return null;
+    }
+
     // Comparer les timestamps de mise à jour
-    const storeTime = storeVersion.updatedAt || storeVersion.createdAt;
-    const fileTime = fileVersion.updatedAt || fileVersion.createdAt;
+    const storeTime = (storeVersion as Record<string, unknown>).updatedAt || (storeVersion as Record<string, unknown>).createdAt;
+    const fileTime = (fileVersion as Record<string, unknown>).updatedAt || (fileVersion as Record<string, unknown>).createdAt;
 
     if (!storeTime || !fileTime) {
       return null; // Impossible de déterminer
     }
 
-    const storeTimestamp = new Date(storeTime).getTime();
-    const fileTimestamp = new Date(fileTime).getTime();
+    const storeTimestamp = new Date(storeTime as string).getTime();
+    const fileTimestamp = new Date(fileTime as string).getTime();
     const diff = Math.abs(storeTimestamp - fileTimestamp);
 
     // Si la différence est supérieure à 5 secondes, considérer comme conflit
     if (diff > 5000) {
       return {
         entityType,
-        entityId: storeVersion.id || storeVersion.character_id,
+        entityId: String((storeVersion as Record<string, unknown>).id || (storeVersion as Record<string, unknown>).character_id || ''),
         storeVersion,
         fileVersion,
-        conflictType: storeTimestamp > fileTimestamp ? 'modified' : 'modified',
+        conflictType: 'modified',
         resolution: 'store-wins', // Par défaut, store gagne
         timestamp: new Date()
       };
@@ -256,8 +267,8 @@ export class SyncManager {
       }
 
       // Sauvegarder la version résolue
-      if (conflict.entityType === 'world') {
-        await persistenceService.saveWorld(finalData);
+      if (conflict.entityType === 'world' && isObject(finalData)) {
+        await persistenceService.saveWorld(finalData as unknown as World);
       }
       // Ajouter d'autres types d'entités selon les besoins
 
@@ -265,7 +276,7 @@ export class SyncManager {
       this.conflicts = this.conflicts.filter(c => c !== conflict);
 
     } catch (error) {
-      console.error(`[SyncManager] Error resolving conflict:`, error);
+      logger.error(`[SyncManager] Error resolving conflict:`, error);
       throw error;
     }
   }
@@ -275,11 +286,18 @@ export class SyncManager {
    */
   private mergeVersions(version1: unknown, version2: unknown): unknown {
     // Stratégie de fusion simple : prendre la version la plus récente pour chaque champ
-    const merged = { ...version1 };
+    if (!isObject(version1)) {
+      return version2;
+    }
+    const obj1 = version1 as Record<string, unknown>;
+    const merged: Record<string, unknown> = { ...obj1 };
 
-    for (const [key, value] of Object.entries(version2)) {
-      if (!(key in merged) || this.isNewer(value, merged[key])) {
-        merged[key] = value;
+    if (isObject(version2)) {
+      const obj2 = version2 as Record<string, unknown>;
+      for (const [key, value] of Object.entries(obj2)) {
+        if (!(key in merged) || this.isNewer(value, merged[key])) {
+          merged[key] = value;
+        }
       }
     }
 
@@ -303,7 +321,7 @@ export class SyncManager {
       try {
         const date1 = new Date(value1);
         const date2 = new Date(value2);
-        if (!isNaN(date1.getTime()) && !isNaN(date2.getTime())) {
+        if (!Number.isNaN(date1.getTime()) && !Number.isNaN(date2.getTime())) {
           return date1 > date2;
         }
       } catch {
@@ -320,7 +338,7 @@ export class SyncManager {
    */
   async createBackup(projectPath?: string): Promise<string> {
     try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const timestamp = new Date().toISOString().replaceAll(':', '-').replaceAll('.', '-');
       const backupId = `backup-${timestamp}`;
 
       // Sauvegarder toutes les entités
@@ -343,7 +361,7 @@ export class SyncManager {
 
       return backupId;
     } catch (error) {
-      console.error('[SyncManager] Error creating backup:', error);
+      logger.error('[SyncManager] Error creating backup:', error);
       throw error;
     }
   }
@@ -377,7 +395,7 @@ export class SyncManager {
       }
 
     } catch (error) {
-      console.error(`[SyncManager] Error restoring backup ${backupId}:`, error);
+      logger.error(`[SyncManager] Error restoring backup ${backupId}:`, error);
       throw error;
     }
   }
@@ -392,24 +410,24 @@ export class SyncManager {
         // Obtenir le chemin du projet actuel
         const { useAppStore } = await import('@/stores/useAppStore');
         const appStore = useAppStore.getState();
-        const projectPath = appStore.project?.metadata?.path;
+        const projectPath = appStore.project?.metadata?.path as string | undefined;
 
         await this.fullSync(projectPath);
       } catch (error) {
-        console.error('[SyncManager] Auto-sync failed:', error);
+        logger.error('[SyncManager] Auto-sync failed:', error);
       }
     }, 5 * 60 * 1000); // 5 minutes
 
     // Écouter les changements de projet
-    window.addEventListener('project-changed', async () => {
+    globalThis.addEventListener('project-changed', async () => {
       try {
         const { useAppStore } = await import('@/stores/useAppStore');
         const appStore = useAppStore.getState();
-        const projectPath = appStore.project?.metadata?.path;
+        const projectPath = appStore.project?.metadata?.path as string | undefined;
 
         await this.fullSync(projectPath);
       } catch (error) {
-        console.error('[SyncManager] Project change sync failed:', error);
+        logger.error('[SyncManager] Project change sync failed:', error);
       }
     });
   }

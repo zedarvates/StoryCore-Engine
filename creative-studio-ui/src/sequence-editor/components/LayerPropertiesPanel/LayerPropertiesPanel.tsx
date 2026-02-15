@@ -130,6 +130,55 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
     );
   };
 
+  const handleTransformChange = (
+    property: 'position' | 'scale' | 'rotation' | 'anchor',
+    value: any
+  ) => {
+    const currentData = selectedLayer.data as any;
+    const currentTransform = currentData.transform || {
+      position: { x: 0, y: 0 },
+      scale: { x: 1, y: 1 },
+      rotation: 0,
+      anchor: { x: 0.5, y: 0.5 },
+    };
+
+    let newTransform = { ...currentTransform };
+    if (typeof value === 'object') {
+      newTransform[property] = { ...newTransform[property], ...value };
+    } else {
+      newTransform[property] = value;
+    }
+
+    dispatch(
+      updateLayer({
+        shotId: shot.id,
+        layerId: selectedLayer.id,
+        updates: {
+          data: {
+            ...currentData,
+            transform: newTransform,
+          },
+        },
+      })
+    );
+  };
+
+  const handleAudioChange = (property: string, value: any) => {
+    const currentData = selectedLayer.data as any;
+    dispatch(
+      updateLayer({
+        shotId: shot.id,
+        layerId: selectedLayer.id,
+        updates: {
+          data: {
+            ...currentData,
+            [property]: value,
+          },
+        },
+      })
+    );
+  };
+
   return (
     <div className="layer-properties-panel">
       <div className="layer-properties-header">
@@ -262,7 +311,151 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
           )}
         </div>
 
-        {/* Layer Data Section */}
+        {/* Transform Section (for Media and Text layers) */}
+        {(selectedLayer.type === 'media' || selectedLayer.type === 'text') && (
+          <div className="property-section">
+            <div
+              className="property-section-header"
+              onClick={() => toggleSection('transform')}
+            >
+              <span className="property-section-icon">
+                {expandedSections.has('transform') ? '▼' : '▶'}
+              </span>
+              <span className="property-section-title">Transform</span>
+            </div>
+            {expandedSections.has('transform') && (
+              <div className="property-section-content">
+                <div className="property-row">
+                  <label className="property-label">Position</label>
+                  <div className="property-value-grid">
+                    <div className="property-value-pair">
+                      <span className="property-unit-label">X</span>
+                      <input
+                        type="number"
+                        className="property-input property-input-small"
+                        value={((selectedLayer.data as any).transform?.position?.x ?? 0).toFixed(1)}
+                        onChange={(e) => handleTransformChange('position', { x: Number(e.target.value) })}
+                        disabled={selectedLayer.locked}
+                      />
+                    </div>
+                    <div className="property-value-pair">
+                      <span className="property-unit-label">Y</span>
+                      <input
+                        type="number"
+                        className="property-input property-input-small"
+                        value={((selectedLayer.data as any).transform?.position?.y ?? 0).toFixed(1)}
+                        onChange={(e) => handleTransformChange('position', { y: Number(e.target.value) })}
+                        disabled={selectedLayer.locked}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="property-row">
+                  <label className="property-label">Scale</label>
+                  <div className="property-value-grid">
+                    <div className="property-value-pair">
+                      <span className="property-unit-label">W</span>
+                      <input
+                        type="number"
+                        className="property-input property-input-small"
+                        value={Math.round(((selectedLayer.data as any).transform?.scale?.x ?? 1) * 100)}
+                        onChange={(e) => handleTransformChange('scale', { x: Number(e.target.value) / 100 })}
+                        min={1}
+                        max={1000}
+                        disabled={selectedLayer.locked}
+                      />
+                      <span className="property-unit">%</span>
+                    </div>
+                    <div className="property-value-pair">
+                      <span className="property-unit-label">H</span>
+                      <input
+                        type="number"
+                        className="property-input property-input-small"
+                        value={Math.round(((selectedLayer.data as any).transform?.scale?.y ?? 1) * 100)}
+                        onChange={(e) => handleTransformChange('scale', { y: Number(e.target.value) / 100 })}
+                        min={1}
+                        max={1000}
+                        disabled={selectedLayer.locked}
+                      />
+                      <span className="property-unit">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="property-row">
+                  <label className="property-label">Rotation</label>
+                  <div className="property-value">
+                    <input
+                      type="range"
+                      className="property-slider"
+                      value={(selectedLayer.data as any).transform?.rotation ?? 0}
+                      onChange={(e) => handleTransformChange('rotation', Number(e.target.value))}
+                      min={-180}
+                      max={180}
+                      disabled={selectedLayer.locked}
+                    />
+                    <input
+                      type="number"
+                      className="property-input property-input-small"
+                      value={(selectedLayer.data as any).transform?.rotation ?? 0}
+                      onChange={(e) => handleTransformChange('rotation', Number(e.target.value))}
+                      min={-180}
+                      max={180}
+                      disabled={selectedLayer.locked}
+                    />
+                    <span className="property-unit">°</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Audio Section (for Audio layers) */}
+        {selectedLayer.type === 'audio' && (
+          <div className="property-section">
+            <div
+              className="property-section-header"
+              onClick={() => toggleSection('audio')}
+            >
+              <span className="property-section-icon">
+                {expandedSections.has('audio') ? '▼' : '▶'}
+              </span>
+              <span className="property-section-title">Audio</span>
+            </div>
+            {expandedSections.has('audio') && (
+              <div className="property-section-content">
+                <div className="property-row">
+                  <label className="property-label">Volume</label>
+                  <div className="property-value">
+                    <input
+                      type="range"
+                      className="property-slider"
+                      value={Math.round(((selectedLayer.data as any).volume ?? 1) * 100)}
+                      onChange={(e) => handleAudioChange('volume', Number(e.target.value) / 100)}
+                      min={0}
+                      max={200}
+                      disabled={selectedLayer.locked}
+                    />
+                    <input
+                      type="number"
+                      className="property-input property-input-small"
+                      value={Math.round(((selectedLayer.data as any).volume ?? 1) * 100)}
+                      onChange={(e) => handleAudioChange('volume', Number(e.target.value) / 100)}
+                      min={0}
+                      max={200}
+                      disabled={selectedLayer.locked}
+                    />
+                    <span className="property-unit">%</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Layer Data Section (Now optional/advanced) */}
         <div className="property-section">
           <div
             className="property-section-header"
@@ -271,16 +464,13 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
             <span className="property-section-icon">
               {expandedSections.has('data') ? '▼' : '▶'}
             </span>
-            <span className="property-section-title">Layer Data</span>
+            <span className="property-section-title">Advanced Data</span>
           </div>
           {expandedSections.has('data') && (
             <div className="property-section-content">
               <div className="property-data-preview">
                 <pre>{JSON.stringify(selectedLayer.data, null, 2)}</pre>
               </div>
-              <p className="property-hint">
-                Layer-specific data can be edited through specialized editors
-              </p>
             </div>
           )}
         </div>

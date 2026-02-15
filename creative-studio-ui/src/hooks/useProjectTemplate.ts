@@ -64,6 +64,8 @@ export function useProjectTemplate(initialPath?: string): UseProjectTemplateRetu
     if (initialPath) {
       loadTemplate(initialPath);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Only run when initialPath changes - loadTemplate is intentionally excluded
   }, [initialPath]);
 
   // Subscribe to template updates

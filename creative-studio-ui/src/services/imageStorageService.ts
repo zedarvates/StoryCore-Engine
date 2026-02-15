@@ -5,6 +5,8 @@
  * Supports both Electron (file system) and Web (IndexedDB) modes.
  */
 
+import { logger } from '../utils/logger';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -33,12 +35,12 @@ export async function downloadAndSaveImageElectron(
 ): Promise<SaveImageResult> {
   try {
     // Check if Electron API is available
-    if (!(window as any).electronAPI?.fs?.mkdir || !(window as any).electronAPI?.fs?.writeFile) {
-      console.warn('⚠️ [ImageStorage] Electron API not available, falling back to web mode');
+    if (!window.electronAPI?.fs?.mkdir || !window.electronAPI?.fs?.writeFile) {
+      logger.warn('[ImageStorage] Electron API not available, falling back to web mode');
       return downloadAndSaveImageWeb(imageUrl, characterId);
     }
     
-    console.log('📥 [ImageStorage] Downloading image from ComfyUI:', imageUrl);
+    logger.debug('📥 [ImageStorage] Downloading image from ComfyUI:', imageUrl);
     
     // 1. Download image from ComfyUI
     const response = await fetch(imageUrl);
@@ -47,7 +49,7 @@ export async function downloadAndSaveImageElectron(
     }
     
     const blob = await response.blob();
-    console.log('✅ [ImageStorage] Image downloaded, size:', blob.size, 'bytes');
+    logger.debug('✅ [ImageStorage] Image downloaded, size:', blob.size, 'bytes');
     
     // 2. Convert to buffer (Uint8Array for browser compatibility)
     const arrayBuffer = await blob.arrayBuffer();
@@ -55,30 +57,30 @@ export async function downloadAndSaveImageElectron(
     
     // 3. Create characters/portraits directory
     const portraitsDir = `${projectPath}/characters/portraits`;
-    console.log('📁 [ImageStorage] Creating directory:', portraitsDir);
+    logger.debug('📁 [ImageStorage] Creating directory:', portraitsDir);
     
-    await (window as any).electronAPI.fs.mkdir(portraitsDir, { recursive: true });
+    await window.electronAPI.fs.mkdir(portraitsDir, { recursive: true });
     
     // 4. Generate filename with timestamp
     const timestamp = Date.now();
     const filename = `${characterId}_${timestamp}.png`;
     const filePath = `${portraitsDir}/${filename}`;
     
-    console.log('💾 [ImageStorage] Saving to:', filePath);
+    logger.debug('💾 [ImageStorage] Saving to:', filePath);
     
     // 5. Save file
-    await (window as any).electronAPI.fs.writeFile(filePath, buffer);
+    await window.electronAPI.fs.writeFile(filePath, buffer as unknown as Buffer);
     
     // 6. Return relative path
     const relativePath = `characters/portraits/${filename}`;
-    console.log('✅ [ImageStorage] Image saved successfully:', relativePath);
+    logger.debug('✅ [ImageStorage] Image saved successfully:', relativePath);
     
     return {
       success: true,
       localPath: relativePath,
     };
   } catch (error) {
-    console.error('❌ [ImageStorage] Failed to save image:', error);
+    logger.error('[ImageStorage] Failed to save image:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -120,7 +122,7 @@ export async function downloadAndSaveImageWeb(
   characterId: string
 ): Promise<SaveImageResult> {
   try {
-    console.log('📥 [ImageStorage] Downloading image from ComfyUI (Web mode):', imageUrl);
+    logger.debug('📥 [ImageStorage] Downloading image from ComfyUI (Web mode):', imageUrl);
     
     // 1. Download image from ComfyUI
     const response = await fetch(imageUrl);
@@ -129,7 +131,7 @@ export async function downloadAndSaveImageWeb(
     }
     
     const blob = await response.blob();
-    console.log('✅ [ImageStorage] Image downloaded, size:', blob.size, 'bytes');
+    logger.debug('✅ [ImageStorage] Image downloaded, size:', blob.size, 'bytes');
     
     // 2. Open IndexedDB
     const db = await openImageDB();
@@ -138,7 +140,7 @@ export async function downloadAndSaveImageWeb(
     const timestamp = Date.now();
     const key = `portrait_${characterId}_${timestamp}`;
     
-    console.log('💾 [ImageStorage] Saving to IndexedDB with key:', key);
+    logger.debug('💾 [ImageStorage] Saving to IndexedDB with key:', key);
     
     // 4. Save to IndexedDB
     await new Promise<void>((resolve, reject) => {
@@ -152,14 +154,14 @@ export async function downloadAndSaveImageWeb(
     
     // 5. Return IndexedDB key
     const dbPath = `indexeddb://${key}`;
-    console.log('✅ [ImageStorage] Image saved successfully:', dbPath);
+    logger.debug('✅ [ImageStorage] Image saved successfully:', dbPath);
     
     return {
       success: true,
       localPath: dbPath,
     };
   } catch (error) {
-    console.error('❌ [ImageStorage] Failed to save image:', error);
+    logger.error('[ImageStorage] Failed to save image:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -177,7 +179,7 @@ export async function getImageFromIndexedDB(key: string): Promise<string | null>
     // Remove "indexeddb://" prefix
     const dbKey = key.replace('indexeddb://', '');
     
-    console.log('🔍 [ImageStorage] Retrieving image from IndexedDB:', dbKey);
+    logger.debug('🔍 [ImageStorage] Retrieving image from IndexedDB:', dbKey);
     
     // Open IndexedDB
     const db = await openImageDB();
@@ -200,11 +202,11 @@ export async function getImageFromIndexedDB(key: string): Promise<string | null>
     
     // Create object URL
     const objectUrl = URL.createObjectURL(blob);
-    console.log('✅ [ImageStorage] Image retrieved:', objectUrl);
+    logger.debug('✅ [ImageStorage] Image retrieved:', objectUrl);
     
     return objectUrl;
   } catch (error) {
-    console.error('❌ [ImageStorage] Failed to retrieve image:', error);
+    logger.error('[ImageStorage] Failed to retrieve image:', error);
     return null;
   }
 }
@@ -226,7 +228,7 @@ export async function downloadAndSaveImage(
   projectPath?: string
 ): Promise<SaveImageResult> {
   // Check if running in Electron mode
-  const isElectron = !!(window as any).electronAPI?.fs?.writeFile;
+  const isElectron = !!window.electronAPI?.fs?.writeFile;
   
   if (isElectron && projectPath) {
     return downloadAndSaveImageElectron(imageUrl, projectPath, characterId);
@@ -257,24 +259,41 @@ export async function getImageDisplayUrl(
   // Relative file path (Electron mode)
   if (imagePath.startsWith('characters/') && projectPath) {
     // Check if Electron API is available
-    const isElectron = !!(window as any).electronAPI?.fs?.readFile;
+    const isElectron = !!window.electronAPI?.fs?.readFile;
     
     if (isElectron) {
       try {
         // Read file using Electron API
         const fullPath = `${projectPath}/${imagePath}`;
-        console.log('📖 [ImageStorage] Reading image from Electron:', fullPath);
+        logger.debug('📖 [ImageStorage] Checking if image exists:', fullPath);
         
-        const buffer = await (window as any).electronAPI.fs.readFile(fullPath);
+        // Check if file exists before reading
+        const fileExists = await checkFileExists(fullPath);
         
-        // Convert buffer to blob
-        const blob = new Blob([buffer], { type: 'image/png' });
+        if (!fileExists) {
+          // File doesn't exist - this is expected during migration for legacy references
+          logger.debug('⚠️ [ImageStorage] Image file does not exist (may be a legacy reference):', fullPath);
+          return null;
+        }
+        
+        logger.debug('📖 [ImageStorage] Reading image from Electron:', fullPath);
+        
+        const buffer = await window.electronAPI!.fs.readFile(fullPath);
+        
+        // Convert buffer to blob (handle both Buffer and Uint8Array)
+        const blob = new Blob([new Uint8Array(buffer)], { type: 'image/png' });
         const objectUrl = URL.createObjectURL(blob);
         
-        console.log('✅ [ImageStorage] Image loaded from Electron:', objectUrl);
+        logger.debug('✅ [ImageStorage] Image loaded from Electron:', objectUrl);
         return objectUrl;
       } catch (error) {
-        console.error('❌ [ImageStorage] Failed to read image from Electron:', error);
+        // Check if it's a "file not found" error - don't spam console with expected errors
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('ENOENT') || errorMessage.includes('no such file')) {
+          logger.debug('[ImageStorage] Image file not found:', imagePath);
+        } else {
+          logger.error('[ImageStorage] Failed to read image from Electron:', error);
+        }
         return null;
       }
     } else {
@@ -291,6 +310,26 @@ export async function getImageDisplayUrl(
   // Unknown format
   console.warn('⚠️ [ImageStorage] Unknown image path format:', imagePath);
   return null;
+}
+
+/**
+ * Checks if a file exists using Electron API
+ * @param filePath - The full file path to check
+ * @returns True if file exists, false otherwise
+ */
+async function checkFileExists(filePath: string): Promise<boolean> {
+  try {
+    // Use 'exists' method if available (async version)
+    if (window.electronAPI?.fs?.exists) {
+      return await window.electronAPI.fs.exists(filePath);
+    }
+    // If exists is not available, try to read the file and catch the error
+    // This is handled by the try-catch in getImageDisplayUrl, so return true here
+    return true;
+  } catch {
+    // If check fails, assume file doesn't exist
+    return false;
+  }
 }
 
 /**
@@ -317,7 +356,7 @@ export async function deleteImage(
         request.onerror = () => reject(request.error);
       });
       
-      console.log('✅ [ImageStorage] Image deleted from IndexedDB:', dbKey);
+      logger.debug('✅ [ImageStorage] Image deleted from IndexedDB:', dbKey);
       return true;
     }
     
@@ -325,9 +364,9 @@ export async function deleteImage(
     if (imagePath.startsWith('characters/') && projectPath) {
       const fullPath = `${projectPath}/${imagePath}`;
       
-      if ((window as any).electronAPI?.fs?.unlink) {
-        await (window as any).electronAPI.fs.unlink(fullPath);
-        console.log('✅ [ImageStorage] Image file deleted:', fullPath);
+      if (window.electronAPI?.fs && 'unlink' in window.electronAPI.fs) {
+        await (window.electronAPI.fs as unknown as { unlink: (path: string) => Promise<void> }).unlink(fullPath);
+        logger.debug('✅ [ImageStorage] Image file deleted:', fullPath);
         return true;
       }
     }

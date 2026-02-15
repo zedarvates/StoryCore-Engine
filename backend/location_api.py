@@ -27,6 +27,8 @@ class LocationBase(BaseModel):
     description: Optional[str] = None
     location_type: str = "generic"
     metadata: Dict[str, Any] = {}
+    significance: str = ""
+    atmosphere: str = ""
 
 class LocationCreate(LocationBase):
     cube_faces: Optional[Dict[str, str]] = None
@@ -42,6 +44,8 @@ class LocationResponse(BaseModel):
     cube_faces: Optional[Dict[str, str]]
     skybox_data: Optional[Dict[str, Any]]
     tile_image_path: Optional[str]
+    significance: str = ""
+    atmosphere: str = ""
     created_at: str
     updated_at: str
 
@@ -51,17 +55,34 @@ class LocationUpdate(BaseModel):
     description: Optional[str] = None
     location_type: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
+    significance: Optional[str] = None
+    atmosphere: Optional[str] = None
     cube_faces: Optional[Dict[str, str]] = None
     skybox_data: Optional[Dict[str, Any]] = None
     tile_image_path: Optional[str] = None
 
 
 def get_location_path(location_id: str) -> Path:
-    """Get safe location file path using pathlib."""
-    # Validate location_id to prevent path traversal
-    if not location_id or '/' in location_id or '\\' in location_id:
+    """
+    Get safe location file path using pathlib.
+    
+    Security Fix: Uses pathlib.Path.resolve() to sanitize paths and prevent 
+    directory traversal attacks. This ensures the resolved path stays within 
+    the designated LOCATIONS_DIR directory.
+    """
+    # Validate location_id format first
+    if not location_id or '/' in location_id or '\\' in location_id or '..' in location_id:
         raise ValueError(f"Invalid location_id: {location_id}")
-    return LOCATIONS_DIR / f"{location_id}.json"
+    
+    # Construct and resolve the target path
+    target_path = (LOCATIONS_DIR / f"{location_id}.json").resolve()
+    
+    # Security check: ensure the resolved path is within LOCATIONS_DIR
+    # This prevents directory traversal attacks using symlinks or other tricks
+    if not str(target_path).startswith(str(LOCATIONS_DIR)):
+        raise ValueError(f"Path traversal detected for location_id: {location_id}")
+    
+    return target_path
 
 def load_location(location_id: str) -> Optional[Dict[str, Any]]:
     if location_id in locations_db:
@@ -87,7 +108,8 @@ def save_location(location_id: str, data: Dict[str, Any]) -> bool:
         if '/' in project_id or '\\' in project_id:
             logger.error(f"Invalid project_id: {project_id}")
             return False
-        base_dir = Path("./projects").resolve() / project_id / "lieux"
+        # Use 'locations' directory
+        base_dir = Path("./projects").resolve() / project_id / "locations"
     else:
         base_dir = LOCATIONS_DIR
     # Ensure the target directory exists
@@ -128,6 +150,8 @@ async def create_location(data: LocationCreate) -> LocationResponse:
         "location_type": data.location_type, "metadata": data.metadata,
         "cube_faces": data.cube_faces, "skybox_data": data.skybox_data,
         "tile_image_path": data.tile_image_path,
+        "significance": data.significance,
+        "atmosphere": data.atmosphere,
         "created_at": now, "updated_at": now
     }
     save_location(loc_id, loc)
@@ -158,21 +182,21 @@ async def delete_location(location_id: str):
 @router.get("/project/{project_id}", response_model=List[LocationResponse])
 async def list_project_locations(project_id: str) -> List[LocationResponse]:
     """
-    List all locations in a project's lieux folder.
+    List all locations in a project's locations folder.
     """
     # Validate project_id to prevent path traversal
     if '/' in project_id or '\\' in project_id:
         logger.warning(f"Invalid project_id in path traversal attempt: {project_id}")
         return []
     
-    lieux_dir = Path("./projects") / project_id / "lieux"
-    if not lieux_dir.exists():
+    locations_dir = Path("./projects") / project_id / "locations"
+    if not locations_dir.exists():
         return []
     
     locations = []
-    for filename in lieux_dir.iterdir():
+    for filename in locations_dir.iterdir():
         if filename.suffix == '.json':
-            filepath = lieux_dir / filename
+            filepath = locations_dir / filename
             try:
                 with open(filepath, 'r', encoding='utf-8') as f:
                     loc = json.load(f)
@@ -185,7 +209,7 @@ async def list_project_locations(project_id: str) -> List[LocationResponse]:
 @router.get("/project/{project_id}/{location_id}", response_model=LocationResponse)
 async def get_project_location(project_id: str, location_id: str) -> LocationResponse:
     """
-    Get a specific location from a project's lieux folder.
+    Get a specific location from a project's locations folder.
     """
     # Validate IDs to prevent path traversal
     if '/' in project_id or '\\' in project_id:
@@ -193,7 +217,7 @@ async def get_project_location(project_id: str, location_id: str) -> LocationRes
     if '/' in location_id or '\\' in location_id:
         raise HTTPException(status_code=400, detail="Invalid location_id")
     
-    filepath = Path("./projects") / project_id / "lieux" / f"{location_id}.json"
+    filepath = Path("./projects") / project_id / "locations" / f"{location_id}.json"
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="Location not found in project")
     

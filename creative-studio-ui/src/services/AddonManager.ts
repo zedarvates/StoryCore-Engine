@@ -1,13 +1,14 @@
 /**
- * AddonManager - Gestionnaire d'extensions (add-ons) pour StoryCore
+ * AddonManager - Extension (add-on) manager for StoryCore
  *
- * Permet d'activer/désactiver des add-ons et de gérer leur cycle de vie
+ * Allows enabling/disabling add-ons and managing their lifecycle
  */
 
 import { fileSystemService } from './FileSystemService';
+import { logger } from '@/utils/logger';
 
 /**
- * Manifeste d'add-on externe
+ * External add-on manifest
  */
 export interface AddonManifest {
   id: string;
@@ -21,7 +22,7 @@ export interface AddonManifest {
 }
 
 /**
- * Ressource enregistrée pour un add-on (pour nettoyage)
+ * Resource registered for an add-on (for cleanup)
  */
 interface AddonResource {
   eventListeners: Map<string, EventListener[]>;
@@ -39,7 +40,7 @@ export interface AddonInfo {
   category: 'ui' | 'processing' | 'export' | 'integration' | 'utility';
   dependencies?: string[];
   enabled: boolean;
-  builtin: boolean; // true pour les add-ons intégrés, false pour les externes
+  builtin: boolean; // true for built-in add-ons, false for external ones
   status: 'active' | 'inactive' | 'error' | 'loading';
   errorMessage?: string;
   icon?: string;
@@ -59,9 +60,9 @@ export interface AddonSetting {
   type: 'text' | 'number' | 'boolean' | 'select' | 'textarea';
   defaultValue: unknown;
   description?: string;
-  options?: Array<{ label: string; value: unknown }>; // Pour les selects
-  min?: number; // Pour les numbers
-  max?: number; // Pour les numbers
+  options?: Array<{ label: string; value: unknown }>; // For selects
+  min?: number; // For numbers
+  max?: number; // For numbers
   validation?: (value: unknown) => boolean;
 }
 
@@ -70,7 +71,7 @@ export interface AddonSettingsDefinition {
 }
 
 /**
- * Gestionnaire d'add-ons pour StoryCore
+ * Add-on manager for StoryCore
  */
 export class AddonManager {
   private static instance: AddonManager;
@@ -92,25 +93,25 @@ export class AddonManager {
   }
 
   /**
-   * Initialise le gestionnaire d'add-ons
+   * Initializes the add-on manager
    */
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    // Charger la configuration depuis localStorage
+    // Load configuration from localStorage
     await this.loadConfig();
 
-    // Enregistrer les add-ons intégrés
+    // Register built-in add-ons
     await this.registerBuiltinAddons();
 
-    // Charger les add-ons externes (si présents)
+    // Load external add-ons (if present)
     await this.loadExternalAddons();
 
     this.initialized = true;
   }
 
   /**
-   * Enregistre un add-on
+   * Registers an add-on
    */
   registerAddon(addon: Omit<AddonInfo, 'enabled' | 'status'>): void {
     const addonInfo: AddonInfo = {
@@ -121,10 +122,10 @@ export class AddonManager {
 
     this.addons.set(addon.id, addonInfo);
 
-    // Activer si configuré pour l'être
+    // Enable if configured to be enabled
     if (addonInfo.enabled) {
       this.activateAddon(addon.id).catch(error => {
-        console.error(`[AddonManager] Failed to activate addon ${addon.id}:`, error);
+        logger.error(`[AddonManager] Failed to activate addon ${addon.id}:`, error);
         addonInfo.status = 'error';
         addonInfo.errorMessage = error.message;
       });
@@ -132,13 +133,13 @@ export class AddonManager {
   }
 
   /**
-   * Désenregistre un add-on
+   * Unregisters an add-on
    */
   unregisterAddon(addonId: string): boolean {
     const addon = this.addons.get(addonId);
     if (!addon) return false;
 
-    // Désactiver d'abord
+    // Deactivate first
     if (addon.enabled) {
       this.deactivateAddon(addonId);
     }
@@ -148,7 +149,7 @@ export class AddonManager {
   }
 
   /**
-   * Active un add-on
+   * Activates an add-on
    */
   async activateAddon(addonId: string): Promise<boolean> {
     const addon = this.addons.get(addonId);
@@ -157,24 +158,24 @@ export class AddonManager {
     }
 
     if (addon.enabled) {
-      return true; // Déjà activé
+      return true; // Already activated
     }
 
     try {
       addon.status = 'loading';
 
-      // Vérifier les dépendances
+      // Check dependencies
       await this.checkDependencies(addon);
 
-      // Charger l'add-on
+      // Load the add-on
       await this.loadAddon(addon);
 
-      // Marquer comme activé
+      // Mark as activated
       addon.enabled = true;
       addon.status = 'active';
       addon.errorMessage = undefined;
 
-      // Sauvegarder la configuration
+      // Save configuration
       await this.saveConfig();
 
       return true;
@@ -182,13 +183,13 @@ export class AddonManager {
     } catch (error) {
       addon.status = 'error';
       addon.errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`[AddonManager] Failed to activate addon ${addonId}:`, error);
+      logger.error(`[AddonManager] Failed to activate addon ${addonId}:`, error);
       return false;
     }
   }
 
   /**
-   * Désactive un add-on
+   * Deactivates an add-on
    */
   async deactivateAddon(addonId: string): Promise<boolean> {
     const addon = this.addons.get(addonId);
@@ -197,19 +198,19 @@ export class AddonManager {
     }
 
     if (!addon.enabled) {
-      return true; // Déjà désactivé
+      return true; // Already deactivated
     }
 
     try {
-      // Décharger l'add-on
+      // Unload the add-on
       await this.unloadAddon(addon);
 
-      // Marquer comme désactivé
+      // Mark as deactivated
       addon.enabled = false;
       addon.status = 'inactive';
       addon.errorMessage = undefined;
 
-      // Sauvegarder la configuration
+      // Save configuration
       await this.saveConfig();
 
       return true;
@@ -217,13 +218,13 @@ export class AddonManager {
     } catch (error) {
       addon.status = 'error';
       addon.errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`[AddonManager] Failed to deactivate addon ${addonId}:`, error);
+      logger.error(`[AddonManager] Failed to deactivate addon ${addonId}:`, error);
       return false;
     }
   }
 
   /**
-   * Active/Désactive un add-on (toggle)
+   * Toggles an add-on (enable/disable)
    */
   async toggleAddon(addonId: string): Promise<boolean> {
     const addon = this.addons.get(addonId);
@@ -237,35 +238,35 @@ export class AddonManager {
   }
 
   /**
-   * Obtient la liste des add-ons
+   * Gets the list of add-ons
    */
   getAddons(): AddonInfo[] {
     return Array.from(this.addons.values());
   }
 
   /**
-   * Obtient un add-on par son ID
+   * Gets an add-on by its ID
    */
   getAddon(addonId: string): AddonInfo | undefined {
     return this.addons.get(addonId);
   }
 
   /**
-   * Obtient les add-ons actifs
+   * Gets active add-ons
    */
   getActiveAddons(): AddonInfo[] {
     return this.getAddons().filter(addon => addon.enabled && addon.status === 'active');
   }
 
   /**
-   * Obtient les add-ons par catégorie
+   * Gets add-ons by category
    */
   getAddonsByCategory(category: AddonInfo['category']): AddonInfo[] {
     return this.getAddons().filter(addon => addon.category === category);
   }
 
   /**
-   * Recherche des add-ons
+   * Searches for add-ons
    */
   searchAddons(query: string): AddonInfo[] {
     const lowercaseQuery = query.toLowerCase();
@@ -277,7 +278,7 @@ export class AddonManager {
   }
 
   /**
-   * Met à jour les paramètres d'un add-on
+   * Updates an add-on's settings
    */
   updateAddonSettings(addonId: string, settings: Record<string, unknown>): void {
     if (!this.config[addonId]) {
@@ -288,21 +289,21 @@ export class AddonManager {
   }
 
   /**
-   * Obtient les paramètres d'un add-on
+   * Gets an add-on's settings
    */
   getAddonSettings(addonId: string): Record<string, unknown> | undefined {
     return this.config[addonId]?.settings;
   }
 
   /**
-   * Obtient la définition des paramètres d'un add-on
+   * Gets an add-on's settings definition
    */
   getAddonSettingsDefinition(addonId: string): AddonSetting[] {
     return this.settingsDefinitions[addonId] || [];
   }
 
   /**
-   * Obtient les paramètres actuels d'un add-on (avec valeurs par défaut)
+   * Gets an add-on's current settings (with default values)
    */
   getAddonSettingsWithDefaults(addonId: string): Record<string, unknown> {
     const definition = this.getAddonSettingsDefinition(addonId);
@@ -317,14 +318,14 @@ export class AddonManager {
   }
 
   /**
-   * Exporte la configuration des add-ons
+   * Exports add-ons configuration
    */
   exportConfig(): AddonConfig {
     return { ...this.config };
   }
 
   /**
-   * Importe une configuration d'add-ons
+   * Imports an add-ons configuration
    */
   importConfig(config: AddonConfig): void {
     this.config = { ...config };
@@ -332,7 +333,7 @@ export class AddonManager {
   }
 
   /**
-   * Vérifie les dépendances d'un add-on
+   * Checks an add-on's dependencies
    */
   private async checkDependencies(addon: AddonInfo): Promise<void> {
     if (!addon.dependencies || addon.dependencies.length === 0) {
@@ -356,13 +357,13 @@ export class AddonManager {
   }
 
   /**
-   * Charge un add-on
+   * Loads an add-on
    */
   private async loadAddon(addon: AddonInfo): Promise<void> {
-    // Initialiser le suivi des ressources pour cet add-on
+    // Initialize resource tracking for this add-on
     this.registerAddonResource(addon.id);
-    
-    // Pour les add-ons intégrés, charger dynamiquement
+
+    // For built-in add-ons, load dynamically
     if (addon.builtin) {
       try {
         switch (addon.id) {
@@ -391,19 +392,19 @@ export class AddonManager {
             await import('@/addons/example-workflow');
             break;
           default:
-            console.warn(`[AddonManager] Unknown builtin addon: ${addon.id}`);
+            logger.warn(`[AddonManager] Unknown builtin addon: ${addon.id}`);
         }
       } catch (error) {
         throw new Error(`Failed to load builtin addon: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } else {
-      // Pour les add-ons externes, charger dynamiquement
+      // For external add-ons, load dynamically
       try {
         const addonPath = `addons/community/${addon.id}`;
-        // Le charger comme module
+        // Load it as a module
         const module = await import(/* @vite-ignore */ `${addonPath}/${addon.id}.js`);
-        
-        // Appeler la fonction d'initialisation si elle existe
+
+        // Call the initialization function if it exists
         if (module.initialize) {
           await module.initialize();
         }
@@ -414,37 +415,37 @@ export class AddonManager {
   }
 
   /**
-   * Décharge un add-on et nettoie les ressources
+   * Unloads an add-on and cleans up resources
    */
   private async unloadAddon(addon: AddonInfo): Promise<void> {
     const resources = this.addonResources.get(addon.id);
-    
+
     if (resources) {
-      // 1. Nettoyer les event listeners
+      // 1. Clean up event listeners
       const eventTypes = Array.from(resources.eventListeners.keys());
       for (const eventType of eventTypes) {
         const listeners = resources.eventListeners.get(eventType) || [];
         for (const listener of listeners) {
-          // Note: Pour un nettoyage complet, il faudrait conserver les cibles des listeners
-          // Ici on log juste pour le débogage
-          console.log(`[AddonManager] Would remove event listener: ${eventType} for addon ${addon.id}`);
+          // Note: For complete cleanup, we should keep track of listener targets
+          // Here we just log for debugging
+          logger.debug(`[AddonManager] Would remove event listener: ${eventType} for addon ${addon.id}`);
         }
         resources.eventListeners.delete(eventType);
       }
-      
-      // 2. Arrêter les timers
+
+      // 2. Stop timers
       for (const timerId of resources.timers) {
         clearTimeout(timerId);
       }
       resources.timers = [];
-      
-      // 3. Arrêter les intervals
+
+      // 3. Stop intervals
       for (const intervalId of resources.intervals) {
         clearInterval(intervalId);
       }
       resources.intervals = [];
-      
-      // 4. Supprimer les éléments DOM créés par l'add-on
+
+      // 4. Remove DOM elements created by the add-on
       const elements = Array.from(resources.domElements);
       for (const element of elements) {
         if (element.parentNode) {
@@ -452,33 +453,33 @@ export class AddonManager {
         }
       }
       resources.domElements.clear();
-      
-      // Supprimer les ressources de la map
+
+      // Remove resources from the map
       this.addonResources.delete(addon.id);
     }
-    
-    // 5. Nettoyer les styles injectés
+
+    // 5. Clean up injected styles
     const styleElements = document.querySelectorAll(`style[data-addon="${addon.id}"]`);
     styleElements.forEach(style => style.remove());
-    
-    // 6. Nettoyer les event listeners globaux
+
+    // 6. Clean up global event listeners
     const globalListeners = document.querySelectorAll(`[data-addon-listener="${addon.id}"]`);
     globalListeners.forEach(element => {
       element.removeAttribute('data-addon-listener');
     });
-    
-    console.log(`[AddonManager] Unloaded addon: ${addon.id}`);
+
+    logger.debug(`[AddonManager] Unloaded addon: ${addon.id}`);
   }
 
   /**
-   * Enregistre les add-ons intégrés
+   * Registers built-in add-ons
    */
   private async registerBuiltinAddons(): Promise<void> {
-    // Add-on Casting
+    // Casting Add-on
     this.registerAddon({
       id: 'casting',
       name: 'Casting Manager',
-      description: 'Gestion avancée du casting et des personnages pour vos projets',
+      description: 'Advanced casting and character management for your projects',
       version: '1.0.0',
       author: 'StoryCore Team',
       category: 'ui',
@@ -486,11 +487,11 @@ export class AddonManager {
       tags: ['casting', 'characters', 'actors']
     });
 
-    // Add-on Audio Production
+    // Audio Production Add-on
     this.registerAddon({
       id: 'audio-production',
       name: 'Audio Production Suite',
-      description: 'Suite complète pour la production audio et les effets sonores',
+      description: 'Complete suite for audio production and sound effects',
       version: '1.0.0',
       author: 'StoryCore Team',
       category: 'processing',
@@ -498,11 +499,11 @@ export class AddonManager {
       tags: ['audio', 'sound', 'effects', 'music']
     });
 
-    // Add-on Comic to Sequence
+    // Comic to Sequence Add-on
     this.registerAddon({
       id: 'comic-to-sequence',
       name: 'Comic to Sequence Converter',
-      description: 'Convertit automatiquement les bandes dessinées en séquences vidéo',
+      description: 'Automatically converts comic books to video sequences',
       version: '1.0.0',
       author: 'StoryCore Team',
       category: 'processing',
@@ -510,11 +511,11 @@ export class AddonManager {
       tags: ['comic', 'conversion', 'sequence', 'automation']
     });
 
-    // Add-on Transitions
+    // Transitions Add-on
     this.registerAddon({
       id: 'transitions',
       name: 'Advanced Transitions',
-      description: 'Bibliothèque étendue d\'effets de transition professionnels',
+      description: 'Extended library of professional transition effects',
       version: '1.0.0',
       author: 'StoryCore Team',
       category: 'ui',
@@ -522,11 +523,11 @@ export class AddonManager {
       tags: ['transitions', 'effects', 'professional']
     });
 
-    // Add-on Plan Sequences
+    // Plan Sequences Add-on
     this.registerAddon({
       id: 'plan-sequences',
       name: 'Plan Sequences Manager',
-      description: 'Gestion avancée des plans et séquences de montage',
+      description: 'Advanced management of shots and editing sequences',
       version: '1.0.0',
       author: 'StoryCore Team',
       category: 'ui',
@@ -534,11 +535,11 @@ export class AddonManager {
       tags: ['sequences', 'planning', 'editing']
     });
 
-    // Add-on MCP Server
+    // MCP Server Add-on
     this.registerAddon({
       id: 'mcp-server',
       name: 'MCP Server Addon',
-      description: 'Serveur MCP (Model Context Protocol) pour l\'intégration de services externes via JSON-RPC 2.0',
+      description: 'MCP Server (Model Context Protocol) for external service integration via JSON-RPC 2.0',
       version: '1.0.0',
       author: 'StoryCore Team',
       category: 'integration',
@@ -546,11 +547,11 @@ export class AddonManager {
       tags: ['mcp', 'protocol', 'integration', 'rpc']
     });
 
-    // Add-on Demo Addon
+    // Demo Add-on
     this.registerAddon({
       id: 'demo-addon',
       name: 'Demo Addon',
-      description: 'Add-on de démonstration du système',
+      description: 'System demonstration add-on',
       version: '1.0.0',
       author: 'Unknown',
       category: 'utility',
@@ -558,7 +559,7 @@ export class AddonManager {
       tags: ['demo', 'example', 'test']
     });
 
-    // Add-on Example Workflow
+    // Example Workflow Add-on
     this.registerAddon({
       id: 'example-workflow',
       name: 'Example Workflow',
@@ -569,36 +570,60 @@ export class AddonManager {
       builtin: true,
       tags: ['example', 'workflow', 'test']
     });
+
+    // Grok Integration Add-on
+    this.registerAddon({
+      id: 'grok-integration',
+      name: 'Grok AI Integration',
+      description: 'Integration with xAI Grok models for advanced reasoning and storytelling',
+      version: '1.0.0',
+      author: 'StoryCore Team',
+      category: 'integration',
+      builtin: true,
+      tags: ['ai', 'llm', 'grok', 'xai', 'reasoning']
+    });
+
+    // SeedChange (SeedDance) Add-on
+    this.registerAddon({
+      id: 'seed-dance',
+      name: 'SeedDance Video Gen',
+      description: 'Advanced AI video generation using SeedDance technology',
+      version: '1.0.0',
+      author: 'StoryCore Team',
+      category: 'processing',
+      builtin: true,
+      tags: ['video', 'ai', 'generation', 'animation', 'seeddance']
+    });
   }
 
   /**
-   * Charge les add-ons externes
+   * Loads external add-ons
    */
   private async loadExternalAddons(): Promise<void> {
     try {
-      // Scanner le dossier addons/community/ pour les add-ons externes
+      // Scan the addons/community/ folder for external add-ons
       const addonsDir = 'addons/community';
-      
-      // Utiliser fileSystemService pour lister les dossiers
+
+      // Use fileSystemService to list folders
       const addonFolders = await this.scanAddonDirectories(addonsDir);
-      
+
       for (const addonPath of addonFolders) {
         try {
-          // Parser le manifest de l'add-on
+          // Parse the add-on manifest
           const manifest = await this.parseAddonManifest(addonPath);
-          
+
           if (!manifest) {
-            console.warn(`[AddonManager] Invalid manifest for addon at ${addonPath}`);
+            logger.warn(`[AddonManager] Invalid manifest for addon at ${addonPath}`);
             continue;
           }
-          
-          // Valider la sécurité de l'add-on
+
+          // Validate add-on security
           if (!this.validateAddonSecurity(manifest)) {
-            console.warn(`[AddonManager] Security validation failed for addon: ${manifest.id}`);
+            logger.warn(`[AddonManager] Security validation failed for addon: ${manifest.id}`);
             continue;
           }
-          
-          // Enregistrer l'add-on
+
+          // Register the add-on
           this.registerAddon({
             id: manifest.id,
             name: manifest.name,
@@ -610,32 +635,32 @@ export class AddonManager {
             tags: ['external', 'community'],
             dependencies: manifest.dependencies ? Object.keys(manifest.dependencies) : undefined
           });
-          
-          console.log(`[AddonManager] Loaded external addon: ${manifest.name} v${manifest.version}`);
+
+          logger.debug(`[AddonManager] Loaded external addon: ${manifest.name} v${manifest.version}`);
         } catch (error) {
-          console.error(`[AddonManager] Failed to load addon at ${addonPath}:`, error);
+          logger.error(`[AddonManager] Failed to load addon at ${addonPath}:`, error);
         }
       }
     } catch (error) {
-      console.warn('[AddonManager] Failed to scan external addons directory:', error);
+      logger.warn('[AddonManager] Failed to scan external addons directory:', error);
     }
   }
 
   /**
-   * Scan les répertoires d'add-ons
+   * Scans add-on directories
    */
   private async scanAddonDirectories(basePath: string): Promise<string[]> {
     const folders: string[] = [];
-    
+
     try {
-      // Utiliser fetch pour scanner le dossier (compatible browser et Electron)
-      // Pour Electron, on utilise l'API IPC pour lister le dossier
-      
-      // Essayer d'abord via fetch (pour les fichiers statiques)
+      // Use fetch to scan the folder (compatible with browser and Electron)
+      // For Electron, we use the IPC API to list the folder
+
+      // Try first via fetch (for static files)
       try {
         const response = await fetch(`${basePath}/index.json`);
         if (response.ok) {
-          const entries = await response.json() as Array<{name: string; type: 'directory' | 'file'}>;
+          const entries = await response.json() as Array<{ name: string; type: 'directory' | 'file' }>;
           for (const entry of entries) {
             if (entry.type === 'directory') {
               const addonPath = `${basePath}/${entry.name}`;
@@ -645,13 +670,13 @@ export class AddonManager {
           return folders;
         }
       } catch {
-        // Le fichier index.json n'existe pas, continuer avec la méthode alternative
+        // The index.json file does not exist, continue with alternative method
       }
-      
-      // Méthode alternative: utiliser fetch pour tester chaque dossier potentiel
-      // Liste des add-ons communautaires potentiels (hardcodé pour l'instant)
+
+      // Alternative method: use fetch to test each potential folder
+      // List of potential community add-ons (hardcoded for now)
       const potentialAddons = ['example-community-addon', 'my-custom-addon', 'demo-external-addon'];
-      
+
       for (const addonName of potentialAddons) {
         const addonPath = `${basePath}/${addonName}`;
         try {
@@ -660,61 +685,61 @@ export class AddonManager {
             folders.push(addonPath);
           }
         } catch {
-          // Dossier non accessible
+          // Folder not accessible
         }
       }
-      
+
     } catch (error) {
-      console.warn(`[AddonManager] Cannot scan addons directory: ${basePath}`);
+      logger.warn('[AddonManager] Cannot scan addons directory:', { basePath });
     }
-    
+
     return folders;
   }
 
   /**
-   * Parse le manifest d'un add-on
+   * Parses an add-on manifest
    */
   private async parseAddonManifest(addonPath: string): Promise<AddonManifest | null> {
     const manifestPath = `${addonPath}/addon.json`;
-    
+
     try {
       const response = await fetch(manifestPath);
       if (!response.ok) {
-        console.warn(`[AddonManager] Manifest not found: ${manifestPath}`);
+        logger.warn(`[AddonManager] Manifest not found: ${manifestPath}`);
         return null;
       }
-      
+
       const content = await response.text();
       const manifest = JSON.parse(content) as AddonManifest;
-      
-      // Valider la structure minimale du manifest
+
+      // Validate minimum manifest structure
       if (!manifest.id || !manifest.name || !manifest.version || !manifest.entryPoint) {
-        console.warn(`[AddonManager] Invalid manifest structure: missing required fields`);
+        logger.warn('[AddonManager] Invalid manifest structure: missing required fields');
         return null;
       }
-      
-      // Vérifier que l'ID est valide (alphanumérique, tirets, underscores)
+
+      // Verify that the ID is valid (alphanumeric, dashes, underscores)
       if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(manifest.id)) {
-        console.warn(`[AddonManager] Invalid addon ID format: ${manifest.id}`);
+        logger.warn(`[AddonManager] Invalid addon ID format: ${manifest.id}`);
         return null;
       }
-      
+
       return manifest;
     } catch (error) {
       if (error instanceof SyntaxError) {
-        console.warn(`[AddonManager] Invalid JSON in manifest: ${manifestPath}`);
+        logger.warn(`[AddonManager] Invalid JSON in manifest: ${manifestPath}`);
       } else {
-        console.warn(`[AddonManager] Failed to read manifest: ${manifestPath}`, error);
+        logger.warn(`[AddonManager] Failed to read manifest: ${manifestPath}`, error);
       }
       return null;
     }
   }
 
   /**
-   * Valide la sécurité d'un add-on
+   * Validates an add-on's security
    */
   private validateAddonSecurity(manifest: AddonManifest): boolean {
-    // Permissions dangereuses qui nécessitent une validation supplémentaire
+    // Dangerous permissions that require additional validation
     const dangerousPermissions = [
       'fileSystem.write',
       'fileSystem.read',
@@ -725,40 +750,40 @@ export class AddonManager {
       'eval',
       'require'
     ];
-    
-    // Vérifier les permissions demandées
+
+    // Check requested permissions
     if (manifest.permissions) {
       for (const permission of manifest.permissions) {
         if (dangerousPermissions.includes(permission)) {
-          // Log un avertissement mais autoriser pour le moment
-          console.warn(`[AddonManager] Dangerous permission requested by ${manifest.id}: ${permission}`);
+          // Log a warning but allow for now
+          logger.warn(`[AddonManager] Dangerous permission requested by ${manifest.id}: ${permission}`);
         }
       }
     }
-    
-    // Vérifier les ressources limitées (pas de chemin absolu, pas de fichiers système)
+
+    // Check limited resources (no absolute path, no system files)
     if (manifest.entryPoint) {
       if (manifest.entryPoint.startsWith('/') || manifest.entryPoint.includes('..')) {
-        console.warn(`[AddonManager] Invalid entryPoint path: ${manifest.entryPoint}`);
+        logger.warn(`[AddonManager] Invalid entryPoint path: ${manifest.entryPoint}`);
         return false;
       }
     }
-    
-    // Vérifier les dépendances (pas de packages Node.js critiques)
+
+    // Check dependencies (no critical Node.js packages)
     const dangerousDeps = ['child_process', 'fs', 'http', 'https', 'net', 'crypto', 'tls'];
     if (manifest.dependencies) {
       for (const dep of Object.keys(manifest.dependencies)) {
         if (dangerousDeps.includes(dep)) {
-          console.warn(`[AddonManager] Dangerous dependency requested by ${manifest.id}: ${dep}`);
+          logger.warn(`[AddonManager] Dangerous dependency requested by ${manifest.id}: ${dep}`);
         }
       }
     }
-    
+
     return true;
   }
 
   /**
-   * Enregistre une ressource pour un add-on
+   * Registers a resource for an add-on
    */
   private registerAddonResource(addonId: string): void {
     if (!this.addonResources.has(addonId)) {
@@ -772,7 +797,7 @@ export class AddonManager {
   }
 
   /**
-   * Ajoute un event listener pour un add-on
+   * Adds an event listener for an add-on
    */
   trackEventListener(addonId: string, eventType: string, listener: EventListener): void {
     const resources = this.addonResources.get(addonId);
@@ -784,7 +809,7 @@ export class AddonManager {
   }
 
   /**
-   * Ajoute un timer pour un add-on
+   * Adds a timer for an add-on
    */
   trackTimer(addonId: string, timerId: number): void {
     const resources = this.addonResources.get(addonId);
@@ -794,7 +819,7 @@ export class AddonManager {
   }
 
   /**
-   * Ajoute un interval pour un add-on
+   * Adds an interval for an add-on
    */
   trackInterval(addonId: string, intervalId: number): void {
     const resources = this.addonResources.get(addonId);
@@ -804,7 +829,7 @@ export class AddonManager {
   }
 
   /**
-   * Suit un élément DOM créé par un add-on
+   * Tracks a DOM element created by an add-on
    */
   trackDOMElement(addonId: string, element: HTMLElement): void {
     const resources = this.addonResources.get(addonId);
@@ -814,7 +839,7 @@ export class AddonManager {
   }
 
   /**
-   * Charge la configuration depuis localStorage
+   * Loads configuration from localStorage
    */
   private async loadConfig(): Promise<void> {
     try {
@@ -823,51 +848,51 @@ export class AddonManager {
         this.config = JSON.parse(stored);
       }
     } catch (error) {
-      console.warn('[AddonManager] Failed to load addon config:', error);
+      logger.warn('[AddonManager] Failed to load addon config:', error);
       this.config = {};
     }
   }
 
   /**
-   * Initialise les définitions de paramètres pour les add-ons
+   * Initializes settings definitions for add-ons
    */
   private initializeSettingsDefinitions(): void {
     this.settingsDefinitions = {
       'casting': [
         {
           key: 'maxActorsPerScene',
-          label: 'Acteurs maximum par scène',
+          label: 'Maximum actors per scene',
           type: 'number',
           defaultValue: 5,
-          description: 'Nombre maximum d\'acteurs affichés simultanément dans une scène',
+          description: 'Maximum number of actors displayed simultaneously in a scene',
           min: 1,
           max: 20,
-          validation: (value: number) => value >= 1 && value <= 20
+          validation: (value: unknown): boolean => typeof value === 'number' && value >= 1 && value <= 20
         },
         {
           key: 'enableActorTemplates',
-          label: 'Activer les templates d\'acteurs',
+          label: 'Enable actor templates',
           type: 'boolean',
           defaultValue: true,
-          description: 'Utiliser des templates prédéfinis pour créer rapidement des acteurs'
+          description: 'Use predefined templates to quickly create actors'
         },
         {
           key: 'autoSaveCasting',
-          label: 'Sauvegarde automatique du casting',
+          label: 'Automatic casting save',
           type: 'boolean',
           defaultValue: true,
-          description: 'Sauvegarder automatiquement les modifications du casting'
+          description: 'Automatically save casting modifications'
         }
       ],
       'audio-production': [
         {
           key: 'defaultSampleRate',
-          label: 'Fréquence d\'échantillonnage par défaut',
+          label: 'Default sample rate',
           type: 'select',
           defaultValue: 44100,
-          description: 'Fréquence d\'échantillonnage pour les nouveaux projets audio',
+          description: 'Sample rate for new audio projects',
           options: [
-            { label: '22050 Hz (Voix)', value: 22050 },
+            { label: '22050 Hz (Voice)', value: 22050 },
             { label: '44100 Hz (CD)', value: 44100 },
             { label: '48000 Hz (DVD)', value: 48000 },
             { label: '96000 Hz (HD)', value: 96000 }
@@ -875,56 +900,56 @@ export class AddonManager {
         },
         {
           key: 'maxAudioTracks',
-          label: 'Pistes audio maximum',
+          label: 'Maximum audio tracks',
           type: 'number',
           defaultValue: 16,
-          description: 'Nombre maximum de pistes audio par projet',
+          description: 'Maximum number of audio tracks per project',
           min: 1,
           max: 64,
-          validation: (value: number) => value >= 1 && value <= 64
+          validation: (value: unknown): boolean => typeof value === 'number' && value >= 1 && value <= 64
         },
         {
           key: 'enableAudioNormalization',
-          label: 'Normalisation automatique',
+          label: 'Automatic normalization',
           type: 'boolean',
           defaultValue: true,
-          description: 'Normaliser automatiquement les niveaux audio'
+          description: 'Automatically normalize audio levels'
         }
       ],
       'comic-to-sequence': [
         {
           key: 'defaultPanelDuration',
-          label: 'Durée par défaut des panneaux',
+          label: 'Default panel duration',
           type: 'number',
           defaultValue: 3,
-          description: 'Durée en secondes pour chaque panneau de BD converti',
+          description: 'Duration in seconds for each converted comic panel',
           min: 1,
           max: 10,
-          validation: (value: number) => value >= 1 && value <= 10
+          validation: (value: unknown): boolean => typeof value === 'number' && value >= 1 && value <= 10
         },
         {
           key: 'autoDetectSpeechBubbles',
-          label: 'Détection automatique des bulles',
+          label: 'Automatic bubble detection',
           type: 'boolean',
           defaultValue: true,
-          description: 'Détecter automatiquement les bulles de dialogue dans les images'
+          description: 'Automatically detect speech bubbles in images'
         },
         {
           key: 'enableOCR',
-          label: 'Activer l\'OCR',
+          label: 'Enable OCR',
           type: 'boolean',
           defaultValue: false,
-          description: 'Utiliser la reconnaissance optique de caractères pour extraire le texte'
+          description: 'Use optical character recognition to extract text'
         },
         {
           key: 'outputFormat',
-          label: 'Format de sortie',
+          label: 'Output format',
           type: 'select',
           defaultValue: 'sequence',
-          description: 'Format de sortie pour la conversion',
+          description: 'Output format for conversion',
           options: [
-            { label: 'Séquence complète', value: 'sequence' },
-            { label: 'Plans individuels', value: 'shots' },
+            { label: 'Complete sequence', value: 'sequence' },
+            { label: 'Individual shots', value: 'shots' },
             { label: 'Storyboard', value: 'storyboard' }
           ]
         }
@@ -932,145 +957,204 @@ export class AddonManager {
       'transitions': [
         {
           key: 'defaultTransitionDuration',
-          label: 'Durée par défaut des transitions',
+          label: 'Default transition duration',
           type: 'number',
           defaultValue: 0.5,
-          description: 'Durée en secondes des transitions par défaut',
+          description: 'Default transition duration in seconds',
           min: 0.1,
           max: 5.0,
-          validation: (value: number) => value >= 0.1 && value <= 5.0
+          validation: (value: unknown): boolean => typeof value === 'number' && value >= 0.1 && value <= 5.0
         },
         {
           key: 'enableSmoothTransitions',
-          label: 'Transitions fluides',
+          label: 'Smooth transitions',
           type: 'boolean',
           defaultValue: true,
-          description: 'Utiliser des transitions fluides pour un rendu professionnel'
+          description: 'Use smooth transitions for professional rendering'
         },
         {
           key: 'transitionLibrary',
-          label: 'Bibliothèque de transitions',
+          label: 'Transition library',
           type: 'select',
           defaultValue: 'professional',
-          description: 'Ensemble de transitions à utiliser',
+          description: 'Set of transitions to use',
           options: [
-            { label: 'Basique', value: 'basic' },
-            { label: 'Professionnel', value: 'professional' },
-            { label: 'Cinématographique', value: 'cinematic' },
-            { label: 'Créatif', value: 'creative' }
+            { label: 'Basic', value: 'basic' },
+            { label: 'Professional', value: 'professional' },
+            { label: 'Cinematic', value: 'cinematic' },
+            { label: 'Creative', value: 'creative' }
           ]
         }
       ],
       'plan-sequences': [
         {
           key: 'maxShotsPerSequence',
-          label: 'Plans maximum par séquence',
+          label: 'Maximum shots per sequence',
           type: 'number',
           defaultValue: 20,
-          description: 'Nombre maximum de plans dans une séquence',
+          description: 'Maximum number of shots in a sequence',
           min: 1,
           max: 100,
-          validation: (value: number) => value >= 1 && value <= 100
+          validation: (value: unknown): boolean => typeof value === 'number' && value >= 1 && value <= 100
         },
         {
           key: 'autoCalculateDuration',
-          label: 'Calcul automatique des durées',
+          label: 'Automatic duration calculation',
           type: 'boolean',
           defaultValue: true,
-          description: 'Calculer automatiquement la durée totale des séquences'
+          description: 'Automatically calculate total sequence duration'
         },
         {
           key: 'enableSequenceTemplates',
-          label: 'Templates de séquences',
+          label: 'Sequence templates',
           type: 'boolean',
           defaultValue: true,
-          description: 'Utiliser des templates prédéfinis pour créer des séquences'
+          description: 'Use predefined templates to create sequences'
         },
         {
           key: 'sequenceNamingConvention',
-          label: 'Convention de nommage',
+          label: 'Naming convention',
           type: 'select',
           defaultValue: 'numbered',
-          description: 'Format de nommage automatique des séquences',
+          description: 'Automatic sequence naming format',
           options: [
-            { label: 'Numéroté (Sequence 1, 2, 3...)', value: 'numbered' },
-            { label: 'Descriptif (Ouverture, Développement...)', value: 'descriptive' },
-            { label: 'Personnalisé', value: 'custom' }
+            { label: 'Numbered (Sequence 1, 2, 3...)', value: 'numbered' },
+            { label: 'Descriptive (Opening, Development...)', value: 'descriptive' },
+            { label: 'Custom', value: 'custom' }
           ]
+        }
+      ],
+      'grok-integration': [
+        {
+          key: 'apiKey',
+          label: 'Grok API Key',
+          type: 'text',
+          defaultValue: '',
+          description: 'Your xAI API key for Grok models'
+        },
+        {
+          key: 'defaultModel',
+          label: 'Default Model',
+          type: 'select',
+          defaultValue: 'grok-1',
+          description: 'Model to use for generation',
+          options: [
+            { label: 'Grok-1', value: 'grok-1' },
+            { label: 'Grok-1.5', value: 'grok-1.5' },
+            { label: 'Grok-1.5 Vision', value: 'grok-1.5-vision' }
+          ]
+        },
+        {
+          key: 'enableReasoning',
+          label: 'Enable Reasoning Features',
+          type: 'boolean',
+          defaultValue: true,
+          description: 'Unlock advanced reasoning capabilities'
+        }
+      ],
+      'seed-dance': [
+        {
+          key: 'apiKey',
+          label: 'SeedDance API Key',
+          type: 'text',
+          defaultValue: '',
+          description: 'API Key for SeedDance services'
+        },
+        {
+          key: 'resolution',
+          label: 'Default Resolution',
+          type: 'select',
+          defaultValue: '1080p',
+          description: 'Output video resolution',
+          options: [
+            { label: '720p HD', value: '720p' },
+            { label: '1080p FHD', value: '1080p' },
+            { label: '4K UHD', value: '4k' }
+          ]
+        },
+        {
+          key: 'motionStrength',
+          label: 'Default Motion Strength',
+          type: 'number',
+          defaultValue: 0.5,
+          min: 0.1,
+          max: 1.0,
+          description: 'Amount of motion in generated videos (0.1 - 1.0)',
+          validation: (value: unknown): boolean => typeof value === 'number' && value >= 0.1 && value <= 1.0
         }
       ]
     };
   }
 
   /**
-   * Sauvegarde la configuration dans localStorage
+   * Saves configuration to localStorage
    */
   private async saveConfig(): Promise<void> {
     try {
       localStorage.setItem('storycore_addon_config', JSON.stringify(this.config));
     } catch (error) {
-      console.error('[AddonManager] Failed to save addon config:', error);
+      logger.error('[AddonManager] Failed to save addon config:', error);
     }
   }
 
   /**
-   * Sauvegarde la configuration dans un fichier
-   * @param filePath Chemin du fichier (par défaut: 'config/addons.json')
+   * Saves configuration to a file
+   * @param filePath File path (default: 'config/addons.json')
    */
   async saveToFile(filePath: string = 'config/addons.json'): Promise<void> {
     try {
-      // Exporter la configuration actuelle
+      // Export current configuration
       const config = this.exportConfig();
-      
-      // Sauvegarder dans le fichier
+
+      // Save to file
       await fileSystemService.writeConfigFile(filePath, config);
-      
-      // Synchroniser avec localStorage
+
+      // Sync with localStorage
       await fileSystemService.syncWithLocalStorage(config);
-      
-      console.log(`[AddonManager] Configuration saved to ${filePath}`);
+
+      logger.debug(`[AddonManager] Configuration saved to ${filePath}`);
     } catch (error) {
-      console.error('[AddonManager] Failed to save config to file:', error);
+      logger.error('[AddonManager] Failed to save config to file:', error);
       throw error;
     }
   }
 
   /**
-   * Charge la configuration depuis un fichier
-   * @param filePath Chemin du fichier (par défaut: 'config/addons.json')
+   * Loads configuration from a file
+   * @param filePath File path (default: 'config/addons.json')
    */
   async loadFromFile(filePath: string = 'config/addons.json'): Promise<void> {
     try {
-      // Lire la configuration depuis le fichier
+      // Read configuration from file
       const config = await fileSystemService.readConfigFile(filePath);
-      
-      // Importer la configuration
+
+      // Import configuration
       this.importConfig(config);
-      
-      // Synchroniser avec localStorage
+
+      // Sync with localStorage
       await fileSystemService.syncWithLocalStorage(config);
-      
-      console.log(`[AddonManager] Configuration loaded from ${filePath}`);
+
+      logger.debug(`[AddonManager] Configuration loaded from ${filePath}`);
     } catch (error) {
-      console.error('[AddonManager] Failed to load config from file:', error);
+      logger.error('[AddonManager] Failed to load config from file:', error);
       throw error;
     }
   }
 
   /**
-   * Synchronisation automatique entre localStorage et fichier
+   * Automatic synchronization between localStorage and file
    */
   async autoSync(): Promise<void> {
     try {
-      // Sauvegarder automatiquement dans le fichier
+      // Automatically save to file
       await this.saveToFile();
     } catch (error) {
-      console.warn('[AddonManager] Auto-sync failed:', error);
+      logger.warn('[AddonManager] Auto-sync failed:', error);
     }
   }
 }
 
-// Export de l'instance singleton
+// Export singleton instance
 export const addonManager = AddonManager.getInstance();
 
 

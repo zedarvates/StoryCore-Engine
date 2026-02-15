@@ -10,10 +10,11 @@
 // ============================================================================
 
 export interface ProjectMetadata {
+  id?: string;
   name: string;
   path: string;
-  created: Date;
-  modified: Date;
+  created: number;
+  modified: number;
   author: string;
   description: string;
 }
@@ -151,7 +152,7 @@ export interface StyleApplication {
   styleName: string;
   intensity: number; // 0-100
   parameters: StyleParameters;
-  appliedAt: Date;
+  appliedAt: number;
 }
 
 export interface StyleParameters {
@@ -183,6 +184,19 @@ export interface Shot {
   qaScore?: number; // Quality assessment score
   visualStyle?: StyleApplication; // Applied visual style
   modified?: boolean; // Track if shot has been modified
+  // Transitions (Phase 1 - R&D)
+  transitions?: {
+    in?: {
+      type: string;
+      duration: number;
+      appliedAt: number;
+    };
+    out?: {
+      type: string;
+      duration: number;
+      appliedAt: number;
+    };
+  };
 }
 
 export interface Track {
@@ -199,7 +213,7 @@ export interface Track {
 // Marker and Region Types
 // ============================================================================
 
-export type MarkerType = 
+export type MarkerType =
   | 'info'        // Information marker
   | 'warning'     // Warning marker
   | 'error'       // Error marker
@@ -220,7 +234,7 @@ export interface TimelineMarker {
   updatedAt: number;
 }
 
-export type RegionType = 
+export type RegionType =
   | 'work'        // Work area
   | 'selection'   // Selection range
   | 'gap'         // Gap between clips
@@ -244,6 +258,7 @@ export interface TimelineRegion {
 }
 
 export interface TimelineState {
+  projectId: string;
   shots: Shot[];
   tracks: Track[];
   playheadPosition: number; // Current time in frames
@@ -334,7 +349,7 @@ export interface Asset {
   metadata: AssetMetadata;
   tags: string[];
   source: 'builtin' | 'user' | 'ai-generated';
-  createdAt: Date;
+  createdAt: number;
 }
 
 export interface AssetCategory {
@@ -372,26 +387,26 @@ export interface PanelsState {
 // Tool Types
 // ============================================================================
 
-export type ToolType = 
+export type ToolType =
   // Primary tools
-  | 'select' 
-  | 'cut' 
-  | 'move' 
+  | 'select'
+  | 'cut'
+  | 'move'
   | 'zoom'
   // Media tools
   | 'add-image'
   | 'add-video'
   | 'add-audio'
   // Editing tools
-  | 'trim' 
+  | 'trim'
   | 'ripple'
   | 'roll'
   | 'slip'
   | 'slide'
   | 'split'
   // Effects tools
-  | 'transition' 
-  | 'text' 
+  | 'transition'
+  | 'text'
   | 'keyframe';
 
 export interface Tool {
@@ -425,7 +440,7 @@ export interface PreviewState {
 // ============================================================================
 
 export interface StateSnapshot {
-  timestamp: Date;
+  timestamp: number;
   action: string; // Action type that created this snapshot
   state: unknown; // Partial state snapshot
   description: string; // Human-readable description

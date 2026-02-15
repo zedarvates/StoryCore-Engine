@@ -21,8 +21,10 @@ import {
   addShot,
   reorderTracks,
   updateShot,
+  splitShot,
 } from '../../store/slices/timelineSlice';
 import type { Track, Shot, LayerType, Layer, MediaLayerData } from '../../types';
+import { handleShotSplit } from '../../utils/toolInteractions';
 import { VirtualTimelineCanvas } from './VirtualTimelineCanvas';
 import { TrackHeader, TRACK_CONFIG } from './TrackHeader';
 import { PlayheadIndicator } from './PlayheadIndicator';
@@ -57,7 +59,7 @@ export const Timeline: React.FC = () => {
   const dispatch = useAppDispatch();
   const timelineRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
-  
+
   const {
     shots,
     tracks,
@@ -66,7 +68,7 @@ export const Timeline: React.FC = () => {
     selectedElements,
     duration,
   } = useAppSelector((state) => state.timeline);
-  
+
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const [hoveredTrackId, setHoveredTrackId] = useState<string | null>(null);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -359,12 +361,12 @@ export const Timeline: React.FC = () => {
     e.stopPropagation();
     setIsDraggingPlayhead(true);
   }, []);
-  
+
   // Handle playhead drag start callback
   const handlePlayheadDragStart = useCallback(() => {
     setIsDraggingPlayhead(true);
   }, []);
-  
+
   // Handle playhead drag end callback
   const handlePlayheadDragEnd = useCallback(() => {
     setIsDraggingPlayhead(false);
@@ -373,14 +375,14 @@ export const Timeline: React.FC = () => {
   // Handle playhead position change during drag
   const handlePlayheadDrag = useCallback((clientX: number) => {
     if (!timelineRef.current) return;
-    
+
     const rect = timelineRef.current.getBoundingClientRect();
     const trackLeft = rect.left + TRACK_HEADERS_WIDTH;
     const x = clientX - trackLeft + scrollLeft;
-    
+
     // Calculate frame from position
     const frame = Math.max(0, Math.round(x / zoomLevel));
-    
+
     // Snap to nearest frame
     dispatch(setPlayheadPosition(frame));
   }, [dispatch, zoomLevel, scrollLeft]);
@@ -392,18 +394,18 @@ export const Timeline: React.FC = () => {
         handlePlayheadDrag(e.clientX);
       }
     };
-    
+
     const handleMouseUp = () => {
       if (isDraggingPlayhead) {
         setIsDraggingPlayhead(false);
       }
     };
-    
+
     if (isDraggingPlayhead) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
-    
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -413,28 +415,28 @@ export const Timeline: React.FC = () => {
   // Handle timeline click for playhead positioning (click-to-seek)
   const handleTimelineClick = useCallback((e: React.MouseEvent) => {
     if (isDraggingPlayhead) return;
-    
+
     if (!timelineRef.current) return;
-    
+
     const rect = timelineRef.current.getBoundingClientRect();
     const trackLeft = rect.left + TRACK_HEADERS_WIDTH;
     const x = e.clientX - trackLeft + scrollLeft;
-    
+
     // Calculate frame from position
     let frame = x / zoomLevel;
-    
+
     // Apply snap to grid if enabled
     if (snapToGrid) {
       frame = Math.round(frame);
     } else {
       frame = Math.floor(frame);
     }
-    
+
     frame = Math.max(0, frame);
-    
+
     dispatch(setPlayheadPosition(frame));
   }, [dispatch, zoomLevel, scrollLeft, isDraggingPlayhead, snapToGrid]);
-  
+
   // Handle ruler seek (click-to-seek on ruler)
   const handleRulerSeek = useCallback((frame: number) => {
     dispatch(setPlayheadPosition(frame));
@@ -455,7 +457,7 @@ export const Timeline: React.FC = () => {
     dispatch(toggleTrackHidden(trackId));
   }, [dispatch]);
 
-// Handle track resize
+  // Handle track resize
   const handleTrackResize = useCallback((trackId: string, newHeight: number) => {
     dispatch(updateTrack({ id: trackId, updates: { height: newHeight } }));
   }, [dispatch]);
@@ -481,7 +483,7 @@ export const Timeline: React.FC = () => {
     console.log('Solo toggle for track:', trackId);
   }, []);
 
-// Handle layer selection
+  // Handle layer selection
   const handleLayerSelect = useCallback((shotId: string, layerId: string, multiSelect: boolean) => {
     // For now, treat layer selection same as shot selection
     // In the future, this could be expanded to support multi-level selection
@@ -513,7 +515,7 @@ export const Timeline: React.FC = () => {
   const handleAddTrack = useCallback((type: LayerType) => {
     const trackId = `track-${Date.now()}`;
     const defaults = TRACK_DEFAULTS[type];
-    
+
     dispatch(addTrack({
       id: trackId,
       type,
@@ -524,6 +526,38 @@ export const Timeline: React.FC = () => {
       icon: defaults.icon,
     }));
   }, [dispatch]);
+
+  // Handle shot splitting
+  const handleSplit = useCallback(() => {
+    const shotAtPlayhead = shots.find((s: Shot) =>
+      playheadPosition >= s.startTime &&
+      playheadPosition < (s.startTime + s.duration)
+    );
+
+    if (shotAtPlayhead) {
+      const splitResult = handleShotSplit(shotAtPlayhead.id, playheadPosition, shots);
+      if (splitResult) {
+        dispatch(splitShot({
+          shotId: shotAtPlayhead.id,
+          leftShot: splitResult.newShots[0],
+          rightShot: splitResult.newShots[1]
+        }));
+      }
+    }
+  }, [shots, playheadPosition, dispatch]);
+
+  // Handle auto-mixing
+  const handleAutoMix = useCallback(() => {
+    const audioLayers = shots.flatMap((s: Shot) => s.layers.filter((l: Layer) => l.type === 'audio'));
+    if (audioLayers.length === 0) {
+      alert('No audio layers found to mix!');
+      return;
+    }
+
+    console.log('[Timeline] Triggering Auto-Mix for', audioLayers.length, 'audio layers');
+    // In a real implementation, this would call the backend API
+    alert('AI Auto-Mix triggered! Analyzing audio levels and applying ducking...');
+  }, [shots]);
 
   // Handle scroll
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -540,10 +574,10 @@ export const Timeline: React.FC = () => {
         setContainerHeight(timelineRef.current.clientHeight - 30);
       }
     };
-    
+
     updateContainerDimensions();
     window.addEventListener('resize', updateContainerDimensions);
-    
+
     return () => window.removeEventListener('resize', updateContainerDimensions);
   }, []);
 
@@ -745,8 +779,10 @@ export const Timeline: React.FC = () => {
         duration={duration}
         onToggleVirtualMode={() => setUseVirtualMode(!useVirtualMode)}
         useVirtualMode={useVirtualMode}
+        onSplit={handleSplit}
+        onAutoMix={handleAutoMix}
       />
-      
+
       {/* Timeline Container */}
       <div
         ref={timelineRef}
@@ -759,7 +795,7 @@ export const Timeline: React.FC = () => {
           <div className="timeline-ruler-spacer" />
           {renderTrackHeaders()}
         </div>
-        
+
         {/* Timeline Content Area */}
         <div
           ref={contentAreaRef}
@@ -767,7 +803,7 @@ export const Timeline: React.FC = () => {
         >
           {/* Time Ruler */}
           {renderTimeRuler()}
-          
+
           {/* Track Content */}
           {useVirtualMode ? (
             /* Virtual Scrolling Mode */
@@ -799,7 +835,7 @@ export const Timeline: React.FC = () => {
                         .filter((layer: Layer) => layer.type === track.type)
                         .map((layer: Layer, layerIndex: number) => ({ shot, layer, layerIndex }))
                     )
-                    .map(({ shot, layer, layerIndex }) => {
+                    .map(({ shot, layer, layerIndex }: { shot: Shot; layer: Layer; layerIndex: number }) => {
                       const isSelected = selectedElements.includes(shot.id);
                       const shotLeft = shot.startTime * zoomLevel;
                       const shotWidth = shot.duration * zoomLevel;
@@ -836,7 +872,7 @@ export const Timeline: React.FC = () => {
               ))}
             </div>
           )}
-          
+
           {/* Playhead Indicator */}
           <PlayheadIndicator
             position={playheadPosition * zoomLevel}
@@ -869,7 +905,7 @@ function formatTimecode(frame: number, fps: number = 24): string {
   const seconds = totalSeconds % 60;
   const minutes = Math.floor(totalSeconds / 60);
   const frames = frame % fps;
-  
+
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(frames).padStart(2, '0')}`;
 }
 

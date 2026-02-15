@@ -36,6 +36,45 @@ import type {
 const API_BASE = '/api';
 
 // =============================================================================
+// TIMEOUT HELPER
+// =============================================================================
+
+/**
+ * Fetch with timeout for audio generation requests
+ * @param url - The URL to fetch
+ * @param options - Fetch options
+ * @param timeout - Timeout in milliseconds (default: 5 minutes)
+ */
+async function fetchWithTimeout<T>(
+  url: string,
+  options: RequestInit = {},
+  timeout = 300000
+): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Audio generation request timed out');
+    }
+    throw error;
+  }
+}
+
+// =============================================================================
 // MULTICHANNEL SUPPORT
 // =============================================================================
 

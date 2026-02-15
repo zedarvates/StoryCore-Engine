@@ -146,6 +146,8 @@ export function useAudioMixing(): UseAudioMixingReturn {
       audioMixingService.off('timeupdate', handleTimeUpdate as (time: number) => void);
       audioMixingService.off('error', handleError as (error: string) => void);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount - event subscriptions should be established once
   }, []);
 
   // ==========================================================================
@@ -158,6 +160,8 @@ export function useAudioMixing(): UseAudioMixingReturn {
     }, 100);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount - state sync interval should start once
   }, []);
 
   // ==========================================================================

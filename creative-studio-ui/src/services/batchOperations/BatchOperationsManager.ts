@@ -1,44 +1,44 @@
 /**
- * BatchOperationsManager - Gestionnaire d'opérations par lots
+ * BatchOperationsManager - Batch operations manager
  * 
- * Gère l'exécution d'opérations sur plusieurs plans simultanément avec:
- * - Traitement parallèle via WorkerPool
- * - Gestion de la progression
- * - Gestion des erreurs partielles
- * - Annulation d'opérations
+ * Manages the execution of operations on multiple shots simultaneously with:
+ * - Parallel processing via WorkerPool
+ * - Progress tracking
+ * - Partial error handling
+ * - Operation cancellation
  * 
- * Exigences: 8.1, 8.2, 8.4, 8.6, 8.7
+ * Requirements: 8.1, 8.2, 8.4, 8.6, 8.7
  */
 
 import type { Shot, BatchOperation, BatchOperationType, BatchOperationResult } from '../../types';
 import { WorkerPool, WorkerPoolConfig } from './WorkerPool';
 
 /**
- * Options pour les opérations par lots
+ * Options for batch operations
  */
 export interface BatchOperationOptions {
-  // Options de duplication
+  // Duplication options
   suffix?: string;
   
-  // Options de transformation
+  // Transformation options
   transform?: Record<string, unknown>;
   
-  // Options d'export
+  // Export options
   format?: string;
   quality?: string;
   
-  // Options de tag
+  // Tag options
   tags?: string[];
-  addTags?: boolean; // true = ajouter, false = remplacer
+  addTags?: boolean; // true = add, false = replace
   
-  // Options générales
-  parallel?: boolean; // Traiter en parallèle (défaut: true)
-  maxConcurrent?: number; // Nombre max de tâches parallèles
+  // General options
+  parallel?: boolean; // Process in parallel (default: true)
+  maxConcurrent?: number; // Max number of parallel tasks
 }
 
 /**
- * Gestionnaire d'opérations par lots
- * Exigences: 8.1, 8.2, 8.4, 8.6, 8.7
+ * Batch operations manager
+ * Requirements: 8.1, 8.2, 8.4, 8.6, 8.7
  */
 export class BatchOperationsManager {
   private operations: Map<string, BatchOperation> = new Map();
@@ -51,9 +51,9 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Exécute une opération par lots
-   * Exigence: 8.2 - Application à tous les plans sélectionnés
-   * Exigence: 8.4 - Traitement parallèle avec progression
+   * Executes a batch operation
+   * Requirement: 8.2 - Application to all selected shots
+   * Requirement: 8.4 - Parallel processing with progress
    */
   async execute(
     type: BatchOperationType,
@@ -80,12 +80,12 @@ export class BatchOperationsManager {
     };
     
     try {
-      // Déterminer le mode de traitement
+      // Determine processing mode
       const parallel = options.parallel !== false;
       const maxConcurrent = options.maxConcurrent || this.workerPool.size;
       
       if (parallel) {
-        // Traitement parallèle avec pool de workers
+        // Parallel processing with worker pool
         const chunks = this.chunkArray(items, maxConcurrent);
         
         const chunkPromises = chunks.map((chunk, index) => 
@@ -94,13 +94,13 @@ export class BatchOperationsManager {
         
         const chunkResults = await Promise.all(chunkPromises);
         
-        // Agréger les résultats
+        // Aggregate results
         for (const chunkResult of chunkResults) {
           results.success.push(...chunkResult.success);
           results.failed.push(...chunkResult.failed);
         }
       } else {
-        // Traitement séquentiel
+        // Sequential processing
         for (let i = 0; i < items.length; i++) {
           const shot = items[i];
           
@@ -111,7 +111,7 @@ export class BatchOperationsManager {
             results.failed.push({ shot, error: error as Error });
           }
           
-          // Mettre à jour la progression
+          // Update progress
           operation.progress = ((i + 1) / items.length) * 100;
         }
       }
@@ -121,13 +121,13 @@ export class BatchOperationsManager {
       operation.endTime = Date.now();
       results.totalTime = operation.endTime! - operation.startTime!;
       
-      // Ajouter à l'historique pour estimation de temps
+      // Add to history for time estimation
       this.operationHistory.push({
         operation: { ...operation },
         timestamp: Date.now()
       });
       
-      // Limiter l'historique à 100 entrées
+      // Limit history to 100 entries
       if (this.operationHistory.length > 100) {
         this.operationHistory.shift();
       }
@@ -143,8 +143,8 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Traite un chunk d'éléments en parallèle
-   * Exigence: 8.4 - Traitement parallèle
+   * Processes a chunk of elements in parallel
+   * Requirement: 8.4 - Parallel processing
    */
   private async processChunk(
     operation: BatchOperation,
@@ -158,7 +158,7 @@ export class BatchOperationsManager {
     for (let i = 0; i < chunk.length; i++) {
       const shot = chunk[i];
       
-      // Vérifier si l'opération a été annulée
+      // Check if operation was cancelled
       if (operation.status === 'cancelled') {
         break;
       }
@@ -167,7 +167,7 @@ export class BatchOperationsManager {
         const result = await this.processItem(operation.type, shot, options);
         success.push(result);
         
-        // Mettre à jour la progression
+        // Update progress
         const totalProcessed = chunkIndex * chunk.length + i + 1;
         operation.progress = (totalProcessed / operation.items.length) * 100;
         
@@ -180,8 +180,8 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Traite un élément individuel
-   * Exigence: 8.2 - Application des transformations
+   * Processes an individual item
+   * Requirement: 8.2 - Applying transformations
    */
   private async processItem(
     type: BatchOperationType,
@@ -210,7 +210,7 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Duplique un plan
+   * Duplicates a shot
    */
   private async duplicateShot(shot: Shot, options: BatchOperationOptions): Promise<Shot> {
     const suffix = options.suffix || 'copy';
@@ -225,7 +225,7 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Supprime un plan (marque comme supprimé)
+   * Deletes a shot (marks as deleted)
    */
   private async deleteShot(shot: Shot): Promise<Shot> {
     return {
@@ -239,10 +239,10 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Exporte un plan
+   * Exports a shot
    */
   private async exportShot(shot: Shot, options: BatchOperationOptions): Promise<Shot> {
-    // Utiliser le worker pool pour l'export
+    // Use worker pool for export
     const result = await this.workerPool.execute('exportShot', {
       shot,
       format: options.format || 'json',
@@ -262,7 +262,7 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Transforme un plan
+   * Transforms a shot
    */
   private async transformShot(shot: Shot, options: BatchOperationOptions): Promise<Shot> {
     if (!options.transform) {
@@ -281,7 +281,7 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Ajoute ou remplace des tags
+   * Adds or replaces tags
    */
   private async tagShot(shot: Shot, options: BatchOperationOptions): Promise<Shot> {
     if (!options.tags) {
@@ -306,8 +306,8 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Annule une opération en cours
-   * Exigence: 8.7 - Annulation d'opérations
+   * Cancels an ongoing operation
+   * Requirement: 8.7 - Operation cancellation
    */
   cancel(operationId: string): void {
     const operation = this.operations.get(operationId);
@@ -315,42 +315,42 @@ export class BatchOperationsManager {
       operation.status = 'cancelled';
       operation.endTime = Date.now();
       
-      // Annuler les workers en cours
+      // Cancel ongoing workers
       this.workerPool.cancelAll();
     }
   }
   
   /**
-   * Récupère une opération
+   * Retrieves an operation
    */
   getOperation(operationId: string): BatchOperation | undefined {
     return this.operations.get(operationId);
   }
   
   /**
-   * Récupère toutes les opérations
+   * Retrieves all operations
    */
   getAllOperations(): BatchOperation[] {
     return Array.from(this.operations.values());
   }
   
   /**
-   * Estime le temps de traitement
-   * Exigence: 8.8 - Estimation de temps
+   * Estimates processing time
+   * Requirement: 8.8 - Time estimation
    */
   estimateTime(type: BatchOperationType, itemCount: number): number {
-    // Filtrer l'historique pour ce type d'opération
+    // Filter history for this operation type
     const relevantHistory = this.operationHistory.filter(
       h => h.operation.type === type && h.operation.status === 'completed'
     );
     
     if (relevantHistory.length === 0) {
-      // Pas d'historique, utiliser une estimation par défaut
+      // No history, use default estimation
       const defaultTimePerItem = this.getDefaultTimePerItem(type);
       return defaultTimePerItem * itemCount;
     }
     
-    // Calculer le temps moyen par élément
+    // Calculate average time per item
     const totalTime = relevantHistory.reduce((sum, h) => {
       const time = (h.operation.endTime || 0) - (h.operation.startTime || 0);
       return sum + time;
@@ -366,7 +366,7 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Temps par défaut par élément (en ms)
+   * Default time per item (in ms)
    */
   private getDefaultTimePerItem(type: BatchOperationType): number {
     switch (type) {
@@ -386,7 +386,7 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Divise un tableau en chunks
+   * Splits an array into chunks
    */
   private chunkArray<T>(array: T[], chunkSize: number): T[][] {
     const chunks: T[][] = [];
@@ -397,7 +397,7 @@ export class BatchOperationsManager {
   }
   
   /**
-   * Génère un ID unique
+   * Generates a unique ID
    */
   private generateId(): string {
     return `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

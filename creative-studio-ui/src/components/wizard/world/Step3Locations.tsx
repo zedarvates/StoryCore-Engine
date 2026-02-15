@@ -15,7 +15,134 @@ import { useAppStore } from '@/stores/useAppStore';
 import { saveLocationToProject, createLocationFromWizardData } from '@/utils/locationStorage';
 import { useLocationStore } from '@/stores/locationStore';
 import { useEditorStore } from '@/stores/editorStore';
-import LocationImageGenerator from '../../location/editor/LocationImageGenerator';
+import { LocationImageGenerator } from '../../location/editor/LocationImageGenerator';
+
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+/**
+ * Interface for LLM-generated location items
+ * Used for parsing JSON responses from the LLM
+ */
+interface LLMLocationItem {
+  name?: string;
+  description?: string;
+  significance?: string;
+  atmosphere?: string;
+  mood?: string;
+}
+
+// ============================================================================
+// Parsing Helper Functions
+// ============================================================================
+
+/**
+ * Parses a JSON array of location items from LLM response
+ */
+function parseJsonLocations(jsonString: string): Location[] | null {
+  const parsed = JSON.parse(jsonString) as LLMLocationItem[];
+  if (!Array.isArray(parsed)) return null;
+
+  const parsedLocations = parsed.map((item) => ({
+    id: crypto.randomUUID(),
+    name: item.name || '',
+    description: item.description || '',
+    significance: item.significance || '',
+    atmosphere: item.atmosphere || item.mood || '',
+  })).filter((loc) => loc.name);
+
+  return parsedLocations.length > 0 ? parsedLocations : null;
+}
+
+/**
+ * Parses a single line to extract location name
+ */
+function parseLocationNameFromLine(line: string): string | null {
+  const nameRegex = /^(?:\d+\.|[-*•])\s*(?:Name:?\s*)?(.+?)(?:\s*[-–—]\s*|$)/i;
+  const nameMatch = nameRegex.exec(line);
+  if (nameMatch && nameMatch[1].length > 2 && nameMatch[1].length < 50) {
+    return nameMatch[1].trim();
+  }
+  return null;
+}
+
+/**
+ * Updates current location with field-specific content
+ */
+function updateLocationField(
+  currentLocation: Partial<Location>,
+  line: string
+): Partial<Location> {
+  const trimmed = line.trim();
+
+  if (/description:/i.test(trimmed)) {
+    return { ...currentLocation, description: trimmed.replace(/description:\s*/i, '').trim() };
+  }
+
+  if (/significance:/i.test(trimmed)) {
+    return { ...currentLocation, significance: trimmed.replace(/significance:\s*/i, '').trim() };
+  }
+
+  if (/(atmosphere|mood):/i.test(trimmed)) {
+    return { ...currentLocation, atmosphere: trimmed.replace(/(atmosphere|mood):\s*/i, '').trim() };
+  }
+
+  // If no specific field and we have a name but no description, use as description
+  if (currentLocation.name && !currentLocation.description && trimmed.length > 20) {
+    return { ...currentLocation, description: trimmed };
+  }
+
+  return currentLocation;
+}
+
+/**
+ * Converts a partial location to a full Location object
+ */
+function createLocationFromPartial(partial: Partial<Location>): Location {
+  return {
+    id: crypto.randomUUID(),
+    name: partial.name || '',
+    description: partial.description || '',
+    significance: partial.significance || '',
+    atmosphere: partial.atmosphere || '',
+  };
+}
+
+/**
+ * Parses structured text format for locations
+ */
+function parseTextLocations(response: string): Location[] {
+  const parsedLocations: Location[] = [];
+  const lines = response.split('\n');
+  let currentLocation: Partial<Location> | null = null;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    const name = parseLocationNameFromLine(trimmed);
+    if (name) {
+      // Save previous location if exists
+      if (currentLocation?.name) {
+        parsedLocations.push(createLocationFromPartial(currentLocation));
+      }
+      currentLocation = { name };
+      continue;
+    }
+
+    if (currentLocation) {
+      currentLocation = updateLocationField(currentLocation, trimmed);
+    }
+  }
+
+  // Don't forget the last location
+  if (currentLocation?.name) {
+    parsedLocations.push(createLocationFromPartial(currentLocation));
+  }
+
+  return parsedLocations;
+}
 
 // ============================================================================
 // Step 3: Locations
@@ -27,7 +154,7 @@ export function Step3Locations() {
   const [imageGeneratorLocationId, setImageGeneratorLocationId] = useState<string | null>(null);
   const { llmConfigured } = useServiceStatus();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
-  
+
   // Get project path for saving locations
   const projectPath = useEditorStore.getState().projectPath;
   const { fetchProjectLocations } = useLocationStore();
@@ -37,17 +164,17 @@ export function Step3Locations() {
   // ============================================================================
   // Location Management
   // ============================================================================
-  
-  // Helper to save a location to the project's lieux folder
+
+  // Helper to save a location to the project's locations folder
   const saveLocationToFile = async (location: Location) => {
     if (!projectPath) {
       console.warn('[Step3Locations] No project path available, skipping save');
       return;
     }
-    
+
     const projectId = projectPath.split(/[/\\]/).pop() || 'unknown';
     if (projectId === 'unknown') return;
-    
+
     try {
       // Cast location to any to access extended properties
       const locAny = location as any;
@@ -60,7 +187,7 @@ export function Step3Locations() {
         },
         { projectId, worldId: formData.id || undefined }
       );
-      
+
       // Add extended metadata if available
       if (locAny.significance) {
         (locationData.metadata as any).significance = locAny.significance;
@@ -71,7 +198,7 @@ export function Step3Locations() {
       if (locAny.tile_image_path) {
         (locationData.metadata as any).tile_image_path = locAny.tile_image_path;
       }
-      
+
       await saveLocationToProject(projectId, location.id, locationData);
     } catch (error) {
       console.error('[Step3Locations] Failed to save location:', error);
@@ -95,7 +222,7 @@ export function Step3Locations() {
     updateFormData({
       locations: locations.map((l) => (l.id === locationId ? { ...l, ...updates } : l)),
     });
-    
+
     // Save updated location to file
     const updatedLocation = locations.find(l => l.id === locationId);
     if (updatedLocation) {
@@ -114,97 +241,36 @@ export function Step3Locations() {
   const parseLLMLocations = (response: string): Location[] => {
     try {
       console.log('[Step3Locations] Parsing LLM response for locations');
-      
+
       // Try JSON parsing first
-      const jsonMatch = response.match(/\[[\s\S]*\]/);
+      const jsonRegex = /\[[\s\S]*\]/;
+      const jsonMatch = jsonRegex.exec(response);
       if (jsonMatch) {
         try {
-          const parsed = JSON.parse(jsonMatch[0]);
-          if (Array.isArray(parsed)) {
-            const parsedLocations = parsed.map((item: unknown) => ({
-              id: crypto.randomUUID(),
-              name: item.name || '',
-              description: item.description || '',
-              significance: item.significance || '',
-              atmosphere: item.atmosphere || item.mood || '',
-            })).filter((loc: unknown) => loc.name);
-            
-            if (parsedLocations.length > 0) {
-              console.log('[Step3Locations] Successfully parsed', parsedLocations.length, 'locations from JSON');
-              return parsedLocations;
-            }
+          const jsonLocations = parseJsonLocations(jsonMatch[0]);
+          if (jsonLocations) {
+            console.log('[Step3Locations] Successfully parsed', jsonLocations.length, 'locations from JSON');
+            return jsonLocations;
           }
         } catch (jsonError) {
-          console.warn('JSON parsing failed, trying text parsing');
+          console.warn('JSON parsing failed, trying text parsing:', jsonError);
         }
       }
-      
+
       // Fallback: Parse as structured text
       console.log('[Step3Locations] Falling back to text parsing');
-      const parsedLocations: Location[] = [];
-      const lines = response.split('\n');
-      
-      let currentLocation: Partial<Location> | null = null;
-      
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-        
-        const nameMatch = trimmed.match(/^(?:\d+\.|[-*•])\s*(?:Name:?\s*)?(.+?)(?:\s*[-–—]\s*|$)/i);
-        if (nameMatch && nameMatch[1].length > 2 && nameMatch[1].length < 50) {
-          if (currentLocation && currentLocation.name) {
-            parsedLocations.push({
-              id: crypto.randomUUID(),
-              name: currentLocation.name,
-              description: currentLocation.description || '',
-              significance: currentLocation.significance || '',
-              atmosphere: currentLocation.atmosphere || '',
-            });
-          }
-          currentLocation = { name: nameMatch[1].trim() };
-          continue;
-        }
-        
-        if (currentLocation && /description:/i.test(trimmed)) {
-          currentLocation.description = trimmed.replace(/description:\s*/i, '').trim();
-          continue;
-        }
-        
-        if (currentLocation && /significance:/i.test(trimmed)) {
-          currentLocation.significance = trimmed.replace(/significance:\s*/i, '').trim();
-          continue;
-        }
-        
-        if (currentLocation && /(atmosphere|mood):/i.test(trimmed)) {
-          currentLocation.atmosphere = trimmed.replace(/(atmosphere|mood):\s*/i, '').trim();
-          continue;
-        }
-        
-        if (currentLocation && currentLocation.name && !currentLocation.description && trimmed.length > 20) {
-          currentLocation.description = trimmed;
-        }
+      const textLocations = parseTextLocations(response);
+
+      if (textLocations.length > 0) {
+        console.log('[Step3Locations] Successfully parsed', textLocations.length, 'locations from text');
+        return textLocations;
       }
-      
-      if (currentLocation && currentLocation.name) {
-        parsedLocations.push({
-          id: crypto.randomUUID(),
-          name: currentLocation.name,
-          description: currentLocation.description || '',
-          significance: currentLocation.significance || '',
-          atmosphere: currentLocation.atmosphere || '',
-        });
-      }
-      
-      if (parsedLocations.length > 0) {
-        console.log('[Step3Locations] Successfully parsed', parsedLocations.length, 'locations from text');
-        return parsedLocations;
-      }
-      
+
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
       console.error('Response was:', response);
     }
-    
+
     console.warn('Could not parse any locations from response');
     return [];
   };
@@ -246,17 +312,20 @@ Format as JSON array with: name, description, significance, atmosphere`;
     error: llmError,
     clearError,
   } = useLLMGeneration({
-    onSuccess: async (response) => {
+    onSuccess: (response) => {
       const generatedLocations = parseLLMLocations(response.content);
       if (generatedLocations.length > 0) {
         updateFormData({ locations: [...locations, ...generatedLocations] });
-        
+
         const projectId = projectPath?.split(/[/\\]/).pop() || 'unknown';
         if (projectPath && projectId !== 'unknown') {
-          for (const location of generatedLocations) {
-            await saveLocationToFile(location);
-          }
-          await fetchProjectLocations(projectId);
+          // Fire and forget async saves - we don't need to wait for them
+          void (async () => {
+            for (const location of generatedLocations) {
+              await saveLocationToFile(location);
+            }
+            await fetchProjectLocations(projectId);
+          })();
         }
       }
     },
@@ -405,7 +474,7 @@ Format as JSON array with: name, description, significance, atmosphere`;
                           helpText="Why is this location important?"
                         >
                           <Textarea
-                            value={(location as any).significance || ''}
+                            value={location.significance || ''}
                             onChange={(e) =>
                               handleUpdateLocation(location.id, { significance: e.target.value })
                             }
@@ -421,7 +490,7 @@ Format as JSON array with: name, description, significance, atmosphere`;
                           helpText="The mood of this place"
                         >
                           <Input
-                            value={(location as any).atmosphere || ''}
+                            value={location.atmosphere || ''}
                             onChange={(e) =>
                               handleUpdateLocation(location.id, { atmosphere: e.target.value })
                             }
@@ -436,24 +505,24 @@ Format as JSON array with: name, description, significance, atmosphere`;
                           helpText="Visual representation of the location"
                         >
                           <div className="space-y-3">
-                            {(location as any).tile_image_path ? (
+                            {(location.metadata?.tile_image_path || location.tile_image_path) ? (
                               <div className="relative inline-block">
                                 <img
-                                  src={(location as any).tile_image_path}
-                                  alt={`Tile image for ${location.name}`}
+                                  src={location.metadata?.tile_image_path || location.tile_image_path}
+                                  alt={location.name}
                                   className="w-32 h-32 object-cover rounded-lg border"
                                 />
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
-                                  onClick={() => handleUpdateLocation(location.id, { tile_image_path: undefined })}
+                                  onClick={() => handleUpdateLocation(location.id, { tile_image_path: undefined, metadata: { ...location.metadata, tile_image_path: undefined } } as Partial<Location>)}
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>
                             ) : null}
-                            
+
                             <Button
                               variant="outline"
                               size="sm"
@@ -476,12 +545,13 @@ Format as JSON array with: name, description, significance, atmosphere`;
                               name: location.name,
                               metadata: {
                                 description: location.description,
-                                atmosphere: (location as any).atmosphere,
-                                significance: (location as any).significance,
+                                atmosphere: location.atmosphere || '',
+                                significance: location.significance || '',
+                                genre_tags: [],
                               }
                             }}
                             onImageGenerated={(imageUrl) => {
-                              handleUpdateLocation(location.id, { tile_image_path: imageUrl });
+                              handleUpdateLocation(location.id, { tile_image_path: imageUrl, metadata: { ...location.metadata, tile_image_path: imageUrl } } as Partial<Location>);
                               setImageGeneratorLocationId(null);
                             }}
                           />

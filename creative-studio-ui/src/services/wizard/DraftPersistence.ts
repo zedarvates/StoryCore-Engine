@@ -6,6 +6,7 @@
  */
 
 import type { WizardState } from '../../types/wizard';
+import { logger } from '@/utils/logger';
 
 /**
  * Draft metadata for listing and management
@@ -263,7 +264,7 @@ export class DraftPersistence {
 
       return draftId;
     } catch (error) {
-      console.error('Failed to save draft:', error);
+      logger.error('[DraftPersistence] Failed to save draft:', error);
       throw new Error(`Draft save failed: ${error}`);
     }
   }
@@ -284,7 +285,7 @@ export class DraftPersistence {
       const serializedState = JSON.parse(dataString) as SerializableWizardState;
       return this.deserializeState(serializedState);
     } catch (error) {
-      console.error('Failed to load draft:', error);
+      logger.error('[DraftPersistence] Failed to load draft:', error);
       throw new Error(`Draft load failed: ${error}`);
     }
   }
@@ -314,7 +315,7 @@ export class DraftPersistence {
             });
           }
         } catch (error) {
-          console.warn(`Failed to load metadata for draft ${draftId}:`, error);
+          logger.warn(`[DraftPersistence] Failed to load metadata for draft ${draftId}:`, error);
           // Continue with other drafts
         }
       }
@@ -324,7 +325,7 @@ export class DraftPersistence {
 
       return drafts;
     } catch (error) {
-      console.error('Failed to list drafts:', error);
+      logger.error('[DraftPersistence] Failed to list drafts:', error);
       throw new Error(`Draft listing failed: ${error}`);
     }
   }
@@ -337,7 +338,7 @@ export class DraftPersistence {
     try {
       await this.storage.delete(draftId);
     } catch (error) {
-      console.error('Failed to delete draft:', error);
+      logger.error('[DraftPersistence] Failed to delete draft:', error);
       throw new Error(`Draft deletion failed: ${error}`);
     }
   }
@@ -357,7 +358,7 @@ export class DraftPersistence {
         }
       }
     } catch (error) {
-      console.warn('Failed to enforce max drafts limit:', error);
+      logger.warn('[DraftPersistence] Failed to enforce max drafts limit:', error);
       // Non-critical error, continue
     }
   }
@@ -383,7 +384,7 @@ export class DraftPersistence {
           await this.saveDraft(state);
         }
       } catch (error) {
-        console.error('Auto-save failed:', error);
+        logger.error('[DraftPersistence] Auto-save failed:', error);
         // Don't throw - auto-save failures shouldn't interrupt user workflow
       }
     }, intervalMs);

@@ -129,7 +129,9 @@ export function LandingChatBox({
       };
       setMessages([welcomeMessage]);
     }
-  }, []); // Run only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount - welcome message should be set once
+  }, []);
 
   // Check for Ollama migration on mount (for backward compatibility)
   useEffect(() => {

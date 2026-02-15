@@ -1,0 +1,61 @@
+.transform-overlay {
+    z-index: 100;
+}
+
+.transform-overlay .handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #ffffff;
+    border: 1px solid var(--primary-color, #4A90E2);
+    border-radius: 2px;
+}
+
+.transform-overlay .handle.tl {
+    top: -6px;
+    left: -6px;
+    cursor: nwse-resize;
+}
+
+.transform-overlay .handle.tr {
+    top: -6px;
+    right: -6px;
+    cursor: nesw-resize;
+}
+
+.transform-overlay .handle.bl {
+    bottom: -6px;
+    left: -6px;
+    cursor: nesw-resize;
+}
+
+.transform-overlay .handle.br {
+    bottom: -6px;
+    right: -6px;
+    cursor: nwse-resize;
+}
+
+.transform-overlay .rotate-handle {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: grab;
+}
+
+.transform-overlay .rotate-line {
+    width: 1px;
+    height: 20px;
+    background: var(--primary-color, #4A90E2);
+}
+
+.transform-overlay .rotate-knob {
+    width: 10px;
+    height: 10px;
+    background: #ffffff;
+    border: 1px solid var(--primary-color, #4A90E2);
+    border-radius: 50%;
+}

@@ -13,12 +13,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { cn } from '@/lib/utils';
 import { LLMLoadingState, LLMErrorDisplay } from '../LLMErrorDisplay';
+import { CHARACTER_ARCHETYPES, AGE_RANGES, GENDER_OPTIONS } from '@/constants/characterOptions';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
 import type { StoryContext } from './CharacterWizard';
@@ -32,35 +33,11 @@ interface Step1BasicIdentityProps {
   storyContext?: StoryContext;
 }
 
-const ARCHETYPES = [
-  'Protagonist',
-  'Antagonist',
-  'Mentor',
-  'Sidekick',
-  'Love Interest',
-  'Trickster',
-  'Guardian',
-  'Herald',
-  'Shapeshifter',
-  'Shadow',
-  'Ally',
-  'Threshold Guardian',
-];
-
-const AGE_RANGES = [
-  'Child (0-12)',
-  'Teenager (13-19)',
-  'Young Adult (20-29)',
-  'Adult (30-49)',
-  'Middle-Aged (50-64)',
-  'Senior (65+)',
-  'Ageless/Unknown',
-];
-
 export function Step1BasicIdentity({ worldContext }: Step1BasicIdentityProps) {
   const { formData, updateFormData, validationErrors } = useWizard<Character>();
-  const { llmConfigured } = useServiceStatus();
+  const { llmConfigured, llmChecking } = useServiceStatus();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+  const [suggestions, setSuggestions] = React.useState<string[]>([]);
 
   // LLM generation for name suggestions
   const {
@@ -73,8 +50,11 @@ export function Step1BasicIdentity({ worldContext }: Step1BasicIdentityProps) {
       // Parse LLM response and extract name suggestions
       const names = parseLLMNames(response.content);
       if (names.length > 0) {
-        // Use the first suggested name
-        updateFormData({ name: names[0] });
+        setSuggestions(names);
+        // If name is currently empty, use the first suggestion as a default
+        if (!formData.name) {
+          updateFormData({ name: names[0] });
+        }
       }
     },
   });
@@ -127,7 +107,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
           return parsed.filter((name) => typeof name === 'string' && name.trim());
         }
       }
-      
+
       // Fallback: try to extract names from text
       const lines = response.split('\n').filter((line) => line.trim());
       const names = lines
@@ -136,7 +116,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
           return line.replace(/^\d+\.\s*/, '').replace(/["']/g, '').trim();
         })
         .filter((name) => name.length > 0 && name.length < 50);
-      
+
       return names.slice(0, 3);
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
@@ -162,6 +142,15 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
       visual_identity: {
         ...(formData.visual_identity || {}),
         age_range: value,
+      } as Character['visual_identity'],
+    });
+  };
+
+  const handleGenderChange = (value: string) => {
+    updateFormData({
+      visual_identity: {
+        ...(formData.visual_identity || {}),
+        gender: value,
       } as Character['visual_identity'],
     });
   };
@@ -202,36 +191,46 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
             <div className="flex gap-2">
               <Button
                 onClick={() => handleGenerateName(false)}
-                disabled={isLoading || !formData.role?.archetype || !llmConfigured}
+                disabled={isLoading || llmChecking || !formData.role?.archetype || !llmConfigured}
                 variant="ghost"
                 size="sm"
                 className="wizard-button wizard-button-ghost gap-2 h-8"
               >
                 <Sparkles className="h-3 w-3" />
-                {isLoading ? 'Generating...' : 'Intelligent'}
+                {isLoading ? 'Generating...' : llmChecking ? 'Checking...' : 'Intelligent'}
               </Button>
               <Button
                 onClick={() => handleGenerateName(true)}
-                disabled={isLoading || !formData.role?.archetype || !llmConfigured}
+                disabled={isLoading || llmChecking || !formData.role?.archetype || !llmConfigured}
                 variant="ghost"
                 size="sm"
                 className="wizard-button wizard-button-ghost gap-2 h-8"
               >
                 <Sparkles className="h-3 w-3" />
-                {isLoading ? 'Generating...' : 'Random'}
+                {isLoading ? 'Generating...' : llmChecking ? 'Checking...' : 'Random'}
               </Button>
             </div>
           </div>
-          
+
+          {/* Checking State */}
+          {llmChecking && (
+            <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+              <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+              <span className="text-sm text-blue-700 dark:text-blue-300">
+                Checking LLM service configuration...
+              </span>
+            </div>
+          )}
+
           {/* Service Warning */}
-          {!llmConfigured && (
+          {!llmChecking && !llmConfigured && (
             <ServiceWarning
               service="llm"
               variant="inline"
               onConfigure={() => setShowLLMSettings(true)}
             />
           )}
-          
+
           {/* Loading State */}
           {isLoading && (
             <LLMLoadingState message="Generating name suggestions..." />
@@ -241,7 +240,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
           {llmError && (
             <LLMErrorDisplay
               error={llmError}
-              onRetry={handleGenerateName}
+              onRetry={() => handleGenerateName(false)}
               onDismiss={clearError}
             />
           )}
@@ -259,6 +258,34 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
               validationErrors.name && 'wizard-input.error'
             )}
           />
+
+          {suggestions.length > 0 && !isLoading && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              <span className="text-xs text-muted-foreground self-center mr-1">Suggestions:</span>
+              {suggestions.map((name, index) => (
+                <button
+                  key={index}
+                  onClick={() => updateFormData({ name })}
+                  className={cn(
+                    "px-2 py-1 text-xs rounded-full border transition-colors",
+                    formData.name === name
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-secondary text-secondary-foreground border-transparent hover:border-primary/50"
+                  )}
+                >
+                  {name}
+                </button>
+              ))}
+              <button
+                onClick={() => setSuggestions([])}
+                className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+                title="Clear suggestions"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
           {validationErrors.name && (
             <p id="name-error" className="text-sm text-destructive" role="alert">
               {validationErrors.name[0]}
@@ -293,7 +320,7 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
               <SelectValue placeholder="Select an archetype" />
             </SelectTrigger>
             <SelectContent className="wizard-select-content">
-              {ARCHETYPES.map((archetype) => (
+              {CHARACTER_ARCHETYPES.map((archetype) => (
                 <SelectItem key={archetype} value={archetype} className="wizard-select-item">
                   {archetype}
                 </SelectItem>
@@ -341,6 +368,63 @@ Example: ["Aria Stormwind", "Marcus Ironheart", "Zara Nightshade"]`;
               {validationErrors.age_range[0]}
             </p>
           )}
+        </div>
+
+        {/* Gender */}
+        <div className="space-y-2">
+          <Label htmlFor="gender" className="wizard-label required">
+            Gender <span className="text-red-600">*</span>
+          </Label>
+          <Select
+            value={
+              GENDER_OPTIONS.includes(formData.visual_identity?.gender as typeof GENDER_OPTIONS[number])
+                ? formData.visual_identity?.gender || ''
+                : formData.visual_identity?.gender ? 'Other' : ''
+            }
+            onValueChange={(val) => {
+              if (val === 'Other') {
+                handleGenderChange('Other');
+              } else {
+                handleGenderChange(val);
+              }
+            }}
+          >
+            <SelectTrigger
+              id="gender"
+              aria-required="true"
+              aria-invalid={!!validationErrors.gender}
+              aria-describedby={validationErrors.gender ? 'gender-error' : undefined}
+              className="wizard-select-trigger"
+            >
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent className="wizard-select-content">
+              {GENDER_OPTIONS.map((option) => (
+                <SelectItem key={option} value={option} className="wizard-select-item">
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {validationErrors.gender && (
+            <p id="gender-error" className="text-sm text-destructive" role="alert">
+              {validationErrors.gender[0]}
+            </p>
+          )}
+          {/* Custom input when Other is selected */}
+          {formData.visual_identity?.gender &&
+            !['Male', 'Female', 'Non-binary'].includes(formData.visual_identity.gender) && (
+              <Input
+                id="gender-custom"
+                value={formData.visual_identity.gender === 'Other' ? '' : formData.visual_identity.gender}
+                onChange={(e) => handleGenderChange(e.target.value || 'Other')}
+                placeholder="Specify gender (e.g., Genderfluid, Agender, Alien...)"
+                className="wizard-input mt-2"
+              />
+            )}
+          <p className="text-sm text-muted-foreground">
+            Select 'Other' for custom/fantasy genders
+          </p>
         </div>
 
         {/* Narrative Function */}

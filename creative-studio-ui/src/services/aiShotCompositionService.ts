@@ -255,7 +255,10 @@ class AIShotCompositionService extends EventEmitter {
     } else if (format === 'xml') {
       return this.convertToXML(composition);
     } else {
-      throw new Error('PDF export not implemented');
+      // PDF export - generate a formatted text representation
+      // In a browser environment, this would typically use a PDF library like jsPDF
+      // For now, we return a structured text format that can be converted to PDF
+      return this.convertToPDF(composition);
     }
   }
 
@@ -675,8 +678,108 @@ class AIShotCompositionService extends EventEmitter {
 </shot_composition>`;
   }
 
+  /**
+   * Convert composition to PDF-friendly format
+   * Returns a structured text representation that can be used with PDF libraries
+   */
+  private convertToPDF(composition: ShotComposition): string {
+    const lines = [
+      '================================',
+      '     SHOT COMPOSITION REPORT    ',
+      '================================',
+      '',
+      `ID: ${composition.id}`,
+      `Scene ID: ${composition.sceneId}`,
+      `Shot Number: ${composition.shotNumber}`,
+      '',
+      '--- COMPOSITION DETAILS ---',
+      `Shot Type: ${composition.composition.shotType}`,
+      `Camera Movement: ${composition.composition.cameraMovement}`,
+      `Lighting Style: ${composition.composition.lightingStyle}`,
+      '',
+      '--- CAMERA SETTINGS ---',
+      `Focal Length: ${composition.composition.suggestedSettings.focalLength}mm`,
+      `Aperture: f/${composition.composition.suggestedSettings.aperture}`,
+      `Shutter Speed: 1/${composition.composition.suggestedSettings.shutterSpeed}s`,
+      `ISO: ${composition.composition.suggestedSettings.iso}`,
+      `White Balance: ${composition.composition.suggestedSettings.whiteBalance}`,
+      '',
+      '--- SCORES ---',
+      `Emotional Impact: ${(composition.composition.emotionalImpact * 100).toFixed(1)}%`,
+      `Technical Score: ${(composition.composition.technicalScore * 100).toFixed(1)}%`,
+      '',
+      '--- COMPOSITION RULES ---',
+      ...composition.composition.compositionRules.map(rule => `• ${rule}`),
+      '',
+      '--- RECOMMENDATIONS ---',
+      ...composition.composition.recommendations.map(rec => `• ${rec}`),
+      '',
+      '--- ALTERNATIVES ---',
+      ...composition.composition.alternatives.map((alt, i) => 
+        `${i + 1}. ${alt.shotType} - ${alt.reason}`
+      ),
+      '',
+      `Created: ${composition.createdAt.toISOString()}`,
+      `Updated: ${composition.updatedAt.toISOString()}`,
+      '================================'
+    ];
+    return lines.join('\n');
+  }
+
   private parseXML(xml: string): unknown {
-    throw new Error('XML parsing not implemented');
+    // Parse XML composition data
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'text/xml');
+      
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) {
+        throw new Error(`XML parse error: ${parseError.textContent}`);
+      }
+
+      const compositionElement = doc.querySelector('shot_composition');
+      if (!compositionElement) {
+        throw new Error('Invalid composition XML: missing shot_composition root element');
+      }
+
+      const id = compositionElement.getAttribute('id') || '';
+      const sceneId = compositionElement.querySelector('scene_id')?.textContent || '';
+      const shotType = compositionElement.querySelector('shot_type')?.textContent || '';
+      const cameraMovement = compositionElement.querySelector('camera_movement')?.textContent || '';
+      const emotionalImpact = parseFloat(compositionElement.querySelector('emotional_impact')?.textContent || '0');
+
+      // Return a partial composition object that can be merged
+      return {
+        id,
+        sceneId,
+        shotNumber: 0,
+        composition: {
+          shotType,
+          cameraMovement,
+          emotionalImpact,
+          technicalScore: 0,
+          compositionRules: [],
+          lightingStyle: 'natural',
+          visualBalance: { balance: 0.5, symmetry: 0.5, depth: 0.5 },
+          suggestedSettings: {
+            focalLength: 50,
+            aperture: 2.8,
+            shutterSpeed: 125,
+            iso: 400,
+            whiteBalance: 'daylight',
+            focusDistance: 3,
+            depthOfField: 0.5
+          },
+          recommendations: [],
+          alternatives: []
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('[AIShotCompositionService] Failed to parse XML:', error);
+      throw new Error(`Failed to parse composition XML: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 

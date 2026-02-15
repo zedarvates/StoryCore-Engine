@@ -10,6 +10,8 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { FormField, FormSection, FormGrid } from '../WizardFormLayout';
+import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 import './DialogueWriterForm.css';
 
 export interface DialogueInput {
@@ -30,6 +32,8 @@ export interface DialogueWriterFormProps {
   onCancel: () => void;
   onChange?: (data: Partial<DialogueInput>) => void;
   onValidationChange?: (isValid: boolean) => void;
+  isGenerating?: boolean;
+  showFooter?: boolean;
 }
 
 interface FormErrors {
@@ -58,6 +62,8 @@ export function DialogueWriterForm({
   onCancel,
   onChange,
   onValidationChange,
+  isGenerating = false,
+  showFooter = true,
 }: DialogueWriterFormProps) {
   const [formData, setFormData] = useState<DialogueInput>({
     sceneContext: initialData?.sceneContext || '',
@@ -66,14 +72,6 @@ export function DialogueWriterForm({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-
-  // Validate form whenever data changes
-  useEffect(() => {
-    // Skip validation on initial mount
-    if (formData.sceneContext || formData.characters.length > 0 || formData.tone) {
-      validateForm();
-    }
-  }, [formData, validateForm]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -100,6 +98,14 @@ export function DialogueWriterForm({
     return isValid;
   }, [formData, onValidationChange]);
 
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.sceneContext || formData.characters.length > 0 || formData.tone) {
+      validateForm();
+    }
+  }, [formData, validateForm]);
+
   const handleFieldChange = useCallback((field: keyof DialogueInput, value: unknown) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
@@ -115,13 +121,13 @@ export function DialogueWriterForm({
     const newCharacters = formData.characters.includes(characterId)
       ? formData.characters.filter(id => id !== characterId)
       : [...formData.characters, characterId];
-    
+
     handleFieldChange('characters', newCharacters);
   }, [formData.characters, handleFieldChange]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       onSubmit(formData);
     }
@@ -153,8 +159,8 @@ export function DialogueWriterForm({
           label="Characters"
           required
           error={errors.characters}
-          helpText={characters.length === 0 
-            ? "⚠️ You need to create at least one character first" 
+          helpText={characters.length === 0
+            ? "⚠️ You need to create at least one character first"
             : "Select characters who will speak in this scene (max 6)"}
         >
           {characters.length === 0 ? (
@@ -204,6 +210,7 @@ export function DialogueWriterForm({
         </FormField>
 
         <FormField
+          name="tone"
           label="Dialogue Tone"
           required
           error={errors.tone}
@@ -222,7 +229,33 @@ export function DialogueWriterForm({
           </select>
         </FormField>
       </FormSection>
+
+      {showFooter && (
+        <div className="flex justify-end gap-2 mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isGenerating}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isGenerating || Object.keys(errors).length > 0}
+            className="gap-2"
+          >
+            {isGenerating ? (
+              <>Generating...</>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                Generate Dialogue
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }
-

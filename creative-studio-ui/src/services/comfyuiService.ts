@@ -7,6 +7,9 @@
  * Validates Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6
  */
 
+import { COMFYUI_URL } from '../config/apiConfig';
+import { logger } from '../utils/logger';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -55,6 +58,8 @@ export interface ComfyUIConfig {
   lastChecked?: Date;
   /** Selected workflow type for character image generation */
   selectedWorkflowType?: WorkflowType;
+  /** Connection timeout in milliseconds */
+  timeout?: number;
 }
 
 export interface ComfyUIServerInfo {
@@ -90,7 +95,7 @@ export interface ModelInfo {
 
 export function getDefaultComfyUIConfig(): ComfyUIConfig {
   return {
-    serverUrl: 'http://localhost:8000', // ComfyUI Desktop default port
+    serverUrl: COMFYUI_URL, // ComfyUI Desktop default port from config
     authentication: {
       type: 'none',
     },
@@ -233,7 +238,7 @@ export class ComfyUIService {
   public async getAvailableModels(): Promise<string[]> {
     const endpoint = this.getConfiguredEndpoint();
     if (!endpoint) {
-      console.warn('⚠️ [ComfyUIService] No endpoint configured');
+      logger.warn('[ComfyUIService] No endpoint configured');
       return [];
     }
 
@@ -246,11 +251,11 @@ export class ComfyUIService {
       if (response.ok) {
         const data = await response.json();
         const models = data?.CheckpointLoaderSimple?.input?.required?.ckpt_name?.[0] || [];
-        console.log('📦 [ComfyUIService] Available models:', models);
+        logger.debug('[ComfyUIService] Available models:', models);
         return models;
       }
     } catch (error) {
-      console.warn('⚠️ [ComfyUIService] Failed to fetch models:', error);
+      logger.warn('[ComfyUIService] Failed to fetch models:', error);
     }
 
     return [];
@@ -262,12 +267,12 @@ export class ComfyUIService {
   public async getDefaultModel(): Promise<string> {
     const models = await this.getAvailableModels();
     if (models.length > 0) {
-      console.log('✅ [ComfyUIService] Using default model:', models[0]);
+      logger.debug('✅ [ComfyUIService] Using default model:', models[0]);
       return models[0];
     }
 
     // Fallback to a common model name
-    console.warn('⚠️ [ComfyUIService] No models found, using fallback');
+    logger.warn('[ComfyUIService] No models found, using fallback');
     return 'model.safetensors';
   }
 
@@ -322,7 +327,7 @@ export class ComfyUIService {
         }
       }
     } catch (error) {
-      console.warn('Failed to read ComfyUI settings:', error);
+      logger.warn('[ComfyUIService] Failed to read ComfyUI settings:', error);
     }
 
     // Fallback to default for ComfyUI (port 8188)
@@ -356,7 +361,7 @@ export class ComfyUIService {
     height: number;
     motionStrength: number;
   }, onProgress?: (progress: number, message: string) => void): Promise<string> {
-    console.log('🚀 [ComfyUIService] Starting video generation');
+    logger.debug('🚀 [ComfyUIService] Starting video generation');
     return this.generateAsset('video', params, onProgress);
   }
 
@@ -371,7 +376,15 @@ export class ComfyUIService {
     if (!availability.available) throw new Error(availability.message);
 
     const workflow = type === 'image'
-      ? this.buildFluxTurboWorkflow(params)
+      ? this.buildFluxTurboWorkflow(params as {
+          prompt: string;
+          negativePrompt?: string;
+          width: number;
+          height: number;
+          steps: number;
+          cfgScale: number;
+          seed?: number;
+        })
       : this.buildVideoWorkflow(params);
 
     const response = await fetch(`${endpoint}/prompt`, {
@@ -386,7 +399,16 @@ export class ComfyUIService {
     if (!response.ok) throw new Error(`ComfyUI ${type} request failed: ${response.status}`);
 
     const data = await response.json();
-    return this.waitForImage(endpoint, data.prompt_id, 300000, onProgress);
+    
+    // Extract image size for adaptive timeout calculation
+    const imageSize = type === 'image' 
+      ? { 
+          width: (params as { width: number }).width, 
+          height: (params as { height: number }).height 
+        }
+      : undefined;
+    
+    return this.waitForImage(endpoint, data.prompt_id, 600000, onProgress, imageSize);
   }
 
   private buildVideoWorkflow(params: unknown): Record<string, unknown> {
@@ -605,20 +627,57 @@ export class ComfyUIService {
   }
 
   /**
+   * Calculate adaptive timeout based on image size in megapixels
+   * @param width Image width in pixels
+   * @param height Image height in pixels
+   * @returns Timeout in milliseconds
+   */
+  private calculateAdaptiveTimeout(width?: number, height?: number): number {
+    if (!width || !height) {
+      return 600000; // 10 minutes default if size unknown
+    }
+    
+    const megapixels = (width * height) / 1000000;
+    
+    if (megapixels <= 1) {
+      return 300000; // 5 minutes for 1MP or less
+    } else if (megapixels <= 2) {
+      return 480000; // 8 minutes for 1-2MP
+    } else {
+      return 600000; // 10 minutes for 2+MP
+    }
+  }
+
+  /**
    * Wait for image generation to complete and return the image URL
+   * @param endpoint ComfyUI endpoint URL
+   * @param promptId The prompt ID to wait for
+   * @param maxWait Maximum wait time in milliseconds (default: 10 minutes)
+   * @param onProgress Optional progress callback
+   * @param imageSize Optional image size for adaptive timeout calculation
    */
   private async waitForImage(
     endpoint: string,
     promptId: string,
-    maxWait: number = 60000,
-    onProgress?: (progress: number, message: string) => void
+    maxWait: number = 600000,
+    onProgress?: (progress: number, message: string) => void,
+    imageSize?: { width: number; height: number }
   ): Promise<string> {
     const startTime = Date.now();
     let attempts = 0;
+    let lastProgress = 0;
+    let lastProgressTime = Date.now();
+    let effectiveMaxWait = maxWait;
 
-    console.log('⏱️ [ComfyUIService] Starting to wait for image...');
+    // Apply adaptive timeout based on image size if provided
+    if (imageSize) {
+      effectiveMaxWait = this.calculateAdaptiveTimeout(imageSize.width, imageSize.height);
+      logger.debug(`⏱️ [ComfyUIService] Adaptive timeout: ${effectiveMaxWait}ms for ${imageSize.width}x${imageSize.height} image`);
+    }
 
-    while (Date.now() - startTime < maxWait) {
+    logger.debug('⏱️ [ComfyUIService] Starting to wait for image...');
+
+    while (Date.now() - startTime < effectiveMaxWait) {
       attempts++;
       try {
         // Check history for completed prompt
@@ -635,7 +694,7 @@ export class ComfyUIService {
               if (outputs[nodeId].images && outputs[nodeId].images.length > 0) {
                 const image = outputs[nodeId].images[0];
                 const imageUrl = `${endpoint}/view?filename=${image.filename}&subfolder=${image.subfolder || ''}&type=${image.type || 'output'}`;
-                console.log('✅ [ComfyUIService] Final image URL:', imageUrl);
+                logger.debug('✅ [ComfyUIService] Final image URL:', imageUrl);
                 return imageUrl;
               }
             }
@@ -645,20 +704,34 @@ export class ComfyUIService {
               const queueResponse = await fetch(`${endpoint}/queue`);
               if (queueResponse.ok) {
                 const queueData = await queueResponse.json();
-                const running = queueData.queue_running || [];
-                const pending = queueData.queue_pending || [];
+                const running: unknown[] = queueData.queue_running || [];
+                const pending: unknown[] = queueData.queue_pending || [];
 
-                const isRunning = running.some((item: unknown) => item[1] === promptId);
-                const isPending = pending.some((item: unknown) => item[1] === promptId);
+                const isRunning = running.some((item) => Array.isArray(item) && item[1] === promptId);
+                const isPending = pending.some((item) => Array.isArray(item) && item[1] === promptId);
 
                 if (isRunning) {
-                  onProgress?.(50, 'Processing in ComfyUI...');
+                  const currentProgress = 50;
+                  
+                  // Extend timeout if progress is being made (30 seconds per progress update)
+                  if (currentProgress > lastProgress) {
+                    const now = Date.now();
+                    // Only extend if at least 5 seconds have passed since last progress
+                    if (now - lastProgressTime > 5000) {
+                      effectiveMaxWait += 30000; // Add 30 seconds
+                      lastProgress = currentProgress;
+                      lastProgressTime = now;
+                      logger.debug(`⏱️ [ComfyUIService] Progress detected, extended timeout to ${effectiveMaxWait}ms`);
+                    }
+                  }
+                  
+                  onProgress?.(currentProgress, 'Processing in ComfyUI...');
                 } else if (isPending) {
                   onProgress?.(10, 'Queued in ComfyUI...');
                 }
               }
             } catch (queueError) {
-              console.warn('⚠️ [ComfyUIService] Failed to check queue:', queueError);
+              logger.warn('[ComfyUIService] Failed to check queue:', queueError);
             }
           }
         }
@@ -666,11 +739,11 @@ export class ComfyUIService {
         // Wait before checking again
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
-        console.error('⚠️ [ComfyUIService] Error checking image status:', error);
+        logger.error('[ComfyUIService] Error checking image status:', error);
       }
     }
 
-    console.error('⏰ [ComfyUIService] Image generation timed out after', maxWait, 'ms');
+    logger.error('[ComfyUIService] Image generation timed out after', effectiveMaxWait, 'ms');
     throw new Error('Image generation timed out');
   }
 }
@@ -759,7 +832,7 @@ async function fetchWorkflows(
     // In a real implementation, this would query a custom endpoint or workflow directory
     return mockWorkflows;
   } catch (error) {
-    console.warn('Failed to fetch workflows, using defaults:', error);
+    logger.warn('[ComfyUIService] Failed to fetch workflows, using defaults:', error);
     return mockWorkflows;
   }
 }
@@ -787,7 +860,7 @@ async function fetchModels(
       return mockModels;
     }
   } catch (error) {
-    console.warn('Failed to fetch models, using defaults:', error);
+    logger.warn('[ComfyUIService] Failed to fetch models, using defaults:', error);
   }
 
   return mockModels;

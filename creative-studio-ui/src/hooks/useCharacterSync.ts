@@ -14,10 +14,10 @@
 // Requirements: 8.1, 8.4
 // ============================================================================
 
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo, useState } from 'react';
 import { useStore } from '../store';
 import type { Character } from '../types/character';
-import { Logger } from '../utils/logger';
+import { logger as Logger } from '../utils/logger';
 
 // ============================================================================
 // Types
@@ -107,6 +107,12 @@ export function useCharacterSync(): CharacterSyncResult {
     );
   }, []);
 
+  // Type for reducer state
+  type SyncState = {
+    characters: Character[];
+    project: typeof project;
+  };
+
   // ============================================================================
   // Sync Effect - Ensure project.characters matches store.characters
   // ============================================================================
@@ -114,11 +120,22 @@ export function useCharacterSync(): CharacterSyncResult {
     if (!project) return;
 
     // Check if sync is needed
-    const needsSync = !project.characters ||
-      project.characters.length !== characters.length ||
-      project.characters.some(
-        (c) => !characters.some((sc) => sc.character_id === c.character_id)
-      );
+    const projectChars = project.characters;
+    const storeCharIds = new Set(characters.map(c => c.character_id));
+    
+    let needsSync = false;
+    if (!projectChars || projectChars.length !== characters.length) {
+      needsSync = true;
+    } else {
+      // Check if any character is missing from project
+      for (const pc of projectChars) {
+        const pcAny = pc as { character_id?: string };
+        if (!storeCharIds.has(pcAny.character_id || '')) {
+          needsSync = true;
+          break;
+        }
+      }
+    }
 
     if (needsSync) {
       Logger.info('[useCharacterSync] Syncing characters to project:', characters.length);
@@ -231,8 +248,9 @@ export function useCharacterSync(): CharacterSyncResult {
         if (validateCharacter(char)) {
           validCharacters.push(char);
         } else {
-          invalidIds.push(char.character_id || 'unknown');
-          Logger.warn('[useCharacterSync] Invalid character found:', char.character_id);
+          const c = char as Record<string, unknown>;
+          invalidIds.push(String(c.character_id || 'unknown'));
+          Logger.warn('[useCharacterSync] Invalid character found:', c.character_id);
         }
       });
 
@@ -304,17 +322,18 @@ export function useCharacterSync(): CharacterSyncResult {
    * Validate all characters in store
    * Returns valid and invalid character IDs
    */
-  const validateCharacters = useCallback(() => {
+  const validateCharacters = useCallback((): { valid: Character[]; invalid: string[] } => {
     const valid: Character[] = [];
     const invalid: string[] = [];
 
-    characters.forEach((char) => {
-      if (validateCharacter(char)) {
+    for (const char of characters) {
+      const charAsUnknown = char as unknown;
+      if (validateCharacter(charAsUnknown)) {
         valid.push(char);
       } else {
         invalid.push(char.character_id);
       }
-    });
+    }
 
     return { valid, invalid };
   }, [characters, validateCharacter]);
@@ -327,17 +346,24 @@ export function useCharacterSync(): CharacterSyncResult {
   const projectHasCharacters = (project?.characters?.length || 0) > 0;
 
   // Check if store and project are in sync
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const isInSync = useMemo(() => {
     if (!project) return true; // No project, always in sync
-    if (!project.characters) return characters.length === 0;
-    if (project.characters.length !== characters.length) return false;
+    const projectCharacters = project.characters as any[];
+    if (!projectCharacters || !Array.isArray(projectCharacters)) return characters.length === 0;
+    if (projectCharacters.length !== characters.length) return false;
     
-    // Check if all characters match
-    return characters.every(
-      (char) => project.characters.some(
-        (pc) => pc.character_id === char.character_id
-      )
-    );
+    // Check if all characters match - use any to bypass type narrowing
+    const charIds = new Set(characters.map(c => c.character_id));
+    const projectCharIds = new Set(projectCharacters.map((pc: any) => pc.character_id));
+    
+    if (charIds.size !== projectCharIds.size) return false;
+    
+    for (const id of charIds) {
+      if (!projectCharIds.has(id)) return false;
+    }
+    
+    return true;
   }, [characters, project]);
 
   // ============================================================================
@@ -366,7 +392,4 @@ export function useCharacterSync(): CharacterSyncResult {
     validateCharacters,
   };
 }
-
-// Import useState at the top
-import { useState } from 'react';
 

@@ -9,6 +9,7 @@
  */
 
 import { getLLMService } from '../services/llmService';
+import { logger } from '@/utils/logger';
 
 export interface Character {
   id: string;
@@ -41,6 +42,35 @@ export interface DialogueScene {
   genre?: string;
   tone?: string;
   setting?: string;
+}
+
+/**
+ * Context for dialogue generation
+ */
+export interface DialogueContext {
+  genre?: string;
+  tone?: string;
+  setting?: string;
+  topic?: string;
+  length?: 'short' | 'medium' | 'long';
+}
+
+/**
+ * Options for SAPI audio generation
+ */
+export interface SAPIOptions {
+  emotionalState?: string;
+  speed?: number;
+  pitch?: number;
+}
+
+/**
+ * Parsed dialogue line from LLM response
+ */
+interface ParsedDialogueLine {
+  character: string;
+  text: string;
+  emotionalState?: string;
 }
 
 export class DialogueService {
@@ -80,7 +110,7 @@ export class DialogueService {
 
       return this.parseDialogueResponse(response, characters);
     } catch (error) {
-      console.error('Erreur lors de la génération des dialogues:', error);
+      logger.error('[DialogueService] Failed to generate dialogues:', error);
       throw new Error('Impossible de générer les dialogues');
     }
   }
@@ -98,12 +128,12 @@ export class DialogueService {
     } = {}
   ): Promise<Blob> {
     try {
-      console.log(`Génération audio SAPI pour "${text}" avec la voix ${character.voiceProfile}`);
+      logger.debug(`[DialogueService] Generating SAPI audio for "${text}" with voice ${character.voiceProfile}`);
 
       // Use real SAPI service instead of simulation
       return await this.callSAPIService(text, character, options);
     } catch (error) {
-      console.error('Erreur lors de la génération SAPI:', error);
+      logger.error('[DialogueService] Failed to generate SAPI audio:', error);
       throw new Error('Impossible de générer l\'audio avec SAPI');
     }
   }
@@ -141,7 +171,7 @@ Format: Prompt complet prêt pour DALL-E, Midjourney ou Stable Diffusion.`;
 
       return response.trim();
     } catch (error) {
-      console.error('Erreur lors de la génération du prompt image:', error);
+      logger.error('[DialogueService] Failed to generate image prompt:', error);
       throw new Error('Impossible de générer le prompt image');
     }
   }
@@ -179,7 +209,7 @@ Format: Description complète de séquence vidéo pour génération IA.`;
 
       return response.trim();
     } catch (error) {
-      console.error('Erreur lors de la génération du prompt vidéo:', error);
+      logger.error('[DialogueService] Failed to generate video prompt:', error);
       throw new Error('Impossible de générer le prompt vidéo');
     }
   }
@@ -187,7 +217,7 @@ Format: Description complète de séquence vidéo pour génération IA.`;
   /**
    * Build dialogue generation prompt
    */
-  private buildDialoguePrompt(characters: Character[], context: unknown): string {
+  private buildDialoguePrompt(characters: Character[], context: DialogueContext): string {
     const characterDescriptions = characters.map(char =>
       `${char.name}: ${char.personality.join(', ')} (${char.age || 'âge inconnu'}, ${char.gender || 'genre inconnu'})`
     ).join('\n');
@@ -230,7 +260,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
       const parsed = JSON.parse(response);
 
       if (parsed.dialogues && Array.isArray(parsed.dialogues)) {
-        return parsed.dialogues.map((line: unknown, index: number) => ({
+        return parsed.dialogues.map((line: ParsedDialogueLine, index: number) => ({
           id: `dialogue_${Date.now()}_${index}`,
           character: line.character,
           text: line.text,
@@ -241,8 +271,8 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
 
       throw new Error('Format de réponse invalide');
     } catch (error) {
-      // Fallback: essayer d'extraire manuellement
-      console.warn('Erreur de parsing JSON, tentative d\'extraction manuelle');
+      // Fallback: try manual extraction
+      logger.warn('[DialogueService] JSON parsing failed, attempting manual extraction');
       return this.extractDialoguesFromText(response, characters);
     }
   }
@@ -280,7 +310,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
   /**
    * Build SAPI command for text-to-speech
    */
-  private buildSAPICommand(text: string, character: Character, options: unknown): string {
+  private buildSAPICommand(text: string, character: Character, options: SAPIOptions): string {
     // Simulation de commande SAPI
     // En production, utiliser l'API Windows SAPI ou un service TTS
     return `SAPI-Speak -Text "${text}" -Voice "${character.voiceProfile}" -Rate ${options.speed || 0} -Pitch ${options.pitch || 0}`;
@@ -290,15 +320,15 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
    * Simulate SAPI API call
    */
   private async simulateSAPICall(command: string): Promise<void> {
-    // Simulation d'un appel à SAPI
-    console.log('Exécution commande SAPI:', command);
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simuler délai
+    // Simulate a SAPI call
+    logger.debug('[DialogueService] Executing SAPI command:', command);
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate delay
   }
 
   /**
    * Call real SAPI service at 192.168.1.47:3000
    */
-  private async callSAPIService(text: string, character: Character, options: unknown): Promise<Blob> {
+  private async callSAPIService(text: string, character: Character, options: SAPIOptions): Promise<Blob> {
     try {
       const sapiUrl = 'http://192.168.1.47:3000/api/sapi/generate';
 
@@ -326,9 +356,9 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
       const audioBlob = await response.blob();
       return audioBlob;
     } catch (error) {
-      console.error('Erreur lors de l\'appel au service SAPI:', error);
+      logger.error('[DialogueService] Failed to call SAPI service:', error);
       // Fallback to simulation if service is unavailable
-      console.log('Fallback vers simulation SAPI');
+      logger.debug('[DialogueService] Falling back to SAPI simulation');
       await this.simulateSAPICall(this.buildSAPICommand(text, character, options));
       return this.createMockAudioBlob(text);
     }
@@ -338,23 +368,23 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
    * Create mock audio blob for testing
    */
   private createMockAudioBlob(text: string): Blob {
-    // Créer un blob audio simulé
-    // En production, retourner le vrai audio généré par SAPI
+    // Create a simulated audio blob
+    // In production, return the real audio generated by SAPI
     const audioContext = new AudioContext();
-    const duration = Math.max(text.length * 0.1, 2); // Durée basée sur la longueur du texte
+    const duration = Math.max(text.length * 0.1, 2); // Duration based on text length
 
-    // Créer un buffer audio simple (ton sine)
+    // Create a simple audio buffer (sine tone)
     const sampleRate = audioContext.sampleRate;
     const numSamples = sampleRate * duration;
     const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
     const channelData = buffer.getChannelData(0);
 
-    // Générer un ton simple
+    // Generate a simple tone
     for (let i = 0; i < numSamples; i++) {
       channelData[i] = Math.sin(2 * Math.PI * 440 * i / sampleRate) * 0.1; // 440Hz sine wave
     }
 
-    // Convertir en WAV blob
+    // Convert to WAV blob
     return this.audioBufferToWav(buffer);
   }
 
@@ -366,7 +396,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
     const sampleRate = buffer.sampleRate;
     const numChannels = buffer.numberOfChannels;
 
-    // Créer le buffer WAV
+    // Create the WAV buffer
     const arrayBuffer = new ArrayBuffer(44 + length * numChannels * 2);
     const view = new DataView(arrayBuffer);
 
@@ -456,7 +486,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
       mediaRecorder.start(100); // Collect data every 100ms
       return mediaRecorder;
     } catch (error) {
-      console.error('Erreur lors du démarrage de l\'enregistrement:', error);
+      logger.error('[DialogueService] Failed to start audio recording:', error);
       throw new Error('Impossible d\'accéder au microphone');
     }
   }
@@ -506,7 +536,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
         voiceCharacteristics: analysisResult.voiceCharacteristics
       };
     } catch (error) {
-      console.error('Erreur lors du traitement de l\'audio:', error);
+      logger.error('[DialogueService] Failed to process recorded audio:', error);
       // Fallback to basic duration only
       const duration = await this.getAudioDuration(audioBlob);
       return { duration };
@@ -541,7 +571,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
         voiceCharacteristics: result.voice_characteristics
       };
     } catch (error) {
-      console.error('Erreur lors de l\'analyse SAPI:', error);
+      logger.error('[DialogueService] Failed to analyze audio with SAPI:', error);
       return {}; // Return empty result on error
     }
   }
@@ -590,7 +620,7 @@ Rends le dialogue plus naturel, corrige les erreurs de transcription, et adapte-
         timestamp: Date.now()
       };
     } catch (error) {
-      console.error('Erreur lors de la génération de dialogue depuis audio:', error);
+      logger.error('[DialogueService] Failed to generate dialogue from audio:', error);
       throw new Error('Impossible de générer le dialogue depuis l\'audio');
     }
   }

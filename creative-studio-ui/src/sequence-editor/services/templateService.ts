@@ -34,6 +34,7 @@ export interface SceneTemplate {
   shots: TemplateShot[];
   metadata: TemplateMetadata;
   tags: string[];
+  createdAt: number;
 }
 
 export interface NarrativePreset {
@@ -52,6 +53,7 @@ export interface NarrativePreset {
     guidance?: number;
   };
   tags: string[];
+  createdAt: number;
 }
 
 // ============================================================================
@@ -224,6 +226,7 @@ export function createTemplateFromShots(
       complexity,
     },
     tags,
+    createdAt: Date.now(),
   };
 }
 
@@ -244,6 +247,7 @@ export function createNarrativePreset(
     styleParameters,
     shotDefaults,
     tags,
+    createdAt: Date.now(),
   };
 }
 
@@ -261,7 +265,7 @@ export function saveCustomTemplate(template: SceneTemplate): void {
   try {
     const stored = localStorage.getItem(TEMPLATE_STORAGE_KEY);
     const templates: SceneTemplate[] = stored ? JSON.parse(stored) : [];
-    
+
     // Check if template already exists and update it
     const existingIndex = templates.findIndex((t) => t.id === template.id);
     if (existingIndex !== -1) {
@@ -269,7 +273,7 @@ export function saveCustomTemplate(template: SceneTemplate): void {
     } else {
       templates.push(template);
     }
-    
+
     localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
   } catch (error) {
     console.error('Failed to save custom template:', error);
@@ -312,7 +316,7 @@ export function saveNarrativePreset(preset: NarrativePreset): void {
   try {
     const stored = localStorage.getItem(PRESET_STORAGE_KEY);
     const presets: NarrativePreset[] = stored ? JSON.parse(stored) : [];
-    
+
     // Check if preset already exists and update it
     const existingIndex = presets.findIndex((p) => p.id === preset.id);
     if (existingIndex !== -1) {
@@ -320,7 +324,7 @@ export function saveNarrativePreset(preset: NarrativePreset): void {
     } else {
       presets.push(preset);
     }
-    
+
     localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
   } catch (error) {
     console.error('Failed to save narrative preset:', error);
@@ -402,6 +406,7 @@ export function getBuiltInTemplates(): SceneTemplate[] {
         complexity: 'moderate',
       },
       tags: ['action', 'dynamic', 'fast-paced'],
+      createdAt: new Date('2024-01-01').getTime(),
     },
     {
       id: 'template-dialogue-scene',
@@ -440,6 +445,7 @@ export function getBuiltInTemplates(): SceneTemplate[] {
         complexity: 'simple',
       },
       tags: ['dialogue', 'conversation', 'drama'],
+      createdAt: new Date('2024-01-01').getTime(),
     },
     {
       id: 'template-montage',
@@ -484,6 +490,7 @@ export function getBuiltInTemplates(): SceneTemplate[] {
         complexity: 'simple',
       },
       tags: ['montage', 'fast-paced', 'quick-cuts'],
+      createdAt: new Date('2024-01-01').getTime(),
     },
   ];
 }
@@ -507,6 +514,7 @@ export function getBuiltInPresets(): NarrativePreset[] {
         guidance: 8.0,
       },
       tags: ['cinematic', 'professional', 'high-quality'],
+      createdAt: new Date('2024-01-01').getTime(),
     },
     {
       id: 'preset-noir',
@@ -523,6 +531,7 @@ export function getBuiltInPresets(): NarrativePreset[] {
         guidance: 8.5,
       },
       tags: ['noir', 'black-and-white', 'dramatic'],
+      createdAt: new Date('2024-01-01').getTime(),
     },
     {
       id: 'preset-dreamy',
@@ -538,6 +547,7 @@ export function getBuiltInPresets(): NarrativePreset[] {
         guidance: 7.0,
       },
       tags: ['dreamy', 'soft', 'pastel'],
+      createdAt: new Date('2024-01-01').getTime(),
     },
     {
       id: 'preset-gritty',
@@ -553,6 +563,7 @@ export function getBuiltInPresets(): NarrativePreset[] {
         guidance: 6.5,
       },
       tags: ['gritty', 'realistic', 'documentary'],
+      createdAt: new Date('2024-01-01').getTime(),
     },
   ];
 }

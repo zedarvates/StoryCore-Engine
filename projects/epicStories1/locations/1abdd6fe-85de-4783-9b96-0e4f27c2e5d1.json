@@ -1,0 +1,18 @@
+{
+  "location_id": "1abdd6fe-85de-4783-9b96-0e4f27c2e5d1",
+  "name": "The Rusted Reliquary",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T21:02:50.032Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A vast, abandoned storage facility filled with the remnants of a bygone era. Rows upon rows of rusting shelves are stacked with dusty artifacts, each one whispering secrets of the past to those who dare listen.",
+    "atmosphere": "Dreary, nostalgic, and slightly treacherous, with an undercurrent of excitement and possibility.",
+    "genre_tags": [],
+    "significance": "Treasure trove for Vivas Guardians seeking rare resources and knowledge, but also a hotbed of rival factions vying for control."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

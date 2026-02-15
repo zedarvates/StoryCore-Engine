@@ -18,22 +18,41 @@ import panelsReducer from './slices/panelsSlice';
 import toolsReducer from './slices/toolsSlice';
 import previewReducer from './slices/previewSlice';
 import historyReducer from './slices/historySlice';
+import effectsReducer from './slices/effectsSlice'; // Phase 1 - R&D
+import audioReducer from './slices/audioSlice'; // Phase 1 - R&D
 
 // Import middleware
 import { historyMiddleware } from './middleware/historyMiddleware';
 import { autoSaveMiddleware } from './middleware/autoSaveMiddleware';
 
+// Root reducer type - define before creating the store
+export type RootReducerState = {
+  project: ReturnType<typeof projectReducer>;
+  timeline: ReturnType<typeof timelineReducer>;
+  assets: ReturnType<typeof assetsReducer>;
+  panels: ReturnType<typeof panelsReducer>;
+  tools: ReturnType<typeof toolsReducer>;
+  preview: ReturnType<typeof previewReducer>;
+  history: ReturnType<typeof historyReducer>;
+  effects: ReturnType<typeof effectsReducer>;
+  audio: ReturnType<typeof audioReducer>;
+};
+
 // Configure the Redux store
+const rootReducer = {
+  project: projectReducer,
+  timeline: timelineReducer,
+  assets: assetsReducer,
+  panels: panelsReducer,
+  tools: toolsReducer,
+  preview: previewReducer,
+  history: historyReducer,
+  effects: effectsReducer,
+  audio: audioReducer,
+};
+
 export const store = configureStore({
-  reducer: {
-    project: projectReducer,
-    timeline: timelineReducer,
-    assets: assetsReducer,
-    panels: panelsReducer,
-    tools: toolsReducer,
-    preview: previewReducer,
-    history: historyReducer,
-  },
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
@@ -44,12 +63,13 @@ export const store = configureStore({
         // Ignore these paths in the state
         ignoredPaths: ['preview.currentFrame', 'history.undoStack', 'history.redoStack'],
       },
-    }).concat(historyMiddleware, autoSaveMiddleware), // Add history and auto-save middleware
+    }).concat(historyMiddleware, autoSaveMiddleware),
   devTools: process.env.NODE_ENV !== 'production',
 });
 
 // Export store types
-export type RootState = ReturnType<typeof store.getState>;
+// Use RootReducerState (already defined above) to avoid circular dependency
+export type RootState = RootReducerState;
 export type AppDispatch = typeof store.dispatch;
 
 // Export typed hooks for use throughout the application

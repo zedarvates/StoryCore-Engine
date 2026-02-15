@@ -1,0 +1,22 @@
+{
+  "location_id": "0754e372-78d8-46e2-aaf8-34464ef9b4fe",
+  "name": "Tokugawa Tower's Sky Gallery",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T15:24:20.015Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A lofty observation deck perched atop the city's iconic Tokugawa Tower. The glass-walled gallery offers breathtaking views of Néo Tokyo's sprawling metropolis by day, but at night it becomes a vertiginous spectacle of twinkling lights and dark shadows.",
+    "atmosphere": {
+      "lighting": "bright, with spotlights on key landmarks",
+      "temperature": "cool, breeze off the city below",
+      "sounds": "gentle hum of machinery, distant chatter, wind whistling through the tower"
+    },
+    "genre_tags": [],
+    "significance": "The Sky Gallery serves as both a popular tourist destination and a hub for the city's elite: high-society types gather here to see and be seen. However, rumors speak of a secret society operating from within these heights, manipulating events from behind the scenes..."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

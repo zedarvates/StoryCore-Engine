@@ -57,6 +57,10 @@ export function Step6ReviewFinalize({ storyContext }: Step6ReviewFinalizeProps =
               <p className="text-sm font-medium text-muted-foreground">Age Range</p>
               <p>{formData.visual_identity?.age_range || 'Not specified'}</p>
             </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Gender</p>
+              <p>{formData.visual_identity?.gender || 'Not specified'}</p>
+            </div>
             {formData.role?.narrative_function && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Narrative Function</p>

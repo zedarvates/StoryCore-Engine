@@ -4,8 +4,8 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 // Wizard Context Types
 // ============================================================================
 
-export type WizardType = 
-  | 'world' 
+export type WizardType =
+  | 'world'
   | 'character'
   | 'storyteller'
   | 'dialogue-writer'
@@ -14,7 +14,8 @@ export type WizardType =
   | 'style-transfer'
   | 'sequence-plan'
   | 'shot'
-  | 'project-setup';
+  | 'project-setup'
+  | 'object';
 
 export interface WizardContextState<T> {
   currentStep: number;
@@ -24,7 +25,7 @@ export interface WizardContextState<T> {
   isSubmitting: boolean;
   isDirty: boolean;
   isManualMode: boolean; // Manual entry mode (fallback from LLM)
-  
+
   // Actions
   goToStep: (step: number) => void;
   nextStep: () => Promise<void>;
@@ -37,6 +38,8 @@ export interface WizardContextState<T> {
   saveProgress: () => void;
   loadProgress: () => void;
   setManualMode: (enabled: boolean) => void;
+  clearSavedProgress: () => void;
+  hasSavedProgress: () => boolean;
 }
 
 interface WizardProviderProps<T> {
@@ -49,6 +52,7 @@ interface WizardProviderProps<T> {
   onValidateStep?: (step: number, data: Partial<T>) => Promise<Record<string, string[]>>;
   autoSave?: boolean;
   autoSaveDelay?: number; // milliseconds
+  autoLoad?: boolean; // NEW: defaults to false
 }
 
 // ============================================================================
@@ -71,6 +75,7 @@ export function WizardProvider<T>({
   onValidateStep,
   autoSave = true,
   autoSaveDelay = 2000,
+  autoLoad = false,
 }: WizardProviderProps<T>) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<T>>(initialData);
@@ -113,7 +118,7 @@ export function WizardProvider<T>({
         isManualMode,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
       };
-      
+
       localStorage.setItem(`wizard-${wizardType}`, JSON.stringify(state));
     } catch (error) {
       console.error('Failed to save wizard progress:', error);
@@ -126,7 +131,7 @@ export function WizardProvider<T>({
       if (!saved) return;
 
       const state = JSON.parse(saved);
-      
+
       // Check if expired
       if (new Date(state.expiresAt) < new Date()) {
         localStorage.removeItem(`wizard-${wizardType}`);
@@ -144,10 +149,29 @@ export function WizardProvider<T>({
     }
   }, [wizardType]);
 
-  // Load progress on mount
+  // Check if saved progress exists without loading it
+  const hasSavedProgress = useCallback((): boolean => {
+    const saved = localStorage.getItem(`wizard-${wizardType}`);
+    if (!saved) return false;
+
+    try {
+      const state = JSON.parse(saved);
+      // Check if expired
+      if (new Date(state.expiresAt) < new Date()) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }, [wizardType]);
+
+  // Load progress on mount only if autoLoad is true
   useEffect(() => {
-    loadProgress();
-  }, [loadProgress]);
+    if (autoLoad) {
+      loadProgress();
+    }
+  }, [loadProgress, autoLoad]);
 
   // Auto-save when form data changes
   useEffect(() => {
@@ -214,18 +238,18 @@ export function WizardProvider<T>({
   // Auto-validate when form data changes
   useEffect(() => {
     if (!onValidateStep || isDirty) return;
-    
+
     // Only auto-validate for steps 1, 4, 5 which have validation requirements
     // Skip for steps 2 and 3 which are optional
     if (currentStep === 2 || currentStep === 3) return;
-    
+
     validateStep(currentStep);
   }, [formData, currentStep, onValidateStep, validateStep, isDirty]);
 
   const updateFormData = useCallback((data: Partial<T>) => {
     setFormData((prev) => ({ ...prev, ...data }));
     setIsDirty(true);
-    
+
     // Immediately clear validation errors for updated fields (sync operation)
     const updatedFields = Object.keys(data);
     setValidationErrors((prev) => {
@@ -235,7 +259,7 @@ export function WizardProvider<T>({
       });
       return newErrors;
     });
-    
+
     // For immediate feedback, validate with the merged data
     if (onValidateStep) {
       // Use setTimeout to ensure we have the latest formData
@@ -251,7 +275,7 @@ export function WizardProvider<T>({
 
   const submitWizard = useCallback(async () => {
     setIsSubmitting(true);
-    
+
     try {
       // Validate all steps
       let isValid = true;
@@ -271,15 +295,15 @@ export function WizardProvider<T>({
 
       // Submit the form
       await onSubmit(formData as T);
-      
+
       // Call onComplete callback after successful submission
       if (onComplete) {
         onComplete(formData as T);
       }
-      
+
       // Clear saved progress on successful submission
       localStorage.removeItem(`wizard-${wizardType}`);
-      
+
       // Reset wizard state
       setFormData(initialData);
       setCurrentStep(1);
@@ -305,6 +329,15 @@ export function WizardProvider<T>({
     setIsManualMode(false);
     localStorage.removeItem(`wizard-${wizardType}`);
   }, [initialData, wizardType]);
+
+  // ============================================================================
+  // Clear Saved Progress (for fresh start)
+  // ============================================================================
+
+  const clearSavedProgress = useCallback(() => {
+    localStorage.removeItem(`wizard-${wizardType}`);
+    setIsDirty(false);
+  }, [wizardType]);
 
   // ============================================================================
   // Manual Mode Toggle
@@ -337,6 +370,8 @@ export function WizardProvider<T>({
     saveProgress,
     loadProgress,
     setManualMode,
+    clearSavedProgress,
+    hasSavedProgress,
   };
 
   return (
@@ -352,11 +387,11 @@ export function WizardProvider<T>({
 
 export function useWizard<T>(): WizardContextState<T> {
   const context = useContext(WizardContext);
-  
+
   if (!context) {
     throw new Error('useWizard must be used within a WizardProvider');
   }
-  
+
   return context as WizardContextState<T>;
 }
 

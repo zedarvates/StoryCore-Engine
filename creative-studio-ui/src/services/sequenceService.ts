@@ -3,6 +3,8 @@
  * Handles communication with StoryCore-Engine backend for sequence generation
  */
 
+import { logger } from '@/utils/logger';
+
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export interface SequenceGenerationRequest {
@@ -95,12 +97,12 @@ export class SequenceService {
   }
 
   private isElectronAvailable(): boolean {
-    return !!(window as any).electronAPI?.fs;
+    return !!window.electronAPI?.fs;
   }
 
   async loadSequences(projectPath: string): Promise<SequenceData[]> {
     if (this.isElectronAvailable()) {
-      const electronFs = (window as any).electronAPI.fs;
+      const electronFs = window.electronAPI!.fs;
       const sequencesDir = `${projectPath}/sequences`;
       try {
         const files = await electronFs.readdir(sequencesDir);
@@ -117,7 +119,7 @@ export class SequenceService {
         );
         return sequences.sort((a, b) => (a.order || 0) - (b.order || 0));
       } catch (error) {
-        console.error('Failed to load sequences via Electron:', error);
+        logger.error('[SequenceService] Failed to load sequences via Electron:', error);
         return [];
       }
     } else {
@@ -146,7 +148,7 @@ export class SequenceService {
 
   async createSequence(projectPath: string, sequence: SequenceData): Promise<SequenceData> {
     if (this.isElectronAvailable()) {
-      const electronFs = (window as any).electronAPI.fs;
+      const electronFs = window.electronAPI!.fs;
       const sequencesDir = `${projectPath}/sequences`;
       const fileName = `sequence_${sequence.id.substring(0, 8)}.json`;
       const data = { ...sequence, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
@@ -167,7 +169,7 @@ export class SequenceService {
       if (!sequence) throw new Error(`Sequence ${sequenceId} not found`);
 
       const updated = { ...sequence, ...updates, updated_at: new Date().toISOString() };
-      const electronFs = (window as any).electronAPI.fs;
+      const electronFs = window.electronAPI!.fs;
       const fileName = `sequence_${sequenceId.substring(0, 8)}.json`;
       await electronFs.writeFile(`${projectPath}/sequences/${fileName}`, JSON.stringify(updated, null, 2));
       return updated;
@@ -183,11 +185,11 @@ export class SequenceService {
   async deleteSequence(projectPath: string, sequenceId: string): Promise<void> {
     if (this.isElectronAvailable()) {
       // Ideally we find the specific file
-      const electronFs = (window as any).electronAPI.fs;
+      const electronFs = window.electronAPI!.fs;
       const fileName = `sequence_${sequenceId.substring(0, 8)}.json`;
       // Note: electronAPI.fs might need a delete method if it exists
-      if (electronFs.removeFile) {
-        await electronFs.removeFile(`${projectPath}/sequences/${fileName}`);
+      if ('removeFile' in electronFs && typeof electronFs.removeFile === 'function') {
+        await (electronFs as unknown as { removeFile: (path: string) => Promise<void> }).removeFile(`${projectPath}/sequences/${fileName}`);
       }
     } else {
       await apiRequest(`/sequences/${sequenceId}?project_path=${encodeURIComponent(projectPath)}`, {
@@ -249,7 +251,7 @@ export class SequenceService {
           onProgress(data);
         }
       } catch (e) {
-        console.error('Failed to parse SSE data:', e);
+        logger.error('[SequenceService] Failed to parse SSE data:', e);
       }
     };
 

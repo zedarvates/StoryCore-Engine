@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <circle cx="64" cy="64" r="60" fill="#1a1a2e"/>
+  <circle cx="64" cy="64" r="52" fill="none" stroke="#6366f1" stroke-width="3" opacity="0.8"/>
+  <circle cx="64" cy="64" r="44" fill="url(#grokGradient)" opacity="0.3"/>
+  <path d="M 44 44 L 64 64 L 44 84 M 84 44 L 64 64 L 84 84" fill="none" stroke="#a855f7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="28" y1="64" x2="36" y2="64" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  <line x1="32" y1="60" x2="32" y2="68" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  <line x1="92" y1="64" x2="100" y2="64" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  <line x1="96" y1="60" x2="96" y2="68" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  <line x1="64" y1="20" x2="64" y2="28" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="24" x2="68" y2="24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  <line x1="64" y1="100" x2="64" y2="108" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="104" x2="68" y2="104" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <radialGradient id="grokGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <text x="64" y="115" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#e2e8f0" text-anchor="middle">GROK</text>
+</svg>

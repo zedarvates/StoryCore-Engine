@@ -277,9 +277,9 @@ export class MockResultService extends ResultService {
     // Simulate download delay
     await new Promise((resolve) => setTimeout(resolve, this.mockDelay));
     
-    
-    // In a real implementation, this would trigger a download
-    // For mock, we just log it
+    // Use the parent's real download implementation
+    // This ensures downloads work even in mock mode
+    await super.downloadAsset(asset, filename);
   }
 
   async deleteResult(taskId: string): Promise<void> {

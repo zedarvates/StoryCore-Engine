@@ -5,6 +5,8 @@
 // capabilities. Supports real-time updates via event subscriptions.
 //
 // Requirements: 1.1, 1.2, 1.3, 1.5, 4.2, 4.5, 5.1, 5.2, 5.3
+// 
+// Updated: Added pagination support for large character lists
 // ============================================================================
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -13,6 +15,8 @@ import { CharacterCard } from './CharacterCard';
 import { CharacterSearchBar } from './CharacterSearchBar';
 import { useCharacterManager } from '@/hooks/useCharacterManager';
 import { useAppStore } from '@/stores/useAppStore';
+import { usePagination } from '@/hooks/usePagination';
+import { Pagination } from '@/components/ui/pagination';
 import type { Character } from '@/types/character';
 import type { CharacterFilters } from '@/stores/useAppStore';
 import { eventEmitter } from '@/services/eventEmitter';
@@ -196,6 +200,20 @@ export function CharacterList({
     characterFilters,
     refreshTrigger, // Trigger re-computation on events
   ]);
+
+  /**
+   * Pagination for characters
+   */
+  const {
+    paginatedItems,
+    pagination,
+    goToPage,
+    setPageSize,
+  } = usePagination({
+    items: characters,
+    pageSize: 12,
+    resetOnItemsChange: true,
+  });
 
   // ============================================================================
   // Event Subscriptions
@@ -421,22 +439,33 @@ export function CharacterList({
    */
   const renderCharacterGrid = () => {
     return (
-      <div className="character-list__grid">
-        {characters.map((character) => (
-          <CharacterCard
-            key={character.character_id}
-            character={character}
-            onClick={() => handleCharacterClick(character)}
-            selectable={selectable}
-            selected={selectedIds.includes(character.character_id)}
-            onSelect={(selected) => handleCharacterSelect(character, selected)}
-            showActions={showActions}
-            onEdit={() => handleCharacterEdit(character)}
-            onDelete={() => handleCharacterDelete(character)}
-            onImageGenerated={(imagePath) => handleImageGenerated(character, imagePath)}
-          />
-        ))}
-      </div>
+      <>
+        <div className="character-list__grid">
+          {paginatedItems.map((character) => (
+            <CharacterCard
+              key={character.character_id}
+              character={character}
+              onClick={() => handleCharacterClick(character)}
+              selectable={selectable}
+              selected={selectedIds.includes(character.character_id)}
+              onSelect={(selected) => handleCharacterSelect(character, selected)}
+              showActions={showActions}
+              onEdit={() => handleCharacterEdit(character)}
+              onDelete={() => handleCharacterDelete(character)}
+              onImageGenerated={(imagePath) => handleImageGenerated(character, imagePath)}
+            />
+          ))}
+        </div>
+        
+        {/* Pagination Controls */}
+        <Pagination
+          pagination={pagination}
+          onPageChange={goToPage}
+          onPageSizeChange={setPageSize}
+          showPageSizeSelector
+          className="character-list__pagination"
+        />
+      </>
     );
   };
 

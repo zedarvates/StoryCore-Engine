@@ -129,10 +129,28 @@ export interface RoverHistory {
   commits: RoverCommit[];
 }
 
+export interface CommandExecutionResult {
+  success: boolean;
+  output?: string;
+  error?: string;
+  exitCode?: number;
+}
+
+export interface CommandExecutionOptions {
+  command: string;
+  cwd?: string;
+  shell?: boolean;
+  timeout?: number;
+  env?: Record<string, string>;
+}
+
 /**
  * Electron API interface
  */
 export interface ElectronAPI {
+  // Dialog helpers
+  showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;
+
   // System information
   platform: string;
   versions: {
@@ -140,6 +158,9 @@ export interface ElectronAPI {
     chrome: string;
     electron: string;
   };
+
+  // Command execution
+  executeCommand: (options: CommandExecutionOptions) => Promise<CommandExecutionResult>;
 
   // Project management
   project: {
@@ -540,7 +561,49 @@ export interface ElectronAPI {
      * @returns Snapshot data from the checkpoint
      * @throws Error if restoration fails
      */
-    restoreCheckpoint: (projectPath: string, commitId: string) => Promise<any>;
+restoreCheckpoint: (projectPath: string, commitId: string) => Promise<any>;
+  };
+
+  // Configuration management
+  config: {
+    /**
+     * Save project configuration
+     * @param projectId ID of the project
+     * @param config Configuration to save
+     * @throws Error if save fails
+     */
+    saveProject: (projectId: string, config: any) => Promise<void>;
+
+    /**
+     * Load project configuration
+     * @param projectId ID of the project
+     * @returns Project configuration
+     * @throws Error if load fails
+     */
+    loadProject: (projectId: string) => Promise<any>;
+
+    /**
+     * Save global configuration
+     * @param config Configuration to save
+     * @throws Error if save fails
+     */
+    saveGlobal: (config: any) => Promise<void>;
+
+    /**
+     * Load global configuration
+     * @returns Global configuration
+     * @throws Error if load fails
+     */
+    loadGlobal: () => Promise<any>;
+
+    /**
+     * Validate configuration
+     * @param config Configuration to validate
+     * @param rules Validation rules
+     * @returns Validation result
+     * @throws Error if validation fails
+     */
+    validate: (config: any, rules: any[]) => Promise<any>;
   };
 }
 

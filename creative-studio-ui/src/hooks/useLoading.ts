@@ -13,7 +13,7 @@
 // ============================================================================
 
 import { useState, useCallback, useRef } from 'react';
-import { Logger } from '../utils/logger';
+import { logger as Logger } from '../utils/logger';
 
 // ============================================================================
 // Types

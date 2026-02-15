@@ -90,9 +90,10 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
       
       // Priority 2: Saved portrait path (persistent)
       if (character.visual_identity?.generated_portrait) {
+        const portraitPath = character.visual_identity.generated_portrait;
         const url = await getImageDisplayUrl(
-          character.visual_identity.generated_portrait,
-          project?.metadata?.path
+          typeof portraitPath === 'string' ? portraitPath : String(portraitPath),
+          project?.metadata?.path as string | undefined
         );
         if (url) {
           setDisplayImageUrl(url);
@@ -117,7 +118,7 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
     try {
       const date = new Date(timestamp);
       // Check if date is valid
-      if (isNaN(date.getTime())) {
+      if (Number.isNaN(date.getTime())) {
         return 'Unknown date';
       }
       return date.toLocaleDateString('en-US', {
@@ -167,12 +168,9 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
   const thumbnailUrl = displayImageUrl;
 
   /**
-   * Build a detailed prompt from character data
+   * Build visual style prefix for prompt
    */
-  const buildCharacterPrompt = (): string => {
-    const parts: string[] = [];
-    
-    // Add visual style first
+  const buildStylePrefix = (): string => {
     const styleMap: Record<string, string> = {
       'photorealistic': 'photorealistic',
       'cinematic': 'cinematic',
@@ -189,54 +187,66 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
       'minimalist': 'minimalist style',
       'realistic': 'realistic'
     };
-    
-    const stylePrefix = styleMap[visualStyle] || visualStyle;
-    parts.push(stylePrefix);
-    
-    // Basic description
-    parts.push(`Portrait of ${character.name}`);
+    return styleMap[visualStyle] || visualStyle;
+  };
 
-    // Visual identity details
+  /**
+   * Build visual identity details for prompt
+   */
+  const buildVisualDetails = (): string[] => {
+    const details: string[] = [];
     const visual = character.visual_identity;
-    if (visual) {
-      // Face and hair
-      if (visual.hair_color && visual.hair_style) {
-        parts.push(`${visual.hair_color} ${visual.hair_style} hair`);
-      } else if (visual.hair_color) {
-        parts.push(`${visual.hair_color} hair`);
-      }
-
-      if (visual.eye_color) {
-        parts.push(`${visual.eye_color} eyes`);
-      }
-
-      if (visual.facial_structure) {
-        parts.push(`${visual.facial_structure} face`);
-      }
-
-      // Skin and build
-      if (visual.skin_tone) {
-        parts.push(`${visual.skin_tone} skin`);
-      }
-
-      if (visual.build) {
-        parts.push(`${visual.build} build`);
-      }
-
-      // Clothing
-      if (visual.clothing_style) {
-        parts.push(`wearing ${visual.clothing_style} clothing`);
-      }
-
-      // Distinctive features
-      if (visual.distinctive_features && visual.distinctive_features.length > 0) {
-        parts.push(visual.distinctive_features.join(', '));
-      }
+    
+    if (!visual) return details;
+    
+    // Face and hair
+    if (visual.hair_color && visual.hair_style) {
+      details.push(`${visual.hair_color} ${visual.hair_style} hair`);
+    } else if (visual.hair_color) {
+      details.push(`${visual.hair_color} hair`);
     }
 
-    // Add quality tags
-    parts.push('high quality', 'detailed', 'professional portrait', 'centered composition');
+    if (visual.eye_color) {
+      details.push(`${visual.eye_color} eyes`);
+    }
 
+    if (visual.facial_structure) {
+      details.push(`${visual.facial_structure} face`);
+    }
+
+    // Skin and build
+    if (visual.skin_tone) {
+      details.push(`${visual.skin_tone} skin`);
+    }
+
+    if (visual.build) {
+      details.push(`${visual.build} build`);
+    }
+
+    // Clothing
+    if (visual.clothing_style) {
+      details.push(`wearing ${visual.clothing_style} clothing`);
+    }
+
+    // Distinctive features
+    if (visual.distinctive_features && visual.distinctive_features.length > 0) {
+      details.push(visual.distinctive_features.join(', '));
+    }
+    
+    return details;
+  };
+
+  /**
+   * Build a detailed prompt from character data
+   */
+  const buildCharacterPrompt = (): string => {
+    const parts: string[] = [buildStylePrefix()];
+    parts.push(`Portrait of ${character.name}`);
+    const visualDetails = buildVisualDetails();
+    for (const detail of visualDetails) {
+      parts.push(detail);
+    }
+    parts.push('high quality', 'detailed', 'professional portrait', 'centered composition');
     return parts.join(', ');
   };
 
@@ -283,7 +293,7 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
         width: 784,
         height: 1024,
         steps: 4,
-        cfgScale: 1.0,
+        cfgScale: 1,
         seed: Math.floor(Math.random() * 1000000),
         model: 'z_image_turbo_bf16.safetensors', // Not used in Flux Turbo workflow
         sampler: 'res_multistep',
@@ -294,12 +304,13 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
       setGeneratedImageUrl(imageUrl);
       
       // Download and save image to project folder
-      if (project?.metadata?.path) {
+      const projectPath = project?.metadata?.path as string | undefined;
+      if (projectPath) {
         devLog('💾 [CharacterCard] Saving image to project folder...');
         const saveResult = await downloadAndSaveImage(
           imageUrl,
           character.character_id,
-          project.metadata.path
+          projectPath
         );
         
         if (saveResult.success && saveResult.localPath) {
@@ -357,37 +368,12 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
     );
   }
 
-  return (
-    <div
-      className={`
-        character-card
-        ${selectable ? 'character-card--selectable' : ''}
-        ${selected ? 'character-card--selected' : ''}
-        ${onClick || selectable ? 'character-card--clickable' : ''}
-      `}
-      onClick={handleCardClick}
-      role="article"
-      tabIndex={onClick || selectable ? 0 : undefined}
-      onKeyDown={(e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && (onClick || selectable)) {
-          e.preventDefault();
-          handleCardClick();
-        }
-      }}
-    >
-      {/* Selection checkbox */}
-      {selectable && (
-        <div className="character-card__checkbox">
-          <input
-            type="checkbox"
-            checked={selected}
-            onChange={handleCheckboxChange}
-            onClick={(e) => e.stopPropagation()}
-            aria-label={`Select ${character.name}`}
-          />
-        </div>
-      )}
+  // Determine if card is clickable
+  const isClickable = !!(onClick || selectable);
 
+  // Render the card content
+  const renderCardContent = () => (
+    <>
       {/* Thumbnail */}
       <div className="character-card__thumbnail">
         {thumbnailUrl ? (
@@ -397,7 +383,6 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
               alt={`${character.name} thumbnail`}
               className="character-card__thumbnail-image"
               onError={(e) => {
-                // Fallback to placeholder on error
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const parent = target.parentElement;
@@ -409,57 +394,26 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
                 }
               }}
             />
-            {/* Regenerate image button */}
-            <button
-              className="character-card__regenerate-button"
-              onClick={handleGenerateImage}
-              title="Regenerate character portrait with ComfyUI"
-              aria-label={`Regenerate portrait for ${character.name}`}
-              disabled={isGeneratingImage}
-            >
-              <RefreshCw size={16} className={isGeneratingImage ? 'character-card__spinner' : ''} />
-              {isGeneratingImage && <span>Regenerating...</span>}
-            </button>
           </div>
         ) : (
           <div className="character-card__thumbnail-placeholder">
             <User className="character-card__thumbnail-icon" />
-            {/* Generate image button */}
-            {!isGeneratingImage && (
-              <button
-                className="character-card__generate-button"
-                onClick={handleGenerateImage}
-                title="Generate character portrait with ComfyUI"
-                aria-label={`Generate portrait for ${character.name}`}
-              >
-                <ImageIcon size={20} />
-                <span>Generate Portrait</span>
-              </button>
-            )}
-            {isGeneratingImage && (
-              <div className="character-card__generating">
-                <Loader2 size={20} className="character-card__spinner" />
-                <span>Generating...</span>
-              </div>
-            )}
           </div>
         )}
       </div>
 
       {/* Content */}
       <div className="character-card__content">
-        {/* Name and archetype */}
         <div className="character-card__header">
-          <h3 className="character-card__name">{character.name}</h3>
-          <p className="character-card__archetype">{character.role.archetype}</p>
+          <h3 className="character-card__name">{character.name || 'Unnamed Character'}</h3>
+          <p className="character-card__archetype">{character.role?.archetype || 'Unspecified'}</p>
         </div>
 
-        {/* Details */}
         <div className="character-card__details">
           <div className="character-card__detail">
             <span className="character-card__detail-label">Age:</span>
             <span className="character-card__detail-value">
-              {character.visual_identity.age_range || 'Not specified'}
+              {character.visual_identity?.age_range || 'Not specified'}
             </span>
           </div>
           <div className="character-card__detail">
@@ -469,6 +423,79 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
             </span>
           </div>
         </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div
+      className={`
+        character-card
+        ${selectable ? 'character-card--selectable' : ''}
+        ${selected ? 'character-card--selected' : ''}
+        ${isClickable ? 'character-card--clickable' : ''}
+      `}
+    >
+      {/* Selection checkbox - outside clickable area */}
+      {selectable && (
+        <div className="character-card__checkbox">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={handleCheckboxChange}
+            aria-label={`Select ${character.name}`}
+          />
+        </div>
+      )}
+
+      {/* Main clickable area */}
+      {isClickable ? (
+        <button
+          type="button"
+          className="character-card__main-button"
+          onClick={handleCardClick}
+          aria-label={onClick ? `${character.name}` : `${character.name} - click to select`}
+        >
+          {renderCardContent()}
+        </button>
+      ) : (
+        <div className="character-card__main">
+          {renderCardContent()}
+        </div>
+      )}
+
+      {/* Generate image button - outside clickable area */}
+      <div className="character-card__generate">
+        {thumbnailUrl ? (
+          <button
+            className="character-card__regenerate-button"
+            onClick={handleGenerateImage}
+            title="Regenerate character portrait with ComfyUI"
+            aria-label={`Regenerate portrait for ${character.name}`}
+            disabled={isGeneratingImage}
+          >
+            <RefreshCw size={16} className={isGeneratingImage ? 'character-card__spinner' : ''} />
+            {isGeneratingImage && <span>Regenerating...</span>}
+          </button>
+        ) : (
+          !isGeneratingImage && (
+            <button
+              className="character-card__generate-button"
+              onClick={handleGenerateImage}
+              title="Generate character portrait with ComfyUI"
+              aria-label={`Generate portrait for ${character.name}`}
+            >
+              <ImageIcon size={20} />
+              <span>Generate Portrait</span>
+            </button>
+          )
+        )}
+        {isGeneratingImage && (
+          <div className="character-card__generating">
+            <Loader2 size={20} className="character-card__spinner" />
+            <span>Generating...</span>
+          </div>
+        )}
       </div>
 
       {/* Action buttons */}

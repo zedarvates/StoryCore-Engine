@@ -21,7 +21,7 @@ export interface VoiceHttpConfig {
  */
 const DEFAULT_VOICE_CONFIG: VoiceHttpConfig = {
   baseUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000',
-  timeout: 15000, // 15 seconds
+  timeout: 120000, // 2 minutes for TTS generation
   retryAttempts: 3,
 };
 
@@ -341,10 +341,6 @@ export const voiceHttpClient = new VoiceHttpClient();
  */
 export class MockVoiceHttpClient extends VoiceHttpClient {
   private mockDelayMs: number = 500;
-
-  constructor(config?: Partial<VoiceHttpConfig>) {
-    super(config);
-  }
 
   async uploadVoiceRecording(
     recording: VoiceRecording

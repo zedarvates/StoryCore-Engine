@@ -1,0 +1,22 @@
+{
+  "location_id": "95ba7313-b9b0-448f-a2e1-90f59b8d77a2",
+  "name": "Akakawa Bay's Undercroft",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T15:24:19.991Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A network of hidden tunnels and caverns beneath the city's waterfront district. The walls are slick with sea salt and oil, while the air is heavy with the scent of fish and smoke.",
+    "atmosphere": {
+      "lighting": "flickering lanterns",
+      "temperature": "warm, humid",
+      "sounds": "lapping water, muffled shouts, creaking wooden beams"
+    },
+    "genre_tags": [],
+    "significance": "The Undercroft serves as a secret meeting place for Néo Tokyo's underworld figures: gang leaders, smugglers, and black marketeers all converge here to discuss their illicit dealings. Rumors speak of a powerful crime lord who operates from within these tunnels."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

@@ -8,6 +8,8 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Fuse from 'fuse.js';
 import { AssetGrid } from './AssetGrid';
+import { TransitionLibrary } from './TransitionLibrary';
+import { EffectLibrary } from './EffectLibrary';
 import { AssetGenerationDialog } from './AssetGenerationDialog';
 import { AssetDragLayer } from './AssetDragLayer';
 import { AssetLibraryService, type AssetSource } from '../../../services/assetLibraryService';
@@ -64,20 +66,22 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
   { id: 'visual-styles', name: 'Visual Styles', icon: '🎨' },
   { id: 'templates', name: 'Templates', icon: '📋' },
   { id: 'camera-presets', name: 'Camera Presets', icon: '📷' },
-  { id: 'lighting-rigs', name: 'Audio & Sound', icon: '💡' },
+  { id: 'transitions', name: 'Transitions', icon: '↔️' },
+  { id: 'effects', name: 'Effects', icon: '✨' },
+  { id: 'audio-sound', name: 'Audio & Sound', icon: '🔊' },
 ];
 
 // Helper to get assets for a category from all sources
 function getAssetsForCategory(categoryId: string, sources: AssetSource[]): ServiceAsset[] {
   const allAssets: ServiceAsset[] = [];
-  
+
   for (const source of sources) {
     const sourceAssets = source.assets || [];
-    
+
     switch (categoryId) {
       case 'characters':
         // Characters: images from characters folder or with character metadata
-        allAssets.push(...sourceAssets.filter(a => 
+        allAssets.push(...sourceAssets.filter(a =>
           a.type === 'image' && (
             source.id === 'characters' ||
             a.metadata?.category === 'character' ||
@@ -85,10 +89,10 @@ function getAssetsForCategory(categoryId: string, sources: AssetSource[]): Servi
           )
         ));
         break;
-        
+
       case 'environments':
         // Environments: images from images folder (demo images)
-        allAssets.push(...sourceAssets.filter(a => 
+        allAssets.push(...sourceAssets.filter(a =>
           a.type === 'image' && (
             source.id === 'library' ||
             source.id === 'images' ||
@@ -101,10 +105,10 @@ function getAssetsForCategory(categoryId: string, sources: AssetSource[]): Servi
           )
         ));
         break;
-        
+
       case 'props':
         // Props: images that aren't characters or environments
-        allAssets.push(...sourceAssets.filter(a => 
+        allAssets.push(...sourceAssets.filter(a =>
           a.type === 'image' && (
             a.metadata?.category === 'props' ||
             (Array.isArray(a.metadata?.tags) && (
@@ -114,10 +118,10 @@ function getAssetsForCategory(categoryId: string, sources: AssetSource[]): Servi
           )
         ));
         break;
-        
+
       case 'visual-styles':
         // Visual styles: images with style tags
-        allAssets.push(...sourceAssets.filter(a => 
+        allAssets.push(...sourceAssets.filter(a =>
           a.type === 'image' && (
             a.metadata?.category === 'style' ||
             (Array.isArray(a.metadata?.tags) && (
@@ -127,33 +131,65 @@ function getAssetsForCategory(categoryId: string, sources: AssetSource[]): Servi
           )
         ));
         break;
-        
+
       case 'templates':
         // Templates: template type assets
-        allAssets.push(...sourceAssets.filter(a => 
+        allAssets.push(...sourceAssets.filter(a =>
           a.type === 'template' || source.type === 'template'
         ));
         break;
-        
+
       case 'camera-presets':
         // Camera presets: JSON/shots data with camera settings
-        allAssets.push(...sourceAssets.filter(a => 
+        allAssets.push(...sourceAssets.filter(a =>
           a.type === 'image' && (
             a.name.includes('camera') ||
             a.name.includes('shot')
           )
         ));
         break;
-        
-      case 'lighting-rigs':
+
+      case 'transitions':
+        // Transitions: built-in transition types
+        allAssets.push(...sourceAssets.filter(a =>
+          a.type === 'template' && (
+            a.name.includes('transition') ||
+            a.metadata?.category === 'transition'
+          )
+        ));
+        // Add default transitions if list is empty
+        if (allAssets.length === 0 && source.id === 'builtin') {
+          ['Dissolve', 'Wipe', 'Slide', 'Zoom', 'Smooth Cut'].forEach(name => {
+            allAssets.push({
+              id: `trans_${name.toLowerCase().replace(' ', '_')}`,
+              name,
+              type: 'template',
+              metadata: { category: 'transition' }
+            });
+          });
+        }
+        break;
+
+      case 'effects':
+        // Effects: LUTs, filters, and other visual effects
+        allAssets.push(...sourceAssets.filter(a =>
+          a.type === 'template' && (
+            a.name.includes('effect') ||
+            a.metadata?.category === 'effect' ||
+            a.metadata?.category === 'lut'
+          )
+        ));
+        break;
+
+      case 'audio-sound':
         // Audio & sound: audio type assets
-        allAssets.push(...sourceAssets.filter(a => 
+        allAssets.push(...sourceAssets.filter(a =>
           a.type === 'audio' || source.id === 'sound'
         ));
         break;
     }
   }
-  
+
   return allAssets;
 }
 
@@ -221,7 +257,7 @@ export const AssetLibrary: React.FC = () => {
   // Configure Fuse.js for fuzzy search
   const fuse = useMemo(() => {
     if (categoryAssets.length === 0) return null;
-    
+
     return new Fuse(categoryAssets, {
       keys: [
         { name: 'name', weight: 0.5 },
@@ -296,7 +332,7 @@ export const AssetLibrary: React.FC = () => {
     <div className="asset-library">
       {/* Custom Drag Layer for ghost images */}
       <AssetDragLayer />
-      
+
       {/* Category Tabs */}
       <div className="asset-library-tabs">
         {CATEGORY_CONFIGS.map((category) => (
@@ -349,7 +385,7 @@ export const AssetLibrary: React.FC = () => {
             <p>Loading assets...</p>
           </div>
         )}
-        
+
         {error && !loading && (
           <div className="asset-error">
             <div className="error-icon">⚠️</div>
@@ -359,8 +395,22 @@ export const AssetLibrary: React.FC = () => {
             </button>
           </div>
         )}
-        
-        {!loading && !error && (
+
+        {!loading && !error && activeCategory === 'transitions' && (
+          <TransitionLibrary
+            sources={sources}
+            searchQuery={searchQuery}
+          />
+        )}
+
+        {!loading && !error && activeCategory === 'effects' && (
+          <EffectLibrary
+            sources={sources}
+            searchQuery={searchQuery}
+          />
+        )}
+
+        {!loading && !error && activeCategory !== 'transitions' && activeCategory !== 'effects' && (
           <AssetGrid
             assets={filteredAssets}
             categoryId={currentCategory.id}

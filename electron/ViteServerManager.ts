@@ -81,7 +81,7 @@ export class ViteServerManager {
     try {
       // Find an available port
       const port = await this.findAvailablePort(config.vitePort, config.fallbackPorts);
-      
+
       // Spawn the Vite server process
       await this.spawnServerProcess(port);
 
@@ -214,7 +214,7 @@ export class ViteServerManager {
   private async isPortAvailable(port: number): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
       const server = net.createServer();
-      
+
       server.once('error', () => {
         resolve(false);
       });
@@ -255,7 +255,7 @@ export class ViteServerManager {
   private async spawnServerProcess(port: number): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const uiPath = path.join(__dirname, '../../creative-studio-ui');
-      
+
       // Determine the npm command based on platform
       const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
@@ -299,7 +299,7 @@ export class ViteServerManager {
             timestamp: new Date(),
           };
           this.status = { state: 'error', error };
-          this.errorCallbacks.forEach(callback => 
+          this.errorCallbacks.forEach(callback =>
             callback(new Error(error.message))
           );
         }
@@ -348,9 +348,9 @@ export class ViteServerManager {
   private async checkServerReady(port: number): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
       const socket = new net.Socket();
-      
+
       socket.setTimeout(1000);
-      
+
       socket.once('connect', () => {
         socket.destroy();
         resolve(true);

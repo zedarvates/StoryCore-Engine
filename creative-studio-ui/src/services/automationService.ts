@@ -1,7 +1,7 @@
 /**
  * Automation Service
- * Service API pour communiquer avec le backend d'automation StoryCore.
- * Inclut gestion des travaux avec rechargement des générations échouées.
+ * API service to communicate with the StoryCore automation backend.
+ * Includes job management with retry for failed generations.
  */
 
 import axios, { AxiosInstance } from 'axios';
@@ -61,6 +61,28 @@ export interface CharacterGridBundleData {
   metadata: Record<string, unknown>;
 }
 
+// Parameter types for generation methods
+export interface DialogueGenerationParams {
+  characters: DialogueCharacterData[];
+  context: DialogueContextData;
+  dialogueType?: string;
+  numLines?: number;
+  template?: string;
+  forceEmotions?: Record<string, string>;
+}
+
+export interface GridGenerationParams {
+  characterId: string;
+  characterName: string;
+  gridSize?: string;
+  outfits?: string[];
+  poses?: string[];
+  expressions?: string[];
+  cameraAngles?: string[];
+  lightingTypes?: string[];
+  resolution?: number;
+}
+
 // Types pour les Prompts
 export interface PromptEnhanceRequest {
   base_prompt: string;
@@ -109,14 +131,14 @@ export interface JobQueueState {
   pending_jobs: number;
 }
 
-// Configuration du client axios
+// Axios client configuration
 const createAutomationClient = (): AxiosInstance => {
   return axios.create({
     baseURL: '/api/automation',
     headers: {
       'Content-Type': 'application/json',
     },
-    timeout: 60000, // 60 secondes pour les générations longues
+    timeout: 60000, // 60 seconds for long generations
   });
 };
 
@@ -131,28 +153,28 @@ class AutomationService {
   // ==================== JOB QUEUE MANAGEMENT ====================
 
   /**
-   * Ajoute un travail à la file d'attente avec retry
+   * Adds a job to the retry queue
    */
   addToRetryQueue(job: GenerationJob): void {
     this.jobRetryQueue.push(job);
   }
 
   /**
-   * Obtient les travaux en attente de retry
+   * Gets jobs pending retry
    */
   getRetryQueue(): GenerationJob[] {
     return this.jobRetryQueue;
   }
 
   /**
-   * Efface la file d'attente des retries
+   * Clears the retry queue
    */
   clearRetryQueue(): void {
     this.jobRetryQueue = [];
   }
 
   /**
-   * Supprime un travail de la file d'attente
+   * Removes a job from the queue
    */
   removeFromRetryQueue(jobId: string): boolean {
     const index = this.jobRetryQueue.findIndex(j => j.job_id === jobId);
@@ -164,11 +186,11 @@ class AutomationService {
   }
 
   /**
-   * Retry un travail échoué
+   * Retries a failed job
    */
   async retryJob(job: GenerationJob): Promise<boolean> {
     if (job.retry_count >= job.max_retries) {
-      console.warn(`Job ${job.job_id} a atteint le nombre max de retries`);
+      console.warn(`Job ${job.job_id} has reached the maximum number of retries`);
       return false;
     }
 
@@ -177,28 +199,29 @@ class AutomationService {
 
       switch (job.type) {
         case 'dialogue':
-          result = await this.generateDialogue(job.params as any);
+          result = await this.generateDialogue(job.params as unknown as DialogueGenerationParams);
           break;
         case 'grid':
-          result = await this.generateCharacterGrid(job.params as any);
+          result = await this.generateCharacterGrid(job.params as unknown as GridGenerationParams);
           break;
         case 'prompt':
-          result = await this.enhancePrompt(job.params as any);
+          result = await this.enhancePrompt(job.params as unknown as PromptEnhanceRequest);
           break;
       }
 
-      // Mettre à jour le travail comme complété
+      // Update job as completed
       job.status = 'completed';
       job.result = result;
       job.completed_at = new Date().toISOString();
       job.retry_count++;
 
-      // Retirer de la file d'attente si succès
+      // Remove from queue on success
       this.removeFromRetryQueue(job.job_id);
 
       return true;
     } catch (error: unknown) {
-      job.error = error.message || 'Erreur inconnue';
+      const err = error instanceof Error ? error : new Error(String(error));
+      job.error = err.message || 'Unknown error';
       job.retry_count++;
 
       if (job.retry_count >= job.max_retries) {
@@ -210,7 +233,7 @@ class AutomationService {
   }
 
   /**
-   * Traite automatiquement tous les travaux en attente
+   * Automatically processes all pending jobs
    */
   async processRetryQueue(onProgress?: (completed: number, total: number) => void): Promise<{
     success: number;

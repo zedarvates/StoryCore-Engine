@@ -42,12 +42,13 @@ router = APIRouter()
 
 class Settings(BaseSettings):
     """Application settings for project management"""
-    projects_directory: str = Field(default="./projects", env='PROJECTS_DIRECTORY')
-    max_project_size_mb: int = Field(default=1000, env='MAX_PROJECT_SIZE_MB')
+    projects_directory: str = Field(default="./projects")
+    max_project_size_mb: int = Field(default=1000)
     
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # Ignore extra environment variables
 
 
 try:
@@ -147,6 +148,75 @@ class ProjectSummary(BaseModel):
 project_storage = JSONFileStorage(settings.projects_directory, max_cache_size=200)
 
 
+def validate_project_ownership(project: Dict[str, Any], user_id: str, require_owner: bool = False) -> None:
+    """
+    Validate that the user has proper access to the project.
+    
+    Security: This function ensures proper ownership validation to prevent
+    unauthorized access to projects.
+    
+    Args:
+        project: Project data dictionary
+        user_id: Authenticated user ID
+        require_owner: If True, only owner can access (for write operations)
+    
+    Raises:
+        HTTPException: 403 Forbidden if access denied, 401 Unauthorized if user_id is invalid
+    """
+    # Security: Validate that user_id is provided and valid
+    if not user_id or not isinstance(user_id, str) or user_id.strip() == "":
+        logger.warning("Security: Invalid or missing user_id in ownership validation")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
+    
+    # Security: Ensure owner_id exists in project data
+    owner_id = project.get("owner_id")
+    if owner_id is None:
+        # Legacy project without owner_id - deny access for safety
+        logger.error(f"Security: Project {project.get('id')} has no owner_id field - denying access")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Project ownership data is corrupted"
+        )
+    
+    # Security: Strict string comparison for owner_id
+    # Convert both to string to prevent type coercion attacks
+    owner_id_str = str(owner_id).strip()
+    user_id_str = str(user_id).strip()
+    
+    # For write operations, only owner can proceed
+    if require_owner:
+        if owner_id_str != user_id_str:
+            logger.warning(
+                f"Security: Unauthorized access attempt - "
+                f"user {user_id_str} tried to modify project owned by {owner_id_str}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only project owner can perform this action"
+            )
+        return
+    
+    # For read operations, check if project is public or user is owner
+    is_public = project.get("is_public", False)
+    
+    # Security: Ensure is_public is a boolean
+    if not isinstance(is_public, bool):
+        is_public = str(is_public).lower() in ("true", "1", "yes")
+    
+    if not is_public and owner_id_str != user_id_str:
+        logger.warning(
+            f"Security: Unauthorized access attempt - "
+            f"user {user_id_str} tried to access private project owned by {owner_id_str}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied to this project"
+        )
+
+
 @router.post("/projects", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(
     project: ProjectCreate,
@@ -202,10 +272,10 @@ async def create_project(
             detail="Failed to create project"
         )
     
-    # Create lieux subfolder for project-specific locations
-    lieux_path = os.path.join(settings.projects_directory, project_id, "lieux")
-    os.makedirs(lieux_path, exist_ok=True)
-    logger.info(f"Lieux folder created: {lieux_path}")
+    # Create locations subfolder for project-specific locations
+    locations_path = os.path.join(settings.projects_directory, project_id, "locations")
+    os.makedirs(locations_path, exist_ok=True)
+    logger.info(f"Locations folder created: {locations_path}")
     
     logger.info(f"Project created successfully: {project_id}")
     
@@ -233,11 +303,9 @@ async def list_projects(
     """
     logger.info(f"Listing projects for user {user_id}, page {page}")
     
-    # Filter projects by owner
-    user_projects = [
-        p for p in project_storage.cache.values()
-        if p.get("owner_id") == user_id
-    ]
+    # Performance Fix: Use indexed lookup by owner_id instead of O(n) iteration
+    # This uses the owner index in JSONFileStorage for O(1) lookup
+    user_projects = project_storage.get_by_owner(user_id)
     
     # Apply status filter
     if status_filter:
@@ -303,12 +371,8 @@ async def get_project(
             detail="Project not found"
         )
     
-    # Check access rights
-    if not project.get("is_public") and project.get("owner_id") != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this project"
-        )
+    # Security: Use centralized ownership validation to prevent bypass
+    validate_project_ownership(project, user_id, require_owner=False)
     
     return ProjectResponse(**project)
 
@@ -343,12 +407,9 @@ async def update_project(
             detail="Project not found"
         )
     
-    # Check ownership
-    if project.get("owner_id") != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only project owner can update"
-        )
+    # Security: Use centralized ownership validation to prevent bypass
+    # require_owner=True ensures only the owner can update
+    validate_project_ownership(project, user_id, require_owner=True)
     
     # Apply updates
     update_data = update.dict(exclude_unset=True)
@@ -401,12 +462,9 @@ async def delete_project(
             detail="Project not found"
         )
     
-    # Check ownership
-    if project.get("owner_id") != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only project owner can delete"
-        )
+    # Security: Use centralized ownership validation to prevent bypass
+    # require_owner=True ensures only the owner can delete
+    validate_project_ownership(project, user_id, require_owner=True)
     
     # Delete project
     if not project_storage.delete(project_id):
@@ -444,12 +502,8 @@ async def get_project_summary(
             detail="Project not found"
         )
     
-    # Check access rights
-    if not project.get("is_public") and project.get("owner_id") != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied"
-        )
+    # Security: Use centralized ownership validation to prevent bypass
+    validate_project_ownership(project, user_id, require_owner=False)
     
     return {
         "id": project["id"],

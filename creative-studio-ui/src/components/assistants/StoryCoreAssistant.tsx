@@ -122,16 +122,21 @@ export function StoryCoreAssistant() {
     };
 
     setMessages([welcomeMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount - welcome message should be set once
   }, []);
 
   // Auto-analyze project when it loads
   useEffect(() => {
     if (project && projectPath && messages.length === 1) {
       // Auto-trigger analysis after a short delay
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         handleQuickAction('analyze');
       }, 2000);
+      return () => clearTimeout(timeoutId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Only trigger when project/projectPath changes; messages.length check prevents re-triggering
   }, [project, projectPath]);
 
   const scrollToBottom = () => {

@@ -15,6 +15,7 @@
 
 import type { Project, Shot, Asset } from '@/types';
 import { projectExportService, ExportResult } from './projectExportService';
+import { logger } from '@/utils/logger';
 
 /**
  * Project state interface for export service
@@ -91,14 +92,14 @@ export class ExportService {
     if (this.progressCallback) {
       this.progressCallback(progress, message);
     }
-    console.log(`[ExportService] Progress: ${progress}% - ${message}`);
+    logger.debug(`[ExportService] Progress: ${progress}% - ${message}`);
   }
 
   /**
    * Handle error
    */
   private handleError(error: Error, context: string): never {
-    console.error(`[ExportService] Error in ${context}:`, error);
+    logger.error(`[ExportService] Error in ${context}:`, error);
     if (this.onError) {
       this.onError(error);
     }
@@ -183,7 +184,7 @@ export class ExportService {
 
       if (result.success) {
         this.reportProgress(100, 'JSON export completed');
-        console.log(`[ExportService] JSON exported successfully: ${result.filePath}`);
+        logger.debug(`[ExportService] JSON exported successfully: ${result.filePath}`);
       } else {
         this.reportProgress(100, 'JSON export failed');
         if (result.error) {
@@ -193,9 +194,9 @@ export class ExportService {
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      console.error(`[ExportService] JSON export failed: ${errorMessage}`);
-      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error(`[ExportService] JSON export failed: ${errorMessage}`);
+
       return {
         success: false,
         error: error instanceof Error ? error : new Error(errorMessage),
@@ -239,7 +240,7 @@ export class ExportService {
 
       if (result.success) {
         this.reportProgress(100, 'PDF export completed');
-        console.log(`[ExportService] PDF exported successfully: ${result.filePath}`);
+        logger.debug(`[ExportService] PDF exported successfully: ${result.filePath}`);
       } else {
         this.reportProgress(100, 'PDF export failed');
         if (result.error) {
@@ -250,8 +251,8 @@ export class ExportService {
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`[ExportService] PDF export failed: ${errorMessage}`);
-      
+      logger.error(`[ExportService] PDF export failed: ${errorMessage}`);
+
       return {
         success: false,
         error: error instanceof Error ? error : new Error(errorMessage),
@@ -302,7 +303,7 @@ export class ExportService {
 
       if (result.success) {
         this.reportProgress(100, 'Video export completed');
-        console.log(`[ExportService] Video exported successfully: ${result.filePath}`);
+        logger.debug(`[ExportService] Video exported successfully: ${result.filePath}`);
       } else {
         this.reportProgress(100, 'Video export failed');
         if (result.error) {
@@ -313,8 +314,8 @@ export class ExportService {
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`[ExportService] Video export failed: ${errorMessage}`);
-      
+      logger.error(`[ExportService] Video export failed: ${errorMessage}`);
+
       return {
         success: false,
         error: error instanceof Error ? error : new Error(errorMessage),
@@ -324,8 +325,8 @@ export class ExportService {
 
   /**
    * Export multiple formats
-   * 
-   * Exporte le projet dans plusieurs formats simultanément.
+   *
+   * Exports the project in multiple formats simultaneously.
    * 
    * @param formats - Formats à exporter
    * @param options - Options d'export

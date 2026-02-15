@@ -1,6 +1,6 @@
 /**
  * LLM Configuration Service
- * 
+ *
  * Unified service for managing LLM configuration across the entire application.
  * Provides a single source of truth for LLM settings and ensures all components
  * stay synchronized.
@@ -9,6 +9,7 @@
 import { loadLLMSettings, saveLLMSettings } from '@/utils/secureStorage';
 import { eventEmitter, WizardEventType } from './eventEmitter';
 import { LLMService, type LLMConfig } from './llmService';
+import { logger } from '@/utils/logger';
 
 // ============================================================================
 // Types
@@ -24,7 +25,7 @@ class LLMConfigService {
   private static instance: LLMConfigService;
   private llmService: LLMService | null = null;
   private currentConfig: LLMConfig | null = null;
-  private listeners: Set<LLMConfigListener> = new Set();
+  private readonly listeners: Set<LLMConfigListener> = new Set();
   private initialized: boolean = false;
 
   private constructor() {
@@ -47,32 +48,33 @@ class LLMConfigService {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      console.warn('[LLMConfigService] Already initialized');
+      logger.warn('[LLMConfigService] Already initialized');
       return;
     }
 
     try {
       // Load configuration from storage
       let config = await loadLLMSettings();
-      
+
       // If no configuration exists, create a default one with auto-detected model
       if (!config) {
-        
+
         // Try to detect available Ollama models
         let detectedModel = 'llama3.2:1b'; // Fallback default
         try {
           const { suggestBestModel } = await import('@/utils/ollamaModelDetection');
           const suggestion = await suggestBestModel('http://localhost:11434');
-          
+
           if (suggestion) {
             detectedModel = suggestion.model;
             if (suggestion.alternatives.length > 0) {
+              logger.debug('[LLMConfigService] Found alternative models:', suggestion.alternatives);
             }
           } else {
-            console.warn('[LLMConfigService] No models detected, using fallback:', detectedModel);
+            logger.warn('[LLMConfigService] No models detected, using fallback:', detectedModel);
           }
         } catch (error) {
-          console.warn('[LLMConfigService] Failed to detect models, using fallback:', error);
+          logger.warn('[LLMConfigService] Failed to detect models, using fallback:', error);
         }
         
         config = {
@@ -88,6 +90,13 @@ class LLMConfigService {
             frequencyPenalty: 0,
             presencePenalty: 0,
           },
+          systemPrompts: {
+            worldGeneration: 'You are a creative world-building assistant...',
+            characterGeneration: 'You are a character development expert...',
+            dialogueGeneration: 'You are a dialogue writing specialist...',
+          },
+          timeout: 300000, // 300 seconds (5 minutes) - local models like Ollama need more time for model loading and generation
+          retryAttempts: 3,
         };
         // Save the default configuration
         await this.setConfig(config, true);
@@ -105,7 +114,7 @@ class LLMConfigService {
 
       this.initialized = true;
     } catch (error) {
-      console.error('[LLMConfigService] Initialization failed:', error);
+      logger.error('[LLMConfigService] Initialization failed:', error);
       throw new Error(`LLM configuration service initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -118,7 +127,7 @@ class LLMConfigService {
     try {
       await this.setConfig(config, true);
     } catch (error) {
-      console.error('[LLMConfigService] Failed to update configuration:', error);
+      logger.error('[LLMConfigService] Failed to update configuration:', error);
       throw new Error(`Failed to update LLM configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -158,7 +167,7 @@ class LLMConfigService {
         });
       }
     } catch (error) {
-      console.error('[LLMConfigService] Failed to set configuration:', error);
+      logger.error('[LLMConfigService] Failed to set configuration:', error);
       throw new Error(`Failed to set LLM configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -190,13 +199,13 @@ class LLMConfigService {
    */
   subscribe(listener: LLMConfigListener): () => void {
     this.listeners.add(listener);
-    
+
     // Immediately call with current config if available
     if (this.currentConfig) {
       try {
         listener(this.currentConfig);
       } catch (error) {
-        console.error('[LLMConfigService] Error in listener:', error);
+        logger.error('[LLMConfigService] Error in listener:', error);
       }
     }
 
@@ -213,7 +222,7 @@ class LLMConfigService {
       try {
         listener(config);
       } catch (error) {
-        console.error('[LLMConfigService] Error in listener:', error);
+        logger.error('[LLMConfigService] Error in listener:', error);
       }
     });
   }

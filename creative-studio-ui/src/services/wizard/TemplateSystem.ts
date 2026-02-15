@@ -10,6 +10,7 @@
 import type {
   WizardState,
 } from '../../types/wizard';
+import { logger } from '@/utils/logger';
 
 // ============================================================================
 // Template Types
@@ -765,7 +766,7 @@ export class TemplateSystem {
       }
       return JSON.parse(stored) as ProjectTemplate[];
     } catch (error) {
-      console.error('Error loading custom templates:', error);
+      logger.error('[TemplateSystem] Error loading custom templates:', error);
       return [];
     }
   }

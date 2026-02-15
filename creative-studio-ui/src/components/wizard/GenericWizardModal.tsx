@@ -131,7 +131,7 @@ function WizardFormRenderer({
 }: WizardFormRendererProps): React.ReactElement {
   const project = useAppStore((state) => state.project);
   const shots = useAppStore((state) => state.shots);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -233,8 +233,8 @@ function WizardFormRenderer({
         <p className="text-sm text-center mb-4" style={{ color: '#78350f' }}>
           This wizard requires characters to function properly.
         </p>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={onCancel}
           style={{
             borderColor: '#f59e0b',
@@ -261,6 +261,7 @@ function WizardFormRenderer({
           onCancel={onCancel}
           onChange={onChange}
           onValidationChange={handleValidationChange}
+          showFooter={false}
         />
       );
 
@@ -345,7 +346,7 @@ export function GenericWizardModal({
     try {
       // Call completion handler with form data
       await onComplete?.(formData);
-      
+
       // Show success toast
       const wizardConfig = wizardType ? WIZARD_CONFIG[wizardType] : null;
       if (wizardConfig) {
@@ -355,17 +356,17 @@ export function GenericWizardModal({
           variant: 'default',
         });
       }
-      
+
       // Close modal on success
       onClose();
     } catch (error) {
       console.error('[GenericWizardModal] Submission error:', error);
-      
+
       // Display error toast with specific message
-      const errorMessage = error instanceof Error 
-        ? error.message 
+      const errorMessage = error instanceof Error
+        ? error.message
         : 'An unexpected error occurred. Please try again.';
-      
+
       toast({
         title: 'Error',
         description: errorMessage,
@@ -412,9 +413,9 @@ export function GenericWizardModal({
   // Validate wizard type
   if (!isWizardTypeSupported(effectiveWizardType)) {
     // Show info about unsupported wizard type
-    const unsupportedMessage = effectiveWizardType === 'world' || 
-                               effectiveWizardType === 'character' || 
-                               effectiveWizardType === 'storyteller' ? (
+    const unsupportedMessage = effectiveWizardType === 'world' ||
+      effectiveWizardType === 'character' ||
+      effectiveWizardType === 'storyteller' ? (
       <div className="flex flex-col items-center justify-center py-8 px-4">
         <Info className="h-12 w-12 mb-4 text-blue-500" />
         <p className="text-base font-semibold text-center mb-2">
@@ -487,7 +488,7 @@ export function GenericWizardModal({
               </div>
             </div>
           )}
-          
+
           <WizardFormRenderer
             wizardType={effectiveWizardType}
             onSubmit={handleFormSubmit}

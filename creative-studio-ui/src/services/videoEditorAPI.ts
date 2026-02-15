@@ -9,7 +9,6 @@ import {
   Track,
   Clip,
 } from '../types/video-editor';
-import { ComfyUIParameters } from '../types/shot';
 
 const API_BASE = '/api/video-editor';
 
@@ -36,20 +35,33 @@ class VideoEditorAPI {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minutes
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Request failed' }));
-      throw new Error(error.message || `HTTP ${response.status}`);
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+        ...options,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Request failed' }));
+        throw new Error(error.message || `HTTP ${response.status}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Video editor request timed out after 10 minutes');
+      }
+      throw error;
     }
-
-    return response.json();
   }
 
   // Project Operations
@@ -237,11 +249,23 @@ class VideoEditorAPI {
     projectId: string,
     shotId: string,
     referenceImage: string,
-    parameters: ComfyUIParameters
+    parameters: unknown // Decoupled from ComfyUIParameters to avoid circular deps
   ): Promise<{ taskId: string }> {
     return this.request<{ taskId: string }>(`/projects/${projectId}/ai/generate-video`, {
       method: 'POST',
       body: JSON.stringify({ shotId, referenceImage, parameters }),
+    });
+  }
+
+  async extendVideo(
+    projectId: string,
+    shotId: string,
+    sourceVideoUrl: string,
+    parameters: unknown // Decoupled from ComfyUIParameters to avoid circular deps
+  ): Promise<{ taskId: string }> {
+    return this.request<{ taskId: string }>(`/projects/${projectId}/ai/extend-video`, {
+      method: 'POST',
+      body: JSON.stringify({ shotId, sourceVideoUrl, parameters }),
     });
   }
 

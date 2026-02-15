@@ -10,6 +10,21 @@ import { Sparkles, X } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  HAIR_COLORS,
+  EYE_COLORS,
+  SKIN_TONES,
+  BODY_BUILDS,
+  HEIGHT_CATEGORIES,
+  POSTURE_OPTIONS,
+} from '@/constants/characterOptions';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
 import type { StoryContext } from './CharacterWizard';
@@ -29,9 +44,11 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
   const [newFeature, setNewFeature] = useState('');
   const [newColor, setNewColor] = useState('');
 
-  // Use ref to always have access to latest formData in callbacks
+  // Use ref to always have access to latest formData and updateFormData in callbacks
   const formDataRef = React.useRef(formData);
+  const updateFormDataRef = React.useRef(updateFormData);
   formDataRef.current = formData;
+  updateFormDataRef.current = updateFormData;
 
   // Check if LLM service is configured
   const { llmConfigured, llmChecking } = useServiceStatus();
@@ -47,9 +64,9 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
       // Parse LLM response and update form data
       const appearance = parseLLMAppearance(response.content);
       if (appearance) {
-        // Use formDataRef to get latest visual_identity
+        // Use refs to get latest data
         const currentVisualIdentity = formDataRef.current.visual_identity || {};
-        updateFormData({
+        updateFormDataRef.current({
           visual_identity: {
             ...currentVisualIdentity,
             ...appearance,
@@ -66,6 +83,7 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
       characterName: formData.name || 'the character',
       archetype: formData.role?.archetype || 'character',
       ageRange: formData.visual_identity?.age_range || 'adult',
+      gender: formData.visual_identity?.gender || 'unspecified',
       worldGenre: worldContext?.genre?.join(', ') || 'fantasy',
       worldTone: worldContext?.tone?.join(', ') || 'dramatic',
     };
@@ -76,6 +94,7 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
 - Name: ${context.characterName}
 - Archetype: ${context.archetype}
 - Age Range: ${context.ageRange}
+- Gender: ${context.gender}
 - World Genre: ${context.worldGenre}
 - World Tone: ${context.worldTone}
 
@@ -125,15 +144,13 @@ Example:
 
   const parseLLMAppearance = (response: string): Partial<Character['visual_identity']> | null => {
     try {
-      ;
-      
       // Try JSON parsing first
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
           const parsed = JSON.parse(jsonMatch[0]);
           const result: Partial<Character['visual_identity']> = {};
-          
+
           // Map all possible fields with aliases
           if (parsed.hair_color || parsed.hairColor) result.hair_color = parsed.hair_color || parsed.hairColor;
           if (parsed.hair_style || parsed.hairStyle) result.hair_style = parsed.hair_style || parsed.hairStyle;
@@ -152,31 +169,31 @@ Example:
           if (Array.isArray(parsed.color_palette) || Array.isArray(parsed.colorPalette)) {
             result.color_palette = parsed.color_palette || parsed.colorPalette;
           }
-          
+
           // Check if we got any data
           if (Object.keys(result).length > 0) {
-            ;
+            console.log('[Step2Appearance] Successfully parsed appearance:', result);
             return result;
           }
         } catch (jsonError) {
           console.warn('JSON parsing failed, trying text parsing');
         }
       }
-      
+
       // Fallback: Parse as structured text
       ;
       const result: Partial<Character['visual_identity']> = {};
       const lines = response.split('\n');
-      
+
       const distinctiveFeatures: string[] = [];
       const colorPalette: string[] = [];
       let inFeaturesSection = false;
       let inColorsSection = false;
-      
+
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
-        
+
         // Detect sections
         if (/distinctive\s*features?:/i.test(trimmed)) {
           inFeaturesSection = true;
@@ -188,7 +205,7 @@ Example:
           inFeaturesSection = false;
           continue;
         }
-        
+
         // Parse list items in sections
         if (inFeaturesSection) {
           const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '');
@@ -204,13 +221,13 @@ Example:
           }
           continue;
         }
-        
+
         // Parse key-value pairs
         const kvMatch = trimmed.match(/^(hair\s*color|hair\s*style|hair\s*length|eye\s*color|eye\s*shape|skin\s*tone|facial\s*structure|height|build|posture|clothing\s*style):\s*(.+)/i);
         if (kvMatch) {
           const key = kvMatch[1].toLowerCase().replace(/\s+/g, '_');
           const value = kvMatch[2].trim();
-          
+
           if (key.includes('hair_color')) result.hair_color = value;
           else if (key.includes('hair_style')) result.hair_style = value;
           else if (key.includes('hair_length')) result.hair_length = value;
@@ -224,23 +241,32 @@ Example:
           else if (key.includes('clothing_style')) result.clothing_style = value;
         }
       }
-      
+
       if (distinctiveFeatures.length > 0) result.distinctive_features = distinctiveFeatures;
       if (colorPalette.length > 0) result.color_palette = colorPalette;
-      
+
       // Check if we got any data
       if (Object.keys(result).length > 0) {
         ;
         return result;
       }
-      
+
     } catch (error) {
       console.error('Failed to parse LLM response:', error);
       console.error('Response was:', response);
     }
-    
+
     console.warn('Could not parse any appearance data from response');
     return null;
+  };
+
+  const handleSelectChange = (field: keyof Character['visual_identity']) => (value: string) => {
+    updateFormData({
+      visual_identity: {
+        ...(formData.visual_identity || {}),
+        [field]: value,
+      } as Character['visual_identity'],
+    });
   };
 
   const handleAddFeature = () => {
@@ -372,12 +398,28 @@ Example:
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="hair-color">Hair Color</Label>
-            <Input
-              id="hair-color"
-              value={formData.visual_identity?.hair_color || ''}
-              onChange={handleInputChange('hair_color')}
-              placeholder="e.g., Auburn"
-            />
+            <Select
+              value={HAIR_COLORS.includes(formData.visual_identity?.hair_color as any) ? formData.visual_identity?.hair_color : (formData.visual_identity?.hair_color ? 'Other' : '')}
+              onValueChange={(val) => handleSelectChange('hair_color')(val === 'Other' ? '' : val)}
+            >
+              <SelectTrigger id="hair-color" className="wizard-select-trigger">
+                <SelectValue placeholder="Select color" />
+              </SelectTrigger>
+              <SelectContent className="wizard-select-content">
+                {HAIR_COLORS.map(color => (
+                  <SelectItem key={color} value={color} className="wizard-select-item">{color}</SelectItem>
+                ))}
+                <SelectItem value="Other" className="wizard-select-item font-semibold border-t">Other / Custom...</SelectItem>
+              </SelectContent>
+            </Select>
+            {(!HAIR_COLORS.includes(formData.visual_identity?.hair_color as any) && formData.visual_identity?.hair_color) || formData.visual_identity?.hair_color === '' && (
+              <Input
+                value={formData.visual_identity?.hair_color || ''}
+                onChange={handleInputChange('hair_color')}
+                placeholder="Custom color..."
+                className="mt-1"
+              />
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="hair-style">Hair Style</Label>
@@ -403,12 +445,28 @@ Example:
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="eye-color">Eye Color</Label>
-            <Input
-              id="eye-color"
-              value={formData.visual_identity?.eye_color || ''}
-              onChange={handleInputChange('eye_color')}
-              placeholder="e.g., Hazel"
-            />
+            <Select
+              value={EYE_COLORS.includes(formData.visual_identity?.eye_color as any) ? formData.visual_identity?.eye_color : (formData.visual_identity?.eye_color ? 'Other' : '')}
+              onValueChange={(val) => handleSelectChange('eye_color')(val === 'Other' ? '' : val)}
+            >
+              <SelectTrigger id="eye-color" className="wizard-select-trigger">
+                <SelectValue placeholder="Select eye color" />
+              </SelectTrigger>
+              <SelectContent className="wizard-select-content">
+                {EYE_COLORS.map(color => (
+                  <SelectItem key={color} value={color} className="wizard-select-item">{color}</SelectItem>
+                ))}
+                <SelectItem value="Other" className="wizard-select-item font-semibold border-t">Other / Custom...</SelectItem>
+              </SelectContent>
+            </Select>
+            {(!EYE_COLORS.includes(formData.visual_identity?.eye_color as any) && formData.visual_identity?.eye_color) || formData.visual_identity?.eye_color === '' && (
+              <Input
+                value={formData.visual_identity?.eye_color || ''}
+                onChange={handleInputChange('eye_color')}
+                placeholder="Custom eye color..."
+                className="mt-1"
+              />
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="eye-shape">Eye Shape</Label>
@@ -425,12 +483,28 @@ Example:
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="skin-tone">Skin Tone</Label>
-            <Input
-              id="skin-tone"
-              value={formData.visual_identity?.skin_tone || ''}
-              onChange={handleInputChange('skin_tone')}
-              placeholder="e.g., Olive"
-            />
+            <Select
+              value={SKIN_TONES.includes(formData.visual_identity?.skin_tone as any) ? formData.visual_identity?.skin_tone : (formData.visual_identity?.skin_tone ? 'Other' : '')}
+              onValueChange={(val) => handleSelectChange('skin_tone')(val === 'Other' ? '' : val)}
+            >
+              <SelectTrigger id="skin-tone" className="wizard-select-trigger">
+                <SelectValue placeholder="Select skin tone" />
+              </SelectTrigger>
+              <SelectContent className="wizard-select-content">
+                {SKIN_TONES.map(tone => (
+                  <SelectItem key={tone} value={tone} className="wizard-select-item">{tone}</SelectItem>
+                ))}
+                <SelectItem value="Other" className="wizard-select-item font-semibold border-t">Other / Custom...</SelectItem>
+              </SelectContent>
+            </Select>
+            {(!SKIN_TONES.includes(formData.visual_identity?.skin_tone as any) && formData.visual_identity?.skin_tone) || formData.visual_identity?.skin_tone === '' && (
+              <Input
+                value={formData.visual_identity?.skin_tone || ''}
+                onChange={handleInputChange('skin_tone')}
+                placeholder="Custom skin tone..."
+                className="mt-1"
+              />
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="facial-structure">Facial Structure</Label>
@@ -447,30 +521,78 @@ Example:
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="height">Height</Label>
-            <Input
-              id="height"
-              value={formData.visual_identity?.height || ''}
-              onChange={handleInputChange('height')}
-              placeholder="e.g., Tall"
-            />
+            <Select
+              value={HEIGHT_CATEGORIES.includes(formData.visual_identity?.height as any) ? formData.visual_identity?.height : (formData.visual_identity?.height ? 'Other' : '')}
+              onValueChange={(val) => handleSelectChange('height')(val === 'Other' ? '' : val)}
+            >
+              <SelectTrigger id="height" className="wizard-select-trigger">
+                <SelectValue placeholder="Select height" />
+              </SelectTrigger>
+              <SelectContent className="wizard-select-content">
+                {HEIGHT_CATEGORIES.map(cat => (
+                  <SelectItem key={cat} value={cat} className="wizard-select-item">{cat}</SelectItem>
+                ))}
+                <SelectItem value="Other" className="wizard-select-item font-semibold border-t">Other / Custom...</SelectItem>
+              </SelectContent>
+            </Select>
+            {((!HEIGHT_CATEGORIES.includes(formData.visual_identity?.height as any) && formData.visual_identity?.height) || formData.visual_identity?.height === '') && (
+              <Input
+                value={formData.visual_identity?.height || ''}
+                onChange={handleInputChange('height')}
+                placeholder="Custom height..."
+                className="mt-1"
+              />
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="build">Build</Label>
-            <Input
-              id="build"
-              value={formData.visual_identity?.build || ''}
-              onChange={handleInputChange('build')}
-              placeholder="e.g., Athletic"
-            />
+            <Select
+              value={BODY_BUILDS.includes(formData.visual_identity?.build as any) ? formData.visual_identity?.build : (formData.visual_identity?.build ? 'Other' : '')}
+              onValueChange={(val) => handleSelectChange('build')(val === 'Other' ? '' : val)}
+            >
+              <SelectTrigger id="build" className="wizard-select-trigger">
+                <SelectValue placeholder="Select build" />
+              </SelectTrigger>
+              <SelectContent className="wizard-select-content">
+                {BODY_BUILDS.map(build => (
+                  <SelectItem key={build} value={build} className="wizard-select-item">{build}</SelectItem>
+                ))}
+                <SelectItem value="Other" className="wizard-select-item font-semibold border-t">Other / Custom...</SelectItem>
+              </SelectContent>
+            </Select>
+            {((!BODY_BUILDS.includes(formData.visual_identity?.build as any) && formData.visual_identity?.build) || formData.visual_identity?.build === '') && (
+              <Input
+                value={formData.visual_identity?.build || ''}
+                onChange={handleInputChange('build')}
+                placeholder="Custom build..."
+                className="mt-1"
+              />
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="posture">Posture</Label>
-            <Input
-              id="posture"
-              value={formData.visual_identity?.posture || ''}
-              onChange={handleInputChange('posture')}
-              placeholder="e.g., Confident"
-            />
+            <Select
+              value={POSTURE_OPTIONS.includes(formData.visual_identity?.posture as any) ? formData.visual_identity?.posture : (formData.visual_identity?.posture ? 'Other' : '')}
+              onValueChange={(val) => handleSelectChange('posture')(val === 'Other' ? '' : val)}
+            >
+              <SelectTrigger id="posture" className="wizard-select-trigger">
+                <SelectValue placeholder="Select posture" />
+              </SelectTrigger>
+              <SelectContent className="wizard-select-content">
+                {POSTURE_OPTIONS.map(opt => (
+                  <SelectItem key={opt} value={opt} className="wizard-select-item">{opt}</SelectItem>
+                ))}
+                <SelectItem value="Other" className="wizard-select-item font-semibold border-t">Other / Custom...</SelectItem>
+              </SelectContent>
+            </Select>
+            {((!POSTURE_OPTIONS.includes(formData.visual_identity?.posture as any) && formData.visual_identity?.posture) || formData.visual_identity?.posture === '') && (
+              <Input
+                value={formData.visual_identity?.posture || ''}
+                onChange={handleInputChange('posture')}
+                placeholder="Custom posture..."
+                className="mt-1"
+              />
+            )}
           </div>
         </div>
 

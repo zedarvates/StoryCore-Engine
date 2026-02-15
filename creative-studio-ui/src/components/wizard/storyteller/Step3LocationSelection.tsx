@@ -1,5 +1,5 @@
 // cspell:words lieux
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout } from '../WizardFormLayout';
 import { ValidationErrorSummary } from '../ValidationErrorSummary';
@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, MapPin, Sparkles } from 'lucide-react';
-import { useStore, useAppStore } from '@/store';
+import { useStore } from '@/store';
+import { useAppStore } from '@/stores/useAppStore';
 import type { LocationSelectionData, LocationCreationRequest, WorldContext, LocationReference } from '@/types/story';
 import type { AppState } from '@/types';
 import type { World, WorldRule } from '@/types/world';
@@ -75,12 +76,11 @@ function LocationCard({ location, isSelected, onToggle }: LocationCardProps) {
           )}
         </div>
         <div className="flex-shrink-0">
-          <div 
-            className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-              isSelected 
-                ? 'bg-green-500 border-green-500 text-white' 
-                : 'border-gray-300 bg-white'
-            }`}
+          <div
+            className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected
+              ? 'bg-green-500 border-green-500 text-white'
+              : 'border-gray-300 bg-white'
+              }`}
             aria-hidden="true">
             {isSelected && (
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -98,15 +98,15 @@ function LocationCard({ location, isSelected, onToggle }: LocationCardProps) {
 // Step 3: Location Selection
 // ============================================================================
 
-export function Step3LocationSelection(): JSX.Element {
+export function Step3LocationSelection(): React.ReactElement {
   const { formData, updateFormData, validationErrors } = useWizard<LocationSelectionData>();
   const currentWorld = useStore((state: AppState) => state.worlds?.find((w: World) => w.id === state.selectedWorldId));
   const locations = currentWorld?.locations || [];
-  
+
   // Get project path for saving locations
   const { projectPath } = useEditorStore();
   const { fetchProjectLocations } = useLocationStore();
-  
+
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<ErrorRecoveryOptions | null>(null);
@@ -123,7 +123,7 @@ export function Step3LocationSelection(): JSX.Element {
 
   const handleToggleLocation = (location: LocationReference) => {
     const isSelected = selectedLocations.some(l => l.id === location.id);
-    
+
     if (isSelected) {
       updateFormData({
         selectedLocations: selectedLocations.filter(l => l.id !== location.id),
@@ -183,7 +183,7 @@ export function Step3LocationSelection(): JSX.Element {
       // Get project ID from project path
       const projectId = projectPath?.split(/[/\\]/).pop() || 'unknown';
 
-      // Save location to project's lieux folder as JSON file
+      // Save location to project's locations folder as JSON file
       if (projectPath && projectId !== 'unknown') {
         const locationData = createLocationFromWizardData(
           createdLocation.id,
@@ -194,9 +194,9 @@ export function Step3LocationSelection(): JSX.Element {
           },
           { projectId, worldId: currentWorld?.id }
         );
-        
+
         await saveLocationToProject(projectId, createdLocation.id, locationData);
-        
+
         // Refresh project locations in the store
         await fetchProjectLocations(projectId);
       }
@@ -298,7 +298,7 @@ export function Step3LocationSelection(): JSX.Element {
       {/* Info Box */}
       <div className="mt-6 bg-amber-50 dark:bg-amber-950/20 p-4 rounded-md">
         <p className="text-sm text-amber-900 dark:text-amber-100">
-          💡 <strong>Tip:</strong> You can select multiple locations or proceed without any. 
+          💡 <strong>Tip:</strong> You can select multiple locations or proceed without any.
           The AI will use selected locations in the story or create new ones as needed.
         </p>
       </div>

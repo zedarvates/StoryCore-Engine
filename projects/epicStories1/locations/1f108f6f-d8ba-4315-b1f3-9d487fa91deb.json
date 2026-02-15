@@ -1,0 +1,18 @@
+{
+  "location_id": "1f108f6f-d8ba-4315-b1f3-9d487fa91deb",
+  "name": "The Clockwork Cathedral",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T21:02:50.031Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A massive, abandoned church built by the pre-apocalyptic world's most brilliant engineers. Its spire still stands, a twisted metal monolith piercing the sky like a shard of glass.",
+    "atmosphere": "Eerie, beautiful, and slightly ominous, with an air of reverence for the lost civilization that built it.",
+    "genre_tags": [],
+    "significance": "Ancient repository of knowledge and technology, where Vivas Guardians can uncover clues to the mysterious forces driving the post-apocalyptic world."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

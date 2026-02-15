@@ -35,7 +35,7 @@ export type ShotType = 'plan_sequence' | 'choc' | 'standard';
 /**
  * Skybox type for exterior locations
  */
-export type SkyboxType = 
+export type SkyboxType =
   | 'clear_day'
   | 'clear_night'
   | 'overcast'
@@ -48,7 +48,7 @@ export type SkyboxType =
 /**
  * Weather condition for skybox
  */
-export type WeatherCondition = 
+export type WeatherCondition =
   | 'clear'
   | 'cloudy'
   | 'overcast'
@@ -72,19 +72,19 @@ export const CUBE_FACES: CubeFace[] = ['front', 'back', 'left', 'right', 'top', 
 export interface CubeFaceTexture {
   /** Unique identifier for this face */
   id: string;
-  
+
   /** Which face this texture applies to */
   face: CubeFace;
-  
+
   /** Path to the generated image file */
   image_path: string;
-  
+
   /** Generation parameters used */
   generation_params: ImageGenerationParams;
-  
+
   /** ISO timestamp of generation */
   generated_at: string;
-  
+
   /** ComfyUI workflow URL if applicable */
   workflow_url?: string;
 }
@@ -95,29 +95,29 @@ export interface CubeFaceTexture {
 export interface ImageGenerationParams {
   /** Positive prompt used */
   prompt: string;
-  
+
   /** Negative prompt used */
   negative_prompt?: string;
-  
+
   /** Image dimensions */
   width: number;
   height: number;
-  
+
   /** Generation steps */
   steps: number;
-  
+
   /** CFG scale value */
   cfg_scale: number;
-  
+
   /** Random seed used */
   seed: number;
-  
+
   /** Model filename */
   model?: string;
-  
+
   /** Sampler name */
   sampler?: string;
-  
+
   /** Scheduler name */
   scheduler?: string;
 }
@@ -129,19 +129,19 @@ export interface ImageGenerationParams {
 export interface CubeTextureMapping {
   /** Front view image (looking toward positive Z in OpenGL convention) */
   front?: CubeFaceTexture;
-  
+
   /** Back view image (looking toward negative Z) */
   back?: CubeFaceTexture;
-  
+
   /** Left view image (looking toward negative X) */
   left?: CubeFaceTexture;
-  
+
   /** Right view image (looking toward positive X) */
   right?: CubeFaceTexture;
-  
+
   /** Top view image (bird's eye, looking toward positive Y) */
   top?: FaceTexture;
-  
+
   /** Bottom view image (underground, looking toward negative Y) */
   bottom?: CubeFaceTexture;
 }
@@ -167,38 +167,38 @@ export interface FaceTexture {
 export interface SkyBoxConfig {
   /** Sky type: procedural, image-based, or none */
   type: 'procedural' | 'image_based' | 'none';
-  
+
   /** Skybox preset type (for exterior locations) */
   skybox_type?: SkyboxType;
-  
+
   /** Shot type for skybox generation strategy */
   shot_type?: ShotType;
-  
+
   /** Sky color gradient (if procedural) */
   colors?: {
     top: string;
     horizon: string;
     bottom: string;
   };
-  
+
   /** Reference to sky texture image */
   texture_path?: string;
-  
+
   /** Sun/moon position for lighting (0-24 hours) */
   time_of_day?: number;
-  
+
   /** Sun/moon position for lighting (3D coordinates) */
   light_position?: { x: number; y: number; z: number };
-  
+
   /** Brightness multiplier (0.5 to 2.0) */
   intensity?: number;
-  
+
   /** Weather condition */
   weather?: WeatherCondition;
-  
+
   /** Custom prompt for AI-generated sky */
   custom_prompt?: string;
-  
+
   /** Shot-type-specific requirements */
   shot_requirements?: {
     /** Full 360° continuity required */
@@ -224,25 +224,49 @@ export interface SkyBoxConfig {
 export interface LocationMetadata {
   /** Detailed description of the location */
   description: string;
-  
+
   /** Atmospheric notes and mood */
   atmosphere: string;
-  
+
+  /** Significance of the location in the story/world */
+  significance?: string;
+
   /** Time period or era */
   time_period?: string;
-  
+
   /** Genre tags for categorization */
   genre_tags: string[];
-  
+
   /** Color palette for consistent styling */
   color_palette?: string[];
-  
+
   /** Key features or landmarks */
   key_features?: string[];
-  
+
+  /** Location address or specific spot */
+  address?: string;
+
+  /** Geographic or map coordinates */
+  coordinates?: string;
+
+  /** Owner or controlling entity */
+  owner?: string;
+
+  /** Primary purpose or function */
+  purpose?: string;
+
+  /** Hidden or restricted information */
+  secrets?: string;
+
+  /** Story importance level */
+  importance?: 'high' | 'medium' | 'low';
+
+  /** Accessibility for characters */
+  accessibility?: 'public' | 'private' | 'restricted';
+
   /** Optional thumbnail path */
   thumbnail_path?: string;
-  
+
   /** Optional tile image path for grid/tiled display */
   tile_image_path?: string;
 }
@@ -253,22 +277,22 @@ export interface LocationMetadata {
 export interface WorldLocationSnapshot {
   /** Original location ID from World Building */
   world_location_id: string;
-  
+
   /** World ID this location belongs to */
   world_id: string;
-  
+
   /** Original name from World Building */
   world_name: string;
-  
+
   /** Original type from World Building */
   world_type: string;
-  
+
   /** Original description */
   world_description: string;
-  
+
   /** Original significance */
   significance?: string;
-  
+
   /** Snapshot timestamp */
   snapshot_at: string;
 }
@@ -283,19 +307,19 @@ export interface WorldLocationSnapshot {
 export interface PlacedAsset {
   /** Unique identifier */
   id: string;
-  
+
   /** Reference to asset in asset library */
   asset_id: string;
-  
+
   /** 3D position coordinates */
   position: { x: number; y: number; z: number };
-  
+
   /** Rotation angles in degrees */
   rotation: { x: number; y: number; z: number };
-  
+
   /** Scale factor */
   scale: number;
-  
+
   /** Whether asset is visible */
   visible: boolean;
 }
@@ -310,10 +334,10 @@ export interface PlacedAsset {
 export interface Transform3D {
   /** Position coordinates */
   position: { x: number; y: number; z: number };
-  
+
   /** Rotation angles in degrees (Euler angles) */
   rotation: { x: number; y: number; z: number };
-  
+
   /** Scale factors */
   scale: { x: number; y: number; z: number };
 }
@@ -325,19 +349,19 @@ export interface Transform3D {
 export interface SceneLocation {
   /** Unique instance ID */
   instance_id: string;
-  
+
   /** Reference to base Location */
   location_id: string;
-  
+
   /** Which shot/sequence this instance belongs to */
   parent_shot_id?: string;
-  
+
   /** Transform in world space */
   transform: Transform3D;
-  
+
   /** Override textures for this instance (optional) */
   texture_overrides?: Partial<CubeTextureMapping>;
-  
+
   /** Instance-specific metadata */
   instance_metadata?: {
     name: string;
@@ -356,49 +380,49 @@ export interface SceneLocation {
 export interface Location {
   /** Unique identifier for the enhanced location */
   location_id: string;
-  
+
   /** Reference to World Building location (optional link) */
   world_location_id?: string;
-  
+
   /** Reference to the world this location belongs to */
   world_id?: string;
-  
+
   /** Display name of the location (synced from World Building if linked) */
   name: string;
-  
+
   /** Creation method: wizard-guided, auto-generated, or manual */
   creation_method: 'wizard' | 'auto_generated' | 'manual';
-  
+
   /** ISO timestamp of creation */
   creation_timestamp: string;
-  
+
   /** Schema version for data migrations */
   version: string;
-  
+
   /** Location type: exterior (with sky) or interior (enclosed) */
   location_type: LocationType;
-  
+
   /** Texture direction for rendering */
   texture_direction: TextureDirection;
-  
+
   /** Basic metadata and description (from World Building or custom) */
   metadata: LocationMetadata;
-  
+
   /** Cube mapping data for 6-directional views */
   cube_textures: CubeTextureMapping;
-  
+
   /** Skybox configuration (for exterior locations) */
   skybox_config?: SkyBoxConfig;
-  
+
   /** Environmental assets placed in the scene */
   placed_assets: PlacedAsset[];
-  
+
   /** 3D scene transform when placed */
   scene_transform?: Transform3D;
-  
+
   /** Whether this location was created from World Building wizard */
   is_world_derived: boolean;
-  
+
   /** Original World Building data snapshot (if linked) */
   world_snapshot?: WorldLocationSnapshot;
 }
@@ -496,7 +520,7 @@ export function getDefaultSkyboxConfig(locationType: LocationType): SkyBoxConfig
   if (locationType === 'interior') {
     return undefined;
   }
-  
+
   return {
     type: 'procedural',
     skybox_type: 'clear_day',

@@ -9,6 +9,8 @@
  * @updated 2026-02-12 - Migrated `any` types to specific types
  */
 
+import { logger } from '@/utils/logger';
+
 // ============================================================================
 // Validation Types (Migrated from `any`)
 // ============================================================================
@@ -239,8 +241,14 @@ export function validateCharacterStep5(data: CharacterStepData): ValidationResul
 
   // Validate relationships
   if (data?.relationships && data.relationships.length > 0) {
-    data.relationships.forEach((rel: unknown, index: number) => {
-      if (isEmpty(rel?.character_name)) {
+    data.relationships.forEach((rel, index: number) => {
+      // Check using both camelCase (from interface) and snake_case (from data)
+      const charName = (rel as { character_name?: string; characterId?: string }).character_name 
+        ?? (rel as { characterId?: string }).characterId;
+      const relType = (rel as { relationship_type?: string; relationshipType?: string }).relationship_type 
+        ?? (rel as { relationshipType?: string }).relationshipType;
+      
+      if (isEmpty(charName)) {
         errors.push({
           field: `relationships[${index}].character_name`,
           message: 'Character name is required for relationship',
@@ -248,7 +256,7 @@ export function validateCharacterStep5(data: CharacterStepData): ValidationResul
           code: 'RELATIONSHIP_NAME_REQUIRED',
         });
       }
-      if (isEmpty(rel?.relationship_type)) {
+      if (isEmpty(relType)) {
         errors.push({
           field: `relationships[${index}].relationship_type`,
           message: 'Relationship type is required',
@@ -479,7 +487,7 @@ export function validateProjectSetupStep3(data: ProjectSetupStepData): Validatio
 // ============================================================================
 
 export class WizardValidationEngine {
-  private rules: Map<string, StepValidationRule[]> = new Map();
+  private readonly rules: Map<string, readonly StepValidationRule[]> = new Map();
 
   constructor() {
     this.registerDefaultRules();
@@ -530,7 +538,9 @@ export class WizardValidationEngine {
     if (!this.rules.has(key)) {
       this.rules.set(key, []);
     }
-    this.rules.get(key)!.push({ step, wizardType, validate: validate as (data: WizardValidationData) => ValidationResult, dependencies });
+    // Cast to mutable array for pushing - the Map value is intentionally readonly for external access
+    const rulesArray = this.rules.get(key) as StepValidationRule[];
+    rulesArray.push({ step, wizardType, validate: validate as (data: WizardValidationData) => ValidationResult, dependencies });
   }
 
   /**
@@ -539,13 +549,13 @@ export class WizardValidationEngine {
   validateStep<T extends WizardValidationData>(wizardType: string, step: number, data: T): ValidationResult {
     const rules = this.rules.get(wizardType);
     if (!rules) {
-      console.warn(`No validation rules found for wizard type: ${wizardType}`);
+      logger.warn(`[ValidationEngine] No validation rules found for wizard type: ${wizardType}`);
       return createValidResult();
     }
 
     const rule = rules.find(r => r.step === step);
     if (!rule) {
-      console.warn(`No validation rule found for step ${step} in ${wizardType}`);
+      logger.warn(`[ValidationEngine] No validation rule found for step ${step} in ${wizardType}`);
       return createValidResult();
     }
 

@@ -30,6 +30,8 @@ interface TimelineControlsProps {
   onToggleRippleEdit?: () => void;
   magneticTimeline?: boolean;
   onToggleMagneticTimeline?: () => void;
+  onSplit?: () => void;
+  onAutoMix?: () => void;
 }
 
 export const TimelineControls: React.FC<TimelineControlsProps> = ({
@@ -47,16 +49,18 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   onToggleRippleEdit,
   magneticTimeline = false,
   onToggleMagneticTimeline,
+  onSplit,
+  onAutoMix,
 }) => {
   const dispatch = useAppDispatch();
   const [showAddTrackMenu, setShowAddTrackMenu] = useState(false);
   const [showGoToTimeDialog, setShowGoToTimeDialog] = useState(false);
-  
+
   // Get playback state from Redux
   const playbackState: PlaybackState = useAppSelector((state) => state.preview.playbackState);
   const isPlaying = playbackState === 'playing';
   const isPaused = playbackState === 'paused';
-  
+
   // Track type options
   const trackTypes: { type: LayerType; label: string; icon: string }[] = [
     { type: 'media', label: 'Media Track', icon: '🎬' },
@@ -207,43 +211,43 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
     <div className="timeline-controls-bar">
       {/* Playback controls */}
       <div className="timeline-controls-group">
-        <button 
-          className="timeline-control-btn" 
+        <button
+          className="timeline-control-btn"
           title="Go to start (Home)"
           onClick={handleGoToStart}
         >
           ⏮️
         </button>
-        <button 
-          className="timeline-control-btn" 
+        <button
+          className="timeline-control-btn"
           title="Previous frame (J or Left Arrow)"
           onClick={handlePreviousFrame}
         >
           ⏪
         </button>
-        <button 
+        <button
           className={`timeline-control-btn playback-btn ${isPlaying ? 'playing' : ''}`}
           title={isPlaying ? "Pause (Space)" : "Play (Space)"}
           onClick={handlePlayPause}
         >
           {isPlaying ? '⏸️' : '▶️'}
         </button>
-        <button 
-          className="timeline-control-btn" 
+        <button
+          className="timeline-control-btn"
           title="Stop (K)"
           onClick={handleStop}
         >
           ⏹️
         </button>
-        <button 
-          className="timeline-control-btn" 
+        <button
+          className="timeline-control-btn"
           title="Next frame (L or Right Arrow)"
           onClick={handleNextFrame}
         >
           ⏩
         </button>
-        <button 
-          className="timeline-control-btn" 
+        <button
+          className="timeline-control-btn"
           title="Go to end (End)"
           onClick={handleGoToEnd}
         >
@@ -276,11 +280,11 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
         >
           🔍-
         </button>
-        
+
         <div className="zoom-level-display">
           {Math.round(zoomLevel * 10)}%
         </div>
-        
+
         <button
           className="timeline-control-btn"
           onClick={handleZoomIn}
@@ -288,7 +292,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
         >
           🔍+
         </button>
-        
+
         <button
           className="timeline-control-btn"
           onClick={handleFitToWindow}
@@ -309,7 +313,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
           >
             + Track
           </button>
-          
+
           {showAddTrackMenu && (
             <div className="add-track-menu">
               {trackTypes.map(({ type, label, icon }) => (
@@ -374,9 +378,17 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
       <div className="timeline-controls-group">
         <button
           className="timeline-control-btn toggle-btn"
+          onClick={onSplit}
           title="Split clip at playhead (Ctrl/Cmd + B)"
         >
           ✂️
+        </button>
+        <button
+          className="timeline-control-btn toggle-btn"
+          onClick={onAutoMix}
+          title="Apply AI Auto-Mix to all audio tracks"
+        >
+          ✨ Mix
         </button>
 
         <button

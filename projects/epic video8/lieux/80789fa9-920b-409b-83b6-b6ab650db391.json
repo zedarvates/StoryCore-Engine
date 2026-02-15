@@ -1,0 +1,18 @@
+{
+  "location_id": "80789fa9-920b-409b-83b6-b6ab650db391",
+  "name": "The Crimson Wastes",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-14T06:36:35.821Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A desolate expanse of barren rock and ash, scorched by the remnants of a cataclysmic event known only as 'The Great Burning'. The air is heavy with acrid smoke and the ground is sown with razor-sharp obsidian shards that seem to writhe in agony.",
+    "atmosphere": "Desolate, oppressive, unsettling",
+    "genre_tags": [],
+    "significance": "The Crimson Wastes are said to be home to twisted, nightmarish creatures born from the ash and smoke of the disaster. Those who venture into this wasteland risk succumbing to madness or falling prey to the very darkness they seek to explore."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}
