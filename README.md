@@ -39,7 +39,7 @@ There are still a few adjustments to make to make the output a bit less strictly
 These refinements will be handled in future versions.
 
 ---
-
+https://youtu.be/P0K7DueyICo?si=kEvpsxMy4zeFEYqO
 ## 📋 System Requirements
 
 ### Minimum Hardware
