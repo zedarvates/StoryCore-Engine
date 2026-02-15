@@ -3,7 +3,9 @@
 
 **From Script to Screen in 5 Minutes — With  Visual Coherence**
 
-![Hackathon 2026](https://img.shields.io/badge/Hackathon-2026-blue) ![Python](https://img.shields.io/badge/Python-3.9+-green) ![React](https://img.shields.io/badge/React-18+-blue) ![ComfyUI](https://img.shields.io/badge/ComfyUI-Ready-orange) ![Deterministic AI](https://img.shields.io/badge/Deterministic-AI-purple) ![Security](https://img.shields.io/badge/Security-Validated-green) ![Resilience](https://img.shields.io/badge/Resilience-Enterprise-blue)
+![Hackathon 2026](https://img.shields.io/badge/Hackathon-2026-blue) ![Python](https://img.shields.io/badge/Python-3.9+-green) ![React](https://img.shields.io/badge/React-18+-blue) ![ComfyUI](https://img.shields.io/badge/ComfyUI-Ready-orange) ![Deterministic AI](https://img.shields.io/badge/Deterministic-AI-purple) ![Security](https://img.shields.io/badge/Security-Validated-green) ![Resilience](https://img.shields.io/badge/Resilience-Enterprise-blue)![Python](https://img.shields.io/badge/python-3.11+-blue)
+![License](https://img.shields.io/github/license/zedarvates/StoryCore-Engine)
+![Repo size](https://img.shields.io/github/repo-size/zedarvates/StoryCore-Engine)
 
 ---
 
@@ -76,7 +78,7 @@ Both tools run locally and keep all your data secure on your machine.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/storycore-engine.git
+git clone https://github.com/zedarvates/StoryCore-Engine.git
 cd storycore-engine
 
 # Install dependencies
@@ -216,6 +218,30 @@ npm run package:linux # Linux
 ---
 
 ## 🎯 Future Roadmap (Post-Launch Enhancements)
+
+### 📊 Visual Roadmap
+
+| Phase | Feature | Status | Description |
+|-------|---------|--------|-------------|
+| **Phase 1** | Advanced Camera Movements | 🔜 Planned | Bezier curves and complex transitions |
+| **Phase 1** | Multi-format Export | 🔜 Planned | MP4 generation from video plans |
+| **Phase 2** | Collaborative Features | 📋 Backlog | Multi-user project management |
+| **Phase 2** | Performance Optimization | 📋 Backlog | Parallel processing and caching |
+| **Phase 3** | Plugin Architecture | 📋 Backlog | Custom engine extensions |
+| **Phase 3** | Cloud Deployment | 📋 Backlog | Scalable cloud infrastructure |
+| **Phase 4** | Real-time Monitoring | 📋 Backlog | Enhanced monitoring with alerting |
+| **Phase 4** | Multi-character Scenes | 📋 Backlog | Advanced scene composition |
+| **Phase 5** | Studio Integration | 📋 Backlog | Enterprise deployment and scaling |
+
+### 📋 Milestone List
+
+1. **v0.2.0** - Advanced Camera Movements & Transitions
+2. **v0.3.0** - Multi-format Export (MP4)
+3. **v0.4.0** - Collaborative Features
+4. **v0.5.0** - Performance Optimization
+5. **v1.0.0** - Plugin Architecture & Cloud Ready
+
+---
 
 **Planned Features:**
 - Advanced Camera Movements: Bezier curves and complex transitions

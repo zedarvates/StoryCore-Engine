@@ -120,7 +120,9 @@ ffmpeg/
 models/
 
 # Workflow files
+# Workflows (but not .github folder itself)
 workflows/
+!.github/
 *.json.bak
 
 # Large test files
