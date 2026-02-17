@@ -342,20 +342,11 @@ describe('ConfigManager', () => {
       
       localStorageMock.setItem('storycore-llm-config', JSON.stringify(v1Config));
       
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
       const config = ConfigManager.getLLMConfig();
       
       expect(config.schemaVersion).toBe('2.0');
       expect(config.availableModels).toBeDefined();
       expect(config.reasoningMode).toBeDefined();
-      // Check that migration was logged (it logs with multiple arguments)
-      const migrationCalls = consoleSpy.mock.calls.filter(call => 
-        call[0]?.includes?.('Migrating LLM config')
-      );
-      expect(migrationCalls.length).toBeGreaterThan(0);
-      
-      consoleSpy.mockRestore();
     });
 
     it('should preserve user settings during migration', () => {

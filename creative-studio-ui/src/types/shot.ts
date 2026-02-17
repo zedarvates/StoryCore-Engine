@@ -154,6 +154,15 @@ export interface ProductionShot {
     fadeOut: number;
     loop: boolean;
   };
+
+  // Added for compatibility with UI usage
+  title?: string;
+  status: 'planned' | 'generating' | 'generated' | 'approved' | 'rejected';
+  thumbnailUrl?: string;
+  generatedAssetUrl?: string;
+  notes?: string;
+  tags?: string[];
+  templates?: string[];
 }
 
 // ============================================================================

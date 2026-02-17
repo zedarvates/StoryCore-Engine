@@ -59,7 +59,7 @@ export function LocationImageGenerator({
 
   const comfyuiService = ComfyUIService.getInstance();
   const project = useAppStore((state) => state.project);
-  
+
   // Get visual style from project
   const visualStyle = (project as any)?.visualStyle || (project as any)?.visual_style || 'realistic';
 
@@ -87,7 +87,7 @@ export function LocationImageGenerator({
       'minimalist': 'minimalist style',
       'realistic': 'realistic'
     };
-    
+
     const stylePrefix = styleMap[visualStyle] || visualStyle;
     parts.push(stylePrefix);
 
@@ -137,8 +137,18 @@ export function LocationImageGenerator({
       parts.push(`Genre: ${metadata.genre_tags.join(', ')}`);
     }
 
-    // Add quality tags
-    parts.push('high quality', 'detailed', 'professional shot', 'wide angle', 'cinematic composition');
+    // Add quality tags from user requirements
+    parts.push(
+      'photorealist',
+      'cinematic lighting',
+      'high quality',
+      '8K',
+      'detailed',
+      'professional shot',
+      'wide angle',
+      'cinematic composition',
+      'sharp focus'
+    );
 
     return parts.join(', ');
   };
@@ -198,7 +208,7 @@ export function LocationImageGenerator({
       });
 
       setGeneratedImage(imageUrl);
-      
+
       if (onImageGenerated) {
         onImageGenerated(imageUrl);
       }

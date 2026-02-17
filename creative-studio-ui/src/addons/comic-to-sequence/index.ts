@@ -2,7 +2,8 @@
 // Comic to Sequence Converter Add-on
 // ============================================================================
 
-// Core types
+// Core types - Import first, then re-export
+import type { ComicPanel, ComicPage, ComicProject, ConversionSettings, SequenceResult } from './types';
 export type {
   ComicPanel,
   ComicPage,
@@ -11,11 +12,8 @@ export type {
   SequenceResult,
 } from './types';
 
-// Import types for internal use
-import type { ComicPanel, ComicPage, ComicProject, ConversionSettings, SequenceResult } from './types';
-import type { ComicToSequenceConverter } from './ComicToSequenceConverter';
-
 // Import implementation
+import { ComicToSequenceConverter } from './ComicToSequenceConverter';
 export { ComicToSequenceConverter } from './ComicToSequenceConverter';
 
 // Plugin interface

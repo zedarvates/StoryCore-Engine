@@ -94,7 +94,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
   const programRef = useRef<WebGLProgram | null>(null);
   const buffersRef = useRef<Map<string, WebGLBuffer>>(new Map());
   const { toast } = useToast();
-  
+
   // WebGL Shader sources
   const vertexShaderSource = `
     attribute vec4 aPosition;
@@ -145,33 +145,33 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
   `;
 
   // Matrix utility functions
-  const createMatrix = () => new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
-  
+  const createMatrix = () => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+
   const perspectiveMatrix = (fov: number, aspect: number, near: number, far: number) => {
     const f = 1.0 / Math.tan(fov / 2);
     const nf = 1 / (near - far);
-    return new Float32Array([f/aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,(2*far*near)*nf,0]);
+    return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, (2 * far * near) * nf, 0]);
   };
-  
+
   const translateMatrix = (m: Float32Array, x: number, y: number, z: number) => {
     const r = new Float32Array(m);
-    r[12] = m[0]*x + m[4]*y + m[8]*z + m[12];
-    r[13] = m[1]*x + m[5]*y + m[9]*z + m[13];
-    r[14] = m[2]*x + m[6]*y + m[10]*z + m[14];
-    r[15] = m[3]*x + m[7]*y + m[11]*z + m[15];
+    r[12] = m[0] * x + m[4] * y + m[8] * z + m[12];
+    r[13] = m[1] * x + m[5] * y + m[9] * z + m[13];
+    r[14] = m[2] * x + m[6] * y + m[10] * z + m[14];
+    r[15] = m[3] * x + m[7] * y + m[11] * z + m[15];
     return r;
   };
-  
+
   const rotateYMatrix = (m: Float32Array, angle: number) => {
     const c = Math.cos(angle), s = Math.sin(angle);
     const r = new Float32Array(16);
-    r[0] = m[0]*c + m[8]*s; r[1] = m[1]*c + m[9]*s; r[2] = m[2]*c + m[10]*s; r[3] = m[3]*c + m[11]*s;
+    r[0] = m[0] * c + m[8] * s; r[1] = m[1] * c + m[9] * s; r[2] = m[2] * c + m[10] * s; r[3] = m[3] * c + m[11] * s;
     r[4] = m[4]; r[5] = m[5]; r[6] = m[6]; r[7] = m[7];
-    r[8] = m[8]*c - m[0]*s; r[9] = m[9]*c - m[1]*s; r[10] = m[10]*c - m[2]*s; r[11] = m[11]*c - m[3]*s;
+    r[8] = m[8] * c - m[0] * s; r[9] = m[9] * c - m[1] * s; r[10] = m[10] * c - m[2] * s; r[11] = m[11] * c - m[3] * s;
     r[12] = m[12]; r[13] = m[13]; r[14] = m[14]; r[15] = m[15];
     return r;
   };
-  
+
   // Initialize WebGL shaders and program
   const initializeWebGL = (gl: WebGLRenderingContext) => {
     try {
@@ -181,23 +181,23 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
         console.error('VS error:', gl.getShaderInfoLog(vs)); return;
       }
-      
+
       const fs = gl.createShader(gl.FRAGMENT_SHADER)!;
       gl.shaderSource(fs, fragmentShaderSource);
       gl.compileShader(fs);
       if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
         console.error('FS error:', gl.getShaderInfoLog(fs)); return;
       }
-      
+
       const prog = gl.createProgram()!;
       gl.attachShader(prog, vs);
       gl.attachShader(prog, fs);
       gl.linkProgram(prog);
-      
+
       if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
         console.error('Link error:', gl.getProgramInfoLog(prog)); return;
       }
-      
+
       programRef.current = prog;
       gl.useProgram(prog);
       console.log('WebGL initialized successfully');
@@ -205,17 +205,17 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       console.error('WebGL init error:', error);
     }
   };
-  
+
   // Render WebGL scene
   const renderWebGLScene = (gl: WebGLRenderingContext, program: WebGLProgram) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    
+
     const aspect = canvasRef.current ? canvasRef.current.width / canvasRef.current.height : 1;
     const projMatrix = perspectiveMatrix(camera.fov * Math.PI / 180, aspect, 0.1, 100);
-    
+
     let mvMatrix = createMatrix();
     mvMatrix = translateMatrix(mvMatrix, -camera.position.x, -camera.position.y, -camera.position.z);
-    
+
     // Set uniforms
     const projLoc = gl.getUniformLocation(program, 'uProjectionMatrix');
     const mvLoc = gl.getUniformLocation(program, 'uModelViewMatrix');
@@ -225,7 +225,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
     const ambientLoc = gl.getUniformLocation(program, 'uAmbientColor');
     const shininessLoc = gl.getUniformLocation(program, 'uShininess');
     const lightingLoc = gl.getUniformLocation(program, 'uLightingEnabled');
-    
+
     gl.uniformMatrix4fv(projLoc, false, projMatrix);
     gl.uniformMatrix4fv(mvLoc, false, mvMatrix);
     gl.uniformMatrix4fv(normLoc, false, mvMatrix);
@@ -234,52 +234,52 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
     gl.uniform3f(ambientLoc, 0.2, 0.2, 0.3);
     gl.uniform1f(shininessLoc, 32.0);
     gl.uniform1i(lightingLoc, 1);
-    
+
     // Draw simple joint as a colored quad (simplified for demo)
     // In production, this would use proper 3D geometry
     const posLoc = gl.getAttribLocation(program, 'aPosition');
     const normAttrLoc = gl.getAttribLocation(program, 'aNormal');
     const colorLoc = gl.getAttribLocation(program, 'aColor');
-    
+
     // Simple quad for joint visualization
     const vertices = new Float32Array([
-      -0.1,-0.1,0, 0.1,-0.1,0, 0.1,0.1,0, -0.1,-0.1,0, 0.1,0.1,0, -0.1,0.1,0
+      -0.1, -0.1, 0, 0.1, -0.1, 0, 0.1, 0.1, 0, -0.1, -0.1, 0, 0.1, 0.1, 0, -0.1, 0.1, 0
     ]);
     const normals = new Float32Array([
-      0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1
+      0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1
     ]);
     const colors = new Float32Array([
-      0.3,0.6,0.9,1, 0.3,0.6,0.9,1, 0.3,0.6,0.9,1,
-      0.3,0.6,0.9,1, 0.3,0.6,0.9,1, 0.3,0.6,0.9,1
+      0.3, 0.6, 0.9, 1, 0.3, 0.6, 0.9, 1, 0.3, 0.6, 0.9, 1,
+      0.3, 0.6, 0.9, 1, 0.3, 0.6, 0.9, 1, 0.3, 0.6, 0.9, 1
     ]);
-    
+
     const posBuffer = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(posLoc);
     gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
-    
+
     const normBuffer = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(normAttrLoc);
     gl.vertexAttribPointer(normAttrLoc, 3, gl.FLOAT, false, 0, 0);
-    
+
     const colorBuffer = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(colorLoc);
     gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, 0, 0);
-    
+
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   };
-  
+
   const [camera, setCamera] = useState<Camera>({
     position: { x: 0, y: 1.5, z: 5 },
     rotation: { x: 0, y: 0, z: 0 },
     fov: 60,
   });
-  
+
   const [puppets, setPuppets] = useState<Puppet[]>([
     {
       id: 'puppet-1',
@@ -307,13 +307,13 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       ],
     },
   ]);
-  
+
   const [environment, setEnvironment] = useState<Environment>({
     type: 'studio',
     lighting: 'bright',
     props: [],
   });
-  
+
   const [selectedJoint, setSelectedJoint] = useState<string | null>(null);
   const [posePresets] = useState([
     'idle',
@@ -332,12 +332,12 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
     percentage: number;
     message: string;
   } | null>(null);
-  
+
   const [selectedPuppet, setSelectedPuppet] = useState<string | null>('puppet-1');
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [webGLSupported, setWebGLSupported] = useState(true);
-  
+
   // -------------------------------------------------------------------------
   // Synchronise the generated rig (if any) from the selected shot into the
   // 3‑D scene. The backend returns a `rigPath` which we expose via the
@@ -346,8 +346,8 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
   // implementation you would load the rig geometry (e.g. from a GLTF file)
   // and populate the `joints` array accordingly.
   // -------------------------------------------------------------------------
-  const selectedShot = useSelectedShot();
-  
+  const { selectedShot } = useSelectedShot();
+
   useEffect(() => {
     if (selectedShot?.rigPath) {
       // Placeholder puppet for the rig – replace with real geometry later.
@@ -390,13 +390,13 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
         },
       ]);
     }
-  }, [selectedShot]);
-  
+  }, [selectedShot?.id, selectedShot?.rigPath]);
+
   // Initialize WebGL context
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     try {
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
       if (!gl) {
@@ -404,30 +404,30 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
         setWebGLSupported(false);
         return;
       }
-      
+
       // Type assertion for WebGL context
       const webGLContext = gl as WebGLRenderingContext;
       glRef.current = webGLContext;
-      
+
       // Set up WebGL viewport
       webGLContext.viewport(0, 0, canvas.width, canvas.height);
       webGLContext.clearColor(0.1, 0.1, 0.15, 1.0);
       webGLContext.enable(webGLContext.DEPTH_TEST);
       webGLContext.depthFunc(webGLContext.LEQUAL);
-      
+
     } catch (error) {
       console.error('Failed to initialize WebGL:', error);
       setWebGLSupported(false);
     }
   }, []);
-  
+
   // Render 3D scene
   const renderScene = useCallback(() => {
     const canvas = canvasRef.current;
     const gl = glRef.current;
-    
+
     if (!canvas) return;
-    
+
     if (webGLSupported && gl) {
       // WebGL rendering with proper shaders
       try {
@@ -446,19 +446,19 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       // Fallback to 2D canvas rendering
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
-      
+
       // Clear canvas
       ctx.fillStyle = '#1a1a24';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       // Draw grid
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
       ctx.lineWidth = 1;
-      
+
       const gridSize = 50;
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
-      
+
       // Horizontal lines
       for (let i = -5; i <= 5; i++) {
         const y = centerY + i * gridSize;
@@ -467,7 +467,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
         ctx.lineTo(canvas.width, y);
         ctx.stroke();
       }
-      
+
       // Vertical lines
       for (let i = -5; i <= 5; i++) {
         const x = centerX + i * gridSize;
@@ -476,57 +476,57 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
         ctx.lineTo(x, canvas.height);
         ctx.stroke();
       }
-      
+
       // Draw center axes
       ctx.strokeStyle = 'rgba(74, 144, 226, 0.5)';
       ctx.lineWidth = 2;
-      
+
       // X axis (red)
       ctx.strokeStyle = '#e74c3c';
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.lineTo(centerX + 100, centerY);
       ctx.stroke();
-      
+
       // Y axis (green)
       ctx.strokeStyle = '#2ecc71';
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.lineTo(centerX, centerY - 100);
       ctx.stroke();
-      
+
       // Z axis (blue) - simulated perspective
       ctx.strokeStyle = '#3498db';
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.lineTo(centerX - 70, centerY + 70);
       ctx.stroke();
-      
+
       // Draw puppets
       puppets.forEach((puppet) => {
         const isSelected = puppet.id === selectedPuppet;
-        
+
         // Calculate screen position (simple orthographic projection)
         const screenX = centerX + puppet.position.x * 50;
         const screenY = centerY - puppet.position.y * 50;
-        
+
         ctx.save();
         ctx.translate(screenX, screenY);
         ctx.rotate(puppet.rotation.y);
         ctx.scale(puppet.scale.x, puppet.scale.y);
-        
+
         // Draw joints and bones
         puppet.joints.forEach((joint) => {
           const jointScreenX = joint.position.x * 50;
           const jointScreenY = -joint.position.y * 50;
-          
+
           // Draw bone to parent
           if (joint.parent) {
             const parentJoint = puppet.joints.find((j) => j.id === joint.parent);
             if (parentJoint) {
               const parentScreenX = parentJoint.position.x * 50;
               const parentScreenY = -parentJoint.position.y * 50;
-              
+
               ctx.strokeStyle = isSelected ? '#4A90E2' : '#666666';
               ctx.lineWidth = 3;
               ctx.beginPath();
@@ -535,14 +535,14 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
               ctx.stroke();
             }
           }
-          
+
           // Draw joint
           const isJointSelected = joint.id === selectedJoint;
           ctx.fillStyle = isJointSelected ? '#e74c3c' : (isSelected ? '#4A90E2' : '#888888');
           ctx.beginPath();
           ctx.arc(jointScreenX, jointScreenY, isJointSelected ? 8 : 5, 0, Math.PI * 2);
           ctx.fill();
-          
+
           // Draw joint label for selected joint
           if (isJointSelected) {
             ctx.fillStyle = '#ffffff';
@@ -551,7 +551,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
             ctx.fillText(joint.name, jointScreenX, jointScreenY - 12);
           }
         });
-        
+
         // Selection indicator
         if (isSelected) {
           ctx.strokeStyle = '#4A90E2';
@@ -560,30 +560,30 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
           ctx.strokeRect(-60, -90, 120, 180);
           ctx.setLineDash([]);
         }
-        
+
         ctx.restore();
-        
+
         // Draw puppet label
         ctx.fillStyle = isSelected ? '#4A90E2' : '#aaaaaa';
         ctx.font = '12px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(`${puppet.id} (${puppet.pose})`, screenX, screenY + 100);
       });
-      
+
       // Draw environment props
       environment.props.forEach((prop) => {
         const propScreenX = centerX + prop.position.x * 50;
         const propScreenY = centerY - prop.position.y * 50;
-        
+
         ctx.fillStyle = '#7f8c8d';
         ctx.fillRect(propScreenX - 15, propScreenY - 15, 30, 30);
-        
+
         ctx.fillStyle = '#95a5a6';
         ctx.font = '10px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(prop.type, propScreenX, propScreenY + 25);
       });
-      
+
       // Draw camera info
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
       ctx.font = '11px monospace';
@@ -592,62 +592,62 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       ctx.fillText(`FOV: ${camera.fov}°`, 10, 35);
       ctx.fillText(`Frame: ${currentFrame}`, 10, 50);
       ctx.fillText(`Environment: ${environment.type} (${environment.lighting})`, 10, 65);
-      
+
       // Draw mode indicator
       ctx.fillStyle = webGLSupported ? '#2ecc71' : '#e67e22';
       ctx.fillText(webGLSupported ? 'WebGL Mode' : '2D Fallback Mode', 10, canvas.height - 10);
     }
   }, [camera, puppets, selectedPuppet, currentFrame, webGLSupported]);
-  
+
   // Animation loop
   useEffect(() => {
     const animate = () => {
       renderScene();
       animationFrameRef.current = requestAnimationFrame(animate);
     };
-    
+
     animate();
-    
+
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
   }, [renderScene]);
-  
+
   // Mouse interaction handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
   }, []);
-  
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging || !selectedPuppet) return;
-    
+
     const deltaX = e.clientX - dragStart.x;
     const deltaY = e.clientY - dragStart.y;
-    
+
     setPuppets((prev) =>
       prev.map((puppet) =>
         puppet.id === selectedPuppet
           ? {
-              ...puppet,
-              position: {
-                ...puppet.position,
-                x: puppet.position.x + deltaX * 0.02,
-                y: puppet.position.y - deltaY * 0.02,
-              },
-            }
+            ...puppet,
+            position: {
+              ...puppet.position,
+              x: puppet.position.x + deltaX * 0.02,
+              y: puppet.position.y - deltaY * 0.02,
+            },
+          }
           : puppet
       )
     );
-    
+
     setDragStart({ x: e.clientX, y: e.clientY });
   }, [isDragging, selectedPuppet, dragStart]);
-  
+
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-    
+
     if (selectedPuppet && onPuppetUpdate) {
       const puppet = puppets.find((p) => p.id === selectedPuppet);
       if (puppet) {
@@ -655,7 +655,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       }
     }
   }, [selectedPuppet, puppets, onPuppetUpdate]);
-  
+
   // Camera controls
   const handleCameraReset = useCallback(() => {
     setCamera({
@@ -664,12 +664,12 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       fov: 60,
     });
   }, []);
-  
+
   const handleCameraMove = useCallback((direction: 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down') => {
     setCamera((prev) => {
       const speed = 0.5;
       const newPosition = { ...prev.position };
-      
+
       switch (direction) {
         case 'forward':
           newPosition.z -= speed;
@@ -690,15 +690,15 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
           newPosition.y -= speed;
           break;
       }
-      
+
       return { ...prev, position: newPosition };
     });
   }, []);
-  
+
   // Pose preset handlers
   const handlePoseChange = useCallback((pose: string) => {
     if (!selectedPuppet) return;
-    
+
     setPuppets((prev) =>
       prev.map((puppet) =>
         puppet.id === selectedPuppet
@@ -706,7 +706,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
           : puppet
       )
     );
-    
+
     if (onPuppetUpdate) {
       const puppet = puppets.find((p) => p.id === selectedPuppet);
       if (puppet) {
@@ -714,36 +714,36 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       }
     }
   }, [selectedPuppet, puppets, onPuppetUpdate]);
-  
+
   // Joint manipulation
   const handleJointRotation = useCallback((jointId: string, axis: 'x' | 'y' | 'z', value: number) => {
     if (!selectedPuppet) return;
-    
+
     setPuppets((prev) =>
       prev.map((puppet) =>
         puppet.id === selectedPuppet
           ? {
-              ...puppet,
-              joints: puppet.joints.map((joint) =>
-                joint.id === jointId
-                  ? { ...joint, rotation: { ...joint.rotation, [axis]: value } }
-                  : joint
-              ),
-            }
+            ...puppet,
+            joints: puppet.joints.map((joint) =>
+              joint.id === jointId
+                ? { ...joint, rotation: { ...joint.rotation, [axis]: value } }
+                : joint
+            ),
+          }
           : puppet
       )
     );
   }, [selectedPuppet]);
-  
+
   // Environment controls
   const handleEnvironmentChange = useCallback((type: Environment['type']) => {
     setEnvironment((prev) => ({ ...prev, type }));
   }, []);
-  
+
   const handleLightingChange = useCallback((lighting: Environment['lighting']) => {
     setEnvironment((prev) => ({ ...prev, lighting }));
   }, []);
-  
+
   const handleAddProp = useCallback((type: string) => {
     setEnvironment((prev) => ({
       ...prev,
@@ -757,7 +757,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       ],
     }));
   }, []);
-  
+
   // Keyframe handlers
   const handleKeyframeAdd = useCallback((keyframe: PuppetKeyframe) => {
     setKeyframes((prev) => {
@@ -767,11 +767,11 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       return [...filtered, keyframe].sort((a, b) => a.frame - b.frame);
     });
   }, []);
-  
+
   const handleKeyframeRemove = useCallback((frame: number) => {
     setKeyframes((prev) => prev.filter((kf) => kf.frame !== frame));
   }, []);
-  
+
   // Easing function for smooth interpolation (ease-in-out cubic)
   const easeInOutCubic = (t: number) => {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -785,13 +785,13 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
   // Apply keyframe animation at current frame with smooth interpolation
   useEffect(() => {
     if (!selectedPuppet || keyframes.length === 0) return;
-    
+
     // Find keyframes around current frame
     const prevKeyframe = keyframes.filter((kf) => kf.frame <= currentFrame).pop();
     const nextKeyframe = keyframes.find((kf) => kf.frame > currentFrame);
-    
+
     if (!prevKeyframe) return;
-    
+
     // If we're exactly on a keyframe, apply it directly
     if (prevKeyframe.frame === currentFrame) {
       setPuppets((prev) =>
@@ -803,28 +803,28 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       );
       return;
     }
-    
+
     // Interpolate between keyframes with smooth easing
     if (nextKeyframe) {
       const frameRange = nextKeyframe.frame - prevKeyframe.frame;
       const frameProgress = currentFrame - prevKeyframe.frame;
       const t = easeInOutCubic(frameProgress / frameRange);
-      
+
       // Interpolate pose with smooth transition
       setPuppets((prev) =>
         prev.map((puppet) => {
           if (puppet.id !== selectedPuppet) return puppet;
-          
+
           const currentPose = prevKeyframe.pose;
           const nextPose = nextKeyframe.pose;
           const interpolatedPose = t < 0.5 ? currentPose : nextPose;
-          
+
           return { ...puppet, pose: interpolatedPose };
         })
       );
     }
   }, [currentFrame, keyframes, selectedPuppet]);
-  
+
   // Export scene to video
   const handleExportScene = useCallback(async () => {
     if (!selectedPuppet || keyframes.length === 0) {
@@ -835,10 +835,10 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       });
       return;
     }
-    
+
     setIsExporting(true);
     setExportProgress({ percentage: 0, message: 'Starting export...' });
-    
+
     try {
       const blob = await exportSceneToVideo(
         puppets,
@@ -859,12 +859,12 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
           });
         }
       );
-      
+
       if (blob) {
         const filename = generateExportFilename('frames', selectedPuppet);
         downloadExportedFile(blob, filename);
         setExportProgress({ percentage: 100, message: 'Export complete!' });
-        
+
         setTimeout(() => {
           setIsExporting(false);
           setExportProgress(null);
@@ -878,14 +878,14 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
         percentage: 0,
         message: `Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
-      
+
       setTimeout(() => {
         setIsExporting(false);
         setExportProgress(null);
       }, 3000);
     }
   }, [puppets, environment, keyframes, selectedPuppet, width, height]);
-  
+
   return (
     <div className="scene-view-3d">
       <canvas
@@ -898,7 +898,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       />
-      
+
       {/* Animation Controls Toggle */}
       <button
         className="animation-controls-toggle"
@@ -907,7 +907,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       >
         {showAnimationControls ? '◀' : '▶'} Animation
       </button>
-      
+
       {/* Export Button */}
       <button
         className="export-scene-btn"
@@ -917,7 +917,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
       >
         {isExporting ? '⏳ Exporting...' : '📥 Export Scene'}
       </button>
-      
+
       {/* Export Progress */}
       {exportProgress && (
         <div className="export-progress-overlay">
@@ -933,7 +933,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
           </div>
         </div>
       )}
-      
+
       {/* Puppet Animation Controls */}
       {showAnimationControls && selectedPuppet && (
         <PuppetAnimationControls
@@ -944,7 +944,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
           keyframes={keyframes}
         />
       )}
-      
+
       {/* 3D Scene Controls */}
       <div className="scene-controls">
         <div className="scene-control-group">
@@ -1003,7 +1003,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
             </button>
           </div>
         </div>
-        
+
         <div className="scene-control-group">
           <span className="control-label">Puppet</span>
           <select
@@ -1019,7 +1019,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
             ))}
           </select>
         </div>
-        
+
         <div className="scene-control-group">
           <span className="control-label">Environment</span>
           <select
@@ -1034,7 +1034,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
             <option value="abstract">Abstract</option>
           </select>
         </div>
-        
+
         <div className="scene-control-group">
           <span className="control-label">Lighting</span>
           <select
@@ -1050,7 +1050,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
           </select>
         </div>
       </div>
-      
+
       {/* Puppet Transform Controls */}
       {selectedPuppet && (
         <div className="puppet-transform-panel">
@@ -1058,7 +1058,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
           {(() => {
             const puppet = puppets.find((p) => p.id === selectedPuppet);
             if (!puppet) return null;
-            
+
             return (
               <>
                 {/* Pose Presets */}
@@ -1077,7 +1077,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
                     ))}
                   </select>
                 </div>
-                
+
                 {/* Position Controls */}
                 <div className="control-section">
                   <label className="section-label">Position:</label>
@@ -1141,7 +1141,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Rotation Control */}
                 <div className="control-section">
                   <label className="section-label">Rotation Y:</label>
@@ -1167,7 +1167,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
                     <span className="slider-value">{Math.round(puppet.rotation.y * (180 / Math.PI))}°</span>
                   </div>
                 </div>
-                
+
                 {/* Joint Controls */}
                 <div className="control-section">
                   <label className="section-label">Joint Control:</label>
@@ -1184,11 +1184,11 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
                       </option>
                     ))}
                   </select>
-                  
+
                   {selectedJoint && (() => {
                     const joint = puppet.joints.find((j) => j.id === selectedJoint);
                     if (!joint) return null;
-                    
+
                     return (
                       <div className="joint-controls">
                         <div className="slider-control">
@@ -1243,7 +1243,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
                     );
                   })()}
                 </div>
-                
+
                 {/* Props */}
                 <div className="control-section">
                   <label className="section-label">Add Prop:</label>
@@ -1258,7 +1258,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
           })()}
         </div>
       )}
-      
+
       {/* WebGL Status Indicator */}
       {!webGLSupported && (
         <div className="webgl-warning">

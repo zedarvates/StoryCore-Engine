@@ -12,11 +12,10 @@ export type {
   UseMCPAddonResult,
 } from '@/types/addons';
 
-// Export manager class
-export { MCPAddonManager } from './MCPAddonManager';
+// Import members
+import { MCPAddonManager } from './MCPAddonManager';
 
-// Export hooks
-export {
+import {
   useMCPAddon,
   useMCPServers,
   useMCPConfig,
@@ -26,12 +25,24 @@ export {
   useMCPError,
 } from './hooks';
 
-// Export components
-export { MCPSettings } from './MCPSettings';
-export { MCPPanel } from './MCPPanel';
+import { MCPSettings } from './MCPSettings';
+import { MCPPanel } from './MCPPanel';
 
-// Export store
-export { useAddonStore } from '@/stores/addonStore';
+import { useAddonStore } from '@/stores/addonStore';
+
+export {
+  MCPAddonManager,
+  useMCPAddon,
+  useMCPServers,
+  useMCPConfig,
+  useMCPServerTesting,
+  useMCPPermissions,
+  useMCPMetadata,
+  useMCPError,
+  MCPSettings,
+  MCPPanel,
+  useAddonStore
+};
 
 // Default export
 export default {

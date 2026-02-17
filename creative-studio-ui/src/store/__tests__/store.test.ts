@@ -56,7 +56,7 @@ describe('Zustand Store', () => {
         },
       };
 
-      useStore.getState().setProject(project);
+      useStore.getState().setProject(project as any);
       expect(useStore.getState().project).toEqual(project);
     });
 
@@ -78,9 +78,9 @@ describe('Zustand Store', () => {
         },
       };
 
-      useStore.getState().setProject(project);
+      useStore.getState().setProject(project as any);
       useStore.getState().updateProject({ project_name: 'Updated Project' });
-      
+
       expect(useStore.getState().project?.project_name).toBe('Updated Project');
     });
   });
@@ -119,7 +119,7 @@ describe('Zustand Store', () => {
 
       useStore.getState().addShot(shot);
       useStore.getState().updateShot('shot-1', { title: 'Updated Shot' });
-      
+
       expect(useStore.getState().shots[0].title).toBe('Updated Shot');
     });
 
@@ -138,7 +138,7 @@ describe('Zustand Store', () => {
 
       useStore.getState().addShot(shot);
       useStore.getState().deleteShot('shot-1');
-      
+
       expect(useStore.getState().shots).toHaveLength(0);
     });
 
@@ -175,7 +175,7 @@ describe('Zustand Store', () => {
       useStore.getState().addShot(shot1);
       useStore.getState().addShot(shot2);
       useStore.getState().reorderShots([shot2, shot1]);
-      
+
       expect(useStore.getState().shots[0].id).toBe('shot-2');
       expect(useStore.getState().shots[1].id).toBe('shot-1');
     });
@@ -205,7 +205,7 @@ describe('Zustand Store', () => {
 
       useStore.getState().addAsset(asset);
       useStore.getState().updateAsset('asset-1', { name: 'Updated Asset' });
-      
+
       expect(useStore.getState().assets[0].name).toBe('Updated Asset');
     });
 
@@ -219,7 +219,7 @@ describe('Zustand Store', () => {
 
       useStore.getState().addAsset(asset);
       useStore.getState().deleteAsset('asset-1');
-      
+
       expect(useStore.getState().assets).toHaveLength(0);
     });
   });
@@ -261,7 +261,7 @@ describe('Zustand Store', () => {
 
       useStore.getState().addTask(task1);
       useStore.getState().addTask(task2);
-      
+
       expect(useStore.getState().taskQueue[0].priority).toBe(1);
       expect(useStore.getState().taskQueue[1].priority).toBe(2);
     });
@@ -288,7 +288,7 @@ describe('Zustand Store', () => {
       useStore.getState().addTask(task1);
       useStore.getState().addTask(task2);
       useStore.getState().moveTaskUp('task-2');
-      
+
       expect(useStore.getState().taskQueue[0].id).toBe('task-2');
       expect(useStore.getState().taskQueue[1].id).toBe('task-1');
     });
@@ -315,7 +315,7 @@ describe('Zustand Store', () => {
       useStore.getState().addTask(task1);
       useStore.getState().addTask(task2);
       useStore.getState().moveTaskDown('task-1');
-      
+
       expect(useStore.getState().taskQueue[0].id).toBe('task-2');
       expect(useStore.getState().taskQueue[1].id).toBe('task-1');
     });
@@ -332,7 +332,7 @@ describe('Zustand Store', () => {
 
       useStore.getState().addTask(task);
       useStore.getState().removeTask('task-1');
-      
+
       expect(useStore.getState().taskQueue).toHaveLength(0);
     });
   });
@@ -341,7 +341,7 @@ describe('Zustand Store', () => {
     it('should toggle chat visibility', () => {
       useStore.getState().setShowChat(true);
       expect(useStore.getState().showChat).toBe(true);
-      
+
       useStore.getState().setShowChat(false);
       expect(useStore.getState().showChat).toBe(false);
     });
@@ -349,7 +349,7 @@ describe('Zustand Store', () => {
     it('should toggle task queue visibility', () => {
       useStore.getState().setShowTaskQueue(true);
       expect(useStore.getState().showTaskQueue).toBe(true);
-      
+
       useStore.getState().setShowTaskQueue(false);
       expect(useStore.getState().showTaskQueue).toBe(false);
     });
@@ -387,7 +387,7 @@ describe('Zustand Store', () => {
       useStore.getState().setCurrentTime(10);
       useStore.getState().play();
       useStore.getState().stop();
-      
+
       expect(useStore.getState().isPlaying).toBe(false);
       expect(useStore.getState().currentTime).toBe(0);
     });

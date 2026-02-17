@@ -60,7 +60,7 @@ function sendSuccess<R>(id: string, result: R): void {
 function sendError(id: string, error: Error, context?: unknown): void {
   const errorMessage = error.message;
   const errorContext = context ? ` (Context: ${JSON.stringify(context)})` : '';
-  
+
   sendResponse({
     id,
     status: 'error',
@@ -81,8 +81,13 @@ async function generateThumbnail(
 
     sendProgress(id, 10);
 
-    // Create video element
-    const video = document.createElement('video');
+    // Create video element (safe access for worker)
+    const doc = (self as any).document;
+    if (!doc) {
+      throw new Error('DOM API not available in worker: Cannot creating video element');
+    }
+
+    const video = doc.createElement('video');
     video.crossOrigin = 'anonymous';
     video.preload = 'metadata';
 
@@ -108,12 +113,12 @@ async function generateThumbnail(
     // Create canvas and draw frame
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
-    
+
     if (!ctx) {
       throw new Error('Failed to get canvas context');
     }
 
-    ctx.drawImage(video, 0, 0, width, height);
+    ctx.drawImage(video as any, 0, 0, width, height);
 
     sendProgress(id, 90);
 
@@ -207,11 +212,11 @@ async function processItem(item: unknown, operation: string, options?: unknown):
 
   switch (operation) {
     case 'duplicate':
-      return { ...item, id: `${item.id}_copy` };
+      return { ...(item as any), id: `${(item as any).id}_copy` };
     case 'transform':
-      return { ...item, ...options };
+      return { ...(item as any), ...(options as any) };
     case 'export':
-      return { ...item, exported: true };
+      return { ...(item as any), exported: true };
     default:
       return item;
   }
@@ -289,8 +294,13 @@ async function analyzeVideoQuality(
 
     sendProgress(id, 25);
 
-    // Load video
-    const video = document.createElement('video');
+    // Load video (safe access)
+    const doc = (self as any).document;
+    if (!doc) {
+      throw new Error('DOM API not available in worker');
+    }
+
+    const video = doc.createElement('video');
     video.crossOrigin = 'anonymous';
     video.preload = 'metadata';
 
@@ -308,7 +318,7 @@ async function analyzeVideoQuality(
       width: video.videoWidth,
       height: video.videoHeight,
       aspectRatio: video.videoWidth / video.videoHeight,
-      hasAudio: video.mozHasAudio || Boolean((video as any).webkitAudioDecodedByteCount)
+      hasAudio: (video as any).mozHasAudio || Boolean((video as any).webkitAudioDecodedByteCount)
     };
 
     sendProgress(id, 75);
@@ -407,7 +417,4 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 };
 
 // Export for TypeScript
-export {};
-
-
-
+export { };

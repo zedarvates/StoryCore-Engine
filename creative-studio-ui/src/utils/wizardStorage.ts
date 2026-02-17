@@ -2,8 +2,8 @@
 // Wizard Storage Utilities
 // ============================================================================
 
-export type WizardType = 
-  | 'world' 
+export type WizardType =
+  | 'world'
   | 'character'
   | 'storyteller'
   | 'dialogue-writer'
@@ -50,21 +50,21 @@ export function saveWizardState<T>(
 
     const key = getStorageKey(wizardType);
     localStorage.setItem(key, JSON.stringify(state));
-    
+
     return true;
   } catch (error) {
     // Failed to save wizard state - log for debugging in development only
     if (process.env.NODE_ENV === 'development') {
       console.error('Failed to save wizard state:', error);
     }
-    
+
     // Check if storage is full
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
       if (process.env.NODE_ENV === 'development') {
         console.warn('LocalStorage quota exceeded. Cannot save wizard progress.');
       }
     }
-    
+
     return false;
   }
 }
@@ -79,13 +79,13 @@ export function loadWizardState<T>(
   try {
     const key = getStorageKey(wizardType);
     const saved = localStorage.getItem(key);
-    
+
     if (!saved) {
       return null;
     }
 
     const state: WizardAutoSaveState<T> = JSON.parse(saved);
-    
+
     // Validate state structure
     if (!isValidWizardState(state)) {
       if (process.env.NODE_ENV === 'development') {
@@ -108,10 +108,10 @@ export function loadWizardState<T>(
     if (process.env.NODE_ENV === 'development') {
       console.error('Failed to load wizard state:', error);
     }
-    
+
     // Clear corrupted state
     clearWizardState(wizardType);
-    
+
     return null;
   }
 }
@@ -135,7 +135,7 @@ export function loadWizardStateWithValidation<T>(
   try {
     const key = getStorageKey(wizardType);
     const saved = localStorage.getItem(key);
-    
+
     if (!saved) {
       return {
         state: null,
@@ -148,15 +148,15 @@ export function loadWizardStateWithValidation<T>(
     }
 
     const state: WizardAutoSaveState<T> = JSON.parse(saved);
-    
+
     // Basic validation
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     if (!isValidWizardState(state)) {
       errors.push('Invalid state structure');
     }
-    
+
     if (state.expiresAt && new Date(state.expiresAt) < new Date()) {
       warnings.push('State has expired');
     }
@@ -218,7 +218,7 @@ export function exportWizardState<T>(
   wizardType: WizardType
 ): string | null {
   const state = loadWizardState<T>(wizardType);
-  
+
   if (!state) {
     return null;
   }
@@ -244,7 +244,7 @@ export function importWizardState<T>(
 ): boolean {
   try {
     const formData = JSON.parse(jsonData) as Partial<T>;
-    
+
     return saveWizardState(wizardType, 1, formData);
   } catch (error) {
     // Failed to import wizard state - log for debugging in development only
@@ -274,15 +274,17 @@ function isValidWizardState(state: unknown): state is WizardAutoSaveState<any> {
     'shot',
   ];
 
+  const s = state as any;
+
   return (
-    state &&
-    typeof state === 'object' &&
-    typeof state.wizardType === 'string' &&
-    validWizardTypes.includes(state.wizardType as WizardType) &&
-    typeof state.timestamp === 'string' &&
-    typeof state.currentStep === 'number' &&
-    typeof state.formData === 'object' &&
-    typeof state.expiresAt === 'string'
+    s &&
+    typeof s === 'object' &&
+    typeof s.wizardType === 'string' &&
+    validWizardTypes.includes(s.wizardType as WizardType) &&
+    typeof s.timestamp === 'string' &&
+    typeof s.currentStep === 'number' &&
+    typeof s.formData === 'object' &&
+    typeof s.expiresAt === 'string'
   );
 }
 
@@ -312,7 +314,7 @@ export function getLocalStorageUsage(): {
 } {
   try {
     let used = 0;
-    
+
     for (const key in localStorage) {
       if (localStorage.hasOwnProperty(key)) {
         used += localStorage[key].length + key.length;
@@ -357,7 +359,7 @@ export function clearAllWizardStates(): void {
     'sequence-plan',
     'shot',
   ];
-  
+
   wizardTypes.forEach(type => clearWizardState(type));
 }
 
@@ -371,7 +373,7 @@ export function emergencyExportWizardState<T>(
 ): void {
   try {
     const state = loadWizardState<T>(wizardType);
-    
+
     if (!state) {
       if (process.env.NODE_ENV === 'development') {
         console.warn('No wizard state to export');

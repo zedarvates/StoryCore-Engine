@@ -157,7 +157,8 @@ class AudioGenerationJobResponse(BaseModel):
 
 
 # Initialize shared storage with LRU cache (max 500 audio entries)
-audio_storage = JSONFileStorage(settings.audio_output_directory, max_cache_size=500)
+# Index by project_id for efficient project-based queries
+audio_storage = JSONFileStorage(settings.audio_output_directory, max_cache_size=500, index_field="project_id")
 
 # In-memory audio file paths (not JSON data)
 audio_files: Dict[str, str] = {}
@@ -269,6 +270,16 @@ async def generate_audio(
         progress=0,
         estimated_time_seconds=estimated_time
     )
+
+
+def load_audio(audio_id: str) -> Optional[Dict[str, Any]]:
+    """Helper to load audio data from storage"""
+    return audio_storage.load(audio_id)
+
+
+def save_audio(audio_id: str, data: Dict[str, Any]) -> bool:
+    """Helper to save audio data to storage"""
+    return audio_storage.save(audio_id, data)
 
 
 @router.get("/audio/{audio_id}", response_model=AudioResponse)
@@ -506,16 +517,18 @@ async def list_project_audio(
     Returns:
         List of audio files
     """
+    # Use storage index to filter by project_id
+    project_audio_data = audio_storage.get_by_owner(project_id)
+    
     project_audio = [
         {
             "id": audio["id"],
-            "type": audio["type"],
-            "format": audio["format"],
-            "duration_seconds": audio["duration_seconds"],
-            "created_at": audio["created_at"]
+            "type": audio.get("type"),
+            "format": audio.get("format"),
+            "duration_seconds": audio.get("duration_seconds"),
+            "created_at": audio.get("created_at")
         }
-        for audio in audio_db.values()
-        if audio.get("project_id") == project_id
+        for audio in project_audio_data
     ]
     
     return {

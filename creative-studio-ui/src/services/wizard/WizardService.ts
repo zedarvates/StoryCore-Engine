@@ -9,6 +9,15 @@ import { getComfyUIServersService } from '../comfyuiServersService';
 import { testComfyUIConnection } from '../comfyuiService';
 import { OLLAMA_URL, COMFYUI_URL } from '../../config/apiConfig';
 import { logger } from '@/utils/logger';
+import {
+  CharacterWizardInput,
+  SceneGeneratorInput,
+  StoryboardInput,
+  DialogueInput,
+  WorldBuildingInput,
+  StyleTransferInput,
+  WizardOutput
+} from './types';
 
 export interface WizardLaunchResult {
   success: boolean;
@@ -277,21 +286,21 @@ export class WizardService {
     try {
       // Get the ComfyUI Servers Service
       const comfyuiServersService = getComfyUIServersService();
-      
+
       // Try to get an available server
       const availableServer = await comfyuiServersService.getAvailableServer();
-      
+
       if (availableServer) {
         // Use the available server's URL
         logger.debug('[WizardService] Using active ComfyUI server:', availableServer.serverUrl);
-        
+
         // Test the connection using the ComfyUI service
         const testResult = await testComfyUIConnection({
           serverUrl: availableServer.serverUrl,
           authentication: availableServer.authentication,
           timeout: availableServer.timeout,
         });
-        
+
         if (testResult.success) {
           logger.debug('[WizardService] ComfyUI connection successful using configured server:', availableServer.serverUrl);
           return {
@@ -320,7 +329,7 @@ export class WizardService {
       }
     } catch (error) {
       logger.error('[WizardService] Error checking ComfyUI connection:', error instanceof Error ? error.message : 'Unknown error');
-      
+
       return {
         connected: false,
         service: 'comfyui',
@@ -429,7 +438,7 @@ export class WizardService {
     // Check project data requirements
     let charactersMet = true;
     let shotsMet = true;
-    
+
     if (projectData && typeof projectData === 'object') {
       const data = projectData as Record<string, unknown>;
       const hasCharacters = Array.isArray(data.characters) && data.characters.length > 0;
@@ -458,11 +467,11 @@ export class WizardService {
     try {
       const fs = window.electronAPI.fs;
       const outputDir = `${projectPath}/wizard_outputs`;
-      
+
       // Ensure output directory exists
       const dirExists = await fs.exists(outputDir).catch(() => false);
       if (!dirExists) {
-        await fs.mkdir(outputDir).catch(() => {});
+        await fs.mkdir(outputDir).catch(() => { });
       }
 
       // Generate filename with timestamp
@@ -473,7 +482,7 @@ export class WizardService {
       // Write output to file
       const outputData = JSON.stringify(output, null, 2);
       await fs.writeFile(filePath, outputData);
-      
+
       logger.debug(`[WizardService] Saved wizard output to: ${filePath}`);
     } catch (error) {
       logger.error('[WizardService] Failed to save wizard output:', error);
@@ -508,19 +517,19 @@ export class WizardService {
 
       // Merge wizard output based on type
       const wizardOutput = output as Record<string, unknown>;
-      
+
       if (wizardOutput.characters && Array.isArray(wizardOutput.characters)) {
         projectData.characters = [...(projectData.characters || []), ...wizardOutput.characters];
       }
-      
+
       if (wizardOutput.shots && Array.isArray(wizardOutput.shots)) {
         projectData.shots = [...(projectData.shots || []), ...wizardOutput.shots];
       }
-      
+
       if (wizardOutput.sequences && Array.isArray(wizardOutput.sequences)) {
         projectData.sequences = [...(projectData.sequences || []), ...wizardOutput.sequences];
       }
-      
+
       if (wizardOutput.references && Array.isArray(wizardOutput.references)) {
         projectData.references = [...(projectData.references || []), ...wizardOutput.references];
       }
@@ -533,18 +542,111 @@ export class WizardService {
 
       // Write updated project data
       await fs.writeFile(projectFilePath, JSON.stringify(projectData, null, 2));
-      
+
       logger.debug(`[WizardService] Updated project data at: ${projectFilePath}`);
     } catch (error) {
       logger.error('[WizardService] Failed to update project data:', error);
       throw error;
     }
   }
+
+  /**
+   * Check all service connections
+   */
+  async checkAllConnections(): Promise<{ ollama: ConnectionStatus; comfyui: ConnectionStatus; allConnected: boolean }> {
+    const ollama = await this.checkOllamaConnection();
+    const comfyui = await this.checkComfyUIConnection();
+    return {
+      ollama,
+      comfyui,
+      allConnected: ollama.connected && comfyui.connected
+    };
+  }
+
+  // ============================================================================
+  // Execution Methods
+  // ============================================================================
+
+  async executeCharacterWizard(input: CharacterWizardInput): Promise<WizardOutput> {
+    logger.warn('executeCharacterWizard not fully implemented, returning mock');
+    return {
+      type: 'character',
+      data: { id: 'mock-char', name: input.name, created_at: new Date().toISOString() },
+      files: [],
+      metadata: { wizardType: 'character', generatedAt: new Date().toISOString() }
+    };
+  }
+
+  async executeSceneGenerator(input: SceneGeneratorInput): Promise<WizardOutput> {
+    logger.warn('executeSceneGenerator not fully implemented, returning mock');
+    return {
+      type: 'scene',
+      data: { id: 'mock-scene', name: input.concept, shots: [] },
+      files: [],
+      metadata: { wizardType: 'scene', generatedAt: new Date().toISOString() }
+    };
+  }
+
+  async executeStoryboardCreator(input: StoryboardInput): Promise<WizardOutput> {
+    logger.warn('executeStoryboardCreator not fully implemented, returning mock');
+    return {
+      type: 'storyboard',
+      data: { mode: input.mode, shots: [] },
+      files: [],
+      metadata: { wizardType: 'storyboard', generatedAt: new Date().toISOString() }
+    };
+  }
+
+  async executeDialogueWriter(input: DialogueInput): Promise<WizardOutput> {
+    logger.warn('executeDialogueWriter not fully implemented, returning mock');
+    return {
+      type: 'dialogue',
+      data: {},
+      files: [],
+      metadata: { wizardType: 'dialogue', generatedAt: new Date().toISOString() }
+    };
+  }
+
+  async executeWorldBuilder(input: WorldBuildingInput): Promise<WizardOutput> {
+    logger.warn('executeWorldBuilder not fully implemented, returning mock');
+    return {
+      type: 'world',
+      data: { id: 'mock-world', name: input.name },
+      files: [],
+      metadata: { wizardType: 'world', generatedAt: new Date().toISOString() }
+    };
+  }
+
+  async executeStyleTransfer(input: StyleTransferInput): Promise<WizardOutput> {
+    logger.warn('executeStyleTransfer not fully implemented, returning mock');
+    return {
+      type: 'style',
+      data: { original_shot_id: input.shotId },
+      files: [],
+      metadata: { wizardType: 'style', generatedAt: new Date().toISOString() }
+    };
+  }
 }
+
+// Singleton instance
+let instance: WizardService | null = null;
 
 // Convenience function to get a WizardService instance
 export function getWizardService(): WizardService {
+  if (!instance) {
+    instance = new WizardService();
+  }
+  return instance;
+}
+
+// Create a new WizardService instance
+export function createWizardService(): WizardService {
   return new WizardService();
+}
+
+// Set the singleton instance
+export function setWizardService(service: WizardService): void {
+  instance = service;
 }
 
 

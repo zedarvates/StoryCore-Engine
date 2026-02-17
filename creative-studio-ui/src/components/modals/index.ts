@@ -22,5 +22,10 @@ export { LocationsModal } from './LocationsModal';
 export { ObjectsModal } from './ObjectsModal';
 export { WorldModal } from './WorldModal';
 
+// Image Generation Modal
+export { ImageGenerationModal } from './ImageGenerationModal';
+export type { ImageGenerationModalProps } from './ImageGenerationModal';
+
 // Menu Bar Modals
 export * from './menuBar';
+

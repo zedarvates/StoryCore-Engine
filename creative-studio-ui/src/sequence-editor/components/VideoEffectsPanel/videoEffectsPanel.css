@@ -1,0 +1,246 @@
+/**
+ * VideoEffectsPanel Styles
+ *
+ * Dark theme consistent with the rest of the Sequence Editor UI.
+ */
+
+.video-effects-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a24;
+  color: #e0e0e0;
+  font-size: 12px;
+  overflow-y: auto;
+}
+
+.video-effects-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  padding: 24px;
+  text-align: center;
+  color: #888;
+}
+
+.video-effects-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.video-effects-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #2a2a3a;
+}
+
+.video-effects-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ---- Tabs ---- */
+
+.video-effects-tabs {
+  display: flex;
+  border-bottom: 1px solid #2a2a3a;
+  padding: 0 8px;
+}
+
+.vfx-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.vfx-tab:hover {
+  color: #ccc;
+  background: #22222e;
+}
+
+.vfx-tab.active {
+  color: #7c6df0;
+  border-bottom-color: #7c6df0;
+}
+
+/* ---- Content ---- */
+
+.video-effects-content {
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.vfx-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vfx-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #bbb;
+  margin-bottom: 4px;
+}
+
+/* ---- Rows ---- */
+
+.vfx-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vfx-label {
+  min-width: 90px;
+  color: #999;
+  font-size: 11px;
+}
+
+.vfx-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #333;
+  border-radius: 2px;
+  outline: none;
+}
+
+.vfx-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #7c6df0;
+  cursor: pointer;
+  border: 2px solid #1a1a24;
+}
+
+.vfx-value {
+  min-width: 40px;
+  text-align: right;
+  color: #ccc;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vfx-color-picker {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+}
+
+/* ---- Shape Buttons ---- */
+
+.vfx-shape-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.vfx-shape-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: #22222e;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s ease;
+}
+
+.vfx-shape-btn:hover {
+  border-color: #555;
+  background: #2a2a3a;
+}
+
+.vfx-shape-btn.active {
+  border-color: #7c6df0;
+  background: #2e2860;
+}
+
+/* ---- Action Buttons ---- */
+
+.vfx-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: #22222e;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.vfx-action-btn:hover {
+  background: #2a2a3a;
+  border-color: #555;
+}
+
+.vfx-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.vfx-action-btn-primary {
+  background: linear-gradient(135deg, #5c4dd0, #7c6df0);
+  border-color: #7c6df0;
+  color: #fff;
+}
+
+.vfx-action-btn-primary:hover {
+  background: linear-gradient(135deg, #6c5de0, #8c7dff);
+}
+
+.vfx-action-btn-danger {
+  border-color: #6b3030;
+  color: #ff7070;
+}
+
+.vfx-action-btn-danger:hover {
+  background: #3a1a1a;
+}
+
+/* ---- Spinner ---- */
+
+.vfx-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: vfx-spin 0.6s linear infinite;
+}
+
+@keyframes vfx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

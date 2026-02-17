@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
 import { validateString, validateNonEmptyArray, validateArray, validateReactNode, validateFunction } from '@/utils/propValidator';
 import { logger as Logger } from '@/utils/logger';
+import { useToast } from '@/hooks/use-toast';
 import type { ProjectSetupData } from './Step1ProjectInfo';
 import './ProjectSetupWizardContainer.css';
 
@@ -28,6 +29,8 @@ export function ProjectSetupWizardContainer({
   onCancel,
   onComplete,
 }: Readonly<ProjectSetupWizardContainerProps>) {
+  const { toast } = useToast();
+  
   // Validate props
   try {
     validateString(title, 'title');
@@ -42,24 +45,35 @@ export function ProjectSetupWizardContainer({
     throw error;
   }
 
-  const { currentStep, nextStep, previousStep } = useWizard<ProjectSetupData>();
+  const { currentStep, nextStep, previousStep, validationErrors } = useWizard<ProjectSetupData>();
 
   // Calculate progress
   const progress = (currentStep / steps.length) * 100;
 
   // Check if we can go to next step or complete
-  const canGoNext = currentStep <= steps.length;
+  const hasValidationErrors = validationErrors && Object.keys(validationErrors).length > 0;
+  const canGoNext = currentStep <= steps.length && !hasValidationErrors;
   const canGoPrevious = currentStep > 1;
 
   // Handle next step
   const handleNext = useCallback(() => {
+    if (hasValidationErrors) {
+      const errorCount = Object.keys(validationErrors).length;
+      toast({
+        title: 'Validation Failed',
+        description: `Please fix ${errorCount} ${errorCount === 1 ? 'error' : 'errors'} before continuing.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     if (currentStep === steps.length) {
       // Last step - complete wizard
       onComplete?.();
     } else {
       nextStep();
     }
-  }, [currentStep, steps.length, nextStep, onComplete]);
+  }, [currentStep, steps.length, nextStep, onComplete, hasValidationErrors, validationErrors, toast]);
 
   // Handle previous step
   const handlePrevious = useCallback(() => {
@@ -138,6 +152,15 @@ export function ProjectSetupWizardContainer({
 
       {/* Navigation */}
       <div className="project-setup-wizard-footer">
+        {/* Validation Errors Warning */}
+        {validationErrors && Object.keys(validationErrors).length > 0 && (
+          <div className="project-setup-wizard-validation-warning">
+            <p className="project-setup-wizard-validation-warning__text">
+              ⚠️ Please fix the errors above to continue
+            </p>
+          </div>
+        )}
+        
         <button
           className="project-setup-wizard-button project-setup-wizard-button--secondary"
           onClick={onCancel}

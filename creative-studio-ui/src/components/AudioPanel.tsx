@@ -369,8 +369,8 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
             {track.pan === 0
               ? 'Center'
               : track.pan < 0
-              ? `${Math.abs(track.pan)}% L`
-              : `${track.pan}% R`}
+                ? `${Math.abs(track.pan)}% L`
+                : `${track.pan}% R`}
           </span>
         </div>
         <input
@@ -491,7 +491,11 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
       {/* Effects Panel */}
       {showEffects && (
         <div className="border-t pt-3 -mx-3 -mb-3">
-          <AudioEffectsPanel shotId={shotId} trackId={track.id} />
+          <AudioEffectsPanel
+            onApplyEffects={(effects: any) => {
+              updateAudioTrack(shotId, track.id, { effects });
+            }}
+          />
         </div>
       )}
     </div>

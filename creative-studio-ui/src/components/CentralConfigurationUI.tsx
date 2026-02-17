@@ -34,24 +34,24 @@ function CentralConfigurationUIContent({
   // Load configuration on mount
   useEffect(() => {
     loadConfiguration(projectId);
-    
+
     // Log browser detection for backdrop-filter compatibility
     const userAgent = window.navigator.userAgent;
     const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    
+
     console.log({
       userAgent,
       isSafari,
       isIOS,
       isSafariOrIOS: isSafari || isIOS
     });
-    
+
     // Check CSS property support
     const style = document.createElement('div').style;
     const supportsBackdropFilter = 'backdropFilter' in style || '-webkit-backdrop-filter' in style;
     const supportsWebkitBackdropFilter = '-webkit-backdrop-filter' in style;
-    
+
     console.log({
       supportsBackdropFilter,
       supportsWebkitBackdropFilter,
@@ -90,7 +90,7 @@ function CentralConfigurationUIContent({
   // Handle saving API settings
   const handleSaveAPISettings = async (config: unknown) => {
     try {
-      await saveProjectConfig({ api: config });
+      await saveProjectConfig({ api: config as any });
       setHasUnsavedChanges(false);
       setActiveWindow('workspace');
     } catch (error) {
@@ -102,7 +102,7 @@ function CentralConfigurationUIContent({
   // Handle saving LLM settings
   const handleSaveLLMSettings = async (config: unknown) => {
     try {
-      await saveProjectConfig({ llm: config });
+      await saveProjectConfig({ llm: config as any });
       setHasUnsavedChanges(false);
       setActiveWindow('workspace');
     } catch (error) {
@@ -114,7 +114,7 @@ function CentralConfigurationUIContent({
   // Handle saving ComfyUI settings
   const handleSaveComfyUISettings = async (config: unknown) => {
     try {
-      await saveProjectConfig({ comfyui: config });
+      await saveProjectConfig({ comfyui: config as any });
       setHasUnsavedChanges(false);
       setActiveWindow('workspace');
     } catch (error) {

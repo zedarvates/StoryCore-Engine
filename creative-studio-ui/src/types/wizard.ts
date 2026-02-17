@@ -17,6 +17,26 @@ export type WizardType =
   | 'sequence-plan'
   | 'shot';
 
+// Project Type (alias for compatibility - uses the interface below)
+export type ProjectType = 'court-metrage' | 'moyen-metrage' | 'long-metrage-standard' |
+  'long-metrage-premium' | 'tres-long-metrage' | 'special-tv' |
+  'episode-serie' | 'custom';
+
+// Universe Type (alias for compatibility)
+export type UniverseType = WorldBuildingData['universeType'];
+
+// Character Role (alias for compatibility)
+export type CharacterRole = CharacterProfile['role'];
+
+// Narrative Perspective (alias for compatibility)
+export type NarrativePerspective = StoryStructureData['narrativePerspective'];
+
+// Script Format (alias for compatibility)
+export type ScriptFormat = ScriptData['format'];
+
+// Time of Day (alias for compatibility)
+export type TimeOfDay = SceneBreakdown['timeOfDay'];
+
 export interface WizardStep {
   number: number;
   title: string;
@@ -300,7 +320,8 @@ export type Genre = 'action' | 'drama' | 'comedy' | 'sci-fi' | 'fantasy' |
 
 export type VisualStyle = 'realistic' | 'stylized' | 'anime' | 'comic-book' |
   'noir' | 'vintage' | 'futuristic' | 'watercolor' |
-  'oil-painting' | 'minimalist' | 'surreal';
+  'oil-painting' | 'minimalist' | 'surreal' |
+  'anime-80s' | 'anime-90s' | 'anime-2000s';
 
 export type Mood = 'dark' | 'light' | 'serious' | 'playful' | 'tense' |
   'calm' | 'energetic' | 'melancholic' | 'hopeful' | 'mysterious';

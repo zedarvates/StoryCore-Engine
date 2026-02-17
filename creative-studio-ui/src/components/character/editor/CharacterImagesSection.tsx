@@ -43,7 +43,7 @@ const OUTFIT_TYPES = [
 
 function buildCharacterPrompt(character: Character | undefined, outfits: string[]): string {
   if (!character) return 'a character';
-  
+
   const parts: string[] = [];
   if (character.name) parts.push(`Character name: ${character.name}`);
   if (character.visual_identity) {
@@ -208,7 +208,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
   useEffect(() => {
     if (character?.visual_identity) {
       const vi = character.visual_identity;
-      
+
       // Load reference images
       if (vi.reference_images && vi.reference_images.length > 0) {
         const loadedRefImages: CharacterImage[] = vi.reference_images.map((img: ReferenceImageData) => ({
@@ -220,14 +220,14 @@ export function CharacterImagesSection({ characterId, characterName, character: 
           filename: img.filename
         }));
         setReferenceImages(loadedRefImages);
-        
+
         // Auto-select the first reference image if available
         if (loadedRefImages.length > 0) {
           setSelectedReference(loadedRefImages[0]);
         }
         console.log('[CharacterImages] Loaded', loadedRefImages.length, 'reference images from character');
       }
-      
+
       // Load sheet images
       if (vi.reference_sheet_images && vi.reference_sheet_images.length > 0) {
         const loadedSheetImages: CharacterImage[] = vi.reference_sheet_images.map((img: SheetImageData) => ({
@@ -239,7 +239,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
           filename: img.filename
         }));
         setImages(loadedSheetImages);
-        
+
         // Set the first sheet image as the generated image preview
         if (loadedSheetImages.length > 0) {
           setGeneratedImage(loadedSheetImages[0].url);
@@ -295,12 +295,12 @@ export function CharacterImagesSection({ characterId, characterName, character: 
 
       const promptPayload = { prompt: workflow };
 
-      const response = await fetch(`${serverUrl}/prompt`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(promptPayload) 
+      const response = await fetch(`${serverUrl}/prompt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(promptPayload)
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('ComfyUI error response:', errorText);
@@ -309,7 +309,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
 
       const result = await response.json();
       setGenerationProgress('Processing...');
-      
+
       // Wait for completion with proper timeout
       const success = await waitForCompletion(serverUrl, result.prompt_id);
       if (!success) {
@@ -317,7 +317,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
       }
 
       const outputUrls = await downloadImages(serverUrl, result.prompt_id);
-      
+
       // If still no images, try direct output folder access
       if (outputUrls.length === 0) {
         console.warn('No images from history API, trying direct folder access...');
@@ -343,7 +343,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
           return;
         }
       }
-      
+
       if (outputUrls.length === 0) {
         console.error('All methods failed to retrieve images');
         // Fallback to demo mode instead of throwing error
@@ -362,10 +362,10 @@ export function CharacterImagesSection({ characterId, characterName, character: 
 
       setReferenceImages(prev => [...prev, ...newRefImages]);
       setSelectedReference(newRefImages[0]);
-      
+
       // Save to character store
       saveImagesToCharacter(newRefImages, []);
-      
+
       setGenerationProgress('Reference image generated!');
       setCurrentStep('idle');
       setTimeout(() => { setShowReferenceGenerator(false); setGenerationProgress(''); }, 1500);
@@ -432,12 +432,12 @@ export function CharacterImagesSection({ characterId, characterName, character: 
           }
         };
 
-        const response = await fetch(`${serverUrl}/prompt`, { 
-          method: 'POST', 
-          headers: { 'Content-Type': 'application/json' }, 
-          body: JSON.stringify(viewPayload) 
+        const response = await fetch(`${serverUrl}/prompt`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(viewPayload)
         });
-        
+
         if (!response.ok) {
           console.warn(`Failed to generate ${views[i]}: ${response.statusText}`);
           continue;
@@ -448,23 +448,23 @@ export function CharacterImagesSection({ characterId, characterName, character: 
 
         const outputUrls = await downloadImages(serverUrl, result.prompt_id);
         outputUrls.forEach((url, idx) => {
-          newSheetImages.push({ 
-            id: Date.now() + (i * 1000) + idx, 
-            url, 
-            type: 'reference_sheet' as const, 
-            timestamp: new Date().toISOString(), 
-            panel: views[i], 
-            filename: `${characterName}_sheet_${views[i]}_${idx + 1}.png` 
+          newSheetImages.push({
+            id: Date.now() + (i * 1000) + idx,
+            url,
+            type: 'reference_sheet' as const,
+            timestamp: new Date().toISOString(),
+            panel: views[i],
+            filename: `${characterName}_sheet_${views[i]}_${idx + 1}.png`
           });
         });
       }
 
       setImages(prev => [...prev, ...newSheetImages]);
       setGeneratedImage(newSheetImages[0]?.url || null);
-      
+
       // Save to character store
       saveImagesToCharacter(referenceImages, newSheetImages);
-      
+
       setGenerationProgress('Reference sheet generated!');
       setCurrentStep('idle');
       setTimeout(() => { setShowGenerator(false); setGenerationProgress(''); }, 1500);
@@ -489,10 +489,10 @@ export function CharacterImagesSection({ characterId, characterName, character: 
         const statusResponse = await fetch(`${serverUrl}/history/${promptId}`);
         if (statusResponse.ok) {
           const status = await statusResponse.json();
-          
+
           // Try multiple formats of ComfyUI response
           let promptData = null;
-          
+
           // Format 1: { "prompt_id": { "status": ... } }
           if (status[promptId]) {
             promptData = status[promptId];
@@ -507,7 +507,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
               }
             }
           }
-          
+
           if (promptData) {
             const statusValue = promptData.status || promptData;
             if (statusValue === 'success') {
@@ -521,17 +521,17 @@ export function CharacterImagesSection({ characterId, characterName, character: 
             // If status is "running" or "queued", continue waiting
           }
         }
-      } catch (e) { 
-        console.warn(`Status check attempt ${attempts} failed:`, e); 
+      } catch (e) {
+        console.warn(`Status check attempt ${attempts} failed:`, e);
       }
-      
+
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       setGenerationProgress(`Waiting for generation... ${elapsed}s (attempt ${attempts}/${maxAttempts})`);
-      
+
       // Wait before next attempt
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
-    
+
     console.warn('Max attempts reached, checking if files exist...');
     // Try to get images anyway - sometimes generation completes but history API is slow
     return true; // Return true to attempt image retrieval
@@ -543,19 +543,19 @@ export function CharacterImagesSection({ characterId, characterName, character: 
       if (historyResponse.ok) {
         const history = await historyResponse.json();
         console.log('History response:', JSON.stringify(history, null, 2));
-        
+
         // FIX: Improved ComfyUI history parsing to handle multiple response formats
         // Format 1: { "prompt_id": { "status": "success", "outputs": { "node_id": { "images": [...] } } } }
         // Format 2: { "prompt_id": [list of outputs] }
         // Format 3: Newer ComfyUI format with direct outputs
-        
+
         let promptData = null;
-        
+
         // Try to find the prompt data in the response
         if (history[promptId]) {
           promptData = history[promptId];
         }
-        
+
         // Also try to find by iterating through keys (older ComfyUI versions)
         if (!promptData) {
           const keys = Object.keys(history);
@@ -570,10 +570,10 @@ export function CharacterImagesSection({ characterId, characterName, character: 
             }
           }
         }
-        
+
         if (!promptData || !promptData.outputs) {
           console.warn('No outputs found in history, checking for images in alternative locations...');
-          
+
           // FIX: Try to find images directly in the history response
           // Some ComfyUI versions store images directly
           const urls = findImagesInHistory(history, serverUrl);
@@ -581,18 +581,18 @@ export function CharacterImagesSection({ characterId, characterName, character: 
             console.log('Found images in alternative location:', urls.length);
             return urls;
           }
-          
+
           return [];
         }
-        
+
         const urls: string[] = [];
         const outputs = promptData.outputs;
-        
+
         // Handle both old and new output formats
         for (const nodeId of Object.keys(outputs)) {
           const nodeOutput = outputs[nodeId];
           if (!nodeOutput) continue;
-          
+
           // Format 1: { "node_id": { "images": [...] } }
           if (nodeOutput.images && Array.isArray(nodeOutput.images)) {
             for (const img of nodeOutput.images) {
@@ -603,7 +603,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
               urls.push(fullUrl);
             }
           }
-          
+
           // Format 2: { "node_id": [images array] }
           if (Array.isArray(nodeOutput)) {
             for (const img of nodeOutput) {
@@ -617,12 +617,12 @@ export function CharacterImagesSection({ characterId, characterName, character: 
             }
           }
         }
-        
+
         console.log(`Found ${urls.length} images in history`);
         return urls;
       }
-    } catch (e) { 
-      console.warn('Download failed:', e); 
+    } catch (e) {
+      console.warn('Download failed:', e);
     }
     return [];
   }
@@ -634,33 +634,34 @@ export function CharacterImagesSection({ characterId, characterName, character: 
     const urls: string[] = [];
     const defaultServerUrl = 'http://localhost:8000';
     const currentServerUrl = baseServerUrl || defaultServerUrl;
-    
+
     function search(obj: unknown) {
       if (!obj || typeof obj !== 'object') return;
-      
+
       if (Array.isArray(obj)) {
         for (const item of obj) {
           search(item);
         }
         return;
       }
-      
+
       // Check if this object contains image info
-      if (obj.filename && obj.type) {
-        const filename = obj.filename;
-        const type = obj.type || 'output';
-        const subfolder = obj.subfolder || '';
+      const item = obj as any;
+      if (item.filename && item.type) {
+        const filename = item.filename;
+        const type = item.type || 'output';
+        const subfolder = item.subfolder || '';
         const fullUrl = `${currentServerUrl}/view?filename=${encodeURIComponent(filename)}&type=${encodeURIComponent(type)}&subfolder=${encodeURIComponent(subfolder)}`;
         urls.push(fullUrl);
         return;
       }
-      
+
       // Recursively search
       for (const key of Object.keys(obj)) {
         search(obj[key]);
       }
     }
-    
+
     search(obj);
     return urls;
   }
@@ -671,7 +672,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
    */
   async function tryDirectFolderAccess(serverUrl: string, promptId: string, filenamePrefix: string): Promise<string[]> {
     const urls: string[] = [];
-    
+
     // Common output folder patterns in ComfyUI
     const possibleFilenames = [
       `${filenamePrefix}_0001_.png`,
@@ -680,17 +681,17 @@ export function CharacterImagesSection({ characterId, characterName, character: 
       `${filenamePrefix}.jpg`,
       `${promptId}_0001.png`,
     ];
-    
+
     for (const filename of possibleFilenames) {
       // Try different subfolders
       const subfolders = ['output', 'ComfyUI_output', ''];
-      
+
       for (const subfolder of subfolders) {
         try {
-          const url = subfolder 
+          const url = subfolder
             ? `${serverUrl}/view?filename=${encodeURIComponent(filename)}&type=${encodeURIComponent(subfolder)}`
             : `${serverUrl}/view?filename=${encodeURIComponent(filename)}`;
-          
+
           const response = await fetch(url, { method: 'HEAD' });
           if (response.ok) {
             console.log('Found image at:', url);
@@ -701,7 +702,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
         }
       }
     }
-    
+
     return urls;
   }
 
@@ -710,10 +711,10 @@ export function CharacterImagesSection({ characterId, characterName, character: 
    */
   const saveImagesToCharacter = useCallback((refImages: CharacterImage[], sheetImages: CharacterImage[]) => {
     if (!characterId) return;
-    
+
     const store = useStore.getState();
     const existingCharacter = store.getCharacterById(characterId);
-    
+
     if (existingCharacter) {
       const updatedVisualIdentity = {
         ...existingCharacter.visual_identity,
@@ -731,7 +732,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
           created_at: img.timestamp,
         })),
       };
-      
+
       store.updateCharacter(characterId, { visual_identity: updatedVisualIdentity });
       console.log('[CharacterImages] Images saved to character:', characterId);
     }
@@ -742,10 +743,10 @@ export function CharacterImagesSection({ characterId, characterName, character: 
     const newRef: CharacterImage = { id: Date.now(), url: mockUrl, type: 'reference', timestamp: new Date().toISOString(), panel: 'reference' };
     setReferenceImages(prev => [...prev, newRef]);
     setSelectedReference(newRef);
-    
+
     // Save to character
     saveImagesToCharacter([newRef], []);
-    
+
     setGenerationProgress('Generated (Demo Mode)');
     setCurrentStep('idle');
     setTimeout(() => { setShowReferenceGenerator(false); setGenerationProgress(''); }, 1500);
@@ -758,10 +759,10 @@ export function CharacterImagesSection({ characterId, characterName, character: 
     const newImages: CharacterImage[] = mockUrls.map((url, idx) => ({ id: Date.now() + idx, url, type: 'reference_sheet' as const, timestamp: new Date().toISOString(), panel: views[idx] }));
     setImages(prev => [...prev, ...newImages]);
     setGeneratedImage(mockUrls[0]);
-    
+
     // Save to character
     saveImagesToCharacter(referenceImages, newImages);
-    
+
     setGenerationProgress('Generated (Demo Mode)');
     setCurrentStep('idle');
     setTimeout(() => { setShowGenerator(false); setGenerationProgress(''); }, 1500);
@@ -801,14 +802,14 @@ export function CharacterImagesSection({ characterId, characterName, character: 
       </div>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        <button 
+        <button
           style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', backgroundColor: '#e94560', border: 'none', borderRadius: '4px', color: '#fff', cursor: 'pointer' }}
           onClick={() => setShowReferenceGenerator(true)}
           title="Generate reference image"
         >
           <Eye size={16} /> 1. Generate Reference
         </button>
-        <button 
+        <button
           style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', backgroundColor: selectedReference ? '#4CAF50' : '#333', border: 'none', borderRadius: '4px', color: '#fff', cursor: selectedReference ? 'pointer' : 'not-allowed', opacity: selectedReference ? 1 : 0.5 }}
           onClick={() => selectedReference && setShowGenerator(true)}
           disabled={!selectedReference}
@@ -836,9 +837,9 @@ export function CharacterImagesSection({ characterId, characterName, character: 
           <h4 style={{ color: '#00d4ff', margin: '0 0 12px 0' }}>Reference Images</h4>
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
             {referenceImages.map((img) => (
-              <div 
-                key={img.id} 
-                onClick={() => setSelectedReference(img)} 
+              <div
+                key={img.id}
+                onClick={() => setSelectedReference(img)}
                 onKeyDown={(e) => e.key === 'Enter' && setSelectedReference(img)}
                 role="button"
                 tabIndex={0}
@@ -857,14 +858,14 @@ export function CharacterImagesSection({ characterId, characterName, character: 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <h4 style={{ color: '#00d4ff', margin: 0 }}>Reference Sheet</h4>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
+              <button
                 style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', backgroundColor: '#533483', border: 'none', borderRadius: '4px', color: '#fff', cursor: 'pointer', fontSize: '12px' }}
                 onClick={() => images.forEach((img, i) => { const a = document.createElement('a'); a.href = img.url; a.download = `${characterName}_${img.panel}_${i + 1}.png`; a.click(); })}
                 title="Download all images"
               >
                 <Download size={14} /> Download All
               </button>
-              <button 
+              <button
                 style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', backgroundColor: '#333', border: 'none', borderRadius: '4px', color: '#fff', cursor: 'pointer', fontSize: '12px' }}
                 onClick={() => setGeneratedImage(null)}
                 title="Close"
@@ -882,36 +883,36 @@ export function CharacterImagesSection({ characterId, characterName, character: 
       )}
 
       {showReferenceGenerator && (
-        <GeneratorModal 
-          title="Generate Reference Image" 
+        <GeneratorModal
+          title="Generate Reference Image"
           description="Generate a full body front view reference image that will be used as identity anchor"
           character={character}
           characterData={formatCharacterData(character)}
-          selectedOutfits={selectedOutfits} 
-          onOutfitToggle={toggleOutfit} 
-          customDescription={customDescription} 
-          onDescriptionChange={setCustomDescription} 
-          isLoading={isLoading} 
-          progress={generationProgress} 
-          onClose={() => { setShowReferenceGenerator(false); setGenerationProgress(''); }} 
-          onGenerate={handleGenerateReference} 
+          selectedOutfits={selectedOutfits}
+          onOutfitToggle={toggleOutfit}
+          customDescription={customDescription}
+          onDescriptionChange={setCustomDescription}
+          isLoading={isLoading}
+          progress={generationProgress}
+          onClose={() => { setShowReferenceGenerator(false); setGenerationProgress(''); }}
+          onGenerate={handleGenerateReference}
         />
       )}
 
       {showGenerator && selectedReference && (
-        <GeneratorModal 
-          title="Generate Reference Sheet" 
+        <GeneratorModal
+          title="Generate Reference Sheet"
           description="Generate 4 views (front, left, right, back) using the selected reference image"
           character={character}
           characterData={formatCharacterData(character)}
-          selectedOutfits={selectedOutfits} 
-          onOutfitToggle={toggleOutfit} 
-          customDescription={customDescription} 
-          onDescriptionChange={setCustomDescription} 
-          isLoading={isLoading} 
-          progress={generationProgress} 
-          onClose={() => { setShowGenerator(false); setGenerationProgress(''); }} 
-          onGenerate={handleGenerateSheet} 
+          selectedOutfits={selectedOutfits}
+          onOutfitToggle={toggleOutfit}
+          customDescription={customDescription}
+          onDescriptionChange={setCustomDescription}
+          isLoading={isLoading}
+          progress={generationProgress}
+          onClose={() => { setShowGenerator(false); setGenerationProgress(''); }}
+          onGenerate={handleGenerateSheet}
           referenceSelected={true}
         />
       )}
@@ -939,20 +940,20 @@ interface GeneratorModalProps {
 
 function GeneratorModal({ title, description, character, characterData, selectedOutfits, onOutfitToggle, customDescription, onDescriptionChange, isLoading, progress, onClose, onGenerate, referenceSelected }: GeneratorModalProps) {
   return (
-    <div 
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} 
+    <div
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
-      <div 
-        style={{ backgroundColor: '#1a1a2e', padding: '24px', borderRadius: '12px', minWidth: '500px', maxWidth: '600px' }} 
+      <div
+        style={{ backgroundColor: '#1a1a2e', padding: '24px', borderRadius: '12px', minWidth: '500px', maxWidth: '600px' }}
         onClick={e => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h3 style={{ margin: 0, color: '#00d4ff' }}>{title}</h3>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer' }}
             aria-label="Close"
           >
@@ -982,15 +983,15 @@ function GeneratorModal({ title, description, character, characterData, selected
           <label style={{ display: 'block', marginBottom: '8px', color: '#aaa', fontSize: '14px' }}>Outfits</label>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {OUTFIT_TYPES.map(o => (
-              <label 
-                key={o.id} 
+              <label
+                key={o.id}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', backgroundColor: selectedOutfits.includes(o.id) ? o.color : '#0f3460', borderRadius: '20px', cursor: 'pointer' }}
               >
-                <input 
-                  type="checkbox" 
-                  checked={selectedOutfits.includes(o.id)} 
+                <input
+                  type="checkbox"
+                  checked={selectedOutfits.includes(o.id)}
                   onChange={() => onOutfitToggle(o.id)}
-                  style={{ display: 'none' }} 
+                  style={{ display: 'none' }}
                 />
                 <span style={{ color: selectedOutfits.includes(o.id) ? '#fff' : o.color, fontSize: '13px' }}>{o.label}</span>
               </label>
@@ -1000,12 +1001,12 @@ function GeneratorModal({ title, description, character, characterData, selected
 
         <div style={{ marginBottom: '16px' }}>
           <label htmlFor="customDescription" style={{ display: 'block', marginBottom: '8px', color: '#aaa', fontSize: '14px' }}>Additional Description</label>
-          <textarea 
+          <textarea
             id="customDescription"
-            value={customDescription} 
-            onChange={e => onDescriptionChange(e.target.value)} 
-            placeholder="Additional details..." 
-            style={{ width: '100%', padding: '12px', backgroundColor: '#0f3460', border: '1px solid #333', borderRadius: '8px', color: '#eee', minHeight: '60px', resize: 'vertical', fontFamily: 'inherit' }} 
+            value={customDescription}
+            onChange={e => onDescriptionChange(e.target.value)}
+            placeholder="Additional details..."
+            style={{ width: '100%', padding: '12px', backgroundColor: '#0f3460', border: '1px solid #333', borderRadius: '8px', color: '#eee', minHeight: '60px', resize: 'vertical', fontFamily: 'inherit' }}
           />
         </div>
 
@@ -1017,16 +1018,16 @@ function GeneratorModal({ title, description, character, characterData, selected
         )}
 
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-          <button 
-            onClick={onClose} 
-            disabled={isLoading} 
+          <button
+            onClick={onClose}
+            disabled={isLoading}
             style={{ padding: '12px 24px', backgroundColor: '#333', border: 'none', borderRadius: '8px', color: '#fff', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.5 : 1 }}
           >
             Cancel
           </button>
-          <button 
-            onClick={onGenerate} 
-            disabled={isLoading} 
+          <button
+            onClick={onGenerate}
+            disabled={isLoading}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', backgroundColor: '#e94560', border: 'none', borderRadius: '8px', color: '#fff', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.5 : 1 }}
           >
             {isLoading ? <RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Grid3X3 size={18} />}

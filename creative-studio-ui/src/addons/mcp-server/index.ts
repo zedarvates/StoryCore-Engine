@@ -2,7 +2,8 @@
 // MCP Server Add-on
 // ============================================================================
 
-// Core types
+// Core types - Import first, then re-export
+import type { MCPServerConfig, MCPServerStatus, MCPServerOperation, MCPServerState } from './types';
 export type {
   MCPServerConfig,
   MCPServerStatus,
@@ -10,11 +11,8 @@ export type {
   MCPServerState,
 } from './types';
 
-// Import types for internal use
-import type { MCPServerConfig, MCPServerStatus, MCPServerOperation, MCPServerState } from './types';
-import type { MCPServerManager } from './MCPServerManager';
-
 // Import implementation
+import { MCPServerManager } from './MCPServerManager';
 export { MCPServerManager } from './MCPServerManager';
 
 // Plugin interface

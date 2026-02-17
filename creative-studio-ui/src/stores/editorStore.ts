@@ -300,6 +300,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       // For now, we'll update the project data structure
 
       // Update project based on wizard type
+      const data = output.data as any;
       switch (output.type) {
         case 'character':
           // Add character to project
@@ -307,10 +308,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
             currentProject.characters = [];
           }
           currentProject.characters.push({
-            id: output.data.id,
-            name: output.data.name,
+            id: data.id,
+            name: data.name,
             reference_image_path: output.files[0]?.path || '',
-            created_at: output.data.created_at,
+            created_at: data.created_at,
           });
           break;
 
@@ -319,20 +320,20 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           if (!currentProject.scenes) {
             currentProject.scenes = [];
           }
-          currentProject.scenes.push(output.data);
+          currentProject.scenes.push(data);
 
           // Add shots to storyboard
-          if (output.data.shots && output.data.shots.length > 0) {
-            await projectService.addShotsToStoryboard(projectPath, output.data.shots);
+          if (data.shots && data.shots.length > 0) {
+            await projectService.addShotsToStoryboard(projectPath, data.shots);
           }
           break;
 
         case 'storyboard':
           // Add or replace shots based on mode
-          if (output.data.mode === 'replace') {
-            currentProject.storyboard = output.data.shots;
+          if (data.mode === 'replace') {
+            currentProject.storyboard = data.shots;
           } else {
-            await projectService.addShotsToStoryboard(projectPath, output.data.shots);
+            await projectService.addShotsToStoryboard(projectPath, data.shots);
           }
           break;
 
@@ -343,12 +344,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
         case 'world':
           // Set world definition
-          currentProject.world = output.data;
+          currentProject.world = data;
           break;
 
         case 'style':
           // Update shot with styled image
-          await projectService.updateShot(projectPath, output.data.original_shot_id, {
+          await projectService.updateShot(projectPath, data.original_shot_id, {
             image: output.files[0]?.path,
           });
           break;
@@ -544,15 +545,15 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         // For in-memory projects (JSON-loaded), create shot directly
         const shot: Shot = {
           id: crypto.randomUUID(),
-          number: shotData.number || (currentProject.storyboard?.length || 0) + 1,
+          title: shotData.title || `Shot ${(currentProject.storyboard?.length || 0) + 1}`,
+          position: shotData.number || (currentProject.storyboard?.length || 0) + 1,
           description: shotData.description || '',
           duration: shotData.duration || 3,
-          camera_movement: shotData.camera_movement,
-          transition: shotData.transition,
-          image: shotData.image,
-          audio: shotData.audio,
-          dialogue: shotData.dialogue,
-          created_at: new Date().toISOString(),
+          effects: [],
+          audioTracks: [],
+          textLayers: [],
+          animations: [],
+
         };
 
         // Update current project

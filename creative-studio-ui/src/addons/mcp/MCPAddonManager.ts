@@ -2,12 +2,12 @@
 // MCP Addon Manager
 // ============================================================================
 
-import type { 
-  MCPAddon, 
-  MCPServerConfig, 
-  MCPAddonState, 
+import type {
+  MCPAddon,
+  MCPServerConfig,
+  MCPAddonState,
   MCPAddonActions,
-  MCPTestResult 
+  MCPTestResult
 } from '@/types/addons';
 
 export class MCPAddonManager implements MCPAddonActions {
@@ -79,7 +79,7 @@ export class MCPAddonManager implements MCPAddonActions {
 
   // MCPAddonActions implementation
   async toggleAddon(enabled: boolean): Promise<void> {
-    this.setState({ 
+    this.setState({
       ...this.state,
       isLoading: true,
       error: null,
@@ -88,7 +88,7 @@ export class MCPAddonManager implements MCPAddonActions {
     try {
       // Simulate API call to enable/disable addon
       await this.delay(500);
-      
+
       const updatedAddon = {
         ...this.state.addon,
         enabled,
@@ -245,13 +245,13 @@ export class MCPAddonManager implements MCPAddonActions {
 
     try {
       const startTime = Date.now();
-      
+
       // Simulate server connection test
       await this.delay(1000 + Math.random() * 1000);
-      
+
       const latency = Date.now() - startTime;
       const success = Math.random() > 0.2; // 80% success rate for demo
-      
+
       const testResult: MCPTestResult = {
         serverId,
         timestamp: new Date().toISOString(),
@@ -264,7 +264,7 @@ export class MCPAddonManager implements MCPAddonActions {
       const updatedTestResults = [...this.state.testResults.filter(r => r.serverId !== serverId), testResult];
       const updatedServer = {
         ...server,
-        status: success ? 'connected' : 'error',
+        status: (success ? 'connected' : 'error') as MCPServerConfig['status'],
         lastConnected: success ? new Date().toISOString() : server.lastConnected,
         errorMessage: success ? undefined : testResult.error,
       };
@@ -350,7 +350,7 @@ export class MCPAddonManager implements MCPAddonActions {
   }
 
   getSelectedServer(): MCPServerConfig | null {
-    return this.state.selectedServer 
+    return this.state.selectedServer
       ? this.getServerById(this.state.selectedServer)
       : null;
   }

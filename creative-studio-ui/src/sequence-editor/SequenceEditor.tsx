@@ -33,6 +33,10 @@ import { AudioMixerPanel } from './components/AudioMixerPanel';
 import { ExportPanel } from './components/ExportPanel';
 import { EffectsPanel } from './components/EffectsPanel';
 
+// Import R&D Phase 2/3 panels
+import { VideoEffectsPanel } from './components/VideoEffectsPanel/VideoEffectsPanel';
+import { CompositionTemplateBrowser } from './components/CompositionTemplateBrowser/CompositionTemplateBrowser';
+
 // Import hooks
 import { useProjectRecovery } from './hooks/useProjectRecovery';
 import { useProjectFile } from './hooks/useProjectFile';
@@ -67,12 +71,12 @@ export const SequenceEditor: React.FC = () => {
  */
 const SequenceEditorContent: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { selectedElements } = useAppSelector((state) => state.timeline);
+  const { selectedElements, shots } = useAppSelector((state) => state.timeline);
   const { showLayerManager } = useAppSelector((state) => state.panels);
-  
+
   // State for right panel tabs (new enhancement panels)
-  const [activeRightPanel, setActiveRightPanel] = useState<'shotConfig' | 'transitions' | 'aiFeatures' | 'effects'>('shotConfig');
-  
+  const [activeRightPanel, setActiveRightPanel] = useState<'shotConfig' | 'transitions' | 'aiFeatures' | 'effects' | 'videoFx' | 'templates'>('shotConfig');
+
   // State for bottom panel (audio mixer and export)
   const [activeBottomPanel, setActiveBottomPanel] = useState<'timeline' | 'audioMixer' | 'export'>('timeline');
 
@@ -86,6 +90,14 @@ const SequenceEditorContent: React.FC = () => {
 
   // Get selected shot ID for shot configuration panel
   const selectedShotId = selectedElements.length > 0 ? selectedElements[0] : null;
+  
+  // Get the selected shot object for LayerManager and LayerPropertiesPanel
+  const selectedShot = selectedShotId ? shots.find(shot => shot.id === selectedShotId) : undefined;
+  
+  // Get selected layer IDs from the selected elements (filter to only layer IDs)
+  const selectedLayerIds = selectedElements.filter(id => 
+    shots.some(shot => shot.layers.some(layer => layer.id === id))
+  );
 
   // Initialize project recovery
   const {
@@ -127,18 +139,14 @@ const SequenceEditorContent: React.FC = () => {
   }, [handleSave]);
 
   return (
-    <div 
+    <div
       className="sequence-editor-root"
       role="application"
       aria-label="Sequence Editor"
     >
-      {/* Recovery Dialog */}
-      {showRecoveryDialog && hasRecovery && (
-        <RecoveryDialog
-          snapshots={recoverySnapshots}
-          onRecover={handleRecover}
-          onDismiss={handleDismiss}
-        />
+      {/* Recovery Dialog - Uses hook internally, no props needed */}
+      {(showRecoveryDialog || hasRecovery) && (
+        <RecoveryDialog />
       )}
 
       {/* Unsaved Changes Dialog */}
@@ -209,23 +217,54 @@ const SequenceEditorContent: React.FC = () => {
             >
               Effects
             </button>
+            <button
+              className={`panel-tab ${activeRightPanel === 'videoFx' ? 'active' : ''}`}
+              onClick={() => setActiveRightPanel('videoFx')}
+            >
+              Video FX
+            </button>
+            <button
+              className={`panel-tab ${activeRightPanel === 'templates' ? 'active' : ''}`}
+              onClick={() => setActiveRightPanel('templates')}
+            >
+              Templates
+            </button>
           </div>
-          
+
           {/* Panel Content */}
           <div className="right-panel-content">
             {showLayerManager ? (
               <>
-                <LayerManager />
-                <LayerPropertiesPanel />
+                {selectedShot ? (
+                  <>
+                    <LayerManager shot={selectedShot} selectedLayerIds={selectedLayerIds} />
+                    <LayerPropertiesPanel shot={selectedShot} selectedLayerId={selectedLayerIds[0] || null} />
+                  </>
+                ) : (
+                  <div className="layer-manager-empty">
+                    <p>No shot selected</p>
+                    <p className="hint">Select a shot to manage its layers</p>
+                  </div>
+                )}
               </>
             ) : activeRightPanel === 'shotConfig' ? (
-              <ShotConfigPanel shotId={selectedShotId} />
+              <ShotConfigPanel />
             ) : activeRightPanel === 'transitions' ? (
               <TransitionsPanel />
             ) : activeRightPanel === 'aiFeatures' ? (
               <AIFeaturesPanel />
             ) : activeRightPanel === 'effects' ? (
               <EffectsPanel />
+            ) : activeRightPanel === 'videoFx' ? (
+              <VideoEffectsPanel shot={null as any} selectedLayerId={null} />
+            ) : activeRightPanel === 'templates' ? (
+              <CompositionTemplateBrowser
+                insertionFrame={0}
+                onInsertLayers={(layers) => {
+                  console.log('[SequenceEditor] Insert template layers:', layers);
+                  // TODO: dispatch addLayer for each layer
+                }}
+              />
             ) : null}
           </div>
         </ResizablePanel>
@@ -260,7 +299,7 @@ const SequenceEditorContent: React.FC = () => {
             Export
           </button>
         </div>
-        
+
         {/* Bottom Panel Content */}
         <div className="bottom-panel-content">
           {activeBottomPanel === 'timeline' && <Timeline />}

@@ -36,7 +36,7 @@ export class StateValidationService {
    * Validate wizard state structure
    */
   // Using 'any' for state parameter to validate arbitrary wizard state structures before type checking
-  validateState<T>(state: unknown): ValidationResult {
+  validateState<T>(state: any): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -176,7 +176,7 @@ export class StateValidationService {
    * Attempt to recover corrupted state
    */
   // Using 'any' for state parameter to attempt recovery of corrupted wizard state structures
-  recoverState<T>(state: unknown): WizardAutoSaveState<T> | null {
+  recoverState<T>(state: any): WizardAutoSaveState<T> | null {
     const validation = this.validateState(state);
 
     if (!validation.canRecover) {
@@ -205,15 +205,15 @@ export class StateValidationService {
    * Sanitize form data
    */
   // Using 'any' for formData parameter to sanitize arbitrary form data structures
-  sanitizeFormData<T>(formData: unknown): Partial<T> {
+  sanitizeFormData<T>(formData: any): Partial<T> {
     if (!formData || typeof formData !== 'object') {
       return {};
     }
 
     // Remove null and undefined values
     // Using 'any' for sanitized object to build cleaned structure dynamically
-    const sanitized: unknown = {};
-    
+    const sanitized: any = {};
+
     for (const key in formData) {
       if (formData[key] !== null && formData[key] !== undefined) {
         sanitized[key] = formData[key];

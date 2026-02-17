@@ -159,6 +159,7 @@ export function loadProjectFromJSON(json: string): Project {
   }
 
   return {
+    id: String(data.id || crypto.randomUUID()),
     schema_version: data.schema_version,
     project_name: data.project_name,
     shots: (data.shots as unknown[]).map((shot) => deserializeShot(shot as Record<string, unknown>)),
@@ -203,6 +204,7 @@ export async function loadProjectFromFile(file: File): Promise<Project> {
  */
 export function createEmptyProject(name: string): Project {
   return {
+    id: crypto.randomUUID(),
     schema_version: '1.0',
     project_name: name,
     shots: [],
@@ -257,8 +259,8 @@ export async function createProjectOnDisk(data: {
     const projectData = {
       name: data.name,
       ...(data.location && { location: data.location }),
-      ...(data.format && { format: data.format }),
-      ...(data.initialShots && { initialShots: data.initialShots }),
+      ...(data.format ? { format: data.format } : {}),
+      ...(data.initialShots ? { initialShots: data.initialShots } : {}),
     };
 
     const project = await window.electronAPI.project.create(projectData as any);
@@ -310,7 +312,7 @@ export function getRecentProjects(): RecentProject[] {
     const projects = JSON.parse(json);
     // Convert lastAccessed strings back to Date objects
     // Using 'any' for parsed JSON data before type validation
-    return projects.map((p: unknown) => ({
+    return projects.map((p: any) => ({
       ...p,
       lastAccessed: new Date(p.lastAccessed),
     }));

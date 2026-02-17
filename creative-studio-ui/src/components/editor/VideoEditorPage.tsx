@@ -42,7 +42,16 @@ import {
 } from 'lucide-react';
 import { useStore, useSelectedWorld, useStories } from '../../store';
 import type { Character } from '@/types/character';
-import { TimelineTracks } from './TimelineTracks';
+import { TimelineTracks, AmbianceProfile } from './TimelineTracks';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from '../ui/dropdown-menu';
+import { Monitor, Smartphone, ChevronDown, Check } from 'lucide-react';
 import { TransitionLibrary } from './tools/TransitionLibrary';
 import { TransitionEditor } from './tools/TransitionEditor';
 import { ClipTrimmer } from './tools/ClipTrimmer';
@@ -58,6 +67,7 @@ import { FilterLibrary } from './effects/FilterLibrary';
 import { LayerPanel } from './layers/LayerPanel';
 import { MediaLibrary } from './media/MediaLibrary';
 import { gridGenerationService, GridGenerationProgress, GridGenerationResult } from '../../services/gridGenerationService';
+import { videoEditorAPI } from '../../services/videoEditorAPI';
 import { EffectPreviewRenderer } from './effects/EffectPreviewRenderer';
 import { EffectsLibrary } from './effects/EffectsLibrary';
 import { EffectStack } from './effects/EffectStack';
@@ -119,12 +129,18 @@ interface Shot {
   duration: number;
   prompt: string;
   thumbnail?: string;
+  smartCrop?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 interface VideoEditorPageProps {
   sequenceId?: string;
   sequenceName?: string;
-  initialShots?: unknown[];
+  initialShots?: any[];
   projectName?: string;
   onBackToDashboard?: () => void;
 }
@@ -245,6 +261,9 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   const [zoom, setZoom] = useState(1);
   const [loopEnabled, setLoopEnabled] = useState(false);
 
+  // Project Aspect Ratio
+  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
+
   // Audio state
   const [audioVolume, setAudioVolume] = useState(1);
   const [audioMuted, setAudioMuted] = useState(false);
@@ -279,6 +298,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   const play = useStore((state) => state.play);
   const pause = useStore((state) => state.pause);
   const storeShots = useStore((state) => state.shots);
+  const project = useStore((state) => state.project);
 
   // Calculate total duration from local shots
   const totalDuration = shots.reduce((acc, shot) => acc + shot.duration, 0);
@@ -395,13 +415,14 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     // 3. Add it to the appropriate track
   };
 
-  const handleSaveCharacter = async (character: unknown) => {
+  const handleSaveCharacter = async (character: any) => {
     try {
       // Map wizard data to Character type
       const characterData: Partial<Character> = {
         name: character.name,
         visual_identity: {
           age_range: `${character.age} ans`,
+          gender: character.gender || 'neutral',
           build: character.appearance,
           hair_color: '',
           hair_style: '',
@@ -415,10 +436,12 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
           posture: '',
           clothing_style: '',
           color_palette: [],
+          reference_images: [],
+          reference_sheet_images: [],
         },
         personality: {
           traits: character.personality,
-          temperament: character.personality.join(', '),
+          temperament: character.personality?.join(', ') || '',
           values: [],
           fears: [],
           desires: [],
@@ -435,7 +458,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
           significant_events: [],
         },
         role: {
-          archetype: character.abilities.join(', '),
+          archetype: character.abilities?.join(', ') || '',
           narrative_function: '',
           character_arc: '',
         },
@@ -451,7 +474,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     }
   };
 
-  const handleSaveStory = async (storySummary: unknown) => {
+  const handleSaveStory = async (storySummary: any) => {
     try {
       // Save story summary to project
       console.log('Story summary saved successfully:', storySummary.title);
@@ -555,6 +578,125 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     setLoopEnabled(!loopEnabled);
   }, [loopEnabled]);
 
+  const handleFillGaps = async (
+    trackType: 'video' | 'image' | 'audio' | 'text',
+    profile: AmbianceProfile
+  ) => {
+    if (!project?.id) {
+      showToast('error', 'Aucun projet actif pour combler les trous.');
+      return;
+    }
+
+    showLoading(`Comblement (${profile.name})...`);
+    try {
+      let finalProfile = { ...profile };
+
+      // 4. Handle AI Generation if needed
+      if (profile.id === 'custom_ai') {
+        const aiPrompt = window.prompt("Décrivez l'ambiance sonore souhaitée (ex: 'Vent glacial dans un canyon désertique', 'Bruit de foule lointain dans un stade') :");
+
+        if (!aiPrompt) {
+          hideLoading();
+          return;
+        }
+
+        showLoading("Génération de l'ambiance par l'IA...");
+        const genResult = await videoEditorAPI.generateAmbiance(project.id, aiPrompt);
+
+        finalProfile = {
+          ...profile,
+          name: aiPrompt,
+          file_path: genResult.file_path
+        };
+
+        showLoading(`Comblement (${aiPrompt})...`);
+      }
+
+      // 1. Fetch current project state to get track IDs
+      const projectData = await videoEditorAPI.getProject(project.id);
+
+      // 2. Find the first track of the matching type
+      const targetTrack = projectData.tracks.find(t => t.type === trackType);
+
+      if (!targetTrack) {
+        showToast('info', `Piste ${trackType} vide ou introuvable.`);
+        hideLoading();
+        return;
+      }
+
+      // 3. Call fillGaps with the selected ambiance profile (static or newly generated)
+      await videoEditorAPI.fillGaps(project.id, targetTrack.id, {
+        name: finalProfile.name,
+        file_path: finalProfile.file_path,
+        type: finalProfile.type
+      });
+
+      showToast('success', `Smart Fill terminé : ambiance "${finalProfile.name}" appliquée.`);
+    } catch (err) {
+      console.error('[VideoEditor] Fill gaps failed:', err);
+      showToast('error', 'Échec du comblement automatique.');
+    } finally {
+      hideLoading();
+    }
+  };
+
+  const handleFormatChange = async (newRatio: '16:9' | '9:16') => {
+    if (newRatio === aspectRatio) return;
+
+    const confirmChange = window.confirm(
+      `Voulez-vous passer au format ${newRatio === '16:9' ? 'Paysage' : 'Portrait'} ?\nL'IA va automatiquement recadrer vos plans pour préserver l'action.`
+    );
+
+    if (!confirmChange) return;
+
+    setAspectRatio(newRatio);
+    showLoading(`Adaptation au format ${newRatio}...`);
+
+    try {
+      // Pour cet exemple, on applique le Smart Crop sur chaque shot visible
+      const updatedShots = await Promise.all(shots.map(async (shot) => {
+        try {
+          // 1. Démarrer le job Smart Crop
+          // Note: Dans une vraie appli, shot.media_id serait utilisé
+          const response = await videoEditorAPI.smartCrop(shot.id.toString(), newRatio, 'face');
+
+          let status = response.status;
+          let job_id = response.job_id;
+          let cropRegions = response.crop_regions;
+
+          // 2. Polling si nécessaire (limité pour l'UI)
+          let attempts = 0;
+          while (status === 'pending' && attempts < 5) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const jobStatus = await videoEditorAPI.getAiJobStatus(job_id);
+            status = jobStatus.status;
+            cropRegions = jobStatus.crop_regions;
+            attempts++;
+          }
+
+          if (cropRegions) {
+            return {
+              ...shot,
+              smartCrop: cropRegions[0] // On prend la première région détectée
+            };
+          }
+          return shot;
+        } catch (e) {
+          console.error(`Failed to crop shot ${shot.id}:`, e);
+          return shot;
+        }
+      }));
+
+      setShots(updatedShots);
+      showToast('success', `Projet adapté avec succès au format ${newRatio}.`);
+    } catch (err) {
+      console.error('Smart Crop failed:', err);
+      showToast('error', "Échec de l'adaptation automatique du format.");
+    } finally {
+      hideLoading();
+    }
+  };
+
   return (
     <div className="video-editor-container">
       {/* Toolbar - Simplified header without duplicate menu */}
@@ -565,6 +707,41 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
           </button>
         )}
         <span className="project-name">{projectName}</span>
+
+        <div className="project-format-switcher ml-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="format-btn">
+                {aspectRatio === '16:9' ? <Monitor size={14} /> : <Smartphone size={14} />}
+                <span className="ml-2">{aspectRatio}</span>
+                <ChevronDown size={14} className="ml-1 opacity-50" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Format du Projet</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => handleFormatChange('16:9')}>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center">
+                    <Monitor size={14} className="mr-2" />
+                    <span>Paysage (16:9)</span>
+                  </div>
+                  {aspectRatio === '16:9' && <Check size={14} />}
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleFormatChange('9:16')}>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center">
+                    <Smartphone size={14} className="mr-2" />
+                    <span>Portrait (9:16)</span>
+                  </div>
+                  {aspectRatio === '9:16' && <Check size={14} />}
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         <span className="sequence-name">{sequenceName}</span>
 
         {/* Auto-save status indicator */}
@@ -952,7 +1129,10 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
             />
 
             {/* Timeline Tracks for Media */}
-            <TimelineTracks onDropMedia={handleDropMedia} />
+            <TimelineTracks
+              onDropMedia={handleDropMedia}
+              onFillGaps={handleFillGaps}
+            />
           </div>
         </main>
 
@@ -1030,8 +1210,8 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
                 <h3>Effets Visuels</h3>
                 <EffectsLibrary
                   onEffectSelect={(effect) => {
-                    setAppliedEffects([...appliedEffects, { 
-                      ...effect, 
+                    setAppliedEffects([...appliedEffects, {
+                      ...effect,
                       id: Date.now().toString(),
                       order: appliedEffects.length,
                       type: 'custom',
@@ -1175,10 +1355,10 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
             properties={[]} // TODO: Pass actual properties
             duration={totalDuration}
             currentTime={currentTime}
-            onPropertyUpdate={() => {}}
-            onKeyframeAdd={() => {}}
-            onKeyframeUpdate={() => {}}
-            onKeyframeRemove={() => {}}
+            onPropertyUpdate={() => { }}
+            onKeyframeAdd={() => { }}
+            onKeyframeUpdate={() => { }}
+            onKeyframeRemove={() => { }}
             onPlayPause={() => isPlaying ? pause() : play()}
             onSeek={handleTimeChange}
           />
@@ -1196,17 +1376,17 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
               assets={mediaAssets}
               folders={mediaFolders}
               selectedAssetIds={[]}
-              onAssetSelect={() => {}}
+              onAssetSelect={() => { }}
               onAssetImport={(files) => {
                 console.log('Importing files:', files);
                 setShowMediaLibrary(false);
               }}
-              onAssetDelete={() => {}}
-              onAssetDownload={() => {}}
-              onAssetFavorite={() => {}}
-              onFolderCreate={() => {}}
-              onFolderDelete={() => {}}
-              onAssetMove={() => {}}
+              onAssetDelete={() => { }}
+              onAssetDownload={() => { }}
+              onAssetFavorite={() => { }}
+              onFolderCreate={() => { }}
+              onFolderDelete={() => { }}
+              onAssetMove={() => { }}
             />
           </div>
         </div>
@@ -1272,11 +1452,11 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
                 setLayers(prev => {
                   const oldIndex = prev.findIndex(l => l.id === layerId);
                   if (oldIndex === -1) return prev;
-                  
+
                   const newLayers = [...prev];
                   const [removed] = newLayers.splice(oldIndex, 1);
                   newLayers.splice(newIndex, 0, removed);
-                  
+
                   // Mettre à jour les positions z
                   return newLayers.map((layer, index) => ({
                     ...layer,

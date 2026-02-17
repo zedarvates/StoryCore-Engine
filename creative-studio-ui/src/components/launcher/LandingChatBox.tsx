@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings, Lightbulb, Globe, Users, Film, MessageSquare as MessageIcon, FileText, Wand2, Music, Zap, List, RotateCcw, Trash2 } from 'lucide-react';
+import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings, Lightbulb, Globe, Users, Film, MessageSquare as MessageIcon, FileText, Wand2, Music, Zap, List, RotateCcw, Trash2, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
@@ -26,6 +26,8 @@ import {
 } from '@/utils/ollamaMigration';
 import { formAutoFill } from '@/services/FormAutoFill';
 import { promptSuggestionService, type PromptSuggestion } from '@/services/PromptSuggestionService';
+import { contentCreationService, type ContentType, type ContentDetectionResult, type CreationResult } from '@/services/ContentCreationService';
+import { createChatService, type ChatAction } from '@/services/chatService';
 
 // ============================================================================
 // Constants
@@ -38,6 +40,14 @@ const CONFIG_DEBOUNCE_DELAY = 500; // Debounce delay for configuration changes i
 // Types
 // ============================================================================
 
+interface CreationActionButton {
+  id: string;
+  label: string;
+  icon: string;
+  type: ContentType;
+  data: Record<string, unknown>;
+}
+
 interface Message {
   id: string;
   type: 'user' | 'assistant' | 'error' | 'system';
@@ -47,6 +57,8 @@ interface Message {
   isStreaming?: boolean;
   streamComplete?: boolean;
   error?: ErrorRecoveryOptions;
+  creationButtons?: CreationActionButton[];
+  creationResult?: CreationResult;
 }
 
 interface LandingChatBoxProps {
@@ -69,14 +81,14 @@ export function LandingChatBox({
 }: LandingChatBoxProps) {
   // Use unified LLM configuration service
   const { config: llmConfig, service: llmService, isConfigured } = useLLMConfig();
-  
+
   // Use global store to open LLM settings modal and check if project is loaded
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
   const project = useAppStore((state) => state.project);
-  
+
   // Auto-detect context if not provided: 'landing' if no project, 'project' if project loaded
   const effectiveContext = context || (project ? 'project' : 'landing');
-  
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -84,7 +96,7 @@ export function LandingChatBox({
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
   const [providerName, setProviderName] = useState<string>('');
   const [modelName, setModelName] = useState<string>('');
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => getInitialLanguagePreference());
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => getInitialLanguagePreference() as LanguageCode);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [currentStreamRequestId, setCurrentStreamRequestId] = useState<string | null>(null);
@@ -93,9 +105,27 @@ export function LandingChatBox({
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [dynamicSuggestions, setDynamicSuggestions] = useState<PromptSuggestion[]>([]);
   const [promptRepetitionEnabled, setPromptRepetitionEnabled] = useState(false);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [creatingType, setCreatingType] = useState<ContentType | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const chatServiceRef = useRef(createChatService({
+    project: null,
+    shots: [],
+    assets: [],
+    selectedShotId: null
+  }));
+
+  // Update chat service context when store data changes
+  useEffect(() => {
+    chatServiceRef.current.updateContext({
+      project,
+      shots: [], // Would get from shots store if available
+      assets: [], // Would get from assets store if available
+    });
+  }, [project]);
 
   // Helper function to add messages with history limit
   const addMessage = useCallback((newMessage: Message | Message[]) => {
@@ -138,10 +168,10 @@ export function LandingChatBox({
     async function checkOllamaMigration() {
       // Perform automatic Ollama migration if needed
       const migrationResult = await autoMigrate();
-      
+
       if (migrationResult && migrationResult.success) {
         ;
-        
+
         // Show migration notification
         if (migrationResult.notification) {
           const systemMessage: Message = {
@@ -152,7 +182,7 @@ export function LandingChatBox({
           };
           addMessage(systemMessage);
         }
-        
+
         // Restore migrated chat history if available
         if (migrationResult.historyMigrated && migrationResult.messagesCount > 0) {
           const migratedHistory = getMigratedChatHistory();
@@ -164,15 +194,15 @@ export function LandingChatBox({
               timestamp: new Date(msg.timestamp),
               attachments: msg.attachments,
             }));
-            
+
             addMessage(restoredMessages);
-            
+
             // Clear migrated history after restoration
             clearMigratedChatHistory();
           }
         }
       }
-      
+
       // Check for pending migration notification
       const notification = getMigrationNotification();
       if (notification) {
@@ -185,12 +215,12 @@ export function LandingChatBox({
         addMessage(systemMessage);
         clearMigrationNotification();
       }
-      
+
       // Check Ollama availability for warning banner
       const ollamaAvailable = await checkOllamaStatus();
       setIsOllamaAvailable(ollamaAvailable);
     }
-    
+
     checkOllamaMigration();
   }, [addMessage]);
 
@@ -230,40 +260,50 @@ export function LandingChatBox({
     if (effectiveContext === 'landing' && messages.length <= 1) {
       const landingSuggestions: PromptSuggestion[] = [
         {
+          id: 'landing-new-project',
           text: currentLanguage === 'fr' ? '🆕 Créer un nouveau projet' : '🆕 Create a new project',
-          category: 'project',
-          confidence: 100,
-          icon: '🆕'
+          category: 'expansion',
+          relevance: 1.0,
+          icon: '🆕',
+          language: currentLanguage
         },
         {
+          id: 'landing-open-project',
           text: currentLanguage === 'fr' ? '📂 Ouvrir un projet existant' : '📂 Open an existing project',
-          category: 'project',
-          confidence: 95,
-          icon: '📂'
+          category: 'expansion',
+          relevance: 0.95,
+          icon: '📂',
+          language: currentLanguage
         },
         {
+          id: 'landing-resume-project',
           text: currentLanguage === 'fr' ? '🔄 Reprendre le dernier projet' : '🔄 Resume last project',
-          category: 'project',
-          confidence: 90,
-          icon: '🔄'
+          category: 'expansion',
+          relevance: 0.9,
+          icon: '🔄',
+          language: currentLanguage
         },
         {
+          id: 'landing-recent-projects',
           text: currentLanguage === 'fr' ? '📋 Voir mes projets récents' : '📋 View recent projects',
-          category: 'project',
-          confidence: 85,
-          icon: '📋'
+          category: 'expansion',
+          relevance: 0.85,
+          icon: '📋',
+          language: currentLanguage
         },
         {
+          id: 'landing-help',
           text: currentLanguage === 'fr' ? '❓ Comment utiliser StoryCore?' : '❓ How to use StoryCore?',
-          category: 'help',
-          confidence: 80,
-          icon: '❓'
+          category: 'clarification',
+          relevance: 0.8,
+          icon: '❓',
+          language: currentLanguage
         }
       ];
       setDynamicSuggestions(landingSuggestions);
       return;
     }
-    
+
     if (inputValue.trim().length > 0) {
       const suggestions = promptSuggestionService.generateSuggestions(
         messages,
@@ -515,7 +555,7 @@ export function LandingChatBox({
     try {
       // Build language-aware system prompt
       const systemPrompt = buildSystemPrompt(currentLanguage);
-      
+
       // Create LLM request
       const request: LLMRequest = {
         prompt: userInput,
@@ -530,10 +570,10 @@ export function LandingChatBox({
       // Route request to LLM provider
       if (llmConfig.streamingEnabled) {
         setIsStreaming(true);
-        
+
         const streamingMessageId = Date.now().toString();
         setStreamingMessageId(streamingMessageId);
-        
+
         const streamingMessage: Message = {
           id: streamingMessageId,
           type: 'assistant',
@@ -547,7 +587,7 @@ export function LandingChatBox({
         const response = await llmService.generateStreamingCompletion(
           request,
           (chunk: string) => {
-            setMessages(prev => prev.map(msg => 
+            setMessages(prev => prev.map(msg =>
               msg.id === streamingMessageId
                 ? { ...msg, content: msg.content + chunk }
                 : msg
@@ -559,16 +599,16 @@ export function LandingChatBox({
         setIsStreaming(false);
         setStreamingMessageId(null);
         setCurrentStreamRequestId(null);
-        
+
         if (response.success && response.data) {
-          setMessages(prev => prev.map(msg => 
+          setMessages(prev => prev.map(msg =>
             msg.id === streamingMessageId
-              ? { 
-                  ...msg, 
-                  isStreaming: false, 
-                  streamComplete: true,
-                  timestamp: new Date()
-                }
+              ? {
+                ...msg,
+                isStreaming: false,
+                streamComplete: true,
+                timestamp: new Date()
+              }
               : msg
           ));
         } else {
@@ -577,7 +617,7 @@ export function LandingChatBox({
       } else {
         const response = await llmService.generateCompletion(request, requestId);
         setCurrentStreamRequestId(null);
-        
+
         if (response.success && response.data) {
           const assistantMessage: Message = {
             id: Date.now().toString(),
@@ -607,21 +647,21 @@ export function LandingChatBox({
       const cancelled = llmService.cancelRequest(currentStreamRequestId);
       if (cancelled) {
         ;
-        
+
         // Mark the streaming message as interrupted
         if (streamingMessageId) {
-          setMessages(prev => prev.map(msg => 
+          setMessages(prev => prev.map(msg =>
             msg.id === streamingMessageId
-              ? { 
-                  ...msg, 
-                  content: msg.content + '\n\n⚠️ Stream interrupted by new message',
-                  isStreaming: false, 
-                  streamComplete: false
-                }
+              ? {
+                ...msg,
+                content: msg.content + '\n\n⚠️ Stream interrupted by new message',
+                isStreaming: false,
+                streamComplete: false
+              }
               : msg
           ));
         }
-        
+
         // Clean up streaming state
         setIsStreaming(false);
         setStreamingMessageId(null);
@@ -641,7 +681,7 @@ export function LandingChatBox({
         error: {
           message: 'Configuration required',
           userMessage: 'Please configure your LLM settings in Settings → LLM Configuration.',
-          category: 'configuration' as const,
+          category: 'invalid_request',
           retryable: false,
           actions: [
             {
@@ -703,7 +743,7 @@ export function LandingChatBox({
     };
 
     addMessage(newMessage);
-    
+
     // Call external handler if provided
     if (onSendMessage) {
       onSendMessage(inputValue, attachments);
@@ -713,16 +753,54 @@ export function LandingChatBox({
     const userInput = inputValue;
     setInputValue('');
     setAttachments([]);
-    
+
     // Store last user message for retry functionality (Requirement 7.6)
     setLastUserMessage(userInput);
+
+    // Analyze intent using ChatService (media generation, entity creation, etc.)
+    const chatServiceResponse = await chatServiceRef.current.processMessage(userInput);
+
+    // Handle detected actions from ChatService
+    if (chatServiceResponse.actions && chatServiceResponse.actions.length > 0) {
+      for (const action of chatServiceResponse.actions) {
+        const actionType = action.type;
+        const payload = action.payload as Record<string, unknown>;
+
+        if (actionType === 'generateImage') {
+          handleCreation('image', payload);
+        } else if (actionType === 'generateAudio') {
+          handleCreation('audio', payload);
+        } else if (actionType === 'generateVideo') {
+          handleCreation('video', payload);
+        } else if (actionType.startsWith('create')) {
+          // Map action types like 'createCharacter' to 'character' ContentType
+          const rawType = actionType.replace('create', '');
+          const contentType = (rawType.charAt(0).toLowerCase() + rawType.slice(1)) as ContentType;
+          handleCreation(contentType, payload);
+        }
+      }
+
+      // If ChatService provided a specific message and we handled actions,
+      // we can skip the general LLM call to avoid redundant responses
+      if (chatServiceResponse.message) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: chatServiceResponse.message,
+          timestamp: new Date(),
+          streamComplete: true,
+        };
+        addMessage(assistantMessage);
+        return;
+      }
+    }
 
     // Generate response using LLM service or fallback (Requirement 3.1)
     if (llmService) {
       try {
         // Build language-aware system prompt (Requirement 3.4)
         const systemPrompt = buildSystemPrompt(currentLanguage);
-        
+
         // Create LLM request
         const request: LLMRequest = {
           prompt: userInput,
@@ -738,11 +816,11 @@ export function LandingChatBox({
         if (llmConfig?.streamingEnabled ?? true) {
           // Streaming mode (Requirements 8.1, 8.3)
           setIsStreaming(true);
-          
+
           // Create placeholder message for streaming
           const streamingMessageId = (Date.now() + 1).toString();
           setStreamingMessageId(streamingMessageId);
-          
+
           const streamingMessage: Message = {
             id: streamingMessageId,
             type: 'assistant',
@@ -759,7 +837,7 @@ export function LandingChatBox({
               request,
               (chunk: string) => {
                 // Update message content token-by-token (Requirement 8.1)
-                setMessages(prev => prev.map(msg => 
+                setMessages(prev => prev.map(msg =>
                   msg.id === streamingMessageId
                     ? { ...msg, content: msg.content + chunk }
                     : msg
@@ -772,23 +850,23 @@ export function LandingChatBox({
             setIsStreaming(false);
             setStreamingMessageId(null);
             setCurrentStreamRequestId(null);
-            
+
             if (response.success && response.data) {
               // Update message to mark streaming complete and add final timestamp
-              setMessages(prev => prev.map(msg => 
+              setMessages(prev => prev.map(msg =>
                 msg.id === streamingMessageId
-                  ? { 
-                      ...msg, 
-                      isStreaming: false, 
-                      streamComplete: true,
-                      timestamp: new Date() // Update timestamp when complete
-                    }
+                  ? {
+                    ...msg,
+                    isStreaming: false,
+                    streamComplete: true,
+                    timestamp: new Date() // Update timestamp when complete
+                  }
                   : msg
               ));
             } else {
               // Handle streaming error - display error with recovery options (Requirement 8.7)
               setMessages(prev => prev.filter(msg => msg.id !== streamingMessageId));
-              
+
               // Create error message with recovery options
               const error = new LLMError(
                 response.error || 'Stream failed',
@@ -797,7 +875,7 @@ export function LandingChatBox({
               );
               const errorMessage = createErrorMessage(error, userInput);
               addMessage(errorMessage);
-              
+
               // If connection failed, activate fallback mode (Requirement 10.2)
               if (response.code === 'network' || response.code === 'timeout' || response.code === 'connection') {
                 setIsFallbackMode(true);
@@ -807,22 +885,22 @@ export function LandingChatBox({
           } catch (streamError) {
             // Graceful handling of stream interruptions (Requirement 8.6)
             console.error('Stream interrupted or failed:', streamError);
-            
+
             // Clean up streaming state
             setIsStreaming(false);
             setStreamingMessageId(null);
             setCurrentStreamRequestId(null);
-            
+
             // Remove incomplete streaming message
             setMessages(prev => prev.filter(msg => msg.id !== streamingMessageId));
-            
+
             // Create error message with recovery options
             const errorMessage = createErrorMessage(streamError as Error, userInput);
             addMessage(errorMessage);
-            
+
             // If connection failed, activate fallback mode (Requirement 10.2)
-            if (streamError instanceof LLMError && 
-                (streamError.category === 'network' || streamError.category === 'timeout')) {
+            if (streamError instanceof LLMError &&
+              (streamError.category === 'network' || streamError.category === 'timeout')) {
               setIsFallbackMode(true);
               setConnectionStatus('fallback');
             }
@@ -831,7 +909,7 @@ export function LandingChatBox({
           // Non-streaming mode (Requirement 8.2)
           const response = await llmService.generateCompletion(request, requestId);
           setCurrentStreamRequestId(null);
-          
+
           if (response.success && response.data) {
             // Display complete response after generation finishes (Requirement 8.2)
             const assistantMessage: Message = {
@@ -851,7 +929,7 @@ export function LandingChatBox({
             );
             const errorMessage = createErrorMessage(error, userInput);
             addMessage(errorMessage);
-            
+
             // If connection failed, activate fallback mode (Requirement 10.2)
             if (response.code === 'network' || response.code === 'timeout' || response.code === 'connection') {
               setIsFallbackMode(true);
@@ -861,19 +939,19 @@ export function LandingChatBox({
         }
       } catch (error) {
         console.error('LLM request failed:', error);
-        
+
         // Clean up streaming state
         setIsStreaming(false);
         setStreamingMessageId(null);
         setCurrentStreamRequestId(null);
-        
+
         // Create error message with recovery options
         const errorMessage = createErrorMessage(error as Error, userInput);
         addMessage(errorMessage);
-        
+
         // If connection failed, activate fallback mode (Requirement 10.2)
-        if (error instanceof LLMError && 
-            (error.category === 'network' || error.category === 'timeout')) {
+        if (error instanceof LLMError &&
+          (error.category === 'network' || error.category === 'timeout')) {
           setIsFallbackMode(true);
           setConnectionStatus('fallback');
         }
@@ -882,7 +960,7 @@ export function LandingChatBox({
       // No LLM service configured, use fallback (Requirement 3.3, 10.1)
       setIsFallbackMode(true);
       setConnectionStatus('fallback');
-      
+
       setTimeout(() => {
         const response = generateAssistantResponse(userInput.toLowerCase());
         const assistantMessage: Message = {
@@ -895,6 +973,254 @@ export function LandingChatBox({
       }, 1000);
     }
   };
+
+  // ============================================================================
+  // Content Creation from Chat
+  // ============================================================================
+
+  // After each completed assistant message, detect creation intent and add action buttons
+  useEffect(() => {
+    if (messages.length < 2) return;
+
+    const lastMessage = messages[messages.length - 1];
+    const prevMessage = messages.length >= 2 ? messages[messages.length - 2] : null;
+
+    // Only detect intent when an assistant message just completed streaming (or is non-streaming)
+    if (
+      lastMessage?.type === 'assistant' &&
+      !lastMessage.isStreaming &&
+      !lastMessage.creationButtons &&
+      !lastMessage.creationResult &&
+      prevMessage?.type === 'user'
+    ) {
+      const intent = contentCreationService.detectCreationIntent(
+        prevMessage.content,
+        lastMessage.content,
+        currentLanguage
+      );
+
+      if (intent) {
+        const buttons = contentCreationService.getCreationButtons(intent, currentLanguage);
+        if (buttons.length > 0) {
+          // Update the last message to include creation buttons
+          setMessages(prev => prev.map(msg =>
+            msg.id === lastMessage.id
+              ? { ...msg, creationButtons: buttons }
+              : msg
+          ));
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length]);
+
+  // Handle creation action from button click
+  const handleCreation = useCallback(async (type: ContentType, data: Record<string, unknown>) => {
+    setIsCreating(true);
+    setCreatingType(type);
+
+    // Add a system message showing creation in progress
+    const progressMessage: Message = {
+      id: `creating-${Date.now()}`,
+      type: 'system',
+      content: currentLanguage === 'fr'
+        ? `⏳ Création en cours : ${type}...`
+        : `⏳ Creating: ${type}...`,
+      timestamp: new Date(),
+    };
+    addMessage(progressMessage);
+
+    try {
+      // Determine world context from current project
+      const worldContext = project?.project_name || undefined;
+
+      // Find the most recent assistant message to use for parsing (if available)
+      const recentAssistantMsg = [...messages].reverse().find(m => m.type === 'assistant' && !m.creationResult);
+
+      let result;
+      if (recentAssistantMsg && recentAssistantMsg.content) {
+        // Use createFromLLMResponse to extract structured data from the assistant's response
+        result = await contentCreationService.createFromLLMResponse(
+          recentAssistantMsg.content,
+          type,
+          data,
+          worldContext as string | undefined,
+          currentLanguage
+        );
+      } else {
+        // No recent assistant message, create with just the provided data
+        result = await contentCreationService.createContent(type, data, worldContext as string | undefined, currentLanguage);
+      }
+
+      // Remove progress message
+      setMessages(prev => prev.filter(msg => msg.id !== progressMessage.id));
+
+      if (result.success) {
+        // Dispatch created entity to the app store
+        const store = useAppStore.getState();
+
+        switch (type) {
+          case 'character': {
+            if (store.characters && typeof store.setShowCharactersModal === 'function') {
+              // Add character to store
+              const newCharacter = {
+                id: result.entity.id as string,
+                name: result.entity.name as string,
+                archetype: result.entity.archetype as string,
+                role: result.entity.role as string,
+                gender: result.entity.gender as string,
+                age: result.entity.age as string,
+                description: result.entity.description as string,
+                visual_identity: result.entity.visual_identity as Record<string, string>,
+                createdAt: result.entity.createdAt as number,
+                updatedAt: result.entity.updatedAt as number,
+              };
+              // Characters are stored in the character store separately
+              window.dispatchEvent(new CustomEvent('storycore:character-created', { detail: newCharacter }));
+            }
+            break;
+          }
+          case 'location': {
+            window.dispatchEvent(new CustomEvent('storycore:location-created', { detail: result.entity }));
+            break;
+          }
+          case 'object': {
+            window.dispatchEvent(new CustomEvent('storycore:object-created', { detail: result.entity }));
+            break;
+          }
+          case 'world': {
+            window.dispatchEvent(new CustomEvent('storycore:world-created', { detail: result.entity }));
+            break;
+          }
+          case 'story':
+          case 'scenario': {
+            window.dispatchEvent(new CustomEvent('storycore:story-created', { detail: result.entity }));
+            break;
+          }
+          case 'dialogue': {
+            window.dispatchEvent(new CustomEvent('storycore:dialogue-created', { detail: result.entity }));
+            break;
+          }
+          case 'image': {
+            window.dispatchEvent(new CustomEvent('storycore:image-created', { detail: result.entity }));
+            break;
+          }
+          case 'audio': {
+            window.dispatchEvent(new CustomEvent('storycore:audio-created', { detail: result.entity }));
+            break;
+          }
+          case 'video': {
+            window.dispatchEvent(new CustomEvent('storycore:video-created', { detail: result.entity }));
+            break;
+          }
+        }
+
+        // Add success message with the created entity details
+        const successMessage: Message = {
+          id: `created-${Date.now()}`,
+          type: 'assistant',
+          content: result.message + '\n\n' + formatCreatedEntity(result),
+          timestamp: new Date(),
+          creationResult: result,
+        };
+        addMessage(successMessage);
+      } else {
+        // Add error message
+        const errorMessage: Message = {
+          id: `create-error-${Date.now()}`,
+          type: 'error',
+          content: result.message,
+          timestamp: new Date(),
+        };
+        addMessage(errorMessage);
+      }
+    } catch (error) {
+      // Remove progress message
+      setMessages(prev => prev.filter(msg => msg.id !== progressMessage.id));
+
+      const errorMessage: Message = {
+        id: `create-error-${Date.now()}`,
+        type: 'error',
+        content: currentLanguage === 'fr'
+          ? `❌ Erreur lors de la création : ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+          : `❌ Creation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date(),
+      };
+      addMessage(errorMessage);
+    } finally {
+      setIsCreating(false);
+      setCreatingType(null);
+    }
+  }, [addMessage, currentLanguage, project]);
+
+  // Quick create handler (from quick create bar)
+  const handleQuickCreate = useCallback(async (type: ContentType) => {
+    await handleCreation(type, {});
+  }, [handleCreation]);
+
+  // Format created entity for display in chat
+  function formatCreatedEntity(result: CreationResult): string {
+    const entity = result.entity;
+    const lines: string[] = [];
+
+    switch (result.type) {
+      case 'character':
+        lines.push(`**Nom :** ${entity.name}`);
+        if (entity.archetype) lines.push(`**Archétype :** ${entity.archetype}`);
+        if (entity.role) lines.push(`**Rôle :** ${entity.role}`);
+        if (entity.gender) lines.push(`**Genre :** ${entity.gender}`);
+        if (entity.description) lines.push(`**Description :** ${entity.description}`);
+        break;
+      case 'location':
+        lines.push(`**Nom :** ${entity.name}`);
+        if (entity.type) lines.push(`**Type :** ${entity.type}`);
+        if (entity.description) lines.push(`**Description :** ${entity.description}`);
+        break;
+      case 'object':
+        lines.push(`**Nom :** ${entity.name}`);
+        if (entity.type) lines.push(`**Type :** ${entity.type}`);
+        if (entity.rarity) lines.push(`**Rareté :** ${entity.rarity}`);
+        if (entity.description) lines.push(`**Description :** ${entity.description}`);
+        break;
+      case 'dialogue':
+        if (entity.lines && Array.isArray(entity.lines)) {
+          lines.push(`**${(entity.lines as unknown[]).length} répliques générées**`);
+          (entity.lines as Array<{ character: string; text: string }>).slice(0, 3).forEach(l => {
+            lines.push(`> **${l.character}:** ${l.text}`);
+          });
+          if ((entity.lines as unknown[]).length > 3) {
+            lines.push(`_...et ${(entity.lines as unknown[]).length - 3} autres répliques_`);
+          }
+        }
+        break;
+      case 'story':
+      case 'scenario':
+        lines.push(`**Titre :** ${entity.title || entity.name}`);
+        if (entity.genre) lines.push(`**Genre :** ${entity.genre}`);
+        if (entity.summary || entity.description) lines.push(`**Résumé :** ${entity.summary || entity.description}`);
+        break;
+      case 'world':
+        lines.push(`**Nom :** ${entity.name}`);
+        if (entity.genre) lines.push(`**Genre :** ${entity.genre}`);
+        if (entity.era) lines.push(`**Époque :** ${entity.era}`);
+        if (entity.description) lines.push(`**Description :** ${entity.description}`);
+        break;
+      case 'image':
+        lines.push(`**Prompt :** ${entity.prompt}`);
+        if (entity.url) lines.push(`![Généré](${entity.url})`);
+        break;
+      case 'audio':
+        lines.push(`**Texte :** ${entity.text}`);
+        if (entity.duration) lines.push(`**Durée :** ${Math.round(entity.duration as number)}s`);
+        break;
+      case 'video':
+        lines.push(`**Prompt :** ${entity.prompt}`);
+        if (entity.url) lines.push(`[Voir la vidéo](${entity.url})`);
+        break;
+    }
+
+    return lines.join('\n');
+  }
 
   // Handle file attachment
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -920,10 +1246,10 @@ export function LandingChatBox({
       console.error('Failed to persist language preference:', error);
       // Continue with state update even if persistence fails
     }
-    
+
     // Update UI state
     setCurrentLanguage(language);
-    
+
     // Update welcome message to new language
     setMessages(prev => {
       if (prev.length > 0 && prev[0].id === '1' && prev[0].type === 'assistant') {
@@ -936,11 +1262,11 @@ export function LandingChatBox({
       }
       return prev;
     });
-    
+
     // Build language-aware system prompt for LLM
     const systemPrompt = buildSystemPrompt(language);
     ;
-    
+
     // Add system message about language change (Requirement 2.7)
     const languageNames: Record<LanguageCode, string> = {
       fr: 'French (Français)',
@@ -953,7 +1279,7 @@ export function LandingChatBox({
       zh: 'Chinese (中文)',
       ko: 'Korean (한국어)',
     };
-    
+
     const systemMessage: Message = {
       id: Date.now().toString(),
       type: 'system',
@@ -969,19 +1295,19 @@ export function LandingChatBox({
       style={{ height: height ? `${height}px` : '800px' }}
     >
       {/* Header */}
-      <div 
+      <div
         className="flex items-center gap-2 px-4 py-3 bg-gray-800 border-b border-gray-700"
         role="banner"
         aria-label="Chat header"
       >
         <MessageSquare className="w-5 h-5 text-purple-400" aria-hidden="true" />
         <h3 className="text-sm font-semibold text-white" id="chatbox-title">Assistant StoryCore</h3>
-        <StatusIndicator 
+        <StatusIndicator
           status={connectionStatus}
           providerName={providerName}
           modelName={modelName}
         />
-        
+
         {/* Configuration Button */}
         <Button
           variant="ghost"
@@ -994,7 +1320,7 @@ export function LandingChatBox({
           <Settings className="w-5 h-5" aria-hidden="true" />
           <span className="sr-only">Configure LLM settings</span>
         </Button>
-        
+
         {/* Language Selector Button */}
         <LanguageSelector
           currentLanguage={currentLanguage}
@@ -1049,7 +1375,7 @@ export function LandingChatBox({
       </div>
 
       {/* Messages Area */}
-      <div 
+      <div
         className="flex-1 overflow-y-auto p-4 space-y-4"
         role="log"
         aria-live="polite"
@@ -1059,7 +1385,7 @@ export function LandingChatBox({
       >
         {/* Ollama Warning Banner */}
         {isOllamaAvailable === false && (
-          <div 
+          <div
             className="rounded-lg border-2 border-orange-500/50 bg-orange-900/20 p-3"
             role="alert"
             aria-live="assertive"
@@ -1119,7 +1445,7 @@ export function LandingChatBox({
 
         {/* Fallback Mode Warning Banner (Requirements 10.3, 10.4, 10.7) */}
         {isFallbackMode && !isOllamaAvailable && (
-          <div 
+          <div
             className="rounded-lg border-2 border-orange-500/50 bg-orange-900/20 p-3"
             role="alert"
             aria-live="polite"
@@ -1171,7 +1497,7 @@ export function LandingChatBox({
               </div>
             ) : message.type === 'system' ? (
               // System message styling (Requirement 2.7, 4.6)
-              <div 
+              <div
                 className="max-w-[90%] rounded-lg px-4 py-2 bg-blue-900/20 border border-blue-500/30"
                 role="status"
                 aria-live="polite"
@@ -1188,11 +1514,10 @@ export function LandingChatBox({
               </div>
             ) : (
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  message.type === 'user'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-800 text-gray-200'
-                }`}
+                className={`max-w-[80%] rounded-lg px-4 py-2 ${message.type === 'user'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-800 text-gray-200'
+                  }`}
               >
                 {message.type === 'assistant' && (
                   <div className="flex items-center gap-2 mb-1">
@@ -1225,6 +1550,72 @@ export function LandingChatBox({
                       })}
                     </time>
                   </span>
+                )}
+                {/* Content Creation Action Buttons */}
+                {message.type === 'assistant' && message.creationButtons && message.creationButtons.length > 0 && !message.creationResult && (
+                  <div className="mt-3 pt-2 border-t border-gray-700/50">
+                    <div className="flex items-center gap-1 mb-2">
+                      <Wand2 className="w-3 h-3 text-amber-400" aria-hidden="true" />
+                      <span className="text-xs text-amber-400 font-medium">
+                        {currentLanguage === 'fr' ? 'Actions de création détectées' : 'Creation actions detected'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {message.creationButtons.map((btn) => (
+                        <button
+                          key={btn.id}
+                          onClick={() => handleCreation(btn.type, btn.data)}
+                          disabled={isCreating}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600/80 to-indigo-600/80 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={btn.label}
+                        >
+                          {isCreating && creatingType === btn.type ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <span className="text-sm">{btn.icon}</span>
+                          )}
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Creation Result Badge */}
+                {message.creationResult && message.creationResult.success && (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-900/40 border border-emerald-500/30 rounded-full text-xs text-emerald-300">
+                      <Sparkles className="w-3 h-3" />
+                      {currentLanguage === 'fr' ? 'Créé avec succès' : 'Created successfully'}
+                    </span>
+                  </div>
+                )}
+                {/* Media Playback / Display */}
+                {message.creationResult && message.creationResult.success && (
+                  <div className="mt-3 overflow-hidden rounded-md border border-gray-700">
+                    {message.creationResult.type === 'image' && message.creationResult.entity.url && (
+                      <img
+                        src={message.creationResult.entity.url as string}
+                        alt="Generated content"
+                        className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                    )}
+                    {message.creationResult.type === 'audio' && message.creationResult.entity.url && (
+                      <div className="p-2 bg-gray-900/50">
+                        <audio
+                          controls
+                          src={message.creationResult.entity.url as string}
+                          className="w-full h-8"
+                        />
+                      </div>
+                    )}
+                    {message.creationResult.type === 'video' && message.creationResult.entity.url && (
+                      <video
+                        controls
+                        src={message.creationResult.entity.url as string}
+                        className="w-full h-auto"
+                      />
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -1320,18 +1711,17 @@ export function LandingChatBox({
                       {suggestion.text}
                     </span>
                     <div className="flex items-center gap-1 mt-1">
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        suggestion.category === 'follow-up' ? 'bg-blue-900/50 text-blue-300' :
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${suggestion.category === 'follow-up' ? 'bg-blue-900/50 text-blue-300' :
                         suggestion.category === 'clarification' ? 'bg-orange-900/50 text-orange-300' :
-                        suggestion.category === 'expansion' ? 'bg-green-900/50 text-green-300' :
-                        suggestion.category === 'alternative' ? 'bg-purple-900/50 text-purple-300' :
-                        'bg-gray-900/50 text-gray-300'
-                      }`}>
+                          suggestion.category === 'expansion' ? 'bg-green-900/50 text-green-300' :
+                            suggestion.category === 'alternative' ? 'bg-purple-900/50 text-purple-300' :
+                              'bg-gray-900/50 text-gray-300'
+                        }`}>
                         {suggestion.category === 'follow-up' ? (currentLanguage === 'fr' ? 'Suivi' : 'Follow-up') :
-                         suggestion.category === 'clarification' ? (currentLanguage === 'fr' ? 'Clarification' : 'Clarify') :
-                         suggestion.category === 'expansion' ? (currentLanguage === 'fr' ? 'Expansion' : 'Expand') :
-                         suggestion.category === 'alternative' ? (currentLanguage === 'fr' ? 'Alternative' : 'Alternative') :
-                         (currentLanguage === 'fr' ? 'Affinement' : 'Refine')}
+                          suggestion.category === 'clarification' ? (currentLanguage === 'fr' ? 'Clarification' : 'Clarify') :
+                            suggestion.category === 'expansion' ? (currentLanguage === 'fr' ? 'Expansion' : 'Expand') :
+                              suggestion.category === 'alternative' ? (currentLanguage === 'fr' ? 'Alternative' : 'Alternative') :
+                                (currentLanguage === 'fr' ? 'Affinement' : 'Refine')}
                       </span>
                       {isGhostTracker && (
                         <span className="text-xs px-1.5 py-0.5 rounded bg-purple-900/30 text-purple-300 border border-purple-500/30">
@@ -1357,6 +1747,44 @@ export function LandingChatBox({
           </div>
         </div>
       )}
+
+      {/* Quick Create Bar */}
+      <div className="px-4 py-2 bg-gray-800/50 border-t border-gray-700/50">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowQuickCreate(!showQuickCreate)}
+            className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors"
+            title={currentLanguage === 'fr' ? 'Création rapide de contenu' : 'Quick content creation'}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <Wand2 className="w-3.5 h-3.5" />
+            <span className="font-medium">
+              {currentLanguage === 'fr' ? 'Créer' : 'Create'}
+            </span>
+          </button>
+
+          {showQuickCreate && (
+            <div className="flex flex-wrap gap-1.5 ml-2 animate-in slide-in-from-left-2 duration-200">
+              {contentCreationService.getQuickCreationButtons(currentLanguage).map((btn) => (
+                <button
+                  key={btn.id}
+                  onClick={() => handleQuickCreate(btn.type)}
+                  disabled={isCreating}
+                  className="flex items-center gap-1 px-2 py-1 bg-gray-700/80 hover:bg-gray-600 text-gray-200 text-xs rounded-md transition-all duration-150 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-600/50 hover:border-purple-500/50"
+                  title={btn.label}
+                >
+                  {isCreating && creatingType === btn.type ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <span>{btn.icon}</span>
+                  )}
+                  <span>{btn.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Input Area */}
       <div
@@ -1420,11 +1848,10 @@ export function LandingChatBox({
             variant="ghost"
             size="sm"
             onClick={() => setPromptRepetitionEnabled(!promptRepetitionEnabled)}
-            className={`text-xs px-2 py-1 h-7 ${
-              promptRepetitionEnabled
-                ? 'text-green-400 bg-green-900/20 border border-green-500/30'
-                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/50'
-            }`}
+            className={`text-xs px-2 py-1 h-7 ${promptRepetitionEnabled
+              ? 'text-green-400 bg-green-900/20 border border-green-500/30'
+              : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/50'
+              }`}
             title={currentLanguage === 'fr'
               ? 'Répéter le prompt pour certains modèles (<prompt> <prompt>)'
               : 'Repeat prompt for some models (<prompt> <prompt>)'
@@ -1533,8 +1960,8 @@ export function LandingChatBox({
 function generateAssistantResponse(input: string): string {
   // Project creation requests
   if (
-    (input.includes('créer') || input.includes('creer') || input.includes('create') || 
-     input.includes('nouveau') || input.includes('new')) &&
+    (input.includes('créer') || input.includes('creer') || input.includes('create') ||
+      input.includes('nouveau') || input.includes('new')) &&
     (input.includes('projet') || input.includes('project'))
   ) {
     return "Pour créer un nouveau projet, cliquez sur le bouton 'New Project' ci-dessus. Je pourrai ensuite vous aider à créer des shots, ajouter des transitions et configurer l'audio une fois votre projet ouvert.";
@@ -1542,8 +1969,8 @@ function generateAssistantResponse(input: string): string {
 
   // Project opening requests
   if (
-    (input.includes('ouvrir') || input.includes('open') || 
-     input.includes('charger') || input.includes('load')) &&
+    (input.includes('ouvrir') || input.includes('open') ||
+      input.includes('charger') || input.includes('load')) &&
     (input.includes('projet') || input.includes('project'))
   ) {
     return "Pour ouvrir un projet existant, cliquez sur le bouton 'Open Project' ci-dessus, ou sélectionnez un projet dans la liste des projets récents. Je serai là pour vous assister dès que votre projet sera ouvert!";
@@ -1585,14 +2012,14 @@ function generateAssistantResponse(input: string): string {
       // Build intelligent response with pre-fill information
       let response = `🎯 **Lancement du wizard ${wizardType === 'world' ? 'World Building' :
         wizardType === 'character' ? 'Character Creation' :
-        wizardType === 'scene' ? 'Scene Generator' :
-        wizardType === 'dialogue' ? 'Dialogue Writer' :
-        wizardType === 'storyboard' ? 'Storyboard Creator' :
-        wizardType === 'style' ? 'Style Transfer' :
-        wizardType === 'comic' ? 'Comic to Sequence' :
-        wizardType === 'audio' ? 'Audio Production' :
-        wizardType === 'transition' ? 'Transitions' :
-        'Plan Sequences'}...**\n\n`;
+          wizardType === 'scene' ? 'Scene Generator' :
+            wizardType === 'dialogue' ? 'Dialogue Writer' :
+              wizardType === 'storyboard' ? 'Storyboard Creator' :
+                wizardType === 'style' ? 'Style Transfer' :
+                  wizardType === 'comic' ? 'Comic to Sequence' :
+                    wizardType === 'audio' ? 'Audio Production' :
+                      wizardType === 'transition' ? 'Transitions' :
+                        'Plan Sequences'}...**\n\n`;
 
       if (autoFillResult.success && autoFillResult.filledFields.length > 0) {
         response += `✨ **Pré-remplissage intelligent détecté !**\n`;
@@ -1628,7 +2055,7 @@ function generateAssistantResponse(input: string): string {
 
   // Shots/scenes requests
   if (
-    input.includes('shot') || input.includes('scene') || 
+    input.includes('shot') || input.includes('scene') ||
     input.includes('séquence') || input.includes('sequence')
   ) {
     return "Pour travailler avec des shots et des scènes, vous devez d'abord créer ou ouvrir un projet. Une fois dans l'éditeur, je pourrai vous aider à créer des séquences, ajuster les durées, et organiser vos scènes.";
@@ -1636,7 +2063,7 @@ function generateAssistantResponse(input: string): string {
 
   // Audio requests
   if (
-    input.includes('audio') || input.includes('son') || 
+    input.includes('audio') || input.includes('son') ||
     input.includes('music') || input.includes('musique') ||
     input.includes('voix') || input.includes('voice')
   ) {
@@ -1645,7 +2072,7 @@ function generateAssistantResponse(input: string): string {
 
   // Transition requests
   if (
-    input.includes('transition') || input.includes('effet') || 
+    input.includes('transition') || input.includes('effet') ||
     input.includes('effect') || input.includes('animation')
   ) {
     return "Les transitions et effets visuels sont disponibles une fois que vous avez créé un projet et ajouté des shots. Je pourrai alors vous suggérer les meilleures transitions (fade, wipe, dissolve) selon votre style.";
@@ -1653,7 +2080,7 @@ function generateAssistantResponse(input: string): string {
 
   // Export/render requests
   if (
-    input.includes('export') || input.includes('render') || 
+    input.includes('export') || input.includes('render') ||
     input.includes('générer') || input.includes('generate') ||
     input.includes('vidéo') || input.includes('video')
   ) {

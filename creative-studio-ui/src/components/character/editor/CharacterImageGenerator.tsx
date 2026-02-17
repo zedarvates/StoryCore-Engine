@@ -26,7 +26,7 @@ export function CharacterImageGenerator({
 
   const comfyuiService = ComfyUIService.getInstance();
   const project = useAppStore((state) => state.project);
-  
+
   // Get visual style from project
   const visualStyle = (project as any)?.visualStyle || (project as any)?.visual_style || 'realistic';
 
@@ -35,7 +35,7 @@ export function CharacterImageGenerator({
    */
   const buildCharacterPrompt = (): string => {
     const parts: string[] = [];
-    
+
     // Add visual style first
     const styleMap: Record<string, string> = {
       'photorealistic': 'photorealistic',
@@ -53,10 +53,10 @@ export function CharacterImageGenerator({
       'minimalist': 'minimalist style',
       'realistic': 'realistic'
     };
-    
+
     const stylePrefix = styleMap[visualStyle] || visualStyle;
     parts.push(stylePrefix);
-    
+
     // Basic description
     if (character.name) {
       parts.push(`Portrait of ${character.name}`);
@@ -102,8 +102,18 @@ export function CharacterImageGenerator({
       }
     }
 
-    // Add quality tags
-    parts.push('high quality', 'detailed', 'professional portrait', 'centered composition');
+    // Add quality tags from user requirements
+    parts.push(
+      'Cinematic view',
+      'photorealist',
+      'high skin details',
+      '8K',
+      'highly detailed',
+      'professional portrait',
+      'centered composition',
+      'sharp focus',
+      'depth of field'
+    );
 
     return parts.join(', ');
   };
@@ -156,7 +166,7 @@ export function CharacterImageGenerator({
       });
 
       setGeneratedImage(imageUrl);
-      
+
       if (onImageGenerated) {
         onImageGenerated(imageUrl);
       }

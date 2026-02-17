@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, Loader2, AlertCircle, Download } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
-import type { ChatMessage } from '@/types';
+import type { ChatMessage, Shot } from '@/types';
 
 interface ChatBoxProps {
   className?: string;
@@ -68,8 +68,8 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
       // Execute any actions from the AI response
       if (response.actions) {
         response.actions.forEach((action) => {
-          if (action.type === 'addShot') {
-            addShot(action.shot);
+          if (action.type === 'addShot' && action.shot) {
+            addShot(action.shot as Shot);
           } else if (action.type === 'updateShot' && action.shotId) {
             updateShot(action.shotId, action.updates);
           }
@@ -181,11 +181,10 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                message.role === 'user'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-800 text-foreground'
-              }`}
+              className={`max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-800 text-foreground'
+                }`}
             >
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               {message.suggestions && message.suggestions.length > 0 && (
@@ -347,13 +346,12 @@ function generateAIResponse(
         : 'ambient';
 
     return {
-      message: `For ${sceneType} scenes, I suggest using ${
-        sceneType === 'action'
-          ? 'intense orchestral music with surround sound positioning'
-          : sceneType === 'dialogue'
-            ? 'clear center-channel audio with voice clarity enhancement'
-            : 'subtle ambient sounds with wide stereo imaging'
-      }. You can configure this in the Audio Panel.`,
+      message: `For ${sceneType} scenes, I suggest using ${sceneType === 'action'
+        ? 'intense orchestral music with surround sound positioning'
+        : sceneType === 'dialogue'
+          ? 'clear center-channel audio with voice clarity enhancement'
+          : 'subtle ambient sounds with wide stereo imaging'
+        }. You can configure this in the Audio Panel.`,
       suggestions: [
         'Add background music',
         'Generate voiceover narration',

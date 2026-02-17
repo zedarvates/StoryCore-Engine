@@ -165,7 +165,7 @@ export interface CrudOperations<T, CreateDto = Omit<T, 'id'>, UpdateDto = Partia
 // STRING LITERAL TYPES
 // ============================================================================
 
-export type CameraMovement = 
+export type CameraMovement =
   | 'steadicam'
   | 'tracking'
   | 'handheld'
@@ -227,31 +227,33 @@ export type CameraMovement =
 
 export type CameraSpeed = 'slow' | 'medium' | 'fast' | 'variable' | 'very_slow' | 'very_fast';
 export type CameraComplexity = 'simple' | 'moderate' | 'complex';
-export type CameraCategory = 
+export type CameraCategory =
   | 'dolly' | 'scale_continuity' | 'character_mounted' | 'obstacle' | 'focus'
-  | 'tripod' | 'slider' | 'orbital' | 'vertical' | 'optical' | 'aerial' 
+  | 'tripod' | 'slider' | 'orbital' | 'vertical' | 'optical' | 'aerial'
   | 'stylized' | 'tracking' | 'standard';
 
-export type BeatType = 
+export type BeatType =
   | 'opening' | 'setup' | 'confrontation' | 'climax' | 'resolution'
   | 'transition' | 'emotional' | 'reversal' | 'callback' | 'closing';
 export type BeatImportance = 'low' | 'medium' | 'high' | 'critical';
 export type CharacterFocus = 'lead' | 'supporting' | 'background' | 'off_screen' | 'group';
-export type TransitionType = 
-  | 'cut' | 'dissolve' | 'wipe' | 'fade' | 'match_cut' | 'j_cut' | 'l_cut' 
+export type TransitionType =
+  | 'cut' | 'dissolve' | 'wipe' | 'fade' | 'match_cut' | 'j_cut' | 'l_cut'
   | 'smash_cut' | 'cross_dissolve' | 'hard_cut';
-export type Mood = 
+export type Mood =
   | 'happy' | 'sad' | 'tense' | 'romantic' | 'mysterious' | 'epic'
   | 'intimate' | 'dark' | 'whimsical' | 'melancholic' | 'anxious' | 'triumphant'
   | 'nostalgic' | 'peaceful' | 'chaotic' | 'mystical' | 'ironic'
-  | 'surprise' | 'relief';
-export type Tone = 
+  | 'surprise' | 'relief' | 'neutral'; // Added neutral
+
+export type Tone =
   | 'serious' | 'comedic' | 'dramatic' | 'light' | 'heavy' | 'playful'
-  | 'grave' | 'hopeful' | 'cynical' | 'sentimental' | 'irreverent' | 'reverent';
+  | 'grave' | 'hopeful' | 'cynical' | 'sentimental' | 'irreverent' | 'reverent' | 'neutral'; // Ensure neutral matches usage
+
 export type Pacing = 'slow' | 'medium' | 'fast' | 'variable';
 export type PacingEnergy = 'low' | 'medium' | 'high';
-export type NoteType = 
-  | 'camera' | 'lighting' | 'acting' | 'sound' | 'pace' | 'emotion' 
+export type NoteType =
+  | 'camera' | 'lighting' | 'acting' | 'sound' | 'pace' | 'emotion'
   | 'visual' | 'technical' | 'creative';
 export type NotePriority = 'low' | 'medium' | 'high' | 'urgent';
 export type NoteStatus = 'pending' | 'in_progress' | 'completed' | 'archived';
@@ -272,6 +274,7 @@ export interface CameraMovementConfig {
   requiresSubjectMotion?: boolean;
   typicalDuration?: string;
   bestFor?: string[];
+  icon?: any; // Added for UI compatibility
 }
 
 export interface BeatConfig {
@@ -290,6 +293,7 @@ export interface PacingConfig {
   shotDuration?: string;
   rhythm?: string;
   energy?: PacingEnergy;
+  color?: string; // Added for UI compatibility
 }
 
 export interface MoodArc {
@@ -300,6 +304,10 @@ export interface MoodArc {
     intensity: number; // 0-1
   }[];
   overallTrend: 'rising' | 'falling' | 'flat' | 'complex';
+  dominantMood: Mood;
+  startMood: Mood;
+  endMood: Mood;
+  progression?: { time: number; mood: Mood }[]; // Updated type
 }
 
 export interface PacingAnalysis {
@@ -323,13 +331,14 @@ export interface DirectorNote {
   author?: string;
   resolvedAt?: string;
   metadata?: Metadata;
+  content?: string; // Added alias for compatibility
 }
 
 export interface CharacterPresence {
   characterId: string;
   focus: CharacterFocus;
-  timeStart: number;
-  timeEnd: number;
+  timeStart: number; // seconds
+  timeEnd: number; // seconds
   prominence: number; // 0-1
 }
 
@@ -361,13 +370,16 @@ export interface VersionEntry {
 export interface Shot {
   id: string;
   name: string;
+  title?: string;
   description: string;
   order: number;
+  position?: number;
   duration: number;
   cameraAngle?: string;
   cameraMovement?: CameraMovement;
   characters: string[];
   locationId?: string;
+  sequence_id?: string;
   audio?: string;
   dialogue?: string;
   visualEffects?: string[];
@@ -380,6 +392,11 @@ export interface Shot {
   width?: number;
   height?: number;
   metadata?: Metadata;
+  directorNotes?: DirectorNote[];
+  status?: string;
+  progress?: number;
+  // Compatibility
+  trim?: { start: number; end: number };
 }
 
 export interface SequenceBase {
@@ -409,8 +426,10 @@ export interface Beat extends SequenceBase {
 export interface EnhancedShot {
   id: string;
   name: string;
+  title?: string;
   description: string;
   order: number;
+  position?: number;
   duration: number;
   beatId?: string;
   cameraMovement?: CameraMovement | null;
@@ -421,7 +440,20 @@ export interface EnhancedShot {
   locationId?: string;
   directorNotes: DirectorNote[];
   metadata?: Metadata;
+  sequence_id?: string;
+  directorNote?: string; // backwards compatibility
+  generatedImage?: string;
+  prompt?: string;
+  negativePrompt?: string;
+  audioMood?: string;
+  ttsPrompt?: string;
+  version?: number;
+  beatType?: BeatType;
+  content?: string;
+  transition?: TransitionType; // Added
 }
+
+export type CinematicShotData = EnhancedShot;
 
 export interface CompleteSequence {
   id: string;
@@ -437,6 +469,16 @@ export interface CompleteSequence {
   versionHistory: VersionEntry[];
   createdAt: string;
   updatedAt: string;
+  locationIds?: string[];
+}
+
+export interface ChapterWithBeats {
+  id: string;
+  title: string;
+  description: string;
+  beats: Beat[];
+  sequences: CompleteSequence[];
+  order: number;
 }
 
 // ============================================================================
@@ -799,13 +841,111 @@ export function calculateScreenTimePercentages(tracks: CharacterFocusTrack[]): R
       totals[entry.characterId] = (totals[entry.characterId] || 0) + duration;
     }
   }
+
   const total = Object.values(totals).reduce((a, b) => a + b, 0);
   if (total === 0) return {};
+
   const percentages: Record<string, number> = {};
   for (const [id, time] of Object.entries(totals)) {
     percentages[id] = Math.round((time / total) * 100);
   }
   return percentages;
 }
+
+// ============================================================================
+// UI CONSTANTS & HELPERS
+// ============================================================================
+
+export type MoodType = Mood;
+export type ToneType = Tone;
+export type PacingType = Pacing;
+
+export const moodColors: Record<Mood, { bg: string; border: string; text?: string }> = {
+  happy: { bg: '#FFEBEE', border: '#FFCDD2', text: '#C62828' },
+  sad: { bg: '#E3F2FD', border: '#BBDEFB', text: '#1565C0' },
+  tense: { bg: '#FFF3E0', border: '#FFE0B2', text: '#EF6C00' },
+  romantic: { bg: '#FCE4EC', border: '#F8BBD0', text: '#C2185B' },
+  mysterious: { bg: '#F3E5F5', border: '#E1BEE7', text: '#7B1FA2' },
+  epic: { bg: '#E8EAF6', border: '#C5CAE9', text: '#303F9F' },
+  intimate: { bg: '#FBE9E7', border: '#FFCCBC', text: '#D84315' },
+  dark: { bg: '#212121', border: '#424242', text: '#E0E0E0' },
+  whimsical: { bg: '#F1F8E9', border: '#DCEDC8', text: '#558B2F' },
+  melancholic: { bg: '#ECEFF1', border: '#CFD8DC', text: '#455A64' },
+  anxious: { bg: '#FFF8E1', border: '#FFECB3', text: '#FF8F00' },
+  triumphant: { bg: '#FFFDE7', border: '#FFF9C4', text: '#FBC02D' },
+  nostalgic: { bg: '#EFEBE9', border: '#D7CCC8', text: '#5D4037' },
+  peaceful: { bg: '#E0F2F1', border: '#B2DFDB', text: '#00695C' },
+  chaotic: { bg: '#FFEBEE', border: '#FFCDD2', text: '#B71C1C' },
+  mystical: { bg: '#E8EAF6', border: '#C5CAE9', text: '#311B92' },
+  ironic: { bg: '#F9FBE7', border: '#F0F4C3', text: '#827717' },
+  surprise: { bg: '#E0F7FA', border: '#B2EBF2', text: '#006064' },
+  relief: { bg: '#E1F5FE', border: '#B3E5FC', text: '#01579B' },
+  neutral: { bg: '#F3F4F6', border: '#9CA3AF', text: '#374151' } // Added neutral
+};
+
+export const toneColors: Record<Tone, { bg: string; border: string; text?: string }> = {
+  serious: { bg: '#F5F5F5', border: '#E0E0E0', text: '#424242' },
+  comedic: { bg: '#FFFDE7', border: '#FFF9C4', text: '#FBC02D' },
+  dramatic: { bg: '#FFEBEE', border: '#FFCDD2', text: '#C62828' },
+  light: { bg: '#F1F8E9', border: '#DCEDC8', text: '#558B2F' },
+  heavy: { bg: '#263238', border: '#37474F', text: '#ECEFF1' },
+  playful: { bg: '#F3E5F5', border: '#E1BEE7', text: '#7B1FA2' },
+  grave: { bg: '#212121', border: '#424242', text: '#9E9E9E' },
+  hopeful: { bg: '#E0F7FA', border: '#B2EBF2', text: '#0097A7' },
+  cynical: { bg: '#ECEFF1', border: '#CFD8DC', text: '#546E7A' },
+  sentimental: { bg: '#FCE4EC', border: '#F8BBD0', text: '#AD1457' },
+  irreverent: { bg: '#FFF3E0', border: '#FFE0B2', text: '#E65100' },
+  reverent: { bg: '#E8EAF6', border: '#C5CAE9', text: '#283593' },
+  neutral: { bg: '#F3F4F6', border: '#9CA3AF', text: '#374151' } // Added neutral
+};
+
+// Aliases for compatibility
+export const pacingConfig = PACING_CONFIGS;
+export const beatConfig = BEAT_CONFIGS;
+
+export function generateBeatSuggestions(shots: any[]): any[] {
+  // Simple heuristic implementation
+  const beats: any[] = [];
+
+  if (shots.length > 0) {
+    beats.push({
+      id: `beat-opening-${Date.now()}`,
+      type: 'opening',
+      position: 1,
+      description: 'Opening sequence',
+      duration: Math.min(30, shots[0].duration || 5),
+      suggestedShots: 1,
+      importance: 'high'
+    });
+  }
+
+  if (shots.length > 5) {
+    const midPoint = Math.floor(shots.length / 2);
+    beats.push({
+      id: `beat-mid-${Date.now()}`,
+      type: 'confrontation',
+      position: midPoint + 1,
+      description: 'Midpoint confrontation',
+      duration: 60,
+      suggestedShots: 2,
+      importance: 'high'
+    });
+  }
+
+  if (shots.length > 2) {
+    beats.push({
+      id: `beat-closing-${Date.now()}`,
+      type: 'resolution',
+      position: shots.length,
+      description: 'Resolution',
+      duration: Math.min(30, (shots[shots.length - 1]?.duration || 5)),
+      suggestedShots: 1,
+      importance: 'medium'
+    });
+  }
+
+  return beats;
+}
+
 
 

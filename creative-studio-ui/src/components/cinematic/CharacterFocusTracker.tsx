@@ -24,16 +24,14 @@ import {
   Maximize2,
   Minimize2
 } from 'lucide-react';
-import type { 
-  Character, 
-  CharacterFocus, 
-  CharacterFocusTrack,
-  CharacterPresence 
-} from '@/types';
-import type { 
-  EnhancedShot, 
-  CompleteSequence,
-  MoodType 
+import type { Character } from '@/types/character';
+import type {
+  CharacterFocus,
+  CharacterPresence
+} from '@/types/cinematicTypes';
+import type {
+  EnhancedShot,
+  CompleteSequence
 } from '@/types/cinematicTypes';
 import './CharacterFocusTracker.css';
 
@@ -74,35 +72,31 @@ export function CharacterFocusTracker({
   const characterTimeline = useMemo((): CharacterTimelineEntry[] => {
     const entries: CharacterTimelineEntry[] = [];
     let currentTime = 0;
-
     for (const shot of shots) {
       const shotDuration = shot.duration || 5;
       const shotEnd = currentTime + shotDuration;
-
       for (const presence of shot.characters || []) {
         entries.push({
           shotId: shot.id,
-          shotTitle: shot.title,
+          shotTitle: shot.name,
           timeStart: currentTime,
           timeEnd: shotEnd,
           duration: shotDuration,
           characterId: presence.characterId,
-          characterName: presence.name || presence.characterId,
+          // Resolve character name using characters prop; fallback to ID if not found
+          characterName: characters.find(c => c.character_id === presence.characterId)?.name || presence.characterId,
           focus: presence.focus
         });
       }
-
       currentTime = shotEnd;
     }
-
     return entries;
-  }, [shots]);
+  }, [shots, characters]);
 
   // Calculate screen time percentages per character
   const characterStats = useMemo(() => {
     const totalDuration = shots.reduce((sum, s) => sum + (s.duration || 5), 0);
     const characterDurations: Record<string, { name: string; duration: number; focusCounts: Record<CharacterFocus, number> }> = {};
-
     for (const entry of characterTimeline) {
       if (!characterDurations[entry.characterId]) {
         characterDurations[entry.characterId] = {
@@ -114,7 +108,6 @@ export function CharacterFocusTracker({
       characterDurations[entry.characterId].duration += entry.duration;
       characterDurations[entry.characterId].focusCounts[entry.focus]++;
     }
-
     const stats = Object.entries(characterDurations).map(([id, data]) => ({
       id,
       name: data.name,
@@ -124,7 +117,6 @@ export function CharacterFocusTracker({
       dominantFocus: Object.entries(data.focusCounts)
         .sort((a, b) => b[1] - a[1])[0]?.[0] as CharacterFocus || 'supporting'
     }));
-
     return stats.sort((a, b) => b.duration - a.duration);
   }, [characterTimeline, shots]);
 
@@ -164,6 +156,7 @@ export function CharacterFocusTracker({
 
   // Handle focus change in a shot
   const handleFocusChange = useCallback((shotId: string, characterId: string, newFocus: CharacterFocus) => {
+    console.log('Focus change:', { shotId, characterId, newFocus });
     onUpdateFocus(shotId, characterId, newFocus);
   }, [onUpdateFocus]);
 
@@ -176,13 +169,10 @@ export function CharacterFocusTracker({
       const shotChars = characterTimeline.filter(x => x.shotId === e.shotId);
       return shotChars.length > 1;
     }).length;
-
-    return {
-      totalCharacters: Object.keys(characterDurations: Record<string, number> = {};
+    const characterDurations: Record<string, number> = {};
     for (const entry of characterTimeline) {
       characterDurations[entry.characterId] = (characterDurations[entry.characterId] || 0) + entry.duration;
     }
-
     return {
       totalCharacters: Object.keys(characterDurations).length,
       totalShots,
@@ -201,23 +191,26 @@ export function CharacterFocusTracker({
           <span className="char-count">{summaryStats.totalCharacters} personnages</span>
         </div>
         <div className="header-actions">
-          <select 
+          <select
             value={viewMode}
             onChange={(e) => setViewMode(e.target.value as ViewMode)}
             className="view-select"
+            aria-label="Select view mode"
           >
             <option value="timeline">Timeline</option>
             <option value="heatmap">Heatmap</option>
             <option value="stats">Statistiques</option>
             <option value="grid">Grille</option>
           </select>
-          <button 
+          <button
             className={`btn-settings ${showSettings ? 'active' : ''}`}
             onClick={() => setShowSettings(!showSettings)}
+            aria-label="Toggle settings panel"
           >
             <Settings className="w-4 h-4" />
           </button>
         </div>
+      </div>
 
       {/* Settings Panel */}
       {showSettings && (
@@ -241,6 +234,7 @@ export function CharacterFocusTracker({
               Animation des transitions
             </label>
           </div>
+        </div>
       )}
 
       {/* Content */}
@@ -291,6 +285,7 @@ export function CharacterFocusTracker({
           />
         )}
       </div>
+    </div>
   );
 }
 
@@ -352,19 +347,19 @@ function TimelineView({
       {/* Timeline */}
       <div className="timeline-container">
         {shotsWithCharacters.map(({ shot, characters: shotChars }) => (
-          <div 
-            key={shot.id} 
+          <div
+            key={shot.id}
             className={`timeline-row ${expandedShots[shot.id] ? 'expanded' : ''}`}
           >
-            <div 
+            <div
               className="row-header"
               onClick={() => onToggleShot(shot.id)}
             >
-              {expandedShots[shot.id] 
-                ? <ChevronDown className="w-4 h-4" /> 
+              {expandedShots[shot.id]
+                ? <ChevronDown className="w-4 h-4" />
                 : <ChevronRight className="w-4 h-4" />
               }
-              <span className="shot-title">{shot.title}</span>
+              <span className="shot-title">{shot.name}</span>
               <span className="shot-time">{shot.duration}s</span>
             </div>
 
@@ -374,21 +369,21 @@ function TimelineView({
                   <div className="empty-message">Aucun personnage</div>
                 ) : (
                   shotChars.map(entry => (
-                    <div 
-                      key={`${entry.shotId}-${entry.characterId}`}
-                      className={`character-entry ${selectedCharacterId === entry.characterId ? 'highlight' : ''}`}
-                      style={{ borderLeftColor: getFocusColor(entry.focus) }}
-                    >
+                    <div
+                    key={`${entry.shotId}-${entry.characterId}`}
+                    className={`character-entry ${selectedCharacterId === entry.characterId ? 'highlight' : ''} focus-${entry.focus}`}
+                  >
                       <div className="entry-main">
                         <span className="char-name">{entry.characterName}</span>
                         <select
                           value={entry.focus}
                           onChange={(e) => onFocusChange(
-                            entry.shotId, 
-                            entry.characterId, 
+                            entry.shotId,
+                            entry.characterId,
                             e.target.value as CharacterFocus
                           )}
-                          style={{ borderColor: getFocusColor(entry.focus) }}
+                          aria-label={`Select focus for ${entry.characterName}`}
+                          className={`focus-select focus-${entry.focus}`}
                         >
                           <option value="lead">Protagoniste</option>
                           <option value="supporting">Secondaire</option>
@@ -396,14 +391,14 @@ function TimelineView({
                           <option value="off_screen">Hors champ</option>
                           <option value="group">Ensemble</option>
                         </select>
-                        <span 
-                          className="focus-badge"
-                          style={{ backgroundColor: getFocusColor(entry.focus) }}
+                        <span
+                          className={`focus-badge focus-${entry.focus}`}
                         >
                           {getFocusLabel(entry.focus)}
                         </span>
                         <span className="duration">{entry.duration}s</span>
                       </div>
+                    </div>
                   ))
                 )}
               </div>
@@ -411,6 +406,7 @@ function TimelineView({
           </div>
         ))}
       </div>
+    </div>
   );
 }
 
@@ -447,14 +443,14 @@ function HeatmapView({
           <div className="corner-cell">Personnage</div>
           {shots.map(shot => (
             <div key={shot.id} className="heatmap-col-header">
-              <span>{shot.title.substring(0, 10)}</span>
+              <span>{shot.name.substring(0, 10)}</span>
               <span className="duration">{shot.duration}s</span>
             </div>
           ))}
         </div>
 
         {characterStats.map(char => (
-          <div 
+          <div
             key={char.id}
             className={`heatmap-row ${selectedCharacterId === char.id ? 'selected' : ''}`}
             onClick={() => onSelectCharacter(
@@ -468,16 +464,10 @@ function HeatmapView({
             {shots.map(shot => {
               const presence = shot.characters?.find(c => c.characterId === char.id);
               return (
-                <div 
+                <div
                   key={shot.id}
-                  className="heatmap-cell"
-                  style={{ 
-                    backgroundColor: presence 
-                      ? getFocusColor(presence.focus) 
-                      : 'transparent',
-                    opacity: presence ? 0.3 + (presence.focus === 'lead' ? 0.5 : 0.2) : 0.1
-                  }}
-                  title={`${char.name} - ${shot.title}: ${presence?.focus || 'Absent'}`}
+                  className={`heatmap-cell ${presence ? `focus-${presence.focus}` : ''}`}
+                  title={`${char.name} - ${shot.name}: ${presence?.focus || 'Absent'}`}
                 >
                   {presence && <Focus className="w-3 h-3" />}
                 </div>
@@ -512,6 +502,7 @@ function HeatmapView({
             Ensemble
           </span>
         </div>
+      </div>
     </div>
   );
 }
@@ -557,24 +548,28 @@ function StatsView({
             <span className="card-value">{summaryStats.totalCharacters}</span>
             <span className="card-label">Personnages</span>
           </div>
+        </div>
         <div className="summary-card">
           <Video className="w-6 h-6" />
           <div className="card-content">
             <span className="card-value">{summaryStats.totalShots}</span>
             <span className="card-label">Plans totaux</span>
           </div>
+        </div>
         <div className="summary-card">
           <Activity className="w-6 h-6" />
           <div className="card-content">
             <span className="card-value">{summaryStats.averageCharactersPerShot}</span>
             <span className="card-label">Pers./plan (moy)</span>
           </div>
+        </div>
         <div className="summary-card">
           <BarChart3 className="w-6 h-6" />
           <div className="card-content">
             <span className="card-value">{summaryStats.shotsWithMultipleCharacters}</span>
             <span className="card-label">Plans multiples</span>
           </div>
+        </div>
       </div>
 
       {/* Character bars */}
@@ -588,20 +583,20 @@ function StatsView({
               <span className="char-percentage">{char.percentage}%</span>
             </div>
             <div className="bar-container">
-              <div 
+              <div
                 className="bar-fill"
                 style={{ width: `${char.percentage}%` }}
               />
             </div>
             <div className="bar-meta">
               <span>{char.duration}s</span>
-              <span 
-                className="dominant-focus"
-                style={{ color: getFocusColor(char.dominantFocus) }}
+              <span
+                className={`dominant-focus focus-${char.dominantFocus}`}
               >
                 {getFocusLabel(char.dominantFocus)}
               </span>
             </div>
+          </div>
         ))}
       </div>
 
@@ -610,14 +605,13 @@ function StatsView({
         <h3>Distribution du focus</h3>
         <div className="distribution-grid">
           {(['lead', 'supporting', 'background', 'off_screen', 'group'] as CharacterFocus[]).map(focus => {
-            const count = characterStats.reduce((sum, char) => 
+            const count = characterStats.reduce((sum, char) =>
               sum + (char.focusCounts[focus] || 0), 0
             );
             return (
               <div key={focus} className="distribution-cell">
-                <span 
-                  className="focus-dot"
-                  style={{ backgroundColor: getFocusColor(focus) }}
+                <span
+                  className={`focus-dot focus-${focus}`}
                 />
                 <span className="focus-label">{getFocusLabel(focus)}</span>
                 <span className="focus-count">{count}</span>
@@ -625,6 +619,7 @@ function StatsView({
             );
           })}
         </div>
+      </div>
     </div>
   );
 }
@@ -666,7 +661,7 @@ function GridView({
         {shots.map(shot => (
           <div key={shot.id} className="grid-row">
             <div className="grid-row-header">
-              <span>{shot.title}</span>
+              <span>{shot.name}</span>
               <span className="duration">{shot.duration}s</span>
             </div>
             {characters.map(char => {
@@ -681,7 +676,8 @@ function GridView({
                         char.character_id,
                         e.target.value as CharacterFocus
                       )}
-                      style={{ borderColor: getFocusColor(presence.focus) }}
+                      aria-label={`Select focus for ${char.name} in ${shot.name}`}
+                      className={`focus-select focus-${presence.focus}`}
                     >
                       <option value="lead">Lead</option>
                       <option value="supporting">Supp</option>
@@ -698,6 +694,7 @@ function GridView({
           </div>
         ))}
       </div>
+    </div>
   );
 }
 

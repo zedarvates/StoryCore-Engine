@@ -153,8 +153,16 @@ describe('OllamaClient', () => {
         done: true,
       };
 
+      // Mock healthCheck first
       fetchMock.mockResolvedValueOnce({
         ok: true,
+        status: 200,
+      });
+      
+      // Then mock generate
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
         json: async () => mockResponse,
       });
 
@@ -176,14 +184,22 @@ describe('OllamaClient', () => {
         done: true,
       };
 
+      // Mock healthCheck first
       fetchMock.mockResolvedValueOnce({
         ok: true,
+        status: 200,
+      });
+      
+      // Then mock generate
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
         json: async () => mockResponse,
       });
 
       await client.generate('gemma3:4b', 'Test prompt');
 
-      const callArgs = fetchMock.mock.calls[0][1];
+      const callArgs = fetchMock.mock.calls[1][1];
       const body = JSON.parse(callArgs.body);
 
       expect(body.options.temperature).toBe(0.7);
@@ -197,8 +213,16 @@ describe('OllamaClient', () => {
         done: true,
       };
 
+      // Mock healthCheck first
       fetchMock.mockResolvedValueOnce({
         ok: true,
+        status: 200,
+      });
+      
+      // Then mock generate
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
         json: async () => mockResponse,
       });
 
@@ -207,7 +231,7 @@ describe('OllamaClient', () => {
         maxTokens: 1000,
       });
 
-      const callArgs = fetchMock.mock.calls[0][1];
+      const callArgs = fetchMock.mock.calls[1][1];
       const body = JSON.parse(callArgs.body);
 
       expect(body.options.temperature).toBe(0.9);
@@ -215,9 +239,18 @@ describe('OllamaClient', () => {
     });
 
     it('should handle generation errors', async () => {
+      // Mock healthCheck to pass
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      });
+      
+      // Mock generate to fail
       fetchMock.mockResolvedValueOnce({
         ok: false,
+        status: 404,
         statusText: 'Model not found',
+        text: async () => 'Model not found',
       });
 
       await expect(
@@ -226,11 +259,12 @@ describe('OllamaClient', () => {
     });
 
     it('should handle network errors during generation', async () => {
+      // Mock healthCheck to fail (network error)
       fetchMock.mockRejectedValueOnce(new Error('Connection refused'));
 
       await expect(
         client.generate('gemma3:4b', 'Test prompt')
-      ).rejects.toThrow('Connection refused');
+      ).rejects.toThrow('Ollama service not reachable');
     });
   });
 

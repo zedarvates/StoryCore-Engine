@@ -70,20 +70,31 @@ export function Step3Personality({ storyContext }: Step3PersonalityProps = {}) {
   const handleGeneratePersonality = async () => {
     clearError();
 
+    // Add unique entropy to ensure different results each time
+    const uniqueEntropy = {
+      timestamp: Date.now(),
+      randomId: Math.random().toString(36).substring(2, 10),
+      sessionSeed: Math.floor(Math.random() * 1000000),
+    };
+
     const context = {
       characterName: formData.name || 'the character',
       archetype: formData.role?.archetype || 'character',
       ageRange: formData.visual_identity?.age_range || 'adult',
       appearance: formData.visual_identity,
+      entropy: uniqueEntropy,
     };
 
-    const systemPrompt = 'You are a character development expert. Create well-rounded, believable personalities that are internally consistent and match the character\'s role and appearance. Ensure traits, values, and behaviors align logically.';
+    const systemPrompt = 'You are a character development expert. Create well-rounded, believable personalities that are internally consistent and match the character\'s role and appearance. IMPORTANT: You must generate COMPLETELY UNIQUE personalities each time - do not repeat previous suggestions. Use the entropy provided to ensure uniqueness. Ensure traits, values, and behaviors align logically.';
 
     const prompt = `Generate a detailed personality profile for a character with the following context:
 - Name: ${context.characterName}
 - Archetype: ${context.archetype}
 - Age Range: ${context.ageRange}
 - Appearance: ${context.appearance?.build || 'average build'}, ${context.appearance?.posture || 'neutral posture'}
+- Unique Entropy ID: ${uniqueEntropy.sessionSeed}
+
+CRITICAL REQUIREMENT: This personality must be COMPLETELY UNIQUE and DIFFERENT from any personality you have generated before. Use the entropy ID to ensure uniqueness.
 
 Please provide:
 1. Core personality traits (5-7 traits that define this character)

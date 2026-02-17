@@ -38,22 +38,22 @@ import type {
 
 export interface Shot {
   id: string;
-  title: string;
-  description: string;
+  title?: string; // Made optional for compatibility
+  description?: string; // Made optional for compatibility
   duration: number; // in seconds
   image?: string; // URL or base64
 
   // Audio tracks (enhanced)
-  audioTracks: AudioTrack[];
+  audioTracks?: AudioTrack[]; // Made optional
 
   // Visual effects
-  effects: Effect[];
+  effects?: Effect[]; // Made optional
 
   // Text layers
-  textLayers: TextLayer[];
+  textLayers?: TextLayer[]; // Made optional
 
   // Keyframe animations
-  animations: Animation[];
+  animations?: Animation[]; // Made optional
 
   // Transition to next shot
   transitionOut?: Transition;
@@ -61,7 +61,17 @@ export interface Shot {
   position: number; // order in sequence
   metadata?: Record<string, unknown>;
   promoted_panel_path?: string; // Path to promoted panel image
+  status?: string; // Status of the shot
+  progress?: number; // Progress percentage (0-100)
+
+  sequenceId?: string; // ID of the sequence this shot belongs to
+  startTime?: number; // Start time in sequence context
+
+  prompt?: string; // Generation prompt
+  generatedImageUrl?: string; // URL of generated image
+
   referenceImage?: string; // Base64 or URL of the reference image for AI
+  result_url?: string; // Final generated video/image URL
 }
 
 // ============================================================================
@@ -71,29 +81,29 @@ export interface Shot {
 export interface AudioTrack {
   id: string;
   name: string;
-  type: 'music' | 'sfx' | 'dialogue' | 'voiceover' | 'ambient';
+  type?: 'music' | 'sfx' | 'dialogue' | 'voiceover' | 'ambient'; // Made optional
   url: string; // audio file URL
 
   // Timing
-  startTime: number; // seconds from shot start
-  duration: number; // seconds
-  offset: number; // trim start of audio file
+  startTime?: number; // seconds from shot start
+  duration?: number; // seconds
+  offset?: number; // trim start of audio file
 
   // Volume and pan
   volume: number; // 0-100
-  fadeIn: number; // seconds
-  fadeOut: number; // seconds
-  pan: number; // -100 (left) to 100 (right) for stereo
+  fadeIn?: number; // seconds
+  fadeOut?: number; // seconds
+  pan?: number; // -100 (left) to 100 (right) for stereo
 
   // Surround sound configuration
   surroundConfig?: SurroundConfig;
 
   // State
-  muted: boolean;
-  solo: boolean;
+  muted?: boolean;
+  solo?: boolean;
 
   // Effects
-  effects: AudioEffect[];
+  effects?: AudioEffect[];
 
   // Waveform data (for visualization)
   waveformData?: number[]; // amplitude values
@@ -238,11 +248,11 @@ export interface Transition {
 
 export interface Effect {
   id: string;
-  type: 'filter' | 'adjustment' | 'overlay';
+  type: string; // 'filter' | 'adjustment' | 'overlay' or custom
   name: string; // e.g., "vintage", "blur", "brightness"
-  enabled: boolean;
-  intensity: number; // 0-100
-  parameters: Record<string, number>; // effect-specific parameters
+  enabled?: boolean;
+  intensity?: number; // 0-100
+  parameters?: Record<string, unknown>; // effect-specific parameters
 }
 
 // ============================================================================
@@ -252,6 +262,7 @@ export interface Effect {
 export interface TextLayer {
   id: string;
   content: string;
+  text?: string; // Alias for content, for compatibility
   font: string;
   fontSize: number;
   color: string;
@@ -330,6 +341,7 @@ export interface Project {
   characters?: Character[]; // Characters for the project
   stories?: Story[]; // Stories for the project
   storyVersions?: StoryVersion[]; // Version history for stories
+  objects?: StoryObject[]; // Story objects, props, and artifacts
   capabilities: {
     grid_generation: boolean;
     promotion_engine: boolean;

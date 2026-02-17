@@ -18,6 +18,10 @@ export interface SaveLocationResult {
 
 /**
  * Creates a complete Location object from wizard location data
+ * 
+ * @param locationId - Unique identifier for the location
+ * @param wizardData - Wizard form data including name, type, description, and optional location_type
+ * @param options - Project and world context options
  */
 export function createLocationFromWizardData(
   locationId: string,
@@ -26,6 +30,8 @@ export function createLocationFromWizardData(
     type: 'city' | 'wilderness' | 'dungeon' | 'other';
     description: string;
     coordinates?: { x: number; y: number };
+    /** Explicit interior/exterior type - takes precedence over inferred type */
+    location_type?: LocationType;
   },
   options: {
     projectId: string;
@@ -33,9 +39,17 @@ export function createLocationFromWizardData(
     worldLocationId?: string;
   }
 ): Location {
-  // Map wizard type to LocationType
-  const locationType: LocationType =
-    options.worldId || options.worldLocationId ? 'exterior' : 'interior';
+  // Determine location type with explicit preference, then inference from wizard type
+  let locationType: LocationType;
+  
+  if (wizardData.location_type) {
+    // Use explicit location_type if provided
+    locationType = wizardData.location_type;
+  } else {
+    // Infer from wizard type - map location categories to interior/exterior
+    // 'dungeon' typically means indoor/underground, others are typically outdoor
+    locationType = wizardData.type === 'dungeon' ? 'interior' : 'exterior';
+  }
 
   // Build metadata from wizard data
   const metadata: LocationMetadata = {

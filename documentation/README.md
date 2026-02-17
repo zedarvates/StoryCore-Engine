@@ -18,7 +18,7 @@ Welcome to the StoryCore-Engine documentation! This is the comprehensive documen
 
 ### Quick Start
 
-1. **Installation**: Follow the [Getting Started Guide](GETTING_STARTED.md) for installation instructions
+1. **Installation**: Follow the [Getting Started Guide](GETTING_STARTED_DEV.md) for installation instructions
 2. **First Project**: Create your first project using the [User Guide](USER_GUIDE.md)
 3. **Configuration**: Set up your environment and preferences
 
@@ -43,14 +43,14 @@ Welcome to the StoryCore-Engine documentation! This is the comprehensive documen
 - **AI Panel**: AI tools and features
 - **Preview Window**: Preview your work
 
-- **UI Improvements**: See [`UI_IMPROVEMENTS.md`](documentation/UI_IMPROVEMENTS.md) for details.
+- **UI Improvements**: See [`UI_IMPROVEMENTS_PLAN.md`](UI_IMPROVEMENTS_PLAN.md) for details.
 
 #### UI Usage
 - Access new buttons via the toolbar.
 - Toggle dark mode using the moon icon.
 - Use side panels for assets and AI settings.
 - UI components are lazy‑loaded; no extra steps needed.
-- **UI Tests**: Run `npm run test:ui` to execute UI unit tests. See [`README_TESTING.md`](README_TESTING.md) for details.
+- **UI Tests**: Run `npm run test:ui` to execute UI unit tests. See [`TESTS_STATUS.md`](TESTS_STATUS.md) for details.
 
 ### Project Management
 
@@ -506,9 +506,9 @@ See [CODING_GUIDELINES_LARGE_FILES.md](CODING_GUIDELINES_LARGE_FILES.md) for bes
 ### Testing
 
 #### UI Tests
-Run `npm run test:ui` to execute UI unit tests. See [`README_TESTING.md`](README_TESTING.md) for details.
+Run `npm run test:ui` to execute UI unit tests. See [`TESTS_STATUS.md`](TESTS_STATUS.md) for details.
 
-See [README_TESTING.md](README_TESTING.md) for testing documentation.
+See [TESTS_STATUS.md](TESTS_STATUS.md) for testing documentation.
 
 ### Migration Guide
 

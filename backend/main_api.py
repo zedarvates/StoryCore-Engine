@@ -17,6 +17,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -31,6 +32,7 @@ from backend.sequence_api import router as sequence_router
 from backend.audio_api import router as audio_router
 from backend.llm_api import router as llm_router
 from backend.scenario_api import router as scenario_router
+from backend.lip_sync_api import router as lip_sync_router
 
 # Configure logging
 logging.basicConfig(
@@ -52,7 +54,11 @@ async def lifespan(app: FastAPI):
         "./data/shots",
         "./data/jobs",
         "./data/audio",
-        "./projects"
+        "./data/camera_angle_jobs",
+        "./projects",
+        "./output",
+        "./output/lip_sync",
+        "./output/frames"
     ]
     
     for directory in directories:
@@ -156,7 +162,9 @@ async def api_info():
             "shots": "/api/shots",
             "sequences": "/api/sequences",
             "audio": "/api/audio",
-            "llm": "/api/llm"
+            "llm": "/api/llm",
+            "camera-angle": "/api/camera-angle",
+            "video-editor": "/api/video-editor"
         },
         "documentation": {
             "swagger": "/docs",
@@ -172,6 +180,7 @@ app.include_router(sequence_router, prefix="/api")
 app.include_router(audio_router, prefix="/api")
 app.include_router(llm_router, prefix="/api")
 app.include_router(scenario_router, prefix="/api")
+app.include_router(lip_sync_router, prefix="/api")
 # Include rigging API router
 from backend.rigging_api import router as rigging_router
 app.include_router(rigging_router, prefix="/api")
@@ -181,6 +190,24 @@ app.include_router(task_queue_router, prefix="/api")
 # Include location logic loop API router
 from backend.location_logic_loop_api import router as location_logic_loop_router
 app.include_router(location_logic_loop_router, prefix="/api")
+# Include camera angle API router
+from backend.camera_angle_api import router as camera_angle_router
+app.include_router(camera_angle_router, prefix="/api")
+
+# Include cine production API router
+from backend.cine_production_api import router as cine_production_router
+app.include_router(cine_production_router, prefix="/api")
+
+# Include post production API router
+from backend.post_production_api import router as post_production_router
+app.include_router(post_production_router, prefix="/api")
+
+# Include video editor API router
+from backend.video_editor_api import VIDEO_EDITOR_ROUTER
+app.include_router(VIDEO_EDITOR_ROUTER)
+
+# Mount static files for output
+app.mount("/output", StaticFiles(directory="output"), name="output")
 
 
 # Exception handlers

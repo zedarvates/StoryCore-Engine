@@ -7,8 +7,8 @@ import { debounce, throttle } from './debounceAndThrottle';
 // Re-export debounce and throttle from unified module
 export { debounce, throttle };
 
-// Using 'any[]' in generic constraint to allow memoizing functions with any parameter types
-type MemoizedFunction<T extends (...args: unknown[]) => unknown> = T & {
+// Using 'any' in generic constraint to allow memoizing functions with any parameter types and return values
+type MemoizedFunction<T extends (...args: any[]) => any> = T & {
   cache: Map<string, ReturnType<T>>;
   clearCache: () => void;
 };
@@ -16,8 +16,8 @@ type MemoizedFunction<T extends (...args: unknown[]) => unknown> = T & {
 /**
  * Memoize a function with custom key generation
  */
-// Using 'any[]' in generic constraint to allow memoizing functions with any parameter types
-export function memoize<T extends (...args: unknown[]) => unknown>(
+// Using 'any' in generic constraint to allow memoizing functions with any parameter types
+export function memoize<T extends (...args: any[]) => any>(
   fn: T,
   keyGenerator?: (...args: Parameters<T>) => string
 ): MemoizedFunction<T> {
@@ -45,7 +45,7 @@ export function memoize<T extends (...args: unknown[]) => unknown>(
  * Memoize async functions
  */
 // Using 'any' in generic constraint to allow memoizing async functions with any parameter and return types
-export function memoizeAsync<T extends (...args: unknown[]) => Promise<any>>(
+export function memoizeAsync<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   keyGenerator?: (...args: Parameters<T>) => string
 ): MemoizedFunction<T> {

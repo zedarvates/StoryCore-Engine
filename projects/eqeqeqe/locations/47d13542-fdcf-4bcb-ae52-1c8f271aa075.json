@@ -1,0 +1,18 @@
+{
+  "location_id": "47d13542-fdcf-4bcb-ae52-1c8f271aa075",
+  "name": "Erebo's Spire",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T06:54:53.145Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A foreboding, twisted spire of black stone that pierces the sky like a jagged shard of night. Its peak is shrouded in an eternal mist that seems to writhe and twist like living shadow.",
+    "atmosphere": "Ominous, foreboding, heavy with malevolent energy",
+    "genre_tags": [],
+    "significance": "The seat of Erebo's power, where dark magic is forged and wielded to maintain control over the city."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

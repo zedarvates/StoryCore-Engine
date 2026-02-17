@@ -10,3 +10,4 @@ export { VideoReplicationDialog } from './VideoReplicationDialog';
 export { StyleTransferPanel } from './StyleTransferPanel';
 export { ProjectBranchingDialog } from './ProjectBranchingDialog';
 export { EpisodeReferenceDialog } from './EpisodeReferenceDialog';
+export { WorkflowDestinationDialog } from './WorkflowDestinationDialog';

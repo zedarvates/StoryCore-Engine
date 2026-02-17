@@ -234,16 +234,6 @@ class VideoEditorAPI {
     });
   }
 
-  async smartCrop(
-    projectId: string,
-    targetRatio: string,
-    mode: 'center' | 'face' | 'motion' = 'center'
-  ): Promise<{ taskId: string }> {
-    return this.request<{ taskId: string }>(`/projects/${projectId}/ai/smart-crop`, {
-      method: 'POST',
-      body: JSON.stringify({ targetRatio, mode }),
-    });
-  }
 
   async generateVideoFromReference(
     projectId: string,
@@ -332,6 +322,65 @@ class VideoEditorAPI {
       method: 'POST',
       body: JSON.stringify({ trackIds }),
     });
+  }
+
+  async autoAssemble(
+    projectId: string,
+    shots: Array<{ id: string; duration: number; file_path: string; title?: string }>
+  ): Promise<{ status: string; track_id: string }> {
+    return this.request<{ status: string; track_id: string }>(`/projects/${projectId}/auto-assemble`, {
+      method: 'POST',
+      body: JSON.stringify({ shots }),
+    });
+  }
+
+  async fillGaps(
+    projectId: string,
+    trackId: string,
+    fillerData: { name: string; file_path: string; type: string }
+  ): Promise<{ status: string; filled_clips: string[]; project: EditorProject }> {
+    return this.request<{ status: string; filled_clips: string[]; project: EditorProject }>(
+      `/projects/${projectId}/tracks/${trackId}/fill-gaps`,
+      {
+        method: 'POST',
+        body: JSON.stringify(fillerData),
+      }
+    );
+  }
+
+  async generateAmbiance(
+    projectId: string,
+    prompt: string
+  ): Promise<{ status: string; file_path: string }> {
+    return this.request<{ status: string; file_path: string }>(
+      `/projects/${projectId}/ai/generate-ambiance`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ prompt }),
+      }
+    );
+  }
+
+  async smartCrop(
+    mediaId: string,
+    targetRatio: string = "9:16",
+    focusMode: 'center' | 'face' | 'motion' = 'center'
+  ): Promise<{ job_id: string; status: string; crop_regions?: any }> {
+    return this.request<{ job_id: string; status: string; crop_regions?: any }>(
+      `/ai/smart-crop`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          media_id: mediaId,
+          target_ratio: targetRatio,
+          focus_mode: focusMode
+        }),
+      }
+    );
+  }
+
+  async getAiJobStatus(jobId: string): Promise<any> {
+    return this.request<any>(`/jobs/${jobId}`);
   }
 }
 

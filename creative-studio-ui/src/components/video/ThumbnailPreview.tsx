@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { useThumbnailCache } from '../../hooks/useThumbnailCache';
+import { useVideoThumbnail } from '../../hooks/useThumbnailCache';
 import './ThumbnailPreview.css';
 
 export interface ThumbnailPreviewProps {
@@ -38,7 +38,7 @@ export const ThumbnailPreview: React.FC<ThumbnailPreviewProps> = ({
   className = '',
   alt = 'Video thumbnail'
 }) => {
-  const { thumbnailUrl, isLoading, error, reload } = useThumbnailCache(videoUrl, time, {
+  const { thumbnailUrl, isLoading, error, reload } = useVideoThumbnail(videoUrl, time, {
     quality,
     preloadAdjacent,
     framerate

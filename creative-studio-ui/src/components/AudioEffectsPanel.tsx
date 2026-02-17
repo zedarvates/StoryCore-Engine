@@ -175,14 +175,14 @@ export function AudioEffectsPanel({
     }
   }, [selectedEffect]);
 
-  const renderParameterControl = (paramName: string, paramValue: unknown, paramType: string = 'number') => {
+  const renderParameterControl = (paramName: string, paramValue: any, paramType: string = 'number') => {
     const commonProps = {
       className: "flex-1"
     };
 
     switch (paramType) {
       case 'range':
-        const { min = 0, max = 100, step = 1 } = paramValue as any;
+        const { min = 0, max = 100, step = 1 } = getParameterConfig(selectedEffect!.type, paramName) as any;
         return (
           <Slider
             {...commonProps}
@@ -196,19 +196,20 @@ export function AudioEffectsPanel({
         );
 
       case 'select':
-        const options = paramValue as string[];
+        const config = getParameterConfig(selectedEffect!.type, paramName) as any;
+        const options = config.options || [];
         return (
           <Select
-            value={paramValue}
+            value={String(paramValue)}
             onValueChange={(value) => updateEffectParameter(selectedEffect!.id, paramName, value)}
           >
             <SelectTrigger className="flex-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {options.map(option => (
-                <SelectItem key={option} value={option}>
-                  {option}
+              {options.map((option: any) => (
+                <SelectItem key={String(option)} value={String(option)}>
+                  {String(option)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -218,7 +219,7 @@ export function AudioEffectsPanel({
       case 'boolean':
         return (
           <Switch
-            checked={paramValue}
+            checked={!!paramValue}
             onCheckedChange={(checked) => updateEffectParameter(selectedEffect!.id, paramName, checked)}
           />
         );
@@ -430,9 +431,8 @@ export function AudioEffectsPanel({
               {effectChain.map((effect, index) => (
                 <div
                   key={effect.id}
-                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedEffect?.id === effect.id ? 'bg-accent border-primary' : 'hover:bg-muted'
-                  }`}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedEffect?.id === effect.id ? 'bg-accent border-primary' : 'hover:bg-muted'
+                    }`}
                   onClick={() => setSelectedEffect(effect)}
                 >
                   <span className="text-sm font-medium w-8">{index + 1}</span>
@@ -493,7 +493,7 @@ export function AudioEffectsPanel({
               </h3>
               <div className="space-y-4">
                 {Object.entries(selectedEffect.parameters).map(([paramName, paramValue]) => {
-                  const config = getParameterConfig(selectedEffect.type, paramName);
+                  const config = getParameterConfig(selectedEffect.type, paramName) as any;
                   return (
                     <div key={paramName} className="flex items-center gap-4">
                       <label className="text-sm font-medium w-32 capitalize">

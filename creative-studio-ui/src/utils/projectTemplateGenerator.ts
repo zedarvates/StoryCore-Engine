@@ -51,12 +51,16 @@ function generateDefaultShot(
     title: `Shot ${shotNumber}`,
     description: `Default shot ${shotNumber} for Sequence ${sequenceNumber}`,
     duration: duration,
-    shot_type: 'medium',
-    camera_movement: 'static',
-    frame_path: '',
-    sequence_id: sequenceId,
-    order: shotNumber,
+    position: shotNumber,
+    audioTracks: [],
+    effects: [],
+    textLayers: [],
+    animations: [],
     metadata: {
+      shot_type: 'medium',
+      camera_movement: 'static',
+      frame_path: '',
+      sequence_id: sequenceId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       status: 'draft',
@@ -72,10 +76,10 @@ function generateSequence(
   shotDuration: number
 ): GeneratedSequence {
   const sequenceId = generateId();
-  
+
   // Create one default shot per sequence
   const shot = generateDefaultShot(sequenceId, sequenceNumber, 1, shotDuration);
-  
+
   return {
     id: sequenceId,
     name: `Sequence ${sequenceNumber}`,
@@ -114,13 +118,13 @@ export function generateProjectTemplate(format: SerializableProjectFormat): Proj
  */
 export function sequencesToShots(sequences: GeneratedSequence[]): Shot[] {
   const shots: Shot[] = [];
-  
+
   sequences.forEach((sequence) => {
     sequence.shots.forEach((shot) => {
       shots.push(shot);
     });
   });
-  
+
   return shots;
 }
 
@@ -135,9 +139,9 @@ Project Structure:
 - ~${Math.round(template.totalDuration / 60)} minutes total duration
 
 Sequences:
-${template.sequences.map((seq, idx) => 
-  `  ${idx + 1}. ${seq.name} (${seq.shots.length} shot, ${seq.duration}s)`
-).join('\n')}
+${template.sequences.map((seq, idx) =>
+    `  ${idx + 1}. ${seq.name} (${seq.shots.length} shot, ${seq.duration}s)`
+  ).join('\n')}
   `.trim();
 }
 

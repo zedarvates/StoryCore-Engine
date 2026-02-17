@@ -28,7 +28,7 @@ const taskHandlers = {
       // In real implementation, this would extract frames from video
       await delay(100); // Simulate processing time
 
-      const { videoUrl, timestamp, width = 160, height = 90 } = taskData;
+      const { videoUrl, timestamp, width = 160, height = 90 } = taskData as any;
 
       // Mock thumbnail generation
       const thumbnail = {
@@ -47,7 +47,7 @@ const taskHandlers = {
 
   async video_encoding(taskData: unknown): Promise<TaskResult> {
     try {
-      const { videoBlob, format, quality = 0.8 } = taskData;
+      const { videoBlob, format, quality = 0.8 } = taskData as any;
 
       // Simulate video encoding
       await delay(500);
@@ -67,7 +67,7 @@ const taskHandlers = {
 
   async batch_processing(taskData: unknown): Promise<TaskResult> {
     try {
-      const { items, operation } = taskData;
+      const { items, operation } = taskData as any;
       const results = [];
 
       for (let i = 0; i < items.length; i++) {
@@ -80,7 +80,7 @@ const taskHandlers = {
         const progress = ((i + 1) / items.length) * 100;
         self.postMessage({
           type: 'TASK_PROGRESS',
-          taskId: taskData.taskId,
+          taskId: (taskData as any).taskId,
           progress,
           message: `Processing item ${i + 1}/${items.length}`
         });
@@ -165,5 +165,3 @@ self.onunhandledrejection = (event) => {
   console.error('Worker unhandled rejection:', event.reason);
   event.preventDefault();
 };
-
-

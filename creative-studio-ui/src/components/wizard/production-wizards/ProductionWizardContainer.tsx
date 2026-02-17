@@ -1,4 +1,4 @@
-import React, { ReactNode, useRef, useEffect, useState } from 'react';
+import React, { ReactNode, useRef, useEffect, useState, useCallback } from 'react';
 import { AlertTriangle, Save, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ProductionWizardStepIndicator } from './ProductionWizardStepIndicator.js';
@@ -6,6 +6,7 @@ import { ProductionWizardNavigation } from './ProductionWizardNavigation.js';
 import { Button } from '@/components/ui/button';
 import { WizardStep } from '@/types';
 import { useWizard } from '@/contexts/WizardContext.js';
+import { useToast } from '@/hooks/use-toast';
 
 // ============================================================================
 // Production Wizard Container Component
@@ -48,6 +49,7 @@ export function ProductionWizardContainer({
   lastSaved = 0,
 }: ProductionWizardContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   
   // Check if we have all required props from parent wizard context
   // If so, we don't need to call useWizard()
@@ -73,6 +75,27 @@ export function ProductionWizardContainer({
   const hasValidationErrors = localValidationErrors && Object.keys(localValidationErrors).length > 0;
   const canGoNext = !hasValidationErrors;
 
+  // Handle next step with validation toast
+  const handleNextStep = useCallback(() => {
+    if (hasValidationErrors) {
+      const errorCount = Object.keys(localValidationErrors).length;
+      toast({
+        title: 'Validation Failed',
+        description: `Please fix ${errorCount} ${errorCount === 1 ? 'error' : 'errors'} before continuing.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    // Call the original nextStep
+    if (onNextStep) {
+      onNextStep();
+    } else if (wizardContext?.nextStep) {
+      wizardContext.nextStep();
+    } else {
+      console.warn('nextStep not provided');
+    }
+  }, [hasValidationErrors, localValidationErrors, toast, onNextStep, wizardContext]);
+
   // Use provided props or fallback to defaults, preferring context functions
   const wizard = {
     currentStep,
@@ -93,7 +116,7 @@ export function ProductionWizardContainer({
         wizardContext.saveProgress();
       }
     },
-    nextStep: onNextStep || (wizardContext?.nextStep ? () => wizardContext.nextStep!() : (() => console.warn('nextStep not provided'))),
+    nextStep: handleNextStep,
     previousStep: onPreviousStep || (wizardContext?.previousStep ? () => wizardContext.previousStep!() : (() => console.warn('previousStep not provided'))),
     goToStep: onGoToStep || (wizardContext?.goToStep ? (step: number) => wizardContext.goToStep!(step) : ((step: number) => console.warn('goToStep not provided', step))),
   };

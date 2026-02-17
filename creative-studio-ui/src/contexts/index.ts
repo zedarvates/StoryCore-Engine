@@ -35,3 +35,5 @@ export type { NavigationContextValue } from './NavigationContext';
 
 export { GenerationProvider, useGeneration, GenerationStatus, GenerationPhase } from './GenerationContext';
 export type { GenerationContextType } from './GenerationContext';
+
+export { CameraAngleEditorProvider, useCameraAngleEditorModal, useLocalCameraAngleEditorModal } from './CameraAngleEditorContext';

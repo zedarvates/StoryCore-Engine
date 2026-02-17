@@ -1,0 +1,18 @@
+{
+  "location_id": "f37c30c0-0cf7-46fd-b6b5-b5a6cbb1933f",
+  "name": "The Mirrored Strand",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T07:21:38.352Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A dark strand of beach where the city's inhabitants come to confront their darkest selves. The sand is slick with oil from the nearby refineries, while the waves seem to writhe and twist like living things.",
+    "atmosphere": "Haunting, symbolic",
+    "genre_tags": [],
+    "significance": "The Mirrored Strand is a place of atonement for those seeking redemption. Rumors speak of an ancient entity that dwells beneath its surface, waiting to claim the souls of those who seek forgiveness."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

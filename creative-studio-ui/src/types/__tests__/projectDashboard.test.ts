@@ -28,7 +28,7 @@ describe('ProjectDashboard Type Definitions', () => {
       expect(isValidPrompt('This is a valid prompt with enough characters')).toBe(true);
       expect(isValidPrompt('A'.repeat(10))).toBe(true);
       expect(isValidPrompt('A'.repeat(500))).toBe(true);
-      
+
       // Invalid prompts
       expect(isValidPrompt('')).toBe(false);
       expect(isValidPrompt('   ')).toBe(false);
@@ -78,6 +78,7 @@ describe('ProjectDashboard Type Definitions', () => {
           duration: 10,
           prompt: 'This is a valid prompt with enough characters',
           metadata: {},
+          position: 0,
         },
         {
           id: '2',
@@ -86,6 +87,7 @@ describe('ProjectDashboard Type Definitions', () => {
           duration: 10,
           prompt: 'Another valid prompt with sufficient length',
           metadata: {},
+          position: 1,
         },
       ];
       expect(hasValidPrompts(validShots)).toBe(true);
@@ -98,6 +100,7 @@ describe('ProjectDashboard Type Definitions', () => {
           duration: 10,
           prompt: 'This is a valid prompt with enough characters',
           metadata: {},
+          position: 0,
         },
         {
           id: '2',
@@ -106,6 +109,7 @@ describe('ProjectDashboard Type Definitions', () => {
           duration: 10,
           prompt: 'Short', // too short
           metadata: {},
+          position: 1,
         },
       ];
       expect(hasValidPrompts(invalidShots)).toBe(false);
@@ -151,6 +155,7 @@ describe('ProjectDashboard Type Definitions', () => {
           lighting: 'natural',
           mood: 'peaceful',
         },
+        position: 0,
       };
       expect(() => ShotSchema.parse(validShot)).not.toThrow();
 
@@ -206,7 +211,7 @@ describe('ProjectDashboard Type Definitions', () => {
 
     it('should generate valid prompt strings', () => {
       const promptGenerator = fc.string({ minLength: 10, maxLength: 500 });
-      
+
       fc.assert(
         fc.property(promptGenerator, (prompt) => {
           const isValid = isValidPrompt(prompt);

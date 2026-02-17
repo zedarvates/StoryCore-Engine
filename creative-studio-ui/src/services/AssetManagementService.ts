@@ -32,6 +32,15 @@ export interface AssetQueryOptions {
 }
 
 /**
+ * File picker accept type for File System Access API
+ * Matches the structure required by window.showSaveFilePicker
+ */
+export interface FilePickerAcceptType {
+  description: string;
+  accept: Record<string, string[]>;
+}
+
+/**
  * Asset Management Service
  * 
  * Provides centralized asset management for generated content.
@@ -535,6 +544,7 @@ export class AssetManagementService {
    * 
    * Uses Electron API fs.mkdir with recursive option to create directories.
    * Returns true if directory exists or was created successfully.
+   * Throws error with descriptive message if operation fails.
    */
   private async ensureDirectoryExists(path: string): Promise<boolean> {
     if (window.electronAPI?.fs) {
@@ -545,8 +555,9 @@ export class AssetManagementService {
         }
         return true;
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         console.warn(`[AssetManagementService] Failed to create directory ${path}`, { error });
-        return false;
+        throw new Error(`Failed to ensure directory exists: ${errorMessage}`);
       }
     } else {
       // Non-Electron environment: directory creation is not supported

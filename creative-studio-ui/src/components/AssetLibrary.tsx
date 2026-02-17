@@ -66,7 +66,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
       try {
         // Determine asset type based on file extension
         const assetType = categorizeFile(file);
-        
+
         // Generate optimized thumbnail for images
         let thumbnail: string | undefined;
         if (assetType === 'image') {
@@ -86,10 +86,15 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
           url: URL.createObjectURL(file),
           thumbnail,
           metadata: {
+            id: `meta-${Date.now()}`,
+            filename: file.name,
+            type: assetType,
+            path: '',
+            imported_at: new Date().toISOString(),
             size: file.size,
             lastModified: file.lastModified,
             mimeType: file.type,
-          },
+          } as any,
         };
 
         // Add to store
@@ -108,22 +113,22 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
   // Categorize file by extension
   const categorizeFile = (file: File): 'image' | 'audio' | 'template' => {
     const extension = file.name.split('.').pop()?.toLowerCase();
-    
+
     // Image extensions
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')) {
       return 'image';
     }
-    
+
     // Audio extensions
     if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(extension || '')) {
       return 'audio';
     }
-    
+
     // Template extensions (JSON)
     if (extension === 'json') {
       return 'template';
     }
-    
+
     // Default to template for unknown types
     return 'template';
   };
@@ -150,7 +155,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
           // For 'templates' category, show only templates without specific subcategories
           if (activeCategory === 'templates') {
             return asset.type === 'template' &&
-                   !['transition', 'effect', 'text-template'].includes(asset.metadata?.subcategory);
+              !['transition', 'effect', 'text-template'].includes(asset.metadata?.subcategory ?? '');
           }
           return true;
         });
@@ -175,7 +180,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
   // Get count for each category (memoized for performance)
   const getCategoryCount = useCallback((categoryId: string) => {
     if (categoryId === 'all') return assets.length;
-    
+
     const category = CATEGORIES.find((c) => c.id === categoryId);
     if (!category || !('type' in category)) return 0;
 
@@ -189,7 +194,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
       // Handle templates category specifically
       if (categoryId === 'templates') {
         return asset.type === 'template' &&
-               !['transition', 'effect', 'text-template'].includes(asset.metadata?.subcategory);
+          !['transition', 'effect', 'text-template'].includes(asset.metadata?.subcategory ?? '');
       }
       return true;
     }).length;
@@ -198,7 +203,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
   // Virtual scrolling for large asset lists
   const ITEM_HEIGHT = 240; // Approximate height of asset card
   const CONTAINER_HEIGHT = 600; // Approximate container height
-  
+
   const { virtualItems, totalHeight } = useVirtualScroll(filteredAssets, {
     itemHeight: ITEM_HEIGHT,
     containerHeight: CONTAINER_HEIGHT,
@@ -214,7 +219,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
       <div className="border-b p-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold">Asset Library</h2>
-          
+
           {/* Upload Button */}
           <Button
             size="sm"
@@ -224,7 +229,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
             <UploadIcon className="h-4 w-4" />
             Upload
           </Button>
-          
+
           {/* Hidden file input */}
           <input
             ref={fileInputRef}
@@ -237,7 +242,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
             title="Upload assets"
           />
         </div>
-        
+
         {/* Search Input */}
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -262,7 +267,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
             {CATEGORIES.map((category) => {
               const Icon = category.icon;
               const count = getCategoryCount(category.id);
-              
+
               return (
                 <TabsTrigger
                   key={category.id}

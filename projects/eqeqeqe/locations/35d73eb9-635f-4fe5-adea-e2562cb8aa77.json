@@ -1,0 +1,18 @@
+{
+  "location_id": "35d73eb9-635f-4fe5-adea-e2562cb8aa77",
+  "name": "The Argentum Asylum",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T07:21:38.352Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A crumbling asylum perched on a windswept crag overlooking the city's sprawl. Its walls are adorned with ancient runes that glow like lanterns in the dark, while its halls resound with whispers from the forgotten dead.",
+    "atmosphere": "Eccentric, unsettling",
+    "genre_tags": [],
+    "significance": "The Argentum Asylum holds the records of Wewew's most disturbed minds, as well as a few secrets best left unspoken. Whispers speak of experiments gone wrong, and the return of an ancient horror."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

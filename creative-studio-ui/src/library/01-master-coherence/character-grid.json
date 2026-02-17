@@ -4,13 +4,33 @@
   "id": "character-grid-main",
   "name": "Main Character Design Grid",
   "description": "3x3 character design sheet with multiple angles and expressions",
-  "tags": ["character", "design-sheet", "3x3", "turnaround"],
-  "prompt": "Character design sheet, 3x3 grid layout. {CHARACTER_DESCRIPTION}: {AGE}, {GENDER}, {DISTINCTIVE_FEATURES}. Style: {ART_STYLE}. Multiple angles: front view, 3/4 view, side profile, back view, close-up face, full body, action pose, emotional expression, detail shot. Consistent lighting, same costume, identical color palette. Professional character concept art quality.",
+  "tags": [
+    "character",
+    "design-sheet",
+    "3x3",
+    "turnaround"
+  ],
+  "prompt": "Create a professional character reference sheet based strictly on the uploaded reference image, preserving and exactly matching its existing visual style. {CHARACTER_DESCRIPTION}: {AGE}, {GENDER}, {DISTINCTIVE_FEATURES}. Style: {ART_STYLE}. Do not change the realism level or rendering approach; keep the same type of image as the reference, with the same shading, texture, color treatment, and overall aesthetic. Use a clean, neutral plain background so the character is clear. Arrange the sheet so that the left side contains two large full body panels of the character in a relaxed A pose: one full body front view and one full body back view. On the right side, create four portrait panels: a front portrait, a left side portrait, a right side portrait, and an extreme close up face crop showing fine details. Maintain perfect identity consistency and consistent scale across all panels. Lighting should remain consistent across the entire sheet.",
   "variables": {
-    "CHARACTER_DESCRIPTION": { "type": "string", "required": true },
-    "AGE": { "type": "string", "required": true },
-    "GENDER": { "type": "string", "required": true },
-    "DISTINCTIVE_FEATURES": { "type": "string", "required": true },
-    "ART_STYLE": { "type": "string", "required": true }
+    "CHARACTER_DESCRIPTION": {
+      "type": "string",
+      "required": true
+    },
+    "AGE": {
+      "type": "string",
+      "required": true
+    },
+    "GENDER": {
+      "type": "string",
+      "required": true
+    },
+    "DISTINCTIVE_FEATURES": {
+      "type": "string",
+      "required": true
+    },
+    "ART_STYLE": {
+      "type": "string",
+      "required": true
+    }
   }
 }

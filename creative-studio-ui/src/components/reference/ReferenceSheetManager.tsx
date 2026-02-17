@@ -47,17 +47,26 @@ import {
   LightMode,
   CameraAlt,
 } from '@mui/icons-material';
-import { 
-  referenceSheetService, 
+import {
+  referenceSheetService,
 } from '../../services/referenceSheetService';
-import type { 
-  MasterReferenceSheet, 
-  CharacterAppearanceSheet, 
+import type {
+  MasterReferenceSheet,
+  CharacterAppearanceSheet,
   LocationAppearanceSheet,
+  ObjectAppearanceSheet,
   GlobalStyleSheet,
   ReferenceImage,
   AppearanceImage,
 } from '../../types/reference';
+import { WorkflowDestinationDialog } from './WorkflowDestinationDialog';
+import {
+  Category,
+  Settings,
+  SmartToy,
+  AutoFixHigh,
+  AutoMode
+} from '@mui/icons-material';
 
 // ============================================================================
 // Types
@@ -105,6 +114,19 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
   const [masterSheet, setMasterSheet] = useState<MasterReferenceSheet | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterAppearanceSheet | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<LocationAppearanceSheet | null>(null);
+  const [selectedObject, setSelectedObject] = useState<ObjectAppearanceSheet | null>(null);
+  const [workflowDialog, setWorkflowDialog] = useState<{
+    open: boolean;
+    entityId: string;
+    entityName: string;
+    entityType: 'Character' | 'Location' | 'Object' | 'Style';
+    currentWorkflowId?: string;
+  }>({
+    open: false,
+    entityId: '',
+    entityName: '',
+    entityType: 'Character',
+  });
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; type: string; id: string }>({
     open: false,
     type: '',
@@ -129,11 +151,11 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
 
       // Try to get existing or create new
       let sheet = await referenceSheetService.getMasterReferenceSheet(projectId);
-      
+
       if (!sheet) {
         sheet = await referenceSheetService.createMasterReferenceSheet(projectId);
       }
-      
+
       setMasterSheet(sheet);
     } catch (error) {
       console.error('[ReferenceSheetManager] Failed to load master sheet:', error);
@@ -161,7 +183,7 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
         colorPalette: [],
         proportions: 'anime standard',
       };
-      
+
       await referenceSheetService.addCharacterAppearance(masterSheet.id, newCharacter);
       await loadMasterSheet();
       setSelectedCharacter(newCharacter);
@@ -185,7 +207,7 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
         referenceImages: [],
         environmentalGuidelines: [],
       };
-      
+
       await referenceSheetService.addLocationAppearance(masterSheet.id, newLocation);
       await loadMasterSheet();
       setSelectedLocation(newLocation);
@@ -194,6 +216,54 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
       console.error('[ReferenceSheetManager] Failed to add location:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Add object appearance
+  const handleAddObject = async () => {
+    if (!masterSheet) return;
+    setLoading(true);
+    try {
+      const newObject: ObjectAppearanceSheet = {
+        id: `obj_app_${Date.now()}`,
+        objectId: `obj_def_${Date.now()}`,
+        objectName: 'New Object',
+        referenceImages: [],
+        materialGuidelines: [],
+      };
+
+      await referenceSheetService.addObjectAppearance(masterSheet.id, newObject);
+      await loadMasterSheet();
+      setSelectedObject(newObject);
+      onSheetUpdate?.(newObject.id);
+    } catch (error) {
+      console.error('[ReferenceSheetManager] Failed to add object:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update object
+  const handleUpdateObject = async (object: ObjectAppearanceSheet) => {
+    if (!masterSheet) return;
+    try {
+      await referenceSheetService.updateObjectAppearance(masterSheet.id, object);
+      await loadMasterSheet();
+      onSheetUpdate?.(object.id);
+    } catch (error) {
+      console.error('[ReferenceSheetManager] Failed to update object:', error);
+    }
+  };
+
+  // Delete object
+  const handleDeleteObject = async (objectId: string) => {
+    if (!masterSheet) return;
+    try {
+      await referenceSheetService.removeObjectAppearance(masterSheet.id, objectId);
+      await loadMasterSheet();
+      setSelectedObject(null);
+    } catch (error) {
+      console.error('[ReferenceSheetManager] Failed to delete object:', error);
     }
   };
 
@@ -259,6 +329,45 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
     }
   };
 
+  // Handle workflow selection
+  const handleWorkflowSelect = async (workflowId: string) => {
+    if (!masterSheet) return;
+
+    const { entityId, entityType } = workflowDialog;
+
+    try {
+      if (entityType === 'Character') {
+        const char = masterSheet.characterSheets.find(c => c.id === entityId);
+        if (char) {
+          await handleUpdateCharacter({ ...char, workflowId });
+          if (selectedCharacter?.id === char.id) {
+            setSelectedCharacter({ ...selectedCharacter, workflowId });
+          }
+        }
+      } else if (entityType === 'Location') {
+        const loc = masterSheet.locationSheets.find(l => l.id === entityId);
+        if (loc) {
+          await handleUpdateLocation({ ...loc, workflowId });
+          if (selectedLocation?.id === loc.id) {
+            setSelectedLocation({ ...selectedLocation, workflowId });
+          }
+        }
+      } else if (entityType === 'Object') {
+        const obj = masterSheet.objectSheets.find(o => o.id === entityId);
+        if (obj) {
+          await handleUpdateObject({ ...obj, workflowId });
+          if (selectedObject?.id === obj.id) {
+            setSelectedObject({ ...selectedObject, workflowId });
+          }
+        }
+      } else if (entityType === 'Style') {
+        await handleUpdateStyle({ workflowId });
+      }
+    } catch (error) {
+      console.error('[ReferenceSheetManager] Failed to update workflow:', error);
+    }
+  };
+
   // Add reference image to character
   const handleAddCharacterImage = async () => {
     if (!selectedCharacter) return;
@@ -295,6 +404,24 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
     }
   };
 
+  // Add reference image to object
+  const handleAddObjectImage = async () => {
+    if (!selectedObject) return;
+    const url = prompt('Enter image URL:');
+    if (url) {
+      const newImage: ReferenceImage = {
+        id: `img_${Date.now()}`,
+        url,
+        weight: 0.8,
+        source: 'visual-style',
+      };
+      await handleUpdateObject({
+        ...selectedObject,
+        referenceImages: [...selectedObject.referenceImages, newImage],
+      });
+    }
+  };
+
   // Handle art style change
   const handleArtStyleChange = (event: SelectChangeEvent<string>) => {
     handleUpdateStyle({ artStyle: event.target.value });
@@ -312,9 +439,9 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
           <Style color="primary" />
           <Typography variant="h6">Reference Sheet Manager</Typography>
           {masterSheet && (
-            <Chip 
-              size="small" 
-              label={`${masterSheet.characterSheets.length} Characters • ${masterSheet.locationSheets.length} Locations`}
+            <Chip
+              size="small"
+              label={`${masterSheet.characterSheets.length} Characters • ${masterSheet.locationSheets.length} Locations • ${masterSheet.objectSheets?.length || 0} Objects`}
               sx={{ ml: 2 }}
             />
           )}
@@ -333,6 +460,7 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
             <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 2 }}>
               <Tab label="Characters" icon={<Person />} iconPosition="start" />
               <Tab label="Locations" icon={<LocationOn />} iconPosition="start" />
+              <Tab label="Objects" icon={<Category />} iconPosition="start" />
               <Tab label="Style" icon={<Palette />} iconPosition="start" />
               <Tab label="Overview" icon={<Style />} iconPosition="start" />
             </Tabs>
@@ -355,7 +483,7 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                         key={character.id}
                         selected={selectedCharacter?.id === character.id}
                         onClick={() => setSelectedCharacter(character)}
-                        sx={{ 
+                        sx={{
                           border: 1,
                           borderColor: selectedCharacter?.id === character.id ? 'primary.main' : 'divider',
                           borderRadius: 1,
@@ -389,10 +517,26 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                   {selectedCharacter ? (
                     <Card>
                       <CardContent>
-                        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                          Edit Character
-                        </Typography>
-                        
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            Edit Character
+                          </Typography>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<Settings />}
+                            onClick={() => setWorkflowDialog({
+                              open: true,
+                              entityId: selectedCharacter.id,
+                              entityName: selectedCharacter.characterName,
+                              entityType: 'Character',
+                              currentWorkflowId: selectedCharacter.workflowId
+                            })}
+                          >
+                            Workflow: {selectedCharacter.workflowId || 'Default'}
+                          </Button>
+                        </Box>
+
                         <TextField
                           fullWidth
                           label="Character Name"
@@ -489,17 +633,17 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                             </Grid>
                           ))}
                           <Grid size={{ xs: 4 }}>
-                            <Card sx={{ 
-                              height: 100, 
-                              display: 'flex', 
-                              alignItems: 'center', 
+                            <Card sx={{
+                              height: 100,
+                              display: 'flex',
+                              alignItems: 'center',
                               justifyContent: 'center',
                               border: 2,
                               borderStyle: 'dashed',
                               borderColor: 'divider',
                               cursor: 'pointer',
                             }}
-                            onClick={handleAddCharacterImage}
+                              onClick={handleAddCharacterImage}
                             >
                               <PhotoCamera color="action" />
                             </Card>
@@ -534,7 +678,7 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                         key={location.id}
                         selected={selectedLocation?.id === location.id}
                         onClick={() => setSelectedLocation(location)}
-                        sx={{ 
+                        sx={{
                           border: 1,
                           borderColor: selectedLocation?.id === location.id ? 'primary.main' : 'divider',
                           borderRadius: 1,
@@ -568,10 +712,26 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                   {selectedLocation ? (
                     <Card>
                       <CardContent>
-                        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                          Edit Location
-                        </Typography>
-                        
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            Edit Location
+                          </Typography>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<Settings />}
+                            onClick={() => setWorkflowDialog({
+                              open: true,
+                              entityId: selectedLocation.id,
+                              entityName: selectedLocation.locationName,
+                              entityType: 'Location',
+                              currentWorkflowId: selectedLocation.workflowId
+                            })}
+                          >
+                            Workflow: {selectedLocation.workflowId || 'Default'}
+                          </Button>
+                        </Box>
+
                         <TextField
                           fullWidth
                           label="Location Name"
@@ -630,17 +790,17 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                             </Grid>
                           ))}
                           <Grid size={{ xs: 4 }}>
-                            <Card sx={{ 
-                              height: 100, 
-                              display: 'flex', 
-                              alignItems: 'center', 
+                            <Card sx={{
+                              height: 100,
+                              display: 'flex',
+                              alignItems: 'center',
                               justifyContent: 'center',
                               border: 2,
                               borderStyle: 'dashed',
                               borderColor: 'divider',
                               cursor: 'pointer',
                             }}
-                            onClick={handleAddLocationImage}
+                              onClick={handleAddLocationImage}
                             >
                               <PhotoCamera color="action" />
                             </Card>
@@ -657,8 +817,165 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
               </Grid>
             </TabPanel>
 
-            {/* Tab 3: Style */}
+            {/* Tab 3: Objects */}
             <TabPanel value={tabValue} index={2}>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      Object Appearances
+                    </Typography>
+                    <Button size="small" startIcon={<Add />} onClick={handleAddObject}>
+                      Add
+                    </Button>
+                  </Box>
+                  <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+                    {(masterSheet.objectSheets || []).map((object) => (
+                      <ListItemButton
+                        key={object.id}
+                        selected={selectedObject?.id === object.id}
+                        onClick={() => setSelectedObject(object)}
+                        sx={{
+                          border: 1,
+                          borderColor: selectedObject?.id === object.id ? 'primary.main' : 'divider',
+                          borderRadius: 1,
+                          mb: 1,
+                        }}
+                      >
+                        <ListItemIcon>
+                          <Avatar sx={{ bgcolor: 'warning.main' }}>
+                            <Category />
+                          </Avatar>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={object.objectName}
+                          secondary={`${object.referenceImages?.length || 0} images`}
+                        />
+                        <IconButton
+                          size="small"
+                          onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            setDeleteConfirm({ open: true, type: 'object', id: object.id });
+                          }}
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </ListItemButton>
+                    ))}
+                  </List>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 7 }}>
+                  {selectedObject ? (
+                    <Card>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            Edit Object
+                          </Typography>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<Settings />}
+                            onClick={() => setWorkflowDialog({
+                              open: true,
+                              entityId: selectedObject.id,
+                              entityName: selectedObject.objectName,
+                              entityType: 'Object',
+                              currentWorkflowId: selectedObject.workflowId
+                            })}
+                          >
+                            Workflow: {selectedObject.workflowId || 'Default'}
+                          </Button>
+                        </Box>
+
+                        <TextField
+                          fullWidth
+                          label="Object Name"
+                          value={selectedObject.objectName}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateObject({
+                            ...selectedObject,
+                            objectName: e.target.value,
+                          })}
+                          sx={{ mb: 2 }}
+                        />
+
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          Material & Visual Guidelines
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                          {selectedObject.materialGuidelines?.map((guideline: string, index: number) => (
+                            <Chip
+                              key={index}
+                              label={guideline}
+                              onDelete={() => {
+                                const newGuidelines = selectedObject.materialGuidelines.filter(
+                                  (_: string, i: number) => i !== index
+                                );
+                                handleUpdateObject({
+                                  ...selectedObject,
+                                  materialGuidelines: newGuidelines,
+                                });
+                              }}
+                            />
+                          ))}
+                          <Chip label="+ Add" onClick={() => {
+                            const guideline = prompt('Enter material guideline:');
+                            if (guideline) {
+                              handleUpdateObject({
+                                ...selectedObject,
+                                materialGuidelines: [...(selectedObject.materialGuidelines || []), guideline],
+                              });
+                            }
+                          }} />
+                        </Box>
+
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          Reference Images ({selectedObject.referenceImages?.length || 0})
+                        </Typography>
+                        <Grid container spacing={1}>
+                          {selectedObject.referenceImages?.map((image: ReferenceImage) => (
+                            <Grid size={{ xs: 4 }} key={image.id}>
+                              <Card>
+                                <CardMedia
+                                  component="img"
+                                  height={100}
+                                  image={image.url}
+                                  sx={{ objectFit: 'cover' }}
+                                />
+                              </Card>
+                            </Grid>
+                          ))}
+                          <Grid size={{ xs: 4 }}>
+                            <Card sx={{
+                              height: 100,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              border: 2,
+                              borderStyle: 'dashed',
+                              borderColor: 'divider',
+                              cursor: 'pointer',
+                            }}
+                              onClick={handleAddObjectImage}
+                            >
+                              <PhotoCamera color="action" />
+                            </Card>
+                          </Grid>
+                        </Grid>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Alert severity="info">
+                      Select an object to edit or add a new one
+                    </Alert>
+                  )}
+                </Grid>
+              </Grid>
+            </TabPanel>
+
+            {/* Tab 4: Style */}
+            <TabPanel value={tabValue} index={3}>
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Card>
@@ -792,8 +1109,8 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
               </Grid>
             </TabPanel>
 
-            {/* Tab 4: Overview */}
-            <TabPanel value={tabValue} index={3}>
+            {/* Tab 5: Overview */}
+            <TabPanel value={tabValue} index={4}>
               <Alert severity="info" sx={{ mb: 3 }}>
                 This is a summary of your master reference sheet. All settings here will be inherited by sequences and shots.
               </Alert>
@@ -808,26 +1125,34 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                       <List dense>
                         <ListItem>
                           <ListItemIcon><Person /></ListItemIcon>
-                          <ListItemText 
-                            primary="Characters" 
-                            secondary={masterSheet.characterSheets.length} 
+                          <ListItemText
+                            primary="Characters"
+                            secondary={masterSheet.characterSheets.length}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemIcon><LocationOn /></ListItemIcon>
-                          <ListItemText 
-                            primary="Locations" 
-                            secondary={masterSheet.locationSheets.length} 
+                          <ListItemText
+                            primary="Locations"
+                            secondary={masterSheet.locationSheets.length}
+                          />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemIcon><Category /></ListItemIcon>
+                          <ListItemText
+                            primary="Objects"
+                            secondary={masterSheet.objectSheets?.length || 0}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemIcon><Image /></ListItemIcon>
-                          <ListItemText 
-                            primary="Total Reference Images" 
+                          <ListItemText
+                            primary="Total Reference Images"
                             secondary={
                               masterSheet.characterSheets.reduce((sum: number, c: CharacterAppearanceSheet) => sum + c.appearanceImages.length, 0) +
-                              masterSheet.locationSheets.reduce((sum: number, l: LocationAppearanceSheet) => sum + l.referenceImages.length, 0)
-                            } 
+                              masterSheet.locationSheets.reduce((sum: number, l: LocationAppearanceSheet) => sum + l.referenceImages.length, 0) +
+                              (masterSheet.objectSheets || []).reduce((sum: number, o: ObjectAppearanceSheet) => sum + (o.referenceImages?.length || 0), 0)
+                            }
                           />
                         </ListItem>
                       </List>
@@ -843,21 +1168,21 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                       </Typography>
                       <List dense>
                         <ListItem>
-                          <ListItemText 
-                            primary="Art Style" 
-                            secondary={masterSheet.styleSheet.artStyle} 
+                          <ListItemText
+                            primary="Art Style"
+                            secondary={masterSheet.styleSheet.artStyle}
                           />
                         </ListItem>
                         <ListItem>
-                          <ListItemText 
-                            primary="Lighting" 
-                            secondary={masterSheet.styleSheet.lightingStyle} 
+                          <ListItemText
+                            primary="Lighting"
+                            secondary={masterSheet.styleSheet.lightingStyle}
                           />
                         </ListItem>
                         <ListItem>
-                          <ListItemText 
-                            primary="Color Palette" 
-                            secondary={`${masterSheet.styleSheet.colorPalette.length} colors`} 
+                          <ListItemText
+                            primary="Color Palette"
+                            secondary={`${masterSheet.styleSheet.colorPalette.length} colors`}
                           />
                         </ListItem>
                       </List>
@@ -873,15 +1198,15 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                       </Typography>
                       <List dense>
                         <ListItem>
-                          <ListItemText 
-                            primary="Created" 
-                            secondary={masterSheet.createdAt.toLocaleDateString()} 
+                          <ListItemText
+                            primary="Created"
+                            secondary={masterSheet.createdAt.toLocaleDateString()}
                           />
                         </ListItem>
                         <ListItem>
-                          <ListItemText 
-                            primary="Last Updated" 
-                            secondary={masterSheet.updatedAt.toLocaleDateString()} 
+                          <ListItemText
+                            primary="Last Updated"
+                            secondary={masterSheet.updatedAt.toLocaleDateString()}
                           />
                         </ListItem>
                       </List>
@@ -897,6 +1222,16 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
       </DialogActions>
+
+      {/* Workflow Destination Dialog */}
+      <WorkflowDestinationDialog
+        isOpen={workflowDialog.open}
+        onClose={() => setWorkflowDialog({ ...workflowDialog, open: false })}
+        onSelect={handleWorkflowSelect}
+        entityName={workflowDialog.entityName}
+        entityType={workflowDialog.entityType}
+        currentWorkflowId={workflowDialog.currentWorkflowId}
+      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
@@ -920,6 +1255,8 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
                 handleDeleteCharacter(deleteConfirm.id);
               } else if (deleteConfirm.type === 'location') {
                 handleDeleteLocation(deleteConfirm.id);
+              } else if (deleteConfirm.type === 'object') {
+                handleDeleteObject(deleteConfirm.id);
               }
               setDeleteConfirm({ open: false, type: '', id: '' });
             }}

@@ -12,8 +12,8 @@ Choose your profile to access the appropriate documentation:
 **Objective**: Install and understand the project
 
 **Start here**:
-1. 📖 [GETTING_STARTED_DEV.md](GETTING_STARTED_DEV.md) - Getting started guide (20 min)
-2. 📚 [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) - Navigation index
+1. 📖 [GETTING_STARTED_DEV.md](documentation/GETTING_STARTED_DEV.md) - Getting started guide (20 min)
+2. 📚 [INDEX_DOCUMENTATION_COMPLETE.md](INDEX_DOCUMENTATION_COMPLETE.md) - Navigation index
 3. ⚡ [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Common commands
 
 **Estimated time**: 30 minutes to get up and running
@@ -24,9 +24,9 @@ Choose your profile to access the appropriate documentation:
 **Objective**: Understand the project status and validate deployment
 
 **Start here**:
-1. ✅ [BUILD_SUCCESS_SUMMARY.md](BUILD_SUCCESS_SUMMARY.md) - Executive summary (5 min)
-2. 📊 [BUILD_REPORT.md](BUILD_REPORT.md) - Detailed analysis (10 min)
-3. 📝 [RELEASE_NOTES_2026_01_23.md](RELEASE_NOTES_2026_01_23.md) - Release notes (10 min)
+1. ✅ [BUILD_SUCCESS_SUMMARY.md](documentation/reports/BUILD_SUCCESS_SUMMARY.md) - Executive summary (5 min)
+2. 📊 [BUILD_REPORT.md](documentation/reports/BUILD_REPORT.md) - Detailed analysis (10 min)
+3. 📝 [RELEASE_NOTES_2026_01_23.md](documentation/RELEASE_NOTES_2026_01_23.md) - Release notes (10 min)
 
 **Estimated time**: 25 minutes for a complete overview
 
@@ -36,8 +36,8 @@ Choose your profile to access the appropriate documentation:
 **Objective**: Validate the build and understand tests
 
 **Start here**:
-1. 📊 [BUILD_REPORT.md](BUILD_REPORT.md) - Build status
-2. 🧪 [FIX_TESTS.md](FIX_TESTS.md) - Test status and known issues
+1. 📊 [BUILD_REPORT.md](documentation/reports/BUILD_REPORT.md) - Build status
+2. 🧪 [TESTS_STATUS.md](documentation/TESTS_STATUS.md) - Test status and known issues
 3. ⚡ [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Test commands
 
 **Estimated time**: 20 minutes to understand the status
@@ -49,9 +49,9 @@ Choose your profile to access the appropriate documentation:
 
 **Start here**:
 1. ⚡ [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Quick reference
-2. 📋 [TODO.md](TODO.md) - Master TODO and task tracking
-3. 📚 [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) - Complete navigation
-4. 🧪 [FIX_TESTS.md](FIX_TESTS.md) - Test issues
+2. 📋 [ROADMAP.md](ROADMAP.md) - Project roadmap and task tracking
+3. 📚 [INDEX_DOCUMENTATION_COMPLETE.md](INDEX_DOCUMENTATION_COMPLETE.md) - Complete navigation
+4. 🧪 [TESTS_STATUS.md](documentation/TESTS_STATUS.md) - Test issues
 
 **Estimated time**: 10 minutes to get up to date
 
@@ -61,7 +61,7 @@ Choose your profile to access the appropriate documentation:
 **Objective**: Quickly find what you need
 
 **Start here**:
-1. 📚 [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) - Complete index with search
+1. 📚 [INDEX_DOCUMENTATION_COMPLETE.md](INDEX_DOCUMENTATION_COMPLETE.md) - Complete index with search
 2. 📖 [README.md](README.md) - Project overview
 
 **Estimated time**: 2 minutes to find what you're looking for
@@ -92,7 +92,7 @@ npm run test
 ```bash
 npm run dev
 ```
-📖 See: [GETTING_STARTED_DEV.md](GETTING_STARTED_DEV.md)
+📖 See: [GETTING_STARTED_DEV.md](documentation/GETTING_STARTED_DEV.md)
 
 ---
 
@@ -112,12 +112,12 @@ npm run package:linux # Linux
 ---
 
 #### 📊 Check Build Status
-📖 See: [BUILD_REPORT.md](BUILD_REPORT.md)
+📖 See: [BUILD_REPORT.md](documentation/reports/BUILD_REPORT.md)
 
 ---
 
 #### 🧪 Understand Tests
-📖 See: [FIX_TESTS.md](FIX_TESTS.md)
+📖 See: [TESTS_STATUS.md](documentation/TESTS_STATUS.md)
 
 ---
 
@@ -125,27 +125,26 @@ npm run package:linux # Linux
 
 ### Main Documents
 - **[README.md](README.md)** - Project overview
-- **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** - Complete navigation index
+- **[INDEX_DOCUMENTATION_COMPLETE.md](INDEX_DOCUMENTATION_COMPLETE.md)** - Complete navigation index
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Developer quick reference
 
 ### Build & Quality
-- **[BUILD_SUCCESS_SUMMARY.md](BUILD_SUCCESS_SUMMARY.md)** - Build success summary
-- **[BUILD_REPORT.md](BUILD_REPORT.md)** - Detailed build analysis
-- **[FIX_TESTS.md](FIX_TESTS.md)** - Test status and improvements
-- **[TODO.md](TODO.md)** - Master TODO and task tracking
+- **[BUILD_SUCCESS_SUMMARY.md](documentation/reports/BUILD_SUCCESS_SUMMARY.md)** - Build success summary
+- **[BUILD_REPORT.md](documentation/reports/BUILD_REPORT.md)** - Detailed build analysis
+- **[TESTS_STATUS.md](documentation/TESTS_STATUS.md)** - Test status and improvements
+- **[ROADMAP.md](ROADMAP.md)** - Project roadmap and task tracking
 
 ### Release & Versions
-- **[RELEASE_NOTES_2026_01_23.md](RELEASE_NOTES_2026_01_23.md)** - Latest release notes
+- **[RELEASE_NOTES_2026_01_23.md](documentation/RELEASE_NOTES_2026_01_23.md)** - Latest release notes
 - **[CHANGELOG.md](CHANGELOG.md)** - Complete version history
-- **[ROADMAP.md](ROADMAP.md)** - Project roadmap
 
 ### Guides
-- **[GETTING_STARTED_DEV.md](GETTING_STARTED_DEV.md)** - Developer getting started guide
-- **[DOCS_UPDATE_SUMMARY.md](DOCS_UPDATE_SUMMARY.md)** - Docs update summary
+- **[GETTING_STARTED_DEV.md](documentation/GETTING_STARTED_DEV.md)** - Developer getting started guide
+- **[USER_GUIDE.md](documentation/USER_GUIDE.md)** - Complete user guide
 
 ---
 
-## 🎯 Current Status (January 23, 2026)
+## 🎯 Current Status (February 16, 2026)
 
 ### ✅ Production Ready
 - **Build**: ✅ Success (8 seconds)
@@ -156,7 +155,8 @@ npm run package:linux # Linux
 
 ### 🔄 Under Improvement
 - **Unit Tests**: 50% → 90% (in progress)
-- **Bundle Optimization**: Planned Q1 2027
+- **Image Generation Dialog**: Enhancements in progress
+- **Wizard Addons**: Dashboard enhancements planned
 
 ---
 
@@ -198,7 +198,7 @@ python --version  # 3.9+
 
 ### To Save Time
 1. **Use QUICK_REFERENCE.md** for common commands
-2. **Check DOCUMENTATION_INDEX.md** for quick navigation
+2. **Check INDEX_DOCUMENTATION_COMPLETE.md** for quick navigation
 3. **Read BUILD_REPORT.md** to understand the project status
 
 ### To Get Started Right
@@ -216,7 +216,7 @@ python --version  # 3.9+
 ## 🆘 Need Help?
 
 ### Documentation
-1. Check [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
+1. Check [INDEX_DOCUMENTATION_COMPLETE.md](INDEX_DOCUMENTATION_COMPLETE.md)
 2. Search in [QUICK_REFERENCE.md](QUICK_REFERENCE.md)
 3. Read [documentation/TROUBLESHOOTING.md](documentation/TROUBLESHOOTING.md)
 
@@ -235,7 +235,7 @@ Choose your profile above and follow the recommended links.
 
 ---
 
-**Last updated**: January 23, 2026  
+**Last updated**: February 16, 2026  
 **Version**: 1.0.0  
 **Status**: ✅ Production Ready
 

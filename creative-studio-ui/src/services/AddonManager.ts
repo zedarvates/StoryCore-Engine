@@ -31,13 +31,21 @@ interface AddonResource {
   intervals: number[];
 }
 
+export interface AddonAction {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: React.ReactNode | string;
+  handler?: () => Promise<void> | void;
+}
+
 export interface AddonInfo {
   id: string;
   name: string;
   description: string;
   version: string;
   author: string;
-  category: 'ui' | 'processing' | 'export' | 'integration' | 'utility';
+  category: 'ui' | 'processing' | 'export' | 'integration' | 'utility' | 'character' | 'world' | 'story';
   dependencies?: string[];
   enabled: boolean;
   builtin: boolean; // true for built-in add-ons, false for external ones
@@ -318,6 +326,98 @@ export class AddonManager {
   }
 
   /**
+   * Gets the list of actions available for an add-on
+   */
+  getAddonActions(addonId: string): AddonAction[] {
+    const addon = this.addons.get(addonId);
+    if (!addon) {
+      return [];
+    }
+
+    // Define default actions based on addon type
+    const defaultActions: AddonAction[] = [];
+
+    // Add common actions for active addons
+    if (addon.status === 'active') {
+      defaultActions.push({
+        id: 'settings',
+        name: 'Settings',
+        description: 'Configure addon settings',
+        icon: '⚙️'
+      });
+    }
+
+    // Add addon-specific actions based on addon ID
+    switch (addonId) {
+      case 'casting':
+        defaultActions.push({
+          id: 'launch-wizard',
+          name: 'Create Character',
+          description: 'Launch the character creation wizard',
+          icon: '👤'
+        });
+        break;
+      case 'world-builder':
+        defaultActions.push({
+          id: 'launch-wizard',
+          name: 'Create World',
+          description: 'Launch the world builder wizard',
+          icon: '🌍'
+        });
+        break;
+      case 'storyteller':
+        defaultActions.push({
+          id: 'launch-wizard',
+          name: 'Create Story',
+          description: 'Launch the storyteller wizard',
+          icon: '📖'
+        });
+        break;
+      case 'audio-production':
+        defaultActions.push({
+          id: 'open-audio-editor',
+          name: 'Audio Editor',
+          description: 'Open the audio production editor',
+          icon: '🎵'
+        });
+        break;
+      default:
+        break;
+    }
+
+    return defaultActions;
+  }
+
+  /**
+   * Executes an add-on action
+   */
+  async executeAddonAction(addonId: string, actionId: string): Promise<void> {
+    const addon = this.addons.get(addonId);
+    if (!addon) {
+      throw new Error(`Addon ${addonId} not found`);
+    }
+
+    if (addon.status !== 'active') {
+      throw new Error(`Addon ${addonId} is not active`);
+    }
+
+    // Handle common actions
+    switch (actionId) {
+      case 'settings':
+        // This will be handled by the UI component
+        logger.debug(`[AddonManager] Opening settings for addon: ${addonId}`);
+        break;
+      case 'launch-wizard':
+        // This will be handled by the UI component via the handler
+        logger.debug(`[AddonManager] Launching wizard for addon: ${addonId}`);
+        break;
+      default:
+        logger.debug(`[AddonManager] Executing action ${actionId} for addon: ${addonId}`);
+        break;
+    }
+  }
+
+  /**
    * Exports add-ons configuration
    */
   exportConfig(): AddonConfig {
@@ -390,6 +490,12 @@ export class AddonManager {
             break;
           case 'example-workflow':
             await import('@/addons/example-workflow');
+            break;
+          case 'grok-integration':
+            await import('@/addons/grok-integration');
+            break;
+          case 'seed-dance':
+            await import('@/addons/seed-dance');
             break;
           default:
             logger.warn(`[AddonManager] Unknown builtin addon: ${addon.id}`);
@@ -674,10 +780,13 @@ export class AddonManager {
       }
 
       // Alternative method: use fetch to test each potential folder
-      // List of potential community add-ons (hardcoded for now)
-      const potentialAddons = ['example-community-addon', 'my-custom-addon', 'demo-external-addon'];
+      // Only scan for addons that actually exist in the filesystem
+      // by checking the directory listing from index.json
 
-      for (const addonName of potentialAddons) {
+      // For now, we'll scan the actual directories that exist:
+      const existingAddons = ['demo_addon', 'example_workflow', 'test_addon'];
+
+      for (const addonName of existingAddons) {
         const addonPath = `${basePath}/${addonName}`;
         try {
           const manifestResponse = await fetch(`${addonPath}/addon.json`);
@@ -685,7 +794,7 @@ export class AddonManager {
             folders.push(addonPath);
           }
         } catch {
-          // Folder not accessible
+          // Folder not accessible or doesn't exist
         }
       }
 
@@ -1036,12 +1145,15 @@ export class AddonManager {
           key: 'defaultModel',
           label: 'Default Model',
           type: 'select',
-          defaultValue: 'grok-1',
+          defaultValue: 'grok-2',
           description: 'Model to use for generation',
           options: [
             { label: 'Grok-1', value: 'grok-1' },
             { label: 'Grok-1.5', value: 'grok-1.5' },
-            { label: 'Grok-1.5 Vision', value: 'grok-1.5-vision' }
+            { label: 'Grok-2', value: 'grok-2' },
+            { label: 'Grok-2 Vision', value: 'grok-2-vision' },
+            { label: 'Grok-3 (Limited)', value: 'grok-3' },
+            { label: 'Grok Beta', value: 'grok-beta' }
           ]
         },
         {
@@ -1050,6 +1162,38 @@ export class AddonManager {
           type: 'boolean',
           defaultValue: true,
           description: 'Unlock advanced reasoning capabilities'
+        },
+        {
+          key: 'humorLevel',
+          label: 'Grok Humor Level',
+          type: 'number',
+          defaultValue: 0.5,
+          min: 0,
+          max: 1,
+          description: 'Control the "fun" level of responses'
+        },
+        {
+          key: 'chainOfThought',
+          label: 'Chain of Thought',
+          type: 'boolean',
+          defaultValue: false,
+          description: 'Show internal reasoning before final response'
+        },
+        {
+          key: 'sarcasmMode',
+          label: 'Sarcasm Mode',
+          type: 'boolean',
+          defaultValue: false,
+          description: 'Enable Grok\'s signature sarcastic personality'
+        },
+        {
+          key: 'funFactFrequency',
+          label: 'Fun Fact Frequency',
+          type: 'number',
+          defaultValue: 0.2,
+          min: 0,
+          max: 1,
+          description: 'How often Grok injects random fun facts into the conversation'
         }
       ],
       'seed-dance': [
@@ -1079,8 +1223,49 @@ export class AddonManager {
           defaultValue: 0.5,
           min: 0.1,
           max: 1.0,
-          description: 'Amount of motion in generated videos (0.1 - 1.0)',
+          description: 'Intensity of movement in generated video',
           validation: (value: unknown): boolean => typeof value === 'number' && value >= 0.1 && value <= 1.0
+        },
+        {
+          key: 'videoDuration',
+          label: 'Duration (Seconds)',
+          type: 'select',
+          defaultValue: '5',
+          description: 'Length of the generated clip',
+          options: [
+            { label: '3 Seconds', value: '3' },
+            { label: '5 Seconds', value: '5' },
+            { label: '10 Seconds (Beta)', value: '10' }
+          ]
+        },
+        {
+          key: 'cameraMovement',
+          label: 'Camera Movement',
+          type: 'select',
+          defaultValue: 'static',
+          description: 'Automatic camera motion',
+          options: [
+            { label: 'Static', value: 'static' },
+            { label: 'Zoom In', value: 'zoom_in' },
+            { label: 'Zoom Out', value: 'zoom_out' },
+            { label: 'Pan Left', value: 'pan_left' },
+            { label: 'Pan Right', value: 'pan_right' },
+            { label: 'Crane Up', value: 'crane_up' }
+          ]
+        },
+        {
+          key: 'viralOptimization',
+          label: 'Viral Clip Optimization',
+          type: 'boolean',
+          defaultValue: true,
+          description: 'Optimize video for short-form social media (Reels/TikTok)'
+        },
+        {
+          key: 'automaticSubtitles',
+          label: 'Automatic Subtitles',
+          type: 'boolean',
+          defaultValue: false,
+          description: 'Generate dynamic animated subtitles'
         }
       ]
     };

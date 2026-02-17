@@ -132,7 +132,8 @@ except ImportError:
 
 
 # Initialize shared storage with LRU cache (max 1000 shot entries)
-shot_storage = JSONFileStorage("./data/shots", max_cache_size=1000)
+# Index by project_id for efficient project-based queries
+shot_storage = JSONFileStorage("./data/shots", max_cache_size=1000, index_field="project_id")
 
 
 @router.post("/shots", response_model=ShotResponse, status_code=status.HTTP_201_CREATED)
@@ -391,23 +392,24 @@ async def list_project_shots(
     
     # Validate project exists and user has access
     if PROJECT_API_AVAILABLE:
-        project = load_project(project_id)
-        if not project:
+        project_data = project_storage.load(project_id) if 'load_project' not in globals() else load_project(project_id)
+        # Using project_storage.load() directly if load_project wrapper is elusive
+        if not project_data and PROJECT_API_AVAILABLE and 'project_storage' in globals():
+             project_data = project_storage.load(project_id)
+
+        if not project_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Project not found"
             )
-        if project.get("owner_id") != user_id and not project.get("is_public"):
+        if project_data.get("owner_id") != user_id and not project_data.get("is_public"):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied to this project"
             )
     
-    # Filter shots by project
-    project_shots = [
-        s for s in shots_db.values()
-        if s.get("project_id") == project_id
-    ]
+    # Filter shots by project using storage index
+    project_shots = shot_storage.get_by_owner(project_id)
     
     # Apply status filter
     if status_filter:

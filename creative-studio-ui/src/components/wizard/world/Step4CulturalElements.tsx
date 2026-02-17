@@ -193,6 +193,32 @@ Example format:
     }
   };
 
+  // Helper function to extract string from various formats
+  const extractStringValue = (item: unknown): string => {
+    if (typeof item === 'string') {
+      return item;
+    }
+    if (typeof item === 'object' && item !== null) {
+      const obj = item as Record<string, unknown>;
+      // If it has a 'name' property, use that
+      if (typeof obj.name === 'string') {
+        return obj.name;
+      }
+      // If it has a 'description' property, use that
+      if (typeof obj.description === 'string') {
+        return obj.description;
+      }
+      // Otherwise, try to stringify
+      return JSON.stringify(obj);
+    }
+    return String(item);
+  };
+
+  // Helper function to normalize array items to strings
+  const normalizeArray = (arr: unknown[]): string[] => {
+    return arr.map(item => extractStringValue(item)).filter(Boolean);
+  };
+
   const parseLLMCulturalElements = (response: string): CulturalElements => {
     if (!response || response.trim().length === 0) {
       return {
@@ -220,11 +246,11 @@ Example format:
           ;
 
           const elements = {
-            languages: Array.isArray(parsed.languages) ? parsed.languages : [],
-            religions: Array.isArray(parsed.religions) ? parsed.religions : [],
-            traditions: Array.isArray(parsed.traditions) ? parsed.traditions : [],
-            historicalEvents: Array.isArray(parsed.historicalEvents) ? parsed.historicalEvents : [],
-            culturalConflicts: Array.isArray(parsed.culturalConflicts) ? parsed.culturalConflicts : [],
+            languages: Array.isArray(parsed.languages) ? normalizeArray(parsed.languages) : [],
+            religions: Array.isArray(parsed.religions) ? normalizeArray(parsed.religions) : [],
+            traditions: Array.isArray(parsed.traditions) ? normalizeArray(parsed.traditions) : [],
+            historicalEvents: Array.isArray(parsed.historicalEvents) ? normalizeArray(parsed.historicalEvents) : [],
+            culturalConflicts: Array.isArray(parsed.culturalConflicts) ? normalizeArray(parsed.culturalConflicts) : [],
           };
 
           ;

@@ -100,7 +100,7 @@ export interface PerformanceReport {
 }
 
 export interface PerformanceMetric {
-  type: 'timer' | 'memory' | 'inheritance' | 'replication' | 'consistency';
+  type: 'timer' | 'memory' | 'inheritance' | 'replication' | 'consistency' | 'cache';
   operation: string;
   value: number;
   metadata?: Record<string, unknown>;
@@ -126,7 +126,7 @@ export class PerformanceMonitoringService {
   constructor(config: Partial<PerformanceMonitoringConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.enabled = this.config.enabled;
-    
+
     if (this.enabled && typeof window !== 'undefined') {
       this.startMemoryTracking();
     }
@@ -202,7 +202,7 @@ export class PerformanceMonitoringService {
   createTimer(operation: string): { stop: (metadata?: Record<string, unknown>) => number } {
     const id = uuidv4();
     this.startTimer(id, operation);
-    
+
     return {
       stop: (metadata?: Record<string, unknown>): number => {
         return this.endTimer(id, metadata);
@@ -224,11 +224,11 @@ export class PerformanceMonitoringService {
   ): Promise<{ result: T; duration: number }> {
     const timer = this.createTimer(operation);
     const startMemory = this.getMemoryUsage();
-    
+
     try {
       const result = await fn();
       const duration = timer.stop({ ...metadata, success: true });
-      
+
       return { result, duration };
     } catch (error) {
       timer.stop({ ...metadata, success: false, error: String(error) });
@@ -246,12 +246,12 @@ export class PerformanceMonitoringService {
    */
   trackMemoryUsage(): MemorySnapshot | null {
     if (typeof window === 'undefined') return null;
-    
+
     const perf = window.performance as unknown as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } };
     if (!perf.memory) return null;
-    
+
     const memory = perf.memory;
-    
+
     const snapshot: MemorySnapshot = {
       timestamp: Date.now(),
       heapUsed: memory.usedJSHeapSize,
@@ -567,7 +567,7 @@ export class PerformanceMonitoringService {
    */
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
-    
+
     if (enabled) {
       this.startMemoryTracking();
     } else {
@@ -644,11 +644,11 @@ export function resetPerformanceMonitoringService(): void {
  */
 export function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
@@ -661,7 +661,7 @@ export function formatDuration(ms: number): string {
   if (ms < 1) return `${(ms * 1000).toFixed(2)}μs`;
   if (ms < 1000) return `${ms.toFixed(2)}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(2)}s`;
-  
+
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
   return `${minutes}m ${seconds}s`;

@@ -11,7 +11,7 @@ jest.mock('@/hooks/use-toast', () => ({
   useToast: () => ({
     toast: jest.fn(),
   }),
-});
+}));
 
 // Helper to create a store with a selected shot
 const createTestStore = () => {

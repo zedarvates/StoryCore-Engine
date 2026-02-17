@@ -1833,7 +1833,7 @@ const execOptions: {
       }
 
       // Check for required subdirectories
-      const requiredDirs = ['sequences', 'characters', 'worlds', 'assets'];
+      const requiredDirs = ['sequences', 'characters', 'worlds', 'assets', 'story'];
       for (const dir of requiredDirs) {
         const dirPath = path.join(projectPath, dir);
         if (!fs.existsSync(dirPath)) {

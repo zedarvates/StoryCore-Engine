@@ -25,12 +25,17 @@ import {
   formatSnapshotTimestamp,
   type RecoverySnapshot,
 } from '../services/projectRecovery';
+import type { Shot, Track, AssetCategory } from '../types';
 
 export interface UseProjectRecoveryResult {
   hasCrashedSession: boolean;
+  hasRecovery: boolean;
   recoverySnapshots: RecoverySnapshot[];
+  showRecoveryDialog: boolean;
   recoverFromSnapshot: (snapshotId: string) => Promise<void>;
+  handleRecover: (snapshotId: string) => Promise<void>;
   dismissCrashRecovery: () => void;
+  handleDismiss: () => void;
   deleteSnapshot: (snapshotId: string) => void;
   clearAllSnapshots: () => void;
   formatTimestamp: (timestamp: string) => string;
@@ -106,10 +111,10 @@ export function useProjectRecovery(): UseProjectRecoveryResult {
       // Restore timeline state
       if (projectData.timeline) {
         if (projectData.timeline.shots) {
-          dispatch(reorderShots(projectData.timeline.shots));
+          dispatch(reorderShots(projectData.timeline.shots as Shot[]));
         }
         if (projectData.timeline.tracks) {
-          dispatch(reorderTracks(projectData.timeline.tracks));
+          dispatch(reorderTracks(projectData.timeline.tracks as Track[]));
         }
         if (typeof projectData.timeline.playheadPosition === 'number') {
           dispatch(setPlayheadPosition(projectData.timeline.playheadPosition));
@@ -125,7 +130,7 @@ export function useProjectRecovery(): UseProjectRecoveryResult {
       // Restore assets state
       if (projectData.assets) {
         if (projectData.assets.categories) {
-          dispatch(loadAssets(projectData.assets.categories));
+          dispatch(loadAssets(projectData.assets.categories as AssetCategory[]));
         }
         if (projectData.assets.activeCategory) {
           dispatch(setActiveCategory(projectData.assets.activeCategory));
@@ -141,7 +146,7 @@ export function useProjectRecovery(): UseProjectRecoveryResult {
           dispatch(setPanelLayout(projectData.panels.layout));
         }
         if (projectData.panels.activePanel) {
-          dispatch(setActivePanel(projectData.panels.activePanel));
+          dispatch(setActivePanel(projectData.panels.activePanel as 'assetLibrary' | 'preview' | 'shotConfig' | 'timeline' | null));
         }
         if (projectData.panels.shotConfigTarget) {
           dispatch(setShotConfigTarget(projectData.panels.shotConfigTarget));
@@ -201,11 +206,19 @@ export function useProjectRecovery(): UseProjectRecoveryResult {
     return formatSnapshotTimestamp(timestamp);
   }, []);
   
+  // Derived state for compatibility
+  const hasRecovery = hasCrashedSession || recoverySnapshots.length > 0;
+  const showRecoveryDialog = hasRecovery;
+  
   return {
     hasCrashedSession,
+    hasRecovery,
     recoverySnapshots,
+    showRecoveryDialog,
     recoverFromSnapshot,
+    handleRecover: recoverFromSnapshot,
     dismissCrashRecovery,
+    handleDismiss: dismissCrashRecovery,
     deleteSnapshot,
     clearAllSnapshots,
     formatTimestamp,

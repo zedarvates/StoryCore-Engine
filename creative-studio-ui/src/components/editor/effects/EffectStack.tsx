@@ -12,21 +12,9 @@ import {
   MoveUp,
   MoveDown,
 } from 'lucide-react';
-import { Effect, EffectParameter } from './EffectsLibrary';
+import { AppliedEffect, EffectParameter, EffectStackProps } from '../../../types/effect';
 import './EffectStack.css';
 
-interface AppliedEffect extends Effect {
-  enabled: boolean;
-  order: number;
-}
-
-interface EffectStackProps {
-  effects: AppliedEffect[];
-  onEffectsChange: (effects: AppliedEffect[]) => void;
-  onEffectSelect: (effect: AppliedEffect) => void;
-  selectedEffectId?: string;
-  className?: string;
-}
 
 export const EffectStack: React.FC<EffectStackProps> = ({
   effects,
@@ -48,7 +36,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
   };
 
   const toggleEffectEnabled = (effectId: string) => {
-    const updatedEffects = effects.map(effect =>
+    const updatedEffects = effects.map((effect: AppliedEffect) =>
       effect.id === effectId
         ? { ...effect, enabled: !effect.enabled }
         : effect
@@ -57,12 +45,12 @@ export const EffectStack: React.FC<EffectStackProps> = ({
   };
 
   const removeEffect = (effectId: string) => {
-    const updatedEffects = effects.filter(effect => effect.id !== effectId);
+    const updatedEffects = effects.filter((effect: AppliedEffect) => effect.id !== effectId);
     onEffectsChange(updatedEffects);
   };
 
   const moveEffect = (effectId: string, direction: 'up' | 'down') => {
-    const currentIndex = effects.findIndex(effect => effect.id === effectId);
+    const currentIndex = effects.findIndex((effect: AppliedEffect) => effect.id === effectId);
     if (currentIndex === -1) return;
 
     const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
@@ -73,7 +61,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
     updatedEffects.splice(newIndex, 0, movedEffect);
 
     // Update order values
-    const reorderedEffects = updatedEffects.map((effect, index) => ({
+    const reorderedEffects = updatedEffects.map((effect: AppliedEffect, index: number) => ({
       ...effect,
       order: index
     }));
@@ -82,7 +70,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
   };
 
   const duplicateEffect = (effectId: string) => {
-    const effectToDuplicate = effects.find(effect => effect.id === effectId);
+    const effectToDuplicate = effects.find((effect: AppliedEffect) => effect.id === effectId);
     if (!effectToDuplicate) return;
 
     const duplicatedEffect: AppliedEffect = {
@@ -96,14 +84,14 @@ export const EffectStack: React.FC<EffectStackProps> = ({
   };
 
   const updateEffectParameter = (effectId: string, paramId: string, value: unknown) => {
-    const updatedEffects = effects.map(effect =>
+    const updatedEffects = effects.map((effect: AppliedEffect) =>
       effect.id === effectId
         ? {
-            ...effect,
-            parameters: effect.parameters.map(param =>
-              param.id === paramId ? { ...param, value } : param
-            )
-          }
+          ...effect,
+          parameters: effect.parameters.map((param: EffectParameter) =>
+            param.id === paramId ? { ...param, value } : param
+          )
+        }
         : effect
     );
     onEffectsChange(updatedEffects);
@@ -225,7 +213,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
           </div>
         ) : (
           <div className="effects-list">
-            {effects.map((effect, index) => (
+            {effects.map((effect: AppliedEffect, index: number) => (
               <div
                 key={effect.id}
                 className={`effect-item ${selectedEffectId === effect.id ? 'selected' : ''} ${!effect.enabled ? 'disabled' : ''}`}

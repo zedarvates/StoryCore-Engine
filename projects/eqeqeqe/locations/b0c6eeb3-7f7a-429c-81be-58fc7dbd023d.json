@@ -1,0 +1,18 @@
+{
+  "location_id": "b0c6eeb3-7f7a-429c-81be-58fc7dbd023d",
+  "name": "The Undercroft",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T06:54:53.172Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A labyrinthine network of damp, dimly lit tunnels and caverns beneath the city's streets. Flickering torches cast eerie shadows on the walls as the air clings to the stench of rot and decay.",
+    "atmosphere": "Creepy, claustrophobic, thick with the weight of hidden dangers",
+    "genre_tags": [],
+    "significance": "A hub of illicit activity, where smugglers, thieves, and assassins plot and carry out their darkest deeds in secret."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

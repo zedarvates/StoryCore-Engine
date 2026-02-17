@@ -91,10 +91,10 @@ export class ExampleWorkflowManager {
       // In a real implementation, this would execute the actual step
       workflow.currentStep++;
       this.recordOperation('step', `Executed step: ${stepId}`, workflowId, stepId);
-      
+
       return { success: true, stepId, result: `Step "${stepId}" executed` };
     }
-    
+
     return { success: false, error: 'Workflow not running' };
   }
 
@@ -195,11 +195,11 @@ export class ExampleWorkflowManager {
    */
   private isValidExampleWorkflowState(state: unknown): state is ExampleWorkflowState {
     return (
-      state &&
+      state !== null &&
       typeof state === 'object' &&
-      state.config &&
-      typeof state.version === 'string' &&
-      typeof state.lastModified === 'string'
+      (state as any).config &&
+      typeof (state as any).version === 'string' &&
+      typeof (state as any).lastModified === 'string'
     );
   }
 
@@ -213,8 +213,8 @@ export class ExampleWorkflowManager {
     const workflow = this.workflows[workflowId];
     if (!workflow) return { progress: 0, completed: false };
 
-    const progress = workflow.totalSteps > 0 
-      ? (workflow.currentStep / workflow.totalSteps) * 100 
+    const progress = workflow.totalSteps > 0
+      ? (workflow.currentStep / workflow.totalSteps) * 100
       : 0;
 
     return {

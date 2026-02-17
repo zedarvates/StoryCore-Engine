@@ -72,7 +72,7 @@ const DEFAULT_TEMPLATE: ProjectTemplate = {
       quality_threshold: 100,
     },
   },
-  directories: ['sequences', 'scenes', 'characters', 'worlds', 'assets'],
+  directories: ['sequences', 'scenes', 'characters', 'worlds', 'assets', 'story'],
   files: {
     'README.md': `# {PROJECT_NAME}
 

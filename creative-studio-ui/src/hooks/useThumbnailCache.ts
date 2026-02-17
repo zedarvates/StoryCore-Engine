@@ -6,11 +6,11 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  ThumbnailCache, 
+import {
+  ThumbnailCache,
   type ThumbnailCacheConfig,
   type CacheEntry,
-  type CacheStats 
+  type CacheStats
 } from '@/services/ThumbnailCache';
 
 // ============================================================================
@@ -136,6 +136,76 @@ export function useThumbnailCache(config?: ThumbnailCacheConfig): UseThumbnailCa
     preloadThumbnails,
     preloadAdjacent,
   };
+}
+
+/**
+ * Hook for fetching a specific video thumbnail
+ * Matches the signature expected by ThumbnailPreview
+ */
+export function useVideoThumbnail(
+  videoUrl: string,
+  time: number,
+  options: {
+    quality?: string;
+    preloadAdjacent?: boolean;
+    framerate?: number
+  } = {}
+) {
+  const { getThumbnail, preloadAdjacent } = useThumbnailCache();
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const load = useCallback(async () => {
+    if (!videoUrl) {
+      setThumbnailUrl(null);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const blob = await getThumbnail(videoUrl, time, options.quality);
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        setThumbnailUrl(prev => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
+      } else {
+        setThumbnailUrl(null);
+      }
+
+      if (options.preloadAdjacent && options.framerate) {
+        // Fire and forget preload
+        preloadAdjacent(videoUrl, time, options.framerate, options.quality).catch(console.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [videoUrl, time, options.quality, options.preloadAdjacent, options.framerate, getThumbnail, preloadAdjacent]);
+
+  useEffect(() => {
+    load();
+    return () => {
+      // Cleanup is handled in state updater or new load
+    };
+  }, [load]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      setThumbnailUrl(prev => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
+  }, []);
+
+  return { thumbnailUrl, isLoading, error, reload: load };
 }
 
 // ============================================================================
@@ -311,7 +381,7 @@ export function useThumbnailCacheClear(): UseThumbnailCacheClearReturn {
   useEffect(() => {
     const unsubscribe = cache.subscribeToCacheClear((cleared) => {
       setCacheCleared(cleared);
-      
+
       // Reset flag after 3 seconds
       if (cleared) {
         setTimeout(() => setCacheCleared(false), 3000);

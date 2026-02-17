@@ -41,26 +41,26 @@ interface StoreActions {
   // Project actions
   setProject: (project: Project | null) => void;
   updateProject: (updates: Partial<Project>) => void;
-  
+
   // Shot actions
   addShot: (shot: Shot) => void;
   updateShot: (id: string, updates: Partial<Shot>) => void;
   deleteShot: (id: string) => void;
   reorderShots: (shots: Shot[]) => void;
   selectShot: (id: string | null) => void;
-  
+
   // Asset actions
   addAsset: (asset: Asset) => void;
   updateAsset: (id: string, updates: Partial<Asset>) => void;
   deleteAsset: (id: string) => void;
-  
+
   // World actions
   addWorld: (world: World) => void;
   updateWorld: (id: string, updates: Partial<World>) => void;
   deleteWorld: (id: string) => void;
   selectWorld: (id: string | null) => void;
   getWorldById: (id: string) => World | undefined;
-  
+
   // Character actions
   addCharacter: (character: Character) => void;
   updateCharacter: (id: string, updates: Partial<Character>) => void;
@@ -68,7 +68,7 @@ interface StoreActions {
   getCharacterById: (id: string) => Character | undefined;
   getAllCharacters: () => Character[];
   setCharacters: (characters: Character[]) => void; // Bulk set for project loading
-  
+
   // Object actions
   addObject: (object: StoryObject) => void;
   updateObject: (id: string, updates: Partial<StoryObject>) => void;
@@ -76,46 +76,46 @@ interface StoreActions {
   getObjectById: (id: string) => StoryObject | undefined;
   getAllObjects: () => StoryObject[];
   setObjects: (objects: StoryObject[]) => void; // Bulk set for project loading
-  
+
   // Story actions
   addStory: (story: Story) => void;
   updateStory: (id: string, updates: Partial<Story>) => void;
   deleteStory: (id: string) => void;
   getStoryById: (id: string) => Story | undefined;
   getAllStories: () => Story[];
-  
+
   // Story version actions
   createVersion: (storyId: string, changes: string) => void;
   getVersionsByStoryId: (storyId: string) => StoryVersion[];
   loadVersion: (versionId: string) => void;
-  
+
   // Wizard integration actions
   completeWizard: (output: WizardOutput, projectPath: string) => Promise<void>;
-  
+
   // Audio track actions
   addAudioTrack: (shotId: string, track: AudioTrack) => void;
   updateAudioTrack: (shotId: string, trackId: string, updates: Partial<AudioTrack>) => void;
   deleteAudioTrack: (shotId: string, trackId: string) => void;
-  
+
   // Effect actions
   addEffect: (shotId: string, effect: Effect) => void;
   updateEffect: (shotId: string, effectId: string, updates: Partial<Effect>) => void;
   deleteEffect: (shotId: string, effectId: string) => void;
   reorderEffects: (shotId: string, effects: Effect[]) => void;
-  
+
   // Text layer actions
   addTextLayer: (shotId: string, layer: TextLayer) => void;
   updateTextLayer: (shotId: string, layerId: string, updates: Partial<TextLayer>) => void;
   deleteTextLayer: (shotId: string, layerId: string) => void;
-  
+
   // Animation actions
   addAnimation: (shotId: string, animation: Animation) => void;
   updateAnimation: (shotId: string, animationId: string, updates: Partial<Animation>) => void;
   deleteAnimation: (shotId: string, animationId: string) => void;
-  
+
   // Transition actions
   setTransition: (shotId: string, transition: Transition | undefined) => void;
-  
+
   // Task queue actions
   addTask: (task: GenerationTask) => void;
   updateTask: (taskId: string, updates: Partial<GenerationTask>) => void;
@@ -123,24 +123,24 @@ interface StoreActions {
   moveTaskUp: (taskId: string) => void;
   moveTaskDown: (taskId: string) => void;
   reorderTasks: (tasks: GenerationTask[]) => void;
-  
+
   // UI state actions
   setShowChat: (show: boolean) => void;
   setShowTaskQueue: (show: boolean) => void;
   setPanelSizes: (sizes: PanelSizes) => void;
   setCurrentTime: (time: number) => void;
-  
+
   // Playback actions
   play: () => void;
   pause: () => void;
   stop: () => void;
   setPlaybackSpeed: (speed: number) => void;
-  
+
   // Selection actions
   selectEffect: (id: string | null) => void;
   selectTextLayer: (id: string | null) => void;
   selectKeyframe: (id: string | null) => void;
-  
+
   // Undo/Redo actions (will be implemented in next subtask)
   undo: () => void;
   redo: () => void;
@@ -216,43 +216,43 @@ export const useStore = create<Store>()(
           // When setting a project, also sync its characters to the store's characters state
           const characters = project?.characters || [];
           Logger.info(`📦 [Store] Setting project with ${characters.length} characters`);
-          return { 
+          return {
             project,
             characters: characters as Character[]
           };
         }),
-        
+
         updateProject: (updates: Partial<Project>) =>
           set((state) => {
             if (!state.project) return { project: null };
-            
+
             const updatedProject = { ...state.project, ...updates };
-            
+
             // Synchroniser les arrays si le projet a changé
             const newState: Partial<AppState> = {
               project: updatedProject,
             };
-            
+
             // Si les caractères ont changé dans le projet
             if (updates.characters) {
               newState.characters = updates.characters as Character[];
             }
-            
+
             // Si les mondes ont changé dans le projet
             if (updates.worlds) {
               newState.worlds = updates.worlds as World[];
             }
-            
+
             // Si les histoires ont changé dans le projet
             if (updates.stories) {
               newState.stories = updates.stories as Story[];
             }
-            
+
             // Si les shots ont changé dans le projet
             if (updates.shots) {
               newState.shots = updates.shots as Shot[];
             }
-            
+
             return newState;
           }),
 
@@ -307,15 +307,15 @@ export const useStore = create<Store>()(
         addWorld: (world) =>
           set((state) => {
             const newWorlds = [...state.worlds, world];
-            
+
             // Update project with new world
             const updatedProject = state.project
               ? {
-                  ...state.project,
-                  worlds: newWorlds,
-                  // Auto-select first world if none selected
-                  selectedWorldId: state.selectedWorldId || world.id,
-                }
+                ...state.project,
+                worlds: newWorlds,
+                // Auto-select first world if none selected
+                selectedWorldId: state.selectedWorldId || world.id,
+              }
               : null;
 
             // Persist to localStorage
@@ -390,17 +390,17 @@ export const useStore = create<Store>()(
           set((state) => {
             const deletedWorld = state.worlds.find((w) => w.id === id);
             const filteredWorlds = state.worlds.filter((world) => world.id !== id);
-            
+
             // Update project
             const updatedProject = state.project
               ? {
-                  ...state.project,
-                  worlds: filteredWorlds,
-                  selectedWorldId:
-                    state.selectedWorldId === id
-                      ? filteredWorlds[0]?.id || null
-                      : state.selectedWorldId,
-                }
+                ...state.project,
+                worlds: filteredWorlds,
+                selectedWorldId:
+                  state.selectedWorldId === id
+                    ? filteredWorlds[0]?.id || null
+                    : state.selectedWorldId,
+              }
               : null;
 
             // Persist to localStorage
@@ -438,7 +438,7 @@ export const useStore = create<Store>()(
         selectWorld: (id) =>
           set((state) => {
             const selectedWorld = id ? state.worlds.find((w) => w.id === id) : null;
-            
+
             // Update project with selected world
             const updatedProject = state.project
               ? { ...state.project, selectedWorldId: id }
@@ -472,10 +472,10 @@ export const useStore = create<Store>()(
             const existingIndex = state.characters.findIndex(
               (c) => c.character_id === character.character_id
             );
-            
+
             let newCharacters;
             let eventType: typeof WizardEventType[keyof typeof WizardEventType];
-            
+
             if (existingIndex >= 0) {
               // Character already exists - update it instead of adding duplicate
               Logger.info(`[Store] Character "${character.name}" (${character.character_id}) already exists, updating instead of duplicating`);
@@ -488,13 +488,13 @@ export const useStore = create<Store>()(
               newCharacters = [...state.characters, character];
               eventType = WizardEventType.CHARACTER_CREATED;
             }
-            
+
             // Also update the project's characters array
             const updatedProject = state.project ? {
               ...state.project,
               characters: newCharacters
             } : null;
-            
+
             // Persist to localStorage
             if (state.project) {
               try {
@@ -580,13 +580,13 @@ export const useStore = create<Store>()(
             const filteredCharacters = state.characters.filter(
               (character) => character.character_id !== id
             );
-            
+
             // Also update the project's characters array
             const updatedProject = state.project ? {
               ...state.project,
               characters: filteredCharacters
             } : null;
-            
+
             // Persist to localStorage
             if (state.project) {
               try {
@@ -651,9 +651,9 @@ export const useStore = create<Store>()(
             const existingIndex = state.objects.findIndex(
               (o) => o.id === object.id
             );
-            
+
             let newObjects;
-            
+
             if (existingIndex >= 0) {
               // Object already exists - update it instead of adding duplicate
               Logger.info(`[Store] Object "${object.name}" (${object.id}) already exists, updating instead of duplicating`);
@@ -664,13 +664,13 @@ export const useStore = create<Store>()(
               // New object - add it
               newObjects = [...state.objects, object];
             }
-            
+
             // Also update the project's objects array
             const updatedProject = state.project ? {
               ...state.project,
               objects: newObjects
             } : null;
-            
+
             // Persist to localStorage
             if (state.project) {
               try {
@@ -778,7 +778,7 @@ export const useStore = create<Store>()(
         addStory: (story) =>
           set((state) => {
             const newStories = [...state.stories, story];
-            
+
             // Persist to localStorage
             if (state.project) {
               try {
@@ -799,9 +799,9 @@ export const useStore = create<Store>()(
         updateStory: (id, updates) =>
           set((state) => {
             const originalStory = state.stories.find((s) => s.id === id);
-            
+
             // Check if content or summary is being modified
-            const isContentModified = 
+            const isContentModified =
               (updates.content && updates.content !== originalStory?.content) ||
               (updates.summary && updates.summary !== originalStory?.summary);
 
@@ -835,12 +835,12 @@ export const useStore = create<Store>()(
             // Update story with incremented version if content changed
             const updatedStories = state.stories.map((story) =>
               story.id === id
-                ? { 
-                    ...story, 
-                    ...updates, 
-                    updatedAt: new Date(),
-                    version: isContentModified ? story.version + 1 : story.version,
-                  }
+                ? {
+                  ...story,
+                  ...updates,
+                  updatedAt: new Date(),
+                  version: isContentModified ? story.version + 1 : story.version,
+                }
                 : story
             );
 
@@ -867,7 +867,7 @@ export const useStore = create<Store>()(
             const filteredStories = state.stories.filter(
               (story) => story.id !== id
             );
-            
+
             // Persist to localStorage
             if (state.project) {
               try {
@@ -953,11 +953,11 @@ export const useStore = create<Store>()(
             const updatedStories = state.stories.map((story) =>
               story.id === version.storyId
                 ? {
-                    ...story,
-                    content: version.content,
-                    summary: version.summary,
-                    updatedAt: new Date(),
-                  }
+                  ...story,
+                  content: version.content,
+                  summary: version.summary,
+                  updatedAt: new Date(),
+                }
                 : story
             );
 
@@ -983,18 +983,18 @@ export const useStore = create<Store>()(
         // ====================================================================
         completeWizard: async (output, projectPath) => {
           const wizardService = getWizardService();
-          
+
           try {
             // Validation 1: Vérifier output
             if (!output || !output.type || !output.data) {
               throw new Error('Invalid wizard output: missing required fields (type, data)');
             }
-            
+
             // Validation 2: Vérifier projectPath
             if (!projectPath || typeof projectPath !== 'string') {
               throw new Error('Invalid project path: must be a non-empty string');
             }
-            
+
             // Validation 3: Vérifier les données spécifiques par type
             if (output.type === 'character') {
               const charData = output.data as Record<string, unknown>;
@@ -1002,16 +1002,16 @@ export const useStore = create<Store>()(
                 throw new Error('Invalid character data: missing id or name');
               }
             }
-            
+
             // Save wizard output to file system
             await wizardService.saveWizardOutput(output, projectPath);
-            
+
             // Update project.json with new content references
             await wizardService.updateProjectData(projectPath, output);
-            
+
             // Update store based on wizard type
             const state = get();
-            
+
             switch (output.type) {
               case 'character':
                 // Add character to store (Requirements: 3.4, 3.5, 3.6, 12.1)
@@ -1021,7 +1021,7 @@ export const useStore = create<Store>()(
                 const visualIdentity = charData.visual_identity || charData.visual_attributes || {};
                 const personalityData = charData.personality || {};
                 const backgroundData = charData.background || {};
-                
+
                 const character: Character = {
                   character_id: charData.id,
                   name: charData.name,
@@ -1043,46 +1043,44 @@ export const useStore = create<Store>()(
                     distinctive_features: visualIdentity.distinctive_features || charData.distinctive_features || [],
                     // Age range (support both 'age' and 'age_range')
                     age_range: visualIdentity.age_range || visualIdentity.age || charData.age_range || charData.age || '',
+                    gender: visualIdentity.gender || charData.gender || '',
                     // Body
                     height: visualIdentity.height || charData.height || '',
                     build: visualIdentity.build || charData.build || '',
                     posture: visualIdentity.posture || charData.posture || '',
                     // Clothing (support both 'clothing' and 'clothing_style')
                     clothing_style: visualIdentity.clothing_style || visualIdentity.clothing || charData.clothing_style || charData.clothing || '',
-                    // Color palette
                     color_palette: visualIdentity.color_palette || charData.color_palette || [],
-                    // Reference images (required by type but optional for new characters)
-                    reference_images: [],
-                    reference_sheet_images: [],
+                    reference_images: visualIdentity.reference_images || [],
+                    reference_sheet_images: visualIdentity.reference_sheet_images || [],
                   },
                   personality: {
-                    traits: personalityData.traits || charData.traits || [],
-                    values: personalityData.values || charData.values || [],
-                    fears: personalityData.fears || charData.fears || [],
-                    desires: personalityData.desires || charData.desires || [],
-                    flaws: personalityData.flaws || charData.flaws || [],
-                    strengths: personalityData.strengths || charData.strengths || [],
-                    temperament: personalityData.temperament || charData.temperament || '',
-                    communication_style: personalityData.communication_style || charData.dialogue_style || charData.communication_style || '',
+                    traits: personalityData.traits || [],
+                    values: personalityData.values || [],
+                    fears: personalityData.fears || [],
+                    desires: personalityData.desires || [],
+                    flaws: personalityData.flaws || [],
+                    strengths: personalityData.strengths || [],
+                    temperament: personalityData.temperament || '',
+                    communication_style: personalityData.communication_style || '',
                   },
                   background: {
-                    origin: backgroundData.origin || charData.origin || '',
-                    occupation: backgroundData.occupation || charData.occupation || '',
-                    education: backgroundData.education || charData.education || '',
-                    family: backgroundData.family || charData.family || '',
-                    significant_events: backgroundData.significant_events || charData.significant_events || [],
-                    current_situation: backgroundData.current_situation || charData.current_situation || '',
+                    origin: backgroundData.origin || '',
+                    occupation: backgroundData.occupation || '',
+                    education: backgroundData.education || '',
+                    family: backgroundData.family || '',
+                    significant_events: backgroundData.significant_events || [],
+                    current_situation: backgroundData.current_situation || '',
                   },
                   relationships: charData.relationships || [],
                   role: {
-                    archetype: charData.role?.archetype || charData.archetype || '',
-                    narrative_function: charData.role?.narrative_function || charData.narrative_function || '',
-                    character_arc: charData.role?.character_arc || charData.character_arc || '',
+                    archetype: charData.role?.archetype || '',
+                    narrative_function: charData.role?.narrative_function || '',
+                    character_arc: charData.role?.character_arc || '',
                   },
                 };
-                
                 state.addCharacter(character);
-                
+
                 // Add character reference image as asset
                 const charImageFile = output.files.find((f) => f.type === 'image');
                 if (charImageFile) {
@@ -1103,7 +1101,7 @@ export const useStore = create<Store>()(
                   state.addAsset(charAsset);
                 }
                 break;
-                
+
               case 'scene':
                 // Create shot entries from scene breakdown (Requirements: 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 12.2)
                 const sceneData = output.data as Record<string, any>;
@@ -1130,30 +1128,30 @@ export const useStore = create<Store>()(
                     },
                   };
                 });
-                
+
                 // Add shots to storyboard in correct order
                 newShots.forEach((shot) => state.addShot(shot));
                 break;
-                
+
               case 'storyboard':
                 // Generate images for each shot and create entries (Requirements: 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 12.3)
                 const storyboardData = output.data as Record<string, any>;
                 const storyboardShots = storyboardData.shots || [];
                 const mode = storyboardData.mode || 'append';
-                
+
                 // Handle replace vs append mode
                 if (mode === 'replace') {
                   // Clear existing shots
                   state.reorderShots([]);
                 }
-                
+
                 // Using type assertion for flexible shot data structures
                 const storyboardNewShots: Shot[] = storyboardShots.map((shotData: Record<string, any>, index: number) => {
                   const shotId = shotData.id || `shot_${Date.now()}_${index}`;
-                  const frameFile = output.files.find((f) => 
+                  const frameFile = output.files.find((f) =>
                     f.type === 'image' && f.path.includes(shotId)
                   );
-                  
+
                   return {
                     id: shotId,
                     title: shotData.title || `Shot ${index + 1}`,
@@ -1173,10 +1171,10 @@ export const useStore = create<Store>()(
                     },
                   };
                 });
-                
+
                 // Add shots to timeline
                 storyboardNewShots.forEach((shot) => state.addShot(shot));
-                
+
                 // Add frame images as assets
                 output.files.filter((f) => f.type === 'image').forEach((file) => {
                   const asset: Asset = {
@@ -1196,12 +1194,12 @@ export const useStore = create<Store>()(
                   state.addAsset(asset);
                 });
                 break;
-                
+
               case 'dialogue':
                 // Parse dialogue and add to shot metadata (Requirements: 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 12.4)
                 const dialogueData = output.data as Record<string, any>;
                 const dialogueTracks = dialogueData.dialogue_tracks || [];
-                
+
                 // Add dialogue to shots (assuming dialogue is associated with current shots)
                 const currentShots = state.shots;
                 // Using type assertion for flexible dialogue track structures
@@ -1232,7 +1230,7 @@ export const useStore = create<Store>()(
                   }
                 });
                 break;
-                
+
               case 'world':
                 // Save world definition and make available (Requirements: 7.2, 7.3, 7.4, 7.5, 12.5)
                 const worldData = output.data as Record<string, any>;
@@ -1260,16 +1258,16 @@ export const useStore = create<Store>()(
                   createdAt: new Date(worldData.created_at || Date.now()),
                   updatedAt: new Date(worldData.created_at || Date.now()),
                 };
-                
+
                 state.addWorld(world);
                 break;
-                
+
               case 'style':
                 // Save styled image and update shot metadata (Requirements: 8.2, 8.3, 8.4, 8.5, 8.6, 12.6)
                 const styleData = output.data as Record<string, any>;
                 const originalShotId = styleData.original_shot_id;
                 const styledFile = output.files.find((f) => f.type === 'image');
-                
+
                 if (styledFile) {
                   // Update shot with styled image reference
                   state.updateShot(originalShotId, {
@@ -1280,7 +1278,7 @@ export const useStore = create<Store>()(
                       original_preserved: true,
                     },
                   });
-                  
+
                   // Add styled image as asset
                   const styledAsset: Asset = {
                     id: `asset_${Date.now()}_${styledFile.filename}`,
@@ -1300,7 +1298,7 @@ export const useStore = create<Store>()(
                 }
                 break;
             }
-            
+
             // Wizard completion handled - capabilities already set in project
           } catch (error) {
             Logger.error('Failed to complete wizard:', error);
@@ -1325,11 +1323,11 @@ export const useStore = create<Store>()(
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    audioTracks: shot.audioTracks.map((track) =>
-                      track.id === trackId ? { ...track, ...updates } : track
-                    ),
-                  }
+                  ...shot,
+                  audioTracks: shot.audioTracks.map((track) =>
+                    track.id === trackId ? { ...track, ...updates } : track
+                  ),
+                }
                 : shot
             ),
           })),
@@ -1339,9 +1337,9 @@ export const useStore = create<Store>()(
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    audioTracks: shot.audioTracks.filter((track) => track.id !== trackId),
-                  }
+                  ...shot,
+                  audioTracks: shot.audioTracks.filter((track) => track.id !== trackId),
+                }
                 : shot
             ),
           })),
@@ -1363,11 +1361,11 @@ export const useStore = create<Store>()(
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    effects: shot.effects.map((effect) =>
-                      effect.id === effectId ? { ...effect, ...updates } : effect
-                    ),
-                  }
+                  ...shot,
+                  effects: shot.effects.map((effect) =>
+                    effect.id === effectId ? { ...effect, ...updates } : effect
+                  ),
+                }
                 : shot
             ),
           })),
@@ -1377,9 +1375,9 @@ export const useStore = create<Store>()(
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    effects: shot.effects.filter((effect) => effect.id !== effectId),
-                  }
+                  ...shot,
+                  effects: shot.effects.filter((effect) => effect.id !== effectId),
+                }
                 : shot
             ),
           })),
@@ -1408,11 +1406,11 @@ export const useStore = create<Store>()(
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    textLayers: shot.textLayers.map((layer) =>
-                      layer.id === layerId ? { ...layer, ...updates } : layer
-                    ),
-                  }
+                  ...shot,
+                  textLayers: shot.textLayers.map((layer) =>
+                    layer.id === layerId ? { ...layer, ...updates } : layer
+                  ),
+                }
                 : shot
             ),
           })),
@@ -1422,9 +1420,9 @@ export const useStore = create<Store>()(
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    textLayers: shot.textLayers.filter((layer) => layer.id !== layerId),
-                  }
+                  ...shot,
+                  textLayers: shot.textLayers.filter((layer) => layer.id !== layerId),
+                }
                 : shot
             ),
           })),
@@ -1446,11 +1444,11 @@ export const useStore = create<Store>()(
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    animations: shot.animations.map((animation) =>
-                      animation.id === animationId ? { ...animation, ...updates } : animation
-                    ),
-                  }
+                  ...shot,
+                  animations: shot.animations.map((animation) =>
+                    animation.id === animationId ? { ...animation, ...updates } : animation
+                  ),
+                }
                 : shot
             ),
           })),
@@ -1460,11 +1458,11 @@ export const useStore = create<Store>()(
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    animations: shot.animations.filter(
-                      (animation) => animation.id !== animationId
-                    ),
-                  }
+                  ...shot,
+                  animations: shot.animations.filter(
+                    (animation) => animation.id !== animationId
+                  ),
+                }
                 : shot
             ),
           })),
@@ -1570,10 +1568,10 @@ export const useStore = create<Store>()(
         undo: () => {
           const state = get();
           if (state.historyIndex <= 0) return;
-          
+
           const newIndex = state.historyIndex - 1;
           const previousState = state.history[newIndex];
-          
+
           set({
             shots: JSON.parse(JSON.stringify(previousState.shots)),
             project: previousState.project ? JSON.parse(JSON.stringify(previousState.project)) : null,
@@ -1587,10 +1585,10 @@ export const useStore = create<Store>()(
         redo: () => {
           const state = get();
           if (state.historyIndex >= state.history.length - 1) return;
-          
+
           const newIndex = state.historyIndex + 1;
           const nextState = state.history[newIndex];
-          
+
           set({
             shots: JSON.parse(JSON.stringify(nextState.shots)),
             project: nextState.project ? JSON.parse(JSON.stringify(nextState.project)) : null,
@@ -1605,12 +1603,12 @@ export const useStore = create<Store>()(
           const state = get();
           const newHistory = state.history.slice(0, state.historyIndex + 1);
           newHistory.push(snapshot);
-          
+
           // Keep only last 50 states
           if (newHistory.length > 50) {
             newHistory.shift();
           }
-          
+
           set({
             history: newHistory,
             historyIndex: newHistory.length - 1,

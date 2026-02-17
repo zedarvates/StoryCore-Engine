@@ -33,7 +33,7 @@ export function mapWizardDataToCharacter(
     creation_method: 'wizard',
     creation_timestamp: new Date().toISOString(),
     version: '1.0',
-    
+
     visual_identity: {
       hair_color: wizardData.visual_identity?.hair_color || '',
       hair_style: wizardData.visual_identity?.hair_style || '',
@@ -44,13 +44,16 @@ export function mapWizardDataToCharacter(
       facial_structure: wizardData.visual_identity?.facial_structure || '',
       distinctive_features: wizardData.visual_identity?.distinctive_features || [],
       age_range: wizardData.visual_identity?.age_range || '',
+      gender: wizardData.visual_identity?.gender || '',
       height: wizardData.visual_identity?.height || '',
       build: wizardData.visual_identity?.build || '',
       posture: wizardData.visual_identity?.posture || '',
       clothing_style: wizardData.visual_identity?.clothing_style || '',
       color_palette: wizardData.visual_identity?.color_palette || [],
+      reference_images: wizardData.visual_identity?.reference_images || [],
+      reference_sheet_images: wizardData.visual_identity?.reference_sheet_images || [],
     },
-    
+
     personality: {
       traits: wizardData.personality?.traits || [],
       values: wizardData.personality?.values || [],
@@ -61,7 +64,7 @@ export function mapWizardDataToCharacter(
       temperament: wizardData.personality?.temperament || '',
       communication_style: wizardData.personality?.communication_style || '',
     },
-    
+
     background: {
       origin: wizardData.background?.origin || '',
       occupation: wizardData.background?.occupation || '',
@@ -70,9 +73,9 @@ export function mapWizardDataToCharacter(
       significant_events: wizardData.background?.significant_events || [],
       current_situation: wizardData.background?.current_situation || '',
     },
-    
+
     relationships: wizardData.relationships || [],
-    
+
     role: {
       archetype: wizardData.role?.archetype || '',
       narrative_function: wizardData.role?.narrative_function || '',
@@ -149,12 +152,12 @@ export function formatCharacterForExport(character: Character): string {
 export function parseCharacterFromJSON(json: string): Character {
   try {
     const parsed = JSON.parse(json);
-    
+
     // Validate required fields
     if (!parsed.character_id || !parsed.name) {
       throw new Error('Invalid character JSON: missing required fields');
     }
-    
+
     return parsed as Character;
   } catch (error) {
     throw new Error(`Failed to parse character JSON: ${error}`);
@@ -166,15 +169,15 @@ export function parseCharacterFromJSON(json: string): Character {
  */
 export function getCharacterSummary(character: Character): string {
   const parts: string[] = [character.name];
-  
+
   if (character.role?.archetype) {
     parts.push(character.role.archetype);
   }
-  
+
   if (character.visual_identity?.age_range) {
     parts.push(character.visual_identity.age_range);
   }
-  
+
   return parts.join(' • ');
 }
 

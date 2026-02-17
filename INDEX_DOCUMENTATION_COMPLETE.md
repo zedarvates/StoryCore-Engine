@@ -2,349 +2,249 @@
 
 ## 🎯 Vue d'Ensemble
 
-Cette documentation couvre toutes les corrections appliquées à StoryCore Engine le 28 janvier 2026.
+StoryCore Engine est un pipeline de production multimodal auto-correcteur pour la création de vidéos cohérentes.
+
+**Dernière mise à jour:** 16 février 2026  
+**Version:** 1.0.0  
+**Statut:** ✅ Production Ready
+
+---
+
+## 🚀 Démarrage Rapide
+
+### Nouveau sur le projet ?
+1. **[START_HERE.md](START_HERE.md)** - Guide de démarrage par rôle
+2. **[README.md](README.md)** - Présentation du projet
+3. **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Commandes courantes
+
+### Installation rapide
+```bash
+git clone https://github.com/zedarvates/StoryCore-Engine.git
+cd storycore-engine
+npm install
+pip install -r requirements.txt
+npm run build
+npm run dev
+```
+
+---
 
 ## 📁 Structure de la Documentation
 
-```
-storycore-engine/
-├── QUICK_FIX_SUMMARY.md                    # Résumé ultra-rapide (30 sec)
-├── CORRECTIONS_COMPLETES_RESUME.md         # Résumé global complet
-├── RESUME_CORRECTIONS_I18N.md              # Vue d'ensemble I18n
-├── RESUME_CORRECTIONS_TEXTES.md            # Vue d'ensemble textes
-├── COMMIT_MESSAGE.txt                      # Message commit I18n
-├── COMMIT_MESSAGE_TEXTES.txt               # Message commit textes
-├── FICHIERS_CREES_I18N.md                  # Liste fichiers I18n
-└── INDEX_DOCUMENTATION_COMPLETE.md         # Ce fichier
+### 📄 Documentation Principale (Racine)
 
-creative-studio-ui/
-├── README_I18N_FIX.md                      # Point d'entrée I18n
-├── DOCUMENTATION_I18N_INDEX.md             # Index I18n détaillé
-├── TEST_I18N_FIX.md                        # Doc technique I18n
-├── CORRECTIONS_APPLIQUEES.md               # Rapport détaillé I18n
-├── GUIDE_TEST_RAPIDE.md                    # Guide test I18n
-├── CORRECTION_TEXTES_EMMELES.md            # Rapport détaillé textes
-├── TEST_CORRECTIONS_VISUELLES.md           # Guide test visuel
-├── test-i18n-fix.bat                       # Script test Windows
-└── test-i18n-fix.sh                        # Script test Linux/Mac
-```
+| Fichier | Description | Public |
+|---------|-------------|--------|
+| [README.md](README.md) | Présentation du projet | Tous |
+| [START_HERE.md](START_HERE.md) | Guide de démarrage par rôle | Tous |
+| [QUICK_REFERENCE.md](QUICK_REFERENCE.md) | Commandes courantes | Développeurs |
+| [CHANGELOG.md](CHANGELOG.md) | Historique des versions | Tous |
+| [ROADMAP.md](ROADMAP.md) | Feuille de route | Tous |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Guide de contribution | Contributeurs |
+| [SECURITY.md](SECURITY.md) | Politique de sécurité | Tous |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Guide de déploiement | DevOps |
 
-## 🚀 Par Où Commencer ?
+### 📂 Documentation Technique (`documentation/`)
 
-### Je veux comprendre rapidement
-→ **QUICK_FIX_SUMMARY.md** (30 secondes)
+#### Guides Utilisateurs
+| Fichier | Description |
+|---------|-------------|
+| [USER_GUIDE.md](documentation/USER_GUIDE.md) | Guide utilisateur complet |
+| [TECHNICAL_GUIDE.md](documentation/TECHNICAL_GUIDE.md) | Guide technique |
+| [TROUBLESHOOTING.md](documentation/TROUBLESHOOTING.md) | Dépannage |
+| [GETTING_STARTED_DEV.md](documentation/GETTING_STARTED_DEV.md) | Guide développeur |
 
-### Je veux une vue d'ensemble complète
-→ **CORRECTIONS_COMPLETES_RESUME.md** (5 minutes)
+#### Intégration ComfyUI
+| Fichier | Description |
+|---------|-------------|
+| [user_guide/comfyui_integration/COMFYUI_QUICK_START.md](documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md) | Démarrage rapide ComfyUI |
+| [user_guide/comfyui_integration/COMFYUI_DESKTOP_SETUP.md](documentation/user_guide/comfyui_integration/COMFYUI_DESKTOP_SETUP.md) | Configuration ComfyUI Desktop |
+| [user_guide/comfyui_integration/COMFYUI_PORT_REFERENCE.md](documentation/user_guide/comfyui_integration/COMFYUI_PORT_REFERENCE.md) | Référence des ports |
 
-### Je veux tester l'application
-→ **TEST_CORRECTIONS_VISUELLES.md** (15 minutes)
+#### Référence API
+| Fichier | Description |
+|---------|-------------|
+| [api_reference/README.md](documentation/api_reference/README.md) | Index API |
+| [api_reference/OVERVIEW.md](documentation/api_reference/OVERVIEW.md) | Vue d'ensemble |
+| [api_reference/ENDPOINTS.md](documentation/api_reference/ENDPOINTS.md) | Endpoints |
+| [api_reference/EXAMPLES.md](documentation/api_reference/EXAMPLES.md) | Exemples |
 
-### Je veux comprendre les détails techniques
-→ **TEST_I18N_FIX.md** + **CORRECTION_TEXTES_EMMELES.md** (30 minutes)
+#### Rapports
+| Fichier | Description |
+|---------|-------------|
+| [reports/BUILD_SUCCESS_SUMMARY.md](documentation/reports/BUILD_SUCCESS_SUMMARY.md) | Résumé du build |
+| [reports/BUILD_REPORT.md](documentation/reports/BUILD_REPORT.md) | Rapport de build détaillé |
+| [RELEASE_NOTES_2026_01_23.md](documentation/RELEASE_NOTES_2026_01_23.md) | Notes de version |
 
-### Je veux commiter les changements
-→ **COMMIT_MESSAGE.txt** + **COMMIT_MESSAGE_TEXTES.txt**
+#### Workflows Avancés
+| Fichier | Description |
+|---------|-------------|
+| [advanced-workflows/README.md](documentation/advanced-workflows/README.md) | Index des workflows |
+| [advanced-workflows/api-reference.md](documentation/advanced-workflows/api-reference.md) | Référence API |
+| [advanced-workflows/configuration-guide.md](documentation/advanced-workflows/configuration-guide.md) | Guide de configuration |
+| [advanced-workflows/error-handling-guide.md](documentation/advanced-workflows/error-handling-guide.md) | Gestion des erreurs |
 
-## 📖 Documentation par Sujet
-
-### 1. Correction I18n
-
-#### Démarrage Rapide
-- **QUICK_FIX_SUMMARY.md** - Résumé 30 secondes
-- **README_I18N_FIX.md** - Point d'entrée principal
-
-#### Documentation Technique
-- **TEST_I18N_FIX.md** - Explication technique complète
-- **CORRECTIONS_APPLIQUEES.md** - Rapport détaillé avec analyse
-
-#### Guides de Test
-- **GUIDE_TEST_RAPIDE.md** - Tests pas à pas
-- **test-i18n-fix.bat** - Script automatique Windows
-- **test-i18n-fix.sh** - Script automatique Linux/Mac
-
-#### Résumés et Index
-- **RESUME_CORRECTIONS_I18N.md** - Vue d'ensemble
-- **DOCUMENTATION_I18N_INDEX.md** - Index complet
-- **FICHIERS_CREES_I18N.md** - Liste des fichiers
-
-### 2. Correction Textes Emmêlés
-
-#### Documentation Technique
-- **CORRECTION_TEXTES_EMMELES.md** - Rapport détaillé
-
-#### Guides de Test
-- **TEST_CORRECTIONS_VISUELLES.md** - Tests visuels
-
-#### Résumés
-- **RESUME_CORRECTIONS_TEXTES.md** - Vue d'ensemble
-
-### 3. Documentation Globale
-
-#### Résumés Exécutifs
-- **CORRECTIONS_COMPLETES_RESUME.md** - Résumé global
-- **INDEX_DOCUMENTATION_COMPLETE.md** - Ce fichier
-
-#### Messages de Commit
-- **COMMIT_MESSAGE.txt** - Commit I18n
-- **COMMIT_MESSAGE_TEXTES.txt** - Commit textes
+---
 
 ## 🎯 Documentation par Rôle
 
-### Développeur
+### 👨‍💻 Développeur
 
 **Lecture Recommandée:**
-1. QUICK_FIX_SUMMARY.md (30 sec)
-2. TEST_I18N_FIX.md (10 min)
-3. CORRECTION_TEXTES_EMMELES.md (10 min)
-4. CORRECTIONS_APPLIQUEES.md (15 min)
+1. [START_HERE.md](START_HERE.md) - Parcours développeur (5 min)
+2. [documentation/GETTING_STARTED_DEV.md](documentation/GETTING_STARTED_DEV.md) - Guide complet (20 min)
+3. [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Commandes (10 min)
+4. [documentation/TECHNICAL_GUIDE.md](documentation/TECHNICAL_GUIDE.md) - Architecture (30 min)
 
-**Outils:**
-- test-i18n-fix.bat / .sh
-- COMMIT_MESSAGE.txt
-- COMMIT_MESSAGE_TEXTES.txt
+**Temps Total:** ~65 minutes
 
-**Temps Total:** ~40 minutes
-
-### Testeur / QA
+### 👨‍💼 Chef de Projet / Manager
 
 **Lecture Recommandée:**
-1. QUICK_FIX_SUMMARY.md (30 sec)
-2. GUIDE_TEST_RAPIDE.md (5 min)
-3. TEST_CORRECTIONS_VISUELLES.md (5 min)
+1. [START_HERE.md](START_HERE.md) - Parcours manager (5 min)
+2. [documentation/reports/BUILD_SUCCESS_SUMMARY.md](documentation/reports/BUILD_SUCCESS_SUMMARY.md) - Statut (5 min)
+3. [ROADMAP.md](ROADMAP.md) - Feuille de route (10 min)
 
-**Outils:**
-- test-i18n-fix.bat / .sh
-- Rapports de test dans les guides
+**Temps Total:** ~20 minutes
 
-**Temps Total:** ~25 minutes (+ 15 min de tests)
-
-### Chef de Projet
+### 🧪 QA / Testeur
 
 **Lecture Recommandée:**
-1. CORRECTIONS_COMPLETES_RESUME.md (5 min)
-2. RESUME_CORRECTIONS_I18N.md (3 min)
-3. RESUME_CORRECTIONS_TEXTES.md (2 min)
+1. [START_HERE.md](START_HERE.md) - Parcours QA (5 min)
+2. [documentation/TESTS_STATUS.md](documentation/TESTS_STATUS.md) - Statut tests (5 min)
+3. [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Commandes test (10 min)
 
-**Outils:**
-- Checklists de validation
-- Métriques de succès
+**Temps Total:** ~20 minutes
 
-**Temps Total:** ~10 minutes
-
-### Utilisateur Final
+### 🎨 Créateur / Utilisateur
 
 **Lecture Recommandée:**
-1. README_I18N_FIX.md (3 min)
+1. [README.md](README.md) - Présentation (10 min)
+2. [documentation/USER_GUIDE.md](documentation/USER_GUIDE.md) - Guide utilisateur (30 min)
+3. [documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md](documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md) - ComfyUI (10 min)
 
-**Outils:**
-- Guide de démarrage rapide
+**Temps Total:** ~50 minutes
 
-**Temps Total:** ~5 minutes
+---
 
 ## 🔍 Recherche Rapide
 
+### Par Fonctionnalité
+
+| Fonctionnalité | Documentation |
+|----------------|---------------|
+| Installation | [START_HERE.md](START_HERE.md#-quick-actions) |
+| ComfyUI | [documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md](documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md) |
+| API | [documentation/api_reference/README.md](documentation/api_reference/README.md) |
+| Build | [documentation/reports/BUILD_REPORT.md](documentation/reports/BUILD_REPORT.md) |
+| Tests | [documentation/TESTS_STATUS.md](documentation/TESTS_STATUS.md) |
+| Dépannage | [documentation/TROUBLESHOOTING.md](documentation/TROUBLESHOOTING.md) |
+| Contribution | [CONTRIBUTING.md](CONTRIBUTING.md) |
+
 ### Par Problème
 
-**"useI18n must be used within an I18nProvider"**
-→ TEST_I18N_FIX.md, CORRECTIONS_APPLIQUEES.md
+| Problème | Solution |
+|----------|----------|
+| Erreur de build | [documentation/TROUBLESHOOTING.md](documentation/TROUBLESHOOTING.md) |
+| ComfyUI ne répond pas | [documentation/user_guide/comfyui_integration/COMFYUI_PORT_REFERENCE.md](documentation/user_guide/comfyui_integration/COMFYUI_PORT_REFERENCE.md) |
+| Tests échouent | [documentation/TESTS_STATUS.md](documentation/TESTS_STATUS.md) |
+| Configuration | [documentation/advanced-workflows/configuration-guide.md](documentation/advanced-workflows/configuration-guide.md) |
 
-**"Textes emmêlés / dupliqués"**
-→ CORRECTION_TEXTES_EMMELES.md, TEST_CORRECTIONS_VISUELLES.md
+---
 
-**"Comment tester ?"**
-→ GUIDE_TEST_RAPIDE.md, TEST_CORRECTIONS_VISUELLES.md
+## 📊 Statistiques du Projet
 
-**"Comment commiter ?"**
-→ COMMIT_MESSAGE.txt, COMMIT_MESSAGE_TEXTES.txt
+### Build Status
+- **UI Build:** ✅ ~8 secondes
+- **Electron Build:** ✅ Complet
+- **TypeScript:** ✅ 0 erreurs
+- **Bundle:** ✅ 356 KB (gzipped)
 
-### Par Composant
+### Documentation
+- **Fichiers principaux:** 8
+- **Fichiers techniques:** 50+
+- **Langues:** Français, Anglais
+- **Formats:** Markdown, TypeScript
 
-**App.tsx**
-→ TEST_I18N_FIX.md, CORRECTIONS_APPLIQUEES.md
+---
 
-**MenuBar**
-→ TEST_I18N_FIX.md, GUIDE_TEST_RAPIDE.md
+## 🛠️ Commandes Utiles
 
-**ChatBox / ChatPanel**
-→ CORRECTION_TEXTES_EMMELES.md, TEST_CORRECTIONS_VISUELLES.md
+### Développement
+```bash
+npm run dev          # Démarrer en développement
+npm run build        # Build production
+npm run test         # Exécuter les tests
+npm run lint         # Vérifier le code
+```
 
-**LLMAssistant**
-→ CORRECTION_TEXTES_EMMELES.md, TEST_CORRECTIONS_VISUELLES.md
+### Packaging
+```bash
+npm run package:win   # Package Windows
+npm run package:mac   # Package macOS
+npm run package:linux # Package Linux
+```
 
-### Par Action
+### Python
+```bash
+pip install -r requirements.txt  # Installer dépendances
+python storycore.py              # Lancer l'application
+python storycore.py init my-project  # Nouveau projet
+```
 
-**Démarrer l'application**
-→ README_I18N_FIX.md, GUIDE_TEST_RAPIDE.md
-
-**Tester les corrections**
-→ TEST_CORRECTIONS_VISUELLES.md, GUIDE_TEST_RAPIDE.md
-
-**Comprendre les changements**
-→ CORRECTIONS_APPLIQUEES.md, CORRECTION_TEXTES_EMMELES.md
-
-**Commiter les changements**
-→ COMMIT_MESSAGE.txt, COMMIT_MESSAGE_TEXTES.txt
-
-## 📊 Statistiques de Documentation
-
-### Nombre de Fichiers
-- **Total:** 15 fichiers
-- **Documentation I18n:** 11 fichiers
-- **Documentation Textes:** 4 fichiers
-
-### Taille Totale
-- **Estimation:** ~60 KB
-- **Pages:** ~25 pages
-- **Temps de lecture total:** ~90 minutes
-
-### Langues
-- **Français:** 100%
-- **Code:** TypeScript/TSX
-
-### Formats
-- **Markdown (.md):** 13 fichiers
-- **Texte (.txt):** 2 fichiers
-- **Scripts (.bat/.sh):** 2 fichiers
-
-## ✅ Checklist d'Utilisation
-
-### Avant de Commencer
-- [ ] Lire QUICK_FIX_SUMMARY.md
-- [ ] Identifier votre rôle
-- [ ] Choisir la documentation appropriée
-
-### Pendant le Développement
-- [ ] Consulter la documentation technique
-- [ ] Vérifier les changements de code
-- [ ] Comprendre l'architecture
-
-### Pendant les Tests
-- [ ] Suivre les guides de test
-- [ ] Exécuter les scripts
-- [ ] Remplir les rapports
-
-### Avant le Commit
-- [ ] Vérifier tous les tests
-- [ ] Utiliser les messages de commit fournis
-- [ ] Mettre à jour la documentation si nécessaire
+---
 
 ## 🆘 Support
 
+### Ressources
+- **Documentation:** Cet index
+- **Issues:** [GitHub Issues](https://github.com/zedarvates/StoryCore-Engine/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/zedarvates/StoryCore-Engine/discussions)
+
 ### Questions Fréquentes
 
-**Q: Par où commencer ?**
-A: Lire QUICK_FIX_SUMMARY.md puis CORRECTIONS_COMPLETES_RESUME.md
+**Q: Par où commencer ?**  
+A: Lire [START_HERE.md](START_HERE.md) pour un guide adapté à votre rôle.
 
-**Q: Comment tester rapidement ?**
-A: Exécuter test-i18n-fix.bat (Windows) ou test-i18n-fix.sh (Linux/Mac)
+**Q: Comment installer ComfyUI ?**  
+A: Suivre [documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md](documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md)
 
-**Q: Où trouver les détails techniques ?**
-A: TEST_I18N_FIX.md et CORRECTION_TEXTES_EMMELES.md
+**Q: Le build échoue, que faire ?**  
+A: Consulter [documentation/TROUBLESHOOTING.md](documentation/TROUBLESHOOTING.md)
 
-**Q: Comment commiter ?**
-A: Utiliser COMMIT_MESSAGE.txt et COMMIT_MESSAGE_TEXTES.txt
+---
 
-### Problèmes Connus
+## 📅 Historique des Mises à Jour
 
-**Aucun problème critique identifié**
+| Date | Version | Changements |
+|------|---------|-------------|
+| 16 fév 2026 | 1.0.0 | Documentation mise à jour |
+| 23 jan 2026 | 0.9.0 | Build production validé |
+| 28 jan 2026 | 0.8.0 | Corrections I18n |
 
-Quelques recommandations:
-- Vérifier les z-index (non bloquant)
-- Tester sur différentes tailles d'écran
-- Valider l'accessibilité
+---
 
-### Contact
+## ✅ Checklist de Démarrage
 
-- **Documentation:** Consulter cet index
-- **Issues:** Créer un ticket GitHub
-- **Questions:** Voir les guides de dépannage
+### Avant de Commencer
+- [ ] Lire [START_HERE.md](START_HERE.md)
+- [ ] Identifier votre rôle
+- [ ] Installer les prérequis
 
-## 🎨 Conventions de Documentation
+### Pendant le Développement
+- [ ] Consulter [QUICK_REFERENCE.md](QUICK_REFERENCE.md)
+- [ ] Suivre [CONTRIBUTING.md](CONTRIBUTING.md)
+- [ ] Tester régulièrement
 
-### Structure des Documents
-1. Titre principal (H1)
-2. Sections principales (H2)
-3. Sous-sections (H3)
-4. Listes et tableaux
-5. Blocs de code
-6. Emojis pour la lisibilité
-
-### Emojis Utilisés
-- 🎯 Objectif/Cible
-- ✅ Succès/Validé
-- ❌ Erreur/Échec
-- 📚 Documentation
-- 🚀 Démarrage/Lancement
-- 🔧 Configuration/Outils
-- 🌍 Internationalisation
-- 📊 Statistiques/Résultats
-- 🔍 Vérification/Recherche
-- 💡 Astuce/Information
-- 🎨 Design/Interface
-- 🐛 Bug/Problème
-- 🆘 Support/Aide
-- 📝 Notes/Remarques
-- 🏆 Résultat/Succès
-
-### Niveaux de Priorité
-- **CRITIQUE:** Bloque l'application
-- **MAJEUR:** Impact significatif
-- **MINEUR:** Amélioration cosmétique
-
-## 📅 Historique
-
-### 28 Janvier 2026
-- ✅ Correction I18n appliquée
-- ✅ Correction textes emmêlés appliquée
-- ✅ Documentation complète créée
-- ✅ Scripts de test créés
-- ✅ Build de production validé
-
-## 🔄 Maintenance
-
-### Mise à Jour de la Documentation
-
-**Quand mettre à jour:**
-- Nouveaux problèmes découverts
-- Nouvelles corrections appliquées
-- Changements d'architecture
-- Nouvelles fonctionnalités
-
-**Comment mettre à jour:**
-1. Identifier le fichier concerné
-2. Ajouter les nouvelles informations
-3. Mettre à jour les dates
-4. Mettre à jour cet index si nécessaire
-
-### Archivage
-
-**Fichiers à conserver:**
-- Tous les fichiers de documentation
-- Scripts de test
-- Messages de commit
-
-**Durée de conservation:**
-- Documentation: Permanente
-- Scripts: Jusqu'à obsolescence
-- Rapports: 1 an minimum
-
-## 🎉 Conclusion
-
-Cette documentation complète couvre:
-- ✅ 2 corrections majeures
-- ✅ 4 fichiers de code modifiés
-- ✅ 15 fichiers de documentation
-- ✅ 2 scripts de test automatiques
-- ✅ Guides pour tous les rôles
-- ✅ Support et dépannage
-
-**Tout est prêt pour la production ! 🚀**
+### Avant de Commiter
+- [ ] Exécuter `npm run build`
+- [ ] Exécuter `npm run test`
+- [ ] Vérifier le lint
 
 ---
 
 **Date de Création:** 28 Janvier 2026  
-**Version:** 1.0  
+**Dernière Mise à Jour:** 16 Février 2026  
+**Version:** 2.0  
 **Statut:** ✅ Complet et Validé  
-**Maintenance:** Active  
-**Prochaine Révision:** Selon besoins
+**Maintenance:** Active

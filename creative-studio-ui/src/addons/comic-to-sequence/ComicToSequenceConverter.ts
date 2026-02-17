@@ -226,11 +226,11 @@ export class ComicToSequenceConverter {
    */
   private isValidComicConversionState(state: unknown): state is ComicConversionState {
     return (
-      state &&
+      state !== null &&
       typeof state === 'object' &&
-      state.projects &&
-      typeof state.version === 'string' &&
-      typeof state.lastModified === 'string'
+      (state as any).projects &&
+      typeof (state as any).version === 'string' &&
+      typeof (state as any).lastModified === 'string'
     );
   }
 

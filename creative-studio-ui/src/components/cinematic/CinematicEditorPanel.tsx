@@ -43,11 +43,16 @@ import {
   AlertTriangle,
   Award,
   Brain,
-  Layers
+  Layers,
+  LayoutGrid
 } from 'lucide-react';
 import { CameraMovementSelector } from './CameraMovementSelector';
 import { BeatSelector } from './BeatSelector';
 import { EnhancedSequenceCard } from './EnhancedSequenceCard';
+import { CinematicElementsLibrary } from './CinematicElementsLibrary';
+import { SceneSequenceEditor } from './SceneSequenceEditor';
+import { CharacterBoardGenerator } from './CharacterBoardGenerator';
+import { CinematicPostTools } from './CinematicPostTools';
 import {
   EnhancedShot,
   CompleteSequence,
@@ -59,6 +64,8 @@ import {
   PacingType,
   TransitionType,
   CharacterFocusTrack,
+  CharacterPresence, // Added import
+  CharacterFocus, // Added import
   MoodArc,
   DirectorNote,
   getCameraMovementConfig,
@@ -93,8 +100,9 @@ export function CinematicEditorPanel({
   onUpdateSequence,
   className
 }: CinematicEditorPanelProps) {
-  const [selectedTab, setSelectedTab] = useState<'shots' | 'beats' | 'pacing' | 'directors'>('shots');
+  const [selectedTab, setSelectedTab] = useState<'shots' | 'beats' | 'pacing' | 'directors' | 'elements' | 'sequence' | 'board' | 'postprod'>('shots');
   const [selectedShotId, setSelectedShotId] = useState<string | null>(null);
+  const [selectedCharacterName, setSelectedCharacterName] = useState<string>("Héro Anonyme");
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     overview: true,
     camera: true,
@@ -109,34 +117,52 @@ export function CinematicEditorPanel({
 
   // Convert base shots to cinematic shots
   const cinematicShots = useMemo((): CinematicShotData[] => {
-    return shots.map((shot, index) => ({
-      id: shot.id,
-      title: shot.title || `Plan ${index + 1}`,
-      description: shot.description || '',
-      duration: shot.duration || 5,
-      position: shot.position || index + 1,
-      sequence_id: shot.sequence_id,
-      // Cinematic defaults
-      cameraMovement: (shot.metadata?.cameraMovement as CameraMovement) || null,
-      mood: (shot.metadata?.mood as MoodType) || 'neutral',
-      tone: (shot.metadata?.tone as ToneType) || 'neutral',
-      pacing: (shot.metadata?.pacing as PacingType) || 'medium',
-      beatId: shot.metadata?.beatId || null,
-      transition: (shot.metadata?.transition as TransitionType) || 'cut',
-      characters: characters.filter(c => 
-        shot.metadata?.characterIds?.includes(c.character_id)
-      ) || [],
-      location: shot.metadata?.location || null,
-      // Director notes
-      directorNote: shot.metadata?.directorNote || null,
-      // Audio
-      audioMood: shot.metadata?.audioMood || null,
-      ttsPrompt: shot.metadata?.ttsPrompt || null,
-      // Version
-      version: shot.metadata?.version || 1,
-      lastModified: shot.metadata?.lastModified || new Date().toISOString()
-    }));
-  }, [shots, characters]);
+    return shots.map((shot, index) => {
+      const metadata = (shot.metadata || {}) as any;
+
+      return {
+        id: shot.id,
+        name: shot.title || `Plan ${index + 1}`,
+        title: shot.title || `Plan ${index + 1}`,
+        description: shot.description || '',
+        order: shot.position || index + 1,
+        position: shot.position || index + 1,
+        duration: shot.duration || 5,
+        sequence_id: (shot as any).sequence_id, // Cast as it might be missing in base type
+
+        // Cinematic defaults
+        cameraMovement: (metadata.cameraMovement as CameraMovement) || null,
+        mood: (metadata.mood as MoodType) || 'neutral',
+        tone: (metadata.tone as ToneType) || 'neutral',
+        pacing: (metadata.pacing as PacingType) || 'medium',
+        beatId: metadata.beatId || null,
+
+        // Character Conversion
+        characters: (metadata.characterIds as string[])?.map(id => ({
+          characterId: id,
+          focus: 'lead', // Default to lead as placeholder
+          timeStart: 0,
+          timeEnd: shot.duration || 5,
+          prominence: 1
+        })) || [],
+
+        locationId: metadata.locationId || null,
+
+        // Director notes
+        directorNotes: metadata.directorNotes || [],
+        directorNote: typeof metadata.directorNote === 'string' ? metadata.directorNote : metadata.directorNote?.note || null, // legacy string
+
+        // Audio
+        audioMood: metadata.audioMood || null,
+        ttsPrompt: metadata.ttsPrompt || null,
+
+        // Version
+        version: metadata.version || 1,
+        content: metadata.content,
+        beatType: metadata.beatType
+      };
+    });
+  }, [shots]);
 
   // Calculate sequence metrics
   const sequenceMetrics = useMemo(() => {
@@ -145,7 +171,7 @@ export function CinematicEditorPanel({
       acc[s.mood] = (acc[s.mood] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
+
     const dominantMood = Object.entries(moodCounts)
       .sort((a, b) => b[1] - a[1])[0]?.[0] || 'neutral';
 
@@ -160,8 +186,11 @@ export function CinematicEditorPanel({
   // Mood arc for the sequence
   const moodArc = useMemo((): MoodArc | null => {
     if (cinematicShots.length === 0) return null;
-    
+
     return {
+      id: `arc-${sequenceId || 'temp'}-${Date.now()}`,
+      beats: [],
+      overallTrend: 'flat',
       startMood: cinematicShots[0]?.mood || 'neutral',
       endMood: cinematicShots[cinematicShots.length - 1]?.mood || 'neutral',
       dominantMood: sequenceMetrics.dominantMood as MoodType,
@@ -195,8 +224,8 @@ export function CinematicEditorPanel({
         pacing: updates.pacing,
         beatId: updates.beatId,
         transition: updates.transition,
-        characterIds: updates.characters?.map(c => c.character_id),
-        location: updates.location,
+        characterIds: updates.characters?.map(c => c.characterId),
+        location: updates.locationId,
         directorNote: updates.directorNote,
         audioMood: updates.audioMood,
         ttsPrompt: updates.ttsPrompt,
@@ -226,19 +255,31 @@ export function CinematicEditorPanel({
   }, [selectedShotId, handleShotUpdate]);
 
   // Add director note
-  const handleAddDirectorNote = useCallback((note: string) => {
+  const handleAddDirectorNote = useCallback((noteContent: string) => {
     if (!selectedShotId) return;
-    const directorNote: DirectorNote = {
+
+    const newNote: DirectorNote = {
       id: crypto.randomUUID(),
-      content: note,
-      createdAt: new Date().toISOString(),
+      note: noteContent,
+      type: 'creative',
+      priority: 'medium',
+      status: 'pending',
+      timestamp: new Date().toISOString(),
       author: 'Director'
     };
-    handleShotUpdate(selectedShotId, { directorNote });
-  }, [selectedShotId, handleShotUpdate]);
+
+    // Update directorNotes array AND directorNote legacy string for compatibility
+    const currentShot = cinematicShots.find(s => s.id === selectedShotId);
+    const currentNotes = currentShot?.directorNotes || [];
+
+    handleShotUpdate(selectedShotId, {
+      directorNotes: [...currentNotes, newNote],
+      directorNote: noteContent // Sync legacy field
+    });
+  }, [selectedShotId, cinematicShots, handleShotUpdate]);
 
   // Selected shot
-  const selectedShot = useMemo(() => 
+  const selectedShot = useMemo(() =>
     cinematicShots.find(s => s.id === selectedShotId),
     [cinematicShots, selectedShotId]
   );
@@ -269,33 +310,61 @@ export function CinematicEditorPanel({
 
       {/* Tab Navigation */}
       <div className="cinematic-tabs">
-        <button 
+        <button
           className={`tab ${selectedTab === 'shots' ? 'active' : ''}`}
           onClick={() => setSelectedTab('shots')}
         >
           <Layers className="w-4 h-4" />
           Plans
         </button>
-        <button 
+        <button
           className={`tab ${selectedTab === 'beats' ? 'active' : ''}`}
           onClick={() => setSelectedTab('beats')}
         >
           <Brain className="w-4 h-4" />
           Beats
         </button>
-        <button 
+        <button
           className={`tab ${selectedTab === 'pacing' ? 'active' : ''}`}
           onClick={() => setSelectedTab('pacing')}
         >
           <TrendingUp className="w-4 h-4" />
           Rythme
         </button>
-        <button 
+        <button
           className={`tab ${selectedTab === 'directors' ? 'active' : ''}`}
           onClick={() => setSelectedTab('directors')}
         >
           <FileText className="w-4 h-4" />
           Notes
+        </button>
+        <button
+          className={`tab ${selectedTab === 'elements' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('elements')}
+        >
+          <Users className="w-4 h-4" />
+          Éléments
+        </button>
+        <button
+          className={`tab ${selectedTab === 'sequence' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('sequence')}
+        >
+          <Layout className="w-4 h-4" />
+          Séquence
+        </button>
+        <button
+          className={`tab ${selectedTab === 'board' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('board')}
+        >
+          <LayoutGrid className="w-4 h-4" />
+          Planche
+        </button>
+        <button
+          className={`tab ${selectedTab === 'postprod' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('postprod')}
+        >
+          <Zap className="w-4 h-4" />
+          Post-Prod
         </button>
       </div>
 
@@ -309,7 +378,7 @@ export function CinematicEditorPanel({
               <div className="timeline-header">
                 <h3>Timeline des Plans</h3>
                 <div className="timeline-controls">
-                  <button 
+                  <button
                     className="control-btn"
                     onClick={() => setIsPlaying(!isPlaying)}
                   >
@@ -346,7 +415,7 @@ export function CinematicEditorPanel({
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Mood track */}
                 <div className="track mood-track">
                   <div className="track-label">
@@ -383,7 +452,7 @@ export function CinematicEditorPanel({
                   </div>
                   <div className="track-content">
                     {cinematicShots.map((shot) => {
-                      const cameraConfig = shot.cameraMovement 
+                      const cameraConfig = shot.cameraMovement
                         ? getCameraMovementConfig(shot.cameraMovement)
                         : null;
                       return (
@@ -417,13 +486,13 @@ export function CinematicEditorPanel({
                 <div className="shot-editor-content">
                   {/* Camera Section */}
                   <div className="editor-section">
-                    <div 
+                    <div
                       className="section-header"
                       onClick={() => toggleSection('camera')}
                     >
                       <Video className="w-4 h-4" />
                       <h4>Mouvement de Caméra</h4>
-                      {expandedSections.camera 
+                      {expandedSections.camera
                         ? <ChevronDown className="w-4 h-4" />
                         : <ChevronRight className="w-4 h-4" />
                       }
@@ -432,21 +501,19 @@ export function CinematicEditorPanel({
                       <CameraMovementSelector
                         value={selectedShot.cameraMovement}
                         onChange={handleCameraChange}
-                        compact={false}
-                        showPresets={true}
                       />
                     )}
                   </div>
 
                   {/* Mood Section */}
                   <div className="editor-section">
-                    <div 
+                    <div
                       className="section-header"
                       onClick={() => toggleSection('mood')}
                     >
                       <Heart className="w-4 h-4" />
                       <h4>Mood & Ton</h4>
-                      {expandedSections.mood 
+                      {expandedSections.mood
                         ? <ChevronDown className="w-4 h-4" />
                         : <ChevronRight className="w-4 h-4" />
                       }
@@ -474,37 +541,34 @@ export function CinematicEditorPanel({
 
                   {/* Beat Section */}
                   <div className="editor-section">
-                    <div 
+                    <div
                       className="section-header"
                       onClick={() => toggleSection('beats')}
                     >
                       <Brain className="w-4 h-4" />
                       <h4>Beat Narratif</h4>
-                      {expandedSections.beats 
+                      {expandedSections.beats
                         ? <ChevronDown className="w-4 h-4" />
                         : <ChevronRight className="w-4 h-4" />
                       }
                     </div>
                     {expandedSections.beats && (
                       <BeatSelector
-                        value={selectedShot.beatId}
-                        onChange={handleBeatChange}
-                        suggestions={beatSuggestions.filter(s => 
-                          s.position === selectedShot.position
-                        )}
+                        value={selectedShot.beatType}
+                        onChange={(type) => handleBeatChange(selectedShot.beatId, type)}
                       />
                     )}
                   </div>
 
                   {/* Characters Section */}
                   <div className="editor-section">
-                    <div 
+                    <div
                       className="section-header"
                       onClick={() => toggleSection('characters')}
                     >
                       <Users className="w-4 h-4" />
                       <h4>Personnages</h4>
-                      {expandedSections.characters 
+                      {expandedSections.characters
                         ? <ChevronDown className="w-4 h-4" />
                         : <ChevronRight className="w-4 h-4" />
                       }
@@ -515,11 +579,18 @@ export function CinematicEditorPanel({
                           <label key={char.character_id} className="character-checkbox">
                             <input
                               type="checkbox"
-                              checked={selectedShot.characters?.some(c => c.character_id === char.character_id)}
+                              checked={selectedShot.characters?.some(c => c.characterId === char.character_id)}
                               onChange={(e) => {
+                                const newCharPresence: CharacterPresence = {
+                                  characterId: char.character_id,
+                                  focus: 'supporting',
+                                  timeStart: 0,
+                                  timeEnd: selectedShot.duration,
+                                  prominence: 0.5
+                                };
                                 const newChars = e.target.checked
-                                  ? [...(selectedShot.characters || []), char]
-                                  : selectedShot.characters?.filter(c => c.character_id !== char.character_id) || [];
+                                  ? [...(selectedShot.characters || []), newCharPresence]
+                                  : selectedShot.characters?.filter(c => c.characterId !== char.character_id) || [];
                                 handleShotUpdate(selectedShot.id, { characters: newChars });
                               }}
                             />
@@ -607,7 +678,7 @@ export function CinematicEditorPanel({
                     <div key={pacing} className="pacing-bar">
                       <span className="pacing-label">{pacing}</span>
                       <div className="pacing-fill-container">
-                        <div 
+                        <div
                           className="pacing-fill"
                           style={{
                             width: `${percentage}%`,
@@ -635,22 +706,69 @@ export function CinematicEditorPanel({
               </button>
             </div>
             <div className="notes-list">
-              {cinematicShots
-                .filter(s => s.directorNote)
-                .map(shot => (
-                  <div key={shot.id} className="director-note-card">
-                    <div className="note-shot-info">
-                      <Video className="w-3 h-3" />
-                      <span>{shot.title}</span>
+              {cinematicShots.map(shot => (
+                <div key={shot.id}>
+                  {/* Render typed notes */}
+                  {shot.directorNotes?.map(note => (
+                    <div key={note.id} className="director-note-card">
+                      <div className="note-shot-info">
+                        <Video className="w-3 h-3" />
+                        <span>{shot.title}</span>
+                      </div>
+                      <p className="note-content">{note.note}</p>
+                      <div className="note-meta">
+                        <span>{note.author || 'Director'}</span>
+                        <span>{new Date(note.timestamp).toLocaleDateString()}</span>
+                      </div>
                     </div>
-                    <p className="note-content">{shot.directorNote?.content}</p>
-                    <div className="note-meta">
-                      <span>{shot.directorNote?.author}</span>
-                      <span>{new Date(shot.directorNote?.createdAt || '').toLocaleDateString()}</span>
+                  ))}
+                  {/* Render legacy note if no typed notes */}
+                  {(!shot.directorNotes || shot.directorNotes.length === 0) && shot.directorNote && (
+                    <div className="director-note-card legacy">
+                      <div className="note-shot-info">
+                        <Video className="w-3 h-3" />
+                        <span>{shot.title}</span>
+                      </div>
+                      <p className="note-content">{shot.directorNote}</p>
+                      <div className="note-meta">
+                        <span>Legacy Note</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )}
+                </div>
+              ))}
             </div>
+          </div>
+        )}
+
+        {/* Elements Tab */}
+        {selectedTab === 'elements' && (
+          <div className="elements-tab-content h-full overflow-hidden">
+            <CinematicElementsLibrary onSelectBoard={(name) => {
+              setSelectedCharacterName(name);
+              setSelectedTab('board');
+            }} />
+          </div>
+        )}
+
+        {/* Sequence Tab */}
+        {selectedTab === 'sequence' && (
+          <div className="sequence-tab-content h-full overflow-hidden">
+            <SceneSequenceEditor />
+          </div>
+        )}
+
+        {/* Board Tab */}
+        {selectedTab === 'board' && (
+          <div className="board-tab-content h-full overflow-hidden">
+            <CharacterBoardGenerator characterName={selectedCharacterName} />
+          </div>
+        )}
+
+        {/* Post-Prod Tab */}
+        {selectedTab === 'postprod' && (
+          <div className="postprod-tab-content h-full overflow-hidden">
+            <CinematicPostTools />
           </div>
         )}
       </div>

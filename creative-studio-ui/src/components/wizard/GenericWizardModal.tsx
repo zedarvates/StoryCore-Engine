@@ -29,6 +29,8 @@ import { StoryboardCreatorForm } from './forms/StoryboardCreatorForm';
 import { StyleTransferForm } from './forms/StyleTransferForm';
 import type { Character } from '@/types/character';
 import type { Shot } from '@/types';
+import { WizardChainOptions } from './WizardChainOptions';
+import type { WizardChainOption } from './WizardChainOptions';
 
 // Supported wizard types for GenericWizardModal (matching useAppStore WizardType)
 // Note: 'world', 'character', and 'storyteller' wizards are multi-step and use separate modals
@@ -328,8 +330,23 @@ export function GenericWizardModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitFormFn, setSubmitFormFn] = useState<(() => void) | null>(null);
   const [isFormValid, setIsFormValid] = useState(false);
+  const [showChainOptions, setShowChainOptions] = useState(false);
+  const [chainOptions, setChainOptions] = useState<{
+    isChained: boolean;
+    triggeredWizards: WizardChainOption[];
+    currentChainIndex: number;
+  }>({
+    isChained: false,
+    triggeredWizards: [],
+    currentChainIndex: 0,
+  });
+  const [isChainLoading, setIsChainLoading] = useState(false);
   const { toast } = useToast();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+  
+  // Sync wizardType with wizardStore if provided via store
+  const wizardTypeFromStore = useWizardStore((state) => state.wizardType) as AppWizardType | null;
+  const effectiveWizardType = wizardType || wizardTypeFromStore;
 
   // Reset state when modal closes
   useEffect(() => {
@@ -337,8 +354,51 @@ export function GenericWizardModal({
       setIsSubmitting(false);
       setSubmitFormFn(null);
       setIsFormValid(false);
+      setShowChainOptions(false);
     }
   }, [isOpen]);
+
+  // Handle launch next wizard in chain
+  const handleLaunchNextWizard = useCallback((wizard: WizardChainOption) => {
+    setIsChainLoading(true);
+    try {
+      // Close current modal first
+      onClose();
+      // Update chain index for next wizard
+      setChainOptions(prev => ({
+        ...prev,
+        currentChainIndex: prev.currentChainIndex + 1,
+      }));
+      // The parent component should handle launching the next wizard based on wizardType
+      setShowChainOptions(false);
+    } catch (error) {
+      console.error('[GenericWizardModal] Error launching next wizard:', error);
+    } finally {
+      setIsChainLoading(false);
+    }
+  }, [onClose]);
+
+  // Handle skip chain
+  const handleSkipChain = useCallback(() => {
+    setChainOptions({
+      isChained: false,
+      triggeredWizards: [],
+      currentChainIndex: 0,
+    });
+    setShowChainOptions(false);
+    onClose();
+  }, [onClose]);
+
+  // Handle finish/continue
+  const handleContinue = useCallback(() => {
+    setChainOptions({
+      isChained: false,
+      triggeredWizards: [],
+      currentChainIndex: 0,
+    });
+    setShowChainOptions(false);
+    onClose();
+  }, [onClose]);
 
   // Handle form submission from wizard forms
   const handleFormSubmit = useCallback(async (formData: unknown) => {
@@ -357,7 +417,16 @@ export function GenericWizardModal({
         });
       }
 
-      // Close modal on success
+      // Check if there are chained wizards to show
+      if (chainOptions.isChained && chainOptions.triggeredWizards.length > 0 && 
+          chainOptions.currentChainIndex < chainOptions.triggeredWizards.length) {
+        // Show chain options instead of closing
+        setShowChainOptions(true);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Close modal on success if no chain
       onClose();
     } catch (error) {
       console.error('[GenericWizardModal] Submission error:', error);
@@ -375,7 +444,7 @@ export function GenericWizardModal({
     } finally {
       setIsSubmitting(false);
     }
-  }, [onComplete, onClose, wizardType, toast]);
+  }, [onComplete, onClose, wizardType, toast, chainOptions]);
 
   // Handle submit button click
   const handleSubmitClick = useCallback(() => {
@@ -399,11 +468,6 @@ export function GenericWizardModal({
   const handleValidationChange = useCallback((isValid: boolean) => {
     setIsFormValid(isValid);
   }, []);
-
-  // Sync wizardType with wizardStore if provided via store
-  // Use AppWizardType to ensure type consistency with WIZARD_CONFIG
-  const wizardTypeFromStore = useWizardStore((state) => state.wizardType) as AppWizardType | null;
-  const effectiveWizardType = wizardType || wizardTypeFromStore;
 
   // Return null if modal is closed and no wizard type
   if (!isOpen || !effectiveWizardType) {

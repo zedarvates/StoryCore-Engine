@@ -21,6 +21,9 @@ export interface World {
   updatedAt: Date;
 }
 
+/** Location type for interior/exterior classification */
+export type WorldLocationType = 'interior' | 'exterior';
+
 export interface Location {
   id: string;
   name: string;
@@ -29,6 +32,8 @@ export interface Location {
   atmosphere: string;
   // Extended properties for enhanced location support
   type?: string;
+  /** Whether this location is interior (indoor) or exterior (outdoor) */
+  location_type?: WorldLocationType;
   tile_image_path?: string;
   metadata?: {
     description?: string;

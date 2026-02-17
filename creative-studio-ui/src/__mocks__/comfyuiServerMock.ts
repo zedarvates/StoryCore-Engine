@@ -298,9 +298,13 @@ export function setupComfyUIMock(config: MockComfyUIServerConfig = { port: 8188 
   globalMockServer.start();
 
   // Mock the global fetch function
-  global.fetch = jest.fn().mockImplementation((url: string, options: RequestInit = {}) => {
-    if (globalMockServer && url.includes(`localhost:${config.port}`)) {
-      return globalMockServer.mockFetch(url, options);
+  // Mock the global fetch function with proper Promise<Response> return type
+  global.fetch = jest.fn().mockImplementation((url: RequestInfo, options: RequestInit = {}): Promise<Response> => {
+    const urlString = typeof url === 'string' ? url : url.toString();
+    if (globalMockServer && urlString.includes(`localhost:${config.port}`)) {
+      // Ensure the mockFetch returns a Promise<Response>
+      const result = globalMockServer.mockFetch(urlString, options);
+      return Promise.resolve(result);
     }
     // Fallback to real fetch for non-ComfyUI URLs
     return jest.requireActual('node-fetch')(url, options);

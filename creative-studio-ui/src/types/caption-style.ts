@@ -3,7 +3,7 @@
  * MI2: Caption Styles - Modern, Classic, Dynamic
  */
 
-export type CaptionStyleId = 
+export type CaptionStyleId =
   | 'modern_clean'
   | 'modern_bold'
   | 'modern_subtle'
@@ -30,7 +30,7 @@ export interface CaptionStyle {
   preview?: string;
 }
 
-export type CaptionCategory = 
+export type CaptionCategory =
   | 'modern'
   | 'classic'
   | 'dynamic'
@@ -121,7 +121,7 @@ export interface CaptionAnimation {
   params?: Record<string, unknown>;
 }
 
-export type AnimationType = 
+export type AnimationType =
   | 'fade'
   | 'slide'
   | 'typewriter'
@@ -144,7 +144,7 @@ export interface CaptionEffect {
   params?: Record<string, unknown>;
 }
 
-export type EffectType = 
+export type EffectType =
   | 'blur'
   | 'shake'
   | 'blink'
@@ -181,7 +181,7 @@ export interface CaptionStylePreset {
 export interface CaptionLayer {
   id: string;
   trackId: string;
-  styleId: CaptionStyleId;
+  styleId: string;
   customStyle?: Partial<CaptionStyle>;
   text: string;
   startTime: number;
@@ -198,7 +198,7 @@ export interface CaptionTrack {
   language: string;
   isDefault: boolean;
   layers: CaptionLayer[];
-  styleId: CaptionStyleId;
+  styleId: string;
   isEnabled: boolean;
   volume: number;
 }

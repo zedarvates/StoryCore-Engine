@@ -384,7 +384,7 @@ export function AccessibleTabs({
         onTabChange?.(newTab.id);
         tabListRef.current
           ?.querySelectorAll<HTMLElement>('[role="tab"]')
-          [newIndex]?.focus();
+        [newIndex]?.focus();
       }
     },
     [tabs, onTabChange]
@@ -468,7 +468,7 @@ export function Tooltip({
   className,
 }: TooltipProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const handleMouseEnter = () => {
     clearTimeout(timeoutRef.current);

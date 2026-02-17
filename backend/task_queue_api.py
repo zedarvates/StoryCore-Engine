@@ -34,7 +34,6 @@ from backend.sequence_api import (
     GenerationJob,
     save_job,
     load_job,
-    jobs_db,
 )
 
 # Configure logging
@@ -55,9 +54,9 @@ router = APIRouter()
 class TaskQueueItem(BaseModel):
     """Task queue item response model"""
     job_id: str
-    project_id: str
-    prompt: str
-    shot_count: int
+    project_id: Optional[str] = None
+    prompt: Optional[str] = None
+    shot_count: Optional[int] = None
     style: Optional[str] = None
     mood: Optional[str] = None
     status: str
@@ -123,25 +122,21 @@ def get_pending_jobs() -> List[GenerationJob]:
     """Get all pending jobs sorted by priority and creation time"""
     pending_jobs = []
     
-    # Check in-memory storage first
-    for job in jobs_db.values():
-        if job.status == GenerationStatus.PENDING:
-            pending_jobs.append(job)
-    
-    # Also check file storage
+    # Check file storage
     try:
-        job_files = job_storage.list_files()
-        for job_id in job_files:
+        job_ids = job_storage.list_files()
+        for job_id in job_ids:
             job_data = job_storage.load(job_id)
             if job_data and job_data.get('status') == GenerationStatus.PENDING.value:
-                # Check if not already in list (from in-memory)
-                if not any(j.id == job_id for j in pending_jobs):
+                try:
                     pending_jobs.append(GenerationJob(**job_data))
+                except Exception as e:
+                    logger.warning(f"Failed to parse job {job_id}: {e}")
     except Exception as e:
         logger.warning(f"Could not list job files: {e}")
     
     # Sort by priority (lower = higher priority), then by created_at
-    pending_jobs.sort(key=lambda j: (j.priority, j.created_at))
+    pending_jobs.sort(key=lambda j: (j.priority, j.created_at if hasattr(j.created_at, 'isoformat') or isinstance(j.created_at, str) else str(j.created_at)))
     
     return pending_jobs
 
@@ -176,7 +171,11 @@ def swap_priorities(job1_id: str, job2_id: str) -> bool:
     if not job1 or not job2:
         return False
     
-    # Swap priorities
+    # Swap priorities (safe because we rely on GenerationJob objects which pass validation or loaded dicts)
+    # But job1 and job2 are Pydantic models (from load_job) OR dicts?
+    # load_job returns GenerationJob object usually. Let's check sequence_api.py load_job.
+    # It returns GenerationJob | None.
+    
     job1_priority = job1.priority
     job2_priority = job2.priority
     
@@ -188,12 +187,6 @@ def swap_priorities(job1_id: str, job2_id: str) -> bool:
     
     save_job(job1_id, job1_data)
     save_job(job2_id, job2_data)
-    
-    # Update in-memory storage
-    if job1_id in jobs_db:
-        jobs_db[job1_id].priority = job2_priority
-    if job2_id in jobs_db:
-        jobs_db[job2_id].priority = job1_priority
     
     return True
 
@@ -221,20 +214,19 @@ async def get_task_queue(
     """
     all_jobs: List[GenerationJob] = []
     
-    # Collect jobs from both in-memory and file storage
-    for job in jobs_db.values():
-        all_jobs.append(job)
-    
     try:
-        job_files = job_storage.list_files()
-        for job_id in job_files:
-            job_data = job_storage.load(job_id)
-            if job_data and job_data.get('user_id') == user_id:
-                # Check if not already in list
-                if not any(j.id == job_id for j in all_jobs):
-                    all_jobs.append(GenerationJob(**job_data))
+        # User-scoped jobs (or all if admin) - for now just user's jobs to match storage index
+        user_jobs_data = job_storage.get_by_owner(user_id)
+        
+        for job_data in user_jobs_data:
+            try:
+                # job_data is a dict
+                all_jobs.append(GenerationJob(**job_data))
+            except Exception as e:
+                logger.warning(f"Failed to parse job {job_data.get('id')}: {e}")
+                
     except Exception as e:
-        logger.warning(f"Could not list job files: {e}")
+        logger.error(f"Error fetching task queue: {e}")
     
     # Apply filters
     if project_id:
@@ -243,8 +235,8 @@ async def get_task_queue(
     if status_filter:
         all_jobs = [j for j in all_jobs if j.status.value == status_filter]
     
-    # Sort by priority and creation time (for same priority)
-    all_jobs.sort(key=lambda j: (j.priority, j.created_at))
+    # Sort by priority and creation time
+    all_jobs.sort(key=lambda j: (j.priority, j.created_at if hasattr(j.created_at, 'isoformat') or isinstance(j.created_at, str) else str(j.created_at)))
     
     # Count by status
     status_counts = {
@@ -258,25 +250,27 @@ async def get_task_queue(
     # Build response items
     tasks = []
     for job in all_jobs:
-        status_counts[job.status.value] += 1
+        if job.status.value in status_counts:
+            status_counts[job.status.value] += 1
         
-        # Handle both datetime and string for created_at
-        created_at = job.created_at
-        if hasattr(created_at, 'isoformat'):
-            created_at = created_at.isoformat()
+        # Format dates
+        create_ts = job.created_at
+        if hasattr(create_ts, 'isoformat'):
+            create_ts = create_ts.isoformat()
         
-        started_at = job.started_at
-        if started_at and hasattr(started_at, 'isoformat'):
-            started_at = started_at.isoformat()
+        started_ts = job.started_at
+        if started_ts and hasattr(started_ts, 'isoformat'):
+            started_ts = started_ts.isoformat()
         
-        completed_at = job.completed_at
-        if completed_at and hasattr(completed_at, 'isoformat'):
-            completed_at = completed_at.isoformat()
-        
+        completed_ts = job.completed_at
+        if completed_ts and hasattr(completed_ts, 'isoformat'):
+            completed_ts = completed_ts.isoformat()
+
+        prompt_text = job.prompt or ""
         tasks.append(TaskQueueItem(
             job_id=job.id,
             project_id=job.project_id,
-            prompt=job.prompt[:100] + '...' if len(job.prompt) > 100 else job.prompt,
+            prompt=prompt_text[:100] + '...' if len(prompt_text) > 100 else prompt_text,
             shot_count=job.shot_count,
             style=job.style,
             mood=job.mood,
@@ -286,9 +280,9 @@ async def get_task_queue(
             priority=job.priority,
             estimated_time=job.estimated_time,
             error=job.error,
-            created_at=created_at,
-            started_at=started_at,
-            completed_at=completed_at
+            created_at=create_ts or "",
+            started_at=started_ts,
+            completed_at=completed_ts
         ))
     
     return TaskQueueResponse(
@@ -352,11 +346,7 @@ async def update_job_priority(
     job_data['priority'] = new_priority
     save_job(job_id, job_data)
     
-    # Update in-memory storage
-    if job_id in jobs_db:
-        jobs_db[job_id].priority = new_priority
-    
-    # Reorder queue
+    # Reorder queue (refresh logs)
     reorder_queue_by_priority()
     
     logger.info(f"Job {job_id} priority changed: {old_priority} -> {new_priority}")
@@ -376,40 +366,20 @@ async def move_job_up(
 ) -> PriorityUpdateResponse:
     """
     Move a job up in the queue (increase priority).
-    
-    Args:
-        job_id: Job ID to move
-        user_id: Authenticated user ID
-    
-    Returns:
-        Updated priority information
     """
     job = load_job(job_id)
     
     if not job:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Job not found"
-        )
+        raise HTTPException(status_code=404, detail="Job not found")
     
-    # Check ownership
     if job.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to modify this job"
-        )
+        raise HTTPException(status_code=403, detail="Permission denied")
     
-    # Only pending jobs can be moved
     if job.status != GenerationStatus.PENDING:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Cannot move job with status: {job.status.value}"
-        )
+        raise HTTPException(status_code=400, detail="Only pending jobs can be moved")
     
-    # Get all pending jobs sorted by priority
     pending_jobs = get_pending_jobs()
     
-    # Find current job position
     current_index = -1
     for i, j in enumerate(pending_jobs):
         if j.id == job_id:
@@ -417,28 +387,20 @@ async def move_job_up(
             break
     
     if current_index <= 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Job is already at the highest position"
-        )
+        raise HTTPException(status_code=400, detail="Already at highest position")
     
-    # Swap with job above
     job_above = pending_jobs[current_index - 1]
     
     if swap_priorities(job_id, job_above.id):
-        new_priority = job.priority - 1 if job.priority > 1 else 1
-        
+        # Priority logic might be complex if numbers are same, but swap ensures relative order changes
         return PriorityUpdateResponse(
             job_id=job_id,
             old_priority=job.priority,
-            new_priority=new_priority,
+            new_priority=job.priority, # Might be same value but position changed
             message="Job moved up in queue"
         )
     else:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to move job"
-        )
+        raise HTTPException(status_code=500, detail="Failed to move job")
 
 
 @router.post("/tasks/{job_id}/move-down", response_model=PriorityUpdateResponse)
@@ -448,40 +410,20 @@ async def move_job_down(
 ) -> PriorityUpdateResponse:
     """
     Move a job down in the queue (decrease priority).
-    
-    Args:
-        job_id: Job ID to move
-        user_id: Authenticated user ID
-    
-    Returns:
-        Updated priority information
     """
     job = load_job(job_id)
     
     if not job:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Job not found"
-        )
+        raise HTTPException(status_code=404, detail="Job not found")
     
-    # Check ownership
     if job.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to modify this job"
-        )
+        raise HTTPException(status_code=403, detail="Permission denied")
     
-    # Only pending jobs can be moved
     if job.status != GenerationStatus.PENDING:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Cannot move job with status: {job.status.value}"
-        )
+        raise HTTPException(status_code=400, detail="Only pending jobs can be moved")
     
-    # Get all pending jobs sorted by priority
     pending_jobs = get_pending_jobs()
     
-    # Find current job position
     current_index = -1
     for i, j in enumerate(pending_jobs):
         if j.id == job_id:
@@ -489,28 +431,19 @@ async def move_job_down(
             break
     
     if current_index < 0 or current_index >= len(pending_jobs) - 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Job is already at the lowest position"
-        )
+        raise HTTPException(status_code=400, detail="Already at lowest position")
     
-    # Swap with job below
     job_below = pending_jobs[current_index + 1]
     
     if swap_priorities(job_id, job_below.id):
-        new_priority = job.priority + 1 if job.priority < 10 else 10
-        
         return PriorityUpdateResponse(
             job_id=job_id,
             old_priority=job.priority,
-            new_priority=new_priority,
+            new_priority=job.priority,
             message="Job moved down in queue"
         )
     else:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to move job"
-        )
+        raise HTTPException(status_code=500, detail="Failed to move job")
 
 
 @router.post("/tasks/{job_id}/retry", response_model=RetryResponse)
@@ -520,58 +453,27 @@ async def retry_job(
 ) -> RetryResponse:
     """
     Retry a failed or cancelled job.
-    
-    Args:
-        job_id: Job ID to retry
-        user_id: Authenticated user ID
-    
-    Returns:
-        Retry result information
     """
     job = load_job(job_id)
     
     if not job:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Job not found"
-        )
+        raise HTTPException(status_code=404, detail="Job not found")
     
-    # Check ownership
     if job.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to modify this job"
-        )
+        raise HTTPException(status_code=403, detail="Permission denied")
     
-    # Only failed or cancelled jobs can be retried
     if job.status not in [GenerationStatus.FAILED, GenerationStatus.CANCELLED]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Cannot retry job with status: {job.status.value}. Only failed or cancelled jobs can be retried."
-        )
+        raise HTTPException(status_code=400, detail="Only failed or cancelled jobs can be retried")
     
     old_status = job.status.value
     
-    # Reset job status to pending
     job_data = job.dict()
     job_data['status'] = GenerationStatus.PENDING.value
     job_data['progress'] = 0
-    job_data['current_step'] = None
     job_data['error'] = None
-    job_data['started_at'] = None
-    job_data['completed_at'] = None
     job_data['created_at'] = datetime.utcnow().isoformat()
-    job_data['estimated_time'] = job_data.get('shot_count', 5) * 10
     
     save_job(job_id, job_data)
-    
-    # Update in-memory storage
-    if job_id in jobs_db:
-        jobs_db[job_id].status = GenerationStatus.PENDING
-        jobs_db[job_id].progress = 0
-        jobs_db[job_id].current_step = None
-    
-    logger.info(f"Job {job_id} queued for retry (status: {old_status} -> pending)")
     
     return RetryResponse(
         job_id=job_id,
@@ -588,68 +490,52 @@ async def get_queue_stats(
 ) -> QueueStatsResponse:
     """
     Get queue statistics.
-    
-    Args:
-        project_id: Optional project filter
-        user_id: Authenticated user ID
-    
-    Returns:
-        Queue statistics
     """
     all_jobs: List[GenerationJob] = []
     
-    # Collect jobs
-    for job in jobs_db.values():
-        all_jobs.append(job)
-    
     try:
-        job_files = job_storage.list_files()
-        for job_id in job_files:
-            job_data = job_storage.load(job_id)
-            if job_data and job_data.get('user_id') == user_id:
-                if not any(j.id == job_id for j in all_jobs):
-                    all_jobs.append(GenerationJob(**job_data))
-    except Exception as e:
-        logger.warning(f"Could not list job files: {e}")
+        user_jobs_data = job_storage.get_by_owner(user_id)
+        for job_data in user_jobs_data:
+            try:
+                all_jobs.append(GenerationJob(**job_data))
+            except:
+                pass
+    except:
+        pass
     
-    # Apply project filter
     if project_id:
         all_jobs = [j for j in all_jobs if j.project_id == project_id]
-    
-    # Count by status
-    status_counts = {
-        'pending': 0,
-        'processing': 0,
-        'completed': 0,
-        'failed': 0,
-        'cancelled': 0
-    }
-    
+        
+    status_counts = {k.value: 0 for k in GenerationStatus}
+    # Ensure all keys exist
+    for k in ['pending', 'processing', 'completed', 'failed', 'cancelled']:
+        if k not in status_counts: status_counts[k] = 0
+        
     total_wait_time = 0
     waiting_jobs = 0
     
     for job in all_jobs:
-        status_counts[job.status.value] += 1
-        
-        # Calculate wait time for pending jobs
+        s = job.status.value
+        if s in status_counts:
+            status_counts[s] += 1
+            
         if job.status == GenerationStatus.PENDING:
-            if hasattr(job.created_at, 'timestamp'):
-                wait_time = (datetime.utcnow() - job.created_at).total_seconds()
-            else:
-                # If created_at is a string, estimate
-                wait_time = 0
-            total_wait_time += wait_time
-            waiting_jobs += 1
+            created = job.created_at
+            if isinstance(created, str):
+                try: created = datetime.fromisoformat(created)
+                except: created = datetime.utcnow()
+            
+            if hasattr(created, 'timestamp'):
+                total_wait_time += (datetime.utcnow() - created).total_seconds()
+                waiting_jobs += 1
+                
+    avg_wait = total_wait_time / waiting_jobs if waiting_jobs > 0 else 0
     
-    # Calculate average wait time
-    avg_wait_time = total_wait_time / waiting_jobs if waiting_jobs > 0 else 0
-    
-    # Calculate estimated completion time (sum of estimated times for pending jobs)
-    estimated_completion = None
+    est = None
     if project_id:
-        pending_jobs = [j for j in all_jobs if j.status == GenerationStatus.PENDING]
-        estimated_completion = sum(j.estimated_time or (j.shot_count * 10) for j in pending_jobs)
-    
+        pending = [j for j in all_jobs if j.status == GenerationStatus.PENDING]
+        est = sum(j.estimated_time or (j.shot_count * 10) for j in pending)
+        
     return QueueStatsResponse(
         total_jobs=len(all_jobs),
         pending_jobs=status_counts['pending'],
@@ -657,8 +543,8 @@ async def get_queue_stats(
         completed_jobs=status_counts['completed'],
         failed_jobs=status_counts['failed'],
         cancelled_jobs=status_counts['cancelled'],
-        average_wait_time=round(avg_wait_time, 2),
-        estimated_completion_time=estimated_completion
+        average_wait_time=round(avg_wait, 2),
+        estimated_completion_time=est
     )
 
 
@@ -667,48 +553,18 @@ async def delete_job(
     job_id: str,
     user_id: str = Depends(verify_jwt_token)
 ) -> Dict[str, str]:
-    """
-    Delete a job from the queue.
-    
-    Args:
-        job_id: Job ID to delete
-        user_id: Authenticated user ID
-    
-    Returns:
-        Deletion result
-    """
+    """Delete a job from the queue."""
     job = load_job(job_id)
     
     if not job:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Job not found"
-        )
-    
-    # Check ownership
+        raise HTTPException(status_code=404, detail="Job not found")
+        
     if job.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to delete this job"
-        )
-    
-    # Only completed, failed, or cancelled jobs can be deleted
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
     if job.status in [GenerationStatus.PENDING, GenerationStatus.PROCESSING]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Cannot delete job with status: {job.status.value}. Cancel it first."
-        )
+        raise HTTPException(status_code=400, detail="Cannot delete active job. Cancel first.")
+        
+    job_storage.delete(job_id)
     
-    # Remove from in-memory storage
-    if job_id in jobs_db:
-        del jobs_db[job_id]
-    
-    # Note: We don't delete the file from storage to maintain history
-    
-    logger.info(f"Job {job_id} deleted from queue")
-    
-    return {
-        "message": "Job deleted successfully",
-        "job_id": job_id
-    }
-
+    return {"message": "Job deleted", "job_id": job_id}

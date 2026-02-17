@@ -62,22 +62,35 @@ export function Step1BasicIdentity({ worldContext }: Step1BasicIdentityProps) {
   const handleGenerateName = async (random: boolean = false) => {
     clearError();
 
+    // Add unique entropy to ensure different results each time
+    const uniqueEntropy = {
+      timestamp: Date.now(),
+      randomId: Math.random().toString(36).substring(2, 10),
+      sessionSeed: Math.floor(Math.random() * 1000000),
+    };
+
     const context = {
       archetype: formData.role?.archetype || 'character',
       ageRange: formData.visual_identity?.age_range || 'adult',
       worldName: worldContext?.name || 'the world',
       worldGenre: worldContext?.genre?.join(', ') || 'fantasy',
       worldTimePeriod: worldContext?.timePeriod || 'medieval',
+      entropy: uniqueEntropy,
     };
 
-    const systemPrompt = 'You are a creative character naming assistant. Generate names that fit the character\'s role, world setting, and cultural context.';
+    const systemPrompt = random
+      ? 'You are a creative character naming assistant. Generate UNIQUE, DIVERSE names that fit the character\'s world setting and cultural context. IMPORTANT: You must generate completely different names each time - do not repeat previous suggestions. Use the entropy provided to ensure uniqueness.'
+      : 'You are a creative character naming assistant. Generate names that fit the character\'s role, world setting, and cultural context. IMPORTANT: You must generate completely different names each time - do not repeat previous suggestions. Use the entropy provided to ensure uniqueness.';
 
-    const prompt = `Generate 3 fitting character names for:
+    const prompt = `Generate 3 UNIQUE and DIFFERENT character names for:
 - Archetype: ${context.archetype}
 - Age Range: ${context.ageRange}
 - World: ${context.worldName}
 - Genre: ${context.worldGenre}
 - Time Period: ${context.worldTimePeriod}
+- Unique Entropy ID: ${uniqueEntropy.sessionSeed}
+
+CRITICAL REQUIREMENT: These names must be COMPLETELY UNIQUE and DIFFERENT from any names you have generated before. Use the entropy ID to ensure uniqueness.
 
 Provide names that:
 1. Fit the genre and time period

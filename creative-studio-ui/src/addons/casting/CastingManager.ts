@@ -170,10 +170,15 @@ export class CastingManager {
       avatarUsageCounts[assignment.avatarId] = (avatarUsageCounts[assignment.avatarId] || 0) + 1;
     });
 
+    const assignedCharacterIds = new Set(this.state.assignments.map(a => a.characterId));
+    const allCharacterIds = new Set(this.sceneReferences.map(ref => ref.characterId));
+    const uncastCharacters = Array.from(allCharacterIds).filter(id => !assignedCharacterIds.has(id));
+
     return {
       characterSceneCounts,
       avatarUsageCounts,
       uniqueActorCount: Object.keys(avatarUsageCounts).length,
+      uncastCharacters,
     };
   }
 
@@ -209,8 +214,8 @@ export class CastingManager {
     // Try to recover valid assignments if possible
     const recoveredAssignments: CastingAssignment[] = [];
 
-    if (data && Array.isArray(data.assignments)) {
-      for (const assignment of data.assignments) {
+    if (data && Array.isArray((data as any).assignments)) {
+      for (const assignment of (data as any).assignments) {
         if (
           assignment &&
           typeof assignment === 'object' &&
@@ -229,8 +234,8 @@ export class CastingManager {
 
     this.state = {
       assignments: recoveredAssignments,
-      version: data?.version || '1.0',
-      lastModified: data?.lastModified || new Date().toISOString(),
+      version: (data as any)?.version || '1.0',
+      lastModified: (data as any)?.lastModified || new Date().toISOString(),
     };
 
   }
@@ -402,11 +407,11 @@ export class CastingManager {
 
   private isValidCastingState(state: unknown): state is CastingState {
     return (
-      state &&
+      state !== null &&
       typeof state === 'object' &&
-      Array.isArray(state.assignments) &&
-      typeof state.version === 'string' &&
-      typeof state.lastModified === 'string'
+      Array.isArray((state as any).assignments) &&
+      typeof (state as any).version === 'string' &&
+      typeof (state as any).lastModified === 'string'
     );
   }
 }

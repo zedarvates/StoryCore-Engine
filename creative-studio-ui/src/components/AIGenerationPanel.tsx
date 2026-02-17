@@ -41,7 +41,7 @@ const AIGenerationPanel: React.FC = () => {
         const { getComfyUIServersService } = await import('@/services/comfyuiServersService');
         const service = getComfyUIServersService();
         const activeServer = service.getActiveServer();
-        
+
         if (activeServer) {
           setComfyUIUrl(activeServer.serverUrl.replace(/\/$/, ''));
         } else {
@@ -99,11 +99,11 @@ const AIGenerationPanel: React.FC = () => {
           if (jobStatus.status === 'completed') {
             setIsGenerating(false);
             // Extract generated content URLs from result
-            if (jobStatus.result?.outputs) {
+            if ((jobStatus.result as any)?.outputs) {
               const urls: string[] = [];
-              Object.values(jobStatus.result.outputs).forEach((output: unknown) => {
+              Object.values((jobStatus.result as any).outputs).forEach((output: any) => {
                 if (output.images) {
-                  output.images.forEach((img: unknown) => {
+                  output.images.forEach((img: any) => {
                     if (img.filename) {
                       urls.push(`${comfyUIUrl}/view?filename=${img.filename}&subfolder=${img.subfolder || ''}&type=${img.type || 'output'}`);
                     }

@@ -241,12 +241,12 @@ export class AudioProductionManager {
    */
   private isValidAudioProjectState(state: unknown): state is AudioProjectState {
     return (
-      state &&
+      state !== null &&
       typeof state === 'object' &&
-      state.project &&
-      Array.isArray(state.project.tracks) &&
-      typeof state.version === 'string' &&
-      typeof state.lastModified === 'string'
+      (state as any).project &&
+      Array.isArray((state as any).project.tracks) &&
+      typeof (state as any).version === 'string' &&
+      typeof (state as any).lastModified === 'string'
     );
   }
 

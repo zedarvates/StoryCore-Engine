@@ -1,7 +1,7 @@
 # 🎬 StoryCore-Engine
 ### The Self-Correcting Multimodal Production Pipeline
 
-**From Script to Screen in 5 Minutes — With  Visual Coherence**
+**From Script to Screen in Minutes — With  Visual Coherence**
 
 ![Hackathon 2026](https://img.shields.io/badge/Hackathon-2026-blue) ![Python](https://img.shields.io/badge/Python-3.9+-green) ![React](https://img.shields.io/badge/React-18+-blue) ![ComfyUI](https://img.shields.io/badge/ComfyUI-Ready-orange) ![Deterministic AI](https://img.shields.io/badge/Deterministic-AI-purple) ![Security](https://img.shields.io/badge/Security-Validated-green) ![Resilience](https://img.shields.io/badge/Resilience-Enterprise-blue)![Python](https://img.shields.io/badge/python-3.11+-blue)
 ![License](https://img.shields.io/github/license/zedarvates/StoryCore-Engine)
@@ -9,8 +9,7 @@
 
 ---
 
-![Preview](assets/Screenshot-2026-02-15-060825.png)
-
+![StoryCore-Engine Preview](assets/Screenshot%202026-02-15%20060825.png)
 
 ---
 
@@ -43,8 +42,7 @@ These refinements will be handled in future versions.
 
 ---
 
-![ presentation ](assets/Screenshot-2026-02-15060805.png.png)][(https://www.youtube.com/watch?v=P0K7DueyICo](https://youtu.be/P0K7DueyICo?si=kEvpsxMy4zeFEYqO))
-
+[![StoryCore Presentation Video](assets/Screenshot%202026-02-15%20060805.png)](https://www.youtube.com/watch?v=P0K7DueyICo)
 
 ---
 
@@ -61,11 +59,12 @@ note : Be careful: even with an RTX 5060 and 32 GB of RAM — a fairly recent PC
 As for dialogue generation, it will obviously depend on the length of the dialogue and the variables you apply. And on top of that, you might also add filters. As of right now, I’m not even sure if I’ve already integrated those filters into the user interface.
 
 ---
-![Preview](assets/Screenshot-2026-02-15060805.png)
+![StoryCore Interface](assets/Screenshot%202026-02-15%20060805.png)
 
-![Preview](assets/Screenshot-2026-02-15-060909.png)
+![StoryCore Dashboard](assets/Screenshot%202026-02-15%20060909.png)
 
-![Preview](assets/Screenshot-2026-02-15-060938.png)
+![StoryCore Editor](assets/Screenshot%202026-02-15%20060938.png)
+
 
 ---
 ## 🚀 Quick Start
@@ -122,44 +121,97 @@ python storycore.py promote --project my-project
 
 ## ✨ Key Features
 
+### Core Features
 - **Visual Coherence System** - Master Coherence Sheet ensures consistent style across all frames
-- **Story builder System** - Master story ensures  coherences across video
+- **Story Builder System** - Master story ensures coherence across video projects
 - **Self-Correcting Pipeline** - Automatic quality detection and fixing during generation
 - **Deterministic Output** - Reproducible results with seed control
 - **Complete Local Processing** - No cloud dependencies, all data stays on your machine
 - **Production-Ready** - Security validation, error handling, and resilience patterns
+
+### AI Integration
+- **ComfyUI Integration** - Full support for ComfyUI Desktop (port 8000) and Manual (port 8188)
+- **LLM Support** - Ollama integration for local LLM processing (Qwen, Gemma, etc.)
+- **Image Generation** - NewBie, Qwen models via ComfyUI workflows
+- **Video Generation** - HunyuanVideo, Wan Video integration
+- **Audio Processing** - Dialogue generation, background music, audio effects
+
+### Creative Tools
+- **Wizard System** - Modular wizards for characters, locations, objects, scenes
+- **Sequence Editor** - Video and audio timeline editing
+- **Character Portraits** - AI-powered character generation with consistency
+- **Camera Angles** - Camera movement planning and transitions
+- **3D Scene Creation** - Integration with 3D tools for scene planning
+
+### Add-on System
+- **Extensible Architecture** - Control ComfyUI and other tools through add-ons
+- **Custom Workflows** - Create and share custom ComfyUI workflows
+- **Plugin Support** - Extend functionality with community plugins
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-📝 Input (Script/Prompt)  → 🧠 Text Engine (Scene Breakdown + Shot Planning)
+📝 Input (Script/Prompt)
     ↓
-🧠 LLM Processing (Ollama) → Scene Breakdown
+🧠 Story Engine
+    ├── LLM Processing (Ollama)
+    ├── Scene Breakdown
+    ├── Character Development
+    └── Dialogue Generation
     ↓
-🎨 Visual Coherence Grid (ComfyUI) 🔀 Workflow Selection (Basic/Advanced)
+🎨 Visual Planning
+    ├── Visual Coherence Grid (ComfyUI)
+    ├── Character Portraits
+    ├── Location Design
+    └── Shot Planning
     ↓
-⚡ Quality Check & Auto-fix
+🎬 Production Pipeline
+    ├── Image Generation (NewBie, Qwen, Flux)
+    ├── Video Generation (HunyuanVideo, Wan Video)
+    ├── Audio Generation (Music, Dialogue, Effects)
+    └── Quality Check & Auto-fix
     ↓
-🔧 AutofixEngine (Parameter Adjustment + Re-processing Loop)
-    ↓
-🎬 Video Planning (Camera Movements + Transitions)
-    ↓    
-🎬 Video Generation (HunyuanVideo, Wan Video) | 🖼️ Image Generation (NewBie, Qwen)
-    ↓
-📦 Export Ready Output
+📦 Export
+    ├── Video Output (MP4, WebM)
+    ├── Audio Tracks
+    └── Project Files
 ```
 
-ComfyUI Integration Layer (Production-Ready)
+### Technology Stack
 
-Advanced Workflows ( + 8 AI Models)
-Data Flow & Performance
-Validated Performance Metrics
-Circuit Breaker
-Fallback Chains
-Graceful Degradation
-Error Analytics
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 18+, TypeScript, Tailwind CSS, Electron, Vite |
+| **Backend** | FastAPI, Python 3.11+, Pydantic, Uvicorn |
+| **AI/ML** | ComfyUI, Ollama, PyTorch, CUDA, NumPy |
+| **Video** | FFmpeg, HunyuanVideo, Wan Video, OpenCV |
+| **Audio** | Custom audio processing, TTS integration, Audio remix engine |
+| **3D** | Panda3D, Open3D, OpenGL (optional) |
+| **Storage** | Local filesystem, SQLite, JSON |
+| **State Management** | Zustand, Redux Toolkit |
+
+### ComfyUI Integration Layer
+
+**Production-Ready Features:**
+- ✅ Advanced Workflows with 8+ AI Models
+- ✅ Circuit Breaker for fault tolerance
+- ✅ Fallback Chains for graceful degradation
+- ✅ Error Analytics for monitoring
+- ✅ Validated Performance Metrics
+- ✅ WebSocket real-time communication
+- ✅ Automatic retry with exponential backoff
+- ✅ GPU memory management
+
+**Supported Models:**
+
+| Type | Models |
+|------|--------|
+| **Image Generation** | Flux, SDXL, NewBie, Qwen, Stable Diffusion |
+| **Video Generation** | HunyuanVideo, Wan Video, LTX2 |
+| **LLM** | Qwen, Gemma, Llama (via Ollama) |
+| **Audio** | Custom TTS models, Music generation |
 
 ---
 note : If you’re really in a hurry and you have Grok accounts, a Seeddance King account, and all the rest of that ecosystem — and if your video is just for testing and not a production at the peak of your capabilities — then it’s better to use those tools.
@@ -228,68 +280,78 @@ npm run package:linux # Linux
 - TypeScript: No errors
 - Bundle Size: 1.38 MB (356 KB gzipped)
 
-**For detailed build information, see:** [BUILD_REPORT.md](BUILD_REPORT.md)
+**For detailed build information, see:** [BUILD_REPORT.md](documentation/reports/BUILD_REPORT.md)
 
 
 ---
 
-## 🎯 Future Roadmap (Post-Launch Enhancements)
+## 🎯 Future Roadmap
+
+### 📊 Current Status (February 2026)
+
+**Completed Features:**
+- ✅ Visual Coherence System
+- ✅ Story Builder System
+- ✅ ComfyUI Integration (Desktop & Manual)
+- ✅ Wizard System (Characters, Locations, Objects, Scenes)
+- ✅ Sequence Editor
+- ✅ LLM Integration (Ollama)
+- ✅ Image Generation (Flux, SDXL, NewBie, Qwen)
+- ✅ Video Generation (HunyuanVideo, Wan Video)
+- ✅ Audio Processing & Dialogue Generation
+- ✅ Add-on System
+- ✅ Security Validation & Error Handling
 
 ### 📊 Visual Roadmap
 
 | Phase | Feature | Status | Description |
 |-------|---------|--------|-------------|
-| **Phase 1** | Advanced Camera Movements | 🔜 Planned | Bezier curves and complex transitions |
-| **Phase 1** | Multi-format Export | 🔜 Planned | MP4 generation from video plans |
-| **Phase 2** | Collaborative Features | 📋 Backlog | Multi-user project management |
-| **Phase 2** | Performance Optimization | 📋 Backlog | Parallel processing and caching |
-| **Phase 3** | Plugin Architecture | 📋 Backlog | Custom engine extensions |
-| **Phase 3** | Cloud Deployment | 📋 Backlog | Scalable cloud infrastructure |
-| **Phase 4** | Real-time Monitoring | 📋 Backlog | Enhanced monitoring with alerting |
-| **Phase 4** | Multi-character Scenes | 📋 Backlog | Advanced scene composition |
-| **Phase 5** | Studio Integration | 📋 Backlog | Enterprise deployment and scaling |
+| **Q1 2026** | Image Generation Dialog Enhancement | 🔄 In Progress | Improved UI for image generation |
+| **Q1 2026** | Dashboard Wizard Addon | 🔄 In Progress | Enhanced dashboard functionality |
+| **Q1 2026** | Advanced Camera Movements | 🔜 Planned | Bezier curves and complex transitions |
+| **Q2 2026** | Multi-format Export | 🔜 Planned | MP4 generation from video plans |
+| **Q2 2026** | Performance Optimization | 🔜 Planned | Parallel processing and caching |
+| **Q3 2026** | Collaborative Features | 📋 Backlog | Multi-user project management |
+| **Q3 2026** | Plugin Architecture | 📋 Backlog | Custom engine extensions |
+| **Q4 2026** | Cloud Deployment | 📋 Backlog | Scalable cloud infrastructure |
+| **Q4 2026** | Real-time Monitoring | 📋 Backlog | Enhanced monitoring with alerting |
+| **2027** | Multi-character Scenes | 📋 Backlog | Advanced scene composition |
+| **2027** | Studio Integration | 📋 Backlog | Enterprise deployment and scaling |
 
 ### 📋 Milestone List
 
-1. **v0.2.0** - Advanced Camera Movements & Transitions
-2. **v0.3.0** - Multi-format Export (MP4)
-3. **v0.4.0** - Collaborative Features
-4. **v0.5.0** - Performance Optimization
-5. **v1.0.0** - Plugin Architecture & Cloud Ready
+1. **v1.1.0** - Image Generation Dialog & Dashboard Enhancements (Q1 2026)
+2. **v1.2.0** - Advanced Camera Movements & Transitions (Q1 2026)
+3. **v1.3.0** - Multi-format Export (MP4) (Q2 2026)
+4. **v1.4.0** - Performance Optimization (Q2 2026)
+5. **v2.0.0** - Collaborative Features & Plugin Architecture (Q3-Q4 2026)
 
 ---
 
-**Planned Features:**
-- Advanced Camera Movements: Bezier curves and complex transitions
-- Multi-format Export: MP4 generation from video plans
-- Collaborative Features: Multi-user project management
-- Performance Optimization: Parallel processing and caching
-- Plugin Architecture: Custom engine extensions
-- Cloud Deployment: Scalable cloud infrastructure
-- Real-time Monitoring Dashboard: Enhanced monitoring with alerting
-- Multi-character Scenes: Advanced scene composition
-- Professional Studio Integration: Enterprise deployment and scaling
+**Focus Areas for 2026:**
+- 🎨 **UI/UX Improvements** - Enhanced wizards, better dialogs, improved accessibility
+- ⚡ **Performance** - Faster generation, better caching, GPU optimization
+- 🔌 **Extensibility** - Plugin system, custom workflows, API expansion
+- 🤝 **Collaboration** - Multi-user support, project sharing, team features
 
 ---
 
 ## 📚 Documentation
 
 ### Getting Started
-- [Quick Start Guide](docs/COMFYUI_QUICK_START.md) - ComfyUI setup in 2 minutes
-- [Documentation Index](DOCUMENTATION_INDEX.md) - 📑 **START HERE** - Complete documentation navigation
+- [Quick Start Guide](documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md) - ComfyUI setup in 2 minutes
+- [Documentation Index](INDEX_DOCUMENTATION_COMPLETE.md) - 📑 **START HERE** - Complete documentation navigation
 - [Quick Reference](QUICK_REFERENCE.md) - Common commands and workflows
 
 ### Build & Development
-- [Build Success Summary](BUILD_SUCCESS_SUMMARY.md) - ✅ Latest build status (Jan 23, 2026)
-- [Build Report](BUILD_REPORT.md) - Detailed build analysis and metrics
-- [Test Fixes](FIX_TESTS.md) - Test improvements and known issues
-- [TODO List](TODO.md) - Master TODO and task tracking
-- [Release Notes](RELEASE_NOTES_2026_01_23.md) - Latest release information
+- [Build Success Summary](documentation/reports/BUILD_SUCCESS_SUMMARY.md) - ✅ Latest build status (Jan 23, 2026)
+- [Build Report](documentation/reports/BUILD_REPORT.md) - Detailed build analysis and metrics
+- [Release Notes](documentation/RELEASE_NOTES_2026_01_23.md) - Latest release information
 - [Changelog](CHANGELOG.md) - Version history
 
 ### Technical Documentation
 - [Technical Guide](documentation/TECHNICAL_GUIDE.md) - Architecture and implementation
-- [API Reference](documentation/api/) - API documentation
+- [API Reference](documentation/api_reference/README.md) - API documentation
 - [Troubleshooting](documentation/TROUBLESHOOTING.md) - Common issues and solutions
 - [Project Index](INDEX.md) - Complete project structure
 

@@ -7,7 +7,6 @@ import {
   Music,
   Video,
   FileText,
-  Layers,
   RefreshCw,
   Loader2,
   Check,
@@ -17,19 +16,20 @@ import {
   Grid,
   List,
   Square,
-  FolderPlus,
   Info,
-  Wifi,
   WifiOff,
   Cloud,
   Database
 } from 'lucide-react';
 import { VaultGallery } from './workspace/VaultGallery';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ImageWithHoverButton } from '@/components/camera-angle-editor/ImageHoverButton';
+import { useLocalCameraAngleEditorModal } from '@/contexts/CameraAngleEditorContext';
+import { CameraAngleEditorModal } from '@/components/camera-angle-editor/CameraAngleEditorModal';
 
 interface AssetPanelProps {
-  projectPath?: string;
-  className?: string;
+  readonly projectPath?: string;
+  readonly className?: string;
 }
 
 interface Asset {
@@ -41,12 +41,37 @@ interface Asset {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Helper function to render the appropriate icon based on asset type
+ */
+const renderAssetTypeIcon = (type: Asset['type']): React.ReactNode => {
+  switch (type) {
+    case 'image':
+      return <ImageIcon className="w-5 h-5 text-muted-foreground" />;
+    case 'audio':
+      return <Music className="w-5 h-5 text-muted-foreground" />;
+    case 'video':
+      return <Video className="w-5 h-5 text-muted-foreground" />;
+    default:
+      return <FileText className="w-5 h-5 text-muted-foreground" />;
+  }
+};
+
 export function AssetPanel({ projectPath, className }: AssetPanelProps) {
   const { toast } = useToast();
 
+  // Camera angle editor modal state
+  const {
+    isOpen: isCameraAngleModalOpen,
+    imageId: cameraAngleImageId,
+    imagePath: cameraAngleImagePath,
+    openModal: openCameraAngleModal,
+    closeModal: closeCameraAngleModal,
+  } = useLocalCameraAngleEditorModal();
+
   // Asset library state
   const [assetSources, setAssetSources] = useState<AssetSource[]>([]);
-  const [filteredAssets, setFilteredAssets] = useState<any[]>([]);
+  const [filteredAssets, setFilteredAssets] = useState<Asset[]>([]);
   const [assetSearchQuery, setAssetSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isLoadingAssets, setIsLoadingAssets] = useState(false);
@@ -57,6 +82,38 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
   const [activeTab, setActiveTab] = useState<'library' | 'vault'>('library');
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const assetListRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Helper function to render thumbnail content for an asset
+   */
+  const renderThumbnail = useCallback((asset: Asset, isImage: boolean): React.ReactNode => {
+    if (!asset.thumbnail) {
+      return renderAssetTypeIcon(asset.type);
+    }
+    
+    if (isImage) {
+      return (
+        <ImageWithHoverButton
+          src={asset.thumbnail}
+          alt={asset.name}
+          imageId={asset.id}
+          imagePath={asset.url || asset.thumbnail}
+          onClick={openCameraAngleModal}
+          buttonLabel="Edit Angle"
+          enableScaleEffect={false}
+          imageClassName="w-full h-full object-cover"
+        />
+      );
+    }
+    
+    return (
+      <img
+        src={asset.thumbnail}
+        alt={asset.name}
+        className="w-full h-full object-cover"
+      />
+    );
+  }, [openCameraAngleModal]);
 
   // Load assets on mount
   useEffect(() => {
@@ -175,15 +232,15 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
   }, [selectedAssetIds, selectAll, clearSelection]);
 
   // Handle delete selected assets
   const handleDeleteSelected = useCallback(() => {
     if (selectedAssetIds.size === 0) return;
 
-    const confirmDelete = window.confirm(
+    const confirmDelete = globalThis.confirm(
       `Delete ${selectedAssetIds.size} selected asset(s)?`
     );
 
@@ -304,24 +361,21 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
   const renderAssetGridItem = (asset: Asset, index: number) => {
     const isSelected = selectedAssetIds.has(asset.id);
     const isImage = asset.type === 'image';
-    const isAudio = asset.type === 'audio';
-    const isVideo = asset.type === 'video';
 
     return (
-      <div
+      <button
+        type="button"
         key={asset.id}
         onClick={(e) => handleAssetSelect(asset.id, index, e)}
         onDoubleClick={() => handleAssetDoubleClick(asset)}
         className={`
-          relative flex items-center gap-2 p-2 rounded-md cursor-pointer border transition-all
+          relative w-full flex items-center gap-2 p-2 rounded-md cursor-pointer border transition-all
           ${isSelected
             ? 'bg-primary/10 border-primary ring-2 ring-primary/30'
             : 'hover:bg-muted border-border group'
           }
         `}
         title={asset.name}
-        role="button"
-        tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -329,6 +383,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           }
         }}
         aria-label={`Select asset ${asset.name}`}
+        aria-pressed={isSelected ? 'true' : 'false'}
       >
         {/* Selection indicator */}
         {isSelected && (
@@ -344,25 +399,11 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           ${viewMode === 'grid' ? 'w-12 h-12' : 'w-10 h-10'}
           bg-muted rounded flex-shrink-0 flex items-center justify-center overflow-hidden
         `}>
-          {asset.thumbnail ? (
-            <img
-              src={asset.thumbnail}
-              alt={asset.name}
-              className="w-full h-full object-cover"
-            />
-          ) : isImage ? (
-            <ImageIcon className="w-5 h-5 text-muted-foreground" />
-          ) : isAudio ? (
-            <Music className="w-5 h-5 text-muted-foreground" />
-          ) : isVideo ? (
-            <Video className="w-5 h-5 text-muted-foreground" />
-          ) : (
-            <FileText className="w-5 h-5 text-muted-foreground" />
-          )}
+          {renderThumbnail(asset, isImage)}
         </div>
 
         {/* Asset info */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 text-left">
           <p className="text-xs font-medium truncate">{asset.name}</p>
           <p className="text-xs text-muted-foreground capitalize">{asset.type}</p>
         </div>
@@ -375,32 +416,28 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
             </div>
           </div>
         )}
-      </div>
+      </button>
     );
   };
 
   // Render asset in list view
-  const renderAssetListItem = (asset: Asset, index: number) => {
+  const renderAssetListItem = (asset: Asset, index: number): React.ReactElement => {
     const isSelected = selectedAssetIds.has(asset.id);
-    const isImage = asset.type === 'image';
-    const isAudio = asset.type === 'audio';
-    const isVideo = asset.type === 'video';
-
+    
     return (
-      <div
+      <button
+        type="button"
         key={asset.id}
         onClick={(e) => handleAssetSelect(asset.id, index, e)}
         onDoubleClick={() => handleAssetDoubleClick(asset)}
         className={`
-          flex items-center gap-3 p-2 rounded-md cursor-pointer border transition-all
+          w-full text-left flex items-center gap-3 p-2 rounded-md cursor-pointer border transition-all
           ${isSelected
             ? 'bg-primary/10 border-primary'
             : 'hover:bg-muted border-border'
           }
         `}
         title={asset.name}
-        role="button"
-        tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -408,6 +445,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           }
         }}
         aria-label={`Select asset ${asset.name}`}
+        aria-pressed={isSelected ? 'true' : 'false'}
       >
         {/* Selection checkbox */}
         <div className={`
@@ -422,21 +460,18 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
 
         {/* Thumbnail */}
         <div className="w-10 h-10 bg-muted rounded flex-shrink-0 flex items-center justify-center overflow-hidden">
-          {asset.thumbnail ? (
-            <img
-              src={asset.thumbnail}
-              alt={asset.name}
-              className="w-full h-full object-cover"
-            />
-          ) : isImage ? (
-            <ImageIcon className="w-5 h-5 text-muted-foreground" />
-          ) : isAudio ? (
-            <Music className="w-5 h-5 text-muted-foreground" />
-          ) : isVideo ? (
-            <Video className="w-5 h-5 text-muted-foreground" />
-          ) : (
-            <FileText className="w-5 h-5 text-muted-foreground" />
-          )}
+          {(() => {
+            if (asset.thumbnail) {
+              return (
+                <img
+                  src={asset.thumbnail}
+                  alt={asset.name}
+                  className="w-full h-full object-cover"
+                />
+              );
+            }
+            return renderAssetTypeIcon(asset.type) as React.ReactNode;
+          })() as React.ReactNode}
         </div>
 
         {/* Asset info */}
@@ -446,11 +481,11 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
         </div>
 
         {/* Metadata preview */}
-        {asset.metadata?.tags && asset.metadata.tags.length > 0 && (
+        {asset.metadata?.tags && Array.isArray(asset.metadata.tags) && asset.metadata.tags.length > 0 && (
           <div className="hidden md:flex items-center gap-1">
-            {asset.metadata.tags.slice(0, 2).map((tag: string, i: number) => (
+            {(asset.metadata.tags as string[]).slice(0, 2).map((tag: string, tagIndex: number) => (
               <span
-                key={i}
+                key={tag}
                 className="text-xs px-1.5 py-0.5 bg-muted rounded"
               >
                 {tag}
@@ -458,7 +493,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
             ))}
           </div>
         )}
-      </div>
+      </button>
     );
   };
 
@@ -470,7 +505,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">Assets</h2>
             {/* Demo Mode Indicator */}
-            {!(window as any).electronAPI && (
+            {!(globalThis as any).electronAPI && (
               <span className="flex items-center gap-1 px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">
                 <WifiOff className="w-3 h-3" />
                 Demo Mode
@@ -507,7 +542,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           </div>
         </div>
         {/* Demo Mode Info */}
-        {!(window as any).electronAPI && (
+        {!(globalThis as any).electronAPI && (
           <div className="flex items-center gap-1 mb-3 text-xs text-muted-foreground">
             <Info className="w-3 h-3" />
             <span>Running in browser with demo assets</span>
@@ -721,6 +756,14 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           Import Assets
         </button>
       </div>
+
+      {/* Camera Angle Editor Modal */}
+      <CameraAngleEditorModal
+        isOpen={isCameraAngleModalOpen}
+        onClose={closeCameraAngleModal}
+        initialImageId={cameraAngleImageId || undefined}
+        initialImagePath={cameraAngleImagePath || undefined}
+      />
     </div>
   );
 }

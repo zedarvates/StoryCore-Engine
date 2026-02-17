@@ -159,10 +159,10 @@ class SequenceResponse(BaseModel):
 
 
 # Initialize shared storage with LRU cache (max 500 job entries)
-job_storage = JSONFileStorage("./data/jobs", max_cache_size=500)
+# Index by user_id for efficient user-based queries
+job_storage = JSONFileStorage("./data/jobs", max_cache_size=500, index_field="user_id")
 
-# In-memory job storage (GenerationJob objects)
-jobs_db: Dict[str, GenerationJob] = {}
+# In-memory job results cache (optional, but storage handles caching)
 job_results: Dict[str, Dict[str, Any]] = {}
 active_connections: Dict[str, List[Any]] = {}
 
@@ -207,7 +207,7 @@ async def run_generation(job_id: str, job: GenerationJob):
         job_data = job_storage.load(job_id)
         if not job_data:
             return
-        job_data = job_data.dict()
+        # job_data is dict here
         
         # Check if job was cancelled before starting
         if job_data.get('status') == GenerationStatus.CANCELLED.value:
@@ -215,14 +215,16 @@ async def run_generation(job_id: str, job: GenerationJob):
             return
         
         for step_name, progress in steps:
-            # Check for cancellation from in-memory data
-            if job_data.get('status') == GenerationStatus.CANCELLED.value:
-                logger.info(f"Job {job_id} was cancelled")
-                job_storage.save(job_id, job_data)  # Save before returning
+            # Check for cancellation refreshes data from storage
+            current_job_data = job_storage.load(job_id)
+            if not current_job_data or current_job_data.get('status') == GenerationStatus.CANCELLED.value:
+                logger.info(f"Job {job_id} was cancelled or deleted")
                 return
             
-            job_data['progress'] = progress
-            job_data['current_step'] = step_name
+            # Update progress
+            current_job_data['progress'] = progress
+            current_job_data['current_step'] = step_name
+            job_storage.save(job_id, current_job_data)
             
             # Notify listeners
             await notify_job_update(job_id, {
@@ -235,9 +237,11 @@ async def run_generation(job_id: str, job: GenerationJob):
             await asyncio.sleep(1)
         
         # Generate the sequence
+        # Refetch fresh data
+        job_data = job_storage.load(job_id)
         sequence = await generate_sequence(job_data)
         
-        # Complete the job - save once at the end
+        # Complete the job
         job_data['status'] = GenerationStatus.COMPLETED.value
         job_data['progress'] = 100
         job_data['current_step'] = "Generation complete"
@@ -245,7 +249,7 @@ async def run_generation(job_id: str, job: GenerationJob):
         job_data['result'] = sequence
         job_storage.save(job_id, job_data)
         
-        # Store result
+        # Store result in memory cache as well if needed, but storage is primary
         job_results[job_id] = sequence
         
         # Notify completion
@@ -261,21 +265,19 @@ async def run_generation(job_id: str, job: GenerationJob):
     except Exception as e:
         logger.error(f"Generation job {job_id} failed: {e}")
         
-        job_data = job_storage.load(job_id)
-        if job_data:
-            # job_data is already a dict from storage, no need to call .dict()
-            pass
-        else:
-            job_data = {}
-        job_data['status'] = GenerationStatus.FAILED.value
-        job_data['error'] = str(e)
-        job_data['completed_at'] = datetime.utcnow().isoformat()
-        job_storage.save(job_id, job_data)
-        
-        await notify_job_update(job_id, {
-            "status": GenerationStatus.FAILED.value,
-            "error": str(e)
-        })
+        try:
+            job_data = job_storage.load(job_id) or {}
+            job_data['status'] = GenerationStatus.FAILED.value
+            job_data['error'] = str(e)
+            job_data['completed_at'] = datetime.utcnow().isoformat()
+            job_storage.save(job_id, job_data)
+            
+            await notify_job_update(job_id, {
+                "status": GenerationStatus.FAILED.value,
+                "error": str(e)
+            })
+        except Exception as storage_e:
+             logger.error(f"Failed to update job status after error: {storage_e}")
 
 
 async def generate_sequence(job_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -359,7 +361,7 @@ async def generate_sequence_endpoint(
     # Estimate time based on shot count (10 seconds per shot)
     estimated_time = request.shot_count * 10
     
-    job = {
+    job_dict = {
         "id": job_id,
         "project_id": request.project_id,
         "prompt": request.prompt,
@@ -381,14 +383,14 @@ async def generate_sequence_endpoint(
     }
     
     # Save job
-    if not save_job(job_id, job):
+    if not save_job(job_id, job_dict):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create generation job"
         )
     
     # Start background generation
-    background_tasks.add_task(run_generation, job_id, GenerationJob(**job))
+    background_tasks.add_task(run_generation, job_id, GenerationJob(**job_dict))
     
     logger.info(f"Generation job {job_id} created successfully")
     
@@ -649,30 +651,34 @@ async def list_generation_jobs(
     Returns:
         List of generation jobs
     """
-    # Filter jobs by user
-    user_jobs = [j for j in jobs_db.values() if j.user_id == user_id]
+    # Use storage index to filter by user_id
+    user_jobs_data = job_storage.get_by_owner(user_id)
+    
+    # Convert dicts to GenerationJob objects if needed, or work with dicts
+    # The response model expects a dict structure
     
     # Apply project filter
     if project_id:
-        user_jobs = [j for j in user_jobs if j.project_id == project_id]
+        user_jobs_data = [j for j in user_jobs_data if j.get("project_id") == project_id]
     
     # Apply status filter
     if status_filter:
-        user_jobs = [j for j in user_jobs if j.status == status_filter]
+        status_value = status_filter.value if hasattr(status_filter, 'value') else status_filter
+        user_jobs_data = [j for j in user_jobs_data if j.get("status") == status_value]
     
     # Sort by created_at descending
-    user_jobs.sort(key=lambda x: x.created_at, reverse=True)
+    user_jobs_data.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     
     return {
         "jobs": [
             {
-                "job_id": j.id,
-                "project_id": j.project_id,
-                "status": j.status.value,
-                "progress": j.progress,
-                "created_at": j.created_at.isoformat() if isinstance(j.created_at, datetime) else j.created_at
+                "job_id": j["id"],
+                "project_id": j.get("project_id"),
+                "status": j.get("status"),
+                "progress": j.get("progress", 0),
+                "created_at": j.get("created_at")
             }
-            for j in user_jobs
+            for j in user_jobs_data
         ],
-        "total": len(user_jobs)
+        "total": len(user_jobs_data)
     }

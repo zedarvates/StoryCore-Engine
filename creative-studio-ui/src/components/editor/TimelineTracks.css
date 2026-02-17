@@ -27,12 +27,42 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 140px;
+  min-width: 160px;
   padding: 8px 12px;
   background: #1a1a1a;
   border-left: 3px solid;
   border-radius: 4px;
   flex-shrink: 0;
+  justify-content: space-between;
+}
+
+.track-header-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.track-fill-btn {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.track-fill-btn:hover {
+  background: rgba(124, 58, 237, 0.2);
+  color: #a78bfa;
+}
+
+.track-fill-btn:active {
+  transform: scale(0.9);
 }
 
 .track-header svg {

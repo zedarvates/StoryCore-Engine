@@ -268,6 +268,7 @@ export const ShotSchema = z.object({
     lighting: z.string().optional(),
     mood: z.string().optional(),
   }),
+  position: z.number().nonnegative(),
 });
 
 export const DialoguePhraseSchema = z.object({

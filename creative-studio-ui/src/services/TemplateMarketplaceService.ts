@@ -39,7 +39,7 @@ class TemplateMarketplaceService {
     hasMore: boolean;
   }> {
     const cacheKey = `search_${JSON.stringify(params)}`;
-    const cached = this.getFromCache(cacheKey);
+    const cached = this.getFromCache(cacheKey) as any;
     if (cached) return cached;
 
     try {
@@ -90,7 +90,7 @@ class TemplateMarketplaceService {
    */
   async getTemplateById(id: string): Promise<Template | null> {
     const cacheKey = `template_${id}`;
-    const cached = this.getFromCache(cacheKey);
+    const cached = this.getFromCache(cacheKey) as any;
     if (cached) return cached;
 
     try {
@@ -118,7 +118,7 @@ class TemplateMarketplaceService {
    */
   async getFeaturedTemplates(): Promise<Template[]> {
     const cacheKey = 'featured';
-    const cached = this.getFromCache(cacheKey);
+    const cached = this.getFromCache(cacheKey) as any;
     if (cached) return cached;
 
     try {
@@ -128,7 +128,7 @@ class TemplateMarketplaceService {
       );
 
       if (!response.ok) throw new Error(`API error: ${response.status}`);
-      
+
       const templates = await response.json();
       this.addToCache(cacheKey, templates);
       return templates;
@@ -233,13 +233,13 @@ class TemplateMarketplaceService {
   }> {
     try {
       const formData = new FormData();
-      
+
       // Add template data
       formData.append('template', JSON.stringify(data.template));
       formData.append('isPublic', data.isPublic.toString());
       formData.append('license', data.license);
       formData.append('attributionRequired', data.attributionRequired.toString());
-      
+
       if (data.price !== undefined) {
         formData.append('price', data.price.toString());
       }
@@ -337,11 +337,11 @@ class TemplateMarketplaceService {
     const headers: HeadersInit = {
       'Accept': 'application/json',
     };
-    
+
     if (this.config.apiKey) {
       headers['Authorization'] = `Bearer ${this.config.apiKey}`;
     }
-    
+
     return headers;
   }
 

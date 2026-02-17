@@ -81,8 +81,13 @@ export function ProjectSetupWizardModal() {
             onComplete={handleComplete}
             onCancel={handleCancel}
             initialData={{
-              projectName: project?.metadata?.name,
-              projectDescription: project?.metadata?.description,
+              projectName: project?.metadata?.name as string | undefined,
+              projectDescription: project?.metadata?.description as string | undefined,
+              // Pre-fill genre and tone from saved project setup
+              genre: (project as any)?.projectSetup?.genre,
+              tone: (project as any)?.projectSetup?.tone,
+              targetAudience: (project as any)?.projectSetup?.targetAudience,
+              estimatedDuration: (project as any)?.projectSetup?.estimatedDuration,
             }}
           />
         </div>

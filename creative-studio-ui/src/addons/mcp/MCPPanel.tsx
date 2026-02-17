@@ -4,36 +4,37 @@
 
 import React, { useState } from 'react';
 import { useMCPAddon, useMCPError } from './hooks';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import type { MCPServerConfig } from '@/types/addons';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from '@/components/ui/tabs';
-import { 
-  Settings, 
-  AlertCircle, 
-  CheckCircle, 
+import {
+  Settings,
+  AlertCircle,
+  CheckCircle,
   XCircle,
   Server,
   Globe,
@@ -51,18 +52,18 @@ interface MCPPanelProps {
 }
 
 export function MCPPanel({ className }: MCPPanelProps) {
-  const { 
-    addon, 
-    isLoading, 
-    error, 
-    enable, 
+  const {
+    addon,
+    isLoading,
+    error,
+    enable,
     disable,
     servers,
     selectedServer,
     testServer,
     setSelectedServer,
   } = useMCPAddon();
-  
+
   const { clearError } = useMCPError();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -107,7 +108,7 @@ export function MCPPanel({ className }: MCPPanelProps) {
 
   const connectedServers = servers.filter(s => s.status === 'connected');
   const totalRequests = connectedServers.length * 100; // Mock data
-  const avgLatency = connectedServers.length > 0 
+  const avgLatency = connectedServers.length > 0
     ? Math.round(connectedServers.reduce((sum, s) => sum + (s.lastConnected ? 50 : 0), 0) / connectedServers.length)
     : 0;
 
@@ -255,8 +256,8 @@ export function MCPPanel({ className }: MCPPanelProps) {
                 <div>
                   <h4 className="font-medium">MCP Server Integration</h4>
                   <p className="text-sm text-gray-600">
-                    {addon.enabled 
-                      ? 'Integration is active and processing requests' 
+                    {addon.enabled
+                      ? 'Integration is active and processing requests'
                       : 'Integration is disabled. Enable to start using MCP servers.'
                     }
                   </p>

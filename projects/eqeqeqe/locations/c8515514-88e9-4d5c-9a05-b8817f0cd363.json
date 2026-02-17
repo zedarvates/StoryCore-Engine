@@ -1,0 +1,18 @@
+{
+  "location_id": "c8515514-88e9-4d5c-9a05-b8817f0cd363",
+  "name": "The Undercroft",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T07:21:38.300Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A labyrinthine network of ancient tunnels and caverns beneath the city's oldest districts. The air is thick with the scent of damp earth and mold, and flickering luminescent fungi cast eerie shadows on the walls.",
+    "atmosphere": "Foreboding, claustrophobic",
+    "genre_tags": [],
+    "significance": "The Undercroft holds the secrets of Wewew's past, including the ruins of an ancient civilization that once thrived here. Rumors whisper of a powerful artifact hidden deep within its depths."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

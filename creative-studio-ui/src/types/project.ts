@@ -70,9 +70,15 @@ export interface WorldMetadata {
 }
 
 export interface ShotInput {
-  title: string;
-  description: string;
-  duration: number;
+  title?: string;
+  description?: string;
+  duration?: number;
+  number?: number;
+  camera_movement?: string;
+  transition?: string;
+  image?: string;
+  audio?: string;
+  dialogue?: string;
 }
 
 export interface ValidationResult {

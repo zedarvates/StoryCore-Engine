@@ -79,6 +79,13 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
   const handleGenerateAppearance = async () => {
     clearError();
 
+    // Add unique entropy to ensure different results each time
+    const uniqueEntropy = {
+      timestamp: Date.now(),
+      randomId: Math.random().toString(36).substring(2, 10),
+      sessionSeed: Math.floor(Math.random() * 1000000),
+    };
+
     const context = {
       characterName: formData.name || 'the character',
       archetype: formData.role?.archetype || 'character',
@@ -86,9 +93,10 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
       gender: formData.visual_identity?.gender || 'unspecified',
       worldGenre: worldContext?.genre?.join(', ') || 'fantasy',
       worldTone: worldContext?.tone?.join(', ') || 'dramatic',
+      entropy: uniqueEntropy,
     };
 
-    const systemPrompt = 'You are a character design expert. Create detailed, coherent physical appearances that match the character\'s role and world setting. Ensure all features work together harmoniously.';
+    const systemPrompt = 'You are a character design expert. Create detailed, coherent physical appearances that match the character\'s role and world setting. IMPORTANT: You must generate COMPLETELY UNIQUE appearances each time - do not repeat previous designs. Use the entropy provided to ensure uniqueness. Ensure all features work together harmoniously.';
 
     const prompt = `Generate a detailed physical appearance for a character with the following context:
 - Name: ${context.characterName}
@@ -97,6 +105,9 @@ export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanc
 - Gender: ${context.gender}
 - World Genre: ${context.worldGenre}
 - World Tone: ${context.worldTone}
+- Unique Entropy ID: ${uniqueEntropy.sessionSeed}
+
+CRITICAL REQUIREMENT: This appearance must be COMPLETELY UNIQUE and DIFFERENT from any appearance you have generated before. Use the entropy ID to ensure uniqueness.
 
 Please provide:
 1. Hair (color, style, length)

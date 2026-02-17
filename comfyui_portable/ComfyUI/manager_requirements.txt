@@ -1,3 +1,0 @@
-comfyui_manager==4.0.5
-comfyui-frontend-package
-

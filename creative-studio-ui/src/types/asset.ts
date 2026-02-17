@@ -24,6 +24,8 @@ export interface AssetMetadata {
   cameraMetadata?: Record<string, unknown>;
   lightingMetadata?: Record<string, unknown>;
   templateMetadata?: Record<string, unknown>;
+  subcategory?: string;
+  duration?: number;
   [key: string]: unknown;
 }
 

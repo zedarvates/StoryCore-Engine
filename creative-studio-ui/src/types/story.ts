@@ -174,8 +174,8 @@ export interface StoryGenerationParams {
   genre: string[];
   tone: string[];
   length: 'short' | 'medium' | 'long' | 'scene' | 'short_story' | 'novella' | 'novel' | 'epic_novel';
-  characters: unknown[]; // Character objects from world data
-  locations: unknown[]; // Location objects from world data
+  characters: { name: string; description?: string; role?: string;[key: string]: any }[]; // Character objects from world data
+  locations: { name: string; description?: string; type?: string;[key: string]: any }[]; // Location objects from world data
   worldContext: WorldContext;
   totalTitle?: string;
 }
@@ -185,14 +185,14 @@ export interface StoryGenerationParams {
  */
 export interface GenerationProgress {
   stage:
-    | 'preparing'
-    | 'creating_elements'
-    | 'generating_intro'
-    | 'generating_chapter'
-    | 'generating_ending'
-    | 'reviewing'
-    | 'refining'
-    | 'complete';
+  | 'preparing'
+  | 'creating_elements'
+  | 'generating_intro'
+  | 'generating_chapter'
+  | 'generating_ending'
+  | 'reviewing'
+  | 'refining'
+  | 'complete';
   progress: number; // 0-100
   currentTask: string;
   currentChapter?: number;

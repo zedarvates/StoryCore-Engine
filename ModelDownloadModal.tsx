@@ -55,6 +55,13 @@ const ModelDownloadModal: React.FC<ModelDownloadProps> = ({
       url: 'https://huggingface.co/ostris/flux2_berthe_morisot/resolve/main/flux2_berthe_morisot.safetensors',
       subfolder: 'loras',
       size: 100
+    },
+    {
+      name: 'FireRed Image Edit',
+      filename: 'FireRed-Image-Edit-1.0_fp8mixed_comfy.safetensors',
+      url: 'https://huggingface.co/cocorang/FireRed-Image-Edit-1.0-FP8_And_BF16/resolve/main/FireRed-Image-Edit-1.0_fp8mixed_comfy.safetensors?download=true',
+      subfolder: 'checkpoints',
+      size: 3500
     }
   ];
 
@@ -171,6 +178,7 @@ const ModelDownloadModal: React.FC<ModelDownloadProps> = ({
           <button
             onClick={handleClose}
             disabled={isDownloading}
+            aria-label="Close"
             className="text-gray-400 hover:text-white disabled:opacity-50"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

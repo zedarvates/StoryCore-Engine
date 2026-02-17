@@ -13,6 +13,7 @@ import type {
   MasterReferenceSheet,
   CharacterAppearanceSheet,
   LocationAppearanceSheet,
+  ObjectAppearanceSheet,
   GlobalStyleSheet,
   ReferenceImage,
   SequenceReferenceSheet,
@@ -85,7 +86,7 @@ export class ReferenceSheetService {
    */
   async initialize(projectPath: string): Promise<void> {
     this.projectPath = projectPath;
-    
+
     // Ensure references directory exists
     await this.ensureReferencesDirectory();
   }
@@ -203,6 +204,7 @@ export class ReferenceSheetService {
       projectId,
       characterSheets: [],
       locationSheets: [],
+      objectSheets: [],
       styleSheet: {
         id: uuidv4(),
         styleName: 'Default Style',
@@ -392,6 +394,70 @@ export class ReferenceSheetService {
     await this.updateMasterReferenceSheet(masterSheet);
 
     logger.debug('[ReferenceSheetService] Removed location appearance:', locationId);
+  }
+
+  // ============================================================================
+  // Object Appearance Management
+  // ============================================================================
+
+  /**
+   * Add an object appearance to a master sheet
+   */
+  async addObjectAppearance(
+    sheetId: string,
+    object: ObjectAppearanceSheet
+  ): Promise<void> {
+    const masterSheet = await this.getMasterReferenceSheet(sheetId);
+    if (!masterSheet) {
+      throw new Error(`Master sheet not found: ${sheetId}`);
+    }
+
+    if (!masterSheet.objectSheets) masterSheet.objectSheets = [];
+    masterSheet.objectSheets.push(object);
+    await this.updateMasterReferenceSheet(masterSheet);
+
+    logger.debug('[ReferenceSheetService] Added object appearance:', object.id);
+  }
+
+  /**
+   * Update an object appearance in a master sheet
+   */
+  async updateObjectAppearance(
+    sheetId: string,
+    appearance: ObjectAppearanceSheet
+  ): Promise<void> {
+    const masterSheet = await this.getMasterReferenceSheet(sheetId);
+    if (!masterSheet) {
+      throw new Error(`Master sheet not found: ${sheetId}`);
+    }
+
+    if (!masterSheet.objectSheets) masterSheet.objectSheets = [];
+    const index = masterSheet.objectSheets.findIndex(o => o.id === appearance.id);
+    if (index === -1) {
+      throw new Error(`Object appearance not found: ${appearance.id}`);
+    }
+
+    masterSheet.objectSheets[index] = appearance;
+    await this.updateMasterReferenceSheet(masterSheet);
+
+    logger.debug('[ReferenceSheetService] Updated object appearance:', appearance.id);
+  }
+
+  /**
+   * Remove an object appearance from a master sheet
+   */
+  async removeObjectAppearance(sheetId: string, objectId: string): Promise<void> {
+    const masterSheet = await this.getMasterReferenceSheet(sheetId);
+    if (!masterSheet) {
+      throw new Error(`Master sheet not found: ${sheetId}`);
+    }
+
+    if (masterSheet.objectSheets) {
+      masterSheet.objectSheets = masterSheet.objectSheets.filter(o => o.id !== objectId);
+      await this.updateMasterReferenceSheet(masterSheet);
+    }
+
+    logger.debug('[ReferenceSheetService] Removed object appearance:', objectId);
   }
 
   // ============================================================================
@@ -736,6 +802,22 @@ export class ReferenceSheetService {
       locationName,
       referenceImages: [],
       environmentalGuidelines: [],
+    };
+  }
+
+  /**
+   * Create a new object appearance sheet
+   */
+  createObjectAppearance(
+    objectId: string,
+    objectName: string
+  ): ObjectAppearanceSheet {
+    return {
+      id: uuidv4(),
+      objectId,
+      objectName,
+      referenceImages: [],
+      materialGuidelines: [],
     };
   }
 

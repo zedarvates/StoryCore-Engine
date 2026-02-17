@@ -19,7 +19,7 @@ export interface AssetDragItem {
   asset: {
     id: string;
     name: string;
-    type: 'image' | 'audio' | 'template';
+    type: 'image' | 'audio' | 'video' | 'template';
     url: string;
     thumbnail?: string;
     metadata?: Record<string, unknown>;

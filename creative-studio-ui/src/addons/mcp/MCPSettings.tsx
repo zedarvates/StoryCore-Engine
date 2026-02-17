@@ -4,12 +4,13 @@
 
 import React, { useState } from 'react';
 import { useMCPAddon, useMCPError } from './hooks';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import type { MCPServerConfig } from '@/types/addons';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,38 +18,38 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
-import { 
-  Trash2, 
-  Plus, 
-  Settings, 
-  AlertCircle, 
-  CheckCircle, 
+import {
+  Trash2,
+  Plus,
+  Settings,
+  AlertCircle,
+  CheckCircle,
   XCircle,
   Server,
   Globe,
@@ -77,12 +78,12 @@ interface MCPSettingsProps {
 }
 
 export function MCPSettings({ className }: MCPSettingsProps) {
-  const { 
-    addon, 
-    isLoading, 
-    error, 
-    enable, 
-    disable, 
+  const {
+    addon,
+    isLoading,
+    error,
+    enable,
+    disable,
     updateConfig,
     servers,
     selectedServer,
@@ -92,7 +93,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
     testServer,
     setSelectedServer,
   } = useMCPAddon();
-  
+
   const { clearError } = useMCPError();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -116,7 +117,11 @@ export function MCPSettings({ className }: MCPSettingsProps) {
       if (editingServer) {
         await updateServer(editingServer.id, data);
       } else {
-        await addServer(data);
+        await addServer({
+          ...data,
+          status: 'disconnected',
+          capabilities: [],
+        });
       }
       setIsDialogOpen(false);
       setEditingServer(null);
@@ -304,9 +309,9 @@ export function MCPSettings({ className }: MCPSettingsProps) {
                         <FormItem>
                           <FormLabel>Endpoint URL</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="https://api.example.com/mcp" 
-                              {...field} 
+                            <Input
+                              placeholder="https://api.example.com/mcp"
+                              {...field}
                             />
                           </FormControl>
                           <FormDescription>
@@ -323,10 +328,10 @@ export function MCPSettings({ className }: MCPSettingsProps) {
                         <FormItem>
                           <FormLabel>API Key (Optional)</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="password" 
-                              placeholder="Enter API key" 
-                              {...field} 
+                            <Input
+                              type="password"
+                              placeholder="Enter API key"
+                              {...field}
                             />
                           </FormControl>
                           <FormDescription>
@@ -344,8 +349,8 @@ export function MCPSettings({ className }: MCPSettingsProps) {
                           <FormItem>
                             <FormLabel>Timeout (ms)</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="number" 
+                              <Input
+                                type="number"
                                 {...field}
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               />
@@ -361,8 +366,8 @@ export function MCPSettings({ className }: MCPSettingsProps) {
                           <FormItem>
                             <FormLabel>Max Retries</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="number" 
+                              <Input
+                                type="number"
                                 {...field}
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               />
@@ -393,9 +398,9 @@ export function MCPSettings({ className }: MCPSettingsProps) {
                       )}
                     />
                     <DialogFooter>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         onClick={() => {
                           setIsDialogOpen(false);
                           setEditingServer(null);
@@ -426,9 +431,8 @@ export function MCPSettings({ className }: MCPSettingsProps) {
               {servers.map((server) => (
                 <div
                   key={server.id}
-                  className={`flex items-center justify-between p-4 border rounded-lg ${
-                    selectedServer === server.id ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
-                  }`}
+                  className={`flex items-center justify-between p-4 border rounded-lg ${selectedServer === server.id ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+                    }`}
                 >
                   <div className="flex items-center space-x-3">
                     {getStatusIcon(server.status)}
@@ -515,7 +519,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
                 <Input
                   id="defaultTimeout"
                   type="number"
-                  value={addon.config.defaultTimeout || 30000}
+                  value={(addon.config as any).defaultTimeout || 30000}
                   onChange={(e) => handleConfigChange('defaultTimeout', Number(e.target.value))}
                   disabled={isLoading}
                 />
@@ -525,7 +529,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
                 <Input
                   id="maxConcurrent"
                   type="number"
-                  value={addon.config.maxConcurrent || 5}
+                  value={(addon.config as any).maxConcurrent || 5}
                   onChange={(e) => handleConfigChange('maxConcurrent', Number(e.target.value))}
                   disabled={isLoading}
                 />
@@ -536,7 +540,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
               <Input
                 id="retryDelay"
                 type="number"
-                value={addon.config.retryDelay || 1000}
+                value={(addon.config as any).retryDelay || 1000}
                 onChange={(e) => handleConfigChange('retryDelay', Number(e.target.value))}
                 disabled={isLoading}
               />
@@ -544,7 +548,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
             <div>
               <Label htmlFor="logLevel">Log Level</Label>
               <Select
-                value={addon.config.logLevel || 'info'}
+                value={(addon.config as any).logLevel || 'info'}
                 onValueChange={(value) => handleConfigChange('logLevel', value)}
                 disabled={isLoading}
               >

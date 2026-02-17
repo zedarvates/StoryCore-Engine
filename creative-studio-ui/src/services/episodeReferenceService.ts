@@ -97,8 +97,8 @@ export interface ContinuityFix {
 
 export interface ImportResult {
   success: boolean;
-  importedCharacters: number;
-  importedLocations: number;
+  importedCharacterIds: string[];
+  importedLocationIds: string[];
   styleImported: boolean;
   errors: string[];
 }
@@ -516,8 +516,8 @@ export class EpisodeReferenceService {
   ): Promise<ImportResult> {
     const result: ImportResult = {
       success: true,
-      importedCharacters: 0,
-      importedLocations: 0,
+      importedCharacterIds: [],
+      importedLocationIds: [],
       styleImported: false,
       errors: [],
     };
@@ -555,7 +555,7 @@ export class EpisodeReferenceService {
           if (existingIndex === -1) {
             targetMasterSheet.characterSheets.push(charSheet);
             targetSequenceSheet.inheritedCharacters.push(charSheet.characterId);
-            result.importedCharacters++;
+            result.importedCharacterIds.push(charSheet.characterId);
           }
         }
       }
@@ -569,7 +569,7 @@ export class EpisodeReferenceService {
           if (existingIndex === -1) {
             targetMasterSheet.locationSheets.push(locSheet);
             targetSequenceSheet.inheritedLocations.push(locSheet.locationId);
-            result.importedLocations++;
+            result.importedLocationIds.push(locSheet.locationId);
           }
         }
       }
@@ -762,8 +762,8 @@ export class EpisodeReferenceService {
       if (!linkedEpisode.sequences.includes(sequenceId)) {
         linkedEpisode.sequences.push(sequenceId);
       }
-      linkedEpisode.importedCharacterIds.push(...result.importedCharacters as unknown as string[]);
-      linkedEpisode.importedLocationIds.push(...result.importedLocations as unknown as string[]);
+      linkedEpisode.importedCharacterIds.push(...result.importedCharacterIds);
+      linkedEpisode.importedLocationIds.push(...result.importedLocationIds);
       linkedEpisode.styleImported = result.styleImported || linkedEpisode.styleImported;
       this.linkedEpisodes.set(episodeId, linkedEpisode);
     }

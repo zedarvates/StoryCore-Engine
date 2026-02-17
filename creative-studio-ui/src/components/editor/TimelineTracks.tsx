@@ -11,8 +11,33 @@
  */
 
 import React, { useState } from 'react';
-import { Video, Image, Music, Type } from 'lucide-react';
+import { Video, Image, Music, Type, Sparkles, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '../ui/dropdown-menu';
 import './TimelineTracks.css';
+
+export interface AmbianceProfile {
+  id: string;
+  name: string;
+  file_path: string;
+  type: 'audio';
+  icon?: string;
+}
+
+const DEFAULT_AMBIANCE_PROFILES: AmbianceProfile[] = [
+  { id: 'studio', name: 'Studio / Intérieur', file_path: 'assets/audio/ambiances/studio_room_tone.wav', type: 'audio' },
+  { id: 'urban', name: 'Urbain / Ville', file_path: 'assets/audio/ambiances/city_street_day.wav', type: 'audio' },
+  { id: 'nature', name: 'Nature / Forêt', file_path: 'assets/audio/ambiances/forest_wind_birds.wav', type: 'audio' },
+  { id: 'scifi', name: 'Espace / Labo SF', file_path: 'assets/audio/ambiances/spaceship_hum.wav', type: 'audio' },
+  { id: 'office', name: 'Bureau / Murmures', file_path: 'assets/audio/ambiances/office_murmur.wav', type: 'audio' },
+  { id: 'custom_ai', name: 'Générer par IA...', file_path: '', type: 'audio', icon: 'sparkles' },
+];
 
 interface TimelineClip {
   id: string;
@@ -26,9 +51,10 @@ interface TimelineTracksProps {
   clips?: TimelineClip[];
   onDropMedia?: (trackType: 'video' | 'image' | 'audio' | 'text', file: File) => void;
   onClipClick?: (clip: TimelineClip) => void;
+  onFillGaps?: (trackType: 'video' | 'image' | 'audio' | 'text', profile: AmbianceProfile) => void;
 }
 
-export function TimelineTracks({ clips = [], onDropMedia, onClipClick }: TimelineTracksProps) {
+export function TimelineTracks({ clips = [], onDropMedia, onClipClick, onFillGaps }: TimelineTracksProps) {
   const [dragOverTrack, setDragOverTrack] = useState<string | null>(null);
 
   const handleDragOver = (e: React.DragEvent, trackType: string) => {
@@ -69,9 +95,42 @@ export function TimelineTracks({ clips = [], onDropMedia, onClipClick }: Timelin
     return (
       <div className={`timeline-track-row ${isDragOver ? 'drag-over' : ''}`}>
         <div className={`track-header track-${trackType}`}>
-          {icon}
-          <span className="track-label">{label}</span>
-          <span className="track-count">{trackClips.length}</span>
+          <div className="track-header-main">
+            {icon}
+            <span className="track-label">{label}</span>
+            <span className="track-count">{trackClips.length}</span>
+          </div>
+          {onFillGaps && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="track-fill-btn"
+                  title="Smart Fill Ambiance (Choisir un profil)"
+                >
+                  <Sparkles size={14} />
+                  <ChevronDown size={10} className="ml-1 opacity-50" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Combler avec une ambiance :</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {DEFAULT_AMBIANCE_PROFILES.map((profile) => (
+                  <React.Fragment key={profile.id}>
+                    {profile.id === 'custom_ai' && <DropdownMenuSeparator />}
+                    <DropdownMenuItem
+                      onSelect={() => onFillGaps(trackType, profile)}
+                      className={profile.id === 'custom_ai' ? 'text-purple-400 font-medium' : ''}
+                    >
+                      <div className="flex items-center gap-2">
+                        {profile.id === 'custom_ai' ? <Sparkles size={12} className="text-purple-400" /> : null}
+                        {profile.name}
+                      </div>
+                    </DropdownMenuItem>
+                  </React.Fragment>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
         <div
           className="track-content"

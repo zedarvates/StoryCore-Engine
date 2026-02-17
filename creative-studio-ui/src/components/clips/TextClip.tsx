@@ -1,31 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Palette, Font, Settings, Play, Pause } from 'lucide-react';
+import { Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Palette, Settings, Play, Pause } from 'lucide-react';
 
-interface TextStyle {
-  fontFamily: string;
-  fontSize: number;
-  fontWeight: 'normal' | 'bold' | 'lighter' | 'bolder';
-  fontStyle: 'normal' | 'italic' | 'oblique';
-  textDecoration: 'none' | 'underline' | 'line-through';
-  textAlign: 'left' | 'center' | 'right' | 'justify';
-  color: string;
-  backgroundColor: string;
-  textShadow: string;
-  letterSpacing: number;
-  lineHeight: number;
-  textTransform: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
-}
-
-interface TextAnimation {
-  id: string;
-  name: string;
-  type: 'fade' | 'slide' | 'scale' | 'rotate' | 'bounce' | 'typewriter' | 'glow';
-  duration: number;
-  delay: number;
-  easing: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
-  direction?: 'left' | 'right' | 'up' | 'down';
-  intensity?: number;
-}
+import { TextStyle, TextAnimation } from '../../types/text-layer';
 
 interface TextClipProps {
   text: string;
@@ -220,15 +196,15 @@ export function TextClip({
   }, [animation, currentTime, isPlaying, text]);
 
   // Calculate animation transform
-  const getAnimationTransform = (): string => {
-    if (!animation || animationProgress === 0) return '';
+  const getAnimationTransform = (): React.CSSProperties => {
+    if (!animation || animationProgress === 0) return {};
 
     const { type, direction, intensity = 1 } = animation;
     const progress = animationProgress;
 
     switch (type) {
       case 'fade':
-        return `opacity: ${progress}`;
+        return { opacity: progress };
 
       case 'slide':
         const slideDistance = 100 * intensity;
@@ -239,27 +215,27 @@ export function TextClip({
           case 'up': translateY = slideDistance * (1 - progress); break;
           case 'down': translateY = -slideDistance * (1 - progress); break;
         }
-        return `transform: translate(${translateX}px, ${translateY}px)`;
+        return { transform: `translate(${translateX}px, ${translateY}px)` };
 
       case 'scale':
         const scale = 1 - ((1 - (intensity || 0.5)) * (1 - progress));
-        return `transform: scale(${scale})`;
+        return { transform: `scale(${scale})` };
 
       case 'rotate':
         const rotation = (intensity || 180) * (1 - progress);
-        return `transform: rotate(${rotation}deg)`;
+        return { transform: `rotate(${rotation}deg)` };
 
       case 'bounce':
         const bounceProgress = 1 - progress;
         const bounce = Math.sin(bounceProgress * Math.PI * 2) * bounceProgress * 50;
-        return `transform: translateY(${bounce}px)`;
+        return { transform: `translateY(${bounce}px)` };
 
       case 'glow':
         const glowIntensity = progress * 10;
-        return `text-shadow: 0 0 ${glowIntensity}px ${style.color}`;
+        return { textShadow: `0 0 ${glowIntensity}px ${style.color}` };
 
       default:
-        return '';
+        return {};
     }
   };
 

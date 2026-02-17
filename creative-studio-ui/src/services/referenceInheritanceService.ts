@@ -26,6 +26,7 @@ import type {
 import { v4 as uuidv4 } from 'uuid';
 import { getPerformanceMonitoringService } from './performanceMonitoringService';
 import { referenceMetadataCache, estimateSize } from '../utils/memoryMonitor';
+import type { ReferenceSheetService } from './referenceSheetService';
 
 // ============================================================================
 // Storage Path Helpers
@@ -69,7 +70,7 @@ function getShotReferencePath(projectPath: string, shotId: string): string {
 export class ReferenceInheritanceService {
   private filePickerActive = false;
   private projectPath: string = '';
-  private referenceSheetService: unknown;
+  private referenceSheetService: ReferenceSheetService | null = null;
 
   // ============================================================================
   // Initialization
@@ -78,7 +79,7 @@ export class ReferenceInheritanceService {
   /**
    * Initialize the service with a project path and reference sheet service
    */
-  async initialize(projectPath: string, referenceSheetService: unknown): Promise<void> {
+  async initialize(projectPath: string, referenceSheetService: ReferenceSheetService): Promise<void> {
     this.projectPath = projectPath;
     this.referenceSheetService = referenceSheetService;
     await this.ensureReferencesDirectory();
@@ -94,7 +95,7 @@ export class ReferenceInheritanceService {
   /**
    * Set the reference sheet service
    */
-  setReferenceSheetService(service: unknown): void {
+  setReferenceSheetService(service: ReferenceSheetService): void {
     this.referenceSheetService = service;
   }
 
@@ -168,7 +169,7 @@ export class ReferenceInheritanceService {
    */
   async inheritFromMaster(sequenceId: string, masterSheetId: string): Promise<SequenceReferenceSheet> {
     const timer = getPerformanceMonitoringService().createTimer('inheritFromMaster');
-    
+
     if (!this.referenceSheetService) {
       throw new Error('ReferenceSheetService not set');
     }
@@ -225,7 +226,7 @@ export class ReferenceInheritanceService {
     }
 
     // Return only characters that are in the inherited list
-    return masterSheet.characterSheets.filter((c: CharacterAppearanceSheet) => 
+    return masterSheet.characterSheets.filter((c: CharacterAppearanceSheet) =>
       sequenceSheet.inheritedCharacters.includes(c.id)
     );
   }
@@ -251,7 +252,7 @@ export class ReferenceInheritanceService {
     }
 
     // Return only locations that are in the inherited list
-    return masterSheet.locationSheets.filter((l: LocationAppearanceSheet) => 
+    return masterSheet.locationSheets.filter((l: LocationAppearanceSheet) =>
       sequenceSheet.inheritedLocations.includes(l.id)
     );
   }
@@ -328,7 +329,7 @@ export class ReferenceInheritanceService {
     fromSequence: SequenceReferenceSheet | null;
   }> {
     const timer = getPerformanceMonitoringService().createTimer('getInheritedReferencesForShot');
-    
+
     if (!this.referenceSheetService) {
       throw new Error('ReferenceSheetService not set');
     }
@@ -369,7 +370,7 @@ export class ReferenceInheritanceService {
     }
 
     const result = { fromMaster, fromSequence };
-    
+
     // Cache the result
     referenceMetadataCache.set(cacheKey, result, estimateSize(result));
 
@@ -385,7 +386,7 @@ export class ReferenceInheritanceService {
    */
   async propagateSequenceChanges(sequenceId: string): Promise<void> {
     const timer = getPerformanceMonitoringService().createTimer('propagateSequenceChanges');
-    
+
     if (!this.referenceSheetService) {
       throw new Error('ReferenceSheetService not set');
     }
@@ -393,10 +394,10 @@ export class ReferenceInheritanceService {
     // This would typically be called with a list of shot IDs from the timeline
     // For now, we log that propagation would occur
     console.log('[ReferenceInheritanceService] Would propagate sequence changes to shots in:', sequenceId);
-    
+
     const duration = timer.stop({ sequenceId });
     getPerformanceMonitoringService().trackCustomMetric('inheritance', 'propagateChanges', duration, { sequenceId });
-    
+
     // In a full implementation, this would:
     // 1. Get all shots in the sequence
     // 2. For each shot, update inheritedFromSequence
@@ -483,7 +484,7 @@ export class ReferenceInheritanceService {
 
     const local = shotRef.localReferenceImages;
     const inheritedRefs = await this.getInheritedReferencesForShot(shotId);
-    
+
     // Convert inherited references to reference images
     const inherited: ReferenceImage[] = [];
     for (const ref of inheritedRefs.fromMaster) {

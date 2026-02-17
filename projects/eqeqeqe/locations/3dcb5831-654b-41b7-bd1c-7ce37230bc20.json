@@ -1,0 +1,18 @@
+{
+  "location_id": "3dcb5831-654b-41b7-bd1c-7ce37230bc20",
+  "name": "The Ashen Gardens",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T06:54:53.195Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A desolate, overgrown park where the once-beautiful gardens have been reclaimed by nature's dark forces. Thorny black roses twist up the crumbling statues as the air reeks of decay and corruption.",
+    "atmosphere": "Mourful, abandoned, heavy with the weight of forgotten history",
+    "genre_tags": [],
+    "significance": "A site of ancient power, where long-forgotten rituals were once performed to appease the dark gods."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

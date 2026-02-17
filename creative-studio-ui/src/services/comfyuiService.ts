@@ -14,9 +14,9 @@ import { logger } from '../utils/logger';
 // Types
 // ============================================================================
 
-export type AuthenticationType = 'none' | 'basic' | 'token';
+export type AuthenticationType = 'none' | 'basic' | 'token' | 'bearer' | 'api-key';
 
-export type WorkflowType = 'flux2' | 'z_image_turbo' | 'z_image_turbo_coherence' | 'sdxl' | 'custom';
+export type WorkflowType = 'flux2' | 'z_image_turbo' | 'z_image_turbo_coherence' | 'sdxl' | 'firered_image_edit' | 'wan21_t2v' | 'wan21_i2v' | 'custom';
 
 export interface ComfyUIConfig {
   serverUrl: string;
@@ -377,14 +377,14 @@ export class ComfyUIService {
 
     const workflow = type === 'image'
       ? this.buildFluxTurboWorkflow(params as {
-          prompt: string;
-          negativePrompt?: string;
-          width: number;
-          height: number;
-          steps: number;
-          cfgScale: number;
-          seed?: number;
-        })
+        prompt: string;
+        negativePrompt?: string;
+        width: number;
+        height: number;
+        steps: number;
+        cfgScale: number;
+        seed?: number;
+      })
       : this.buildVideoWorkflow(params);
 
     const response = await fetch(`${endpoint}/prompt`, {
@@ -399,21 +399,26 @@ export class ComfyUIService {
     if (!response.ok) throw new Error(`ComfyUI ${type} request failed: ${response.status}`);
 
     const data = await response.json();
-    
+
     // Extract image size for adaptive timeout calculation
-    const imageSize = type === 'image' 
-      ? { 
-          width: (params as { width: number }).width, 
-          height: (params as { height: number }).height 
-        }
+    const imageSize = type === 'image'
+      ? {
+        width: (params as { width: number }).width,
+        height: (params as { height: number }).height
+      }
       : undefined;
-    
+
     return this.waitForImage(endpoint, data.prompt_id, 600000, onProgress, imageSize);
   }
 
   private buildVideoWorkflow(params: unknown): Record<string, unknown> {
-    // Placeholder for video workflow (SVD or AnimateDiff)
-    // For now, reuse a simplified structure that ComfyUI would accept
+    // Check if it's a Wan 2.1 request
+    const p = params as any;
+    if (p.modelType === 'wan21') {
+      return this.buildWan21Workflow(p);
+    }
+
+    // Fallback placeholder...
     return {
       "3": {
         "inputs": {
@@ -430,7 +435,89 @@ export class ComfyUIService {
         },
         "class_type": "KSampler"
       },
-      // ... more nodes would go here for a real video workflow
+    };
+  }
+
+  /**
+   * Build Wan 2.1 Video Workflow
+   * Supports T2V and I2V (image-to-video)
+   */
+  private buildWan21Workflow(params: {
+    prompt: string;
+    inputImage?: string;
+    width: number;
+    height: number;
+    frames: number;
+    motionStrength: number;
+  }): Record<string, unknown> {
+    const seed = Math.floor(Math.random() * 1000000);
+
+    return {
+      "1": {
+        "inputs": {
+          "unet_name": "wan2.1_t2v_1.3b_bf16.safetensors",
+          "weight_dtype": "default"
+        },
+        "class_type": "UNETLoader"
+      },
+      "2": {
+        "inputs": {
+          "vae_name": "wan2.1_vae.safetensors"
+        },
+        "class_type": "VAELoader"
+      },
+      "3": {
+        "inputs": {
+          "text": params.prompt,
+          "clip": ["1", 1]
+        },
+        "class_type": "CLIPTextEncode"
+      },
+      "4": {
+        "inputs": {
+          "width": params.width,
+          "height": params.height,
+          "length": params.frames,
+          "batch_size": 1
+        },
+        "class_type": "EmptyLatentImage"
+      },
+      "5": {
+        "inputs": {
+          "seed": seed,
+          "steps": 30,
+          "cfg": 6.0,
+          "sampler_name": "uni_pc",
+          "scheduler": "wan_noise",
+          "denoise": 1.0,
+          "model": ["1", 0],
+          "positive": ["3", 0],
+          "negative": ["6", 0],
+          "latent_image": ["4", 0]
+        },
+        "class_type": "KSampler"
+      },
+      "6": {
+        "inputs": {
+          "text": "low quality, blurry, distorted misaligned limbs, extra fingers",
+          "clip": ["1", 1]
+        },
+        "class_type": "CLIPTextEncode"
+      },
+      "7": {
+        "inputs": {
+          "samples": ["5", 0],
+          "vae": ["2", 0]
+        },
+        "class_type": "VAEDecode"
+      },
+      "8": {
+        "inputs": {
+          "filename_prefix": "wan2.1_gen",
+          "images": ["7", 0]
+        },
+        "class_type": "SaveImage"
+      }
     };
   }
 
@@ -636,9 +723,9 @@ export class ComfyUIService {
     if (!width || !height) {
       return 600000; // 10 minutes default if size unknown
     }
-    
+
     const megapixels = (width * height) / 1000000;
-    
+
     if (megapixels <= 1) {
       return 300000; // 5 minutes for 1MP or less
     } else if (megapixels <= 2) {
@@ -712,7 +799,7 @@ export class ComfyUIService {
 
                 if (isRunning) {
                   const currentProgress = 50;
-                  
+
                   // Extend timeout if progress is being made (30 seconds per progress update)
                   if (currentProgress > lastProgress) {
                     const now = Date.now();
@@ -724,7 +811,7 @@ export class ComfyUIService {
                       logger.debug(`⏱️ [ComfyUIService] Progress detected, extended timeout to ${effectiveMaxWait}ms`);
                     }
                   }
-                  
+
                   onProgress?.(currentProgress, 'Processing in ComfyUI...');
                 } else if (isPending) {
                   onProgress?.(10, 'Queued in ComfyUI...');
@@ -783,8 +870,10 @@ function buildHeaders(auth?: ComfyUIConfig['authentication']): HeadersInit {
   if (auth?.type === 'basic' && auth.username && auth.password) {
     const credentials = btoa(`${auth.username}:${auth.password}`);
     headers['Authorization'] = `Basic ${credentials}`;
-  } else if (auth?.type === 'token' && auth.token) {
+  } else if ((auth?.type === 'token' || auth?.type === 'bearer') && auth.token) {
     headers['Authorization'] = `Bearer ${auth.token}`;
+  } else if (auth?.type === 'api-key' && auth.token) {
+    headers['X-Api-Key'] = auth.token;
   }
 
   return headers;

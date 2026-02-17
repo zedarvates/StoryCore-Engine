@@ -1,0 +1,18 @@
+{
+  "location_id": "c562f07e-6434-4b79-b570-ff73ca56a2e1",
+  "name": "New Erebo",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T07:21:38.327Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A gleaming metropolis built on the ruins of an ancient city, New Erebo shines with a sterile light. Towering spires and crystal domes pierce the smog-choked sky, their reflections rippling in the black glass canals.",
+    "atmosphere": "Gaudy, oppressive",
+    "genre_tags": [],
+    "significance": "The seat of power for Wewew's tyrannical government, New Erebo is a symbol of progress and oppression. Its inhabitants live in constant surveillance, their every move monitored by the omnipresent 'Erebian Eye'."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

@@ -4,9 +4,9 @@
 
 import { useCallback, useSyncExternalStore, useState } from 'react';
 import { MCPAddonManager } from './MCPAddonManager';
-import type { 
-  MCPAddon, 
-  MCPServerConfig, 
+import type {
+  MCPAddon,
+  MCPServerConfig,
   UseMCPAddonResult,
   MCPTestResult
 } from '@/types/addons';
@@ -80,7 +80,7 @@ function getMCPManager(): MCPAddonManager {
  */
 export function useMCPAddon(): UseMCPAddonResult {
   const manager = getMCPManager();
-  
+
   // Subscribe to manager state changes
   const state = useSyncExternalStore(
     (callback) => manager.subscribe(callback),
@@ -123,7 +123,7 @@ export function useMCPAddon(): UseMCPAddonResult {
  */
 export function useMCPServers(): UseMCPServersResult {
   const manager = getMCPManager();
-  
+
   const state = useSyncExternalStore(
     (callback) => manager.subscribe(callback),
     () => manager.getState()
@@ -167,7 +167,7 @@ export function useMCPServers(): UseMCPServersResult {
  */
 export function useMCPConfig(): UseMCPConfigResult {
   const manager = getMCPManager();
-  
+
   const state = useSyncExternalStore(
     (callback) => manager.subscribe(callback),
     () => manager.getState()
@@ -190,7 +190,7 @@ export function useMCPConfig(): UseMCPConfigResult {
  */
 export function useMCPTest(): UseMCPTestResult {
   const manager = getMCPManager();
-  
+
   const state = useSyncExternalStore(
     (callback) => manager.subscribe(callback),
     () => manager.getState()

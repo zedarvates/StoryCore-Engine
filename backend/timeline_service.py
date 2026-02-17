@@ -102,16 +102,16 @@ class TimelineService:
         return clip
     
     def move_clip(self, timeline_id: str, clip_id: str, new_start: float, new_track_id: Optional[str] = None) -> bool:
-        """Déplacer un clip dans le temps et/ou entre pistes"""
+        """Déplacer un clip dans le temps et/ou entre pistes (Simple Move)"""
         timeline = self.timelines[timeline_id]
         clip = None
-        old_track_id = None
+        old_track = None
         
         for track in timeline.tracks:
             for c in track.clips:
                 if c.id == clip_id:
                     clip = c
-                    old_track_id = track.id
+                    old_track = track
                     break
             if clip:
                 break
@@ -120,22 +120,137 @@ class TimelineService:
             return False
         
         duration = clip.end_time - clip.start_time
+        
+        # Simple move without ripple
         clip.start_time = new_start
         clip.end_time = new_start + duration
         
-        if new_track_id and new_track_id != old_track_id:
-            for track in timeline.tracks:
-                if track.id == old_track_id:
-                    track.clips = [c for c in track.clips if c.id != clip_id]
-                    break
+        if new_track_id and new_track_id != old_track.id:
+            old_track.clips = [c for c in old_track.clips if c.id != clip_id]
             for track in timeline.tracks:
                 if track.id == new_track_id:
                     clip.track_id = new_track_id
                     track.clips.append(clip)
                     break
         
+        self.get_timeline_duration(timeline_id) # Update global duration
         timeline.updated_at = datetime.now()
         return True
+
+    def ripple_move_clip(self, timeline_id: str, clip_id: str, new_start: float) -> bool:
+        """
+        Déplacer un clip avec effet 'Ripple' : 
+        Décale tous les clips suivants sur la même piste.
+        """
+        timeline = self.timelines[timeline_id]
+        clip = None
+        active_track = None
+        
+        for track in timeline.tracks:
+            for c in track.clips:
+                if c.id == clip_id:
+                    clip = c
+                    active_track = track
+                    break
+            if clip: break
+            
+        if not clip: return False
+        
+        delta = new_start - clip.start_time
+        
+        # Décaler le clip cible et TOUS les clips qui commencent après lui
+        for c in active_track.clips:
+            if c.start_time >= clip.start_time:
+                c.start_time += delta
+                c.end_time += delta
+                
+        self.get_timeline_duration(timeline_id)
+        timeline.updated_at = datetime.now()
+        return True
+
+    def get_track_gaps(self, timeline_id: str, track_id: str) -> List[Dict[str, float]]:
+        """Identifie les 'trous' (silences/vides) sur une piste spécifique."""
+        timeline = self.timelines[timeline_id]
+        track = next((t for t in timeline.tracks if t.id == track_id), None)
+        if not track or not track.clips:
+            return []
+            
+        sorted_clips = sorted(track.clips, key=lambda x: x.start_time)
+        gaps = []
+        
+        # Gap at the beginning?
+        if sorted_clips[0].start_time > 0:
+            gaps.append({"start": 0.0, "end": sorted_clips[0].start_time, "duration": sorted_clips[0].start_time})
+            
+        for i in range(len(sorted_clips) - 1):
+            current_end = sorted_clips[i].end_time
+            next_start = sorted_clips[i+1].start_time
+            if next_start > current_end:
+                gaps.append({"start": current_end, "end": next_start, "duration": next_start - current_end})
+                
+        return gaps
+
+    def auto_assemble_sequence(self, timeline_id: str, shots: List[Dict[str, Any]]) -> bool:
+        """
+        Assemble automatiquement une séquence de plans sur une nouvelle piste 'Master Video'.
+        shots: List[{"id": "...", "duration": 5.0, "file_path": "..."}]
+        """
+        timeline = self.timelines.get(timeline_id)
+        if not timeline: return False
+        
+        track_name = f"Sequence Auto-Assemble {datetime.now().strftime('%H:%M')}"
+        video_track = self.add_track(timeline_id, track_name, ClipType.VIDEO)
+        
+        current_time = 0.0
+        for shot in shots:
+            duration = shot.get("duration", 5.0)
+            clip_id = str(uuid.uuid4())
+            self.add_clip(timeline_id, video_track.id, {
+                "id": clip_id,
+                "type": ClipType.VIDEO,
+                "track_id": video_track.id,
+                "start_time": current_time,
+                "end_time": current_time + duration,
+                "name": shot.get("title", f"Shot {shot['id']}"),
+                "file_path": shot.get("file_path"),
+                "source_end": duration
+            })
+            current_time += duration
+            
+        self.get_timeline_duration(timeline_id)
+        return True
+    
+    def fill_track_gaps(self, timeline_id: str, track_id: str, media_info: Dict[str, Any]) -> List[str]:
+        """
+        Remplit les trous d'une piste avec un clip spécifique (ex: ambiance, room tone).
+        media_info: {"name": "Ambiance", "file_path": "...", "type": "audio"}
+        Returns: Liste des IDs des clips créés.
+        """
+        gaps = self.get_track_gaps(timeline_id, track_id)
+        if not gaps:
+            return []
+            
+        new_clip_ids = []
+        for gap in gaps:
+            # On ignore les trous trop courts (moins de 0.1s)
+            if gap["duration"] < 0.1:
+                continue
+                
+            clip_id = str(uuid.uuid4())
+            self.add_clip(timeline_id, track_id, {
+                "id": clip_id,
+                "type": ClipType(media_info.get("type", "audio")),
+                "track_id": track_id,
+                "start_time": gap["start"],
+                "end_time": gap["end"],
+                "name": media_info.get("name", "Gap Filler (Ambiance)"),
+                "file_path": media_info.get("file_path"),
+                "source_end": gap["duration"]
+            })
+            new_clip_ids.append(clip_id)
+            
+        self.get_timeline_duration(timeline_id)
+        return new_clip_ids
     
     def split_clip(self, timeline_id: str, clip_id: str, split_time: float) -> tuple:
         """Scinder un clip à un moment donné"""

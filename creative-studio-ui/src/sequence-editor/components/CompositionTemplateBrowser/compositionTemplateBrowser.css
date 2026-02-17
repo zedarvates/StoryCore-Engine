@@ -1,0 +1,215 @@
+/**
+ * CompositionTemplateBrowser Styles
+ */
+
+.comp-template-browser {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #1a1a24;
+    color: #e0e0e0;
+    font-size: 12px;
+}
+
+/* ---- Header ---- */
+
+.comp-browser-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #2a2a3a;
+}
+
+.comp-browser-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.comp-browser-search input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #333;
+    border-radius: 6px;
+    background: #22222e;
+    color: #e0e0e0;
+    font-size: 11px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.comp-browser-search input:focus {
+    border-color: #7c6df0;
+}
+
+.comp-browser-search input::placeholder {
+    color: #666;
+}
+
+/* ---- Category Pills ---- */
+
+.comp-browser-categories {
+    display: flex;
+    gap: 6px;
+    padding: 10px 16px;
+    overflow-x: auto;
+    border-bottom: 1px solid #2a2a3a;
+    scrollbar-width: thin;
+}
+
+.comp-cat-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: 1px solid #333;
+    border-radius: 16px;
+    background: #22222e;
+    color: #999;
+    cursor: pointer;
+    font-size: 11px;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.comp-cat-pill:hover {
+    border-color: #555;
+    color: #ccc;
+}
+
+.comp-cat-pill.active {
+    border-color: #7c6df0;
+    background: #2e2860;
+    color: #c0b0ff;
+}
+
+.comp-cat-count {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 8px;
+    background: #333;
+    color: #888;
+}
+
+.comp-cat-pill.active .comp-cat-count {
+    background: #5c4dd0;
+    color: #fff;
+}
+
+/* ---- Grid ---- */
+
+.comp-browser-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.comp-browser-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 32px;
+    color: #666;
+}
+
+/* ---- Template Card ---- */
+
+.comp-template-card {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #2a2a3a;
+    background: #22222e;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.comp-template-card:hover {
+    border-color: #444;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.comp-template-thumb {
+    position: relative;
+    height: 90px;
+    background: #16161e;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.comp-template-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comp-template-thumb-placeholder {
+    font-size: 32px;
+    opacity: 0.4;
+}
+
+/* ---- Hover Overlay ---- */
+
+.comp-template-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: comp-fade-in 0.15s ease;
+}
+
+@keyframes comp-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.comp-template-insert-btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #5c4dd0, #7c6df0);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.comp-template-insert-btn:hover {
+    transform: scale(1.05);
+}
+
+.comp-template-insert-btn:active {
+    transform: scale(0.97);
+}
+
+/* ---- Info ---- */
+
+.comp-template-info {
+    padding: 8px 10px;
+}
+
+.comp-template-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #ddd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.comp-template-meta {
+    font-size: 10px;
+    color: #777;
+    margin-top: 2px;
+}

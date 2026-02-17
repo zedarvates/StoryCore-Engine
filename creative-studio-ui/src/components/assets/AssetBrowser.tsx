@@ -77,7 +77,7 @@ export function AssetBrowser({
   // Handle search
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    
+
     if (!query.trim()) {
       setSearchResults([]);
       return;
@@ -111,12 +111,12 @@ export function AssetBrowser({
     if (searchQuery && searchResults.length > 0) {
       return searchResults;
     }
-    
+
     if (selectedCategory && categories[selectedCategory]) {
       // Would need to load category prompts here
       return [];
     }
-    
+
     return [];
   }, [searchQuery, searchResults, selectedCategory, categories]);
 
@@ -220,7 +220,7 @@ export function AssetBrowser({
 
 interface CategoryItemProps {
   categoryId: string;
-  category: unknown;
+  category: any;
   isSelected: boolean;
   onClick: () => void;
 }
@@ -234,8 +234,8 @@ function CategoryItem({ categoryId, category, isSelected, onClick }: CategoryIte
       onClick={onClick}
       className={`
         w-full p-3 rounded-lg border text-left transition-all
-        ${isSelected 
-          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+        ${isSelected
+          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
           : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-gray-50 dark:hover:bg-gray-800'
         }
       `}
@@ -272,8 +272,8 @@ function AssetCard({ asset, isSelected, onClick }: AssetCardProps) {
       onClick={onClick}
       className={`
         w-full p-3 rounded-lg border text-left transition-all
-        ${isSelected 
-          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+        ${isSelected
+          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
           : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-gray-50 dark:hover:bg-gray-800'
         }
       `}
@@ -286,11 +286,11 @@ function AssetCard({ asset, isSelected, onClick }: AssetCardProps) {
           </svg>
         )}
       </div>
-      
+
       <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
         {asset.description}
       </p>
-      
+
       {asset.tags && asset.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {asset.tags.slice(0, 3).map((tag, index) => (

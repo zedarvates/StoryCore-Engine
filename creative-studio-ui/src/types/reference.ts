@@ -38,6 +38,8 @@ export interface MasterReferenceSheet {
   characterSheets: CharacterAppearanceSheet[];
   /** All location appearance sheets in this project */
   locationSheets: LocationAppearanceSheet[];
+  /** All object appearance sheets in this project */
+  objectSheets: ObjectAppearanceSheet[];
   /** Project-wide style guidelines */
   styleSheet: GlobalStyleSheet;
   /** Creation timestamp */
@@ -64,6 +66,8 @@ export interface CharacterAppearanceSheet {
   colorPalette: string[];
   /** Proportion guidelines (e.g., anime, realistic, stylized) */
   proportions: string;
+  /** Optional ComfyUI workflow ID for generation */
+  workflowId?: string;
 }
 
 /**
@@ -80,6 +84,26 @@ export interface LocationAppearanceSheet {
   referenceImages: ReferenceImage[];
   /** Environmental guidelines (lighting, atmosphere, props) */
   environmentalGuidelines: string[];
+  /** Optional ComfyUI workflow ID for generation */
+  workflowId?: string;
+}
+
+/**
+ * Object reference sheet for item consistency
+ */
+export interface ObjectAppearanceSheet {
+  /** Unique identifier */
+  id: string;
+  /** Reference to the object entity */
+  objectId: string;
+  /** Display name of the object */
+  objectName: string;
+  /** Reference images for the object */
+  referenceImages: ReferenceImage[];
+  /** Functional/visual guidelines */
+  materialGuidelines: string[];
+  /** Optional ComfyUI workflow ID for generation */
+  workflowId?: string;
 }
 
 /**
@@ -100,6 +124,8 @@ export interface GlobalStyleSheet {
   compositionGuidelines: string[];
   /** Mood board images */
   moodBoard: ReferenceImage[];
+  /** Optional ComfyUI workflow ID for global style */
+  workflowId?: string;
 }
 
 // ============================================================================
@@ -217,7 +243,7 @@ export interface AppearanceImage {
 /**
  * Transition type enumeration for sequence transitions
  */
-export type TransitionType = 
+export type TransitionType =
   | 'cut'
   | 'dissolve'
   | 'fade'

@@ -479,11 +479,11 @@ export async function saveStoryToDisk(projectPath: string, story: Story): Promis
     throw new Error('Electron API not available');
   }
 
-  const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
+const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
   
   try {
-    // Ensure directory exists
-    await window.electronAPI.fs.mkdir(storyDir);
+    // Ensure directory exists with recursive option
+    await window.electronAPI.fs.mkdir(storyDir, { recursive: true });
 
     // Save index file
     const indexContent = generateStoryIndexFile(story);
@@ -756,9 +756,12 @@ export async function updateStoryPartContent(
     throw new Error('Electron API not available');
   }
 
-  const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
+const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
   
   try {
+    // Ensure directory exists with recursive option
+    await window.electronAPI.fs.mkdir(storyDir, { recursive: true });
+
     // Determine file name based on part type
     const fileName = part.type === 'intro' 
       ? FILE_NAMES.intro 
@@ -793,10 +796,9 @@ function generateUpdatedPartFile(
   newContent: string,
   metadata: Partial<FileMetadata>
 ): string {
-  const updatedPart: StoryPart = {
+  const updatedPart = {
     ...part,
     content: newContent,
-    updatedAt: new Date(),
   };
 
   return generateStoryPartFile(updatedPart, {
@@ -828,11 +830,11 @@ export async function saveStoryPartToDisk(
     throw new Error('Electron API not available');
   }
 
-  const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
+const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
   
   try {
-    // Ensure directory exists
-    await window.electronAPI.fs.mkdir(storyDir);
+    // Ensure directory exists with recursive option
+    await window.electronAPI.fs.mkdir(storyDir, { recursive: true });
 
     // Determine file name based on part type
     const fileName = part.type === 'intro' 

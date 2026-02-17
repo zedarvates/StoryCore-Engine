@@ -69,7 +69,7 @@ export class PlanSequencesManager {
     if (sequence) {
       sequence.shots.push(shot);
       this.recordOperation('create', `Added shot to sequence: ${sequence.name}`, sequenceId, shot.id);
-      
+
       // Recalculate duration if auto-calculate is enabled
       if (this.project.settings.autoCalculateDuration) {
         this.calculateSequenceDuration(sequence);
@@ -88,7 +88,7 @@ export class PlanSequencesManager {
         const shot = sequence.shots[shotIndex];
         sequence.shots.splice(shotIndex, 1);
         this.recordOperation('delete', `Removed shot from sequence: ${sequence.name}`, sequenceId, shotId);
-        
+
         // Recalculate duration if auto-calculate is enabled
         if (this.project.settings.autoCalculateDuration) {
           this.calculateSequenceDuration(sequence);
@@ -146,14 +146,14 @@ export class PlanSequencesManager {
    */
   validatePlan(): string[] {
     const errors: string[] = [];
-    
+
     // Check sequence limits
     this.project.sequences.forEach(sequence => {
       if (sequence.shots.length > this.project.settings.maxShotsPerSequence) {
         errors.push(`Sequence "${sequence.name}" exceeds maximum shot limit`);
       }
     });
-    
+
     return errors;
   }
 
@@ -265,8 +265,8 @@ export class PlanSequencesManager {
       sequenceCount: this.project.sequences.length,
       shotCount,
       totalDuration,
-      averageShotsPerSequence: this.project.sequences.length > 0 
-        ? shotCount / this.project.sequences.length 
+      averageShotsPerSequence: this.project.sequences.length > 0
+        ? shotCount / this.project.sequences.length
         : 0,
     };
   }
@@ -302,12 +302,12 @@ export class PlanSequencesManager {
    */
   private isValidPlanningState(state: unknown): state is PlanningState {
     return (
-      state &&
+      state !== null &&
       typeof state === 'object' &&
-      state.project &&
-      Array.isArray(state.project.sequences) &&
-      typeof state.version === 'string' &&
-      typeof state.lastModified === 'string'
+      (state as any).project &&
+      Array.isArray((state as any).project.sequences) &&
+      typeof (state as any).version === 'string' &&
+      typeof (state as any).lastModified === 'string'
     );
   }
 
@@ -352,7 +352,7 @@ export class PlanSequencesManager {
     if (shot) {
       Object.assign(shot, updates);
       this.recordOperation('modify', `Updated shot in sequence: ${sequenceId}`, sequenceId, shotId);
-      
+
       // Recalculate duration if auto-calculate is enabled
       const sequence = this.project.sequences.find(s => s.id === sequenceId);
       if (sequence && this.project.settings.autoCalculateDuration) {

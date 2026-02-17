@@ -36,8 +36,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 from video_editor_types import (
     EditorProject, ExportFormat, ExportPreset, AspectRatio,
     VideoClip, AudioClip, TextLayer, Track, MediaMetadata,
-    TimeRange, Resolution
+    TimeRange, Resolution, TrackType
 )
+from timeline_service import TimelineService, ClipType
 
 # =============================================================================
 # =============================================================================
@@ -272,6 +273,9 @@ jobs_db: Dict[str, Dict] = {}
 
 # Redis client
 redis_client = None
+
+# Timeline Service Initialization
+timeline_service = TimelineService()
 
 
 def get_redis():
@@ -1099,6 +1103,266 @@ async def smart_crop_media(request: SmartCropRequest, background_tasks: Backgrou
         crop_regions=None
     )
 
+
+# =============================================================================
+# Timeline & Track Operations
+# =============================================================================
+
+@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/tracks")
+async def add_track(project_id: str, track_data: Dict[str, Any], authorization: str = None):
+    """Add a new track to the project timeline."""
+    if project_id not in projects_db:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    project = projects_db[project_id]
+    track_id = str(uuid.uuid4())
+    
+    new_track = {
+        "id": track_id,
+        "name": track_data.get("name", "New Track"),
+        "type": track_data.get("type", "video"),
+        "clips": [],
+        "muted": False,
+        "locked": False,
+        "height": 60
+    }
+    
+    project["tracks"].append(new_track)
+    project["modified_at"] = datetime.utcnow()
+    
+    return new_track
+
+@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/tracks/{track_id}/clips")
+async def add_clip(project_id: str, track_id: str, clip_data: Dict[str, Any]):
+    """Add a clip to a specific track."""
+    if project_id not in projects_db:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    project = projects_db[project_id]
+    track = next((t for t in project["tracks"] if t["id"] == track_id), None)
+    
+    if not track:
+        raise HTTPException(status_code=404, detail="Track not found")
+    
+    clip_id = str(uuid.uuid4())
+    new_clip = {
+        "id": clip_id,
+        "type": clip_data.get("type", "video"),
+        "track_id": track_id,
+        "start_time": clip_data.get("startTime", 0.0),
+        "end_time": clip_data.get("startTime", 0.0) + clip_data.get("duration", 5.0),
+        "name": clip_data.get("name", "Untitled Clip"),
+        "media_id": clip_data.get("mediaId"),
+        "file_path": clip_data.get("file_path"),
+        "metadata": {}
+    }
+    
+    track["clips"].append(new_clip)
+    project["modified_at"] = datetime.utcnow()
+    
+    return new_clip
+
+@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/clips/{clip_id}/move")
+async def move_clip(project_id: str, clip_id: str, move_data: Dict[str, Any]):
+    """Move a clip with optional ripple effect."""
+    if project_id not in projects_db:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    project = projects_db[project_id]
+    use_ripple = move_data.get("ripple", False)
+    new_start = move_data.get("startTime", 0.0)
+    new_track_id = move_data.get("trackId")
+    
+    # We use a temporary Timeline object for the service
+    # In production, we would persist the Timeline objects directly
+    tl = timeline_service.create_timeline(project["name"])
+    temp_timeline_id = tl.id
+    
+    # Sync project tracks to service
+    for p_track in project["tracks"]:
+        t = timeline_service.add_track(temp_timeline_id, p_track["name"], ClipType(p_track["type"]))
+        t.id = p_track["id"]
+        for p_clip in p_track["clips"]:
+            c = timeline_service.add_clip(temp_timeline_id, t.id, {
+                "id": p_clip["id"],
+                "type": ClipType(p_clip["type"]),
+                "track_id": t.id,
+                "start_time": p_clip["start_time"],
+                "end_time": p_clip["end_time"],
+                "name": p_clip["name"]
+            })
+    
+    # Perform operation
+    success = False
+    if use_ripple:
+        success = timeline_service.ripple_move_clip(temp_timeline_id, clip_id, new_start)
+    else:
+        success = timeline_service.move_clip(temp_timeline_id, clip_id, new_start, new_track_id)
+        
+    if not success:
+        raise HTTPException(status_code=400, detail="Move operation failed")
+        
+    # Sync back to project_db
+    updated_tl = timeline_service.get_timeline(temp_timeline_id)
+    project["tracks"] = []
+    for t in updated_tl.tracks:
+        project["tracks"].append({
+            "id": t.id,
+            "name": t.name,
+            "type": t.type.value,
+            "clips": [
+                {
+                    "id": c.id,
+                    "type": c.type.value,
+                    "track_id": c.track_id,
+                    "start_time": c.start_time,
+                    "end_time": c.end_time,
+                    "name": c.name
+                } for c in t.clips
+            ]
+        })
+    
+    project["modified_at"] = datetime.utcnow()
+    return {"status": "success", "project": project}
+
+@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/auto-assemble")
+async def auto_assemble(project_id: str, assembly_data: Dict[str, Any]):
+    """Automatically assemble shots into a timeline sequence."""
+    if project_id not in projects_db:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    project = projects_db[project_id]
+    shots = assembly_data.get("shots", [])
+    
+    # Use TimelineService to assemble
+    temp_tl = timeline_service.create_timeline(project["name"])
+    success = timeline_service.auto_assemble_sequence(temp_tl.id, shots)
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Auto-assembly failed")
+        
+    # Add the assembled track to our project
+    new_tl = timeline_service.get_timeline(temp_tl.id)
+    assembled_track = new_tl.tracks[0]
+    
+    project["tracks"].append({
+        "id": assembled_track.id,
+        "name": assembled_track.name,
+        "type": assembled_track.type.value,
+        "clips": [
+            {
+                "id": c.id,
+                "type": c.type.value,
+                "track_id": c.track_id,
+                "start_time": c.start_time,
+                "end_time": c.end_time,
+                "name": c.name,
+                "file_path": c.file_path
+            } for c in assembled_track.clips
+        ]
+    })
+    
+    project["modified_at"] = datetime.utcnow()
+    return {"status": "success", "track_id": assembled_track.id}
+
+@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/tracks/{track_id}/fill-gaps")
+async def fill_gaps(project_id: str, track_id: str, filler_data: Dict[str, Any]):
+    """Fill gaps in a track with ambiance/silence."""
+    if project_id not in projects_db:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    project = projects_db[project_id]
+    
+    # We use a temporary Timeline object for the service
+    tl = timeline_service.create_timeline(project["name"])
+    temp_timeline_id = tl.id
+    
+    # Sync project tracks to service
+    p_track = next((t for t in project["tracks"] if t["id"] == track_id), None)
+    if not p_track:
+        raise HTTPException(status_code=404, detail="Track not found")
+        
+    t = timeline_service.add_track(temp_timeline_id, p_track["name"], ClipType(p_track["type"]))
+    t.id = p_track["id"]
+    for p_clip in p_track["clips"]:
+        timeline_service.add_clip(temp_timeline_id, t.id, {
+            "id": p_clip["id"],
+            "type": ClipType(p_clip["type"]),
+            "track_id": t.id,
+            "start_time": p_clip["start_time"],
+            "end_time": p_clip["end_time"],
+            "name": p_clip.get("name", "Untitled")
+        })
+        
+    # Perform operation
+    new_ids = timeline_service.fill_track_gaps(temp_timeline_id, track_id, filler_data)
+    
+    if not new_ids:
+        return {"status": "success", "message": "No gaps found to fill", "clips": []}
+    
+    return {"status": "success", "filled_clips": new_ids, "project": project}
+
+@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/ai/generate-ambiance")
+async def generate_ambiance(project_id: str, gen_data: Dict[str, Any]):
+    """Generate custom ambiance audio using AI (CineProductionService)."""
+    if project_id not in projects_db:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    prompt = gen_data.get("prompt")
+    if not prompt:
+        raise HTTPException(status_code=400, detail="Prompt is required")
+        
+    # Use CineProductionService for high-fidelity generation
+    from backend.cine_production_service import CineProductionService, CineProductionRequest, CineChainType
+    cine_service = CineProductionService()
+    
+    request = CineProductionRequest(
+        chain_type=CineChainType.MUSIC_PRO,
+        project_id=project_id,
+        scene_id=str(uuid.uuid4()),
+        sound_prompt=prompt
+    )
+    
+    # Start job
+    job = cine_service.start_production_job(request)
+    
+    # Wait for completion (simple polling loop for this API call)
+    max_wait = 60 # 1 minute max for ambiance
+    slept = 0
+    while slept < max_wait:
+        status_job = cine_service.get_job_status(job.id)
+        if status_job.status == "completed":
+            # Extract file path from results
+            audio_result = next((r for r in status_job.results if r.get("type") == "audio"), None)
+            if audio_result and audio_result.get("path"):
+                return {"status": "success", "file_path": audio_result["path"]}
+            break
+        elif status_job.status == "failed":
+            raise HTTPException(status_code=500, detail=f"Generation failed: {status_job.error}")
+            
+        await asyncio.sleep(2)
+        slept += 2
+        
+    raise HTTPException(status_code=504, detail="Audio generation timed out")
+        
+    # Sync back the track to project_db
+    updated_tl = timeline_service.get_timeline(temp_timeline_id)
+    updated_track = next((tr for tr in updated_tl.tracks if tr.id == track_id), None)
+    
+    p_track["clips"] = [
+        {
+            "id": c.id,
+            "type": c.type.value,
+            "track_id": c.track_id,
+            "start_time": c.start_time,
+            "end_time": c.end_time,
+            "name": c.name,
+            "file_path": c.file_path
+        } for c in updated_track.clips
+    ]
+    
+    project["modified_at"] = datetime.utcnow()
+    return {"status": "success", "filled_clips": new_ids, "project": project}
 
 def process_transcription(job_id: str):
     """Background task for transcription."""

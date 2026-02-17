@@ -26,6 +26,8 @@ import { Badge } from '@/components/ui/badge';
 import type { ProductionShot } from '@/types/shot';
 import { ComfyUIService } from '@/services/comfyuiService';
 import { useToast } from '@/hooks/use-toast';
+import { cineProductionAPI } from '@/services/cineProductionAPI';
+import { Switch } from '@/components/ui/switch';
 
 const CAMERA_TYPES = [
   'Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up',
@@ -35,11 +37,14 @@ const CAMERA_TYPES = [
 
 const VISUAL_STYLES = [
   { id: 'cinematic', label: '🎬 Cinematic', desc: 'Film-grade look' },
-  { id: 'anime', label: '🎨 Anime', desc: 'Japanese animation style' },
   { id: 'realistic', label: '📷 Realistic', desc: 'Photorealistic rendering' },
-  { id: 'abstract', label: '🌀 Abstract', desc: 'Artistic & experimental' },
+  { id: 'anime-80s', label: '📺 Anime 80s', desc: 'Retro-futurism aesthetic' },
+  { id: 'anime-90s', label: '📻 Anime 90s', desc: 'Classic aesthetic look' },
+  { id: 'anime-2000s', label: '💿 Anime 2000s', desc: 'Modern digital style' },
+  { id: 'ghibli', label: '🌳 Ghibli Style', desc: 'Whimsical & hand-painted' },
   { id: 'noir', label: '🖤 Film Noir', desc: 'High contrast B&W' },
   { id: 'watercolor', label: '🎨 Watercolor', desc: 'Painted aesthetic' },
+  { id: 'cyberpunk', label: '🌃 Cyberpunk', desc: 'Neon & high-tech' },
 ] as const;
 
 const TRANSITION_TYPES = [
@@ -97,6 +102,9 @@ export function ShotWizardModal({
 
   const [imagePrompt, setImagePrompt] = useState(initialShot?.description || '');
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [useHighFidelity, setUseHighFidelity] = useState(true);
+  const [autoAddToTimeline, setAutoAddToTimeline] = useState(true);
+  const [isAddingToTimeline, setIsAddingToTimeline] = useState(false);
 
   const ollamaStatus = useAppStore((state) => state.ollamaStatus);
   const project = useAppStore((state) => state.project);
@@ -153,32 +161,55 @@ Réponds uniquement avec la description, sans préambule.`;
     if (!formData.referenceImage) return;
 
     setIsGeneratingVideo(true);
+    setGenerationStatus('processing');
+    setGenerationProgress(0.1);
+
     try {
       const projectId = project?.id || 'default_project';
       const shotId = initialShot?.id || `shot_${Date.now()}`;
 
-      const params = {
-        width: 1024,
-        height: 576,
-        steps: 20,
-        cfgScale: 7.5,
-        sampler: 'euler',
-        scheduler: 'normal'
-      };
+      if (useHighFidelity) {
+        // Use the new High-Fidelity CineProductionAPI
+        const { jobId } = await cineProductionAPI.startProduction({
+          projectId,
+          chainType: 'generate_scene',
+          sceneDescription: formData.description,
+          imagePrompt: imagePrompt,
+          genre: (project as any)?.projectSetup?.genre?.[0], // Get main genre if exists
+          style: formData.visualStyle,
+          overrides: {
+            reference_image: formData.referenceImage,
+            shot_id: shotId
+          }
+        });
+        setGenerationTaskId(jobId);
+      } else {
+        // Fallback to legacy direct generation
+        const params = {
+          width: 1024,
+          height: 576,
+          steps: 20,
+          cfgScale: 7.5,
+          sampler: 'euler',
+          scheduler: 'normal'
+        };
 
-      const result = await videoEditorAPI.generateVideoFromReference(
-        projectId,
-        shotId,
-        formData.referenceImage,
-        params
-      );
-
-      setGenerationTaskId(result.taskId);
-      setGenerationStatus('processing');
-      setGenerationProgress(0.1);
+        const result = await videoEditorAPI.generateVideoFromReference(
+          projectId,
+          shotId,
+          formData.referenceImage,
+          params
+        );
+        setGenerationTaskId(result.taskId);
+      }
     } catch (err) {
       console.error('[ShotWizard] Video generation failed:', err);
       setGenerationStatus('failed');
+      toast({
+        title: "Erreur de génération",
+        description: err instanceof Error ? err.message : "Une erreur est survenue",
+        variant: "destructive"
+      });
     } finally {
       setIsGeneratingVideo(false);
     }
@@ -206,6 +237,34 @@ Réponds uniquement avec la description, sans préambule.`;
       console.error('[ShotWizard] Image generation failed:', err);
     } finally {
       setIsGeneratingImage(false);
+    }
+  };
+
+  const handleAddToTimeline = async (videoPath: string) => {
+    if (!project?.id) return;
+    setIsAddingToTimeline(true);
+    try {
+      await videoEditorAPI.autoAssemble(project.id, [
+        {
+          id: initialShot?.id || `shot_${Date.now()}`,
+          duration: formData.duration,
+          file_path: videoPath,
+          title: formData.title
+        }
+      ]);
+      toast({
+        title: "Montage synchronisé",
+        description: "Le plan a été ajouté à la timeline automatiquement.",
+      });
+    } catch (err) {
+      console.error('[ShotWizard] Auto-add to timeline failed:', err);
+      toast({
+        title: "Échec du montage",
+        description: "Impossible d'insérer le plan dans la timeline.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAddingToTimeline(false);
     }
   };
 
@@ -265,20 +324,49 @@ Réponds uniquement avec la description, sans préambule.`;
       interval = window.setInterval(async () => {
         try {
           const projectId = project?.id || 'default_project';
-          const status = await videoEditorAPI.getVideoGenerationStatus(projectId, generationTaskId);
+          let status;
 
-          if (status.status === 'completed') {
-            setGenerationStatus('completed');
-            setGenerationProgress(1.0);
-            if (status.resultPath) {
-              setGeneratedVideoUrl(status.resultPath);
+          if (useHighFidelity) {
+            status = await cineProductionAPI.getJob(generationTaskId);
+            setGenerationProgress(status.progress / 100);
+
+            if (status.status === 'completed') {
+              setGenerationStatus('completed');
+              const videoResult = status.results.find(r =>
+                r.step === 'video' ||
+                r.step === 'speaking_video' ||
+                r.step === 'music_pro'
+              );
+
+              if (videoResult && (videoResult.output.video_path || videoResult.output.filename)) {
+                const path = videoResult.output.video_path || videoResult.output.filename;
+                setGeneratedVideoUrl(path);
+
+                // Auto-add logic
+                if (autoAddToTimeline) {
+                  handleAddToTimeline(path);
+                }
+              }
+              window.clearInterval(interval);
+            } else if (status.status === 'failed') {
+              setGenerationStatus('failed');
+              window.clearInterval(interval);
             }
-            window.clearInterval(interval);
-          } else if (status.status === 'failed') {
-            setGenerationStatus('failed');
-            window.clearInterval(interval);
           } else {
-            setGenerationProgress(prev => Math.min(0.9, prev + 0.05));
+            status = await videoEditorAPI.getVideoGenerationStatus(projectId, generationTaskId);
+            if (status.status === 'completed') {
+              setGenerationStatus('completed');
+              setGenerationProgress(1.0);
+              if (status.resultPath) {
+                setGeneratedVideoUrl(status.resultPath);
+              }
+              window.clearInterval(interval);
+            } else if (status.status === 'failed') {
+              setGenerationStatus('failed');
+              window.clearInterval(interval);
+            } else {
+              setGenerationProgress(prev => Math.min(0.9, prev + 0.05));
+            }
           }
         } catch (err) {
           console.error('[ShotWizard] Error polling status:', err);
@@ -597,9 +685,37 @@ Réponds uniquement avec la description, sans préambule.`;
                 </p>
 
                 <div className="bg-muted/30 p-4 rounded-lg space-y-3 border">
+                  <div className="flex items-center justify-between p-2 bg-background/50 rounded-md border border-purple-500/20 mb-2">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-purple-600 uppercase flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> Pro Cinema Mode
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">High-Fidelity: Visual Director + Sonic Architect</span>
+                    </div>
+                    <Switch
+                      checked={useHighFidelity}
+                      onCheckedChange={setUseHighFidelity}
+                      className="data-[state=checked]:bg-purple-600"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 bg-background/50 rounded-md border border-blue-500/20 mb-2">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-blue-600 uppercase flex items-center gap-1">
+                        <Video className="w-3 h-3" /> Auto-Add to Timeline
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">Insertion automatique après génération</span>
+                    </div>
+                    <Switch
+                      checked={autoAddToTimeline}
+                      onCheckedChange={setAutoAddToTimeline}
+                      className="data-[state=checked]:bg-blue-600"
+                    />
+                  </div>
+
                   <div className="flex items-start gap-2 text-xs text-muted-foreground">
                     <Info className="w-4 h-4 mt-0.5" />
-                    <span>Cette opération utilise ComfyUI. Assurez-vous que le serveur est démarré.</span>
+                    <span>{useHighFidelity ? "Génération complète : Storyboard -> Vidéo -> Audio synchronisé." : " Opération directe via ComfyUI (vidéo uniquement)."}</span>
                   </div>
 
                   <div className="flex gap-2 w-full">

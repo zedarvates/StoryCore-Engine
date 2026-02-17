@@ -35,14 +35,16 @@ import {
   MapPin
 } from 'lucide-react';
 import type { Shot, Character, Location } from '@/types';
-import type { 
-  EnhancedShot, 
-  CompleteSequence, 
-  CameraMovement, 
-  MoodType, 
-  ToneType,
+import type {
+  EnhancedShot,
+  CompleteSequence,
+  CameraMovement,
+  MoodType,
+  ToneType
+} from '@/types/cinematicTypes';
+import {
   getCameraMovementConfig,
-  moodColors 
+  moodColors
 } from '@/types/cinematicTypes';
 import './StoryboardGenerator.css';
 
@@ -101,17 +103,24 @@ export function StoryboardGenerator({
   // Convert shots to storyboard frames
   const frames = useMemo((): StoryboardFrame[] => {
     return shots.map((shot, index) => {
+      // Helper to find character name
+      // Assuming characters and locations are improved in scope or lookup maps
+      // If props are not available in scope, we can't lookup.
+      // But props `characters` and `locations` ARE available in the component scope.
+      const getCharacterName = (id: string) => characters.find(c => c.character_id === id)?.name || 'Unknown Character';
+      const getLocationName = (id?: string) => locations.find(l => l.id === id)?.name || '';
+
       // Generate image prompt based on shot properties
-      const cameraConfig = shot.cameraMovement 
+      const cameraConfig = shot.cameraMovement
         ? getCameraMovementConfig(shot.cameraMovement)
         : null;
-      
-      const characterNames = shot.characters?.map(c => c.name).join(', ') || '';
-      const locationName = shot.location?.name || '';
-      
+
+      const characterNames = shot.characters?.map(c => getCharacterName(c.characterId)).join(', ') || '';
+      const locationName = getLocationName(shot.locationId);
+
       // Build comprehensive prompt
       const imagePrompt = buildImagePrompt({
-        title: shot.title,
+        title: shot.title || shot.name,
         description: shot.description,
         mood: shot.mood,
         tone: shot.tone,
@@ -121,25 +130,34 @@ export function StoryboardGenerator({
         style: 'cinematic, film grain, professional lighting'
       });
 
+      // Get director note content
+      let noteContent = '';
+      if (shot.directorNotes && shot.directorNotes.length > 0) {
+        noteContent = shot.directorNotes[0].note;
+      } else if (typeof shot.directorNote === 'string') {
+        noteContent = shot.directorNote;
+      }
+
       return {
         id: crypto.randomUUID(),
         shotId: shot.id,
-        title: shot.title,
+        title: shot.title || shot.name,
         description: shot.description,
         duration: shot.duration,
-        cameraMovement: shot.cameraMovement,
+        cameraMovement: shot.cameraMovement || null,
         mood: shot.mood,
         tone: shot.tone,
-        characters: shot.characters?.map(c => c.name) || [],
+        characters: shot.characters?.map(c => getCharacterName(c.characterId)) || [],
         location: locationName,
         imagePrompt,
         negativePrompt: buildNegativePrompt(shot.mood),
-        generatedImage: shot.metadata?.generatedStoryboard || null,
+        generatedImage: (shot.metadata?.generatedStoryboard as string) || null,
         isGenerating: false,
         aspectRatio,
         style: 'cinematic',
-        notes: shot.directorNote?.content || ''
+        notes: noteContent
       };
+
     });
   }, [shots, aspectRatio]);
 
@@ -170,28 +188,28 @@ export function StoryboardGenerator({
     style: string;
   }): string {
     const { title, description, mood, tone, cameraMovement, characters, location, style } = params;
-    
-    let prompt = `Cinematic storyboard frame: ${title}. `;
+
+    let prompt = `Professional cinematic storyboard: ${title}. `;
     prompt += `${description}. `;
-    prompt += `Mood: ${mood}, Tone: ${tone}. `;
-    prompt += `Camera: ${cameraMovement}. `;
-    
+    prompt += `Atmosphere: ${mood}, lighting: ${tone}. `;
+    prompt += `Cinematography: ${cameraMovement}. `;
+
     if (characters) {
-      prompt += `Characters: ${characters}. `;
+      prompt += `Subjects: ${characters}. `;
     }
     if (location) {
-      prompt += `Location: ${location}. `;
+      prompt += `Setting: ${location}. `;
     }
     prompt += `${style}. `;
-    prompt += 'Professional film cinematography, 4K quality.';
-    
+    prompt += 'Photorealist, 8K, high detail, cinematic lighting, sharp focus, professional film cinematography.';
+
     return prompt;
   }
 
   // Build negative prompt based on mood
   function buildNegativePrompt(mood: MoodType): string {
     let negative = 'blurry, low quality, distorted, amateur, ';
-    
+
     switch (mood) {
       case 'happy':
         negative += 'sad, dark, gloomy, ';
@@ -205,9 +223,9 @@ export function StoryboardGenerator({
       default:
         break;
     }
-    
+
     negative += 'bad anatomy, extra limbs, poorly drawn face, mutation, deformed';
-    
+
     return negative;
   }
 
@@ -222,7 +240,7 @@ export function StoryboardGenerator({
 
     try {
       const imageUrl = await onGenerateImage(frame.shotId, frame.imagePrompt);
-      
+
       onUpdateShot(frame.shotId, {
         metadata: {
           generatedStoryboard: imageUrl,
@@ -244,13 +262,13 @@ export function StoryboardGenerator({
   // Handle batch generation
   const handleGenerateAll = useCallback(async () => {
     setIsGeneratingAll(true);
-    
+
     for (const frame of frames) {
       if (!frame.generatedImage) {
         await handleGenerateFrame(frame);
       }
     }
-    
+
     setIsGeneratingAll(false);
   }, [frames, handleGenerateFrame]);
 
@@ -305,7 +323,7 @@ export function StoryboardGenerator({
           <h2>Storyboard Generator</h2>
           <span className="shot-count">{sortedFrames.length} frames</span>
         </div>
-        
+
         <div className="header-actions">
           {/* View Mode */}
           <div className="view-toggle">
@@ -439,8 +457,8 @@ export function StoryboardGenerator({
             {sortedFrames.length > 0 && (
               <>
                 <div className="slideshow-frame">
-                  <SlideshowFrame 
-                    frame={sortedFrames[slideshowIndex]} 
+                  <SlideshowFrame
+                    frame={sortedFrames[slideshowIndex]}
                     onGenerate={() => handleGenerateFrame(sortedFrames[slideshowIndex])}
                     showPrompt={showPrompts}
                     onUpdate={(updates) => handleFrameUpdate(sortedFrames[slideshowIndex].id, updates)}
@@ -475,7 +493,7 @@ export function StoryboardGenerator({
 
       {/* Batch Generation Bar */}
       <div className="batch-bar">
-        <button 
+        <button
           className="btn-batch-generate"
           onClick={handleGenerateAll}
           disabled={isGeneratingAll}
@@ -523,13 +541,13 @@ function StoryboardFrameCard({
   const aspectRatioClass = `aspect-${aspectRatio.replace(':', '-')}`;
 
   return (
-    <div 
+    <div
       className={`storyboard-card ${isSelected ? 'selected' : ''} ${aspectRatioClass}`}
       onClick={onSelect}
     >
       <div className="card-header">
         <span className="frame-number">#{frame.shotId.slice(-4)}</span>
-        <span 
+        <span
           className="mood-badge"
           style={{ backgroundColor: moodColors[frame.mood]?.bg }}
         >
@@ -546,7 +564,7 @@ function StoryboardFrameCard({
             <span>Aucun image</span>
           </div>
         )}
-        
+
         {frame.isGenerating && (
           <div className="generating-overlay">
             <RefreshCw className="w-8 h-8 animate-spin" />
@@ -565,7 +583,7 @@ function StoryboardFrameCard({
       <div className="card-body">
         <h4>{frame.title}</h4>
         <p className="description">{frame.description}</p>
-        
+
         <div className="card-meta">
           <span><Clock className="w-3 h-3" />{frame.duration}s</span>
           {frame.cameraMovement && (
@@ -594,7 +612,7 @@ function StoryboardFrameCard({
         )}
 
         <div className="card-actions">
-          <button 
+          <button
             className="btn-action"
             onClick={(e) => { e.stopPropagation(); onUpdate({ notes: prompt('Notes:', frame.notes) || '' }); }}
           >
@@ -638,13 +656,13 @@ function SlideshowFrame({ frame, showPrompt, onGenerate, onUpdate }: SlideshowFr
           </div>
         )}
       </div>
-      
+
       <div className="slideshow-info">
         <h3>{frame.title}</h3>
         <div className="info-grid">
           <div className="info-item">
             <Camera className="w-4 h-4" />
-            <span>{getCameraMovementConfig(frame.cameraMovement || '')?.name || 'Plan fixe'}</span>
+            <span>{frame.cameraMovement ? getCameraMovementConfig(frame.cameraMovement)?.name : 'Plan fixe'}</span>
           </div>
           <div className="info-item">
             <Clock className="w-4 h-4" />
@@ -659,16 +677,16 @@ function SlideshowFrame({ frame, showPrompt, onGenerate, onUpdate }: SlideshowFr
             <span>{frame.location || 'Non specifie'}</span>
           </div>
         </div>
-        
+
         <p className="frame-description">{frame.description}</p>
-        
+
         {showPrompt && (
           <div className="prompt-display">
             <h4>Prompt de generation</h4>
             <p>{frame.imagePrompt}</p>
           </div>
         )}
-        
+
         {frame.notes && (
           <div className="notes-display">
             <h4>Notes</h4>

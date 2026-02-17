@@ -14,6 +14,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import type { Shot } from '@/types';
+import { isRecord } from '@/utils/typeGuards';
 import { sequencePlanService } from '@/services/sequencePlanService';
 import { migrationService } from '@/services/MigrationService';
 import { syncManager } from '@/services/SyncManager';
@@ -70,6 +71,7 @@ import {
   Clapperboard,
 } from 'lucide-react';
 import { SequenceEditModal } from './SequenceEditModal';
+import { DashboardAddonsSection } from './DashboardAddonsSection';
 import './ProjectDashboardNew.css';
 
 // ============================================================================
@@ -459,6 +461,40 @@ export function ProjectDashboardNew({
     };
   }, []);
 
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Check for Ctrl/Cmd + Shift modifier
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey) {
+        switch (e.key.toLowerCase()) {
+          case 'p':
+            e.preventDefault();
+            console.log('[Shortcut] Opening Sequence Plan Wizard');
+            setShowSequencePlanWizardModal(true);
+            break;
+          case 's':
+            e.preventDefault();
+            console.log('[Shortcut] Opening Shot Wizard');
+            setShowShotWizardModal(true);
+            setEditingShot(undefined);
+            setSelectedSequenceId(undefined);
+            break;
+          case 'q':
+            e.preventDefault();
+            console.log('[Shortcut] Quick Shot initiated');
+            // Quick Shot opens the shot wizard in create mode
+            setShowShotWizardModal(true);
+            setEditingShot(undefined);
+            setSelectedSequenceId(undefined);
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   // Listen for wizard launch events from chat
   useEffect(() => {
     const handleLaunchWizard = (event: CustomEvent) => {
@@ -733,7 +769,12 @@ export function ProjectDashboardNew({
       logger.error('Failed to force update sequences:', error);
       const isElectron = !!(window as any).electronAPI?.fs?.readdir;
       if (isElectron) {
-        showError('Error updating sequences', error instanceof Error ? error.message : 'Unknown error');
+        const errorMessage = error instanceof Error
+          ? error.message
+          : isRecord(error) && typeof error.message === 'string'
+            ? error.message
+            : 'Unknown error';
+        showError('Error updating sequences', errorMessage);
       } else {
         showError('Cannot load sequences', 'Cannot load sequences in web mode without a backend server. Please run in Electron mode or start the backend API server.');
       }
@@ -822,7 +863,13 @@ export function ProjectDashboardNew({
       showSuccess(`Sequence "${sequence.name}" created successfully`);
     } catch (error) {
       logger.error('Failed to create sequence:', error);
-      showError('Failed to create sequence', error instanceof Error ? error.message : 'Unknown error');
+      logger.error('Failed to create sequence:', error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : isRecord(error) && typeof error.message === 'string'
+          ? error.message
+          : 'Unknown error';
+      showError('Failed to create sequence', errorMessage);
     }
   };
 
@@ -890,7 +937,8 @@ export function ProjectDashboardNew({
       } catch (error) {
         // Type guard pour 'unknown' error
         const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.warn(`Failed to delete sequence file ${filePath}`, { error: errorMessage });
+        const errorDetail = isRecord(error) && typeof error.code === 'string' ? error.code : 'UNKNOWN';
+        logger.warn(`Failed to delete sequence file ${filePath}`, { error: errorMessage, code: errorDetail });
         // Continue with deletion even if file deletion fails
       }
 
@@ -911,7 +959,8 @@ export function ProjectDashboardNew({
         } catch (error) {
           // Type guard pour 'unknown' error
           const errorMessage = error instanceof Error ? error.message : String(error);
-          logger.warn(`Failed to delete shot file ${shotFilePath}`, { error: errorMessage });
+          const errorDetail = isRecord(error) && typeof error.code === 'string' ? error.code : 'UNKNOWN';
+          logger.warn(`Failed to delete shot file ${shotFilePath}`, { error: errorMessage, code: errorDetail });
           // Continue with deletion even if file deletion fails
         }
       }
@@ -965,7 +1014,13 @@ export function ProjectDashboardNew({
       showSuccess('Sequence deleted successfully');
     } catch (error) {
       logger.error('Failed to delete sequence:', error);
-      showError('Failed to delete sequence', error instanceof Error ? error.message : 'Unknown error');
+      logger.error('Failed to delete sequence:', error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : isRecord(error) && typeof error.message === 'string'
+          ? error.message
+          : 'Unknown error';
+      showError('Failed to delete sequence', errorMessage);
     }
   };
 
@@ -1111,7 +1166,13 @@ export function ProjectDashboardNew({
 
     } catch (error) {
       logger.error('Failed to synchronize sequences:', error);
-      showError('Synchronization failed', error instanceof Error ? error.message : 'Unknown error');
+      logger.error('Failed to synchronize sequences:', error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : isRecord(error) && typeof error.message === 'string'
+          ? error.message
+          : 'Unknown error';
+      showError('Synchronization failed', errorMessage);
     } finally {
       setIsSyncing(false);
     }
@@ -1366,7 +1427,13 @@ export function ProjectDashboardNew({
 
     } catch (error) {
       logger.error('Failed to save sequence:', error);
-      showError('Failed to save sequence', error instanceof Error ? error.message : 'Unknown error');
+      logger.error('Failed to save sequence:', error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : isRecord(error) && typeof error.message === 'string'
+          ? error.message
+          : 'Unknown error';
+      showError('Failed to save sequence', errorMessage);
     }
   };
 
@@ -1610,7 +1677,11 @@ export function ProjectDashboardNew({
    * Handle Sequence Plan Wizard completion
    */
   const handleSequencePlanComplete = (plan: unknown) => {
-    console.log('[ProjectDashboard] Sequence plan created:', plan);
+    if (isRecord(plan)) {
+      console.log('[ProjectDashboard] Sequence plan created:', plan);
+    } else {
+      console.log('[ProjectDashboard] Sequence plan created (unknown format):', plan);
+    }
     setShowSequencePlanWizardModal(false);
     showSuccess('Plan de séquence créé avec succès!');
     setForceUpdate(prev => prev + 1);
@@ -1846,6 +1917,18 @@ export function ProjectDashboardNew({
               onLaunchWizard={handleLaunchWizard}
             />
           </div>
+
+          {/* Active Add-ons Section */}
+          <DashboardAddonsSection
+            onLaunchWizard={(wizardType, initialData) => {
+              // Close all other wizards first
+              const closeActiveWizard = useAppStore.getState().closeActiveWizard;
+              closeActiveWizard();
+
+              // Launch the wizard based on type
+              handleLaunchWizard(wizardType);
+            }}
+          />
 
           {/* Stories Section */}
           <div className="stories-section">

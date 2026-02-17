@@ -380,6 +380,19 @@ function Step2LocationsRules({
                     placeholder="Location name"
                     className="flex-1 px-3 py-2 border rounded-lg"
                   />
+                  <select
+                    value={location.location_type || 'exterior'}
+                    onChange={(e) => {
+                      const newLocations = [...locations];
+                      newLocations[index] = { ...location, location_type: e.target.value as 'interior' | 'exterior' };
+                      onUpdate({ ...data, locations: newLocations });
+                    }}
+                    className="px-3 py-2 border rounded-lg text-sm"
+                    title="Interior (indoor) or Exterior (outdoor)"
+                  >
+                    <option value="exterior">🌍 Extérieur</option>
+                    <option value="interior">🏠 Intérieur</option>
+                  </select>
                   <button
                     onClick={() => onRemoveLocation(location.id!)}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg"

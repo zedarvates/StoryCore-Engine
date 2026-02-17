@@ -34,25 +34,25 @@ import './CharacterList.css';
 export interface CharacterListProps {
   /** Optional click handler for character cards */
   onCharacterClick?: (character: Character) => void;
-  
+
   /** Optional handler for create character button */
   onCreateClick?: () => void;
-  
+
   /** Whether the list is in selection mode (for Story Generator) */
   selectable?: boolean;
-  
+
   /** Currently selected character IDs (for Story Generator) */
   selectedIds?: string[];
-  
+
   /** Handler for selection changes (for Story Generator) */
   onSelectionChange?: (ids: string[]) => void;
-  
+
   /** Whether to show action buttons on cards */
   showActions?: boolean;
-  
+
   /** Optional handler for character edit */
   onEdit?: (character: Character) => void;
-  
+
   /** Optional handler for character delete */
   onDelete?: (character: Character) => void;
 }
@@ -95,13 +95,13 @@ export function CharacterList({
   // ============================================================================
 
   const characterManager = useCharacterManager();
-  
+
   // Store state for search and filters
   const characterSearchQuery = useAppStore((state) => state.characterSearchQuery);
   const characterFilters = useAppStore((state) => state.characterFilters);
   const setCharacterSearchQuery = useAppStore((state) => state.setCharacterSearchQuery);
   const setCharacterFilters = useAppStore((state) => state.setCharacterFilters);
-  
+
   // Local state
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -130,13 +130,13 @@ export function CharacterList({
     if (process.env.NODE_ENV === 'development') {
       console.log('🔍 [CharacterList] Recalculating characters list');
     }
-    
+
     let result = characterManager.getAllCharacters();
-    
+
     if (process.env.NODE_ENV === 'development') {
       console.log(`📊 [CharacterList] Total characters from store: ${result.length}`);
     }
-    
+
     // Apply search filter (Requirement: 9.2)
     if (characterSearchQuery && characterSearchQuery.trim() !== '') {
       result = characterManager.searchCharacters(characterSearchQuery);
@@ -155,7 +155,7 @@ export function CharacterList({
       if (process.env.NODE_ENV === 'development') {
         console.log(`🎯 [CharacterList] After filters: ${result.length} characters`);
       }
-      
+
       // If both search and filters are active, we need to intersect the results
       if (characterSearchQuery && characterSearchQuery.trim() !== '') {
         const searchResults = characterManager.searchCharacters(characterSearchQuery);
@@ -171,13 +171,13 @@ export function CharacterList({
     const beforeDedup = result.length;
     result = deduplicateCharacters(result);
     const afterDedup = result.length;
-    
+
     if (beforeDedup !== afterDedup) {
       if (process.env.NODE_ENV === 'development') {
         console.warn(`⚠️ [CharacterList] Removed ${beforeDedup - afterDedup} duplicate(s)`);
       }
     }
-    
+
     // Log duplicate info in development
     if (process.env.NODE_ENV === 'development') {
       logDuplicateInfo(result);
@@ -225,7 +225,7 @@ export function CharacterList({
    */
   useEffect(() => {
     let updateTimeout: NodeJS.Timeout | null = null;
-    
+
     // Debounced update function to prevent multiple rapid re-renders
     const scheduleUpdate = () => {
       if (updateTimeout) {
@@ -238,7 +238,7 @@ export function CharacterList({
         }
       }, 100); // 100ms debounce
     };
-    
+
     // Handler for character-created event (Requirement: 5.1)
     const handleCharacterCreated = () => {
       if (process.env.NODE_ENV === 'development') {
@@ -264,18 +264,18 @@ export function CharacterList({
     };
 
     // Subscribe to events
-    eventEmitter.on('character-created', handleCharacterCreated);
-    eventEmitter.on('character-updated', handleCharacterUpdated);
-    eventEmitter.on('character-deleted', handleCharacterDeleted);
+    const sub1 = eventEmitter.on('character-created', handleCharacterCreated);
+    const sub2 = eventEmitter.on('character-updated', handleCharacterUpdated);
+    const sub3 = eventEmitter.on('character-deleted', handleCharacterDeleted);
 
-    // Cleanup subscriptions on unmount - MUST pass the same handler reference
+    // Cleanup subscriptions on unmount
     return () => {
       if (updateTimeout) {
         clearTimeout(updateTimeout);
       }
-      eventEmitter.off('character-created', handleCharacterCreated);
-      eventEmitter.off('character-updated', handleCharacterUpdated);
-      eventEmitter.off('character-deleted', handleCharacterDeleted);
+      sub1.unsubscribe();
+      sub2.unsubscribe();
+      sub3.unsubscribe();
     };
   }, []); // Empty deps - only subscribe once on mount
 
@@ -347,7 +347,7 @@ export function CharacterList({
     if (process.env.NODE_ENV === 'development') {
       console.log('🖼️ [CharacterList] Image generated for character:', character.name, imagePath);
     }
-    
+
     try {
       // Update character with the generated portrait path
       await characterManager.updateCharacter(character.character_id, {
@@ -356,7 +356,7 @@ export function CharacterList({
           generated_portrait: imagePath,
         },
       });
-      
+
       if (process.env.NODE_ENV === 'development') {
         console.log('✅ [CharacterList] Character updated with portrait path');
       }
@@ -376,7 +376,7 @@ export function CharacterList({
    * Requirement: 1.5
    */
   const renderEmptyState = () => {
-    const hasFilters = 
+    const hasFilters =
       characterSearchQuery.trim() !== '' ||
       characterFilters.archetype?.length ||
       characterFilters.ageRange?.length ||
@@ -456,7 +456,7 @@ export function CharacterList({
             />
           ))}
         </div>
-        
+
         {/* Pagination Controls */}
         <Pagination
           pagination={pagination}

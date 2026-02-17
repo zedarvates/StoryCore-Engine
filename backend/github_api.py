@@ -22,122 +22,225 @@ logger = logging.getLogger(__name__)
 
 
 class GitHubAPIError(Exception):
-    """Custom exception for GitHub API errors with enhanced details
+    """Exception raised for GitHub API errors.
+    
+    Provides comprehensive error handling with error codes, detailed messages,
+    and recovery suggestions for debugging GitHub integration issues.
     
     Attributes:
-        error_code: HTTP status code or error identifier
-        error_message: Detailed error message
-        response_details: Raw API response details
-        error_category: Categorization of the error (e.g., authentication, rate_limit)
-        recovery_suggestion: Suggestion for how to recover from the error
+        message: Detailed error message describing what went wrong
+        error_code: Error identifier string (e.g., 'RATE_LIMIT', 'AUTH_FAILED')
+        status_code: HTTP status code from the API response
+        recovery_suggestions: List of suggestions for recovering from the error
+        response_details: Raw API response details for debugging
     """
     
-    # Error categories
-    CATEGORIES = {
-        "authentication": "Authentication Error",
-        "rate_limit": "Rate Limit Exceeded",
-        "not_found": "Resource Not Found",
-        "validation": "Validation Error",
-        "forbidden": "Access Forbidden",
-        "timeout": "Request Timeout",
-        "connection": "Connection Error",
-        "server": "Server Error",
-        "unknown": "Unknown Error"
+    # Error code constants
+    RATE_LIMIT = 'RATE_LIMIT'
+    AUTH_FAILED = 'AUTH_FAILED'
+    NOT_FOUND = 'NOT_FOUND'
+    NETWORK_ERROR = 'NETWORK_ERROR'
+    PERMISSION_DENIED = 'PERMISSION_DENIED'
+    VALIDATION_ERROR = 'VALIDATION_ERROR'
+    SERVER_ERROR = 'SERVER_ERROR'
+    UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+    
+    # Error code display names
+    ERROR_NAMES = {
+        RATE_LIMIT: "Rate Limit Exceeded",
+        AUTH_FAILED: "Authentication Failed",
+        NOT_FOUND: "Resource Not Found",
+        NETWORK_ERROR: "Network Error",
+        PERMISSION_DENIED: "Permission Denied",
+        VALIDATION_ERROR: "Validation Error",
+        SERVER_ERROR: "Server Error",
+        UNKNOWN_ERROR: "Unknown Error"
     }
     
-    # Recovery suggestions by error category
+    # Recovery suggestions by error code
     RECOVERY_SUGGESTIONS = {
-        "authentication": "Check that your GitHub API token is valid and has the necessary permissions. "
-                         "Ensure the token is properly configured in the GITHUB_API_TOKEN environment variable.",
-        "rate_limit": "GitHub API rate limit exceeded. Wait a few minutes and try again. "
-                     "Consider using a different API token or reducing the frequency of requests.",
-        "not_found": "The specified repository or resource was not found. Verify the repository owner "
-                    "and name are correct, and that the resource exists and is accessible.",
-        "validation": "The request data failed GitHub API validation. Check the error details for "
-                     "specific fields that need correction.",
-        "forbidden": "Access to the GitHub API is forbidden. Check that your API token has the "
-                    "necessary permissions and that you're not violating any GitHub policies.",
-        "timeout": "The request to GitHub API timed out. Try again with a longer timeout or check "
-                  "your network connectivity.",
-        "connection": "Failed to connect to GitHub API. Check your network connectivity and try again.",
-        "server": "GitHub API server error. Try again later as this may be a temporary issue.",
-        "unknown": "An unexpected error occurred. Check the error details and try again."
+        RATE_LIMIT: [
+            "Wait 60 minutes before retrying",
+            "Check your rate limit status at https://api.github.com/rate_limit",
+            "Consider using a different API token with higher rate limits",
+            "Reduce the frequency of API requests"
+        ],
+        AUTH_FAILED: [
+            "Check your GitHub token is valid",
+            "Ensure the token is not expired or revoked",
+            "Verify the token has the required scopes (repo, user)",
+            "Check the GITHUB_API_TOKEN environment variable is set correctly"
+        ],
+        NOT_FOUND: [
+            "Verify the repository/issue exists",
+            "Check the repository owner and name are correct",
+            "Ensure you have access to the repository",
+            "Verify the resource hasn't been deleted or made private"
+        ],
+        NETWORK_ERROR: [
+            "Check your internet connection",
+            "Verify GitHub API is accessible (status.github.com)",
+            "Try again in a few minutes",
+            "Check for any firewall or proxy issues"
+        ],
+        PERMISSION_DENIED: [
+            "Check your token has the necessary permissions",
+            "Verify you have write access to the repository",
+            "Ensure the token has 'repo' scope for private repositories",
+            "Check if 2FA is required for the operation"
+        ],
+        VALIDATION_ERROR: [
+            "Check the error details for specific field requirements",
+            "Ensure all required fields are provided",
+            "Verify field values match GitHub's validation rules",
+            "Check for invalid characters or formatting in input"
+        ],
+        SERVER_ERROR: [
+            "Wait a few minutes and try again",
+            "Check GitHub's status page at status.github.com",
+            "Retry with exponential backoff",
+            "Report the issue if it persists"
+        ],
+        UNKNOWN_ERROR: [
+            "Check the error details for more information",
+            "Try the operation again",
+            "Report the issue with error details if it persists"
+        ]
+    }
+    
+    # HTTP status code to error code mapping
+    STATUS_CODE_MAP = {
+        401: AUTH_FAILED,
+        403: PERMISSION_DENIED,  # Could also be RATE_LIMIT, handled separately
+        404: NOT_FOUND,
+        422: VALIDATION_ERROR,
     }
     
     def __init__(
         self,
-        error_message: str,
-        error_code: Optional[int] = None,
-        response_details: Optional[Dict[str, Any]] = None,
-        error_category: Optional[str] = None
+        message: str,
+        error_code: Optional[str] = None,
+        status_code: Optional[int] = None,
+        recovery_suggestions: Optional[list] = None,
+        response_details: Optional[Dict[str, Any]] = None
     ):
-        self.error_code = error_code
-        self.error_message = error_message
-        self.response_details = response_details or {}
-        self.error_category = error_category or self._determine_category(error_code)
-        self.recovery_suggestion = self.RECOVERY_SUGGESTIONS.get(self.error_category, self.RECOVERY_SUGGESTIONS["unknown"])
+        """Initialize GitHubAPIError with comprehensive error details.
         
+        Args:
+            message: Detailed error message
+            error_code: Error identifier string (e.g., 'RATE_LIMIT', 'AUTH_FAILED')
+            status_code: HTTP status code from the API response
+            recovery_suggestions: List of recovery suggestions (uses defaults if not provided)
+            response_details: Raw API response details for debugging
+        """
+        self.message = message
+        self.error_code = error_code or self._determine_error_code(status_code)
+        self.status_code = status_code
+        self.recovery_suggestions = recovery_suggestions or self.RECOVERY_SUGGESTIONS.get(
+            self.error_code, self.RECOVERY_SUGGESTIONS[self.UNKNOWN_ERROR]
+        )
+        self.response_details = response_details or {}
+        
+        # Call parent with formatted message
         super().__init__(self._format_message())
     
-    def _determine_category(self, error_code: Optional[int]) -> str:
-        """Determine error category based on HTTP status code"""
-        if error_code is None:
-            return "unknown"
-        elif error_code == 401:
-            return "authentication"
-        elif error_code == 403:
-            return "forbidden"
-        elif error_code == 404:
-            return "not_found"
-        elif error_code == 422:
-            return "validation"
-        elif 400 <= error_code < 500:
-            return "validation"
-        elif 500 <= error_code < 600:
-            return "server"
-        else:
-            return "unknown"
+    def _determine_error_code(self, status_code: Optional[int]) -> str:
+        """Determine error code from HTTP status code.
+        
+        Args:
+            status_code: HTTP status code
+            
+        Returns:
+            Error code string
+        """
+        if status_code is None:
+            return self.UNKNOWN_ERROR
+        
+        if status_code in self.STATUS_CODE_MAP:
+            return self.STATUS_CODE_MAP[status_code]
+        
+        if 500 <= status_code < 600:
+            return self.SERVER_ERROR
+        
+        if 400 <= status_code < 500:
+            return self.VALIDATION_ERROR
+        
+        return self.UNKNOWN_ERROR
     
     def _format_message(self) -> str:
-        """Format the error message with all available details"""
-        parts = [self.error_message]
+        """Format the error message with all available details.
         
-        if self.error_code:
-            parts.append(f" (Code: {self.error_code})")
+        Returns:
+            Formatted error message string
+        """
+        parts = [self.message]
         
-        if self.error_category and self.error_category != "unknown":
-            category_name = self.CATEGORIES.get(self.error_category, self.error_category)
-            parts.append(f" [Category: {category_name}]")
+        if self.error_code and self.error_code != self.UNKNOWN_ERROR:
+            error_name = self.ERROR_NAMES.get(self.error_code, self.error_code)
+            parts.append(f" [{error_name}]")
+        
+        if self.status_code:
+            parts.append(f" (HTTP {self.status_code})")
         
         return "".join(parts)
     
+    def __str__(self) -> str:
+        """String representation of the error.
+        
+        Returns:
+            Formatted error message with recovery suggestions
+        """
+        base_message = self._format_message()
+        
+        if self.recovery_suggestions:
+            suggestions_text = "\n".join(
+                f"  - {suggestion}" for suggestion in self.recovery_suggestions
+            )
+            return f"{base_message}\n\nRecovery suggestions:\n{suggestions_text}"
+        
+        return base_message
+    
+    def __repr__(self) -> str:
+        """Debug representation of the error.
+        
+        Returns:
+            Detailed string representation for debugging
+        """
+        return (
+            f"GitHubAPIError("
+            f"message={repr(self.message)}, "
+            f"error_code={repr(self.error_code)}, "
+            f"status_code={self.status_code}, "
+            f"recovery_suggestions={repr(self.recovery_suggestions)}, "
+            f"response_details={repr(self.response_details)}"
+            f")"
+        )
+    
     def to_dict(self) -> Dict[str, Any]:
-        """Convert error to dictionary for serialization"""
+        """Convert error to dictionary for serialization.
+        
+        Returns:
+            Dictionary containing all error details
+        """
         return {
             "error": {
-                "code": self.error_code,
-                "message": self.error_message,
-                "category": self.error_category,
-                "category_name": self.CATEGORIES.get(self.error_category, self.error_category),
-                "recovery_suggestion": self.recovery_suggestion,
+                "message": self.message,
+                "error_code": self.error_code,
+                "error_name": self.ERROR_NAMES.get(self.error_code, self.error_code),
+                "status_code": self.status_code,
+                "recovery_suggestions": self.recovery_suggestions,
                 "response_details": self.response_details
             }
         }
     
-    def __str__(self) -> str:
-        """String representation of the error"""
-        return self._format_message()
-    
-    def __repr__(self) -> str:
-        """Debug representation of the error"""
-        return (
-            f"GitHubAPIError("
-            f"error_message={repr(self.error_message)}, "
-            f"error_code={self.error_code}, "
-            f"error_category={repr(self.error_category)}, "
-            f"response_details={repr(self.response_details)}"
-            f")"
-        )
+    @property
+    def error_name(self) -> str:
+        """Get the human-readable error name.
+        
+        Returns:
+            Human-readable error name
+        """
+        return self.ERROR_NAMES.get(self.error_code, self.error_code)
 
 
 def create_github_issue(
@@ -184,8 +287,14 @@ def create_github_issue(
     
     if not github_token or github_token == "PLACEHOLDER_TOKEN":
         raise GitHubAPIError(
-            "GitHub API token not configured. "
-            "Set the GITHUB_API_TOKEN environment variable."
+            message="GitHub API token not configured. "
+                   "Set the GITHUB_API_TOKEN environment variable.",
+            error_code=GitHubAPIError.AUTH_FAILED,
+            recovery_suggestions=[
+                "Set the GITHUB_API_TOKEN environment variable with a valid GitHub token",
+                "Create a personal access token at https://github.com/settings/tokens",
+                "Ensure the token has 'repo' scope for repository access"
+            ]
         )
     
     if not repo_owner or not repo_name:
@@ -260,10 +369,10 @@ def create_github_issue(
             except:
                 response_details = {"text": response.text[:200]}
             raise GitHubAPIError(
-                error_message=error_msg,
-                error_code=response.status_code,
-                response_details=response_details,
-                error_category="authentication"
+                message=error_msg,
+                error_code=GitHubAPIError.AUTH_FAILED,
+                status_code=response.status_code,
+                response_details=response_details
             )
         
         elif response.status_code == 403:
@@ -277,17 +386,17 @@ def create_github_issue(
             
             if "rate limit" in error_message.lower():
                 error_msg = "GitHub API rate limit exceeded. Please try again later."
-                category = "rate_limit"
+                error_code = GitHubAPIError.RATE_LIMIT
             else:
                 error_msg = f"GitHub API access forbidden: {error_message}"
-                category = "forbidden"
+                error_code = GitHubAPIError.PERMISSION_DENIED
             
             logger.error(f"{error_msg} Status: {response.status_code}")
             raise GitHubAPIError(
-                error_message=error_msg,
-                error_code=response.status_code,
-                response_details=error_data,
-                error_category=category
+                message=error_msg,
+                error_code=error_code,
+                status_code=response.status_code,
+                response_details=error_data
             )
         
         elif response.status_code == 404:

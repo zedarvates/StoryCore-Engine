@@ -2,7 +2,8 @@
 // Advanced Transitions Add-on
 // ============================================================================
 
-// Core types
+// Core types - Import first, then re-export
+import type { Transition, TransitionPreset, TransitionSettings, TransitionLibrary } from './types';
 export type {
   Transition,
   TransitionPreset,
@@ -10,11 +11,8 @@ export type {
   TransitionLibrary,
 } from './types';
 
-// Import types for internal use
-import type { Transition, TransitionPreset, TransitionSettings, TransitionLibrary } from './types';
-import type { TransitionsManager } from './TransitionsManager';
-
 // Import implementation
+import { TransitionsManager } from './TransitionsManager';
 export { TransitionsManager } from './TransitionsManager';
 
 // Plugin interface

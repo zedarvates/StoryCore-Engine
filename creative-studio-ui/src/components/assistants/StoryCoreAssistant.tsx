@@ -601,7 +601,7 @@ export function StoryCoreAssistant() {
     };
 
     const workflow = workflows[completedWizardId] || [];
-    return workflow.slice(0, 2).map((item: unknown) => ({
+    return workflow.slice(0, 2).map((item: any) => ({
       type: 'wizard' as const,
       title: item.title,
       description: item.desc,

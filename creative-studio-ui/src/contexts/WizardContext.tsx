@@ -17,6 +17,36 @@ export type WizardType =
   | 'project-setup'
   | 'object';
 
+/**
+ * Wizard chain configuration for triggering subsequent wizards
+ */
+export interface WizardChainConfig {
+  /** The wizard type to trigger next */
+  wizardType: WizardType;
+  /** Whether this chain is auto-triggered or manual */
+  autoTrigger: boolean;
+  /** Initial data to pass to the next wizard */
+  initialData?: Record<string, unknown>;
+  /** Label for the chain button */
+  label?: string;
+  /** Description of what the next wizard will do */
+  description?: string;
+}
+
+/**
+ * Wizard chain state
+ */
+export interface WizardChainState {
+  /** Whether wizard chaining is enabled */
+  isChained: boolean;
+  /** Array of wizard chains to trigger after completion */
+  triggeredWizards: WizardChainConfig[];
+  /** Current chain index */
+  currentChainIndex: number;
+  /** Data accumulated from previous wizards in the chain */
+  chainData: Record<string, unknown>;
+}
+
 export interface WizardContextState<T> {
   currentStep: number;
   totalSteps: number;
@@ -25,7 +55,10 @@ export interface WizardContextState<T> {
   isSubmitting: boolean;
   isDirty: boolean;
   isManualMode: boolean; // Manual entry mode (fallback from LLM)
-
+  
+  // Wizard Chain State
+  chainState: WizardChainState;
+  
   // Actions
   goToStep: (step: number) => void;
   nextStep: () => Promise<void>;
@@ -40,6 +73,15 @@ export interface WizardContextState<T> {
   setManualMode: (enabled: boolean) => void;
   clearSavedProgress: () => void;
   hasSavedProgress: () => boolean;
+  
+  // Wizard Chain Actions
+  setChainEnabled: (enabled: boolean) => void;
+  addTriggeredWizard: (config: WizardChainConfig) => void;
+  removeTriggeredWizard: (index: number) => void;
+  clearTriggeredWizards: () => void;
+  triggerNextWizard: () => WizardChainConfig | null;
+  addToChainData: (key: string, value: unknown) => void;
+  getChainData: () => Record<string, unknown>;
 }
 
 interface WizardProviderProps<T> {
@@ -84,6 +126,78 @@ export function WizardProvider<T>({
   const [isDirty, setIsDirty] = useState(false);
   const [isManualMode, setIsManualMode] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // ============================================================================
+  // Wizard Chain State
+  // ============================================================================
+  const [chainState, setChainState] = useState<WizardChainState>({
+    isChained: false,
+    triggeredWizards: [],
+    currentChainIndex: 0,
+    chainData: {},
+  });
+
+  // ============================================================================
+  // Wizard Chain Functions
+  // ============================================================================
+  
+  const setChainEnabled = useCallback((enabled: boolean) => {
+    setChainState(prev => ({ ...prev, isChained: enabled }));
+  }, []);
+
+  const addTriggeredWizard = useCallback((config: WizardChainConfig) => {
+    setChainState(prev => ({
+      ...prev,
+      triggeredWizards: [...prev.triggeredWizards, config],
+    }));
+  }, []);
+
+  const removeTriggeredWizard = useCallback((index: number) => {
+    setChainState(prev => ({
+      ...prev,
+      triggeredWizards: prev.triggeredWizards.filter((_, i) => i !== index),
+    }));
+  }, []);
+
+  const clearTriggeredWizards = useCallback(() => {
+    setChainState(prev => ({
+      ...prev,
+      triggeredWizards: [],
+      currentChainIndex: 0,
+      chainData: {},
+    }));
+  }, []);
+
+  const triggerNextWizard = useCallback((): WizardChainConfig | null => {
+    const { triggeredWizards, currentChainIndex } = chainState;
+    
+    // Check if there are more wizards in the chain
+    if (currentChainIndex >= triggeredWizards.length) {
+      return null;
+    }
+    
+    // Get the next wizard config
+    const nextWizard = triggeredWizards[currentChainIndex];
+    
+    // Increment chain index
+    setChainState(prev => ({
+      ...prev,
+      currentChainIndex: prev.currentChainIndex + 1,
+    }));
+    
+    return nextWizard;
+  }, [chainState]);
+
+  const addToChainData = useCallback((key: string, value: unknown) => {
+    setChainState(prev => ({
+      ...prev,
+      chainData: { ...prev.chainData, [key]: value },
+    }));
+  }, []);
+
+  const getChainData = useCallback((): Record<string, unknown> => {
+    return chainState.chainData;
+  }, [chainState]);
 
   // ============================================================================
   // Validation - MUST be defined BEFORE nextStep
@@ -359,6 +473,7 @@ export function WizardProvider<T>({
     isSubmitting,
     isDirty,
     isManualMode,
+    chainState,
     goToStep,
     nextStep,
     previousStep,
@@ -372,6 +487,13 @@ export function WizardProvider<T>({
     setManualMode,
     clearSavedProgress,
     hasSavedProgress,
+    setChainEnabled,
+    addTriggeredWizard,
+    removeTriggeredWizard,
+    clearTriggeredWizards,
+    triggerNextWizard,
+    addToChainData,
+    getChainData,
   };
 
   return (

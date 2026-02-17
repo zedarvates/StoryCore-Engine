@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { 
+import {
   CompleteSequence,
   EnhancedShot,
   BeatType,
@@ -35,7 +35,7 @@ export function EnhancedSequenceCard({
   const stats = useMemo(() => {
     const totalDuration = sequence.shots.reduce((sum, s) => sum + s.duration, 0);
     const avgDuration = sequence.shots.length > 0 ? totalDuration / sequence.shots.length : 0;
-    
+
     return {
       shots: sequence.shots.length,
       beats: sequence.beats.length,
@@ -62,7 +62,7 @@ export function EnhancedSequenceCard({
           <h3>{sequence.name}</h3>
           <span className="sequence-order">#{sequence.order}</span>
         </div>
-        
+
         <div className="sequence-quick-stats">
           <span className="stat">
             <Video className="w-4 h-4" />
@@ -86,18 +86,18 @@ export function EnhancedSequenceCard({
             {getBeatConfig(dominantBeat.type as BeatType)?.name || dominantBeat.type}
           </span>
         )}
-        
+
         {sequence.moodArc && (
           <span className={`tag mood-tag ${sequence.moodArc.dominantMood}`}>
             <Music className="w-3 h-3" />
             {sequence.moodArc.dominantMood}
           </span>
         )}
-        
+
         {sequence.pacingAnalysis && (
-          <span className={`tag pacing-tag ${sequence.pacingAnalysis.overallPacing}`}>
+          <span className={`tag pacing-tag ${sequence.pacingAnalysis.overallPace}`}>
             <Clock className="w-3 h-3" />
-            {sequence.pacingAnalysis.overallPacing}
+            {sequence.pacingAnalysis.overallPace}
           </span>
         )}
 
@@ -120,7 +120,7 @@ export function EnhancedSequenceCard({
         <div className="mood-arc">
           <div className="mood-label">Arc emotionnel</div>
           <div className="mood-bar">
-            <div 
+            <div
               className="mood-start"
               style={{ background: getMoodColor(sequence.moodArc.startMood) }}
             />
@@ -158,8 +158,8 @@ export function EnhancedSequenceCard({
           </div>
           <div className="shots-grid">
             {sequence.shots.slice(0, 3).map((shot) => (
-              <div 
-                key={shot.id} 
+              <div
+                key={shot.id}
                 className="shot-preview"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -189,7 +189,7 @@ export function EnhancedSequenceCard({
       )}
 
       <div className="sequence-actions">
-        <button 
+        <button
           className="action-btn expand"
           onClick={(e) => {
             e.stopPropagation();
@@ -199,7 +199,7 @@ export function EnhancedSequenceCard({
           {expanded ? 'Reduire' : 'Voir plus'}
         </button>
         {onAddBeat && (
-          <button 
+          <button
             className="action-btn add-beat"
             onClick={(e) => {
               e.stopPropagation();

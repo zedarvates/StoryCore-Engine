@@ -25,7 +25,7 @@ import type {
 const createInitialState = () => ({
   // Wizard metadata
   wizardType: null as WizardType | null,
-  
+
   // Navigation state
   currentStep: 1,
   completedSteps: new Set<number>(),
@@ -360,7 +360,7 @@ export const useWizardStore = create<WizardState>()(
           validationErrors: Array.from(state.validationErrors.entries()),
         }),
         // Custom deserialization for Set and Map with proper type handling
-        merge: (persistedState: unknown, currentState) => {
+        merge: (persistedState: any, currentState) => {
           // Safely convert completedSteps to Set
           const completedSteps = Array.isArray(persistedState.completedSteps)
             ? new Set(persistedState.completedSteps)

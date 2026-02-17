@@ -14,9 +14,9 @@ const STORAGE_KEY = 'storycore-chat-panel-state';
 
 // Default values for the chat panel
 export const DEFAULT_CHAT_PANEL_STATE: ChatPanelState = {
-  position: { 
-    x: typeof window !== 'undefined' ? window.innerWidth - 424 : 100, 
-    y: 100 
+  position: {
+    x: typeof window !== 'undefined' ? window.innerWidth - 424 : 100,
+    y: 100
   },
   size: { width: 384, height: 500 },
   isOpen: false,
@@ -44,22 +44,22 @@ export function saveChatPanelState(state: ChatPanelState): void {
 export function loadChatPanelState(): ChatPanelState {
   try {
     const savedState = localStorage.getItem(STORAGE_KEY);
-    
+
     if (!savedState) {
       return DEFAULT_CHAT_PANEL_STATE;
     }
-    
+
     const parsedState = JSON.parse(savedState) as ChatPanelState;
-    
+
     // Validate the loaded state
     if (!isValidChatPanelState(parsedState)) {
       console.warn('Invalid chat panel state in localStorage, using defaults');
       return DEFAULT_CHAT_PANEL_STATE;
     }
-    
+
     // Ensure position is within current viewport
     const constrainedState = constrainToViewport(parsedState);
-    
+
     return constrainedState;
   } catch (error) {
     console.error('Failed to load chat panel state:', error);
@@ -83,7 +83,7 @@ export function clearChatPanelState(): void {
  * @param state - The state to validate
  * @returns true if valid, false otherwise
  */
-function isValidChatPanelState(state: unknown): state is ChatPanelState {
+function isValidChatPanelState(state: any): state is ChatPanelState {
   return (
     state &&
     typeof state === 'object' &&
@@ -107,11 +107,11 @@ function constrainToViewport(state: ChatPanelState): ChatPanelState {
   if (typeof window === 'undefined') {
     return state;
   }
-  
+
   const { position, size } = state;
   const maxX = window.innerWidth - size.width;
   const maxY = window.innerHeight - size.height;
-  
+
   return {
     ...state,
     position: {

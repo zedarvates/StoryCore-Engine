@@ -3,7 +3,7 @@
  * ME3: Parameter Tunneling - Runtime parameter adjustments
  */
 
-import { TimelineClip } from './timeline';
+// import { TimelineClip } from './timeline'; // Unused and missing export
 
 export interface TunneledParameter<T = unknown> {
   id: string;
@@ -23,7 +23,7 @@ export interface TunneledParameter<T = unknown> {
   constraints?: ParameterConstraints<T>;
 }
 
-export type ParameterType = 
+export type ParameterType =
   | 'number'
   | 'string'
   | 'boolean'
@@ -35,7 +35,7 @@ export type ParameterType =
   | 'vector3'
   | 'transform';
 
-export type ParameterCategory = 
+export type ParameterCategory =
   | 'transform'
   | 'opacity'
   | 'color'

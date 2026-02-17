@@ -25,6 +25,7 @@ interface AppearanceSectionProps {
   readonly ageRange: string;
   readonly gender: string;
   readonly worldContext?: World;
+  readonly id?: string;
 }
 
 export function AppearanceSection({
@@ -36,6 +37,7 @@ export function AppearanceSection({
   ageRange,
   gender,
   worldContext,
+  id,
 }: AppearanceSectionProps) {
   const { llmConfigured, llmChecking } = useServiceStatus();
   const fieldId = useId();
@@ -83,13 +85,13 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
     try {
       // Remove markdown code blocks (```json ... ``` or ``` ... ```)
       let cleanedResponse = response.replaceAll(/```(?:json)?\s*([\s\S]*?)```/g, '$1');
-      
+
       // Remove single-line comments (// ...)
       cleanedResponse = cleanedResponse.replaceAll(/\/\/.*$/gm, '');
-      
+
       // Remove multi-line comments (/* ... */)
       cleanedResponse = cleanedResponse.replaceAll(/\/\*[\s\S]*?\*\//g, '');
-      
+
       // Extract JSON object from response
       const jsonRegex = /\{[\s\S]*\}/;
       const match = jsonRegex.exec(cleanedResponse);

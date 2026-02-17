@@ -551,7 +551,7 @@ function AppContent() {
     }
   };
 
-  const handleObjectComplete = (object: unknown) => {
+  const handleObjectComplete = (object: any) => {
     try {
       if (!object || !object.id) {
         throw new Error('Invalid object data');
@@ -708,7 +708,7 @@ function AppContent() {
   };
 
   // Generic wizard completion handler (Requirement 5.3, 9.1)
-  const handleWizardComplete = (data: unknown) => {
+  const handleWizardComplete = (data: any) => {
     ;
 
     // Integrate wizard results into project based on wizard type (Requirement 5.3)
@@ -826,6 +826,11 @@ function AppContent() {
         isOpen={showWorldWizard}
         onClose={() => setShowWorldWizard(false)}
         onComplete={handleWorldComplete}
+        initialData={{
+          // Pre-fill genre and tone from project setup
+          genre: (project as any)?.projectSetup?.genre,
+          tone: (project as any)?.projectSetup?.tone,
+        }}
       />
 
       {/* Character Wizard Modal */}
@@ -847,6 +852,11 @@ function AppContent() {
         isOpen={showStorytellerWizard}
         onClose={() => setShowStorytellerWizard(false)}
         onComplete={handleStorytellerComplete}
+        initialData={{
+          // Pre-fill genre and tone from project setup
+          genre: (project as any)?.projectSetup?.genre,
+          tone: (project as any)?.projectSetup?.tone,
+        }}
       />
 
       {/* Project Setup Wizard Modal */}

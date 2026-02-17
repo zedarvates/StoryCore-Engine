@@ -59,10 +59,30 @@ export interface Transform {
   anchor: { x: number; y: number };
 }
 
+
+export interface VideoMask {
+  type: 'shape' | 'image' | 'alpha';
+  source?: string;
+  invert?: boolean;
+}
+
+export interface VideoEffects {
+  chromaKey?: { color: string; similarity: number };
+  colorCorrection?: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    hue: number;
+  };
+  blur?: number;
+}
+
 export interface MediaLayerData {
   sourceUrl: string;
   trim: { start: number; end: number };
   transform: Transform;
+  mask?: VideoMask;
+  effects?: VideoEffects;
 }
 
 export interface AudioLayerData {
@@ -89,13 +109,32 @@ export interface TextAnimation {
   parameters: Record<string, unknown>;
 }
 
+export interface RichTextStyle {
+  fontFamily: string;
+  fontWeight: string;
+  fontSize: number;
+  fillColor: string;
+  strokeColor?: string;
+  strokeWidth?: number;
+  shadowColor?: string;
+  shadowBlur?: number;
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
+  backgroundColor?: string;
+  padding?: number;
+  textAlign?: 'left' | 'center' | 'right';
+}
+
 export interface TextLayerData {
   content: string;
-  font: string;
-  size: number;
-  color: string;
-  position: { x: number; y: number };
+  style: RichTextStyle;
+  transform: Transform; // Position is now part of transform
   animation?: TextAnimation;
+  // Legacy fields for backward compatibility (optional)
+  font?: string;
+  size?: number;
+  color?: string;
+  position?: { x: number; y: number };
 }
 
 export interface Keyframe {
@@ -197,6 +236,13 @@ export interface Shot {
       appliedAt: number;
     };
   };
+  rigPath?: string;
+  boneCount?: number;
+  hash?: string;
+
+  gltfPath?: string;
+  referenceImage?: string;
+  sheet?: any;
 }
 
 export interface Track {
@@ -268,7 +314,10 @@ export interface TimelineState {
   markers: TimelineMarker[]; // Timeline markers
   regions: TimelineRegion[]; // Timeline regions
   selectedMarkers: string[]; // Selected marker IDs
+
   selectedRegions: string[]; // Selected region IDs
+  sequences?: any[];
+  currentSequenceId?: string;
 }
 
 // ============================================================================

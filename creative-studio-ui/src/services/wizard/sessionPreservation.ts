@@ -391,7 +391,7 @@ export class SessionPreservationManager {
 
       // Handle objects
       if (typeof value === 'object' && value !== null) {
-        sanitized[key] = this.sanitizeFormData(value);
+        sanitized[key] = this.sanitizeFormData(value as Record<string, unknown>);
         continue;
       }
 
@@ -409,7 +409,7 @@ export class SessionPreservationManager {
    */
   updateConfig(config: Partial<SessionPreservationConfig>): void {
     this.config = { ...this.config, ...config };
-    this.logger.info('session', 'Configuration updated', this.config);
+    this.logger.info('session', 'Configuration updated', this.config as any);
   }
 
   /**

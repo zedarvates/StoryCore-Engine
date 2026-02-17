@@ -2,7 +2,8 @@
 // Plan Sequences Manager Add-on
 // ============================================================================
 
-// Core types
+// Core types - Import first, then re-export
+import type { SequencePlan, ShotPlan, SequenceProject, PlanningSettings, ExportOptions } from './types';
 export type {
   SequencePlan,
   ShotPlan,
@@ -11,11 +12,8 @@ export type {
   ExportOptions,
 } from './types';
 
-// Import types for internal use
-import type { SequencePlan, ShotPlan, SequenceProject, PlanningSettings, ExportOptions } from './types';
-import type { PlanSequencesManager } from './PlanSequencesManager';
-
 // Import implementation
+import { PlanSequencesManager } from './PlanSequencesManager';
 export { PlanSequencesManager } from './PlanSequencesManager';
 
 // Plugin interface

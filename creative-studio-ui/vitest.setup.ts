@@ -39,9 +39,9 @@ Object.defineProperty((globalThis as any).HTMLElement.prototype, 'scrollIntoView
 
 // Mock ResizeObserver for canvas-based components
 (globalThis as any).ResizeObserver = class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe() { }
+  unobserve() { }
+  disconnect() { }
 };
 
 // Mock IntersectionObserver for lazy loading components
@@ -67,8 +67,8 @@ Object.defineProperty((globalThis as any).HTMLElement.prototype, 'scrollIntoView
       this as any
     );
   }
-  unobserve() {}
-  disconnect() {}
+  unobserve() { }
+  disconnect() { }
   takeRecords() {
     return [];
   }
@@ -135,7 +135,7 @@ vi.mock('lucide-react', async (importOriginal) => {
 
 // Mock document.createElement for file input tests
 const originalCreateElement = document.createElement.bind(document);
-vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
+vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
   if (tagName === 'input') {
     const input = originalCreateElement('input') as HTMLInputElement;
     // Preserve the type that will be set by React - don't override to file
@@ -144,3 +144,10 @@ vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
   }
   return originalCreateElement(tagName);
 });
+
+// Mock URL.createObjectURL and URL.revokeObjectURL for export service tests
+(globalThis as any).URL = {
+  ...URL,
+  createObjectURL: vi.fn(() => 'blob:mock-url'),
+  revokeObjectURL: vi.fn(),
+};

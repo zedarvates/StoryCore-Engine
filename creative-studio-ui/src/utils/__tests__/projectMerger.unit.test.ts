@@ -4,8 +4,7 @@
  * Tests the mergeProjects function with specific examples and edge cases.
  */
 
-import { mergeProjects, MergedProject } from '../projectMerger';
-import { DiscoveredProject } from '../../../../electron/services/ProjectDiscoveryService';
+import { mergeProjects, MergedProject, DiscoveredProject } from '../projectMerger';
 import { RecentProject } from '../../types/menuBarState';
 
 describe('projectMerger', () => {
@@ -65,17 +64,17 @@ describe('projectMerger', () => {
 
       // Assert
       expect(result).toHaveLength(3);
-      
+
       // Project B should be first (recent)
       expect(result[0].path).toBe('/path/to/project-b');
       expect(result[0].isRecent).toBe(true);
       expect(result[0].lastAccessed).toBe(5000);
-      
+
       // Project C should be second (not recent, but most recently modified)
       expect(result[1].path).toBe('/path/to/project-c');
       expect(result[1].isRecent).toBe(false);
       expect(result[1].lastAccessed).toBeUndefined();
-      
+
       // Project A should be last (not recent, oldest modified)
       expect(result[2].path).toBe('/path/to/project-a');
       expect(result[2].isRecent).toBe(false);
@@ -237,16 +236,16 @@ describe('projectMerger', () => {
 
       // Assert
       expect(result).toHaveLength(3);
-      
+
       // Recent projects should come first, sorted by lastAccessed
       expect(result[0].path).toBe('/path/to/project-a');
       expect(result[0].isRecent).toBe(true);
       expect(result[0].lastAccessed).toBe(5000);
-      
+
       expect(result[1].path).toBe('/path/to/project-c');
       expect(result[1].isRecent).toBe(true);
       expect(result[1].lastAccessed).toBe(4000);
-      
+
       // Non-recent project should come last
       expect(result[2].path).toBe('/path/to/project-b');
       expect(result[2].isRecent).toBe(false);
@@ -300,14 +299,14 @@ describe('projectMerger', () => {
 
       // Assert
       expect(result).toHaveLength(3);
-      
+
       // Should be sorted by lastModified descending
       expect(result[0].path).toBe('/path/to/project-b');
       expect(result[0].lastModified).toBe(3000);
-      
+
       expect(result[1].path).toBe('/path/to/project-c');
       expect(result[1].lastModified).toBe(2000);
-      
+
       expect(result[2].path).toBe('/path/to/project-a');
       expect(result[2].lastModified).toBe(1000);
     });
@@ -359,11 +358,11 @@ describe('projectMerger', () => {
           metadata: {
             schema_version: '1.0',
             project_name: 'Project A',
-            capabilities: { 
-              grid_generation: true, 
-              promotion_engine: false, 
-              qa_engine: true, 
-              autofix_engine: false 
+            capabilities: {
+              grid_generation: true,
+              promotion_engine: false,
+              qa_engine: true,
+              autofix_engine: false
             },
           },
           createdAt: new Date('2024-01-01'),
@@ -384,11 +383,11 @@ describe('projectMerger', () => {
       expect(result[0].metadata).toEqual({
         schema_version: '1.0',
         project_name: 'Project A',
-        capabilities: { 
-          grid_generation: true, 
-          promotion_engine: false, 
-          qa_engine: true, 
-          autofix_engine: false 
+        capabilities: {
+          grid_generation: true,
+          promotion_engine: false,
+          qa_engine: true,
+          autofix_engine: false
         },
       });
       expect(result[0].createdAt).toEqual(new Date('2024-01-01'));

@@ -446,6 +446,12 @@ export interface LocationReference {
   id: string;
   name: string;
   thumbnail_path?: string;
+  /** Whether this location is interior (indoor) or exterior (outdoor) */
+  location_type?: LocationType;
+  /** Location category type */
+  type?: 'city' | 'wilderness' | 'dungeon' | 'other';
+  description?: string;
+  coordinates?: { x: number; y: number };
 }
 
 /**

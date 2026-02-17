@@ -18,8 +18,8 @@ import {
   saveProjectToFile,
   loadProjectFromFile,
   validateProjectCompatibility,
-  type ProjectFile,
 } from '../services/projectPersistence';
+import type { Shot, Track, AssetCategory } from '../types';
 
 export interface UseProjectFileResult {
   saveToFile: (filename?: string) => Promise<void>;
@@ -28,6 +28,12 @@ export interface UseProjectFileResult {
   isLoading: boolean;
   error: string | null;
   clearError: () => void;
+  // Dialog state and handlers for SequenceEditor compatibility
+  showUnsavedDialog: boolean;
+  handleSave: () => void | Promise<void>;
+  handleDiscard: () => void;
+  handleCancel: () => void;
+  setShowUnsavedDialog: (show: boolean) => void;
 }
 
 /**
@@ -106,10 +112,10 @@ export function useProjectFile(): UseProjectFileResult {
       // Restore timeline state
       if (projectData.timeline) {
         if (projectData.timeline.shots) {
-          dispatch(reorderShots(projectData.timeline.shots));
+          dispatch(reorderShots(projectData.timeline.shots as Shot[]));
         }
         if (projectData.timeline.tracks) {
-          dispatch(reorderTracks(projectData.timeline.tracks));
+          dispatch(reorderTracks(projectData.timeline.tracks as Track[]));
         }
         if (typeof projectData.timeline.playheadPosition === 'number') {
           dispatch(setPlayheadPosition(projectData.timeline.playheadPosition));
@@ -125,7 +131,7 @@ export function useProjectFile(): UseProjectFileResult {
       // Restore assets state
       if (projectData.assets) {
         if (projectData.assets.categories) {
-          dispatch(loadAssets(projectData.assets.categories));
+          dispatch(loadAssets(projectData.assets.categories as AssetCategory[]));
         }
         if (projectData.assets.activeCategory) {
           dispatch(setActiveCategory(projectData.assets.activeCategory));
@@ -141,7 +147,7 @@ export function useProjectFile(): UseProjectFileResult {
           dispatch(setPanelLayout(projectData.panels.layout));
         }
         if (projectData.panels.activePanel) {
-          dispatch(setActivePanel(projectData.panels.activePanel));
+          dispatch(setActivePanel(projectData.panels.activePanel as 'assetLibrary' | 'preview' | 'shotConfig' | 'timeline' | null));
         }
         if (projectData.panels.shotConfigTarget) {
           dispatch(setShotConfigTarget(projectData.panels.shotConfigTarget));
@@ -190,12 +196,34 @@ export function useProjectFile(): UseProjectFileResult {
       }
     };
     
-    window.addEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
     
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      globalThis.removeEventListener('keydown', handleKeyDown);
     };
   }, [saveToFile]);
+  
+  // State for unsaved changes dialog (for SequenceEditor compatibility)
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  
+  // Handlers for unsaved changes dialog
+  const handleSave = useCallback(async () => {
+    try {
+      await saveToFile();
+      setShowUnsavedDialog(false);
+    } catch (err) {
+      console.error('Failed to save:', err);
+    }
+  }, [saveToFile]);
+  
+  const handleDiscard = useCallback(() => {
+    dispatch(markSaved());
+    setShowUnsavedDialog(false);
+  }, [dispatch]);
+  
+  const handleCancel = useCallback(() => {
+    setShowUnsavedDialog(false);
+  }, []);
   
   return {
     saveToFile,
@@ -204,5 +232,11 @@ export function useProjectFile(): UseProjectFileResult {
     isLoading,
     error,
     clearError,
+    // Dialog state and handlers for SequenceEditor compatibility
+    showUnsavedDialog,
+    handleSave,
+    handleDiscard,
+    handleCancel,
+    setShowUnsavedDialog,
   };
 }

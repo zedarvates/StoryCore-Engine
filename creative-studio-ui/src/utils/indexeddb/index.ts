@@ -90,7 +90,7 @@ export class IndexedDB {
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
-      const request = store.get(key);
+      const request = store.get(key as any);
 
       request.onerror = () => {
         reject(new Error(`Failed to get data: ${request.error?.message}`));
@@ -126,7 +126,7 @@ export class IndexedDB {
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
-      const request = store.delete(key);
+      const request = store.delete(key as any);
 
       request.onerror = () => {
         reject(new Error(`Failed to delete data: ${request.error?.message}`));
@@ -167,7 +167,7 @@ export class IndexedDB {
       const transaction = this.db!.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const index = store.index(indexName);
-      const request = index.getAll(key);
+      const request = index.getAll(key as any);
 
       request.onerror = () => {
         reject(new Error(`Failed to get by index: ${request.error?.message}`));

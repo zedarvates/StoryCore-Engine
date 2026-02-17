@@ -11,7 +11,20 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { Shot, Asset, Project, GenerationTask, PanelSizes } from '@/types';
+import type {
+  Shot,
+  Asset,
+  Project,
+  GenerationTask,
+  PanelSizes,
+  AudioTrack,
+  Effect,
+  TextLayer,
+  Animation,
+  Transition
+} from '@/types';
+
+type ProjectSettings = Record<string, any>;
 
 /**
  * Application state interface
@@ -23,102 +36,102 @@ interface AppState {
   // ============================================================================
   // Project Data
   // ============================================================================
-  
+
   /**
    * Current project data
    * Null when no project is loaded
    */
   project: Project | null;
-  
+
   /**
    * Array of all shots in the current project
    * Ordered by position property
    */
   shots: Shot[];
-  
+
   /**
    * Array of all assets available in the project
    * Includes images, audio files, and templates
    */
   assets: Asset[];
-  
+
   // ============================================================================
   // UI State
   // ============================================================================
-  
+
   /**
    * ID of the currently selected shot
    * Null when no shot is selected
    */
   selectedShotId: string | null;
-  
+
   /**
    * Current playhead position in seconds
    * Used for timeline scrubbing and preview
    */
   currentTime: number;
-  
+
   /**
    * Whether the chat assistant panel is visible
    */
   showChat: boolean;
-  
+
   /**
    * Whether the task queue modal is open
    */
   showTaskQueue: boolean;
-  
+
   /**
    * Panel size configuration as percentages
    * Must sum to 100
    */
   panelSizes: PanelSizes;
-  
+
   // ============================================================================
   // Task Queue
   // ============================================================================
-  
+
   /**
    * Array of generation tasks to be processed by backend
    * Ordered by priority (lower number = higher priority)
    */
   taskQueue: GenerationTask[];
-  
+
   // ============================================================================
   // Playback State
   // ============================================================================
-  
+
   /**
    * Whether the timeline is currently playing
    */
   isPlaying: boolean;
-  
+
   /**
    * Playback speed multiplier
    * 1.0 = normal speed, 0.5 = half speed, 2.0 = double speed
    */
   playbackSpeed: number;
-  
+
   // ============================================================================
   // Undo/Redo State
   // ============================================================================
-  
+
   /**
    * Array of historical states for undo functionality
    * Limited to 50 entries to prevent memory issues
    */
   history: AppState[];
-  
+
   /**
    * Current position in history array
    * Used to track undo/redo position
    */
   historyIndex: number;
-  
+
   // ============================================================================
   // Project Actions
   // ============================================================================
-  
+
   /**
    * Creates a new project with default settings
    * 
@@ -132,7 +145,7 @@ interface AppState {
    * ```
    */
   createProject: (name: string, settings?: ProjectSettings) => void;
-  
+
   /**
    * Loads an existing project from JSON data
    * 
@@ -146,7 +159,7 @@ interface AppState {
    * ```
    */
   loadProject: (projectData: Project) => void;
-  
+
   /**
    * Saves the current project
    * 
@@ -158,7 +171,7 @@ interface AppState {
    * ```
    */
   saveProject: () => Promise<void>;
-  
+
   /**
    * Exports the project in specified format
    * 
@@ -172,11 +185,11 @@ interface AppState {
    * ```
    */
   exportProject: (format: 'json' | 'pdf' | 'video') => Promise<Blob>;
-  
+
   // ============================================================================
   // Shot Actions
   // ============================================================================
-  
+
   /**
    * Adds a new shot to the project
    * 
@@ -193,7 +206,7 @@ interface AppState {
    * ```
    */
   addShot: (shot: Partial<Shot>) => string;
-  
+
   /**
    * Updates an existing shot with new data
    * 
@@ -207,7 +220,7 @@ interface AppState {
    * ```
    */
   updateShot: (shotId: string, updates: Partial<Shot>) => void;
-  
+
   /**
    * Deletes a shot from the project
    * 
@@ -222,7 +235,7 @@ interface AppState {
    * ```
    */
   deleteShot: (shotId: string) => void;
-  
+
   /**
    * Reorders shots based on new array of IDs
    * 
@@ -235,7 +248,7 @@ interface AppState {
    * ```
    */
   reorderShots: (shotIds: string[]) => void;
-  
+
   /**
    * Selects a shot for editing
    * 
@@ -249,11 +262,11 @@ interface AppState {
    * ```
    */
   selectShot: (shotId: string | null) => void;
-  
+
   // ============================================================================
   // Asset Actions
   // ============================================================================
-  
+
   /**
    * Adds a new asset to the library
    * 
@@ -270,7 +283,7 @@ interface AppState {
    * ```
    */
   addAsset: (asset: Partial<Asset>) => string;
-  
+
   /**
    * Uploads an asset file and adds it to the library
    * 
@@ -283,7 +296,7 @@ interface AppState {
    * ```
    */
   uploadAsset: (file: File) => Promise<string>;
-  
+
   /**
    * Deletes an asset from the library
    * 
@@ -298,7 +311,7 @@ interface AppState {
    * ```
    */
   deleteAsset: (assetId: string) => void;
-  
+
   /**
    * Searches assets by name or metadata
    * 
@@ -311,11 +324,11 @@ interface AppState {
    * ```
    */
   searchAssets: (query: string) => Asset[];
-  
+
   // ============================================================================
   // Audio Actions
   // ============================================================================
-  
+
   /**
    * Adds an audio track to a shot
    * 
@@ -334,7 +347,7 @@ interface AppState {
    * ```
    */
   addAudioTrack: (shotId: string, track: Partial<AudioTrack>) => string;
-  
+
   /**
    * Updates an audio track
    * 
@@ -349,7 +362,7 @@ interface AppState {
    * ```
    */
   updateAudioTrack: (shotId: string, trackId: string, updates: Partial<AudioTrack>) => void;
-  
+
   /**
    * Deletes an audio track from a shot
    * 
@@ -363,11 +376,11 @@ interface AppState {
    * ```
    */
   deleteAudioTrack: (shotId: string, trackId: string) => void;
-  
+
   // ============================================================================
   // UI Actions
   // ============================================================================
-  
+
   /**
    * Toggles the chat assistant panel visibility
    * 
@@ -379,7 +392,7 @@ interface AppState {
    * ```
    */
   toggleChat: () => void;
-  
+
   /**
    * Toggles the task queue modal visibility
    * 
@@ -391,7 +404,7 @@ interface AppState {
    * ```
    */
   toggleTaskQueue: () => void;
-  
+
   /**
    * Updates panel sizes
    * 
@@ -404,7 +417,7 @@ interface AppState {
    * ```
    */
   updatePanelSizes: (sizes: Partial<PanelSizes>) => void;
-  
+
   /**
    * Sets the playback state
    * 
@@ -418,7 +431,7 @@ interface AppState {
    * ```
    */
   setPlaying: (isPlaying: boolean) => void;
-  
+
   /**
    * Sets the current playhead time
    * 
@@ -431,11 +444,11 @@ interface AppState {
    * ```
    */
   setCurrentTime: (time: number) => void;
-  
+
   // ============================================================================
   // Undo/Redo Actions
   // ============================================================================
-  
+
   /**
    * Undoes the last action
    * 
@@ -449,7 +462,7 @@ interface AppState {
    * ```
    */
   undo: () => void;
-  
+
   /**
    * Redoes the last undone action
    * 
@@ -463,7 +476,7 @@ interface AppState {
    * ```
    */
   redo: () => void;
-  
+
   /**
    * Checks if undo is available
    * 
@@ -477,7 +490,7 @@ interface AppState {
    * ```
    */
   canUndo: () => boolean;
-  
+
   /**
    * Checks if redo is available
    * 
@@ -534,11 +547,12 @@ export const useStore = create<AppState>()(
         playbackSpeed: 1.0,
         history: [],
         historyIndex: -1,
-        
+
         // Project actions
         createProject: (name, settings) => {
           set({
             project: {
+              id: crypto.randomUUID(),
               schema_version: '1.0',
               project_name: name,
               shots: [],
@@ -560,7 +574,7 @@ export const useStore = create<AppState>()(
             selectedShotId: null
           });
         },
-        
+
         loadProject: (projectData) => {
           set({
             project: projectData,
@@ -569,18 +583,18 @@ export const useStore = create<AppState>()(
             selectedShotId: null
           });
         },
-        
+
         saveProject: async () => {
           const state = get();
           // Implementation would save to backend or localStorage
         },
-        
+
         exportProject: async (format) => {
           const state = get();
           const json = JSON.stringify(state.project, null, 2);
           return new Blob([json], { type: 'application/json' });
         },
-        
+
         // Shot actions
         addShot: (shot) => {
           const id = crypto.randomUUID();
@@ -598,14 +612,14 @@ export const useStore = create<AppState>()(
             position: get().shots.length,
             metadata: shot.metadata
           };
-          
+
           set((state) => ({
             shots: [...state.shots, newShot]
           }));
-          
+
           return id;
         },
-        
+
         updateShot: (shotId, updates) => {
           set((state) => ({
             shots: state.shots.map((shot) =>
@@ -613,14 +627,14 @@ export const useStore = create<AppState>()(
             )
           }));
         },
-        
+
         deleteShot: (shotId) => {
           set((state) => ({
             shots: state.shots.filter((shot) => shot.id !== shotId),
             selectedShotId: state.selectedShotId === shotId ? null : state.selectedShotId
           }));
         },
-        
+
         reorderShots: (shotIds) => {
           const state = get();
           const shotsMap = new Map(state.shots.map((shot) => [shot.id, shot]));
@@ -628,14 +642,14 @@ export const useStore = create<AppState>()(
             .map((id) => shotsMap.get(id))
             .filter((shot): shot is Shot => shot !== undefined)
             .map((shot, index) => ({ ...shot, position: index }));
-          
+
           set({ shots: reorderedShots });
         },
-        
+
         selectShot: (shotId) => {
           set({ selectedShotId: shotId });
         },
-        
+
         // Asset actions
         addAsset: (asset) => {
           const id = crypto.randomUUID();
@@ -647,14 +661,14 @@ export const useStore = create<AppState>()(
             thumbnail: asset.thumbnail,
             metadata: asset.metadata
           };
-          
+
           set((state) => ({
             assets: [...state.assets, newAsset]
           }));
-          
+
           return id;
         },
-        
+
         uploadAsset: async (file) => {
           // Implementation would upload to backend
           const url = URL.createObjectURL(file);
@@ -664,13 +678,13 @@ export const useStore = create<AppState>()(
             url
           });
         },
-        
+
         deleteAsset: (assetId) => {
           set((state) => ({
             assets: state.assets.filter((asset) => asset.id !== assetId)
           }));
         },
-        
+
         searchAssets: (query) => {
           const state = get();
           const lowerQuery = query.toLowerCase();
@@ -678,7 +692,7 @@ export const useStore = create<AppState>()(
             asset.name.toLowerCase().includes(lowerQuery)
           );
         },
-        
+
         // Audio actions
         addAudioTrack: (shotId, track) => {
           const trackId = crypto.randomUUID();
@@ -699,7 +713,7 @@ export const useStore = create<AppState>()(
             effects: track.effects || [],
             waveformData: track.waveformData
           };
-          
+
           set((state) => ({
             shots: state.shots.map((shot) =>
               shot.id === shotId
@@ -707,61 +721,61 @@ export const useStore = create<AppState>()(
                 : shot
             )
           }));
-          
+
           return trackId;
         },
-        
+
         updateAudioTrack: (shotId, trackId, updates) => {
           set((state) => ({
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    audioTracks: shot.audioTracks.map((track) =>
-                      track.id === trackId ? { ...track, ...updates } : track
-                    )
-                  }
+                  ...shot,
+                  audioTracks: shot.audioTracks.map((track) =>
+                    track.id === trackId ? { ...track, ...updates } : track
+                  )
+                }
                 : shot
             )
           }));
         },
-        
+
         deleteAudioTrack: (shotId, trackId) => {
           set((state) => ({
             shots: state.shots.map((shot) =>
               shot.id === shotId
                 ? {
-                    ...shot,
-                    audioTracks: shot.audioTracks.filter((track) => track.id !== trackId)
-                  }
+                  ...shot,
+                  audioTracks: shot.audioTracks.filter((track) => track.id !== trackId)
+                }
                 : shot
             )
           }));
         },
-        
+
         // UI actions
         toggleChat: () => {
           set((state) => ({ showChat: !state.showChat }));
         },
-        
+
         toggleTaskQueue: () => {
           set((state) => ({ showTaskQueue: !state.showTaskQueue }));
         },
-        
+
         updatePanelSizes: (sizes) => {
           set((state) => ({
             panelSizes: { ...state.panelSizes, ...sizes }
           }));
         },
-        
+
         setPlaying: (isPlaying) => {
           set({ isPlaying });
         },
-        
+
         setCurrentTime: (time) => {
           set({ currentTime: time });
         },
-        
+
         // Undo/Redo actions
         undo: () => {
           const state = get();
@@ -773,7 +787,7 @@ export const useStore = create<AppState>()(
             });
           }
         },
-        
+
         redo: () => {
           const state = get();
           if (state.historyIndex < state.history.length - 1) {
@@ -784,11 +798,11 @@ export const useStore = create<AppState>()(
             });
           }
         },
-        
+
         canUndo: () => {
           return get().historyIndex > 0;
         },
-        
+
         canRedo: () => {
           const state = get();
           return state.historyIndex < state.history.length - 1;

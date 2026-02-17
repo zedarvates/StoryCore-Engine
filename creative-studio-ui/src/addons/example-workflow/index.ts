@@ -2,7 +2,8 @@
 // Example Workflow Add-on
 // ============================================================================
 
-// Core types
+// Core types - Import first, then re-export
+import type { WorkflowStep, WorkflowConfig, WorkflowState, WorkflowOperation } from './types';
 export type {
   WorkflowStep,
   WorkflowConfig,
@@ -10,11 +11,8 @@ export type {
   WorkflowOperation,
 } from './types';
 
-// Import types for internal use
-import type { WorkflowStep, WorkflowConfig, WorkflowState, WorkflowOperation } from './types';
-import type { ExampleWorkflowManager } from './ExampleWorkflowManager';
-
 // Import implementation
+import { ExampleWorkflowManager } from './ExampleWorkflowManager';
 export { ExampleWorkflowManager } from './ExampleWorkflowManager';
 
 // Plugin interface

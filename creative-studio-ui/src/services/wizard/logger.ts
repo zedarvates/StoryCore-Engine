@@ -112,7 +112,7 @@ export class WizardLogger {
       return;
     }
 
-    const entry: LogEntry = {
+    const entry: any = {
       timestamp: new Date().toISOString(),
       level,
       category,
@@ -291,13 +291,13 @@ export class WizardLogger {
     const logs = this.exportLogs(filter);
     const blob = new Blob([logs], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
+
     const filename = generateUniqueFilename('wizard_logs', 'json');
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     link.click();
-    
+
     URL.revokeObjectURL(url);
   }
 

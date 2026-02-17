@@ -2,7 +2,8 @@
 // Audio Production Suite Add-on
 // ============================================================================
 
-// Core types
+// Core types - Import first, then re-export
+import type { AudioTrack, AudioEffect, AudioProject, AudioSettings, AudioExportOptions } from './types';
 export type {
   AudioTrack,
   AudioEffect,
@@ -11,11 +12,8 @@ export type {
   AudioExportOptions,
 } from './types';
 
-// Import types for internal use
-import type { AudioTrack, AudioEffect, AudioProject, AudioSettings, AudioExportOptions } from './types';
-import type { AudioProductionManager } from './AudioProductionManager';
-
 // Import implementation
+import { AudioProductionManager } from './AudioProductionManager';
 export { AudioProductionManager } from './AudioProductionManager';
 
 // Plugin interface

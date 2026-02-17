@@ -263,15 +263,21 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
 
       addStory(story);
 
-      if (window.electronAPI && currentProject) {
+      // Save story to disk if Electron API is available and project has a valid path
+      const projectPath = currentProject?.path || currentProject?.project_name;
+      if (window.electronAPI?.fs && projectPath) {
         try {
-          const projectPath = currentProject.path || currentProject.project_name;
+          console.log('[StorytellerWizard] Saving story to disk at path:', projectPath);
           await saveStoryToDisk(projectPath, story);
-          toast.success('Story Saved', 'Your story has been saved');
+          toast.success('Story Saved', 'Your story has been saved to disk');
         } catch (error) {
-          console.error('Failed to save story:', error);
+          console.error('[StorytellerWizard] Failed to save story to disk:', error);
           toast.error('Save Failed', 'Failed to save story to disk');
         }
+      } else {
+        console.warn('[StorytellerWizard] Cannot save to disk - missing project path or Electron API');
+        // Story is still saved to store (addStory was called above)
+        toast.info('Story Created', 'Story saved to application state');
       }
 
       window.dispatchEvent(new CustomEvent('story-created', { detail: { story } }));

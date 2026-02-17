@@ -13,18 +13,18 @@ export interface GeneratedResult {
   shotId: string;
   type: GenerationTask['type'];
   status: 'success' | 'failed';
-  
+
   // Generated assets
   assets: GeneratedAsset[];
-  
+
   // Metadata
   generatedAt: Date;
   processingTime?: number; // seconds
-  
+
   // Quality metrics (if available)
   qualityScore?: number; // 0-100
   metrics?: Record<string, number>;
-  
+
   // Error information (if failed)
   error?: string;
 }
@@ -58,7 +58,7 @@ export class ResultService {
   /**
    * Generate a placeholder image as data URI to avoid CSP violations
    */
-  private generatePlaceholderImage(width: number, height: number, text: string): string {
+  protected generatePlaceholderImage(width: number, height: number, text: string): string {
     return getCachedPlaceholder(width, height, text);
   }
 
@@ -79,13 +79,13 @@ export class ResultService {
     });
 
     const response = await fetch(`${this.baseUrl}/api/tasks/${taskId}/result?${params}`);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch result: ${response.statusText}`);
     }
 
     const data = await response.json();
-    
+
     return {
       taskId: data.taskId,
       shotId: data.shotId,
@@ -125,14 +125,14 @@ export class ResultService {
     });
 
     const response = await fetch(`${this.baseUrl}/api/projects/${projectName}/results?${params}`);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch project results: ${response.statusText}`);
     }
 
     const data = await response.json();
-    
-    return data.results.map((result: unknown) => ({
+
+    return data.results.map((result: any) => ({
       taskId: result.taskId,
       shotId: result.shotId,
       type: result.type,
@@ -151,21 +151,21 @@ export class ResultService {
    */
   async downloadAsset(asset: GeneratedAsset, filename?: string): Promise<void> {
     const response = await fetch(asset.url);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to download asset: ${response.statusText}`);
     }
 
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = filename || asset.name;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     URL.revokeObjectURL(url);
   }
 
@@ -185,12 +185,12 @@ export class ResultService {
     if (asset.thumbnail) {
       return asset.thumbnail;
     }
-    
+
     // For images, use the asset URL directly
     if (asset.type === 'image') {
       return asset.url;
     }
-    
+
     // For other types, return a placeholder or generate thumbnail URL
     return `${this.baseUrl}/api/assets/${asset.id}/thumbnail`;
   }
@@ -202,7 +202,7 @@ export class ResultService {
     const response = await fetch(`${this.baseUrl}/api/tasks/${taskId}/result`, {
       method: 'DELETE',
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to delete result: ${response.statusText}`);
     }
@@ -246,7 +246,7 @@ export class MockResultService extends ResultService {
           name: `generated-image-${taskId}.png`,
           url: this.generatePlaceholderImage(800, 600, `Generated Image ${taskId}`),
           thumbnail: this.generatePlaceholderImage(200, 150, `Thumbnail ${taskId}`),
-          size: 1024 * 500, // 500 KB
+          size: 1024 * 500,
           format: 'png',
           dimensions: { width: 800, height: 600 },
         },
@@ -276,7 +276,7 @@ export class MockResultService extends ResultService {
   async downloadAsset(asset: GeneratedAsset, filename?: string): Promise<void> {
     // Simulate download delay
     await new Promise((resolve) => setTimeout(resolve, this.mockDelay));
-    
+
     // Use the parent's real download implementation
     // This ensures downloads work even in mock mode
     await super.downloadAsset(asset, filename);

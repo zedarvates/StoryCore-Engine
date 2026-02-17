@@ -123,7 +123,7 @@ export const useWorldBuilderStore = create<WorldBuilderState>()(
 
         const updatedWorld = {
           ...worldData,
-          [step]: { ...worldData[step as keyof WorldData], ...data },
+          [step]: { ...(worldData[step as keyof WorldData] as any), ...(data as any) },
           version: worldData.version + 1,
         };
 

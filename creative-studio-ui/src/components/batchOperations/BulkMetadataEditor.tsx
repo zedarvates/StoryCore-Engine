@@ -53,7 +53,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
   const [changes, setChanges] = useState<MetadataChanges>({});
   const [showPreview, setShowPreview] = useState(false);
   const [previewIndex, setPreviewIndex] = useState(0);
-  
+
   /**
    * Champs de métadonnées disponibles
    */
@@ -89,13 +89,13 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
       placeholder: 'Ajouter des tags...'
     }
   ], []);
-  
+
   /**
    * Valeurs communes entre les plans sélectionnés
    */
   const commonValues = useMemo(() => {
     const values: Record<string, unknown> = {};
-    
+
     for (const field of fields) {
       const fieldValues = selectedShots.map(shot => {
         if (field.key.includes('.')) {
@@ -104,23 +104,23 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
         }
         return (shot as any)[field.key];
       });
-      
+
       // Vérifier si toutes les valeurs sont identiques
       const firstValue = fieldValues[0];
-      const allSame = fieldValues.every(v => 
+      const allSame = fieldValues.every(v =>
         JSON.stringify(v) === JSON.stringify(firstValue)
       );
-      
+
       if (allSame) {
         values[field.key] = firstValue;
       } else {
         values[field.key] = null; // Valeurs mixtes
       }
     }
-    
+
     return values;
   }, [selectedShots, fields]);
-  
+
   /**
    * Met à jour un champ
    */
@@ -130,13 +130,13 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
       [key]: value
     }));
   }, []);
-  
+
   /**
    * Applique les changements
    */
   const handleApply = useCallback(() => {
     const updates: Partial<Shot> = {};
-    
+
     for (const [key, value] of Object.entries(changes)) {
       if (key.includes('.')) {
         const [parent, child] = key.split('.');
@@ -148,10 +148,10 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
         (updates as any)[key] = value;
       }
     }
-    
+
     onApply(updates);
   }, [changes, onApply]);
-  
+
   /**
    * Prévisualise les changements sur un plan
    */
@@ -159,10 +159,10 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
     if (!showPreview || selectedShots.length === 0) {
       return null;
     }
-    
+
     const shot = selectedShots[previewIndex];
     const preview = { ...shot };
-    
+
     for (const [key, value] of Object.entries(changes)) {
       if (key.includes('.')) {
         const [parent, child] = key.split('.');
@@ -174,15 +174,15 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
         (preview as any)[key] = value;
       }
     }
-    
+
     return preview;
   }, [showPreview, selectedShots, previewIndex, changes]);
-  
+
   /**
    * Nombre de changements
    */
   const changeCount = Object.keys(changes).length;
-  
+
   /**
    * Rend un champ d'édition
    */
@@ -190,38 +190,38 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
     const currentValue = changes[field.key] ?? commonValues[field.key];
     const hasChange = field.key in changes;
     const isMixed = commonValues[field.key] === null && !hasChange;
-    
+
     return (
       <div key={field.key} className={`metadata-field ${hasChange ? 'has-change' : ''}`}>
         <label className="field-label">
           {field.label}
           {isMixed && <span className="mixed-indicator">(Valeurs mixtes)</span>}
         </label>
-        
+
         {field.type === 'text' && (
           <input
             type="text"
             className="field-input"
-            value={currentValue || ''}
+            value={(currentValue as any) || ''}
             onChange={(e) => handleFieldChange(field.key, e.target.value)}
             placeholder={field.placeholder}
           />
         )}
-        
+
         {field.type === 'number' && (
           <input
             type="number"
             className="field-input"
-            value={currentValue || ''}
+            value={(currentValue as any) || ''}
             onChange={(e) => handleFieldChange(field.key, parseFloat(e.target.value))}
             placeholder={field.placeholder}
           />
         )}
-        
+
         {field.type === 'select' && (
           <select
             className="field-select"
-            value={currentValue || ''}
+            value={(currentValue as any) || ''}
             onChange={(e) => handleFieldChange(field.key, e.target.value)}
           >
             <option value="">-- Sélectionner --</option>
@@ -232,7 +232,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
             ))}
           </select>
         )}
-        
+
         {field.type === 'tags' && (
           <input
             type="text"
@@ -245,7 +245,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
             placeholder={field.placeholder}
           />
         )}
-        
+
         {hasChange && (
           <button
             className="reset-field-button"
@@ -264,7 +264,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
       </div>
     );
   };
-  
+
   return (
     <motion.div
       className="bulk-metadata-editor-overlay"
@@ -296,7 +296,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
             <X size={20} />
           </button>
         </div>
-        
+
         {/* Contenu */}
         <div className="editor-content">
           {/* Champs d'édition */}
@@ -306,7 +306,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
               {fields.map(renderField)}
             </div>
           </div>
-          
+
           {/* Prévisualisation */}
           {showPreview && previewShot && (
             <div className="preview-section">
@@ -330,7 +330,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
                   </button>
                 </div>
               </div>
-              
+
               <div className="preview-content">
                 <div className="preview-item">
                   <strong>Titre:</strong>
@@ -347,20 +347,20 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
                 {previewShot.metadata?.category && (
                   <div className="preview-item">
                     <strong>Catégorie:</strong>
-                    <span>{previewShot.metadata.category}</span>
+                    <span>{(previewShot.metadata as any).category}</span>
                   </div>
                 )}
                 {previewShot.metadata?.tags && (
                   <div className="preview-item">
                     <strong>Tags:</strong>
-                    <span>{previewShot.metadata.tags.join(', ')}</span>
+                    <span>{(previewShot.metadata as any).tags.join(', ')}</span>
                   </div>
                 )}
               </div>
             </div>
           )}
         </div>
-        
+
         {/* Pied de page */}
         <div className="editor-footer">
           <div className="footer-info">
@@ -373,7 +373,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
               <span className="no-changes">Aucun changement</span>
             )}
           </div>
-          
+
           <div className="footer-actions">
             <button
               className="preview-button"
@@ -383,14 +383,14 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
               <Eye size={16} />
               {showPreview ? 'Masquer' : 'Prévisualiser'}
             </button>
-            
+
             <button
               className="cancel-button"
               onClick={onCancel}
             >
               Annuler
             </button>
-            
+
             <button
               className="apply-button"
               onClick={handleApply}

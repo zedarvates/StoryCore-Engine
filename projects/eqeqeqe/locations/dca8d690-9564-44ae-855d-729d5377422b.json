@@ -1,0 +1,18 @@
+{
+  "location_id": "dca8d690-9564-44ae-855d-729d5377422b",
+  "name": "The Nexus of Echoes",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T06:54:53.193Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A surreal, dreamscape-like place where the echoes of forgotten memories and lost souls converge. Whispering shadows writhe on the walls as the air vibrates with the residual energy of countless screams.",
+    "atmosphere": "Unsettling, disorienting, heavy with the weight of suppressed trauma",
+    "genre_tags": [],
+    "significance": "A nexus point for those seeking to tap into the dark forces that lurk beyond the veil of reality."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

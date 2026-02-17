@@ -184,6 +184,8 @@ export function Step3Locations() {
           name: location.name,
           type: locAny.type || 'generic',
           description: location.description || '',
+          // Pass explicit location_type if set
+          location_type: location.location_type,
         },
         { projectId, worldId: formData.id || undefined }
       );
@@ -496,6 +498,42 @@ Format as JSON array with: name, description, significance, atmosphere`;
                             }
                             placeholder="e.g., Eerie and foreboding"
                           />
+                        </FormField>
+
+                        {/* Location Type - Interior/Exterior */}
+                        <FormField
+                          label="Type de lieu"
+                          name={`location-${location.id}-location-type`}
+                          helpText="Intérieur (indoor) ou Extérieur (outdoor)"
+                        >
+                          <div className="flex gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`location-type-${location.id}`}
+                                value="exterior"
+                                checked={location.location_type !== 'interior'}
+                                onChange={() =>
+                                  handleUpdateLocation(location.id, { location_type: 'exterior' })
+                                }
+                                className="w-4 h-4"
+                              />
+                              <span className="text-sm">🌍 Extérieur (Outdoor)</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`location-type-${location.id}`}
+                                value="interior"
+                                checked={location.location_type === 'interior'}
+                                onChange={() =>
+                                  handleUpdateLocation(location.id, { location_type: 'interior' })
+                                }
+                                className="w-4 h-4"
+                              />
+                              <span className="text-sm">🏠 Intérieur (Indoor)</span>
+                            </label>
+                          </div>
                         </FormField>
 
                         {/* Tile Image Preview */}

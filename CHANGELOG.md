@@ -1,5 +1,23 @@
 # StoryCore Engine - Changelog
 
+## [2026-02-16] - Mise à Jour Documentation
+
+### Documentation 📚
+- **README.md** - Correction des liens d'images (URL encoding)
+- **README.md** - Correction du lien YouTube de présententation
+- **README.md** - Mise à jour des liens de documentation
+- **START_HERE.md** - Correction de tous les chemins de fichiers
+- **INDEX_DOCUMENTATION_COMPLETE.md** - Réécriture complète avec structure actuelle
+- **QUICK_REFERENCE.md** - Mise à jour des liens et dates
+- Mise à jour des dates vers février 2026
+
+### Correctifs 🔧
+- Images: `Screenshot-2026-02-15-*.png` → `Screenshot%202026-02-15%20*.png`
+- Lien YouTube malformé corrigé
+- Liens vers fichiers inexistants supprimés ou corrigés
+
+---
+
 ## [2026-02-12] - Correction Sécurité Critique
 
 ### Sécurité 🔐

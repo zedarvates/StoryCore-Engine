@@ -78,6 +78,7 @@ export const AudioTimeline: React.FC<AudioTimelineProps> = ({
   // ============================================================================
 
   const [zoom, setZoom] = useState(DEFAULT_ZOOM); // seconds visible
+  const [scrollOffset, setScrollOffset] = useState(0);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [hoveredPhrase, setHoveredPhrase] = useState<string | null>(null);
 
@@ -358,7 +359,7 @@ export const AudioTimeline: React.FC<AudioTimelineProps> = ({
         }
       } else if (dragState.type === 'resize-start') {
         let newStartTime = snapToGrid(dragState.originalStartTime + timeDelta);
-        
+
         // Ensure minimum duration of 0.5 seconds
         if (newStartTime >= dragState.originalEndTime - 0.5) {
           newStartTime = dragState.originalEndTime - 0.5;
@@ -373,7 +374,7 @@ export const AudioTimeline: React.FC<AudioTimelineProps> = ({
         }
       } else if (dragState.type === 'resize-end') {
         let newEndTime = snapToGrid(dragState.originalEndTime + timeDelta);
-        
+
         // Ensure minimum duration of 0.5 seconds
         if (newEndTime <= dragState.originalStartTime + 0.5) {
           newEndTime = dragState.originalStartTime + 0.5;

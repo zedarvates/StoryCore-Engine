@@ -59,7 +59,7 @@ export class TransitionsManager {
       // In a real implementation, this would generate a preview
       this.recordOperation('preview', `Previewed transition: ${transition.name}`, transitionId);
     }
-    
+
     // Return a placeholder preview
     return new Blob([JSON.stringify({ transitionId, settings }, null, 2)], { type: 'application/json' });
   }
@@ -233,13 +233,13 @@ export class TransitionsManager {
    */
   private isValidTransitionState(state: unknown): state is TransitionState {
     return (
-      state &&
+      state !== null &&
       typeof state === 'object' &&
-      state.library &&
-      Array.isArray(state.library.builtin) &&
-      Array.isArray(state.library.custom) &&
-      typeof state.version === 'string' &&
-      typeof state.lastModified === 'string'
+      (state as any).library &&
+      Array.isArray((state as any).library.builtin) &&
+      Array.isArray((state as any).library.custom) &&
+      typeof (state as any).version === 'string' &&
+      typeof (state as any).lastModified === 'string'
     );
   }
 
@@ -253,7 +253,7 @@ export class TransitionsManager {
     categories: Record<string, number>;
   } {
     const categories: Record<string, number> = {};
-    
+
     this.getAvailableTransitions().forEach(transition => {
       categories[transition.category] = (categories[transition.category] || 0) + 1;
     });
@@ -272,13 +272,13 @@ export class TransitionsManager {
   getRecentlyUsed(): TransitionPreset[] {
     // Get apply operations
     const applyOperations = this.history.filter(op => op.type === 'apply');
-    
+
     // Get transition IDs in order of use
     const usedTransitionIds = applyOperations.map(op => op.transitionId).filter((id): id is string => !!id);
-    
+
     // Get unique transitions in order of use
     const uniqueUsedIds = [...new Set(usedTransitionIds)];
-    
+
     // Get the actual transitions
     return uniqueUsedIds
       .map(id => this.getTransition(id))

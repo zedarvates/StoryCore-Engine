@@ -1,0 +1,18 @@
+{
+  "location_id": "3643df22-f404-4eb1-a3b4-c9d89748dc6f",
+  "name": "The Scourgefens",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T07:21:38.351Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A twisted expanse of ravines and canyons scarred into the Wewew's wilderness. Barren rock formations loom over scree-swept valleys, where skeletal trees creak in the wind like mournful whispers.",
+    "atmosphere": "Barren, foreboding",
+    "genre_tags": [],
+    "significance": "The Scourgefens are a battleground for the warring factions vying for control of Wewew. Rumors speak of an ancient evil stirring within its depths, as the very fabric of reality begins to unravel."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

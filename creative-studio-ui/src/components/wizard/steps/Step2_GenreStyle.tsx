@@ -63,6 +63,24 @@ const VISUAL_STYLE_OPTIONS: {
     preview: '🎌',
   },
   {
+    value: 'anime-80s',
+    label: 'Anime 80s',
+    description: 'Classic 80s anime aesthetic (Robotanime, Macross, Galaxy Express)',
+    preview: '📺',
+  },
+  {
+    value: 'anime-90s',
+    label: 'Anime 90s',
+    description: '90s anime aesthetic (Sailor Moon, Evangelion, Pokemon)',
+    preview: '📻',
+  },
+  {
+    value: 'anime-2000s',
+    label: 'Anime 2000s',
+    description: 'Early 2000s anime aesthetic (Fullmetal Alchemist, Bleach)',
+    preview: '💿',
+  },
+  {
     value: 'comic-book',
     label: 'Comic Book',
     description: 'Bold lines and colors',

@@ -23,6 +23,7 @@ import { referenceInheritanceService } from '../../../services/referenceInherita
 import { consistencyEngine } from '../../../services/consistencyEngine';
 import type { ConsistencyIssue, ConsistencyScore } from '../../../services/consistencyEngine';
 import type { CharacterAppearanceSheet, LocationAppearanceSheet } from '../../../types/reference';
+import { Image as ImageIcon, Video as VideoIcon, Volume2 as AudioIcon } from 'lucide-react';
 import './shotConfigPanel.css';
 
 // ============================================================================
@@ -53,13 +54,13 @@ interface InheritedReference {
 export const ShotConfigPanel: React.FC = () => {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
-  
+
   // Redux state
   const { shots, selectedElements, sequences, currentSequenceId } = useAppSelector((state) => state.timeline);
-  
+
   // Get selected shot
   const selectedShot = shots.find((shot: Shot) => selectedElements.includes(shot.id));
-  
+
   // Local state
   const [modifications, setModifications] = useState<ShotModifications>({});
   const [hasModifications, setHasModifications] = useState(false);
@@ -70,6 +71,9 @@ export const ShotConfigPanel: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   // State for conversion process
   const [isConverting, setIsConverting] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 
   // Handler to convert shot to puppet
   const handleConvertToPuppet = async () => {
@@ -126,8 +130,51 @@ export const ShotConfigPanel: React.FC = () => {
       setIsConverting(false);
     }
   };
+
+  const handleGenerateImage = useCallback(async () => {
+    if (!selectedShot) return;
+    setIsGeneratingImage(true);
+    try {
+      // TODO: Implement actual API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast({ title: 'Image Generation', description: 'Reference image generation started.' });
+      handleApply(); // Save changes first just in case
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to generate image', variant: 'destructive' });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  }, [selectedShot, toast]);
+
+  const handleGenerateVideo = useCallback(async () => {
+    if (!selectedShot) return;
+    setIsGeneratingVideo(true);
+    try {
+      // TODO: Implement actual API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast({ title: 'Video Generation', description: 'Video generation started.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to generate video', variant: 'destructive' });
+    } finally {
+      setIsGeneratingVideo(false);
+    }
+  }, [selectedShot, toast]);
+
+  const handleGenerateAudio = useCallback(async () => {
+    if (!selectedShot) return;
+    setIsGeneratingAudio(true);
+    try {
+      // TODO: Implement actual API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast({ title: 'Audio Generation', description: 'Audio generation started.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to generate audio', variant: 'destructive' });
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  }, [selectedShot, toast]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Load inherited references when shot changes
   useEffect(() => {
     if (selectedShot && currentSequenceId) {
@@ -135,17 +182,17 @@ export const ShotConfigPanel: React.FC = () => {
       loadConsistencyInfo();
     }
   }, [selectedShot?.id, currentSequenceId]);
-  
+
   // Load inherited references
   const loadInheritedReferences = async () => {
     if (!selectedShot) return;
-    
+
     setIsLoading(true);
     try {
       const result = await referenceInheritanceService.getInheritedReferencesForShot(selectedShot.id);
-      
+
       const refs: InheritedReference[] = [];
-      
+
       // Add master references
       for (const item of result.fromMaster) {
         if ('characterName' in item) {
@@ -168,7 +215,7 @@ export const ShotConfigPanel: React.FC = () => {
           });
         }
       }
-      
+
       // Add sequence references
       if (result.fromSequence) {
         refs.push({
@@ -178,7 +225,7 @@ export const ShotConfigPanel: React.FC = () => {
           source: 'sequence',
         });
       }
-      
+
       setInheritedReferences(refs);
     } catch (error) {
       console.error('Failed to load inherited references:', error);
@@ -186,18 +233,18 @@ export const ShotConfigPanel: React.FC = () => {
       setIsLoading(false);
     }
   };
-  
+
   // Load consistency info
   const loadConsistencyInfo = async () => {
     if (!selectedShot) return;
-    
+
     try {
       const characterIssues = consistencyEngine.validateCharacterConsistency(selectedShot.id);
       const locationIssues = consistencyEngine.validateLocationConsistency(selectedShot.id);
       const styleIssues = consistencyEngine.validateStyleConsistency(selectedShot.id);
       const issues = [...characterIssues, ...locationIssues, ...styleIssues];
       setConsistencyIssues(issues);
-      
+
       // Calculate overall score
       if (issues.length === 0) {
         setConsistencyScore({
@@ -212,7 +259,7 @@ export const ShotConfigPanel: React.FC = () => {
           const severityMap: Record<string, number> = { critical: 30, high: 20, medium: 10, low: 5 };
           return sum + (severityMap[i.severity] || 0);
         }, 0) / Math.max(issues.length, 1));
-        
+
         setConsistencyScore({
           overallScore: Math.max(0, avgScore),
           characterScore: avgScore,
@@ -225,11 +272,11 @@ export const ShotConfigPanel: React.FC = () => {
       console.error('Failed to load consistency info:', error);
     }
   };
-  
+
   // Apply inherited references
   const handleApplyInherited = useCallback(() => {
     if (!selectedShot || inheritedReferences.length === 0) return;
-    
+
     // Convert inherited references to reference images
     const inheritedImages: ReferenceImage[] = inheritedReferences
       .filter(ref => ref.thumbnail)
@@ -239,14 +286,14 @@ export const ShotConfigPanel: React.FC = () => {
         weight: 1.0,
         source: 'library' as const,
       }));
-    
+
     setModifications((prev) => ({
       ...prev,
       referenceImages: [...(prev.referenceImages || []), ...inheritedImages],
     }));
     setHasModifications(true);
   }, [selectedShot, inheritedReferences]);
-  
+
   // Initialize modifications when shot changes
   useEffect(() => {
     if (selectedShot) {
@@ -260,15 +307,15 @@ export const ShotConfigPanel: React.FC = () => {
       });
       setHasModifications(false);
     }
-  }, [selectedShot?.id]);
-  
+  }, [selectedShot?.id, selectedShot?.prompt, selectedShot?.referenceImages]);
+
   // Handle prompt change
   const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newPrompt = e.target.value;
     setModifications((prev) => ({ ...prev, prompt: newPrompt }));
     setHasModifications(true);
   }, []);
-  
+
   // Handle parameter change
   const handleParameterChange = useCallback((
     param: 'seed' | 'denoising' | 'steps' | 'guidance',
@@ -277,14 +324,14 @@ export const ShotConfigPanel: React.FC = () => {
     setModifications((prev) => ({ ...prev, [param]: value }));
     setHasModifications(true);
   }, []);
-  
+
   // Handle file upload
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    
+
     const newImages: ReferenceImage[] = [];
-    
+
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -295,7 +342,7 @@ export const ShotConfigPanel: React.FC = () => {
           weight: 1.0,
           source: 'upload',
         });
-        
+
         if (newImages.length === files.length) {
           setModifications((prev) => ({
             ...prev,
@@ -307,7 +354,7 @@ export const ShotConfigPanel: React.FC = () => {
       reader.readAsDataURL(file);
     });
   }, []);
-  
+
   // Handle remove reference image
   const handleRemoveImage = useCallback((imageId: string) => {
     setModifications((prev) => ({
@@ -316,11 +363,11 @@ export const ShotConfigPanel: React.FC = () => {
     }));
     setHasModifications(true);
   }, []);
-  
+
   // Handle apply changes
   const handleApply = useCallback(() => {
     if (!selectedShot) return;
-    
+
     dispatch(updateShot({
       id: selectedShot.id,
       updates: {
@@ -335,14 +382,14 @@ export const ShotConfigPanel: React.FC = () => {
         },
       },
     }));
-    
+
     setHasModifications(false);
   }, [selectedShot, modifications, dispatch]);
-  
+
   // Handle revert changes
   const handleRevert = useCallback(() => {
     if (!selectedShot) return;
-    
+
     setModifications({
       prompt: selectedShot.prompt,
       referenceImages: selectedShot.referenceImages || [],
@@ -351,24 +398,24 @@ export const ShotConfigPanel: React.FC = () => {
       steps: selectedShot.parameters.steps,
       guidance: selectedShot.parameters.guidance,
     });
-    
+
     setHasModifications(false);
   }, [selectedShot]);
-  
+
   // Handle drag over for file drop
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
-  
+
   // Handle drop for file upload
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const files = e.dataTransfer.files;
     if (files.length === 0) return;
-    
+
     // Simulate file input change
     const input = fileInputRef.current;
     if (input) {
@@ -378,19 +425,19 @@ export const ShotConfigPanel: React.FC = () => {
       input.dispatchEvent(new Event('change', { bubbles: true }));
     }
   }, []);
-  
+
   // Get source label
   const getSourceLabel = (source: 'master' | 'sequence') => {
     return source === 'master' ? 'Master' : 'Sequence';
   };
-  
+
   // Get consistency badge class
   const getConsistencyBadgeClass = (score: number) => {
     if (score >= 80) return 'consistency-good';
     if (score >= 60) return 'consistency-warning';
     return 'consistency-bad';
   };
-  
+
   if (!selectedShot) {
     return (
       <ShotConfigDropTarget shot={null}>
@@ -404,10 +451,10 @@ export const ShotConfigPanel: React.FC = () => {
       </ShotConfigDropTarget>
     );
   }
-  
+
   const referenceImages = modifications.referenceImages || [];
   const promptLength = modifications.prompt?.length || 0;
-  
+
   return (
     <ShotConfigDropTarget shot={selectedShot}>
       <div className="shot-config-panel">
@@ -418,7 +465,7 @@ export const ShotConfigPanel: React.FC = () => {
             <span className="modified-indicator" title="Unsaved changes">●</span>
           )}
         </div>
-        
+
         {/* Inherited References Section */}
         {inheritedReferences.length > 0 && (
           <div className="config-section inherited-references-section">
@@ -433,7 +480,7 @@ export const ShotConfigPanel: React.FC = () => {
                 Use Inherited
               </label>
             </div>
-            
+
             <div className="inherited-references-grid">
               {inheritedReferences.map((ref) => (
                 <div key={ref.id} className="inherited-reference-item">
@@ -453,7 +500,7 @@ export const ShotConfigPanel: React.FC = () => {
                 </div>
               ))}
             </div>
-            
+
             {useInherited && (
               <button
                 className="apply-inherited-btn"
@@ -465,19 +512,19 @@ export const ShotConfigPanel: React.FC = () => {
             )}
           </div>
         )}
-        
+
         {/* Consistency Indicators */}
         {consistencyScore && (
           <div className="config-section consistency-section">
             <h4 className="section-title">Consistency</h4>
-            
+
             <div className="consistency-score">
               <div className={`consistency-badge ${getConsistencyBadgeClass(consistencyScore.overallScore)}`}>
                 {consistencyScore.overallScore}%
               </div>
               <span className="consistency-label">Overall Score</span>
             </div>
-            
+
             <div className="consistency-breakdown">
               <div className="consistency-item">
                 <span>Character</span>
@@ -516,7 +563,7 @@ export const ShotConfigPanel: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             {consistencyIssues.length > 0 && (
               <div className="consistency-issues">
                 <h5>Issues ({consistencyIssues.length})</h5>
@@ -537,11 +584,11 @@ export const ShotConfigPanel: React.FC = () => {
             )}
           </div>
         )}
-        
+
         {/* Reference Images Grid */}
         <div className="config-section">
           <h4 className="section-title">Reference Images</h4>
-          
+
           <div
             className="reference-images-grid"
             onDragOver={handleDragOver}
@@ -560,7 +607,7 @@ export const ShotConfigPanel: React.FC = () => {
                 <div className="image-type-badge">{image.source}</div>
               </div>
             ))}
-            
+
             {/* Upload Button */}
             <div
               className="upload-image-btn"
@@ -570,7 +617,7 @@ export const ShotConfigPanel: React.FC = () => {
               <div className="upload-text">Add Image</div>
             </div>
           </div>
-          
+
           <input
             ref={fileInputRef}
             type="file"
@@ -580,19 +627,19 @@ export const ShotConfigPanel: React.FC = () => {
             style={{ display: 'none' }}
             onChange={handleFileUpload}
           />
-          
+
           <p className="section-hint">
             Drag and drop images here or click to upload
           </p>
         </div>
-        
+
         {/* Prompt Editor */}
         <div className="config-section">
           <div className="section-header">
             <h4 className="section-title">Prompt</h4>
             <span className="char-count">{promptLength} characters</span>
           </div>
-          
+
           <textarea
             className="prompt-editor"
             value={modifications.prompt || ''}
@@ -601,14 +648,14 @@ export const ShotConfigPanel: React.FC = () => {
             rows={6}
           />
         </div>
-        
+
         {/* Visual Style Controls */}
         <StyleControls shot={selectedShot} />
-        
+
         {/* Generation Parameters */}
         <div className="config-section">
           <h4 className="section-title">Generation Parameters</h4>
-          
+
           <div className="parameters-grid">
             {/* Seed */}
             <div className="parameter-control">
@@ -625,7 +672,7 @@ export const ShotConfigPanel: React.FC = () => {
                 max={999999}
               />
             </div>
-            
+
             {/* Denoising */}
             <div className="parameter-control">
               <label htmlFor="denoising-input">
@@ -642,7 +689,7 @@ export const ShotConfigPanel: React.FC = () => {
                 step={0.05}
               />
             </div>
-            
+
             {/* Steps */}
             <div className="parameter-control">
               <label htmlFor="steps-input">
@@ -658,7 +705,7 @@ export const ShotConfigPanel: React.FC = () => {
                 max={100}
               />
             </div>
-            
+
             {/* Guidance */}
             <div className="parameter-control">
               <label htmlFor="guidance-input">
@@ -677,9 +724,41 @@ export const ShotConfigPanel: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Action Buttons */}
         <div className="config-actions">
+          <div className="generation-actions" style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #333', paddingBottom: '16px', width: '100%' }}>
+            <button
+              className="action-btn"
+              onClick={handleGenerateImage}
+              disabled={isGeneratingImage}
+              title="Generate Reference Image"
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
+            >
+              <ImageIcon size={16} />
+              <span style={{ fontSize: '10px' }}>Image</span>
+            </button>
+            <button
+              className="action-btn"
+              onClick={handleGenerateVideo}
+              disabled={isGeneratingVideo}
+              title="Generate Video"
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
+            >
+              <VideoIcon size={16} />
+              <span style={{ fontSize: '10px' }}>Video</span>
+            </button>
+            <button
+              className="action-btn"
+              onClick={handleGenerateAudio}
+              disabled={isGeneratingAudio}
+              title="Generate Audio"
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
+            >
+              <AudioIcon size={16} />
+              <span style={{ fontSize: '10px' }}>Audio</span>
+            </button>
+          </div>
           {/* New button to convert shot to puppet */}
           <button
             className="convert-puppet-btn"

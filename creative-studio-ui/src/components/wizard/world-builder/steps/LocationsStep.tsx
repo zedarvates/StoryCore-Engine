@@ -3,21 +3,21 @@ import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../../st
 import { StepValidator } from '../StepValidator';
 import { saveLocationToProject, createLocationFromWizardData } from '../../../../utils/locationStorage';
 import { useStore } from '@/store';
-import type { RootState } from '@/store';
 import { useLocationStore } from '@/stores/locationStore';
+import type { LocationReference, LocationType } from '@/types/location';
 
 export const LocationsStep: React.FC = () => {
   const { worldData } = useWorldBuilderSelectors();
   const { updateStep, markStepComplete } = useWorldBuilderActions();
   
   // Get project path from store
-  const project = useStore((state: RootState) => state.project);
+  const project = useStore((state) => state.project);
   const projectPath = project?.path || '';
   
   // Get location store actions for refreshing
   const { fetchProjectLocations } = useLocationStore();
 
-  const [locations, setLocations] = useState(worldData?.locations || []);
+  const [locations, setLocations] = useState<LocationReference[]>(worldData?.locations || []);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -43,9 +43,11 @@ export const LocationsStep: React.FC = () => {
         location.id,
         {
           name: location.name,
-          type: location.type,
-          description: location.description,
+          type: location.type || 'other',
+          description: location.description || '',
           coordinates: location.coordinates,
+          // Pass explicit location_type if set
+          location_type: location.location_type,
         },
         { projectId }
       );
@@ -63,17 +65,18 @@ export const LocationsStep: React.FC = () => {
   }, [projectPath]);
 
   const addLocation = () => {
-    const newLocation = {
+    const newLocation: LocationReference = {
       id: crypto.randomUUID(),
       name: '',
-      type: 'city' as const,
+      type: 'city',
       description: '',
       coordinates: { x: 0, y: 0 },
+      location_type: 'exterior',
     };
     setLocations([...locations, newLocation]);
   };
 
-  const updateLocation = async (id: string, field: string, value: string) => {
+  const updateLocation = async (id: string, field: string, value: string | LocationType) => {
     const newLocations = locations.map(loc =>
       loc.id === id ? { ...loc, [field]: value } : loc
     );
@@ -108,9 +111,10 @@ export const LocationsStep: React.FC = () => {
               location.id,
               {
                 name: location.name,
-                type: location.type,
-                description: location.description,
+                type: location.type || 'other',
+                description: location.description || '',
                 coordinates: location.coordinates,
+                location_type: location.location_type,
               },
               { projectId }
             );
@@ -154,7 +158,7 @@ export const LocationsStep: React.FC = () => {
               onChange={(e) => updateLocation(location.id, 'name', e.target.value)}
             />
             <select
-              value={location.type}
+              value={location.type || 'other'}
               onChange={(e) => updateLocation(location.id, 'type', e.target.value)}
               title="Location type"
             >
@@ -163,9 +167,17 @@ export const LocationsStep: React.FC = () => {
               <option value="dungeon">Dungeon</option>
               <option value="other">Other</option>
             </select>
+            <select
+              value={location.location_type || 'exterior'}
+              onChange={(e) => updateLocation(location.id, 'location_type', e.target.value as LocationType)}
+              title="Interior or Exterior"
+            >
+              <option value="exterior">🌍 Extérieur</option>
+              <option value="interior">🏠 Intérieur</option>
+            </select>
             <textarea
               placeholder="Description"
-              value={location.description}
+              value={location.description || ''}
               onChange={(e) => updateLocation(location.id, 'description', e.target.value)}
               rows={2}
             />

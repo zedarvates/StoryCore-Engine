@@ -412,6 +412,222 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
           </div>
         )}
 
+        {/* Text Style Section (New for R&D) */}
+        {selectedLayer.type === 'text' && (
+          <div className="property-section">
+            <div
+              className="property-section-header"
+              onClick={() => toggleSection('textStyle')}
+            >
+              <span className="property-section-icon">
+                {expandedSections.has('textStyle') ? '▼' : '▶'}
+              </span>
+              <span className="property-section-title">Text Style</span>
+            </div>
+            {expandedSections.has('textStyle') && (
+              <div className="property-section-content">
+                {/* Font Family */}
+                <div className="property-row">
+                  <label className="property-label">Font</label>
+                  <div className="property-value">
+                    <select
+                      className="property-select"
+                      value={(selectedLayer.data as any).style?.fontFamily || (selectedLayer.data as any).font || 'Arial'}
+                      onChange={(e) => {
+                        const currentData = selectedLayer.data as any;
+                        const currentStyle = currentData.style || {};
+                        const newStyle = { ...currentStyle, fontFamily: e.target.value };
+
+                        dispatch(
+                          updateLayer({
+                            shotId: shot.id,
+                            layerId: selectedLayer.id,
+                            updates: {
+                              data: {
+                                ...currentData,
+                                style: newStyle,
+                                font: e.target.value // Legacy sync
+                              },
+                            },
+                          })
+                        );
+                      }}
+                      disabled={selectedLayer.locked}
+                    >
+                      <option value="Arial">Arial</option>
+                      <option value="Helvetica">Helvetica</option>
+                      <option value="Times New Roman">Times New Roman</option>
+                      <option value="Courier New">Courier New</option>
+                      <option value="Impact">Impact</option>
+                      <option value="Inter">Inter</option>
+                      <option value="Roboto">Roboto</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Font Weight */}
+                <div className="property-row">
+                  <label className="property-label">Weight</label>
+                  <div className="property-value">
+                    <select
+                      className="property-select"
+                      value={(selectedLayer.data as any).style?.fontWeight || 'normal'}
+                      onChange={(e) => {
+                        const currentData = selectedLayer.data as any;
+                        const currentStyle = currentData.style || {};
+                        const newStyle = { ...currentStyle, fontWeight: e.target.value };
+
+                        dispatch(
+                          updateLayer({
+                            shotId: shot.id,
+                            layerId: selectedLayer.id,
+                            updates: { data: { ...currentData, style: newStyle } },
+                          })
+                        );
+                      }}
+                      disabled={selectedLayer.locked}
+                    >
+                      <option value="normal">Normal</option>
+                      <option value="bold">Bold</option>
+                      <option value="100">Thin</option>
+                      <option value="300">Light</option>
+                      <option value="900">Black</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Font Size */}
+                <div className="property-row">
+                  <label className="property-label">Size</label>
+                  <div className="property-value">
+                    <input
+                      type="number"
+                      className="property-input"
+                      value={(selectedLayer.data as any).style?.fontSize || (selectedLayer.data as any).size || 24}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        const currentData = selectedLayer.data as any;
+                        const currentStyle = currentData.style || {};
+                        const newStyle = { ...currentStyle, fontSize: val };
+
+                        dispatch(
+                          updateLayer({
+                            shotId: shot.id,
+                            layerId: selectedLayer.id,
+                            updates: {
+                              data: {
+                                ...currentData,
+                                style: newStyle,
+                                size: val // Legacy sync
+                              },
+                            },
+                          })
+                        );
+                      }}
+                      min={1}
+                      disabled={selectedLayer.locked}
+                    />
+                    <span className="property-unit">px</span>
+                  </div>
+                </div>
+
+                {/* Colors */}
+                <div className="property-row">
+                  <label className="property-label">Color</label>
+                  <div className="property-value">
+                    <input
+                      type="color"
+                      className="property-color-picker"
+                      value={(selectedLayer.data as any).style?.fillColor || (selectedLayer.data as any).color || '#ffffff'}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const currentData = selectedLayer.data as any;
+                        const currentStyle = currentData.style || {};
+                        const newStyle = { ...currentStyle, fillColor: val };
+
+                        dispatch(
+                          updateLayer({
+                            shotId: shot.id,
+                            layerId: selectedLayer.id,
+                            updates: {
+                              data: {
+                                ...currentData,
+                                style: newStyle,
+                                color: val // Legacy sync
+                              },
+                            },
+                          })
+                        );
+                      }}
+                      disabled={selectedLayer.locked}
+                    />
+                  </div>
+                </div>
+
+                {/* Stroke */}
+                <div className="property-row">
+                  <label className="property-label">Stroke</label>
+                  <div className="property-value-grid">
+                    <input
+                      type="color"
+                      className="property-color-picker"
+                      value={(selectedLayer.data as any).style?.strokeColor || '#000000'}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const currentData = selectedLayer.data as any;
+                        const currentStyle = currentData.style || {};
+                        const newStyle = { ...currentStyle, strokeColor: val };
+                        dispatch(updateLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
+                      }}
+                      disabled={selectedLayer.locked}
+                    />
+                    <div className="property-value-pair">
+                      <span className="property-unit-label">W</span>
+                      <input
+                        type="number"
+                        className="property-input property-input-small"
+                        value={(selectedLayer.data as any).style?.strokeWidth || 0}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          const currentData = selectedLayer.data as any;
+                          const currentStyle = currentData.style || {};
+                          const newStyle = { ...currentStyle, strokeWidth: val };
+                          dispatch(updateLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
+                        }}
+                        min={0}
+                        disabled={selectedLayer.locked}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Alignment */}
+                <div className="property-row">
+                  <label className="property-label">Align</label>
+                  <div className="property-value layer-properties-quick-actions" style={{ justifyContent: 'flex-start' }}>
+                    {['left', 'center', 'right'].map((align) => (
+                      <button
+                        key={align}
+                        className={`quick-action-button ${((selectedLayer.data as any).style?.textAlign || 'left') === align ? 'active' : ''}`}
+                        onClick={() => {
+                          const currentData = selectedLayer.data as any;
+                          const currentStyle = currentData.style || {};
+                          const newStyle = { ...currentStyle, textAlign: align };
+                          dispatch(updateLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
+                        }}
+                      >
+                        {align === 'left' ? 'L' : align === 'center' ? 'C' : 'R'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Audio Section (for Audio layers) */}
         {selectedLayer.type === 'audio' && (
           <div className="property-section">
@@ -475,6 +691,6 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 };

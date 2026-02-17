@@ -210,16 +210,30 @@ export async function exportStory(
     // 5. Create a Blob with the content
     const blob = new Blob([content], { type: mimeType });
 
-    // 6. Check if we're in Electron environment
-    if (typeof window !== 'undefined' && (window as any).electron) {
+    // 6. Check if we're in Electron environment (use window.electronAPI first)
+    if (typeof window !== 'undefined' && window.electronAPI?.fs) {
       // Electron environment - use IPC to save file
+      try {
+        // Get project path from story or use default
+        const projectPath = story.worldId || 'default';
+        
+        // Use Electron API fs to write the file
+        await window.electronAPI.fs.writeFile(`${projectPath}/${filename}`, content);
+        
+        return `${projectPath}/${filename}`;
+      } catch (electronError) {
+        console.warn('Electron file save failed, falling back to browser download:', electronError);
+        // Fall through to browser download
+      }
+    } else if (typeof window !== 'undefined' && (window as any).electron) {
+      // Legacy Electron environment - try window.electron
       try {
         const { electron } = window as any;
         const projectName = story.worldId || 'default';
         const filePath = await electron.saveFile(filename, content, projectName);
         return filePath;
       } catch (electronError) {
-        console.warn('Electron file save failed, falling back to browser download:', electronError);
+        console.warn('Legacy Electron file save failed, falling back to browser download:', electronError);
         // Fall through to browser download
       }
     }
@@ -281,19 +295,21 @@ export function getExportPath(projectName: string, filename: string): string {
  * @returns User-friendly error message
  */
 export function handleExportError(error: unknown): string {
-  if (error.message?.includes('permission')) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  
+  if (errorMessage.includes('permission')) {
     return 'Permission denied: Unable to write to the export directory. Please check file permissions.';
   }
   
-  if (error.message?.includes('disk space')) {
+  if (errorMessage.includes('disk space')) {
     return 'Insufficient disk space: Unable to save the file. Please free up some space.';
   }
   
-  if (error.message?.includes('path')) {
+  if (errorMessage.includes('path')) {
     return 'Invalid path: The export directory does not exist or is invalid.';
   }
   
-  return `Export error: ${error.message || 'Unknown error occurred'}`;
+  return `Export error: ${errorMessage || 'Unknown error occurred'}`;
 }
 
 /**

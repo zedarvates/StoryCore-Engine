@@ -58,7 +58,7 @@ const KEY_LENGTH = 256;
 async function getEncryptionKey(): Promise<CryptoKey> {
   // Check if key exists in session storage
   const storedKey = sessionStorage.getItem('encryption-key');
-  
+
   if (storedKey) {
     try {
       const keyData = JSON.parse(storedKey);
@@ -162,7 +162,7 @@ export async function decryptValue(encrypted: string, iv: string): Promise<strin
       // This is a normal case when encryption key doesn't match (session expired)
       throw new Error('DECRYPTION_KEY_MISMATCH');
     }
-    
+
     if (error instanceof Error) {
       if (error.message.includes('operation-specific reason')) {
         throw new Error('DECRYPTION_KEY_MISMATCH');
@@ -203,7 +203,7 @@ export async function saveLLMSettings(config: LLMConfig): Promise<void> {
 
     // Store config without API key, plus encrypted API key
     const { apiKey, ...configWithoutKey } = config;
-    
+
     settings.llm = {
       config: configWithoutKey,
       encryptedApiKey: `${encrypted}:${iv}`,
@@ -259,13 +259,13 @@ export async function loadLLMSettings(): Promise<LLMConfig | null> {
       ...settings.llm.config,
       apiKey,
     } as LLMConfig;
-    
+
     // Ensure systemPrompts exists with defaults if missing
     if (!config.systemPrompts) {
       const { getDefaultSystemPrompts } = await import('@/services/llmService');
       config.systemPrompts = getDefaultSystemPrompts();
     }
-    
+
     return config;
   } catch (error) {
     console.error('Failed to load LLM settings:', error);
@@ -296,7 +296,7 @@ export function exportSettings(): string {
 
     // Create export object without encrypted credentials
     // Using 'any' to allow dynamic property assignment based on available settings
-    const exportData: unknown = {
+    const exportData: any = {
       version: settings.version,
     };
 
@@ -420,9 +420,9 @@ function loadSettings(): StoredSettings {
  * Check if Web Crypto API is available
  */
 export function isCryptoAvailable(): boolean {
-  return typeof crypto !== 'undefined' && 
-         typeof crypto.subtle !== 'undefined' &&
-         typeof crypto.subtle.encrypt === 'function';
+  return typeof crypto !== 'undefined' &&
+    typeof crypto.subtle !== 'undefined' &&
+    typeof crypto.subtle.encrypt === 'function';
 }
 
 /**

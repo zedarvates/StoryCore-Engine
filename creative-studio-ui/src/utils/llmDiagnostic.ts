@@ -117,7 +117,7 @@ async function checkConfiguration(): Promise<DiagnosticCheck> {
       issues.push('Missing API key (required for this provider)');
     }
 
-    if (config.provider === 'local' && !config.apiEndpoint) {
+    if (config.provider === 'local' && !(config as any).apiEndpoint) {
       issues.push('Missing API endpoint for local provider');
     }
 
@@ -131,7 +131,7 @@ async function checkConfiguration(): Promise<DiagnosticCheck> {
             provider: config.provider,
             model: config.model,
             hasApiKey: !!config.apiKey,
-            hasEndpoint: !!config.apiEndpoint,
+            hasEndpoint: !!(config as any).apiEndpoint,
           },
         },
       };
@@ -319,7 +319,7 @@ function generateRecommendations(checks: DiagnosticResult['checks']): string[] {
   if (checks.configuration.status === 'fail') {
     recommendations.push('Reconfigure LLM settings - current configuration is invalid');
   } else if (checks.configuration.status === 'warning') {
-    const details = checks.configuration.details;
+    const details = checks.configuration.details as any;
     if (details?.issues) {
       recommendations.push(...details.issues.map((issue: string) => `Fix: ${issue}`));
     }
@@ -333,7 +333,7 @@ function generateRecommendations(checks: DiagnosticResult['checks']): string[] {
 
   // Connectivity recommendations
   if (checks.connectivity.status === 'fail') {
-    const details = checks.connectivity.details;
+    const details = checks.connectivity.details as any;
     if (details?.provider === 'local') {
       recommendations.push('Start Ollama service: ollama serve');
     } else if (details?.provider === 'openai' || details?.provider === 'anthropic') {

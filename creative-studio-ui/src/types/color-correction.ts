@@ -3,19 +3,7 @@
  * MI1: Color Correction Presets - Vintage, Noir, Vibrant, Cinematic
  */
 
-export type ColorCorrectionPresetId = 
-  | 'none'
-  | 'vintage_faded'
-  | 'vintage_sepia'
-  | 'vintage_warm'
-  | 'noir_high_contrast'
-  | 'noir_soft'
-  | 'vibrant_saturated'
-  | 'vibrant_enhanced'
-  | 'cinematic_dramatic'
-  | 'cinematic_film'
-  | 'cinematic_anamorphic'
-  | 'custom';
+export type ColorCorrectionPresetId = string;
 
 export interface ColorCorrectionPreset {
   id: ColorCorrectionPresetId;
@@ -29,7 +17,7 @@ export interface ColorCorrectionPreset {
   tags: string[];
 }
 
-export type PresetCategory = 
+export type PresetCategory =
   | 'vintage'
   | 'noir'
   | 'vibrant'
@@ -105,7 +93,7 @@ export interface ColorCorrectionMask {
   url?: string;
 }
 
-export type BlendMode = 
+export type BlendMode =
   | 'normal'
   | 'multiply'
   | 'screen'
@@ -135,7 +123,7 @@ export interface ColorCorrectionSettings {
   gamutMapping: 'perceptual' | 'relative' | 'absolute' | 'saturation';
 }
 
-export type ColorSpace = 
+export type ColorSpace =
   | 'sRGB'
   | 'Rec.709'
   | 'Rec.2020'

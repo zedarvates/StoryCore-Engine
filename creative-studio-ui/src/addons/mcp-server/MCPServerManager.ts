@@ -198,12 +198,12 @@ export class MCPServerManager {
    */
   private isValidMCPServerState(state: unknown): state is MCPServerState {
     return (
-      state &&
+      state !== null &&
       typeof state === 'object' &&
-      state.config &&
-      state.status &&
-      typeof state.version === 'string' &&
-      typeof state.lastModified === 'string'
+      (state as any).config &&
+      (state as any).status &&
+      typeof (state as any).version === 'string' &&
+      typeof (state as any).lastModified === 'string'
     );
   }
 
@@ -215,7 +215,7 @@ export class MCPServerManager {
     operationCount: number;
     errorCount: number;
   } {
-    const errorCount = this.operations.filter(op => op.type === 'start' && op.details?.error).length;
+    const errorCount = this.operations.filter(op => op.type === 'start' && (op.details as any)?.error).length;
 
     return {
       uptime: this.status.uptime,

@@ -8,7 +8,7 @@ export interface ChatContext {
 }
 
 export interface ChatAction {
-  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject';
+  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject' | 'createCharacter' | 'createLocation' | 'createObject' | 'createDialogue' | 'createStory' | 'createWorld' | 'createScenario' | 'generateImage' | 'generateAudio' | 'generateVideo';
   payload: unknown;
 }
 
@@ -104,6 +104,30 @@ export class ChatService {
 
       case 'project_info':
         return this.handleProjectInfo();
+
+      // Content creation intents
+      case 'create_character':
+        return this.handleCreateCharacter(userInput);
+      case 'create_location':
+        return this.handleCreateLocation(userInput);
+      case 'create_object':
+        return this.handleCreateObject(userInput);
+      case 'create_dialogue':
+        return this.handleCreateDialogue(userInput);
+      case 'create_story':
+        return this.handleCreateStory(userInput);
+      case 'create_world':
+        return this.handleCreateWorld(userInput);
+      case 'create_scenario':
+        return this.handleCreateScenario(userInput);
+
+      // Media generation intents
+      case 'generate_image':
+        return this.handleGenerateImage(userInput);
+      case 'generate_audio':
+        return this.handleGenerateAudio(userInput);
+      case 'generate_video':
+        return this.handleGenerateVideo(userInput);
 
       default:
         return this.handleGeneral(input);
@@ -354,12 +378,12 @@ export class ChatService {
       if (typeof window !== 'undefined') {
         // Encode the project path for URL safety
         const encodedPath = encodeURIComponent(projectPath);
-        
+
         // Navigate to the project dashboard
         // The exact route depends on the application's routing structure
         // Common patterns: /project/:path or /dashboard/:path
         window.location.href = `/project/${encodedPath}`;
-        
+
         // Alternative: If using React Router programmatically
         // This would need to be called from a component with access to navigate()
         // navigate(`/project/${encodedPath}`);
@@ -402,7 +426,7 @@ export class ChatService {
   /**
    * Analyze user intent from input
    */
-  private analyzeIntent(input: string): { type: string; confidence: number; params: unknown } {
+  private analyzeIntent(input: string): { type: string; confidence: number; params: Record<string, unknown> } {
     // Create/add shots
     if (
       input.match(/create|add|make|generate/i) &&
@@ -463,6 +487,130 @@ export class ChatService {
       };
     }
 
+    // ======== Content Creation Intents ========
+
+    // Create character (FR + EN)
+    if (
+      input.match(/cr[ée]+[rz]?|create|make|generate|nouveau|new/i) &&
+      input.match(/personnage|character|héros|hero|protagoniste|antagoniste|pnj|npc/i)
+    ) {
+      return {
+        type: 'create_character',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Create location (FR + EN)
+    if (
+      input.match(/cr[ée]+[rz]?|create|make|generate|nouveau|new/i) &&
+      input.match(/lieu|location|endroit|place|décor|environnement|setting/i)
+    ) {
+      return {
+        type: 'create_location',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Create object (FR + EN)
+    if (
+      input.match(/cr[ée]+[rz]?|create|make|generate|nouveau|new/i) &&
+      input.match(/objet|object|artefact|artifact|item|relique|arme|weapon/i)
+    ) {
+      return {
+        type: 'create_object',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Create dialogue (FR + EN)
+    if (
+      input.match(/cr[ée]+[rz]?|create|[ée]cri[rs]|write|generate/i) &&
+      input.match(/dialogue|conversation|réplique/i)
+    ) {
+      return {
+        type: 'create_dialogue',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Create story (FR + EN)
+    if (
+      input.match(/cr[ée]+[rz]?|create|[ée]cri[rs]|write|generate|nouveau|new/i) &&
+      input.match(/histoire|story|récit|tale|narration|narrative/i)
+    ) {
+      return {
+        type: 'create_story',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Create world (FR + EN)
+    if (
+      input.match(/cr[ée]+[rz]?|create|make|generate|construi[rs]|build|nouveau|new/i) &&
+      input.match(/monde|world|univers|universe/i)
+    ) {
+      return {
+        type: 'create_world',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Create scenario (FR + EN)
+    if (
+      input.match(/cr[ée]+[rz]?|create|[ée]cri[rs]|write|generate|nouveau|new/i) &&
+      input.match(/scénario|scenario|script|screenplay/i)
+    ) {
+      return {
+        type: 'create_scenario',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // ======== Media Generation Intents ========
+
+    // Generate image (FR + EN)
+    if (
+      input.match(/g[ée]n[ée]r[er]?|generate|cr[ée]+[rz]?|create|make|dessine[rz]?|draw/i) &&
+      input.match(/image|illustration|dessin|drawing|photo|picture|portrait|visuel|visual|artwork/i)
+    ) {
+      return {
+        type: 'generate_image',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Generate audio / voice (FR + EN)
+    if (
+      input.match(/g[ée]n[ée]r[er]?|generate|cr[ée]+[rz]?|create|donne|give|lis?|read|parle|speak/i) &&
+      input.match(/voix|voice|audio|son|sound|parole|speech|narration|tts|text.to.speech/i)
+    ) {
+      return {
+        type: 'generate_audio',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Generate video (FR + EN)
+    if (
+      input.match(/g[ée]n[ée]r[er]?|generate|cr[ée]+[rz]?|create|make|anime[rz]?|animate/i) &&
+      input.match(/vid[ée]o|video|animation|clip|mouvement|motion/i)
+    ) {
+      return {
+        type: 'generate_video',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
     // Suggest assets
     if (input.match(/suggest|recommend|find/i) && input.match(/asset|image|template/i)) {
       return {
@@ -487,8 +635,8 @@ export class ChatService {
   /**
    * Handle shot creation requests
    */
-  private handleCreateShots(intent: unknown, input: string): ChatResponse {
-    const { count, theme } = intent.params;
+  private handleCreateShots(intent: { type: string; confidence: number; params: Record<string, unknown> }, input: string): ChatResponse {
+    const { count, theme } = intent.params as { count: number; theme: string };
     const actions: ChatAction[] = [];
 
     for (let i = 0; i < count; i++) {
@@ -511,11 +659,10 @@ export class ChatService {
     }
 
     return {
-      message: `I've created ${count} ${count === 1 ? 'shot' : 'shots'} for your ${theme} sequence. ${
-        this.context.shots.length === 0
-          ? 'This is your first shot!'
-          : `You now have ${this.context.shots.length + count} shots total.`
-      }`,
+      message: `I've created ${count} ${count === 1 ? 'shot' : 'shots'} for your ${theme} sequence. ${this.context.shots.length === 0
+        ? 'This is your first shot!'
+        : `You now have ${this.context.shots.length + count} shots total.`
+        }`,
       suggestions: [
         'Add transitions between shots',
         'Suggest audio for this sequence',
@@ -528,8 +675,8 @@ export class ChatService {
   /**
    * Handle shot modification requests
    */
-  private handleModifyShot(intent: unknown, input: string): ChatResponse {
-    const { shotId } = intent.params;
+  private handleModifyShot(intent: { type: string; confidence: number; params: Record<string, unknown> }, input: string): ChatResponse {
+    const { shotId } = intent.params as { shotId: string | null };
 
     if (!shotId) {
       return {
@@ -558,8 +705,8 @@ export class ChatService {
   /**
    * Handle transition addition requests
    */
-  private handleAddTransition(intent: unknown, input: string): ChatResponse {
-    const { transitionType } = intent.params;
+  private handleAddTransition(intent: { type: string; confidence: number; params: Record<string, unknown> }, input: string): ChatResponse {
+    const { transitionType } = intent.params as { transitionType: string };
 
     if (this.context.shots.length < 2) {
       return {
@@ -569,13 +716,12 @@ export class ChatService {
     }
 
     return {
-      message: `I recommend using a '${transitionType}' transition for smooth scene changes. ${
-        transitionType === 'fade'
-          ? 'Fades work great for gentle transitions.'
-          : transitionType === 'wipe'
-            ? 'Wipes are perfect for dramatic cuts.'
-            : 'This transition will add visual interest to your sequence.'
-      } You can adjust the duration in the Properties Panel.`,
+      message: `I recommend using a '${transitionType}' transition for smooth scene changes. ${transitionType === 'fade'
+        ? 'Fades work great for gentle transitions.'
+        : transitionType === 'wipe'
+          ? 'Wipes are perfect for dramatic cuts.'
+          : 'This transition will add visual interest to your sequence.'
+        } You can adjust the duration in the Properties Panel.`,
       suggestions: [
         'Apply this transition to all shots',
         'Try a different transition type',
@@ -587,8 +733,8 @@ export class ChatService {
   /**
    * Handle audio addition requests
    */
-  private handleAddAudio(intent: unknown, input: string): ChatResponse {
-    const { audioType } = intent.params;
+  private handleAddAudio(intent: { type: string; confidence: number; params: Record<string, unknown> }, input: string): ChatResponse {
+    const { audioType } = intent.params as { audioType: string };
 
     const recommendations: Record<string, string> = {
       action: 'intense orchestral music with surround sound positioning',
@@ -613,7 +759,7 @@ export class ChatService {
   /**
    * Handle text addition requests
    */
-  private handleAddText(intent: unknown, input: string): ChatResponse {
+  private handleAddText(_intent: { type: string; confidence: number; params: Record<string, unknown> }, _input: string): ChatResponse {
     if (!this.context.selectedShotId) {
       return {
         message: 'Please select a shot first, then I can help you add text overlays.',
@@ -635,7 +781,7 @@ export class ChatService {
   /**
    * Handle asset suggestion requests
    */
-  private handleSuggestAssets(intent: unknown, input: string): ChatResponse {
+  private handleSuggestAssets(_intent: { type: string; confidence: number; params: Record<string, unknown> }, _input: string): ChatResponse {
     const assetCount = this.context.assets.length;
 
     if (assetCount === 0) {
@@ -671,11 +817,10 @@ export class ChatService {
     }
 
     return {
-      message: `Your project has ${shotCount} ${shotCount === 1 ? 'shot' : 'shots'} with a total duration of ${totalDuration} seconds. ${
-        this.context.project?.project_name
-          ? `Project name: "${this.context.project.project_name}"`
-          : ''
-      }`,
+      message: `Your project has ${shotCount} ${shotCount === 1 ? 'shot' : 'shots'} with a total duration of ${totalDuration} seconds. ${this.context.project?.project_name
+        ? `Project name: "${this.context.project.project_name}"`
+        : ''
+        }`,
       suggestions: [
         'Add more shots',
         'Preview the sequence',
@@ -698,6 +843,262 @@ export class ChatService {
       ],
     };
   }
+
+  // ========================================================================
+  // Content Creation Handlers
+  // ========================================================================
+
+  /**
+   * Handle character creation request
+   */
+  private handleCreateCharacter(input: string): ChatResponse {
+    const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
+      || input.match(/["']([^"']+)["']/);
+    const name = nameMatch ? nameMatch[1].trim() : undefined;
+
+    return {
+      message: name
+        ? `I'll create the character "${name}". I'll generate their appearance, personality, and backstory automatically.`
+        : `I'll create a new character for you. What would you like to know about them? I can generate all the details automatically.`,
+      suggestions: [
+        'Create a warrior character',
+        'Create a female mage named Aria',
+        'Create a mysterious antagonist',
+      ],
+      actions: [{
+        type: 'createCharacter',
+        payload: { name, rawInput: input },
+      }],
+    };
+  }
+
+  /**
+   * Handle location creation request
+   */
+  private handleCreateLocation(input: string): ChatResponse {
+    const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
+      || input.match(/["']([^"']+)["']/);
+    const name = nameMatch ? nameMatch[1].trim() : undefined;
+
+    return {
+      message: name
+        ? `I'll create the location "${name}" with atmosphere, description, and visual details.`
+        : `I'll create a new location for your world. I'll generate the atmosphere, description, and significance.`,
+      suggestions: [
+        'Create a dark enchanted forest',
+        'Create a futuristic city',
+        'Create a medieval castle',
+      ],
+      actions: [{
+        type: 'createLocation',
+        payload: { name, rawInput: input },
+      }],
+    };
+  }
+
+  /**
+   * Handle object creation request
+   */
+  private handleCreateObject(input: string): ChatResponse {
+    const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
+      || input.match(/["']([^"']+)["']/);
+    const name = nameMatch ? nameMatch[1].trim() : undefined;
+
+    return {
+      message: name
+        ? `I'll create the object "${name}" with rarity, abilities, and lore.`
+        : `I'll create a new object / artifact for your world. I'll determine its properties and significance.`,
+      suggestions: [
+        'Create a legendary sword',
+        'Create a mysterious amulet',
+        'Create a potent healing potion',
+      ],
+      actions: [{
+        type: 'createObject',
+        payload: { name, rawInput: input },
+      }],
+    };
+  }
+
+  /**
+   * Handle dialogue creation request
+   */
+  private handleCreateDialogue(input: string): ChatResponse {
+    return {
+      message: `I'll generate a dialogue for your scene. Tell me the characters, the topic, and the tone, or I'll create everything automatically.`,
+      suggestions: [
+        'Create a tense negotiation between two leaders',
+        'Write a humorous dialogue between friends',
+        'Generate a dramatic confrontation',
+      ],
+      actions: [{
+        type: 'createDialogue',
+        payload: { rawInput: input },
+      }],
+    };
+  }
+
+  /**
+   * Handle story creation request
+   */
+  private handleCreateStory(input: string): ChatResponse {
+    const nameMatch = input.match(/(?:appelée?|nommée?|intitulée?|named|called|titled)\s+["']?([^"',;.]+)["']?/i)
+      || input.match(/["']([^"']+)["']/);
+    const title = nameMatch ? nameMatch[1].trim() : undefined;
+
+    return {
+      message: title
+        ? `I'll create the story "${title}". I'll generate a plot outline, characters, and setting.`
+        : `I'll create a new story for you. I'll craft the plot, characters, and world automatically.`,
+      suggestions: [
+        'Create a fantasy epic',
+        'Write a sci-fi short story',
+        'Create a mystery thriller',
+      ],
+      actions: [{
+        type: 'createStory',
+        payload: { title, rawInput: input },
+      }],
+    };
+  }
+
+  /**
+   * Handle world creation request
+   */
+  private handleCreateWorld(input: string): ChatResponse {
+    const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
+      || input.match(/["']([^"']+)["']/);
+    const name = nameMatch ? nameMatch[1].trim() : undefined;
+
+    return {
+      message: name
+        ? `I'll build the world "${name}". I'll define its era, cultures, rules, and geography.`
+        : `I'll create a new world for your stories. I'll generate its history, cultures, and rules.`,
+      suggestions: [
+        'Create a medieval fantasy world',
+        'Build a cyberpunk universe',
+        'Create a post-apocalyptic world',
+      ],
+      actions: [{
+        type: 'createWorld',
+        payload: { name, rawInput: input },
+      }],
+    };
+  }
+
+  /**
+   * Handle scenario creation request
+   */
+  private handleCreateScenario(input: string): ChatResponse {
+    const nameMatch = input.match(/(?:appelé|nommé|intitulé|named|called|titled)\s+["']?([^"',;.]+)["']?/i)
+      || input.match(/["']([^"']+)["']/);
+    const title = nameMatch ? nameMatch[1].trim() : undefined;
+
+    return {
+      message: title
+        ? `I'll create the scenario "${title}". I'll generate the scenes, conflicts, and resolution.`
+        : `I'll create a new scenario for you. I'll craft the scenes, characters, and narrative arc.`,
+      suggestions: [
+        'Create an action screenplay',
+        'Write a dramatic scenario',
+        'Create a comedy script',
+      ],
+      actions: [{
+        type: 'createScenario',
+        payload: { title, rawInput: input },
+      }],
+    };
+  }
+
+  // ========================================================================
+  // Media Generation Handlers
+  // ========================================================================
+
+  /**
+   * Handle image generation request
+   */
+  private handleGenerateImage(input: string): ChatResponse {
+    // Extract the description/prompt from the user input
+    const descMatch = input.match(/(?:image|illustration|dessin|drawing|photo|picture|portrait|visuel|visual|artwork)\s+(?:de|of|d'|du|d’|pour|for)?\s*(.+)/i)
+      || input.match(/(?:génère|generate|crée|create|dessine|draw)\s+(?:une?|an?)?\s*(.+)/i);
+    const prompt = descMatch ? descMatch[1].trim() : undefined;
+
+    return {
+      message: prompt
+        ? `🎨 I'll generate an image based on: "${prompt}". The image will be created using ComfyUI with the configured workflow.`
+        : `🎨 I'll generate an image for you! Please describe what you'd like to see, and I'll create it using AI image generation.`,
+      suggestions: [
+        'Generate a fantasy landscape at sunset',
+        'Create a portrait of a warrior',
+        'Draw a futuristic city at night',
+      ],
+      actions: [{
+        type: 'generateImage',
+        payload: { prompt: prompt || '', rawInput: input },
+      }],
+    };
+  }
+
+  /**
+   * Handle audio/voice generation request
+   */
+  private handleGenerateAudio(input: string): ChatResponse {
+    // Extract the text to convert to speech
+    const textMatch = input.match(/(?:lis?|read|parle|speak|dis?|say)\s+["'«]([^"'»]+)["'»]/i)
+      || input.match(/(?:voix|voice|audio|narration)\s+(?:pour|for|de|of)?\s*["'«]([^"'»]+)["'»]/i)
+      || input.match(/(?:génère|generate|crée|create)\s+(?:une?|an?)?\s*(?:voix|voice|audio|narration)\s+(?:pour|for|de|of|qui dit|saying)?\s*(.+)/i);
+    const text = textMatch ? textMatch[1].trim() : undefined;
+
+    // Check for character voice reference
+    const charMatch = input.match(/(?:voix|voice)\s+(?:de|of|pour|for|du|d'|d’)\s*(.+?)(?:\s+(?:qui|that|pour|for|disant|saying)|$)/i);
+    const character = charMatch ? charMatch[1].trim() : undefined;
+
+    return {
+      message: text
+        ? `🎤 I'll generate audio for: "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}". The voice will be synthesized using TTS.`
+        : character
+          ? `🎤 I'll generate a voice for the character "${character}". Please provide the text you'd like them to say.`
+          : `🎤 I'll generate audio for you! Tell me what text you'd like converted to speech.`,
+      suggestions: [
+        'Read this dialogue aloud',
+        'Generate a narration voice',
+        'Give a deep male voice to the narrator',
+      ],
+      actions: [{
+        type: 'generateAudio',
+        payload: { text: text || '', character, rawInput: input },
+      }],
+    };
+  }
+
+  /**
+   * Handle video generation request
+   */
+  private handleGenerateVideo(input: string): ChatResponse {
+    // Extract the description/prompt
+    const descMatch = input.match(/(?:vidéo|video|animation|clip)\s+(?:de|of|d'|d’|du|pour|for)?\s*(.+)/i)
+      || input.match(/(?:anime|animate|génère|generate|crée|create)\s+(?:une?|an?)?\s*(?:vidéo|video|animation)?\s*(.+)/i);
+    const prompt = descMatch ? descMatch[1].trim() : undefined;
+
+    return {
+      message: prompt
+        ? `🎬 I'll generate a video based on: "${prompt}". This will use the ComfyUI video generation pipeline.`
+        : `🎬 I'll generate a video for you! Describe the scene you'd like to animate using AI video generation.`,
+      suggestions: [
+        'Animate a walking character',
+        'Create a video of flowing water',
+        'Generate an animation of a flying dragon',
+      ],
+      actions: [{
+        type: 'generateVideo',
+        payload: { prompt: prompt || '', rawInput: input },
+      }],
+    };
+  }
+
+  // ========================================================================
+  // Utility Methods
+  // ========================================================================
 
   /**
    * Extract number from text

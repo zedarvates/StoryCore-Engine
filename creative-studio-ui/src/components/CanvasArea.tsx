@@ -59,9 +59,9 @@ const EffectStack = ({
   onEffectSelect,
   selectedEffectId
 }: {
-  effects: unknown[];
-  onEffectsChange: (effects: unknown[]) => void;
-  onEffectSelect: (effect: unknown) => void;
+  effects: any[];
+  onEffectsChange: (effects: any[]) => void;
+  onEffectSelect: (effect: any) => void;
   selectedEffectId?: string;
 }) => (
   <div className="p-4">
@@ -88,8 +88,8 @@ const EffectControls = ({
   onEffectDuplicate,
   onEffectToggle
 }: {
-  selectedEffect?: unknown;
-  onEffectChange: (effect: unknown) => void;
+  selectedEffect?: any;
+  onEffectChange: (effect: any) => void;
   onEffectDelete: (effectId: string) => void;
   onEffectDuplicate: (effectId: string) => void;
   onEffectToggle: (effectId: string) => void;
@@ -301,8 +301,8 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
           <button
             onClick={() => setActiveView('storyboard')}
             className={`px - 3 py - 1.5 text - sm rounded - md ${activeView === 'storyboard'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+              ? 'bg-primary text-primary-foreground'
+              : 'hover:bg-muted'
               } `}
           >
             Storyboard
@@ -310,8 +310,8 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
           <button
             onClick={() => setActiveView('timeline')}
             className={`px - 3 py - 1.5 text - sm rounded - md ${activeView === 'timeline'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+              ? 'bg-primary text-primary-foreground'
+              : 'hover:bg-muted'
               } `}
           >
             Timeline
@@ -319,8 +319,8 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
           <button
             onClick={() => setActiveView('grid')}
             className={`px - 3 py - 1.5 text - sm rounded - md flex items - center gap - 1 ${activeView === 'grid'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+              ? 'bg-primary text-primary-foreground'
+              : 'hover:bg-muted'
               } `}
           >
             <Grid3x3 className="w-4 h-4" />
@@ -329,8 +329,8 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
           <button
             onClick={() => setActiveView('effects')}
             className={`px - 3 py - 1.5 text - sm rounded - md flex items - center gap - 1 ${activeView === 'effects'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+              ? 'bg-primary text-primary-foreground'
+              : 'hover:bg-muted'
               } `}
           >
             <Layers className="w-4 h-4" />
@@ -414,7 +414,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
           {/* Effects Library - Left Panel */}
           <div className="w-80 border-r border-border bg-card">
             <EffectLibrary
-              onEffectApply={(effect) => {
+              onEffectApply={(effect: any) => {
                 const currentEffects = appliedEffects[selectedShotId || ''] || [];
                 const newEffect = {
                   ...effect,
@@ -456,7 +456,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                     [selectedShotId || '']: effects
                   }));
                 }}
-                onEffectSelect={(effect) => setSelectedEffectId(effect.id)}
+                onEffectSelect={(effect: any) => setSelectedEffectId(effect.id)}
                 selectedEffectId={selectedEffectId}
               />
             </div>
@@ -571,8 +571,8 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                       key={shot.id}
                       onClick={() => selectShot(shot.id)}
                       className={`group bg - card border - 2 rounded - xl overflow - hidden cursor - pointer transition - all duration - 300 hover: shadow - xl hover: shadow - primary / 10 hover: -translate - y - 1 ${selectedShotId === shot.id
-                          ? 'border-primary shadow-lg shadow-primary/20'
-                          : 'border-border hover:border-primary/50'
+                        ? 'border-primary shadow-lg shadow-primary/20'
+                        : 'border-border hover:border-primary/50'
                         } `}
                       aria-label={`Select shot ${shot.title} `}
                     >
@@ -598,8 +598,8 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
 
                         {/* Status Badge */}
                         <div className={`absolute top - 3 right - 3 px - 2 py - 1 rounded - full text - xs font - medium backdrop - blur - sm ${hasImage
-                            ? 'bg-green-500/80 text-white'
-                            : 'bg-amber-500/80 text-white'
+                          ? 'bg-green-500/80 text-white'
+                          : 'bg-amber-500/80 text-white'
                           } `}>
                           {hasImage ? '✓ Ready' : '⚠ Draft'}
                         </div>

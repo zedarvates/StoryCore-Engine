@@ -1,0 +1,18 @@
+{
+  "location_id": "6d5c5dd8-e08f-4ab5-9e2c-b12df2ab20a8",
+  "name": "The Clockwork Cathedral",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-16T06:54:53.196Z",
+  "version": "1.0",
+  "location_type": "interior",
+  "texture_direction": "inward",
+  "metadata": {
+    "description": "A massive, ornate structure built from gears and cogs as much as stone. Its clock face looms above the city like a cold, dead eye, as its mechanical heartbeat thunders out a steady drumbeat of doom.",
+    "atmosphere": "Menacing, imposing, heavy with the weight of calculated cruelty",
+    "genre_tags": [],
+    "significance": "The seat of the ruling Council's power, where dark magic is woven into the very fabric of the city's infrastructure."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

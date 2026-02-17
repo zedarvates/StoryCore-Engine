@@ -145,15 +145,15 @@ export class RetryManager {
           totalDuration,
         };
       } catch (error) {
-        const wizardError = error instanceof WizardError 
-          ? error 
+        const wizardError = error instanceof WizardError
+          ? error
           : new WizardError(
-              error instanceof Error ? error.message : 'Unknown error',
-              'unknown',
-              true,
-              true,
-              { originalError: error }
-            );
+            error instanceof Error ? error.message : 'Unknown error',
+            'unknown',
+            true,
+            true,
+            { originalError: error }
+          );
 
         lastError = wizardError;
         retryState.lastError = wizardError;
@@ -286,7 +286,7 @@ export class RetryManager {
    */
   updateConfig(config: Partial<RetryConfig>): void {
     this.config = { ...this.config, ...config };
-    this.logger.info('retry', 'Retry configuration updated', this.config);
+    this.logger.info('retry', 'Retry configuration updated', this.config as any);
   }
 
   /**

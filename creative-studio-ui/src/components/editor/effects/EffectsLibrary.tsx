@@ -52,35 +52,7 @@ import {
 } from 'lucide-react';
 import './EffectsLibrary.css';
 
-export interface EffectKeyframe {
-  id: string;
-  time: number; // in seconds
-  value: number; // 0-1 normalized value
-  interpolation: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
-}
-
-export interface Effect {
-  id: string;
-  name: string;
-  category: 'color' | 'creative' | 'transform' | 'temporal' | 'blur' | 'stylize';
-  icon: React.ReactNode;
-  description: string;
-  parameters: EffectParameter[];
-  preview?: string;
-}
-
-export interface EffectParameter {
-  id: string;
-  name: string;
-  type: 'range' | 'color' | 'select' | 'boolean' | 'number';
-  value: unknown;
-  min?: number;
-  max?: number;
-  step?: number;
-  options?: { label: string; value: unknown }[];
-  unit?: string;
-  keyframes?: EffectKeyframe[];
-}
+import { Effect, EffectParameter, EffectKeyframe } from '../../../types/effect';
 
 interface EffectsLibraryProps {
   onEffectSelect: (effect: Effect) => void;
@@ -329,6 +301,8 @@ const EFFECTS_DATA: Effect[] = [
     id: 'glitch',
     name: 'Glitch',
     category: 'stylize',
+    type: 'filter',
+    enabled: true,
     icon: <Zap size={16} />,
     description: 'Effet glitch numérique',
     parameters: [
@@ -357,7 +331,7 @@ export const EffectsLibrary: React.FC<EffectsLibraryProps> = ({
   const filteredEffects = EFFECTS_DATA.filter(effect => {
     const matchesCategory = effect.category === selectedCategory;
     const matchesSearch = effect.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         effect.description.toLowerCase().includes(searchTerm.toLowerCase());
+      effect.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && (searchTerm === '' || matchesSearch);
   });
 

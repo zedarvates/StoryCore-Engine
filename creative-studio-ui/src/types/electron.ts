@@ -244,6 +244,9 @@ export interface StoryCoreElectronAPI {
     getHistory: (projectPath: string) => Promise<RoverHistory>;
     restoreCheckpoint: (projectPath: string, commitId: string) => Promise<unknown>;
   };
+
+  // Terminal/Command execution
+  executeCommand: (options: { command: string; cwd?: string; shell?: boolean }) => Promise<{ success: boolean; output: string; error?: string }>;
 }
 
 export { };

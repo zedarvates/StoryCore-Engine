@@ -50,6 +50,8 @@ export function AssetCard({ asset, onSelect }: AssetCardProps) {
         return <MusicIcon className="h-8 w-8 text-purple-500" />;
       case 'template':
         return <FileIcon className="h-8 w-8 text-green-500" />;
+      case 'video':
+        return <FileIcon className="h-8 w-8 text-orange-500" />;
       default:
         return <FileIcon className="h-8 w-8 text-gray-500" />;
     }
@@ -64,6 +66,8 @@ export function AssetCard({ asset, onSelect }: AssetCardProps) {
         return 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300';
       case 'template':
         return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
+      case 'video':
+        return 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300';
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300';
     }
@@ -115,7 +119,7 @@ export function AssetCard({ asset, onSelect }: AssetCardProps) {
                 {getAssetIcon()}
               </div>
             )}
-            
+
             {/* Hover overlay */}
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <span className="text-white text-xs font-medium">
@@ -129,20 +133,20 @@ export function AssetCard({ asset, onSelect }: AssetCardProps) {
             <h4 className="text-sm font-medium truncate" title={asset.name}>
               {asset.name}
             </h4>
-            
+
             <div className="flex items-center justify-between">
               {/* Type Badge */}
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${getCategoryColor()}`}
               >
                 {getSubcategoryIcon()}
-                {asset.metadata?.subcategory || asset.type}
+                {(asset.metadata?.subcategory as string) || asset.type}
               </span>
-              
+
               {/* Additional metadata */}
               {asset.metadata?.duration && (
                 <span className="text-xs text-muted-foreground">
-                  {asset.metadata.duration}s
+                  {asset.metadata.duration as number}s
                 </span>
               )}
             </div>
