@@ -24,18 +24,27 @@ import './CharactersSection.css';
 export interface CharactersSectionProps {
   /** Handler for create character button click */
   onCreateCharacter: () => void;
-  
+
   /** Handler for character card click (opens editor) */
   onCharacterClick: (character: Character) => void;
-  
+
   /** Optional handler for character edit */
   onEditCharacter?: (character: Character) => void;
-  
+
   /** Optional handler for character delete */
   onDeleteCharacter?: (character: Character) => void;
-  
+
   /** Whether to show action buttons on character cards */
   showActions?: boolean;
+
+  /** Whether to hide the section header */
+  hideHeader?: boolean;
+
+  /** Optional className */
+  className?: string;
+
+  /** Optional style */
+  style?: React.CSSProperties;
 }
 
 // ============================================================================
@@ -63,25 +72,30 @@ export function CharactersSection({
   onEditCharacter,
   onDeleteCharacter,
   showActions = true,
+  hideHeader = false,
+  className = '',
+  style = {},
 }: CharactersSectionProps) {
   return (
-    <div className="characters-section">
+    <div className={`characters-section ${className}`} style={style}>
       {/* Section Header */}
-      <div className="characters-section__header">
-        <div className="characters-section__title-group">
-          <Users className="characters-section__icon" />
-          <h3 className="characters-section__title">Characters</h3>
+      {!hideHeader && (
+        <div className="characters-section__header">
+          <div className="characters-section__title-group">
+            <Users className="characters-section__icon" />
+            <h3 className="characters-section__title">Characters</h3>
+          </div>
+
+          <button
+            className="characters-section__create-button"
+            onClick={onCreateCharacter}
+            title="Create a new character"
+          >
+            <Plus className="characters-section__create-icon" />
+            <span>Create Character</span>
+          </button>
         </div>
-        
-        <button
-          className="characters-section__create-button"
-          onClick={onCreateCharacter}
-          title="Create a new character"
-        >
-          <Plus className="characters-section__create-icon" />
-          <span>Create Character</span>
-        </button>
-      </div>
+      )}
 
       {/* Character List */}
       <div className="characters-section__content">

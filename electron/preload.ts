@@ -187,7 +187,7 @@ const electronAPI: ElectronAPI = {
       }
       return result.data;
     },
-    writeFile: async (filePath: string, data: string | Buffer) => {
+    writeFile: async (filePath: string, data: string | Uint8Array | ArrayBuffer) => {
       const result = await ipcRenderer.invoke('fs:writeFile', filePath, data);
       if (!result.success) {
         throw new Error(result.error || 'Failed to write file');

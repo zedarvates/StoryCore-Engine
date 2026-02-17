@@ -21,7 +21,7 @@ export interface UseStateRecoveryOptions {
   /**
    * Wizard type
    */
-  wizardType: 'world' | 'character';
+  wizardType: 'world' | 'character' | 'sequence-plan';
 
   /**
    * Auto-check on mount

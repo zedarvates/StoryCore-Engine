@@ -11,7 +11,9 @@ export type WizardType =
   | 'storyboard-creator'
   | 'style-transfer'
   | 'sequence-plan'
-  | 'shot';
+  | 'shot'
+  | 'music-generation'
+  | 'lyrics-generation';
 
 export interface WizardAutoSaveState<T> {
   wizardType: WizardType;
@@ -272,6 +274,8 @@ function isValidWizardState(state: unknown): state is WizardAutoSaveState<any> {
     'style-transfer',
     'sequence-plan',
     'shot',
+    'music-generation',
+    'lyrics-generation',
   ];
 
   const s = state as any;
@@ -358,6 +362,8 @@ export function clearAllWizardStates(): void {
     'style-transfer',
     'sequence-plan',
     'shot',
+    'music-generation',
+    'lyrics-generation',
   ];
 
   wizardTypes.forEach(type => clearWizardState(type));
@@ -428,7 +434,7 @@ export function enableAutoExportOnError(): void {
 
   autoExportEnabled = true;
 
-  const wizardTypes: WizardType[] = [
+const wizardTypes: WizardType[] = [
     'world',
     'character',
     'storyteller',
@@ -438,6 +444,8 @@ export function enableAutoExportOnError(): void {
     'style-transfer',
     'sequence-plan',
     'shot',
+    'music-generation',
+    'lyrics-generation',
   ];
 
   // Listen for unhandled errors

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ChatService } from '../chatService';
-import type { ChatContext } from '../chatService';
+import type { ChatContext, ProjectCreationRequest } from '../chatService';
 
 describe('ChatService', () => {
   let chatService: ChatService;
@@ -9,6 +9,7 @@ describe('ChatService', () => {
   beforeEach(() => {
     mockContext = {
       project: {
+        id: 'test-project-1',
         schema_version: '1.0',
         project_name: 'Test Project',
         shots: [],
@@ -154,7 +155,8 @@ describe('ChatService', () => {
       expect(response.actions).toBeDefined();
       expect(response.actions?.length).toBe(1);
       expect(response.actions?.[0].type).toBe('addShot');
-      expect(response.actions?.[0].payload.title).toContain('sunset');
+      const payload = response.actions?.[0].payload as any;
+      expect(payload.title).toContain('sunset');
     });
 
     it('creates multiple shots', async () => {
@@ -168,7 +170,8 @@ describe('ChatService', () => {
     it('extracts theme from input', async () => {
       const response = await chatService.processMessage('Add 2 action shots');
 
-      expect(response.actions?.[0].payload.title).toContain('action');
+      const payload = response.actions?.[0].payload as any;
+      expect(payload.title).toContain('action');
     });
 
     it('provides suggestions after creating shots', async () => {
@@ -347,7 +350,7 @@ describe('ChatService', () => {
     it('notifies when no assets exist', async () => {
       const response = await chatService.processMessage('Suggest assets');
 
-      expect(response.message).toContain("don't have any assets");
+      expect(response.message).toContain("You don't have any assets yet");
     });
 
     it('provides asset information when assets exist', async () => {
@@ -423,6 +426,53 @@ describe('ChatService', () => {
 
       expect(response.suggestions).toBeDefined();
       expect(response.suggestions?.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Project Creation (French)', () => {
+    it('recognizes French project creation intent', async () => {
+      const input = "Créer un nouveau projet qui s'intitulera 'Petit Chaperon rouge 2048'";
+      const response = await chatService.processMessage(input);
+
+      expect(response.message).toContain('Petit Chaperon rouge 2048');
+      expect(response.actions).toBeDefined();
+      expect(response.actions?.[0].type).toBe('createProject');
+      const payload = response.actions?.[0].payload as any;
+      expect(payload.name).toContain('Petit Chaperon rouge 2048');
+    });
+
+    it('recognizes implicit French project creation with unquoted title', async () => {
+      const input = "Créer un projet intitulé Le Retour du Roi";
+      const response = await chatService.processMessage(input);
+
+      const payload = response.actions?.[0].payload as any;
+      expect(payload.name).toContain('Le Retour du Roi');
+    });
+
+    it('recognizes complex French input', async () => {
+      const input = "Créer un nouveau projet ? Qui s'intitulera Petit Chaperon rouge 2048 si. Si Daft Punk. Dark Song.";
+      const response = await chatService.processMessage(input);
+
+      expect(response.actions).toBeDefined();
+      expect(response.actions?.[0].type).toBe('createProject');
+      // Takes everything until punctuation or newline, here "Petit Chaperon rouge 2048 si"
+      const payload = response.actions?.[0].payload as ProjectCreationRequest;
+      expect(payload.name).toContain('Petit Chaperon rouge 2048');
+    });
+  });
+
+  describe('Project Creation (Complex Prompts)', () => {
+    it('recognizes lengthy project creation prompt', async () => {
+      const input = "Create an intense, cinematic trailer for a cyberpunk reinterpretation of Snow White set in the year 2048. Tone must be dark, tense, and futuristic. Mix dramatic narration, action scenes, emotional tension, and memorable punchlines. Include: neon megacity, corrupted AI as the Queen, Snow White as a wanted hacker, seven augmented mercenaries, surveillance drones, alleyway chases, explosive climax. Style: Hollywood trailer, rising crescendo, short lines, impactful voice‑over.";
+      const response = await chatService.processMessage(input);
+
+      expect(response.actions).toBeDefined();
+      expect(response.actions?.[0].type).toBe('createProject');
+      const payload = response.actions?.[0].payload as any;
+      // It should likely pick up 'Snow White' or generate a generic name if it fails to find a name pattern
+      // The current logic might fail to find a name, let's see what it does
+      console.log('Project Name:', payload.name);
+      expect(payload.description).toBe(input);
     });
   });
 });

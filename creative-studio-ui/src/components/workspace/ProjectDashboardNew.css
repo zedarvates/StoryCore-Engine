@@ -97,23 +97,28 @@
 }
 
 .status-indicator.connected {
-  background: #22c55e; /* Green */
+  background: #22c55e;
+  /* Green */
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
   animation: pulse-connected 2s ease-in-out infinite;
 }
 
 .status-indicator.disconnected {
-  background: #ef4444; /* Red */
+  background: #ef4444;
+  /* Red */
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
   animation: none;
 }
 
 /* Pulse animation for connected status */
 @keyframes pulse-connected {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.7;
     transform: scale(1.1);
@@ -139,6 +144,56 @@
   width: 300px;
   flex-shrink: 0;
   overflow-y: auto;
+}
+
+/* Collapsible Section Styles */
+.collapsible-section {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapsible-section.is-collapsed {
+  background: #1e1e1e;
+}
+
+.collapsible-header:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.collapsible-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #efefef !important;
+}
+
+.collapsible-content {
+  padding: 1.5rem;
+  animation: slide-down 0.3s ease-out;
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-icon {
+  color: #4a9eff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Tips Section */
@@ -206,13 +261,13 @@
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
 }
 
-.tips-list li > svg {
+.tips-list li>svg {
   flex-shrink: 0;
   margin-top: 0.125rem;
   color: #667eea;
 }
 
-.tips-list li > div {
+.tips-list li>div {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -351,9 +406,6 @@
   transition: height 0.1s ease-out;
 }
 
-.chatterbox-container.resizable {
-  /* Container becomes resizable */
-}
 
 .chatterbox-resize-handle {
   position: absolute;
@@ -841,6 +893,7 @@
   margin: 0 0 16px 0;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1056,6 +1109,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1101,7 +1155,7 @@
   margin-top: 2px;
 }
 
-.metadata-item > div {
+.metadata-item>div {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1620,7 +1674,7 @@
 }
 
 /* Character card wrapper in dashboard grid */
-.dashboard-left .character-list__grid > * {
+.dashboard-left .character-list__grid>* {
   height: 100%;
 }
 
@@ -1637,7 +1691,7 @@
     height: 140px;
     min-height: 140px;
   }
-  
+
   .dashboard-left .character-list__grid {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -1649,7 +1703,7 @@
   .dashboard-left .character-card__thumbnail {
     background: #1f2937;
   }
-  
+
   .dashboard-left .character-card__thumbnail-placeholder {
     background: #1f2937;
     color: #9ca3af;
@@ -1775,6 +1829,7 @@
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1853,6 +1908,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

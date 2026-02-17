@@ -250,6 +250,12 @@ export function StoryCoreAssistant() {
       await handleWizardLaunch('world-building');
     } else if (lowerMessage.includes('storyboard')) {
       await handleWizardLaunch('storyboard-creator');
+    } else if (lowerMessage.includes('music') || lowerMessage.includes('musique')) {
+      await handleWizardLaunch('music-generation');
+    } else if (lowerMessage.includes('lyrics') || lowerMessage.includes('paroles') || lowerMessage.includes('chanson')) {
+      await handleWizardLaunch('lyrics-generation');
+    } else if (lowerMessage.includes('sequence') || lowerMessage.includes('séquence')) {
+      await handleWizardLaunch('sequence-plan');
     } else if (lowerMessage.includes('export') || lowerMessage.includes('film')) {
       // New: export guidance
       const projectStatus = PipelineAwareLLM.getProjectCompletionStatus();
@@ -451,7 +457,11 @@ export function StoryCoreAssistant() {
       'scene-generator': `🎬 I'm using the Scene Generator to create complete cinematic scenes. This wizard combines storytelling, cinematography, and visual design for compelling sequences.`,
       'storyboard-creator': `📋 I'm using the Storyboard Creator to visualize your story through sequential panels. This wizard generates professional storyboard layouts for planning and communication.`,
       'style-transfer': `🎨 I'm using the Style Transfer Wizard to apply consistent visual styles across your project. This wizard ensures visual cohesion and artistic consistency.`,
-      'project-init': `📁 I'm using the Project Initialization Wizard to set up your new StoryCore project. This wizard creates the perfect foundation with guided setup and story generation.`
+      'project-init': `📁 I'm using the Project Initialization Wizard to set up your new StoryCore project. This wizard creates the perfect foundation with guided setup and story generation.`,
+      'sequence-plan': `🎬 I'm using the Sequence Plan Wizard to create detailed shot sequences for your story. This wizard helps you organize your narrative into coherent cinematic sequences with proper pacing and flow.`,
+      'shot': `📸 I'm using the Shot Wizard to create and configure individual shots. This wizard helps you define camera angles, compositions, and visual details for each shot in your sequence.`,
+      'music-generation': `🎵 I'm using the Music Generation Wizard to create original music for your project. Describe the mood, style, and duration you need, and the AI will generate detailed music prompts that can be used with music generation tools.`,
+      'lyrics-generation': `🎤 I'm using the Lyrics Generation Wizard to write original lyrics for your project. Whether you need a song for a specific scene or background music with vocals, this wizard helps create compelling lyrics.`,
     };
 
     const announcement = announcements[wizardId] || `🚀 I'm launching the ${wizard.name} to help with your creative workflow.`;

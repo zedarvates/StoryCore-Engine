@@ -29,6 +29,8 @@ import type { WizardType } from '@/contexts/WizardContext';
 interface DashboardAddonsSectionProps {
   readonly className?: string;
   readonly onLaunchWizard?: (wizardType: WizardType, initialData?: Record<string, unknown>) => void;
+  readonly hideHeader?: boolean;
+  readonly style?: React.CSSProperties;
 }
 
 /**
@@ -131,7 +133,12 @@ function getAddonWizard(addonId: string): WizardType | null {
   return ADDON_WIZARD_MAP[addonId] || null;
 }
 
-export function DashboardAddonsSection({ className = '', onLaunchWizard }: DashboardAddonsSectionProps) {
+export function DashboardAddonsSection({
+  className = '',
+  onLaunchWizard,
+  hideHeader = false,
+  style = {}
+}: DashboardAddonsSectionProps) {
   const [addons, setAddons] = useState<AddonInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
@@ -238,13 +245,15 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
   // Show loading state
   if (loading) {
     return (
-      <div className={`addons-section ${className}`}>
-        <div className="section-header">
-          <h3>
-            <Puzzle className="w-5 h-5" />
-            <span>Add-ons</span>
-          </h3>
-        </div>
+      <div className={`addons-section ${className}`} style={style}>
+        {!hideHeader && (
+          <div className="section-header">
+            <h3>
+              <Puzzle className="w-5 h-5" />
+              <span>Add-ons</span>
+            </h3>
+          </div>
+        )}
         <div className="addons-loading">
           <Loader2 className="w-5 h-5 animate-spin" />
           <span>Loading addons...</span>
@@ -256,21 +265,23 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
   // Don't render section if no addons
   if (addons.length === 0) {
     return (
-      <div className={`addons-section ${className}`}>
-        <div className="section-header">
-          <h3>
-            <Puzzle className="w-5 h-5" />
-            <span>Add-ons</span>
-          </h3>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManageAddons}
-            className="text-xs"
-          >
-            Browse Add-ons
-          </Button>
-        </div>
+      <div className={`addons-section ${className}`} style={style}>
+        {!hideHeader && (
+          <div className="section-header">
+            <h3>
+              <Puzzle className="w-5 h-5" />
+              <span>Add-ons</span>
+            </h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManageAddons}
+              className="text-xs"
+            >
+              Browse Add-ons
+            </Button>
+          </div>
+        )}
         <div className="addons-empty">
           <p>No add-ons activated yet.</p>
           <p className="text-xs text-muted-foreground">
@@ -282,35 +293,37 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
   }
 
   return (
-    <div className={`addons-section ${className}`}>
-      <div className="section-header">
-        <h3>
-          <Puzzle className="w-5 h-5" />
-          <span>Add-ons</span>
-          <span className="addon-count">
-            ({addons.filter(a => a.enabled).length}/{addons.length})
-          </span>
-        </h3>
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            className="text-xs h-8 w-8 p-0"
-            title="Refresh"
-          >
-            <Loader2 className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManageAddons}
-            className="text-xs"
-          >
-            Manage
-          </Button>
+    <div className={`addons-section ${className}`} style={style}>
+      {!hideHeader && (
+        <div className="section-header">
+          <h3>
+            <Puzzle className="w-5 h-5" />
+            <span>Add-ons</span>
+            <span className="addon-count">
+              ({addons.filter(a => a.enabled).length}/{addons.length})
+            </span>
+          </h3>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefresh}
+              className="text-xs h-8 w-8 p-0"
+              title="Refresh"
+            >
+              <Loader2 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManageAddons}
+              className="text-xs"
+            >
+              Manage
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="addons-grid">
         {addons.map((addon) => {

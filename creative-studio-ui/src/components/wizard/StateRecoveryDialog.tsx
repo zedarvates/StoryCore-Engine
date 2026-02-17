@@ -15,7 +15,7 @@ export interface StateRecoveryDialogProps {
   /**
    * Wizard type
    */
-  wizardType: 'world' | 'character';
+  wizardType: 'world' | 'character' | 'sequence-plan';
 
   /**
    * Validation result

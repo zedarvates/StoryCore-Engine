@@ -19,7 +19,8 @@ import { usePagination } from '@/hooks/usePagination';
 import { Pagination } from '@/components/ui/pagination';
 import type { Character } from '@/types/character';
 import type { CharacterFilters } from '@/stores/useAppStore';
-import { eventEmitter } from '@/services/eventEmitter';
+import { eventEmitter, WizardEventType } from '@/services/eventEmitter';
+import { useStore } from '@/store';
 import { deduplicateCharacters, logDuplicateInfo } from '@/utils/deduplicateCharacters';
 import './CharacterList.css';
 
@@ -96,6 +97,9 @@ export function CharacterList({
 
   const characterManager = useCharacterManager();
 
+  // Main store state for reactivity
+  const allCharactersFromStore = useStore((state) => state.characters);
+
   // Store state for search and filters
   const characterSearchQuery = useAppStore((state) => state.characterSearchQuery);
   const characterFilters = useAppStore((state) => state.characterFilters);
@@ -131,7 +135,7 @@ export function CharacterList({
       console.log('🔍 [CharacterList] Recalculating characters list');
     }
 
-    let result = characterManager.getAllCharacters();
+    let result = [...allCharactersFromStore];
 
     if (process.env.NODE_ENV === 'development') {
       console.log(`📊 [CharacterList] Total characters from store: ${result.length}`);
@@ -195,7 +199,7 @@ export function CharacterList({
     }
     return result;
   }, [
-    characterManager,
+    allCharactersFromStore,
     characterSearchQuery,
     characterFilters,
     refreshTrigger, // Trigger re-computation on events
@@ -264,9 +268,9 @@ export function CharacterList({
     };
 
     // Subscribe to events
-    const sub1 = eventEmitter.on('character-created', handleCharacterCreated);
-    const sub2 = eventEmitter.on('character-updated', handleCharacterUpdated);
-    const sub3 = eventEmitter.on('character-deleted', handleCharacterDeleted);
+    const sub1 = eventEmitter.on(WizardEventType.CHARACTER_CREATED, handleCharacterCreated);
+    const sub2 = eventEmitter.on(WizardEventType.CHARACTER_UPDATED, handleCharacterUpdated);
+    const sub3 = eventEmitter.on(WizardEventType.CHARACTER_DELETED, handleCharacterDeleted);
 
     // Cleanup subscriptions on unmount
     return () => {

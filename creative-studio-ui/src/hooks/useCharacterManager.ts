@@ -9,6 +9,7 @@
 
 import { useCallback } from 'react';
 import { useStore } from '../store';
+import { useAppStore } from '../stores/useAppStore';
 import type { Character } from '../types/character';
 import type { Story } from '../types/story';
 import {
@@ -102,7 +103,7 @@ export function validateCharacter(
   if (data.relationships && data.relationships.length > 0 && existingCharacters) {
     const invalidRelationships: string[] = [];
     const characterIds = new Set(existingCharacters.map(c => c.character_id));
-    
+
     // Also include the current character's ID if it exists (for updates)
     if (data.character_id) {
       characterIds.add(data.character_id);
@@ -223,6 +224,9 @@ export function useCharacterManager() {
             posture: data.visual_identity?.posture || '',
             clothing_style: data.visual_identity?.clothing_style || '',
             color_palette: data.visual_identity?.color_palette || [],
+            gender: data.visual_identity?.gender || 'neutral',
+            reference_images: data.visual_identity?.reference_images || [],
+            reference_sheet_images: data.visual_identity?.reference_sheet_images || [],
           },
           personality: {
             traits: data.personality?.traits || [],
@@ -253,6 +257,17 @@ export function useCharacterManager() {
         // Add to store (Requirement: 2.5)
         // Store handles persistence to localStorage and event emission
         addCharacterToStore(character);
+
+        // Also update the project in AppStore to ensure persistence
+        const appStore = useAppStore.getState();
+        const currentProject = appStore.project;
+        if (currentProject) {
+          const projectCharacters = currentProject.characters || [];
+          appStore.setProject({
+            ...currentProject,
+            characters: [...projectCharacters, character]
+          });
+        }
 
         return character;
       } catch (error) {
@@ -321,6 +336,20 @@ export function useCharacterManager() {
         // Update in store (Requirement: 2.5)
         // Store handles persistence to localStorage and event emission
         updateCharacterInStore(id, updates);
+
+        // Also update the project in AppStore to ensure persistence
+        const appStore = useAppStore.getState();
+        const currentProject = appStore.project;
+        if (currentProject) {
+          const projectCharacters = currentProject.characters || [];
+          const updatedCharacters = projectCharacters.map((c) =>
+            c.character_id === id ? { ...c, ...updates } : c
+          );
+          appStore.setProject({
+            ...currentProject,
+            characters: updatedCharacters
+          });
+        }
 
         // Get updated character
         const updatedCharacter = getCharacterFromStore(id);
@@ -410,7 +439,7 @@ export function useCharacterManager() {
         // Check dependencies (Requirement: 7.1)
         if (!force) {
           const dependencies = checkDependencies(id);
-          
+
           if (dependencies.stories.length > 0 && !removeFromStories) {
             const storyNames = dependencies.stories.map((s) => s.title).join(', ');
             throw new CharacterError(
@@ -472,6 +501,18 @@ export function useCharacterManager() {
         // Delete from store (Requirement: 7.4)
         // Store handles removal from localStorage and event emission
         deleteCharacterFromStore(id);
+
+        // Also update the project in AppStore to ensure persistence
+        const appStore = useAppStore.getState();
+        const currentProject = appStore.project;
+        if (currentProject) {
+          const projectCharacters = currentProject.characters || [];
+          const updatedCharacters = projectCharacters.filter((c) => c.character_id !== id);
+          appStore.setProject({
+            ...currentProject,
+            characters: updatedCharacters
+          });
+        }
       } catch (error) {
         // Handle and display error
         handleCharacterError(error, 'Character Deletion');
@@ -530,7 +571,7 @@ export function useCharacterManager() {
         // Create event emitter adapter
         const eventEmitterAdapter: CharacterEventEmitter = {
           emit: (eventType: string, payload: unknown) => {
-            eventEmitter.emit(eventType as any, payload);
+            eventEmitter.emit(eventType as any, payload as any);
           },
         };
 
@@ -591,7 +632,7 @@ export function useCharacterManager() {
         // Create event emitter adapter
         const eventEmitterAdapter: CharacterEventEmitter = {
           emit: (eventType: string, payload: unknown) => {
-            eventEmitter.emit(eventType as any, payload);
+            eventEmitter.emit(eventType as any, payload as any);
           },
         };
 
@@ -640,7 +681,7 @@ export function useCharacterManager() {
         // Create event emitter adapter
         const eventEmitterAdapter: CharacterEventEmitter = {
           emit: (eventType: string, payload: unknown) => {
-            eventEmitter.emit(eventType as any, payload);
+            eventEmitter.emit(eventType as any, payload as any);
           },
         };
 
@@ -811,11 +852,12 @@ export function useCharacterManager() {
         }
 
         // Check for ID conflicts (Requirement: 10.5)
-        const existingCharacter = getCharacterFromStore(parsedData.character_id);
+        const id = (parsedData as any).character_id;
+        const existingCharacter = getCharacterFromStore(id);
         if (existingCharacter) {
           throw new CharacterError(
             CharacterErrorType.DUPLICATE_ID,
-            `Character with ID "${parsedData.character_id}" already exists. ` +
+            `Character with ID "${id}" already exists. ` +
             `Please rename or delete the existing character before importing.`,
             { existingCharacter, importedCharacter: parsedData }
           );

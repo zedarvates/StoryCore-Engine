@@ -655,3 +655,12 @@ export interface ShotWizardContext {
   initialData?: unknown;
 }
 
+export interface SequencePlanWizardState {
+  currentStep: number;
+  formData: Partial<import('./sequencePlan').SequencePlan>;
+  selectedTemplate?: import('./template').SequenceTemplate;
+  validationErrors: Record<string, string>;
+  isDirty: boolean;
+  lastSaved: number;
+}
+

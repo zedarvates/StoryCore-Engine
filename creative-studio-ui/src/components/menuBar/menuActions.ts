@@ -927,7 +927,55 @@ export const wizardsActions = {
 export const helpActions = {
   documentation(ctx: ActionContext): void {
     console.log('[MenuAction] Open Documentation');
-    window.open('https://docs.storycore.dev', '_blank');
+    
+    // Get user language preference (default: English)
+    // Check if French is preferred
+    const userLang = navigator.language || 'en';
+    const isFrench = userLang.startsWith('fr');
+    
+    // Use English by default, French if explicitly set
+    const docsFile = isFrench ? 'USER_GUIDE_fr.md' : 'USER_GUIDE.md';
+    
+    // Try to open local documentation first, fallback to online
+    const isElectron = typeof window !== 'undefined' && (window as any).electronAPI;
+    
+    if (isElectron) {
+      // In Electron: use app.openFolder to open documentation directory
+      if ((window.electronAPI as any).app?.openFolder) {
+        (window.electronAPI as any).app.openFolder('documentation')
+          .catch(() => {
+            // Fallback to online docs
+            window.open('https://docs.storycore.dev', '_blank');
+          });
+      } else {
+        window.open('https://docs.storycore.dev', '_blank');
+      }
+    } else {
+      // Web mode: try relative path or fallback
+      const relativePath = window.location.pathname + '/documentation/' + docsFile;
+      window.open(relativePath, '_blank') || window.open('https://docs.storycore.dev', '_blank');
+    }
+  },
+  
+  documentationFrench(ctx: ActionContext): void {
+    console.log('[MenuAction] Open Documentation (French)');
+    
+    // Open French documentation
+    const isElectron = typeof window !== 'undefined' && (window as any).electronAPI;
+    
+    if (isElectron) {
+      if ((window.electronAPI as any).app?.openFolder) {
+        (window.electronAPI as any).app.openFolder('documentation')
+          .catch(() => {
+            window.open('https://docs.storycore.dev/fr', '_blank');
+          });
+      } else {
+        window.open('https://docs.storycore.dev/fr', '_blank');
+      }
+    } else {
+      const relativePath = window.location.pathname + '/documentation/USER_GUIDE_fr.md';
+      window.open(relativePath, '_blank') || window.open('https://docs.storycore.dev/fr', '_blank');
+    }
   },
 
   keyboardShortcuts(ctx: ActionContext): void {

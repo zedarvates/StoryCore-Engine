@@ -66,7 +66,10 @@ export interface CharacterCreationParams {
     personality?: string[];
     appearance?: string;
     backstory?: string;
+    description?: string;
     worldContext?: string;
+    visualRef?: string; // Base64 image
+    prompts?: string[]; // Generation prompts
 }
 
 export interface LocationCreationParams {
@@ -76,6 +79,8 @@ export interface LocationCreationParams {
     atmosphere?: string;
     significance?: string;
     worldContext?: string;
+    visualRef?: string; // Base64 image
+    prompts?: string[]; // Generation prompts
 }
 
 export interface ObjectCreationParams {
@@ -85,7 +90,10 @@ export interface ObjectCreationParams {
     rarity?: string;
     powerLevel?: number;
     abilities?: string[];
+    lore?: string;
     worldContext?: string;
+    visualRef?: string; // Base64 image
+    prompts?: string[]; // Generation prompts
 }
 
 export interface DialogueCreationParams {
@@ -571,22 +579,34 @@ class ContentCreationServiceImpl {
         const id = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const now = Date.now();
 
+        // Helper for data URIs
+        const formatImage = (base64: string | undefined) => {
+            if (!base64) return undefined;
+            return base64.startsWith('data:') ? base64 : `data:image/png;base64,${base64}`;
+        };
+
+        const charData = data as CharacterCreationParams;
+        const locData = data as LocationCreationParams;
+        const objData = data as ObjectCreationParams;
+
         switch (type) {
             case 'character': {
                 return {
                     id,
-                    name: data.name as string,
-                    archetype: data.archetype || 'explorer',
-                    role: data.role || 'supporting',
-                    gender: data.gender || 'neutral',
-                    age: data.age || '',
-                    description: data.description || '',
-                    personality: data.personality || [],
-                    appearance: data.appearance || '',
-                    backstory: data.backstory || '',
+                    name: charData.name,
+                    archetype: charData.archetype || 'explorer',
+                    role: charData.role || 'supporting',
+                    gender: charData.gender || 'neutral',
+                    age: charData.age || '',
+                    description: charData.description || '',
+                    personality: charData.personality || [],
+                    appearance: charData.appearance || '',
+                    backstory: charData.backstory || '',
                     visual_identity: {
-                        physical_description: data.appearance || data.description || '',
+                        physical_description: charData.appearance || charData.description || '',
+                        generated_portrait: formatImage(charData.visualRef),
                     },
+                    prompts: charData.prompts || [],
                     createdAt: now,
                     updatedAt: now,
                 };
@@ -595,11 +615,15 @@ class ContentCreationServiceImpl {
             case 'location': {
                 return {
                     id,
-                    name: data.name as string,
-                    type: data.type || 'landmark',
-                    description: data.description || '',
-                    atmosphere: data.atmosphere || '',
-                    significance: data.significance || '',
+                    name: locData.name,
+                    type: locData.type || 'landmark',
+                    metadata: {
+                        description: locData.description || '',
+                        atmosphere: locData.atmosphere || '',
+                        significance: locData.significance || '',
+                        thumbnail_path: formatImage(locData.visualRef),
+                    },
+                    prompts: locData.prompts || [],
                     coordinates: { x: 0, y: 0 },
                     connectedLocations: [],
                     createdAt: now,
@@ -610,13 +634,16 @@ class ContentCreationServiceImpl {
             case 'object': {
                 return {
                     id,
-                    name: data.name as string,
-                    type: data.type || 'artifact',
-                    description: data.description || '',
-                    rarity: data.rarity || 'uncommon',
-                    powerLevel: data.powerLevel || 1,
-                    abilities: data.abilities || [],
-                    lore: data.lore || '',
+                    name: objData.name,
+                    type: objData.type || 'artifact',
+                    description: objData.description || '',
+                    rarity: objData.rarity || 'uncommon',
+                    powerLevel: objData.powerLevel || 1,
+                    abilities: objData.abilities || [],
+                    lore: (objData as any).lore || '',
+                    imageUrl: formatImage(objData.visualRef),
+                    prompts: objData.prompts || [],
+                    generatedBy: 'ai',
                     createdAt: now,
                     updatedAt: now,
                 };

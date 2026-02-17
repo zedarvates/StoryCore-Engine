@@ -41,27 +41,36 @@ export interface WorldLocationData {
 export interface LocationSectionProps {
   /** Handler for create location button click */
   onCreateLocation?: () => void;
-  
+
   /** Handler for location card click (opens editor) */
   onLocationClick?: (location: Location) => void;
-  
+
   /** Optional handler for location edit */
   onEditLocation?: (location: Location) => void;
-  
+
   /** Optional handler for location delete */
   onDeleteLocation?: (location: Location) => void;
-  
+
   /** Whether to show action buttons on location cards */
   showActions?: boolean;
-  
+
   /** Whether to auto-fetch locations on mount */
   autoFetch?: boolean;
-  
+
   /** Optional world building locations for integration */
   worldLocations?: WorldLocationData[];
-  
+
   /** Handler when a location is created from world data */
   onCreateFromWorld?: (worldLocation: WorldLocationData) => void;
+
+  /** Whether to hide the section header */
+  hideHeader?: boolean;
+
+  /** Optional className */
+  className?: string;
+
+  /** Optional style */
+  style?: React.CSSProperties;
 }
 
 // ============================================================================
@@ -77,6 +86,9 @@ export function LocationSection({
   autoFetch = true,
   worldLocations = [],
   onCreateFromWorld,
+  hideHeader = false,
+  className = '',
+  style = {},
 }: LocationSectionProps) {
   const {
     locations,
@@ -88,18 +100,18 @@ export function LocationSection({
     isLoading,
     error,
   } = useLocationStore();
-  
+
   // Get project ID for fetching project-local locations
-  const projectId = typeof window !== 'undefined' 
+  const projectId = typeof window !== 'undefined'
     ? window.location.pathname.split(/[/\\]/).pop() || 'unknown'
     : 'unknown';
-  
+
   const [showEditor, setShowEditor] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showWorldSelector, setShowWorldSelector] = useState(false);
   const [selectedWorldLocation, setSelectedWorldLocation] = useState<WorldLocationData | null>(null);
-  
+
   // Fetch locations on mount (both central and project-local)
   useEffect(() => {
     if (autoFetch) {
@@ -109,17 +121,17 @@ export function LocationSection({
       }
     }
   }, [autoFetch, fetchLocations, fetchProjectLocations, projectId]);
-  
+
   const handleCreateLocation = useCallback(() => {
     setEditingLocation(null);
     setShowCreateModal(true);
     if (onCreateLocation) onCreateLocation();
   }, [onCreateLocation]);
-  
+
   const handleCreateFromWorld = useCallback((worldLocation: WorldLocationData) => {
     setSelectedWorldLocation(worldLocation);
     setShowWorldSelector(false);
-    
+
     // Pre-populate editor with world data
     const prePopulatedData: Partial<Location> = {
       name: worldLocation.name,
@@ -133,28 +145,28 @@ export function LocationSection({
       world_id: worldLocation.world_id,
       world_location_id: worldLocation.id,
     };
-    
+
     setEditingLocation(prePopulatedData as Location);
     setShowCreateModal(true);
     onCreateFromWorld?.(worldLocation);
   }, [onCreateFromWorld]);
-  
+
   const handleWorldSelectorOpen = useCallback(() => {
     setShowWorldSelector(true);
   }, []);
-  
+
   const handleLocationClick = useCallback((location: Location) => {
     setEditingLocation(location);
     setShowEditor(true);
     if (onLocationClick) onLocationClick(location);
   }, [onLocationClick]);
-  
+
   const handleEditLocation = useCallback((location: Location) => {
     setEditingLocation(location);
     setShowCreateModal(true);
     if (onEditLocation) onEditLocation(location);
   }, [onEditLocation]);
-  
+
   const handleDeleteLocation = useCallback(async (location: Location) => {
     if (window.confirm(`Are you sure you want to delete "${location?.name || 'this location'}"?`)) {
       try {
@@ -165,7 +177,7 @@ export function LocationSection({
       }
     }
   }, [deleteLocation, onDeleteLocation]);
-  
+
   const handleSaveLocation = useCallback(async (locationData: Partial<Location>) => {
     try {
       if (editingLocation) {
@@ -202,73 +214,75 @@ export function LocationSection({
       console.error('Failed to save location:', err);
     }
   }, [editingLocation, addLocation, updateLocation]);
-  
+
   const handleCloseEditor = useCallback(() => {
     setShowEditor(false);
     setEditingLocation(null);
   }, []);
-  
+
   const handleCloseCreateModal = useCallback(() => {
     setShowCreateModal(false);
     setEditingLocation(null);
   }, []);
-  
+
   const handleRefresh = useCallback(() => {
     fetchLocations();
     if (projectId && projectId !== 'unknown') {
       fetchProjectLocations(projectId);
     }
   }, [fetchLocations, fetchProjectLocations, projectId]);
-  
+
   return (
-    <div className="location-section">
+    <div className={`location-section ${className}`} style={style}>
       {/* Section Header */}
-      <div className="location-section__header">
-        <div className="location-section__title-wrapper">
-          <Map className="location-section__icon" size={24} />
-          <h2 className="location-section__title">Locations</h2>
-          <span className="location-section__count">
-            {locations.length} {locations.length === 1 ? 'location' : 'locations'}
-          </span>
+      {!hideHeader && (
+        <div className="location-section__header">
+          <div className="location-section__title-wrapper">
+            <Map className="location-section__icon" size={24} />
+            <h2 className="location-section__title">Locations</h2>
+            <span className="location-section__count">
+              {locations.length} {locations.length === 1 ? 'location' : 'locations'}
+            </span>
+          </div>
+
+          <div className="location-section__actions">
+            {/* World Building Integration */}
+            {worldLocations.length > 0 && (
+              <div className="location-section__world-dropdown">
+                <button
+                  className="location-section__world-btn"
+                  onClick={handleWorldSelectorOpen}
+                  title="Create from World Building"
+                >
+                  <Globe size={16} />
+                  <span>From World</span>
+                  <ExternalLink size={12} />
+                </button>
+              </div>
+            )}
+
+            {/* Refresh button */}
+            <button
+              className="location-section__refresh"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              title="Refresh locations"
+            >
+              <RefreshCw size={16} className={isLoading ? 'location-section__spinner' : ''} />
+            </button>
+
+            {/* Create button */}
+            <button
+              className="location-section__create"
+              onClick={handleCreateLocation}
+            >
+              <Plus size={18} />
+              <span>Create</span>
+            </button>
+          </div>
         </div>
-        
-        <div className="location-section__actions">
-          {/* World Building Integration */}
-          {worldLocations.length > 0 && (
-            <div className="location-section__world-dropdown">
-              <button
-                className="location-section__world-btn"
-                onClick={handleWorldSelectorOpen}
-                title="Create from World Building"
-              >
-                <Globe size={16} />
-                <span>From World</span>
-                <ExternalLink size={12} />
-              </button>
-            </div>
-          )}
-          
-          {/* Refresh button */}
-          <button
-            className="location-section__refresh"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            title="Refresh locations"
-          >
-            <RefreshCw size={16} className={isLoading ? 'location-section__spinner' : ''} />
-          </button>
-          
-          {/* Create button */}
-          <button
-            className="location-section__create"
-            onClick={handleCreateLocation}
-          >
-            <Plus size={18} />
-            <span>Create</span>
-          </button>
-        </div>
-      </div>
-      
+      )}
+
       {/* Error display */}
       {error && (
         <div className="location-section__error">
@@ -276,7 +290,7 @@ export function LocationSection({
           <button onClick={handleRefresh}> Retry</button>
         </div>
       )}
-      
+
       {/* Location List */}
       <LocationList
         onCreateLocation={handleCreateLocation}
@@ -287,7 +301,7 @@ export function LocationSection({
         showCreateButton={true}
         showActions={true}
       />
-      
+
       {/* Create/Edit Modal */}
       {showCreateModal && (
         <div className="location-section__modal-overlay" onClick={handleCloseCreateModal}>
@@ -308,7 +322,7 @@ export function LocationSection({
           </div>
         </div>
       )}
-      
+
       {/* Full Editor Modal */}
       {showEditor && editingLocation && (
         <div className="location-section__modal-overlay" onClick={handleCloseEditor}>
@@ -330,7 +344,7 @@ export function LocationSection({
           </div>
         </div>
       )}
-      
+
       {/* World Building Location Selector Modal */}
       {showWorldSelector && (
         <div className="location-section__modal-overlay" onClick={() => setShowWorldSelector(false)}>

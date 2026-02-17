@@ -22,6 +22,7 @@ export interface OllamaGenerateOptions {
   maxTokens?: number;
   stream?: boolean;
   signal?: AbortSignal;
+  images?: string[]; // Base64 encoded images
 }
 
 export interface OllamaGenerateResponse {
@@ -97,7 +98,7 @@ export class OllamaClient {
     const startTime = Date.now();
     logger.info(`[OllamaClient] 🚀 Starting generation for model: ${model}`);
     logger.debug(`[OllamaClient] 📝 Prompt length: ${prompt.length} chars, maxTokens: ${options?.maxTokens || 2000}`);
-    
+
     // DIAGNOSTIC: Check if Ollama is reachable before attempting generation
     const isHealthy = await this.healthCheck();
     if (!isHealthy) {
@@ -105,10 +106,10 @@ export class OllamaClient {
       throw new Error(`Ollama service not reachable at ${this.baseURL}. Please ensure Ollama is running.`);
     }
     logger.info(`[OllamaClient] ✅ Ollama health check passed`);
-    
+
     try {
       logger.debug(`[OllamaClient] 📤 Sending generate request to ${this.baseURL}/api/generate`);
-      
+
       const response = await fetch(`${this.baseURL}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -119,6 +120,7 @@ export class OllamaClient {
             temperature: options?.temperature || 0.7,
             num_predict: options?.maxTokens || 2000,
           },
+          images: options?.images,
           stream: false,
         }),
         signal,
@@ -136,12 +138,12 @@ export class OllamaClient {
       const data: OllamaGenerateResponse = await response.json();
       const totalMs = Date.now() - startTime;
       logger.info(`[OllamaClient] ✅ Generation complete in ${totalMs}ms, response length: ${data.response?.length || 0} chars`);
-      
+
       return data.response;
     } catch (error) {
       const elapsedMs = Date.now() - startTime;
       logger.error(`[OllamaClient] ❌ Generation failed after ${elapsedMs}ms:`, error);
-      
+
       // DIAGNOSTIC: Add more context to the error
       if (error instanceof TypeError && error.message.includes('fetch')) {
         logger.error(`[OllamaClient] 💡 This appears to be a network error - Ollama may not be running at ${this.baseURL}`);
@@ -171,6 +173,7 @@ export class OllamaClient {
             temperature: options?.temperature || 0.7,
             num_predict: options?.maxTokens || 2000,
           },
+          images: options?.images,
           stream: true,
         }),
         signal,

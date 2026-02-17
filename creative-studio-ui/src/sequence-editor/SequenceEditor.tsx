@@ -50,26 +50,22 @@ import './styles/variables.css';
 import './styles/layout.css';
 import './styles/animations.css';
 
-/**
- * SequenceEditor Root Component
- *
- * This component sets up the Redux store provider and drag-and-drop context
- * for the entire sequence editor interface.
- */
-export const SequenceEditor: React.FC = () => {
+export interface SequenceEditorProps {
+  sequenceId?: string;
+  onBack?: () => void;
+}
+
+export const SequenceEditor: React.FC<SequenceEditorProps> = ({ sequenceId, onBack }) => {
   return (
     <Provider store={store}>
       <DndProvider backend={HTML5Backend}>
-        <SequenceEditorContent />
+        <SequenceEditorContent sequenceId={sequenceId} onBack={onBack} />
       </DndProvider>
     </Provider>
   );
 };
 
-/**
- * SequenceEditorContent - Internal component with access to Redux store
- */
-const SequenceEditorContent: React.FC = () => {
+const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBack }) => {
   const dispatch = useAppDispatch();
   const { selectedElements, shots } = useAppSelector((state) => state.timeline);
   const { showLayerManager } = useAppSelector((state) => state.panels);
@@ -79,6 +75,64 @@ const SequenceEditorContent: React.FC = () => {
 
   // State for bottom panel (audio mixer and export)
   const [activeBottomPanel, setActiveBottomPanel] = useState<'timeline' | 'audioMixer' | 'export'>('timeline');
+
+  // Initialize sequence from global store
+  useEffect(() => {
+    if (sequenceId) {
+      console.log(`[SequenceEditor] Initializing sequence: ${sequenceId}`);
+
+      // 1. Access global state (Zustand)
+      // Note: We use a dynamic check for useStore to avoid circular dependencies or import issues
+      const gStore = (window as any).useStore;
+      if (!gStore) {
+        console.warn('[SequenceEditor] Global store (window.useStore) not found. Synchronization might fail.');
+        return;
+      }
+
+      const { shots: globalShots, project: globalProject } = gStore.getState();
+
+      // 2. Filter shots for this sequence
+      const sequenceShots = globalShots.filter((s: any) => s.sequence_id === sequenceId || s.sequenceId === sequenceId);
+
+      if (sequenceShots.length > 0) {
+        // 3. Map to Redux Format (Data Contract v1)
+        const FPS = 24; // Default to 24 FPS
+
+        const mappedShots = sequenceShots.map((s: any) => ({
+          id: s.id,
+          name: s.title || s.name || 'Untitled Shot',
+          startTime: Math.round((s.start_time || 0) * FPS),
+          duration: Math.round((s.duration || 1) * FPS),
+          layers: s.layers || [],
+          referenceImages: s.referenceImages || [],
+          prompt: s.description || s.prompt || '',
+          parameters: s.generation?.parameters || {
+            seed: -1,
+            denoising: 0.7,
+            steps: 20,
+            guidance: 7.0,
+            sampler: 'euler',
+            scheduler: 'normal'
+          },
+          generationStatus: (s.status === 'done' || s.status === 'completed') ? 'complete' : 'pending',
+          outputPath: s.generated_image_url || s.image || '',
+        }));
+
+        // 4. Dispatch to Redux
+        const { reorderShots } = require('./store/slices/timelineSlice');
+        dispatch(reorderShots(mappedShots));
+
+        // 5. Update Project Metadata in Redux
+        const { updateMetadata } = require('./store/slices/projectSlice');
+        dispatch(updateMetadata({
+          id: sequenceId,
+          name: sequenceShots[0]?.name || `Sequence ${sequenceId}`,
+          path: globalProject?.path || '',
+          modified: Date.now()
+        }));
+      }
+    }
+  }, [sequenceId, dispatch]);
 
   // Initialize accessibility features
   useAccessibilityInit();
@@ -90,12 +144,12 @@ const SequenceEditorContent: React.FC = () => {
 
   // Get selected shot ID for shot configuration panel
   const selectedShotId = selectedElements.length > 0 ? selectedElements[0] : null;
-  
+
   // Get the selected shot object for LayerManager and LayerPropertiesPanel
   const selectedShot = selectedShotId ? shots.find(shot => shot.id === selectedShotId) : undefined;
-  
+
   // Get selected layer IDs from the selected elements (filter to only layer IDs)
-  const selectedLayerIds = selectedElements.filter(id => 
+  const selectedLayerIds = selectedElements.filter(id =>
     shots.some(shot => shot.layers.some(layer => layer.id === id))
   );
 
@@ -160,7 +214,7 @@ const SequenceEditorContent: React.FC = () => {
 
       {/* Top Toolbar */}
       <div className="sequence-editor-toolbar" role="toolbar" aria-label="Main toolbar">
-        <ToolBar />
+        <ToolBar onBack={onBack} />
         <div className="toolbar-spacer" />
         <GenerateButton />
       </div>

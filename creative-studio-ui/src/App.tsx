@@ -331,7 +331,7 @@ function AppContent() {
   useGlobalKeyboardShortcuts();
 
   // Restore characters from localStorage on app load (Requirement 8.4)
-  useCharacterRestoration();
+  // useCharacterRestoration(); // Disabled to prevent mixing characters between projects
 
   // State for feedback panel initial context
   const [feedbackInitialContext, setFeedbackInitialContext] = useState<FeedbackInitialContext | undefined>(undefined);

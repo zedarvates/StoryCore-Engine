@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, FileText, ClipboardList, Info, Clapperboard, Film, Monitor, CheckSquare } from 'lucide-react';
 import { ProductionWizardContainer } from '../production-wizards/ProductionWizardContainer';
 import { WizardStep } from '@/types/wizard';
 import { SequencePlanWizardState } from '@/types/wizard';
@@ -19,13 +21,13 @@ import { Step6ReviewFinalize } from './Step6ReviewFinalize';
 
 
 
-const Step4ScenePlanning = ({ scenes, acts, onScenesChange, validationErrors, worldId }: unknown) => (
-  <ScenePlanningInterface scenes={scenes} acts={acts} onScenesChange={onScenesChange} validationErrors={validationErrors} worldId={worldId} />
-);
+
 
 // Services
 import { templateManager } from '@/services/templateManager';
-import { draftStorage } from '@/services/draftStorage';
+import { saveWizardState, clearWizardState } from '@/utils/wizardStorage';
+import { useStateRecovery } from '@/hooks/useStateRecovery';
+import { StateRecoveryDialog } from '@/components/wizard/StateRecoveryDialog';
 
 // ============================================================================
 // Helper Functions
@@ -70,37 +72,37 @@ const SEQUENCE_PLAN_STEPS: WizardStep[] = [
     number: 1,
     title: 'Template Selection',
     description: 'Choose a template or start from scratch',
-    icon: '📋',
+    icon: ClipboardList,
   },
   {
     number: 2,
     title: 'Basic Information',
     description: 'Set name, world, duration, and resolution',
-    icon: 'ℹ️',
+    icon: Info,
   },
   {
     number: 3,
     title: 'Narrative Structure',
     description: 'Define acts and their narrative purpose',
-    icon: '🎬',
+    icon: Clapperboard,
   },
   {
     number: 4,
     title: 'Scene Planning',
     description: 'Plan locations, characters, and beats for each scene',
-    icon: '🎭',
+    icon: Film,
   },
   {
     number: 5,
     title: 'Shot Preview',
     description: 'Timeline preview of your sequence plan',
-    icon: '👁️',
+    icon: Monitor,
   },
   {
     number: 6,
     title: 'Review & Finalize',
     description: 'Review your plan and save to project',
-    icon: '✅',
+    icon: CheckSquare,
   },
 ];
 
@@ -139,6 +141,25 @@ export function SequencePlanWizard({
   const [availableTemplates, setAvailableTemplates] = useState<SequenceTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recoveryDraft, setRecoveryDraft] = useState<Partial<SequencePlanWizardState> | null>(null);
+  const [showDraftDialog, setShowDraftDialog] = useState(false);
+
+  // Recovery hook
+  const {
+    isCorrupted,
+    validationResult,
+    loadResult,
+    resetState,
+    showRecoveryDialog,
+    setShowRecoveryDialog,
+    dismissWarning,
+    attemptRecovery
+  } = useStateRecovery({
+    wizardType: 'sequence-plan',
+    onRecoverySuccess: () => {
+      // Logic handled via effect later
+    }
+  });
 
   // ============================================================================
   // Initialization Effects
@@ -182,16 +203,13 @@ export function SequencePlanWizard({
         }
       }
 
-      // Try to load draft if no existing plan
-      if (!existingSequencePlan) {
-        const drafts = await draftStorage.listDrafts('sequence-plan');
-        if (drafts.length > 0) {
-          // Load the most recent draft
-          const mostRecentDraft = drafts[0];
-          const draft = await draftStorage.loadDraft('sequence-plan', mostRecentDraft.id);
-          if (draft) {
-            initialState = { ...initialState, ...draft };
-          }
+      // Check for drafts if no existing plan
+      if (!existingSequencePlan && loadResult?.isValid && loadResult.state?.formData) {
+        // Found valid draft
+        const draftData = loadResult.state.formData as Partial<SequencePlan>;
+        if (Object.keys(draftData).length > 0) {
+          setRecoveryDraft({ formData: draftData });
+          setShowDraftDialog(true);
         }
       }
 
@@ -208,41 +226,34 @@ export function SequencePlanWizard({
   // Auto-save Effect
   // ============================================================================
 
+  // Auto-save Effect
   useEffect(() => {
     if (wizardState.isDirty && !existingSequencePlan) {
-      const saveDraft = async () => {
+      const saveDraft = () => {
         try {
-          // Create a temporary full sequence plan for draft saving
-          const draftSequencePlan: SequencePlan = {
-            id: wizardState.formData.id || `draft-${Date.now()}`,
-            name: wizardState.formData.name || 'Draft Sequence Plan',
-            description: wizardState.formData.description || '',
-            worldId: wizardState.formData.worldId || '',
-            templateId: wizardState.selectedTemplate?.id,
-            targetDuration: wizardState.formData.targetDuration || 0,
-            frameRate: wizardState.formData.frameRate || 24,
-            resolution: wizardState.formData.resolution || { width: 1920, height: 1080 },
-            acts: wizardState.formData.acts || [],
-            scenes: wizardState.formData.scenes || [],
-            shots: wizardState.formData.shots || [],
-            createdAt: wizardState.formData.createdAt || Date.now(),
-            modifiedAt: Date.now(),
-            status: 'draft',
-            tags: wizardState.formData.tags || [],
+          // Create partial data for auto-save
+          // Only save relevant fields
+          const draftData: Partial<SequencePlan> = {
+            ...wizardState.formData,
+            // Ensure ID and timestamps are preserved or updated if needed
+            modifiedAt: Date.now()
           };
 
-          await draftStorage.saveDraft('sequence-plan', draftSequencePlan);
+          saveWizardState('sequence-plan', 0, draftData);
+
           setWizardState(prev => ({
             ...prev,
             lastSaved: Date.now(),
-            isDirty: false,
+            isDirty: false, // Wait, usually auto-save doesn't clear isDirty for the FORM, but for the storage sync?
+            // Actually wizardState.isDirty tracks "unsaved changes vs initial" usually.
+            // But here allow next save.
           }));
         } catch (err) {
           console.error('Failed to auto-save draft:', err);
         }
       };
 
-      const timer = setTimeout(saveDraft, 30000); // Auto-save every 30 seconds
+      const timer = setTimeout(saveDraft, 2000); // Auto-save every 2 seconds (localStorage is fast)
       return () => clearTimeout(timer);
     }
   }, [wizardState.isDirty, wizardState.formData, existingSequencePlan]);
@@ -313,7 +324,7 @@ export function SequencePlanWizard({
 
       // Clear any draft
       if (!existingSequencePlan) {
-        await draftStorage.clearAllDrafts('sequence-plan');
+        clearWizardState('sequence-plan');
       }
 
       onComplete(finalSequencePlan);
@@ -341,7 +352,7 @@ export function SequencePlanWizard({
 
     // Clear draft if cancelling
     if (!existingSequencePlan) {
-      draftStorage.clearAllDrafts('sequence-plan').catch(console.error);
+      clearWizardState('sequence-plan');
     }
 
     onClose();
@@ -392,12 +403,12 @@ export function SequencePlanWizard({
 
       case 4:
         return (
-          <Step4ScenePlanning
+          <ScenePlanningInterface
             scenes={wizardState.formData.scenes || []}
             acts={wizardState.formData.acts || []}
             onScenesChange={(scenes: Scene[]) => updateFormData({ scenes })}
             validationErrors={wizardState.validationErrors}
-            worldId={wizardState.formData.worldId}
+            worldId={wizardState.formData.worldId || ''}
           />
         );
 
@@ -476,6 +487,73 @@ export function SequencePlanWizard({
             )}
           </ProductionWizardContainer>
         </div>
+
+        {/* Corruption Recovery Dialog */}
+        {validationResult && (
+          <StateRecoveryDialog
+            wizardType="sequence-plan"
+            validationResult={validationResult}
+            isOpen={showRecoveryDialog}
+            onDismiss={dismissWarning}
+            onReset={() => {
+              resetState();
+              initializeWizard(); // Restart initialization after reset
+            }}
+            onRecover={async () => {
+              const success = await attemptRecovery();
+              if (success && loadResult?.state?.formData) {
+                setWizardState(prev => ({
+                  ...prev,
+                  formData: loadResult.state!.formData as any,
+                  isDirty: true
+                }));
+              }
+            }}
+          />
+        )}
+
+        {/* Valid Draft Recovery Dialog */}
+        <Dialog open={showDraftDialog} onOpenChange={setShowDraftDialog}>
+          <DialogContent className="sm:max-w-md bg-card border-primary/20">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-primary neon-text">
+                <FileText className="w-5 h-5" />
+                Recover Previous Session?
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground pt-2">
+                We found an unsaved draft from a previous session. Would you like to restore it and continue where you left off?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex gap-2 sm:justify-end mt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowDraftDialog(false);
+                  setRecoveryDraft(null);
+                  clearWizardState('sequence-plan');
+                }}
+              >
+                Start Fresh
+              </Button>
+              <Button
+                onClick={() => {
+                  if (recoveryDraft) {
+                    setWizardState(prev => ({
+                      ...prev,
+                      ...recoveryDraft,
+                      // Ensure currentStep is valid
+                      currentStep: Math.min(recoveryDraft.currentStep || 0, SEQUENCE_PLAN_STEPS.length - 1)
+                    }));
+                  }
+                  setShowDraftDialog(false);
+                }}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Recover Session
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );

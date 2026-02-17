@@ -65,7 +65,7 @@ export class StateValidationService {
     // Validate required fields
     if (!state.wizardType) {
       errors.push('Missing required field: wizardType');
-    } else if (state.wizardType !== 'world' && state.wizardType !== 'character') {
+    } else if (state.wizardType !== 'world' && state.wizardType !== 'character' && state.wizardType !== 'sequence-plan') {
       errors.push(`Invalid wizardType: ${state.wizardType}`);
     }
 

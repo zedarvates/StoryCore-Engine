@@ -49,6 +49,7 @@ export interface LLMRequest {
   stream?: boolean;
   temperature?: number;
   maxTokens?: number;
+  images?: string[]; // Base64 encoded images for vision models
 }
 
 /**
@@ -70,6 +71,34 @@ export interface ImageGenerationOptions {
   quality?: 'standard' | 'hd';
   style?: 'vivid' | 'natural';
   model?: 'dall-e-2' | 'dall-e-3';
+}
+
+/**
+ * Music generation options
+ */
+export interface MusicGenerationOptions {
+  style?: string;
+  genre?: string;
+  duration?: number;
+  mood?: string[];
+  instrumentation?: string[];
+  bpm?: number;
+  key?: string;
+  temperature?: number;
+  maxTokens?: number;
+}
+
+/**
+ * Lyrics generation options
+ */
+export interface LyricsGenerationOptions {
+  style?: string;
+  theme?: string;
+  mood?: string[];
+  length?: 'short' | 'medium' | 'long';
+  includeMelody?: boolean;
+  temperature?: number;
+  maxTokens?: number;
 }
 
 export interface GeneratedImage {
@@ -747,6 +776,7 @@ class CustomProvider extends LLMProviderBase {
       const response = await ollamaClient.generate(this.config.model, prompt, {
         temperature: request.temperature ?? this.config.parameters.temperature,
         maxTokens: numPredict,
+        images: request.images,
       }, signal);
 
       return {
@@ -1020,15 +1050,15 @@ export class LLMService {
 
         const startTime = Date.now();
         logger.debug(`[LLMService] 📤 Calling provider.generateCompletion (timeout: ${this.config.timeout}ms)`);
-        
+
         // Create a timeout controller that combines timeout and abort signal
         const timeoutController = this.createTimeoutController(this.config.timeout, abortController.signal);
-        
+
         const response = await this.provider.generateCompletion(request, timeoutController.signal);
-        
+
         const elapsedMs = Date.now() - startTime;
         logger.info(`[LLMService] ✅ Provider response received in ${elapsedMs}ms`);
-        
+
         return {
           success: true,
           data: response,
@@ -1091,7 +1121,7 @@ export class LLMService {
 
         // Create a timeout controller that combines timeout and abort signal
         const timeoutController = this.createTimeoutController(this.config.timeout, abortController.signal);
-        
+
         const response = await this.provider.generateStreamingCompletion(request, onChunk, timeoutController.signal);
         return {
           success: true,
@@ -1174,7 +1204,7 @@ export class LLMService {
     for (let attempt = 0; attempt < this.config.retryAttempts; attempt++) {
       const attemptStartTime = Date.now();
       logger.info(`[LLMService] 🔄 Attempt ${attempt + 1}/${this.config.retryAttempts} starting...`);
-      
+
       try {
         const result = await operation();
         logger.info(`[LLMService] ✅ Attempt ${attempt + 1} succeeded after ${Date.now() - attemptStartTime}ms`);
@@ -1182,9 +1212,9 @@ export class LLMService {
       } catch (error) {
         const attemptDuration = Date.now() - attemptStartTime;
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        
+
         logger.warn(`[LLMService] ⚠️ Attempt ${attempt + 1} failed after ${attemptDuration}ms: ${lastError.message}`);
-        
+
         // DIAGNOSTIC: Log error details
         if (error instanceof LLMError) {
           logger.warn(`[LLMService] 🏷️ LLMError - code: ${error.code}, retryable: ${error.retryable}, category: ${error.category}`);
@@ -1216,7 +1246,7 @@ export class LLMService {
     logger.error('[LLMService] ❌ Request failed after all retry attempts');
     logger.error(`[LLMService] 💡 DIAGNOSTIC: Last error was: ${lastError?.message}`);
     logger.error(`[LLMService] 💡 DIAGNOSTIC: Config - provider: ${this.config.provider}, timeout: ${this.config.timeout}ms`);
-    
+
     return {
       success: false,
       error: lastError?.message || 'Request failed after retries',
@@ -1231,17 +1261,17 @@ export class LLMService {
    */
   private createTimeoutController(timeoutMs: number, signal?: AbortSignal): AbortController {
     const timeoutController = new AbortController();
-    
+
     // If external signal is already aborted, abort our controller too
     if (signal?.aborted) {
       timeoutController.abort(signal.reason);
     }
-    
+
     // Listen for external signal abort
     signal?.addEventListener('abort', () => {
       timeoutController.abort(signal.reason);
     });
-    
+
     // Set up timeout
     const timeoutId = setTimeout(() => {
       const error = new LLMError(
@@ -1253,14 +1283,14 @@ export class LLMService {
       );
       timeoutController.abort(error);
     }, timeoutMs);
-    
+
     // Clear timeout when controller is aborted (cleanup)
     const originalAbort = timeoutController.abort.bind(timeoutController);
     timeoutController.abort = (reason?: any) => {
       clearTimeout(timeoutId);
       originalAbort(reason);
     };
-    
+
     return timeoutController;
   }
 
@@ -1269,14 +1299,14 @@ export class LLMService {
    * Uses AbortController to properly cancel the underlying HTTP request on timeout
    */
   private async withTimeout<T>(
-    promise: Promise<T>, 
-    timeoutMs: number, 
+    promise: Promise<T>,
+    timeoutMs: number,
     signal?: AbortSignal
   ): Promise<T> {
     logger.debug(`[LLMService] ⏱️ Setting up timeout for ${timeoutMs}ms`);
-    
+
     const timeoutController = this.createTimeoutController(timeoutMs, signal);
-    
+
     const timeoutPromise = new Promise<T>((_, reject) => {
       const timeoutId = setTimeout(() => {
         logger.error(`[LLMService] ⏰ TIMEOUT! Request exceeded ${timeoutMs}ms limit`);
@@ -1289,7 +1319,7 @@ export class LLMService {
         clearTimeout(timeoutId);
         reject(new LLMError('Request cancelled', 'cancelled', false, undefined, LLMErrorCategory.UNKNOWN));
       });
-      
+
       // Also listen to our timeout controller
       timeoutController.signal.addEventListener('abort', () => {
         clearTimeout(timeoutId);
@@ -1428,6 +1458,241 @@ export class LLMService {
       retryable: llmError.retryable,
       category: llmError.category,
     };
+  }
+
+  /**
+   * Generate music description/prompt using LLM
+   * This creates a detailed music prompt that can be used with external music generation tools
+   */
+  async generateMusicPrompt(request: {
+    description: string;
+    style?: string;
+    mood?: string[];
+    duration?: number;
+    context?: string;
+  }): Promise<ApiResponse<{ prompt: string; style: string; duration: number; mood: string[] }>> {
+    const { getDefaultSystemPrompts } = await import('./llmService');
+    const systemPrompts = getDefaultSystemPrompts();
+
+    const prompt = `You are a music composition expert for film and video production.
+Generate a detailed music prompt for AI music generation based on the following description.
+
+Description: ${request.description}
+${request.style ? `Style: ${request.style}` : ''}
+${request.mood ? `Mood: ${request.mood.join(', ')}` : ''}
+${request.duration ? `Duration: ${request.duration} seconds` : ''}
+${request.context ? `Context: ${request.context}` : ''}
+
+Generate a detailed music prompt that includes:
+1. Style (e.g., cinematic, ambient, action, romantic)
+2. Instrumentation (e.g., orchestral, electronic, hybrid)
+3. Tempo/BPM
+4. Key signature
+5. Mood descriptors
+6. Detailed description of the music
+
+Respond in JSON format:
+{
+  "prompt": "detailed music prompt...",
+  "style": "main style",
+  "duration": number,
+  "mood": ["mood1", "mood2"]
+}`;
+
+    try {
+      const response = await this.generateText(prompt, {
+        temperature: 0.7,
+        maxTokens: 1000,
+      });
+
+      // Parse the JSON response
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          success: true,
+          data: parsed,
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          prompt: response,
+          style: request.style || 'cinematic',
+          duration: request.duration || 60,
+          mood: request.mood || [],
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate music prompt',
+      };
+    }
+  }
+
+  /**
+   * Generate lyrics using LLM
+   */
+  async generateLyrics(request: {
+    theme: string;
+    style?: string;
+    mood?: string[];
+    length?: 'short' | 'medium' | 'long';
+    characters?: string[];
+    context?: string;
+  }): Promise<ApiResponse<{
+    title: string;
+    lyrics: string;
+    sections: { type: string; lines: string[] }[];
+    style: string;
+    mood: string[];
+  }>> {
+    const lengthMap = {
+      short: '30-60 seconds (1-2 verses + chorus)',
+      medium: '60-120 seconds (2 verses + chorus + bridge)',
+      long: '120-180 seconds (full song with verses, chorus, bridge)',
+    };
+
+    const prompt = `You are a lyrics writer for film and video production.
+Generate original lyrics based on the following parameters.
+
+Theme: ${request.theme}
+${request.style ? `Style/Genre: ${request.style}` : 'Style: Pop/Cinematic'}
+${request.mood ? `Mood: ${request.mood.join(', ')}` : ''}
+${request.length ? `Length: ${lengthMap[request.length]}` : 'Length: Medium'}
+${request.characters ? `Characters involved: ${request.characters.join(', ')}` : ''}
+${request.context ? `Context/Story: ${request.context}` : ''}
+
+Generate:
+1. A title
+2. Lyrics with clear sections (verse, chorus, bridge, intro, outro)
+3. Keep the mood and style consistent
+4. Make it suitable for the given context
+
+Respond in JSON format:
+{
+  "title": "Song Title",
+  "lyrics": "Full lyrics text...",
+  "sections": [
+    { "type": "intro", "lines": ["line1", "line2"] },
+    { "type": "verse1", "lines": ["line1", "line2", "line3"] },
+    { "type": "chorus", "lines": ["line1", "line2", "line3", "line4"] }
+  ],
+  "style": "pop/cinematic",
+  "mood": ["emotional", "uplifting"]
+}`;
+
+    try {
+      const response = await this.generateText(prompt, {
+        temperature: 0.8,
+        maxTokens: 2000,
+      });
+
+      // Parse the JSON response
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          success: true,
+          data: parsed,
+        };
+      }
+
+      // Fallback: return raw text
+      return {
+        success: true,
+        data: {
+          title: request.theme,
+          lyrics: response,
+          sections: [],
+          style: request.style || 'pop',
+          mood: request.mood || [],
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate lyrics',
+      };
+    }
+  }
+
+  /**
+   * Generate dialogue for a specific shot and character
+   * This integrates dialogue generation with shots
+   */
+  async generateShotDialogue(request: {
+    shotId: string;
+    characterName?: string;
+    context?: string;
+    previousDialogue?: string;
+    mood?: string;
+    lineCount?: number;
+  }): Promise<ApiResponse<{
+    dialogues: { character: string; text: string; mood: string }[];
+    shotId: string;
+  }>> {
+    const prompt = `You are a dialogue writer for film and video.
+Generate dialogue for a specific shot based on the following parameters.
+
+Shot ID: ${request.shotId}
+${request.characterName ? `Character: ${request.characterName}` : ''}
+${request.context ? `Scene Context: ${request.context}` : ''}
+${request.previousDialogue ? `Previous Dialogue: ${request.previousDialogue}` : ''}
+${request.mood ? `Mood/Tone: ${request.mood}` : ''}
+${request.lineCount ? `Number of lines: ${request.lineCount}` : 'Number of lines: 1-2'}
+
+Generate natural, character-appropriate dialogue that:
+1. Fits the scene context and mood
+2. Is appropriate for the character
+3. Advances the story
+4. Can be delivered naturally as voice over or on-screen dialogue
+
+Respond in JSON format:
+{
+  "shotId": "${request.shotId}",
+  "dialogues": [
+    { "character": "Character Name", "text": "Dialogue line...", "mood": "emotion" }
+  ]
+}`;
+
+    try {
+      const response = await this.generateText(prompt, {
+        temperature: 0.7,
+        maxTokens: 500,
+      });
+
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          success: true,
+          data: {
+            ...parsed,
+            shotId: request.shotId,
+          },
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          shotId: request.shotId,
+          dialogues: [{
+            character: request.characterName || 'Narrator',
+            text: response,
+            mood: request.mood || 'neutral',
+          }],
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate dialogue',
+      };
+    }
   }
 }
 

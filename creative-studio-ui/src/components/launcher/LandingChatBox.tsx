@@ -27,7 +27,14 @@ import {
 import { formAutoFill } from '@/services/FormAutoFill';
 import { promptSuggestionService, type PromptSuggestion } from '@/services/PromptSuggestionService';
 import { contentCreationService, type ContentType, type ContentDetectionResult, type CreationResult } from '@/services/ContentCreationService';
-import { createChatService, type ChatAction } from '@/services/chatService';
+import { createChatService, ChatService, type ChatAction, type ProjectCreationRequest } from '@/services/chatService';
+import { useStore } from '@/store';
+import { createEmptyCharacter, type Character } from '@/types/character';
+import { eventEmitter, WizardEventType, createCharacterCreatedPayload } from '@/services/eventEmitter';
+import { createEmptyLocation, type Location } from '@/types/location';
+import { useLocationStore } from '@/stores/locationStore';
+import { createEmptyObject, type StoryObject } from '@/types/object';
+
 
 // ============================================================================
 // Constants
@@ -757,14 +764,111 @@ export function LandingChatBox({
     // Store last user message for retry functionality (Requirement 7.6)
     setLastUserMessage(userInput);
 
+    // Convert attachments to base64 for ChatService
+    const chatAttachments = await Promise.all(attachments.map(async (file) => {
+      return new Promise<{ name: string, content: string, type: string }>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Extract base64 part
+          const base64 = result.split(',')[1];
+          resolve({
+            name: file.name,
+            content: base64,
+            type: file.type
+          });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }));
+
     // Analyze intent using ChatService (media generation, entity creation, etc.)
-    const chatServiceResponse = await chatServiceRef.current.processMessage(userInput);
+    // Pass attachments and llmService for vision capabilities
+    const chatServiceResponse = await chatServiceRef.current.processMessage(userInput, chatAttachments, llmService);
 
     // Handle detected actions from ChatService
     if (chatServiceResponse.actions && chatServiceResponse.actions.length > 0) {
+      // Check for analyzeImage action (result of vision)
+      const analyzeAction = chatServiceResponse.actions.find(a => a.type === 'analyzeImage');
+      if (analyzeAction) {
+        // The message from ChatService already contains the analysis, so we just add it to history
+        const analysisMessage: Message = {
+          id: Date.now().toString(),
+          type: 'assistant',
+          content: chatServiceResponse.message,
+          timestamp: new Date(),
+        };
+        addMessage(analysisMessage);
+        return;
+      }
+
+      // Prioritize project creation
+      const projectAction = chatServiceResponse.actions.find(a => a.type === 'createProject');
+
+      if (projectAction) {
+        const projectPayload = projectAction.payload as unknown as ProjectCreationRequest;
+
+        // Show creation in progress
+        const progressId = Date.now().toString();
+        addMessage({
+          id: progressId,
+          type: 'system',
+          content: currentLanguage === 'fr'
+            ? `🚧 Création du projet "${projectPayload.name}" en cours...`
+            : `🚧 Creating project "${projectPayload.name}"...`,
+          timestamp: new Date()
+        });
+
+        try {
+          // Execute creation
+          const result = await ChatService.executeProjectCreation(projectPayload);
+
+          // Remove progress message
+          setMessages(prev => prev.filter(msg => msg.id !== progressId));
+
+          if (result.success && result.projectPath) {
+            // Success message
+            addMessage({
+              id: Date.now().toString(),
+              type: 'system',
+              content: currentLanguage === 'fr'
+                ? `✅ Projet "${projectPayload.name}" créé avec succès ! Redirection en cours...`
+                : `✅ Project "${projectPayload.name}" created successfully! Redirecting...`,
+              timestamp: new Date()
+            });
+
+            // Redirect after short delay
+            setTimeout(() => {
+              ChatService.navigateToProjectDashboard(result.projectPath!);
+            }, 1500);
+
+            return; // Stop further processing
+          } else {
+            throw new Error(result.error || 'Project creation failed');
+          }
+        } catch (error) {
+          // Remove progress message if still there
+          setMessages(prev => prev.filter(msg => msg.id !== progressId));
+
+          addMessage({
+            id: Date.now().toString(),
+            type: 'error',
+            content: currentLanguage === 'fr'
+              ? `❌ Erreur lors de la création du projet : ${error instanceof Error ? error.message : String(error)}`
+              : `❌ Error creating project: ${error instanceof Error ? error.message : String(error)}`,
+            timestamp: new Date()
+          });
+          return;
+        }
+      }
+
+      // Handle other actions
       for (const action of chatServiceResponse.actions) {
         const actionType = action.type;
         const payload = action.payload as Record<string, unknown>;
+
+        if (actionType === 'createProject') continue; // Already handled
 
         if (actionType === 'generateImage') {
           handleCreation('image', payload);
@@ -1056,36 +1160,111 @@ export function LandingChatBox({
       setMessages(prev => prev.filter(msg => msg.id !== progressMessage.id));
 
       if (result.success) {
+
         // Dispatch created entity to the app store
-        const store = useAppStore.getState();
+        const mainStore = useStore.getState();
 
         switch (type) {
           case 'character': {
-            if (store.characters && typeof store.setShowCharactersModal === 'function') {
+            try {
               // Add character to store
-              const newCharacter = {
-                id: result.entity.id as string,
-                name: result.entity.name as string,
-                archetype: result.entity.archetype as string,
-                role: result.entity.role as string,
-                gender: result.entity.gender as string,
-                age: result.entity.age as string,
-                description: result.entity.description as string,
-                visual_identity: result.entity.visual_identity as Record<string, string>,
-                createdAt: result.entity.createdAt as number,
-                updatedAt: result.entity.updatedAt as number,
-              };
-              // Characters are stored in the character store separately
-              window.dispatchEvent(new CustomEvent('storycore:character-created', { detail: newCharacter }));
+              const baseCharacter = createEmptyCharacter();
+
+              const newCharacter: Character = {
+                ...baseCharacter,
+                character_id: (result.entity.id as string) || crypto.randomUUID(),
+                name: (result.entity.name as string) || 'Unnamed Character',
+                role: {
+                  ...baseCharacter.role,
+                  archetype: (result.entity.archetype as string) || baseCharacter.role?.archetype || '',
+                  narrative_function: (result.entity.role as string) || baseCharacter.role?.narrative_function || '',
+                },
+                visual_identity: {
+                  ...baseCharacter.visual_identity,
+                  gender: (result.entity.gender as string) || baseCharacter.visual_identity?.gender || '',
+                  age_range: (result.entity.age as string) || baseCharacter.visual_identity?.age_range || '',
+                  // Map description to distinctive_features if it exists
+                  distinctive_features: result.entity.description
+                    ? [...(baseCharacter.visual_identity?.distinctive_features || []), result.entity.description as string]
+                    : baseCharacter.visual_identity?.distinctive_features || [],
+                },
+                creation_timestamp: new Date().toISOString(),
+                version: '1.0',
+              } as Character;
+
+              // Use the main store to add the character
+              if (mainStore.addCharacter) {
+                mainStore.addCharacter(newCharacter);
+
+                // Also update the project in AppStore to ensure persistence
+                const appStore = useAppStore.getState();
+                const currentProject = appStore.project;
+                if (currentProject) {
+                  const projectCharacters = currentProject.characters || [];
+                  const characterExistsInProject = projectCharacters.some(
+                    c => c.character_id === newCharacter.character_id
+                  );
+
+                  if (!characterExistsInProject) {
+                    appStore.setProject({
+                      ...currentProject,
+                      characters: [...projectCharacters, newCharacter]
+                    });
+                  }
+                }
+
+                // Also dispatch event for UI components that listen directly via eventEmitter
+                eventEmitter.emit(
+                  WizardEventType.CHARACTER_CREATED,
+                  createCharacterCreatedPayload(newCharacter, 'api')
+                );
+              }
+            } catch (creationError) {
+              console.error('[LandingChatBox] Error mapping created character:', creationError);
             }
             break;
           }
           case 'location': {
-            window.dispatchEvent(new CustomEvent('storycore:location-created', { detail: result.entity }));
+            const baseLocation = createEmptyLocation();
+            const entity = result.entity as any;
+            const loadedMetadata = entity.metadata || {};
+
+            const newLocation: Location = {
+              ...baseLocation,
+              location_id: entity.id || crypto.randomUUID(),
+              name: entity.name || 'Unnamed Location',
+              metadata: {
+                ...baseLocation.metadata,
+                description: loadedMetadata.description || entity.description || '',
+                atmosphere: loadedMetadata.atmosphere || entity.atmosphere || '',
+                significance: loadedMetadata.significance || entity.significance || '',
+                thumbnail_path: loadedMetadata.thumbnail_path,
+              },
+              prompts: (entity.prompts as string[]) || [],
+            } as Location;
+
+            useLocationStore.getState().addLocation(newLocation);
+            window.dispatchEvent(new CustomEvent('storycore:location-created', { detail: newLocation }));
             break;
           }
           case 'object': {
-            window.dispatchEvent(new CustomEvent('storycore:object-created', { detail: result.entity }));
+            const baseObject = createEmptyObject();
+            const entity = result.entity as any;
+            const newObject: StoryObject = {
+              ...baseObject,
+              id: entity.id || crypto.randomUUID(),
+              name: entity.name || 'Unnamed Object',
+              type: entity.type || 'prop',
+              rarity: entity.rarity || 'common',
+              description: entity.description || '',
+              imageUrl: entity.imageUrl,
+              prompts: (entity.prompts as string[]) || [],
+            } as StoryObject;
+
+            if (mainStore.addObject) {
+              mainStore.addObject(newObject);
+            }
+            window.dispatchEvent(new CustomEvent('storycore:object-created', { detail: newObject }));
             break;
           }
           case 'world': {
@@ -1119,23 +1298,24 @@ export function LandingChatBox({
         const successMessage: Message = {
           id: `created-${Date.now()}`,
           type: 'assistant',
-          content: result.message + '\n\n' + formatCreatedEntity(result),
+          content: (result.message || '') + '\n\n' + formatCreatedEntity(result),
           timestamp: new Date(),
           creationResult: result,
         };
         addMessage(successMessage);
       } else {
-        // Add error message
+        // Handle failure
         const errorMessage: Message = {
           id: `create-error-${Date.now()}`,
           type: 'error',
-          content: result.message,
+          content: result.message || (currentLanguage === 'fr' ? 'Erreur de création' : 'Creation error'),
           timestamp: new Date(),
         };
         addMessage(errorMessage);
       }
     } catch (error) {
-      // Remove progress message
+      console.error('[LandingChatBox] Error in handleCreation:', error);
+      // Remove progress message if it's still there
       setMessages(prev => prev.filter(msg => msg.id !== progressMessage.id));
 
       const errorMessage: Message = {
@@ -1151,7 +1331,7 @@ export function LandingChatBox({
       setIsCreating(false);
       setCreatingType(null);
     }
-  }, [addMessage, currentLanguage, project]);
+  }, [addMessage, currentLanguage, messages, project]);
 
   // Quick create handler (from quick create bar)
   const handleQuickCreate = useCallback(async (type: ContentType) => {
@@ -2085,6 +2265,16 @@ function generateAssistantResponse(input: string): string {
     input.includes('vidéo') || input.includes('video')
   ) {
     return "L'export et le rendu de vidéos sont disponibles depuis l'éditeur de projet. Une fois votre storyboard terminé, vous pourrez exporter votre projet dans différents formats avec les paramètres de qualité de votre choix.";
+  }
+
+  // Vision analysis fallback
+  if (
+    input.includes('analyser') || input.includes('analyze') ||
+    input.includes('voir') || input.includes('see') ||
+    input.includes('regarder') || input.includes('look') ||
+    input.includes('image')
+  ) {
+    return "Je peux analyser vos images ! Glissez simplement une image dans le chat ou utilisez le bouton trombone, et je vous dirai ce que je vois. Je peux aussi créer des personnages, lieux ou objets basés sur vos images.";
   }
 
   // Default response

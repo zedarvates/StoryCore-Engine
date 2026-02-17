@@ -7,21 +7,21 @@
 export { InlineErrorMessage } from './InlineErrorMessage';
 export type { InlineErrorMessageProps } from './InlineErrorMessage';
 
-export { 
-  FieldHighlight, 
-  getFieldStyle, 
-  EnhancedInput 
+export {
+  FieldHighlight,
+  getFieldStyle,
+  EnhancedInput
 } from './FieldHighlight';
-export type { 
-  FieldHighlightProps, 
-  EnhancedInputProps 
+export type {
+  FieldHighlightProps,
+  EnhancedInputProps
 } from './FieldHighlight';
 
-export { 
-  ErrorNotification, 
-  NotificationContainer 
+export {
+  ErrorNotification,
+  NotificationContainer
 } from './ErrorNotification';
-export type { 
+export type {
   NotificationType,
   NotificationAction,
   Notification,
@@ -99,13 +99,13 @@ export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 
 export { Dialog } from './dialog';
 
-export { 
-  DropdownMenu 
+export {
+  DropdownMenu
 } from './dropdown-menu';
 
 export { ScrollArea } from './scroll-area';
 
-export { 
+export {
   Toast,
   ToastProvider,
   ToastViewport,
@@ -118,35 +118,37 @@ export type { ToastProps, ToastActionElement } from './toast';
 
 export { Toaster } from './toaster';
 
-export { 
+export {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-  TooltipProvider 
+  TooltipProvider
 } from './tooltip';
 
 export { ThemeToggle, ThemeToggleWithLabel } from './theme-toggle';
 export type { ThemeToggleProps, ThemeToggleWithLabelProps } from './theme-toggle';
 
-export { 
-  SettingsPanel, 
-  SettingsSection, 
-  SettingsItem 
+export {
+  SettingsPanel,
+  SettingsSection,
+  SettingsItem
 } from './settings-panel';
-export type { 
-  SettingsPanelProps, 
-  SettingsSectionProps, 
-  SettingsItemProps 
+export type {
+  SettingsPanelProps,
+  SettingsSectionProps,
+  SettingsItemProps
 } from './settings-panel';
 
 // Pagination Components
-export { 
-  Pagination, 
-  PaginationCompact, 
-  PaginationInfo 
+export {
+  Pagination,
+  PaginationCompact,
+  PaginationInfo
 } from './pagination';
-export type { 
-  PaginationProps, 
-  PaginationCompactProps, 
-  PaginationInfoProps 
+export type {
+  PaginationProps,
+  PaginationCompactProps,
+  PaginationInfoProps
 } from './pagination';
+
+export { CollapsibleSection } from './CollapsibleSection';

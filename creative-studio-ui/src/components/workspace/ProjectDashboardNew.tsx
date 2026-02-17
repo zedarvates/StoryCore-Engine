@@ -53,6 +53,7 @@ import {
   Film,
   Map,
   Users,
+  Puzzle,
   Globe,
   MessageSquare,
   FileText,
@@ -72,6 +73,7 @@ import {
 } from 'lucide-react';
 import { SequenceEditModal } from './SequenceEditModal';
 import { DashboardAddonsSection } from './DashboardAddonsSection';
+import { CollapsibleSection } from '@/components/ui';
 import './ProjectDashboardNew.css';
 
 // ============================================================================
@@ -1461,10 +1463,8 @@ export function ProjectDashboardNew({
     const jsonString = JSON.stringify(sequenceData, null, 2);
 
     if (window.electronAPI?.fs?.writeFile) {
-      // Convert string to Buffer for Electron API
-      const encoder = new TextEncoder();
-      const dataBuffer = Buffer.from(encoder.encode(jsonString));
-      await window.electronAPI.fs.writeFile(filePath, dataBuffer);
+      // Pass string directly - the Electron API accepts strings
+      await window.electronAPI.fs.writeFile(filePath, jsonString);
     }
   };
 
@@ -1493,10 +1493,8 @@ export function ProjectDashboardNew({
     const jsonString = JSON.stringify(shotData, null, 2);
 
     if (window.electronAPI?.fs?.writeFile) {
-      // Convert string to Buffer for Electron API
-      const encoder = new TextEncoder();
-      const dataBuffer = Buffer.from(encoder.encode(jsonString));
-      await window.electronAPI.fs.writeFile(filePath, dataBuffer);
+      // Pass string directly - the Electron API accepts strings
+      await window.electronAPI.fs.writeFile(filePath, jsonString);
     }
   };
 
@@ -1911,88 +1909,110 @@ export function ProjectDashboardNew({
           </div>
 
           {/* Creative Wizards */}
-          <div className="creative-wizards-section">
-            <WizardLauncher
-              availableWizards={enabledWizards}
-              onLaunchWizard={handleLaunchWizard}
-            />
-          </div>
+          <CollapsibleSection
+            title="Creative Wizards"
+            icon={<Sparkles className="w-5 h-5" />}
+            defaultExpanded={false}
+          >
+            <div className="creative-wizards-section" style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}>
+              <WizardLauncher
+                availableWizards={enabledWizards}
+                onLaunchWizard={handleLaunchWizard}
+              />
+            </div>
+          </CollapsibleSection>
 
           {/* Active Add-ons Section */}
-          <DashboardAddonsSection
-            onLaunchWizard={(wizardType, initialData) => {
-              // Close all other wizards first
-              const closeActiveWizard = useAppStore.getState().closeActiveWizard;
-              closeActiveWizard();
+          <CollapsibleSection
+            title="Active Add-ons"
+            icon={<Puzzle className="w-5 h-5" />}
+            defaultExpanded={false}
+          >
+            <DashboardAddonsSection
+              onLaunchWizard={(wizardType, initialData) => {
+                // Close all other wizards first
+                const closeActiveWizard = useAppStore.getState().closeActiveWizard;
+                closeActiveWizard();
 
-              // Launch the wizard based on type
-              handleLaunchWizard(wizardType);
-            }}
-          />
+                // Launch the wizard based on type
+                handleLaunchWizard(wizardType);
+              }}
+              hideHeader={true}
+              style={{ padding: 0, border: 'none', background: 'transparent', margin: 0 }}
+            />
+          </CollapsibleSection>
 
           {/* Stories Section */}
-          <div className="stories-section">
-            <div className="section-header">
-              <h3>Stories</h3>
+          <CollapsibleSection
+            title="Stories"
+            icon={<BookOpen className="w-5 h-5" />}
+            defaultExpanded={false}
+            headerActions={
               <button
                 className="btn-create-story"
                 onClick={handleCreateNewStory}
                 title="Create a new story"
+                style={{ padding: '4px 12px', height: '32px' }}
               >
                 <BookOpen className="w-4 h-4" />
-                <span>Create New Story</span>
+                <span style={{ fontSize: '0.8rem' }}>Create New Story</span>
               </button>
+            }
+          >
+            <div className="stories-section" style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}>
+              {/* Expanded Story Parts View */}
+              {expandedStoryId && (
+                <StoryPartsSection
+                  story={getStoryById(expandedStoryId)!}
+                  onPartsUpdated={(parts) => handleUpdateStoryParts(expandedStoryId, parts)}
+                  onClose={() => {
+                    setExpandedStoryId(null);
+                    setSelectedStoryId(null);
+                  }}
+                />
+              )}
+
+              {/* Stories Grid - shown when no story is expanded */}
+              {!expandedStoryId && (
+                <div className="stories-grid">
+                  {stories.length === 0 ? (
+                    <div className="no-stories-message">
+                      <p>No stories yet. Click "Create New Story" to begin your first narrative.</p>
+                    </div>
+                  ) : (
+                    stories.map((story) => (
+                      <StoryCard
+                        key={story.id}
+                        story={story}
+                        onClick={() => handleStoryClick(story.id)}
+                      />
+                    ))
+                  )}
+                </div>
+              )}
             </div>
-
-            {/* Expanded Story Parts View */}
-            {expandedStoryId && (
-              <StoryPartsSection
-                story={getStoryById(expandedStoryId)!}
-                onPartsUpdated={(parts) => handleUpdateStoryParts(expandedStoryId, parts)}
-                onClose={() => {
-                  setExpandedStoryId(null);
-                  setSelectedStoryId(null);
-                }}
-              />
-            )}
-
-            {/* Stories Grid - shown when no story is expanded */}
-            {!expandedStoryId && (
-              <div className="stories-grid">
-                {stories.length === 0 ? (
-                  <div className="no-stories-message">
-                    <p>No stories yet. Click "Create New Story" to begin your first narrative.</p>
-                  </div>
-                ) : (
-                  stories.map((story) => (
-                    <StoryCard
-                      key={story.id}
-                      story={story}
-                      onClick={() => handleStoryClick(story.id)}
-                    />
-                  ))
-                )}
-              </div>
-            )}
-          </div>
+          </CollapsibleSection>
 
           {/* Plan Sequences */}
-          <div className="plan-sequences-section">
-            <div className="section-header">
-              <h3>Plan Sequences</h3>
+          <CollapsibleSection
+            title="Plan Sequences"
+            icon={<Film className="w-5 h-5" />}
+            defaultExpanded={false}
+            headerActions={
               <div className="sequence-controls">
                 <button
                   className="btn-sequence-control sync"
                   onClick={handleSyncSequences}
                   disabled={isSyncing || sequences.length === 0}
                   title="Synchroniser les plans séquences avec l'histoire et les dialogues"
+                  style={{ padding: '4px 10px', height: '28px' }}
                 >
                   {isSyncing ? (
                     <InlineLoading message="Sync..." />
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Sync</span>
+                      <Sparkles className="w-3 h-3" />
+                      <span style={{ fontSize: '0.75rem' }}>Sync</span>
                     </>
                   )}
                 </button>
@@ -2001,13 +2021,14 @@ export function ProjectDashboardNew({
                   onClick={handleForceUpdateSequences}
                   disabled={isLoadingSequences}
                   title="Refresh sequences from JSON files"
+                  style={{ padding: '4px 10px', height: '28px' }}
                 >
                   {isLoadingSequences ? (
                     <InlineLoading message="Loading..." />
                   ) : (
                     <>
-                      <RefreshCw className="w-4 h-4" />
-                      <span>Refresh</span>
+                      <RefreshCw className="w-3 h-3" />
+                      <span style={{ fontSize: '0.75rem' }}>Refresh</span>
                     </>
                   )}
                 </button>
@@ -2015,102 +2036,130 @@ export function ProjectDashboardNew({
                   className="btn-sequence-control new-plan"
                   onClick={handleNewPlan}
                   title="Create a new sequence plan"
+                  style={{ padding: '4px 10px', height: '28px' }}
                 >
-                  <FileText className="w-4 h-4" />
-                  <span>New Plan</span>
+                  <FileText className="w-3 h-3" />
+                  <span style={{ fontSize: '0.75rem' }}>New Plan</span>
                 </button>
                 <button
                   className="btn-sequence-control add"
                   onClick={handleAddSequence}
                   disabled={isAddingSequence}
                   title="Add a new sequence"
+                  style={{ width: '28px', height: '28px' }}
                 >
                   {isAddingSequence ? (
-                    <InlineLoading message="Adding..." />
+                    <InlineLoading message="..." />
                   ) : (
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3 h-3" />
                   )}
                 </button>
               </div>
-            </div>
-
-            <div className="sequences-grid">
-              {sequences.length === 0 ? (
-                <div className="no-sequences-message">
-                  <p>No sequences yet. Click + to add your first sequence.</p>
-                </div>
-              ) : (
-                sequences.map((seq) => (
-                  <div
-                    key={seq.id}
-                    className="sequence-card"
-                    onClick={() => handleSequenceClick(seq.id)}
-                  >
-                    <div className="sequence-header">
-                      <h4>{seq.name}</h4>
-                      <div className="sequence-actions">
-                        <button
-                          className="btn-sequence-action edit"
-                          onClick={(e) => handleEditSequence(seq, e)}
-                          title="Éditer la séquence"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="btn-sequence-action delete"
-                          onClick={(e) => handleRemoveSequence(seq.id, e)}
-                          title="Supprimer la séquence"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+            }
+          >
+            <div className="plan-sequences-section" style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}>
+              <div className="sequences-grid">
+                {sequences.length === 0 ? (
+                  <div className="no-sequences-message">
+                    <p>No sequences yet. Click + to add your first sequence.</p>
+                  </div>
+                ) : (
+                  sequences.map((seq) => (
+                    <div
+                      key={seq.id}
+                      className="sequence-card"
+                      onClick={() => handleSequenceClick(seq.id)}
+                    >
+                      <div className="sequence-header">
+                        <h4>{seq.name}</h4>
+                        <div className="sequence-actions">
+                          <button
+                            className="btn-sequence-action edit"
+                            onClick={(e) => handleEditSequence(seq, e)}
+                            title="Éditer la séquence"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            className="btn-sequence-action delete"
+                            onClick={(e) => handleRemoveSequence(seq.id, e)}
+                            title="Supprimer la séquence"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="sequence-info">
+                        <span>Order: #{seq.order}</span>
+                        <span>Duration: {seq.duration}s</span>
+                        <span>Shots: {seq.shots}</span>
+                      </div>
+                      <div className="sequence-resume">
+                        <strong>Resume:</strong> {seq.resume}
                       </div>
                     </div>
-                    <div className="sequence-info">
-                      <span>Order: #{seq.order}</span>
-                      <span>Duration: {seq.duration}s</span>
-                      <span>Shots: {seq.shots}</span>
-                    </div>
-                    <div className="sequence-resume">
-                      <strong>Resume:</strong> {seq.resume}
-                    </div>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Locations Section */}
-          <LocationSection
-            onCreateLocation={() => {
-              // Open location creation wizard
-              openWizard('location-creation' as any);
-            }}
-          />
+          <CollapsibleSection
+            title="Locations"
+            icon={<Map className="w-5 h-5" />}
+            defaultExpanded={false}
+          >
+            <LocationSection
+              onCreateLocation={() => {
+                // Open location creation wizard
+                openWizard('location-creation' as any);
+              }}
+              hideHeader={true}
+              style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
+            />
+          </CollapsibleSection>
 
           {/* Characters Section */}
-          <CharactersSection
-            onCreateCharacter={handleCreateCharacter}
-            onCharacterClick={handleCharacterClick}
-            onEditCharacter={handleCharacterClick}
-            onDeleteCharacter={(character) => {
-              // Deletion is handled by the CharacterEditor
-              // This is just for the delete button on cards if shown
-              openCharacterEditor(character.character_id);
-            }}
-            showActions={true}
-          />
+          <CollapsibleSection
+            title="Characters"
+            icon={<Users className="w-5 h-5" />}
+            defaultExpanded={false}
+          >
+            <CharactersSection
+              onCreateCharacter={handleCreateCharacter}
+              onCharacterClick={handleCharacterClick}
+              onEditCharacter={handleCharacterClick}
+              onDeleteCharacter={(character) => {
+                // Deletion is handled by the CharacterEditor
+                // This is just for the delete button on cards if shown
+                openCharacterEditor(character.character_id);
+              }}
+              showActions={true}
+              hideHeader={true}
+              style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
+            />
+          </CollapsibleSection>
 
           {/* Objects Section */}
-          <ObjectsSection
-            onCreateObject={() => {
-              console.log('[ProjectDashboardNew] Opening object wizard');
-              setShowObjectWizard(true);
-            }}
-            onObjectClick={(objectId) => {
-              // Open objects collection modal
-              setShowObjectsModal(true);
-            }}
-          />
+          <CollapsibleSection
+            title="Objects"
+            icon={<Database className="w-5 h-5" />}
+            defaultExpanded={false}
+          >
+            <ObjectsSection
+              onCreateObject={() => {
+                console.log('[ProjectDashboardNew] Opening object wizard');
+                setShowObjectWizard(true);
+              }}
+              onObjectClick={(objectId) => {
+                // Open objects collection modal
+                setShowObjectsModal(true);
+              }}
+              hideHeader={true}
+              style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
+            />
+          </CollapsibleSection>
         </div>
 
         {/* Right Column: Recent Activity & Asset Quick View */}

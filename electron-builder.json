@@ -8,7 +8,15 @@
     "dist-electron/**/*",
     "dist/**/*",
     "node_modules/**/*",
-    "package.json"
+    "package.json",
+    "documentation/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "documentation",
+      "to": "documentation",
+      "filter": ["**/*.md", "**/*.pdf"]
+    }
   ],
   "publish": {
     "provider": "github",

@@ -440,10 +440,10 @@ export interface ElectronAPI {
     /**
      * Write data to file
      * @param filePath Path to file
-     * @param data Data to write
+     * @param data Data to write (string, Uint8Array for binary data, or ArrayBuffer)
      * @throws Error if write fails
      */
-    writeFile: (filePath: string, data: string | Buffer) => Promise<void>;
+    writeFile: (filePath: string, data: string | Uint8Array | ArrayBuffer) => Promise<void>;
 
     /**
      * Check if path exists

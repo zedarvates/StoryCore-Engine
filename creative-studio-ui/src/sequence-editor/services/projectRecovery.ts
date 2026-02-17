@@ -52,7 +52,7 @@ function getRecoveryIndex(): RecoveryIndex {
   } catch (error) {
     console.error('Failed to load recovery index:', error);
   }
-  
+
   return {
     snapshots: [],
     lastSessionCrashed: false,
@@ -85,7 +85,7 @@ export function saveRecoverySnapshot(state: RootState): void {
   try {
     // Export project data
     const projectData = exportProjectToJSON(state);
-    
+
     // Create snapshot metadata
     const snapshot: RecoverySnapshot = {
       id: generateSnapshotId(),
@@ -94,15 +94,15 @@ export function saveRecoverySnapshot(state: RootState): void {
       shotCount: state.timeline.shots.length,
       duration: state.timeline.duration,
     };
-    
+
     // Save snapshot data
     const snapshotKey = `${RECOVERY_KEY_PREFIX}${snapshot.id}`;
     localStorage.setItem(snapshotKey, JSON.stringify(projectData));
-    
+
     // Update recovery index
     const index = getRecoveryIndex();
     index.snapshots.push(snapshot);
-    
+
     // Keep only the most recent snapshots
     if (index.snapshots.length > MAX_RECOVERY_SNAPSHOTS) {
       const removed = index.snapshots.shift();
@@ -111,7 +111,7 @@ export function saveRecoverySnapshot(state: RootState): void {
         localStorage.removeItem(`${RECOVERY_KEY_PREFIX}${removed.id}`);
       }
     }
-    
+
     saveRecoveryIndex(index);
   } catch (error) {
     console.error('Failed to save recovery snapshot:', error);
@@ -125,14 +125,14 @@ export function loadRecoverySnapshot(snapshotId: string): ProjectFile | null {
   try {
     const snapshotKey = `${RECOVERY_KEY_PREFIX}${snapshotId}`;
     const snapshotJson = localStorage.getItem(snapshotKey);
-    
+
     if (snapshotJson) {
       return JSON.parse(snapshotJson);
     }
   } catch (error) {
     console.error('Failed to load recovery snapshot:', error);
   }
-  
+
   return null;
 }
 
@@ -152,7 +152,7 @@ export function deleteRecoverySnapshot(snapshotId: string): void {
     // Delete snapshot data
     const snapshotKey = `${RECOVERY_KEY_PREFIX}${snapshotId}`;
     localStorage.removeItem(snapshotKey);
-    
+
     // Update recovery index
     const index = getRecoveryIndex();
     index.snapshots = index.snapshots.filter((s) => s.id !== snapshotId);
@@ -168,13 +168,13 @@ export function deleteRecoverySnapshot(snapshotId: string): void {
 export function clearAllRecoverySnapshots(): void {
   try {
     const index = getRecoveryIndex();
-    
+
     // Delete all snapshot data
     index.snapshots.forEach((snapshot) => {
       const snapshotKey = `${RECOVERY_KEY_PREFIX}${snapshot.id}`;
       localStorage.removeItem(snapshotKey);
     });
-    
+
     // Clear recovery index
     saveRecoveryIndex({
       snapshots: [],
@@ -215,17 +215,22 @@ export function markSessionClosed(): void {
 export function checkForCrashedSession(): boolean {
   try {
     const wasActive = localStorage.getItem(SESSION_ACTIVE_KEY) === 'true';
-    
+
     if (wasActive) {
       // Last session didn't close properly - mark as crashed
+      // Clear the active key so we don't detect it again on next mount
+      localStorage.removeItem(SESSION_ACTIVE_KEY);
+
       const index = getRecoveryIndex();
       index.lastSessionCrashed = true;
       saveRecoveryIndex(index);
-      
+
       return true;
     }
-    
-    return false;
+
+    // Also check the flag in the index in case it was set but not cleared
+    const index = getRecoveryIndex();
+    return index.lastSessionCrashed;
   } catch (error) {
     console.error('Failed to check for crashed session:', error);
     return false;
@@ -254,7 +259,7 @@ export function formatSnapshotTimestamp(timestamp: string): string {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMinutes = Math.floor(diffMs / 60000);
-    
+
     if (diffMinutes < 1) {
       return 'Just now';
     } else if (diffMinutes < 60) {
@@ -278,11 +283,11 @@ export function formatSnapshotTimestamp(timestamp: string): string {
 export class RecoveryManager {
   private intervalId: NodeJS.Timeout | null = null;
   private getState: () => RootState;
-  
+
   constructor(getState: () => RootState) {
     this.getState = getState;
   }
-  
+
   /**
    * Start automatic recovery snapshots
    * Requirement 19.2: Save recovery snapshots every 5 minutes
@@ -291,19 +296,19 @@ export class RecoveryManager {
     if (this.intervalId) {
       return; // Already started
     }
-    
+
     // Mark session as active
     markSessionActive();
-    
+
     // Save initial snapshot
     this.saveSnapshot();
-    
+
     // Start periodic snapshots
     this.intervalId = setInterval(() => {
       this.saveSnapshot();
     }, RECOVERY_INTERVAL);
   }
-  
+
   /**
    * Stop automatic recovery snapshots
    */
@@ -312,11 +317,11 @@ export class RecoveryManager {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
-    
+
     // Mark session as closed normally
     markSessionClosed();
   }
-  
+
   /**
    * Save a recovery snapshot
    */

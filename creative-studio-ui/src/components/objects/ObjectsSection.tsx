@@ -16,11 +16,23 @@ import { StoryObject } from '@/types/object';
 export interface ObjectsSectionProps {
   onCreateObject?: () => void;
   onObjectClick?: (objectId: string) => void;
+
+  /** Whether to hide the section header */
+  hideHeader?: boolean;
+
+  /** Optional className */
+  className?: string;
+
+  /** Optional style */
+  style?: React.CSSProperties;
 }
 
 export function ObjectsSection({
   onCreateObject,
   onObjectClick,
+  hideHeader = false,
+  className = '',
+  style = {},
 }: ObjectsSectionProps) {
   const project = useAppStore((state) => state.project);
   const { objects, fetchProjectObjects, isLoading } = useObjectStore();
@@ -55,22 +67,24 @@ export function ObjectsSection({
   };
 
   return (
-    <div className="objects-section dashboard-card">
-      <div className="section-header">
-        <div className="section-title">
-          <Package className="section-icon" />
-          <h3>Objects & Props</h3>
-          <span className="count-badge">{objects.length}</span>
+    <div className={`objects-section dashboard-card ${className}`} style={style}>
+      {!hideHeader && (
+        <div className="section-header">
+          <div className="section-title">
+            <Package className="section-icon" />
+            <h3>Objects & Props</h3>
+            <span className="count-badge">{objects.length}</span>
+          </div>
+          <button
+            className="create-button"
+            onClick={onCreateObject}
+            title="Create new object"
+          >
+            <Plus size={16} />
+            <span>New Object</span>
+          </button>
         </div>
-        <button
-          className="create-button"
-          onClick={onCreateObject}
-          title="Create new object"
-        >
-          <Plus size={16} />
-          <span>New Object</span>
-        </button>
-      </div>
+      )}
 
       <div className="objects-grid">
         {isLoading && objects.length === 0 ? (

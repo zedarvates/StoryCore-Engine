@@ -13,5 +13,5 @@ interface EditorPageSimpleProps {
 
 export function EditorPageSimple({ sequenceId, onBackToDashboard }: EditorPageSimpleProps) {
   // Use the new professional sequence editor with multi-track timeline
-  return <SequenceEditor />;
+  return <SequenceEditor sequenceId={sequenceId} onBack={onBackToDashboard} />;
 }

@@ -384,8 +384,9 @@ export class ProjectExportService {
         }
 
         this.reportProgress(80, 'Saving file...');
-        const buffer = Buffer.from(await pdfBlob.arrayBuffer());
-        await window.electronAPI.fs.writeFile(result.filePath, buffer);
+        // Use ArrayBuffer directly - Electron IPC supports it via structured clone
+        const arrayBuffer = await pdfBlob.arrayBuffer();
+        await window.electronAPI.fs.writeFile(result.filePath, arrayBuffer);
 
         this.reportProgress(100, 'Export complete');
         return { success: true, filePath: result.filePath };
@@ -474,8 +475,9 @@ export class ProjectExportService {
         }
 
         this.reportProgress(90, 'Saving file...');
-        const buffer = Buffer.from(await videoBlob.arrayBuffer());
-        await window.electronAPI.fs.writeFile(result.filePath, buffer);
+        // Use ArrayBuffer directly - Electron IPC supports it via structured clone
+        const arrayBuffer = await videoBlob.arrayBuffer();
+        await window.electronAPI.fs.writeFile(result.filePath, arrayBuffer);
 
         this.reportProgress(100, 'Export complete');
         return { success: true, filePath: result.filePath };

@@ -1654,9 +1654,18 @@ registerHandlers(): void {
     });
 
     // Write file
-    ipcMain.handle(IPC_CHANNELS.FS_WRITEFILE, async (_event, filePath: string, data: string | Buffer) => {
+    ipcMain.handle(IPC_CHANNELS.FS_WRITEFILE, async (_event, filePath: string, data: string | Uint8Array | ArrayBuffer) => {
       try {
-        fs.writeFileSync(filePath, data);
+        // Convert ArrayBuffer/Uint8Array to Buffer if needed
+        let bufferData: string | Buffer;
+        if (data instanceof ArrayBuffer) {
+          bufferData = Buffer.from(data);
+        } else if (data instanceof Uint8Array) {
+          bufferData = Buffer.from(data);
+        } else {
+          bufferData = data;
+        }
+        fs.writeFileSync(filePath, bufferData);
         return {
           success: true,
         };
