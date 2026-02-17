@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/store';
 import { useEditorStore } from '@/stores/editorStore';
 import type { Story } from '@/types/story';
@@ -36,6 +37,7 @@ import { LLMSettingsModal } from '@/components/settings/LLMSettingsModal';
 import { ComfyUISettingsModal } from '@/components/settings/ComfyUISettingsModal';
 import { GeneralSettingsWindow } from '@/components/configuration/GeneralSettingsWindow';
 import { AddonsModal } from '@/components/settings/AddonsModal';
+import { AddonSettingsModal } from '@/components/settings/AddonSettingsModal';
 import { CharactersModal } from '@/components/modals/CharactersModal';
 import { WorldModal } from '@/components/modals/WorldModal';
 import { LocationsModal } from '@/components/modals/LocationsModal';
@@ -58,6 +60,7 @@ import { initializeLLMConfig } from '@/utils/migrateLLMConfig'; // NEW: Migrate 
 import { globalErrorHandler } from '@/utils/globalErrorHandler'; // NEW: Global error handler
 import { validateFeatureRegistry } from '@/config/experimentalFeatures'; // NEW: Validate experimental features registry
 import { serviceStatusMonitor } from '@/services/ServiceStatusMonitor'; // NEW: Service status monitoring
+import { addonManager } from '@/services/AddonManager';
 import type { FeedbackInitialContext } from '@/components/feedback/types';
 import { logger } from '@/utils/logger';
 import { devLog } from '@/utils/devOnly';
@@ -129,7 +132,64 @@ function AppContent() {
     showStoryboardCreator,
     showStyleTransfer,
     closeActiveWizard,
-  } = useAppStore();
+    settingsAddonId,
+    closeAddonSettings,
+  } = useAppStore(useShallow((state) => ({
+    project: state.project,
+    setProject: state.setProject,
+    setShots: state.setShots,
+    showInstallationWizard: state.showInstallationWizard,
+    setShowInstallationWizard: state.setShowInstallationWizard,
+    setInstallationComplete: state.setInstallationComplete,
+    showWorldWizard: state.showWorldWizard,
+    setShowWorldWizard: state.setShowWorldWizard,
+    showCharacterWizard: state.showCharacterWizard,
+    setShowCharacterWizard: state.setShowCharacterWizard,
+    showObjectWizard: state.showObjectWizard,
+    setShowObjectWizard: state.setShowObjectWizard,
+    showStorytellerWizard: state.showStorytellerWizard,
+    setShowStorytellerWizard: state.setShowStorytellerWizard,
+    showLLMSettings: state.showLLMSettings,
+    setShowLLMSettings: state.setShowLLMSettings,
+    showComfyUISettings: state.showComfyUISettings,
+    setShowComfyUISettings: state.setShowComfyUISettings,
+    showGeneralSettings: state.showGeneralSettings,
+    setShowGeneralSettings: state.setShowGeneralSettings,
+    showAddonsModal: state.showAddonsModal,
+    setShowAddonsModal: state.setShowAddonsModal,
+    showCharactersModal: state.showCharactersModal,
+    setShowCharactersModal: state.setShowCharactersModal,
+    showWorldModal: state.showWorldModal,
+    setShowWorldModal: state.setShowWorldModal,
+    showLocationsModal: state.showLocationsModal,
+    setShowLocationsModal: state.setShowLocationsModal,
+    showObjectsModal: state.showObjectsModal,
+    setShowObjectsModal: state.setShowObjectsModal,
+    showImageGalleryModal: state.showImageGalleryModal,
+    setShowImageGalleryModal: state.setShowImageGalleryModal,
+    showDialogueEditor: state.showDialogueEditor,
+    setShowDialogueEditor: state.setShowDialogueEditor,
+    showFeedbackPanel: state.showFeedbackPanel,
+    setShowFeedbackPanel: state.setShowFeedbackPanel,
+    showPendingReportsList: state.showPendingReportsList,
+    setShowPendingReportsList: state.setShowPendingReportsList,
+    showFactCheckModal: state.showFactCheckModal,
+    setShowFactCheckModal: state.setShowFactCheckModal,
+    showSequencePlanWizard: state.showSequencePlanWizard,
+    closeSequencePlanWizard: state.closeSequencePlanWizard,
+    sequencePlanWizardContext: state.sequencePlanWizardContext,
+    showShotWizard: state.showShotWizard,
+    closeShotWizard: state.closeShotWizard,
+    shotWizardContext: state.shotWizardContext,
+    // Generic wizard state (simple forms in GenericWizardModal)
+    showDialogueWriter: state.showDialogueWriter,
+    showSceneGenerator: state.showSceneGenerator,
+    showStoryboardCreator: state.showStoryboardCreator,
+    showStyleTransfer: state.showStyleTransfer,
+    closeActiveWizard: state.closeActiveWizard,
+    settingsAddonId: state.settingsAddonId,
+    closeAddonSettings: state.closeAddonSettings,
+  })));
 
   // MenuBar state management
   // Requirements: 1.1-15.6
@@ -146,6 +206,27 @@ function AppContent() {
   // Local state for Continuous Creation modals
   const [showReferenceSheetManager, setShowReferenceSheetManager] = useState(false);
   const [showVideoReplicationDialog, setShowVideoReplicationDialog] = useState(false);
+  const [characterWizardWorldContext, setCharacterWizardWorldContext] = useState<World | undefined>(undefined);
+  const [settingsAddonName, setSettingsAddonName] = useState('');
+
+  // Fetch addon name when showing settings
+  useEffect(() => {
+    if (settingsAddonId) {
+      // We need to ensure addons are initialized, or at least try to get the addon
+      try {
+        const addon = addonManager.getAddon(settingsAddonId);
+        if (addon) {
+          setSettingsAddonName(addon.name);
+        } else {
+          // Fallback if addon not found directly (might be async init issue, but usually addons are loaded by dashboard)
+          setSettingsAddonName('Addon Settings');
+        }
+      } catch (e) {
+        console.warn('Failed to get addon info for settings:', e);
+        setSettingsAddonName('Addon Settings');
+      }
+    }
+  }, [settingsAddonId]);
 
   // Sync project to main store when it changes (CRITICAL: Fixes character persistence)
   // This ensures characters and other project data are available to all components
@@ -454,7 +535,7 @@ function AppContent() {
     setShowInstallationWizard(false);
   };
 
-  const handleWorldComplete = (world: World) => {
+  const handleWorldComplete = (world: World, nextAction?: string) => {
     try {
       if (!world || !world.id) {
         throw new Error('Invalid world data');
@@ -479,6 +560,24 @@ function AppContent() {
         title: 'Success',
         description: `World "${world.name}" created successfully`,
       });
+
+      // Handle chaining
+      if (nextAction === 'create-character') {
+        setCharacterWizardWorldContext(world);
+        // Small timeout to allow modal animation to finish
+        setTimeout(() => {
+          setShowCharacterWizard(true);
+        }, 300);
+      } else if (nextAction === 'create-location') {
+        // TODO: Implement location wizard chaining
+        // Currently we don't have a standalone Location Wizard modal exposed in App.tsx easily
+        // But we can add it later.
+        toast({
+          title: 'Info',
+          description: 'Location wizard chaining coming soon',
+        });
+      }
+
     } catch (error) {
       console.error('Failed to complete world wizard:', error);
 
@@ -910,6 +1009,14 @@ function AppContent() {
       <AddonsModal
         isOpen={showAddonsModal}
         onClose={() => setShowAddonsModal(false)}
+      />
+
+      {/* Addon Settings Modal (Individual) */}
+      <AddonSettingsModal
+        isOpen={!!settingsAddonId}
+        onClose={closeAddonSettings}
+        addonId={settingsAddonId || ''}
+        addonName={settingsAddonName}
       />
 
       {/* Characters Modal */}

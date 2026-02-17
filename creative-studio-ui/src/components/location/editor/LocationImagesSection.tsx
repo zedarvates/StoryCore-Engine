@@ -16,9 +16,9 @@ import './LocationImagesSection.css';
 interface LocationImagesSectionProps {
   /** Location to edit */
   location: Location;
-  
+
   /** Handler when an image is generated */
-  onImageGenerated?: (tileUrl: string) => void;
+  onImageGenerated?: (tileUrl: string, prompt?: string) => void;
 }
 
 /**
@@ -40,9 +40,9 @@ export function LocationImagesSection({
     }
   }, [location.metadata?.tile_image_path]);
 
-  const handleImageGenerated = (tileUrl: string) => {
+  const handleImageGenerated = (tileUrl: string, prompt?: string) => {
     setCurrentTileImage(tileUrl);
-    onImageGenerated?.(tileUrl);
+    onImageGenerated?.(tileUrl, prompt);
     setShowGenerator(false);
   };
 
@@ -65,7 +65,7 @@ export function LocationImagesSection({
           <MapPin size={16} />
           Current Tile Image
         </h4>
-        
+
         {currentTileImage ? (
           <div className="location-images-section__preview">
             <img
@@ -126,9 +126,9 @@ export function LocationImagesSection({
                 ×
               </button>
             </div>
-            
+
             <LocationImageGenerator
-              location={location}
+              location={location as any}
               onImageGenerated={handleImageGenerated}
             />
           </div>

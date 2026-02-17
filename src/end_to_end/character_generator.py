@@ -20,7 +20,48 @@ class CharacterGenerator:
         """Initialize character generator"""
         self.genre_personality_templates = self._init_personality_templates()
         self.role_templates = self._init_role_templates()
+        self.quirk_templates = self._init_quirk_templates()
     
+    def _init_quirk_templates(self) -> Dict[str, Any]:
+        """Initialize templates for character quirks and behaviors"""
+        return {
+            "onomatopoeia": {
+                "cyberpunk": ["*static*", "*beep*", "*whirrr*", "*ping*"],
+                "fantasy": ["*hmmm*", "*pffft*", "*aha*", "*grumble*"],
+                "horror": ["*gasp*", "*huuh*", "*shhh*", "*ghhh*"],
+                "sci-fi": ["*blip*", "*hummm*", "*data-hiss*", "*click*"],
+                "noir": ["*exhale*", "*click-clack*", "*sniff*", "*hmph*"],
+                "default": ["*sigh*", "*uh-huh*", "*hmm*", "*tsk*"]
+            },
+            "gestures": {
+                "tech-savvy": ["adjusts neural link", "taps temple", "flicks virtual screen"],
+                "rebellious": ["rolls eyes", "spits on ground", "adjusts collar"],
+                "brave": ["checks weapon", "nods firmly", "stands ground"],
+                "wise": ["strokes chin", "nods slowly", "looks over glasses"],
+                "paranoid": ["glances behind", "checks corners", "whispers rapidly"],
+                "witty": ["winks", "smirks", "gestures dramatically"],
+                "default": ["crosses arms", "shrugs", "leans back"]
+            },
+            "diction": [
+                "Speaks in technical jargon almost exclusively",
+                "Stutters slightly when mentioning their past",
+                "Uses archaic, overly formal language",
+                "Frequent use of slang and street talk",
+                "Speaks in precise, clipped sentences",
+                "Heavy use of metaphors and riddles",
+                "Whispers as if constantly being watched",
+                "Deep, booming voice with slow delivery"
+            ],
+            "inflections": [
+                "Rising intonation at the end of every sentence",
+                "Monotone and robotic",
+                "Breathful and hurried",
+                "Deeply melodic and rhythmic",
+                "Gravely and low-pitched",
+                "High-pitched and energetic"
+            ]
+        }
+
     def _init_personality_templates(self) -> Dict[str, List[str]]:
         """Initialize genre-specific personality trait templates"""
         return {
@@ -132,7 +173,7 @@ class CharacterGenerator:
         parsed_prompt: ParsedPrompt,
         world_config: WorldConfig
     ) -> Character:
-        """Generate a single character"""
+        """Generate a single character with behavioral nuances"""
         character_id = str(uuid.uuid4())
         
         # Generate personality traits based on genre and role
@@ -148,6 +189,25 @@ class CharacterGenerator:
             world_config
         )
         
+        # Generate behavioral traits (Inflexions, Onomatopoeia, Gestures, Diction)
+        genre = parsed_prompt.genre.lower()
+        onomatopoeia = self.quirk_templates["onomatopoeia"].get(
+            genre, 
+            self.quirk_templates["onomatopoeia"]["default"]
+        )
+        
+        # Select gesture based on primary personality trait
+        primary_trait = personality_traits[0] if personality_traits else "default"
+        gestures = self.quirk_templates["gestures"].get(
+            primary_trait,
+            self.quirk_templates["gestures"]["default"]
+        )
+        
+        # Deterministic but "random" selection using hash of character ID
+        char_hash = hash(character_id)
+        diction_quirk = self.quirk_templates["diction"][char_hash % len(self.quirk_templates["diction"])]
+        voice_inflection = self.quirk_templates["inflections"][char_hash % len(self.quirk_templates["inflections"])]
+        
         return Character(
             character_id=character_id,
             name=char_info.name,
@@ -155,7 +215,11 @@ class CharacterGenerator:
             description=char_info.description,
             visual_description=visual_description,
             personality_traits=personality_traits,
-            relationships={}  # Will be filled by _map_relationships
+            relationships={},
+            onomatopoeia=onomatopoeia,
+            gestures=gestures,
+            diction_quirks=diction_quirk,
+            voice_inflection=voice_inflection
         )
     
     def _generate_personality_traits(

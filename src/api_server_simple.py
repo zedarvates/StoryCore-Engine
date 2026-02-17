@@ -1,6 +1,12 @@
 """
 StoryCore API Server v2.0 - Serveur Autonome Simplifié
 Routes: Media Intelligence, Audio Remix, Transcription
+
+⚠️ DEPRECATED: This file is deprecated and will be removed in a future version.
+           The routes have been merged into src/api_server_fastapi.py (FastAPI v2.0).
+
+Deprecated: 2026-02-15
+Migration: Use `python -m src.api_server_fastapi` or `uvicorn src.api_server_fastapi:app`
 """
 
 from fastapi import FastAPI, Request, HTTPException

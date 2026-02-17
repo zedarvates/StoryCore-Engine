@@ -41,7 +41,7 @@ export function createLocationFromWizardData(
 ): Location {
   // Determine location type with explicit preference, then inference from wizard type
   let locationType: LocationType;
-  
+
   if (wizardData.location_type) {
     // Use explicit location_type if provided
     locationType = wizardData.location_type;
@@ -72,6 +72,7 @@ export function createLocationFromWizardData(
     cube_textures: {},
     placed_assets: [],
     is_world_derived: !!options.worldId || !!options.worldLocationId,
+    prompts: [],
   };
 
   return location;

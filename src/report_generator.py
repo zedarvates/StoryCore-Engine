@@ -16,6 +16,20 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from quality_validator import QualityScore, QualityIssue, ImprovementSuggestion
 from quality_feedback import ImprovementTracking
+import numpy as np
+
+class NumpyEncoder(json.JSONEncoder):
+    """Custom JSON encoder for numpy types."""
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, np.bool_):
+            return bool(obj)
+        return super(NumpyEncoder, self).default(obj)
 
 
 @dataclass
@@ -119,7 +133,7 @@ class JSONReportGenerator:
             "suggestions_summary": self._summarize_suggestions(quality_scores)
         }
 
-        return json.dumps(report, indent=2)
+        return json.dumps(report, indent=2, cls=NumpyEncoder)
 
     def _calculate_aggregate_metrics(self, quality_scores: List[QualityScore]) -> ReportMetrics:
         """Calculate aggregate metrics from quality scores."""
@@ -257,7 +271,7 @@ class AutofixComparisonGenerator:
             "comparisons": [comp.to_dict() for comp in comparisons]
         }
 
-        return json.dumps(report, indent=2)
+        return json.dumps(report, indent=2, cls=NumpyEncoder)
 
 
 class VisualizationGenerator:
@@ -602,7 +616,7 @@ class HTMLReportGenerator:
 """
 
         for i, score in enumerate(quality_scores):
-            status = "✓ Pass" if score.passed() else "✗ Fail"
+            status = "[PASS]" if score.passed() else "[FAIL]"
             status_class = "severity-low" if score.passed() else "severity-critical"
             html += f"""
                     <tr>

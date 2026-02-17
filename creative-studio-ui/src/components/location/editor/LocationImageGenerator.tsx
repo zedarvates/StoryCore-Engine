@@ -38,7 +38,7 @@ export interface LocationImageData {
 
 interface LocationImageGeneratorProps {
   readonly location: LocationImageData;
-  readonly onImageGenerated?: (imageUrl: string) => void;
+  readonly onImageGenerated?: (imageUrl: string, prompt?: string) => void;
   readonly disabled?: boolean;
 }
 
@@ -186,9 +186,10 @@ export function LocationImageGenerator({
 
     setIsGenerating(true);
     setError(null);
+    let prompt = '';
 
     try {
-      const prompt = buildLocationPrompt();
+      prompt = buildLocationPrompt();
       const negativePrompt = buildNegativePrompt();
 
       console.log('Generating location tile image with prompt:', prompt);
@@ -210,7 +211,7 @@ export function LocationImageGenerator({
       setGeneratedImage(imageUrl);
 
       if (onImageGenerated) {
-        onImageGenerated(imageUrl);
+        onImageGenerated(imageUrl, prompt);
       }
     } catch (err) {
       console.error('Failed to generate location image:', err);

@@ -76,7 +76,7 @@ export class ObjectsAIService {
       });
 
       const content = response.success ? response.data?.content : null;
-      const generatedObject = this.parseGeneratedObject(content || '', options);
+      const generatedObject = this.parseGeneratedObject(content || '', options, prompt);
 
       notificationService.success(
         language === 'fr' ? 'Objet généré' : 'Object Generated',
@@ -305,7 +305,7 @@ Format de réponse JSON:
 }`;
   }
 
-  private parseGeneratedObject(response: string, options: ObjectGenerationOptions): StoryObject {
+  private parseGeneratedObject(response: string, options: ObjectGenerationOptions, generationPrompt?: string): StoryObject {
     try {
       const jsonStart = response.indexOf('{');
       const jsonEnd = response.lastIndexOf('}');
@@ -331,7 +331,8 @@ Format de réponse JSON:
         tags: [options.theme, options.objectType],
         generatedBy: 'ai',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        prompts: generationPrompt ? [generationPrompt] : []
       };
     } catch {
       return this.createFallbackObject(options);
@@ -370,7 +371,8 @@ Format de réponse JSON:
       tags: [options.theme, options.objectType, options.rarity],
       generatedBy: 'ai',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      prompts: []
     };
   }
 

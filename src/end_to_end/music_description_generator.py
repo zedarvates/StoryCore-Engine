@@ -108,14 +108,16 @@ class MusicDescriptionGenerator:
     def generate_music_description(
         self,
         parsed_prompt: ParsedPrompt,
-        story_structure: StoryStructure
+        story_structure: StoryStructure,
+        characters: List[Character]
     ) -> MusicDescription:
         """
-        Generate complete music description from story structure
+        Generate complete music description with character motifs
         
         Args:
             parsed_prompt: Parsed user prompt
             story_structure: Story structure
+            characters: List of characters
             
         Returns:
             Complete MusicDescription object
@@ -141,11 +143,12 @@ class MusicDescriptionGenerator:
         # Select instruments
         instruments = self._select_instruments(genre_lower)
         
-        # Generate sound effects
+        # Generate sound effects (Requirement Enhancement: Character layers)
         sound_effects = self._generate_sound_effects(
             template["sound_effects"],
             story_structure,
-            parsed_prompt
+            parsed_prompt,
+            characters
         )
         
         # Generate timeline cues
@@ -207,24 +210,38 @@ class MusicDescriptionGenerator:
         self,
         template_effects: List[str],
         story_structure: StoryStructure,
-        parsed_prompt: ParsedPrompt
+        parsed_prompt: ParsedPrompt,
+        characters: List[Character]
     ) -> List[SoundEffect]:
-        """Generate sound effects for story"""
+        """Generate sound effects with character-specific nuances (Requirement Enhancement)"""
         effects = []
-        duration = parsed_prompt.duration_seconds
         
         # Generate effects based on template and story acts
         for i, act in enumerate(story_structure.acts):
             # Calculate timestamp for this act
             act_start = sum(a.duration for a in story_structure.acts[:i])
             
-            # Add effect for each act
-            effect_name = template_effects[i % len(template_effects)]
+            # Alternate between template effects and character-specific behaviors
+            if i % 2 == 0 or not characters:
+                effect_name = template_effects[i % len(template_effects)]
+                description = f"{effect_name} during {act.name}"
+            else:
+                # Add character-specific behavioral sound
+                char = characters[i % len(characters)]
+                if char.onomatopoeia:
+                    effect_name = char.onomatopoeia[0].replace('*', '')
+                    description = f"Character {char.name} makes a {effect_name} sound"
+                elif char.gestures:
+                    effect_name = "foley"
+                    description = f"Sound of {char.name} {char.gestures[0].lower()}"
+                else:
+                    effect_name = template_effects[i % len(template_effects)]
+                    description = f"{effect_name} during {act.name}"
             
             effect = SoundEffect(
                 effect_id=str(uuid.uuid4()),
                 name=effect_name,
-                description=f"{effect_name} during {act.name}",
+                description=description,
                 timestamp=float(act_start)
             )
             effects.append(effect)

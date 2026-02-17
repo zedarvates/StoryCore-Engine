@@ -9,6 +9,7 @@ import { PersonalitySection } from './editor/PersonalitySection';
 import { BackgroundSection } from './editor/BackgroundSection';
 import { RelationshipsSection } from './editor/RelationshipsSection';
 import { CharacterImagesSection } from './editor/CharacterImagesSection';
+import { PromptsManager } from '../common/PromptsManager';
 import './CharacterEditor.css';
 
 /**
@@ -29,7 +30,7 @@ export interface CharacterEditorProps {
   onDelete?: (characterId: string) => void;
 }
 
-type TabId = 'identity' | 'appearance' | 'personality' | 'background' | 'relationships' | 'images';
+type TabId = 'identity' | 'appearance' | 'personality' | 'background' | 'relationships' | 'images' | 'prompts';
 
 interface ValidationErrors {
   [key: string]: string[];
@@ -80,7 +81,10 @@ export function CharacterEditor({
   // Initialize form data when character loads
   useEffect(() => {
     if (originalCharacter) {
-      setFormData(originalCharacter);
+      setFormData({
+        ...originalCharacter,
+        prompts: originalCharacter.prompts || [],
+      });
     }
   }, [originalCharacter]);
 
@@ -265,6 +269,7 @@ export function CharacterEditor({
     { id: 'background', label: 'Background' },
     { id: 'relationships', label: 'Relationships' },
     { id: 'images', label: 'Images' },
+    { id: 'prompts', label: 'Prompts' },
   ];
 
   return (
@@ -395,6 +400,17 @@ export function CharacterEditor({
               character={formData as Character}
               id="panel-images"
             />
+          )}
+
+
+          {activeTab === 'prompts' && (
+            <div className="character-editor__section">
+              <PromptsManager
+                prompts={formData.prompts || []}
+                onUpdate={(newPrompts) => handleFieldChange('prompts', newPrompts)}
+                entityName={formData.name || 'Character'}
+              />
+            </div>
           )}
         </div>
 

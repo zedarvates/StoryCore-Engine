@@ -1,0 +1,18 @@
+{
+  "location_id": "4e794051-33be-441f-8abf-f3bc114d9b09",
+  "name": "The Clockwork Cathedral",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-17T06:25:49.207Z",
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A gargantuan edifice constructed from twisted metal and gears, where the mages of old attempted to harness the power of time itself. Now, it stands as a haunting testament to their hubris.",
+    "atmosphere": "Creepy, mesmerizing",
+    "genre_tags": [],
+    "significance": "Center of ancient knowledge, now cursed and abandoned."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

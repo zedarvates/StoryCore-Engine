@@ -240,22 +240,22 @@ class BaseHandler(ABC):
     
     def print_success(self, message: str) -> None:
         """Print success message with consistent formatting."""
-        print(f"✓ {message}")
+        print(f"[SUCCESS] {message}")
         self.logger.info(message)
     
     def print_error(self, message: str) -> None:
         """Print error message with consistent formatting."""
-        print(f"✗ {message}", file=sys.stderr)
+        print(f"[ERROR] {message}", file=sys.stderr)
         self.logger.error(message)
     
     def print_warning(self, message: str) -> None:
         """Print warning message with consistent formatting."""
-        print(f"⚠️  {message}")
+        print(f"[WARN] {message}")
         self.logger.warning(message)
     
     def print_info(self, message: str) -> None:
         """Print info message with consistent formatting."""
-        print(f"ℹ️  {message}")
+        print(f"[INFO] {message}")
         self.logger.info(message)
     
     def get_execution_time(self) -> float:

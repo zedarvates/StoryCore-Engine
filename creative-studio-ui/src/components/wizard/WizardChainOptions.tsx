@@ -1,15 +1,8 @@
-/**
- * WizardChainOptions Component
- * 
- * Displays wizard chain options in the completion step allowing users to:
- * - See upcoming wizards in the chain
- * - Launch the next wizard in the chain
- * - Skip or continue the chain
- * 
- * Part of the Dashboard Wizards & Addons Enhancement
- */
-
 import React, { useState, useCallback } from 'react';
+import { ChevronDown, ChevronUp, UserPlus, MapPin, Sparkles, ArrowRight, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export interface WizardChainOption {
   wizardType: string;
@@ -29,6 +22,13 @@ export interface WizardChainOptionsProps {
   isLoading?: boolean;
 }
 
+const IconMap: Record<string, React.ElementType> = {
+  'UserPlus': UserPlus,
+  'MapPin': MapPin,
+  'Sparkles': Sparkles,
+  'default': Sparkles
+};
+
 export const WizardChainOptions: React.FC<WizardChainOptionsProps> = ({
   isChained,
   triggeredWizards,
@@ -39,84 +39,95 @@ export const WizardChainOptions: React.FC<WizardChainOptionsProps> = ({
   isLoading = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+
+  // Respect the chain index to only show remaining steps
   const remainingWizards = triggeredWizards.slice(currentChainIndex);
-  const nextWizard = remainingWizards[0];
 
   if (!isChained || remainingWizards.length === 0) {
     return null;
   }
 
-  const handleLaunchNext = useCallback(() => {
-    if (nextWizard && onLaunchNext) {
-      onLaunchNext(nextWizard);
+  const handleLaunch = useCallback((wizard: WizardChainOption) => {
+    if (onLaunchNext) {
+      onLaunchNext(wizard);
     }
-  }, [nextWizard, onLaunchNext]);
+  }, [onLaunchNext]);
 
   return (
-    <div className="wizard-chain-options">
-      <div className="wizard-chain-options__header" onClick={() => setIsExpanded(!isExpanded)}>
-        <div className="wizard-chain-options__title">
-          <span>Continue with More Wizards</span>
+    <Card className="w-full border-2 border-primary/10 shadow-lg">
+      <CardHeader className="pb-3 cursor-pointer select-none" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">What would you like to do next?</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
         </div>
-        <button
-          type="button"
-          className="wizard-chain-options__toggle"
-          aria-label={isExpanded ? 'Collapse' : 'Expand'}
-        >
-          {isExpanded ? '−' : '+'}
-        </button>
-      </div>
+        <CardDescription>
+          continue building your story with these recommended steps
+        </CardDescription>
+      </CardHeader>
 
       {isExpanded && (
-        <div className="wizard-chain-options__content">
-          {nextWizard && (
-            <div className="wizard-chain-options__next">
-              <span className="wizard-chain-options__label">Next:</span>
-              <div className="wizard-chain-options__wizard-card">
-                <div className="wizard-chain-options__wizard-label">{nextWizard.label}</div>
-                {nextWizard.description && (
-                  <div className="wizard-chain-options__wizard-desc">{nextWizard.description}</div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="wizard-chain-options__progress">
-            <span className="wizard-chain-options__progress-text">
-              {remainingWizards.length} wizard{remainingWizards.length > 1 ? 's' : ''} remaining
-            </span>
+        <CardContent className="space-y-4 pt-0">
+          <div className="grid gap-3 md:grid-cols-2">
+            {remainingWizards.map((wizard) => {
+              const iconKey = wizard.icon || 'default';
+              const Icon = (IconMap as any)[iconKey] || (IconMap as any)['default'];
+              return (
+                <button
+                  key={wizard.wizardType}
+                  onClick={() => handleLaunch(wizard)}
+                  disabled={isLoading}
+                  className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <div className="p-2 bg-primary/10 rounded-md shrink-0">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="font-medium flex items-center gap-2">
+                      {wizard.label}
+                      <ArrowRight className="w-3 h-3 opacity-50" />
+                    </div>
+                    {wizard.description && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {wizard.description}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="wizard-chain-options__actions">
-            <button
-              type="button"
-              className="wizard-chain-options__button wizard-chain-options__button--primary"
-              onClick={handleLaunchNext}
-              disabled={isLoading || !nextWizard}
-            >
-              {isLoading ? 'Loading...' : `Launch ${nextWizard?.label || 'Next Wizard'}`}
-            </button>
-            <button
-              type="button"
-              className="wizard-chain-options__button wizard-chain-options__button--secondary"
+          <div className="flex items-center justify-between pt-4 border-t mt-4">
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onSkipChain}
               disabled={isLoading}
+              className="text-muted-foreground hover:text-foreground"
             >
-              Skip Chain
-            </button>
-            <button
-              type="button"
-              className="wizard-chain-options__button wizard-chain-options__button--text"
+              Skip for now
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
               onClick={onContinue}
               disabled={isLoading}
+              className="gap-2"
             >
+              <CheckCircle className="w-4 h-4" />
               Finish
-            </button>
+            </Button>
           </div>
-        </div>
+        </CardContent>
       )}
-    </div>
+    </Card>
   );
 };
 
-export default WizardChainOptions;
+export default WizardChainOptions;

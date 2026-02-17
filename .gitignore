@@ -142,3 +142,11 @@ lib/ollama/
 
 # Large PPM image files
 *.ppm
+
+# StoryCore Agent files
+.checkpoints/
+test_output_2.txt
+test_projects/
+tsc_errors_new.txt
+*.json.bak
+*.tsxx

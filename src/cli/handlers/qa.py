@@ -112,7 +112,7 @@ class QAHandler(BaseHandler):
             # Check if passed based on threshold
             passed = qa_report['overall_score'] >= args.threshold
             status_text = "PASSED" if passed else "FAILED"
-            status_icon = "✓" if passed else "✗"
+            status_icon = "[PASS]" if passed else "[FAIL]"
             print(f"Status: {status_icon} {status_text}")
             
             # Log to memory system if enabled
@@ -129,7 +129,7 @@ class QAHandler(BaseHandler):
             if qa_report.get("categories"):
                 print("\nCategory Scores:")
                 for category, score in qa_report["categories"].items():
-                    status = "✓" if score >= args.threshold else "✗"
+                    status = "[PASS]" if score >= args.threshold else "[FAIL]"
                     category_name = category.replace('_', ' ').title()
                     print(f"  {status} {category_name}: {score:.1f}/5.0")
             
@@ -145,7 +145,7 @@ class QAHandler(BaseHandler):
             if args.detailed and qa_report.get("panel_scores"):
                 print(f"\nPer-Panel Analysis:")
                 for panel_id, panel_score in qa_report["panel_scores"].items():
-                    status = "✓" if panel_score >= args.threshold else "✗"
+                    status = "[PASS]" if panel_score >= args.threshold else "[FAIL]"
                     print(f"  {status} {panel_id}: {panel_score:.1f}/5.0")
             
             # Return appropriate exit code

@@ -1,0 +1,18 @@
+{
+  "location_id": "07fc34e7-2374-4831-bb11-89033a944599",
+  "name": "The Undercroft",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-17T05:04:17.760Z",
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A labyrinthine network of ancient tunnels and bunkers beneath the city. Decaying foundations creak and groan underfoot, while flickering candles cast eerie shadows on walls smeared with ancient graffiti.",
+    "atmosphere": "Dank, claustrophobic, rebellious",
+    "genre_tags": [],
+    "significance": "Hub of rebellion against the tyrannical regime that controls the surface world."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

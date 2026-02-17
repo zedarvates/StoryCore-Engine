@@ -51,44 +51,44 @@ class ErrorHandler:
     
     def _handle_user_error(self, error: UserError, context: str) -> int:
         """Handle user errors with helpful messages."""
-        print(f"✗ {error.message}", file=sys.stderr)
+        print(f"[ERROR] {error.message}", file=sys.stderr)
         if error.suggestion:
-            print(f"💡 {error.suggestion}", file=sys.stderr)
+            print(f"[INFO] {error.suggestion}", file=sys.stderr)
         
         self.logger.info(f"User error in {context}: {error.message}")
         return 1
     
     def _handle_system_error(self, error: SystemError, context: str) -> int:
         """Handle system errors with technical details."""
-        print(f"✗ System error: {error.message}", file=sys.stderr)
+        print(f"[ERROR] System error: {error.message}", file=sys.stderr)
         if error.suggestion:
-            print(f"💡 {error.suggestion}", file=sys.stderr)
+            print(f"[INFO] {error.suggestion}", file=sys.stderr)
         
         self.logger.error(f"System error in {context}: {error.message}")
         return 2
     
     def _handle_config_error(self, error: ConfigurationError, context: str) -> int:
         """Handle configuration errors with validation details."""
-        print(f"✗ Configuration error: {error.message}", file=sys.stderr)
+        print(f"[ERROR] Configuration error: {error.message}", file=sys.stderr)
         if error.suggestion:
-            print(f"💡 {error.suggestion}", file=sys.stderr)
+            print(f"[INFO] {error.suggestion}", file=sys.stderr)
         
         self.logger.warning(f"Configuration error in {context}: {error.message}")
         return 3
     
     def _handle_unknown_error(self, error: Exception, context: str) -> int:
         """Handle unexpected errors with debugging info."""
-        print(f"✗ Unexpected error: {error}", file=sys.stderr)
-        print("💡 Please report this issue with the command you ran", file=sys.stderr)
+        print(f"[ERROR] Unexpected error: {error}", file=sys.stderr)
+        print("[INFO] Please report this issue with the command you ran", file=sys.stderr)
         
         self.logger.error(f"Unexpected error in {context}: {error}", exc_info=True)
         return 2
     
     def format_error_message(self, error: CLIError) -> str:
         """Format error message for display."""
-        message = f"✗ {error.message}"
+        message = f"[ERROR] {error.message}"
         if error.suggestion:
-            message += f"\n💡 {error.suggestion}"
+            message += f"\n[INFO] {error.suggestion}"
         return message
     
     def log_error(self, error: Exception, context: str) -> None:

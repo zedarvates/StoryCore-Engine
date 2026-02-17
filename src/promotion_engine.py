@@ -16,7 +16,7 @@ except ImportError:
     raise ImportError("Pillow and numpy are required for the promote command. Install with: pip install Pillow>=10.0.0 numpy")
 
 # Import quality validation and autofix
-from quality_validator import QualityValidator
+from quality_validator import QualityValidator, ValidationMode
 from quality_feedback import QualityFeedback
 # Import autofix_engine from root directory
 import sys
@@ -229,7 +229,7 @@ def update_project_manifest(project_path: Path, promotion_metadata: Dict[str, An
         project_data = json.load(f)
 
     # Update asset manifest
-    if "asset_manifest" not in project_data:
+    if "asset_manifest" not in project_data or not isinstance(project_data["asset_manifest"], dict):
         project_data["asset_manifest"] = {}
 
     project_data["asset_manifest"]["promoted_panels"] = promotion_metadata["promoted_panels"]
@@ -243,20 +243,26 @@ def update_project_manifest(project_path: Path, promotion_metadata: Dict[str, An
     # Data Contract v1: Update quality validation results
     quality_validation = promotion_metadata.get("quality_validation", {})
     if quality_validation.get("enabled", False):
+        if "quality_validation" not in project_data or not isinstance(project_data["quality_validation"], dict):
+            project_data["quality_validation"] = {}
+            
         project_data["quality_validation"]["last_validation_timestamp"] = datetime.utcnow().isoformat() + "Z"
         project_data["quality_validation"]["quality_scores"] = quality_validation.get("quality_scores", [])
         project_data["quality_validation"]["autofix_logs"] = quality_validation.get("autofix_logs", [])
 
         # Calculate overall quality score
-        scores = [s.get("sharpness_score", 0) for s in quality_validation.get("quality_scores", [])]
+        scores = [float(s.get("sharpness_score", 0)) for s in quality_validation.get("quality_scores", [])]
         if scores:
-            project_data["quality_validation"]["overall_quality_score"] = sum(scores) / len(scores)
-            project_data["quality_validation"]["validation_pass"] = project_data["quality_validation"]["overall_quality_score"] >= 70.0
+            project_data["quality_validation"]["overall_quality_score"] = float(sum(scores) / len(scores))
+            project_data["quality_validation"]["validation_pass"] = bool(project_data["quality_validation"]["overall_quality_score"] >= 70.0)
         else:
             project_data["quality_validation"]["overall_quality_score"] = None
             project_data["quality_validation"]["validation_pass"] = None
 
     # Update project status
+    if "status" not in project_data or not isinstance(project_data["status"], dict):
+        project_data["status"] = {}
+        
     project_data["status"]["current_phase"] = "promoted"
     project_data["status"]["last_updated"] = promotion_metadata["created_at"]
 

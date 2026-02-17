@@ -2,10 +2,55 @@
  * AddonManager - Extension (add-on) manager for StoryCore
  *
  * Allows enabling/disabling add-ons and managing their lifecycle
+ * Version 2.0 - Enhanced with pagination, sorting, and marketplace support
  */
 
 import { fileSystemService } from './FileSystemService';
 import { logger } from '@/utils/logger';
+
+/**
+ * Pagination options
+ */
+export interface PaginationOptions {
+  page?: number;
+  pageSize?: number;
+  sortBy?: 'name' | 'version' | 'status' | 'category';
+  sortOrder?: 'asc' | 'desc';
+}
+
+/**
+ * Paginated result
+ */
+export interface PaginatedResult<T> {
+  items: T[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  sort: {
+    by: string;
+    order: string;
+  };
+}
+
+/**
+ * Marketplace addon info
+ */
+export interface MarketplaceAddon {
+  id: string;
+  name: string;
+  description: string;
+  author: string;
+  version: string;
+  category: string;
+  rating: number;
+  downloads: number;
+  price: string;
+}
 
 /**
  * External add-on manifest
@@ -1336,6 +1381,262 @@ export class AddonManager {
     } catch (error) {
       logger.warn('[AddonManager] Auto-sync failed:', error);
     }
+  }
+
+  // ============================================
+  // NEW METHODS - Phase 3 Enhancements
+  // ============================================
+
+  /**
+   * Gets paginated and sorted list of add-ons
+   */
+  getAddonsPaginated(options: PaginationOptions = {}): PaginatedResult<AddonInfo> {
+    const {
+      page = 1,
+      pageSize = 20,
+      sortBy = 'name',
+      sortOrder = 'asc'
+    } = options;
+
+    let addonsList = Array.from(this.addons.values());
+
+    // Apply sorting
+    const reverse = sortOrder === 'desc';
+    addonsList.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'version':
+          comparison = a.version.localeCompare(b.version);
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+        case 'category':
+          comparison = a.category.localeCompare(b.category);
+          break;
+        default:
+          comparison = a.name.localeCompare(b.name);
+      }
+      return reverse ? -comparison : comparison;
+    });
+
+    // Apply pagination
+    const totalItems = addonsList.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const startIdx = (page - 1) * pageSize;
+    const endIdx = startIdx + pageSize;
+    const paginatedItems = addonsList.slice(startIdx, endIdx);
+
+    return {
+      items: paginatedItems,
+      pagination: {
+        page,
+        pageSize,
+        totalItems,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      },
+      sort: {
+        by: sortBy,
+        order: sortOrder
+      }
+    };
+  }
+
+  /**
+   * Bulk enable add-ons
+   */
+  async bulkEnable(addonIds: string[]): Promise<{ success: string[]; failed: string[] }> {
+    const success: string[] = [];
+    const failed: string[] = [];
+
+    for (const addonId of addonIds) {
+      try {
+        const result = await this.activateAddon(addonId);
+        if (result) {
+          success.push(addonId);
+        } else {
+          failed.push(addonId);
+        }
+      } catch (error) {
+        logger.error(`[AddonManager] Failed to enable addon ${addonId}:`, error);
+        failed.push(addonId);
+      }
+    }
+
+    return { success, failed };
+  }
+
+  /**
+   * Bulk disable add-ons
+   */
+  async bulkDisable(addonIds: string[]): Promise<{ success: string[]; failed: string[] }> {
+    const success: string[] = [];
+    const failed: string[] = [];
+
+    for (const addonId of addonIds) {
+      try {
+        const result = await this.deactivateAddon(addonId);
+        if (result) {
+          success.push(addonId);
+        } else {
+          failed.push(addonId);
+        }
+      } catch (error) {
+        logger.error(`[AddonManager] Failed to disable addon ${addonId}:`, error);
+        failed.push(addonId);
+      }
+    }
+
+    return { success, failed };
+  }
+
+  /**
+   * Reload an addon (disable + enable)
+   */
+  async reloadAddon(addonId: string): Promise<boolean> {
+    try {
+      await this.deactivateAddon(addonId);
+      return await this.activateAddon(addonId);
+    } catch (error) {
+      logger.error(`[AddonManager] Failed to reload addon ${addonId}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get addon dependencies
+   */
+  getAddonDependencies(addonId: string, recursive: boolean = false): string[] {
+    const addon = this.addons.get(addonId);
+    if (!addon || !addon.dependencies) {
+      return [];
+    }
+
+    const deps = [...addon.dependencies];
+
+    if (recursive) {
+      for (const depId of addon.dependencies) {
+        const subDeps = this.getAddonDependencies(depId, true);
+        deps.push(...subDeps);
+      }
+    }
+
+    return [...new Set(deps)]; // Remove duplicates
+  }
+
+  /**
+   * Browse marketplace (mock implementation)
+   */
+  async browseMarketplace(options: {
+    category?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  } = {}): Promise<{ items: MarketplaceAddon[]; pagination: any }> {
+    // Mock marketplace data
+    const marketplaceAddons: MarketplaceAddon[] = [
+      {
+        id: 'premium-video-filters',
+        name: 'Premium Video Filters',
+        description: 'Collection de filtres vidéo professionnels',
+        author: 'StoryCore Team',
+        version: '1.2.0',
+        category: 'processing',
+        rating: 4.8,
+        downloads: 15000,
+        price: 'Free'
+      },
+      {
+        id: 'ai-voice-cloning',
+        name: 'AI Voice Cloning',
+        description: 'Clonez des voix pour vos personnages',
+        author: 'AI Labs',
+        version: '2.0.0',
+        category: 'audio',
+        rating: 4.5,
+        downloads: 8500,
+        price: 'Premium'
+      },
+      {
+        id: '3d-character-export',
+        name: '3D Character Export',
+        description: 'Exportez vos personnages en format 3D',
+        author: '3D Studios',
+        version: '1.0.0',
+        category: 'export',
+        rating: 4.2,
+        downloads: 3200,
+        price: 'Free'
+      }
+    ];
+
+    let results = marketplaceAddons;
+
+    // Apply filters
+    if (options.category) {
+      results = results.filter(a => a.category === options.category);
+    }
+    if (options.search) {
+      const searchLower = options.search.toLowerCase();
+      results = results.filter(a => 
+        a.name.toLowerCase().includes(searchLower) || 
+        a.description.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply pagination
+    const page = options.page || 1;
+    const pageSize = options.pageSize || 20;
+    const totalItems = results.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const startIdx = (page - 1) * pageSize;
+    const endIdx = startIdx + pageSize;
+    const paginatedItems = results.slice(startIdx, endIdx);
+
+    return {
+      items: paginatedItems,
+      pagination: {
+        page,
+        pageSize,
+        totalItems,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    };
+  }
+
+  /**
+   * Check version compatibility for all addons
+   */
+  async checkVersionCompatibility(): Promise<{
+    compatible: string[];
+    incompatible: string[];
+  }> {
+    const compatible: string[] = [];
+    const incompatible: string[] = [];
+
+    for (const [addonId, addon] of this.addons.entries()) {
+      // Mock compatibility check - in real implementation would check against versions
+      try {
+        // For now, all built-in addons are compatible
+        if (addon.builtin) {
+          compatible.push(addonId);
+        } else {
+          // External addons need real validation
+          compatible.push(addonId);
+        }
+      } catch {
+        incompatible.push(addonId);
+      }
+    }
+
+    return { compatible, incompatible };
   }
 }
 

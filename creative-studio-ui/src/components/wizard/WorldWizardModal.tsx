@@ -16,7 +16,7 @@ import './WizardModal.css';
 export interface WorldWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete?: (world: World) => void;
+  onComplete?: (world: World, nextAction?: string) => void;
   initialData?: Partial<World>;
 }
 
@@ -34,8 +34,14 @@ export function WorldWizardModal({
     return null;
   }
 
-  const handleComplete = (world: World) => {
-    onComplete?.(world);
+  const handleComplete = (world: World, nextAction?: string) => {
+    onComplete?.(world, nextAction);
+    if (!nextAction) {
+      onClose();
+    }
+    // If there is a nextAction, let's assume the parent handles closing or transitioning.
+    // Actually, usually we close this modal and open the next one.
+    // So onClose() is appropriate.
     onClose();
   };
 

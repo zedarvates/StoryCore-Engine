@@ -201,7 +201,7 @@ class CreateFromPromptHandler(BaseHandler):
             return asyncio.run(self._execute_workflow(args, prompt))
             
         except KeyboardInterrupt:
-            print("\n⚠️  Operation cancelled by user")
+            print("\n[WARN] Operation cancelled by user")
             return 130
         except Exception as e:
             return self.handle_error(e, "project creation")
@@ -218,7 +218,7 @@ class CreateFromPromptHandler(BaseHandler):
     
     def _interactive_prompt(self) -> str:
         """Collect prompt via interactive mode."""
-        print("\n🎬 StoryCore - Interactive Project Creation")
+        print("\n[START] StoryCore - Interactive Project Creation")
         print("=" * 50)
         
         # Collect information
@@ -286,9 +286,9 @@ class CreateFromPromptHandler(BaseHandler):
         
         print(f"\nValidation:")
         if is_valid:
-            print("  ✓ All required fields are valid")
+            print("  [SUCCESS] All required fields are valid")
         else:
-            print("  ✗ Validation issues found:")
+            print("  [ERROR] Validation issues found:")
             for error in errors:
                 print(f"    - {error}")
         
@@ -316,24 +316,31 @@ class CreateFromPromptHandler(BaseHandler):
         deps = orchestrator.check_dependencies()
         
         # Display dependency status
-        print("\n📦 Dependency Check")
+        print("\n[Dependency Check]")
         print("-" * 50)
         
+        # Handler for verify_all_dependencies result (Requirement Enhancement)
+        if hasattr(deps, 'checks'):
+            for check in deps.checks:
+                status_symbol = "+" if check.status.value == "available" else "!"
+                if not args.quiet or check.status.value != "available":
+                    print(f"  {status_symbol} {check.name}: {check.message}")
+            return deps.can_proceed
+            
+        # Fallback for old dictionary format
         all_ok = True
         for dep_name, status in deps.items():
             if status.get("available", False):
                 if not args.quiet:
-                    print(f"  ✓ {dep_name}")
+                    print(f"  [OK] {dep_name}")
             else:
-                print(f"  ✗ {dep_name}: {status.get('error', 'not available')}")
+                print(f"  [X] {dep_name}: {status.get('error', 'not available')}")
                 all_ok = False
-        
         if not all_ok:
-            print("\n⚠️  Some dependencies are missing.")
+            print("\n[WARN] Some dependencies are missing.")
             print("   The workflow may still proceed with reduced functionality.")
             print("   Use --mock to test without actual dependencies.")
-        
-        return True  # Continue even if some deps missing
+        return all_ok
     
     async def _execute_workflow(self, args: argparse.Namespace, prompt: str) -> int:
         """Execute the full workflow."""
@@ -363,7 +370,7 @@ class CreateFromPromptHandler(BaseHandler):
                     print(f"    Remaining: ~{report.estimated_remaining}")
             else:
                 # Simple progress
-                status = "█" * int(report.progress_percent / 10) + "░" * (10 - int(report.progress_percent / 10))
+                status = "#" * int(report.progress_percent / 10) + "-" * (10 - int(report.progress_percent / 10))
                 print(f"\r  Progress: [{status}] {report.progress_percent:5.1f}% ", end="", flush=True)
         
         # Initialize orchestrator
@@ -378,7 +385,7 @@ class CreateFromPromptHandler(BaseHandler):
         # Check for existing checkpoint
         project_path = Path(args.output) if args.output else None
         
-        print("\n🚀 Starting End-to-End Project Creation")
+        print("\n[START] Starting End-to-End Project Creation")
         print("=" * 50)
         print(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
         print(f"Quality: {args.quality}")
@@ -401,20 +408,20 @@ class CreateFromPromptHandler(BaseHandler):
         print("\n" + "=" * 50)
         
         if result.success:
-            print("✅ Project created successfully!")
-            print(f"\n📁 Project: {result.project_path}")
-            print(f"⏱️  Duration: {result.duration}")
+            print("[SUCCESS] Project created successfully!")
+            print(f"\n[PATH] Project: {result.project_path}")
+            print(f"[TIME] Duration: {result.duration}")
             
             if result.video_path:
-                print(f"🎬 Video: {result.video_path}")
+                print(f"[VIDEO] Video: {result.video_path}")
             
             if result.qa_report:
                 score = result.qa_report.overall_score
-                status = "✓" if result.qa_report.passed else "⚠"
-                print(f"📊 Quality Score: {status} {score:.1%}")
+                status = "+" if result.qa_report.passed else "!"
+                print(f"[QA] Quality Score: {status} {score:.1%}")
             
             if result.warnings:
-                print(f"\n⚠️  Warnings ({len(result.warnings)}):")
+                print(f"\n[WARN] Warnings ({len(result.warnings)}):")
                 for warning in result.warnings[:5]:
                     print(f"    - {warning}")
                 if len(result.warnings) > 5:
@@ -422,18 +429,18 @@ class CreateFromPromptHandler(BaseHandler):
             
             return 0
         else:
-            print("❌ Project creation failed")
-            print(f"\n⏱️  Duration: {result.duration}")
+            print("[ERROR] Project creation failed")
+            print(f"\n[TIME] Duration: {result.duration}")
             
             if result.errors:
-                print(f"\n❌ Errors ({len(result.errors)}):")
+                print(f"\n[ERROR] Errors ({len(result.errors)}):")
                 for error in result.errors[:5]:
                     print(f"    - {error}")
                 if len(result.errors) > 5:
                     print(f"    ... and {len(result.errors) - 5} more")
             
             # Suggest recovery
-            print("\n💡 To resume from checkpoint, run:")
+            print("\n[INFO] To resume from checkpoint, run:")
             print(f"   storycore create-from-prompt --resume {result.project_path}")
             
             return 1
@@ -450,7 +457,7 @@ class CreateFromPromptHandler(BaseHandler):
                 "Check the project path and try again"
             )
         
-        print(f"\n🔄 Resuming workflow from: {project_path}")
+        print(f"\n[INFO] Resuming workflow from: {project_path}")
         print("-" * 50)
         
         # Initialize orchestrator
@@ -458,11 +465,11 @@ class CreateFromPromptHandler(BaseHandler):
         
         # Attempt resume
         if orchestrator.resume(str(project_path)):
-            print("✓ Checkpoint loaded successfully")
+            print("[SUCCESS] Checkpoint loaded successfully")
             print(f"  Starting from step: {orchestrator.get_workflow_state().current_step.value}")
             
             # In a full implementation, this would continue the workflow
-            print("\n⚠️  Resume functionality requires complete workflow execution")
+            print("\n[WARN] Resume functionality requires complete workflow execution")
             print("   The checkpoint data has been loaded for reference.")
             
             return 0

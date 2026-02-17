@@ -118,7 +118,7 @@ class PromoteHandler(BaseHandler):
             
             # Show resolution changes
             for i, (original, promoted) in enumerate(result['resolutions'], 1):
-                print(f"  Panel {i:02d}: {original[0]}x{original[1]} → {promoted[0]}x{promoted[1]}")
+                print(f"  Panel {i:02d}: {original[0]}x{original[1]} -> {promoted[0]}x{promoted[1]}")
             
             print(f"  Output directory: {result['output_dir']}")
             

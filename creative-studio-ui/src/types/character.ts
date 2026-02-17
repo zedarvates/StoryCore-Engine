@@ -46,6 +46,9 @@ export interface Character {
 
   // Role in story
   role: Role;
+
+  // Associated prompts
+  prompts: string[];
 }
 
 export interface VisualIdentity {
@@ -160,6 +163,7 @@ export function createEmptyCharacter(): Partial<Character> {
       narrative_function: '',
       character_arc: '',
     },
+    prompts: [],
   };
 }
 

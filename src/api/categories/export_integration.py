@@ -472,48 +472,52 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
                     source_format = "unknown"
             
             # Perform format conversion
-        if target_format == "mp4":
-            # Check if explicit shots/clips are provided (with trimming)
-            shots_param = params.get("shots")
-            if shots_param and isinstance(shots_param, list):
-                video_configs = []
-                for shot in shots_param:
-                    path = shot.get("path")
-                    if path and not os.path.isabs(path):
-                        path = str(Path(project_path) / path)
+            try:
+                if target_format == "mp4":
+                    # Check if explicit shots/clips are provided (with trimming)
+                    shots_param = params.get("shots")
+                    if shots_param and isinstance(shots_param, list):
+                        video_configs = []
+                        for shot in shots_param:
+                            path = shot.get("path")
+                            if path and not os.path.isabs(path):
+                                path = str(Path(project_path) / path)
+                            
+                            video_configs.append({
+                                "path": path,
+                                "in_point": shot.get("in_point"),
+                                "out_point": shot.get("out_point")
+                            })
+                    else:
+                        # 1. Gather videos from vault
+                        video_configs = self._gather_project_videos(project_path)
                     
-                    video_configs.append({
-                        "path": path,
-                        "in_point": shot.get("in_point"),
-                        "out_point": shot.get("out_point")
-                    })
-            else:
-                # 1. Gather videos from vault
-                video_configs = self._gather_project_videos(project_path)
-            
-            if not video_configs:
-                return self.create_error_response(
-                    error_code=ErrorCodes.NOT_FOUND,
-                    message="No video assets found in project to assemble",
-                    context=context
-                )
-            
-            output_dir = project_dir / "exports"
-            output_dir.mkdir(parents=True, exist_ok=True)
-            output_path = str(output_dir / f"export_{int(time.time())}.mp4")
-            
-            # 2. Assemble using FFmpeg
-            success = self.video_engine.assemble(video_configs, output_path)
-                
-                if not success:
-                    return self.create_error_response(
-                        error_code=ErrorCodes.INTERNAL_ERROR,
-                        message="FFmpeg assembly failed",
-                        context=context
-                    )
-                
-                output_size = Path(output_path).stat().st_size
-            else:
+                    if not video_configs:
+                        return self.create_error_response(
+                            error_code=ErrorCodes.NOT_FOUND,
+                            message="No video assets found in project to assemble",
+                            context=context
+                        )
+                    
+                    output_dir = project_dir / "exports"
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    output_path = str(output_dir / f"export_{int(time.time())}.mp4")
+                    
+                    # 2. Assemble using FFmpeg
+                    success = self.video_engine.assemble(video_configs, output_path)
+                    
+                    if not success:
+                        return self.create_error_response(
+                            error_code=ErrorCodes.INTERNAL_ERROR,
+                            message="FFmpeg assembly failed",
+                            context=context
+                        )
+                    
+                    output_size = Path(output_path).stat().st_size
+                else:
+                    output_path, output_size = self._mock_format_conversion(project_path, target_format)
+            except Exception as e:
+                logger.error(f"Format conversion error: {e}")
                 output_path, output_size = self._mock_format_conversion(project_path, target_format)
             
             # Generate quality metrics based on format

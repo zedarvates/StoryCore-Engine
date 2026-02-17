@@ -73,13 +73,15 @@ class ComponentGenerator:
             parsed_prompt,
             story_structure,
             dialogue_script,
-            world_config
+            world_config,
+            characters
         )
         
         # Generate music description
         music_description = self.music_generator.generate_music_description(
             parsed_prompt,
-            story_structure
+            story_structure,
+            characters
         )
         
         # Create metadata

@@ -67,7 +67,8 @@ class SequencePlanner:
         parsed_prompt: ParsedPrompt,
         story_structure: StoryStructure,
         dialogue_script: DialogueScript,
-        world_config: WorldConfig
+        world_config: WorldConfig,
+        characters: List[Character]
     ) -> SequencePlan:
         """
         Plan complete sequence and shot breakdown
@@ -77,6 +78,7 @@ class SequencePlanner:
             story_structure: Story structure
             dialogue_script: Dialogue script
             world_config: World configuration
+            characters: List of characters
             
         Returns:
             Complete SequencePlan object
@@ -88,7 +90,8 @@ class SequencePlanner:
             story_structure,
             dialogue_script,
             parsed_prompt,
-            world_config
+            world_config,
+            characters
         )
         
         # Calculate totals
@@ -106,7 +109,8 @@ class SequencePlanner:
         story_structure: StoryStructure,
         dialogue_script: DialogueScript,
         parsed_prompt: ParsedPrompt,
-        world_config: WorldConfig
+        world_config: WorldConfig,
+        characters: List[Character]
     ) -> List[Sequence]:
         """Generate sequences from story acts"""
         sequences = []
@@ -116,7 +120,8 @@ class SequencePlanner:
                 act,
                 dialogue_script,
                 parsed_prompt,
-                world_config
+                world_config,
+                characters
             )
             sequences.append(sequence)
         
@@ -127,7 +132,8 @@ class SequencePlanner:
         act,
         dialogue_script: DialogueScript,
         parsed_prompt: ParsedPrompt,
-        world_config: WorldConfig
+        world_config: WorldConfig,
+        characters: List[Character]
     ) -> Sequence:
         """Generate a single sequence from an act"""
         sequence_id = str(uuid.uuid4())
@@ -144,7 +150,8 @@ class SequencePlanner:
             act,
             dialogue_script,
             parsed_prompt,
-            world_config
+            world_config,
+            characters
         )
         
         # Determine mood and visual direction
@@ -187,7 +194,8 @@ class SequencePlanner:
         act,
         dialogue_script: DialogueScript,
         parsed_prompt: ParsedPrompt,
-        world_config: WorldConfig
+        world_config: WorldConfig,
+        characters: List[Character]
     ) -> List[Shot]:
         """Generate shots for a sequence"""
         shots = []
@@ -204,7 +212,8 @@ class SequencePlanner:
                 parsed_prompt,
                 world_config,
                 act_dialogue_lines,
-                shot_count
+                shot_count,
+                characters
             )
             shots.append(shot)
         
@@ -226,7 +235,8 @@ class SequencePlanner:
         parsed_prompt: ParsedPrompt,
         world_config: WorldConfig,
         dialogue_lines: List,
-        total_shots: int
+        total_shots: int,
+        characters: List[Character]
     ) -> Shot:
         """Generate a single shot"""
         shot_id = str(uuid.uuid4())
@@ -242,13 +252,14 @@ class SequencePlanner:
         lighting = self._determine_lighting(world_config, act.act_number)
         composition = self._determine_composition(shot_type)
         
-        # Generate description
+        # Generate description (Requirement Enhancement)
         description = self._generate_shot_description(
             shot_type,
             act,
             parsed_prompt,
             dialogue_lines,
-            shot_number
+            shot_number,
+            characters
         )
         
         # Generate prompt modules
@@ -339,21 +350,37 @@ class SequencePlanner:
         act,
         parsed_prompt: ParsedPrompt,
         dialogue_lines: List,
-        shot_number: int
+        shot_number: int,
+        characters: List[Character]
     ) -> str:
-        """Generate shot description"""
+        """Generate character-aware shot description (Requirement Enhancement)"""
         base_desc = self.shot_types.get(shot_type, "shot of the scene")
         
+        # Determine characters present in this shot (rough heuristic)
+        char_desc = ""
+        if characters and shot_type != "establishing":
+            # Pick a character to focus on based on shot number
+            focus_char = characters[shot_number % len(characters)]
+            char_desc = f" focusing on {focus_char.name}"
+            
+            # Add gesture for close-ups
+            if shot_type == "close-up" and focus_char.gestures:
+                gesture = focus_char.gestures[shot_number % len(focus_char.gestures)]
+                char_desc += f", as they {gesture.lower()}"
+            elif focus_char.onomatopoeia and shot_number % 4 == 0:
+                ono = focus_char.onomatopoeia[shot_number % len(focus_char.onomatopoeia)]
+                char_desc += f" (sound: {ono})"
+        
         # Add context
-        desc = f"{base_desc} in {parsed_prompt.setting}"
+        desc = f"{base_desc}{char_desc} in {parsed_prompt.setting}"
         
         # Add act context
         if act.act_number == 1:
-            desc += ", introducing the world"
+            desc += ", establishing the narrative world"
         elif act.act_number == 3:
-            desc += ", showing the resolution"
+            desc += ", moving towards the final resolution"
         else:
-            desc += ", developing the conflict"
+            desc += ", escalating the central conflict"
         
         return desc
     

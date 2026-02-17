@@ -91,6 +91,7 @@ class Location:
     visual_description: str
     significance: str = ""
     atmosphere: str = ""
+    prompts: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -118,6 +119,12 @@ class Character:
     visual_description: str
     personality_traits: List[str]
     relationships: Dict[str, str]
+    onomatopoeia: List[str] = field(default_factory=list)
+    gestures: List[str] = field(default_factory=list)
+    diction_quirks: Optional[str] = None
+    voice_inflection: Optional[str] = None
+    prompts: List[str] = field(default_factory=list)
+
 
 
 @dataclass
@@ -344,6 +351,7 @@ class OrchestratorConfig:
     auto_cleanup_enabled: bool = True
     parallel_generation: bool = True
     max_concurrent_shots: int = 4
+    no_comfyui: bool = False
 
 
 @dataclass

@@ -9,31 +9,31 @@ from typing import Optional
 
 def print_success(message: str) -> None:
     """Print success message with consistent formatting."""
-    print(f"✓ {message}")
+    print(f"[SUCCESS] {message}")
 
 
 def print_error(message: str) -> None:
     """Print error message with consistent formatting."""
-    print(f"✗ {message}", file=sys.stderr)
+    print(f"[ERROR] {message}", file=sys.stderr)
 
 
 def print_warning(message: str) -> None:
     """Print warning message with consistent formatting."""
-    print(f"⚠️  {message}")
+    print(f"[WARN] {message}")
 
 
 def print_info(message: str) -> None:
     """Print info message with consistent formatting."""
-    print(f"ℹ️  {message}")
+    print(f"[INFO] {message}")
 
 
 def print_progress(message: str, current: Optional[int] = None, total: Optional[int] = None) -> None:
     """Print progress message with optional progress indicator."""
     if current is not None and total is not None:
         percentage = (current / total) * 100
-        print(f"⏳ {message} ({current}/{total} - {percentage:.1f}%)")
+        print(f"[PROGRESS] {message} ({current}/{total} - {percentage:.1f}%)")
     else:
-        print(f"⏳ {message}")
+        print(f"[PROGRESS] {message}")
 
 
 def format_duration(seconds: float) -> str:

@@ -40,29 +40,29 @@ export function generateErrorMessage(
   context?: ErrorContext
 ): ErrorMessageTemplate {
   const category = error.category;
-  const service = context?.service || error.details?.service;
-  const endpoint = context?.endpoint || error.details?.endpoint;
+  const service = (context?.service || error.details?.service) as string | undefined;
+  const endpoint = (context?.endpoint || error.details?.endpoint) as string | undefined;
   const operation = context?.operation;
 
   switch (category) {
     case 'connection':
       return generateConnectionErrorMessage(error, service, endpoint);
-    
+
     case 'validation':
       return generateValidationErrorMessage(error, context);
-    
+
     case 'generation':
       return generateGenerationErrorMessage(error, service, operation);
-    
+
     case 'filesystem':
       return generateFilesystemErrorMessage(error, context);
-    
+
     case 'datacontract':
       return generateDataContractErrorMessage(error, context);
-    
+
     case 'timeout':
       return generateTimeoutErrorMessage(error, service, operation);
-    
+
     default:
       return generateUnknownErrorMessage(error, context);
   }
@@ -128,7 +128,7 @@ function generateValidationErrorMessage(
   error: WizardError,
   context?: ErrorContext
 ): ErrorMessageTemplate {
-  const validationErrors = error.details?.errors || [];
+  const validationErrors = (error.details?.errors || []) as string[];
   const fieldName = error.details?.field;
 
   const recoveryInstructions: string[] = [
@@ -207,8 +207,8 @@ function generateFilesystemErrorMessage(
   error: WizardError,
   context?: ErrorContext
 ): ErrorMessageTemplate {
-  const filePath = error.details?.path || error.details?.filename || 'the file';
-  const operation = context?.operation || error.details?.operation || 'file operation';
+  const filePath = (error.details?.path || error.details?.filename || 'the file') as string;
+  const operation = (context?.operation || error.details?.operation || 'file operation') as string;
 
   const recoveryInstructions: string[] = [
     'Check that you have the necessary file permissions',
@@ -243,7 +243,7 @@ function generateDataContractErrorMessage(
   error: WizardError,
   context?: ErrorContext
 ): ErrorMessageTemplate {
-  const validationErrors = error.details?.errors || [];
+  const validationErrors = (error.details?.errors || []) as string[];
 
   const recoveryInstructions: string[] = [
     'This error indicates a backend data format issue',

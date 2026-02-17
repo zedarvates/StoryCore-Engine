@@ -18,14 +18,14 @@ async function saveWorldToProjectDirectory(world: World, projectPath: string): P
   console.log('[useWorldPersistence] projectPath:', projectPath);
   console.log('[useWorldPersistence] world.id:', world.id);
   console.log('[useWorldPersistence] world.name:', world.name);
-  
+
   // Check if Electron API is available
   if (!window.electronAPI) {
     console.error('[useWorldPersistence] ERROR: Electron API not available');
     console.error('[useWorldPersistence] This function requires Electron to be running');
     throw new Error('Electron API not available - please run the application in Electron mode');
   }
-  
+
   if (!window.electronAPI.fs) {
     console.error('[useWorldPersistence] ERROR: Electron FS API not available');
     throw new Error('Electron file system API not available');
@@ -65,13 +65,13 @@ async function saveWorldToProjectDirectory(world: World, projectPath: string): P
 
     // Write world file
     console.log('[useWorldPersistence] Writing world file...');
-    
+
     if (window.electronAPI.fs.writeFile) {
       try {
         const jsonContent = JSON.stringify(worldData, null, 2);
         console.log('[useWorldPersistence] JSON content length:', jsonContent.length, 'chars');
-        
-        await window.electronAPI.fs.writeFile(filePath, jsonContent, 'utf8');
+
+        await window.electronAPI.fs.writeFile(filePath, jsonContent);
         console.log('[useWorldPersistence] ✓ World file written successfully to:', filePath);
       } catch (writeError) {
         console.error('[useWorldPersistence] ERROR writing world file:', writeError);
@@ -153,8 +153,25 @@ async function loadWorldsFromProjectDirectory(projectPath: string): Promise<Worl
     for (const file of worldFiles) {
       try {
         const filePath = `${worldsDir}/${file}`;
-        const content = await window.electronAPI.fs.readFile(filePath, 'utf8');
-        const worldData = JSON.parse(content);
+        // Read file (returns Uint8Array/Buffer via IPC)
+        const rawContent = await window.electronAPI.fs.readFile(filePath);
+
+        let contentString = '';
+
+        // Handle Buffer/Uint8Array from Electron IPC
+        if (typeof rawContent !== 'string') {
+          try {
+            // TextDecoder handles Uint8Array and ArrayBuffer
+            contentString = new TextDecoder('utf-8').decode(rawContent as any);
+          } catch (e) {
+            console.warn(`[useWorldPersistence] Failed to decode content for ${file}, trying string conversion`, e);
+            contentString = String(rawContent);
+          }
+        } else {
+          contentString = rawContent;
+        }
+
+        const worldData = JSON.parse(contentString);
 
         // Validate and convert dates
         const world: World = {
@@ -214,7 +231,7 @@ export function useWorldPersistence() {
     console.log('[useWorldPersistence] saveWorld called for:', world.name);
     console.log('[useWorldPersistence] projectPath:', projectPath);
     console.log('[useWorldPersistence] project:', project ? project.project_name : 'null');
-    
+
     let localStorageSuccess = false;
     let projectDirectorySuccess = false;
     let errorMessages: string[] = [];
@@ -254,13 +271,13 @@ export function useWorldPersistence() {
     if (projectPath) {
       console.log('[useWorldPersistence] Attempting to save to project directory...');
       console.log('[useWorldPersistence] Target path:', `${projectPath}/worlds/world_${world.id}.json`);
-      
+
       // Verify Electron API availability
       if (!window.electronAPI) {
         const errorMsg = 'Electron API not available - cannot save to project folder';
         console.error('[useWorldPersistence]', errorMsg);
         errorMessages.push(errorMsg + '. Please run the application in Electron mode.');
-        
+
         toast({
           title: 'Save Warning',
           description: errorMsg,
@@ -271,7 +288,7 @@ export function useWorldPersistence() {
           await saveWorldToProjectDirectory(world, projectPath);
           projectDirectorySuccess = true;
           console.log('[useWorldPersistence] World saved to project directory successfully');
-          
+
           toast({
             title: 'World Saved',
             description: `World "${world.name}" saved to: ${projectPath}/worlds/`,
@@ -280,7 +297,7 @@ export function useWorldPersistence() {
           const errorMsg = `Failed to save to project folder: ${error instanceof Error ? error.message : 'Unknown error'}`;
           console.warn('[useWorldPersistence] Project directory save failed:', error);
           errorMessages.push(errorMsg);
-          
+
           toast({
             title: 'Save Failed',
             description: errorMsg,
@@ -291,7 +308,7 @@ export function useWorldPersistence() {
     } else {
       console.warn('[useWorldPersistence] No project path available');
       console.warn('[useWorldPersistence] NOTE: To save to project folder, open or create a project first');
-      
+
       // Show helpful message when no project is open
       toast({
         title: 'No Project Open',
@@ -477,7 +494,7 @@ export function useWorldExport() {
     const dataStr = JSON.stringify(worlds, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `worlds-${new Date().toISOString().split('T')[0]}.json`;
@@ -497,7 +514,7 @@ export function useWorldExport() {
     const dataStr = JSON.stringify(world, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `world-${world.name.toLowerCase().replace(/\s+/g, '-')}.json`;

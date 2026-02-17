@@ -15,7 +15,9 @@ import { Step3Personality } from './Step3Personality';
 import { Step4Background } from './Step4Background';
 import { Step5Relationships } from './Step5Relationships';
 import { Step6ReviewFinalize } from './Step6ReviewFinalize';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { WizardChainOptions, WizardChainOption } from '../WizardChainOptions';
+import { Loader2, AlertCircle, CheckCircle2, UserPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // ============================================================================
 // Character Wizard Component
@@ -133,6 +135,10 @@ export function CharacterWizard({
 
   // Character Persistence hook
   const { saveCharacter } = useCharacterPersistence();
+
+  // Local state for success view
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [createdCharacter, setCreatedCharacter] = useState<Character | null>(null);
 
   // ============================================================================
   // Validation
@@ -322,6 +328,7 @@ export function CharacterWizard({
             narrative_function: data.role?.narrative_function || '',
             character_arc: data.role?.character_arc || '',
           },
+          prompts: data.prompts || [],
         };
 
         // Emit event even on persistence failure
@@ -334,11 +341,29 @@ export function CharacterWizard({
           )
         );
 
-        onComplete(character, storyContext);
+        // onComplete(character, storyContext); // Removed to show success screen first
+
+        // Store for success view
+        setCreatedCharacter(character);
+        setIsSuccess(true);
+        // Note: We do NOT call onComplete here immediately anymore, 
+        // to allow the user to see the success screen.
       }
     },
     [onComplete, saveCharacter, storyContext]
   );
+
+  const handleCreateAnother = useCallback(() => {
+    setIsSuccess(false);
+    setCreatedCharacter(null);
+    // WizardProvider will remount and reset
+  }, []);
+
+  const handleFinish = useCallback(() => {
+    if (createdCharacter) {
+      onComplete(createdCharacter, storyContext);
+    }
+  }, [createdCharacter, onComplete, storyContext]);
 
   // Create a callback for WizardContainer that triggers completion
   // The actual character data is handled by handleSubmit (passed to WizardProvider.onSubmit)
@@ -377,6 +402,42 @@ export function CharacterWizard({
   // ============================================================================
   // CONDITIONAL RENDERING (after all hooks)
   // ============================================================================
+
+  if (isSuccess && createdCharacter) {
+    const chainOptions: WizardChainOption[] = [
+      {
+        wizardType: 'create-another',
+        label: 'Create Another Character',
+        description: 'Create another character for this world',
+        icon: 'UserPlus'
+      }
+    ];
+
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-6 h-full">
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle2 className="w-10 h-10 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold">Character Created!</h2>
+          <p className="text-gray-600 max-w-md">
+            "{createdCharacter.name}" has been saved successfully.
+          </p>
+        </div>
+
+        <div className="w-full max-w-md border-t pt-6">
+          <WizardChainOptions
+            isChained={true}
+            triggeredWizards={chainOptions}
+            currentChainIndex={0}
+            onLaunchNext={handleCreateAnother}
+            onSkipChain={handleFinish}
+            onContinue={handleFinish}
+          />
+        </div>
+      </div>
+    );
+  }
 
 
   return (

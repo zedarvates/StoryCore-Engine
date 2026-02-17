@@ -36,12 +36,15 @@ import {
   CpuIcon,
   RefreshCwIcon,
   MapPinIcon,
+  ImageIcon,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { objectsAIService, type ObjectAnalysis, type ObjectGenerationOptions } from '@/services/ObjectsAIService';
 import { notificationService } from '@/services/NotificationService';
 import { StoryObject, ObjectType, ObjectRarity } from '@/types/object';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PromptsManager } from '../common/PromptsManager';
 
 interface ObjectsModalProps {
   isOpen: boolean;
@@ -98,6 +101,7 @@ export function ObjectsModal({ isOpen, onClose }: ObjectsModalProps) {
       power: 10,
       lore: '',
       abilityStrings: [],
+      prompts: [],
       requirements: '',
       properties: {
         value: 100,
@@ -421,93 +425,147 @@ function ObjectEditModal({ object, onSave, onCancel }: { object: StoryObject, on
         <DialogHeader className="p-6 bg-gray-900 text-white">
           <DialogTitle>{object.name ? `Edit: ${object.name}` : 'New Object'}</DialogTitle>
         </DialogHeader>
-        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Name</label>
-              <Input value={edited.name} onChange={e => setEdited({ ...edited, name: e.target.value })} />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Type</label>
-              <select
-                className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white"
-                value={edited.type}
-                onChange={e => setEdited({ ...edited, type: e.target.value as any })}
-              >
-                <option value="prop">Prop</option>
-                <option value="weapon">Weapon</option>
-                <option value="armor">Armor</option>
-                <option value="artifact">Artifact</option>
-                <option value="consumable">Consumable</option>
-                <option value="tool">Tool</option>
-                <option value="treasure">Treasure</option>
-                <option value="magical">Magical</option>
-                <option value="quest">Quest</option>
-                <option value="key">Key</option>
-              </select>
-            </div>
+        <Tabs defaultValue="info" className="flex-1 flex flex-col min-h-0">
+          <div className="px-6 pt-2 border-b bg-gray-50">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="info">Info</TabsTrigger>
+              <TabsTrigger value="image">Image</TabsTrigger>
+              <TabsTrigger value="prompts">Prompts</TabsTrigger>
+            </TabsList>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-500 uppercase">Description</label>
-            <Textarea value={edited.description} onChange={e => setEdited({ ...edited, description: e.target.value })} />
-          </div>
+          <div className="flex-1 overflow-y-auto max-h-[60vh]">
+            <TabsContent value="info" className="p-6 space-y-4 mt-0">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Name</label>
+                  <Input value={edited.name} onChange={e => setEdited({ ...edited, name: e.target.value })} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Type</label>
+                  <select
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white"
+                    value={edited.type}
+                    onChange={e => setEdited({ ...edited, type: e.target.value as any })}
+                  >
+                    <option value="prop">Prop</option>
+                    <option value="weapon">Weapon</option>
+                    <option value="armor">Armor</option>
+                    <option value="artifact">Artifact</option>
+                    <option value="consumable">Consumable</option>
+                    <option value="tool">Tool</option>
+                    <option value="treasure">Treasure</option>
+                    <option value="magical">Magical</option>
+                    <option value="quest">Quest</option>
+                    <option value="key">Key</option>
+                  </select>
+                </div>
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Rarity</label>
-              <select
-                className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white"
-                value={edited.rarity}
-                onChange={e => setEdited({ ...edited, rarity: e.target.value as any })}
-              >
-                <option value="common">Common</option>
-                <option value="uncommon">Uncommon</option>
-                <option value="rare">Rare</option>
-                <option value="epic">Epic</option>
-                <option value="legendary">Legendary</option>
-                <option value="mythical">Mythical</option>
-                <option value="unique">Unique</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Power (1-100)</label>
-              <Input type="number" value={edited.power || 0} onChange={e => setEdited({ ...edited, power: parseInt(e.target.value) })} />
-            </div>
-          </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">Description</label>
+                <Textarea value={edited.description} onChange={e => setEdited({ ...edited, description: e.target.value })} />
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Value</label>
-              <Input type="number" value={edited.properties.value as number || 0} onChange={e => handleUpdateProperty('value', parseInt(e.target.value))} />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Weight</label>
-              <Input type="number" step="0.1" value={edited.properties.weight as number || 0} onChange={e => handleUpdateProperty('weight', parseFloat(e.target.value))} />
-            </div>
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Rarity</label>
+                  <select
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white"
+                    value={edited.rarity}
+                    onChange={e => setEdited({ ...edited, rarity: e.target.value as any })}
+                  >
+                    <option value="common">Common</option>
+                    <option value="uncommon">Uncommon</option>
+                    <option value="rare">Rare</option>
+                    <option value="epic">Epic</option>
+                    <option value="legendary">Legendary</option>
+                    <option value="mythical">Mythical</option>
+                    <option value="unique">Unique</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Power (1-100)</label>
+                  <Input type="number" value={edited.power || 0} onChange={e => setEdited({ ...edited, power: parseInt(e.target.value) })} />
+                </div>
+              </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-500 uppercase">Lore / Legend</label>
-            <Textarea value={edited.lore || ''} onChange={e => setEdited({ ...edited, lore: e.target.value })} />
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Value</label>
+                  <Input type="number" value={edited.properties.value as number || 0} onChange={e => handleUpdateProperty('value', parseInt(e.target.value))} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Weight</label>
+                  <Input type="number" step="0.1" value={edited.properties.weight as number || 0} onChange={e => handleUpdateProperty('weight', parseFloat(e.target.value))} />
+                </div>
+              </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-500 uppercase">Abilities</label>
-            <div className="flex gap-2">
-              <Input value={newAbility} onChange={e => setNewAbility(e.target.value)} placeholder="New ability..." onKeyDown={e => e.key === 'Enter' && handleAddAbility()} />
-              <Button onClick={handleAddAbility}>Add</Button>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {(edited.abilityStrings || []).map((ability, i) => (
-                <Badge key={i} className="flex gap-1 items-center">
-                  {ability}
-                  <XIcon className="w-3 h-3 cursor-pointer" onClick={() => setEdited({ ...edited, abilityStrings: (edited.abilityStrings || []).filter((_, idx) => idx !== i) })} />
-                </Badge>
-              ))}
-            </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">Lore / Legend</label>
+                <Textarea value={edited.lore || ''} onChange={e => setEdited({ ...edited, lore: e.target.value })} />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">Abilities</label>
+                <div className="flex gap-2">
+                  <Input value={newAbility} onChange={e => setNewAbility(e.target.value)} placeholder="New ability..." onKeyDown={e => e.key === 'Enter' && handleAddAbility()} />
+                  <Button onClick={handleAddAbility}>Add</Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {(edited.abilityStrings || []).map((ability, i) => (
+                    <Badge key={i} className="flex gap-1 items-center">
+                      {ability}
+                      <XIcon className="w-3 h-3 cursor-pointer" onClick={() => setEdited({ ...edited, abilityStrings: (edited.abilityStrings || []).filter((_, idx) => idx !== i) })} />
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="image" className="p-6 space-y-4 mt-0">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Image URL</label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={edited.imageUrl || ''}
+                      onChange={e => setEdited({ ...edited, imageUrl: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                {edited.imageUrl ? (
+                  <div className="relative aspect-square w-full max-w-sm mx-auto rounded-lg overflow-hidden border border-gray-200 shadow-sm bg-gray-50">
+                    <img
+                      src={edited.imageUrl}
+                      alt={edited.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'placeholder-image-url'; // You might want a real placeholder
+                        (e.target as HTMLImageElement).style.opacity = '0.5';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center aspect-square w-full max-w-sm mx-auto rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400">
+                    <ImageIcon className="w-12 h-12 mb-2" />
+                    <p className="text-sm">No image available</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="prompts" className="mt-0">
+              <PromptsManager
+                prompts={edited.prompts || []}
+                onUpdate={(newPrompts) => setEdited({ ...edited, prompts: newPrompts })}
+                entityName={edited.name || 'Object'}
+              />
+            </TabsContent>
           </div>
-        </div>
+        </Tabs>
         <div className="p-6 border-t flex justify-end gap-3 bg-gray-50">
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
           <Button onClick={() => onSave(edited)} className="bg-black text-white">Save Object</Button>

@@ -1,0 +1,18 @@
+{
+  "location_id": "8ef5cd9a-6432-44e6-9d9a-5d6bb696866a",
+  "name": "The Cremation Wastes",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-17T05:04:17.735Z",
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A vast, barren expanse of ash and cinder stretching as far as the eye can see. The skeletal remains of skyscrapers pierce the smog-filled sky like jagged teeth. Toxic fumes waft through the air, corroding lungs and souls.",
+    "atmosphere": "Ominous, foreboding, deadly",
+    "genre_tags": [],
+    "significance": "Birthplace of the Khaoskrieg, where the first great catastrophe ravaged the world and sparked a chain reaction of devastation."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

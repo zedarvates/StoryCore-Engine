@@ -460,9 +460,9 @@ def main():
     # Test rendering a frame
     frame = engine.render_frame()
     if frame is not None:
-        print(f"✓ Successfully rendered frame: {frame.shape}")
+        print(f"[SUCCESS] Successfully rendered frame: {frame.shape}")
     else:
-        print("✗ Failed to render frame")
+        print("[ERROR] Failed to render frame")
     
     # Start real-time rendering (this will block)
     print("Starting real-time rendering...")

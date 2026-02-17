@@ -36,17 +36,17 @@ def main():
         
     except CLIError as e:
         # CLI errors are already formatted and logged
-        print(f"✗ {e}", file=sys.stderr)
+        print(f"[ERROR] {e}", file=sys.stderr)
         return 1
         
     except KeyboardInterrupt:
         # Handle user interruption gracefully
-        print("\n✗ Operation cancelled by user", file=sys.stderr)
+        print("\n[ERROR] Operation cancelled by user", file=sys.stderr)
         return 130  # Standard exit code for SIGINT
         
     except Exception as e:
         # Handle unexpected errors
-        print(f"✗ Unexpected error: {e}", file=sys.stderr)
+        print(f"[ERROR] Unexpected error: {e}", file=sys.stderr)
         return 1
 
 

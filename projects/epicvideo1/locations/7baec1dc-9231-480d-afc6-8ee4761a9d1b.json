@@ -1,0 +1,18 @@
+{
+  "location_id": "7baec1dc-9231-480d-afc6-8ee4761a9d1b",
+  "name": "The Wastes of Erebo",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-17T06:25:49.205Z",
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A desolate expanse of ash and bone, where the once-thriving city of Erebo was reduced to rubble by an ancient cataclysm. The air is thick with toxic fumes, and the ground is slick with a noxious oil that seeps from the earth.",
+    "atmosphere": "Ominous, foreboding",
+    "genre_tags": [],
+    "significance": "Birthplace of the world's most powerful magic, which now lies dormant and waiting to be reawakened."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

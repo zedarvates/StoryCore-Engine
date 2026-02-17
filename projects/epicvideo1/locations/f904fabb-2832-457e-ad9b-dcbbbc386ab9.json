@@ -1,0 +1,18 @@
+{
+  "location_id": "f904fabb-2832-457e-ad9b-dcbbbc386ab9",
+  "name": "The Scar",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-17T05:04:17.785Z",
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A massive, twisted canyon carved through the heart of a once-mighty mountain range. Melted steel and rubble fill the valleys, while jagged rock formations pierce the sky like shattered teeth.",
+    "atmosphere": "Turbulent, chaotic, awe-inspiring",
+    "genre_tags": [],
+    "significance": "Site of the catastrophic event known as 'The Great Scouring', which reshaped the world in an instant."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

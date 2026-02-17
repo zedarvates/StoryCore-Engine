@@ -9,11 +9,12 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Save, X, Info, Box, Image as ImageIcon, Map, Layers, Eye, Keyboard, Images } from 'lucide-react';
+import { Save, X, Info, Box, Image as ImageIcon, Map, Layers, Eye, Keyboard, Images, MessageSquare } from 'lucide-react';
 import type { Location, LocationType, CubeFace } from '@/types/location';
 import { useLocationStore } from '@/stores/locationStore';
 import { CubeProgressBar } from './editor/CubeProgressBar';
 import { LocationImagesSection } from './editor/LocationImagesSection';
+import { PromptsManager } from '../common/PromptsManager';
 import './LocationEditor.css';
 
 // ============================================================================
@@ -26,22 +27,22 @@ import './LocationEditor.css';
 export interface LocationEditorProps {
   /** Location to edit (undefined for new location) */
   location?: Location;
-  
+
   /** Handler for save */
   onSave: (data: Partial<Location>) => void;
-  
+
   /** Handler for cancel */
   onCancel: () => void;
-  
+
   /** Editor mode */
   mode?: 'full';
-  
+
   /** Handler for preview toggle */
   onPreviewToggle?: (enabled: boolean) => void;
-  
+
   /** Handler for face generation request */
   onGenerateFace?: (face: CubeFace) => void;
-  
+
   /** Handler for generate all faces */
   onGenerateAllFaces?: () => void;
 }
@@ -60,31 +61,31 @@ export function LocationEditor({
   onGenerateAllFaces,
 }: LocationEditorProps) {
   const { textureDirection, setTextureDirection } = useLocationStore();
-  
+
   // Form state
   const [name, setName] = useState(location?.name || '');
   const [locationType, setLocationType] = useState<LocationType>(location?.location_type || 'exterior');
   const [description, setDescription] = useState(location?.metadata?.description || '');
   const [atmosphere, setAtmosphere] = useState(location?.metadata?.atmosphere || '');
   const [genreTags, setGenreTags] = useState<string>(location?.metadata?.genre_tags?.join(', ') || '');
-  
+
   // Active tab
-  const [activeTab, setActiveTab] = useState<'info' | 'cube' | 'skybox' | 'assets' | 'scene' | 'images'>('info');
-  
+  const [activeTab, setActiveTab] = useState<'info' | 'cube' | 'skybox' | 'assets' | 'scene' | 'images' | 'prompts'>('info');
+
   // Preview mode
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  
+
   // Dirty state
   const [isDirty, setIsDirty] = useState(false);
-  
+
   // Cube face navigation
   const cubeFaces: CubeFace[] = ['front', 'back', 'left', 'right', 'top', 'bottom'];
   const [activeCubeFace, setActiveCubeFace] = useState<CubeFace>('front');
-  
+
   const handleInputChange = useCallback(() => {
     setIsDirty(true);
   }, []);
-  
+
   const handleSave = useCallback(() => {
     const updates: Partial<Location> = {
       name,
@@ -99,26 +100,26 @@ export function LocationEditor({
     onSave(updates);
     setIsDirty(false);
   }, [name, locationType, description, atmosphere, genreTags, location?.metadata, onSave]);
-  
+
   const handlePreviewToggle = useCallback(() => {
     setIsPreviewMode(!isPreviewMode);
     onPreviewToggle?.(!isPreviewMode);
   }, [isPreviewMode, onPreviewToggle]);
-  
+
   const handleGenerateFace = useCallback((face: CubeFace) => {
     setActiveCubeFace(face);
     onGenerateFace?.(face);
   }, [onGenerateFace]);
-  
+
   const handleGenerateAllFaces = useCallback(() => {
     onGenerateAllFaces?.();
   }, [onGenerateAllFaces]);
-  
+
   const handleUpdateLocation = useCallback((updates: Partial<Location>) => {
     onSave(updates);
     setIsDirty(true);
   }, [onSave]);
-  
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -127,13 +128,13 @@ export function LocationEditor({
         e.preventDefault();
         handleSave();
       }
-      
+
       // Escape to cancel
       if (e.key === 'Escape') {
         e.preventDefault();
         onCancel();
       }
-      
+
       // Arrow keys to navigate cube faces (when in cube tab)
       if (activeTab === 'cube') {
         const currentIndex = cubeFaces.indexOf(activeCubeFace);
@@ -148,11 +149,11 @@ export function LocationEditor({
         }
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeTab, activeCubeFace, handleSave, onCancel]);
-  
+
   const tabs = [
     { id: 'info', label: 'Info', icon: Info },
     { id: 'cube', label: 'Cube', icon: Box },
@@ -160,8 +161,9 @@ export function LocationEditor({
     { id: 'assets', label: 'Assets', icon: Layers },
     { id: 'scene', label: 'Scene', icon: Map },
     { id: 'images', label: 'Images', icon: Images },
+    { id: 'prompts', label: 'Prompts', icon: MessageSquare },
   ];
-  
+
   return (
     <div className={`location-editor ${mode === 'full' ? 'location-editor--full' : ''}`}>
       {/* Tab Navigation */}
@@ -180,13 +182,13 @@ export function LocationEditor({
           );
         })}
       </div>
-      
+
       {/* Tab Content */}
       <div className="location-editor__content">
         {activeTab === 'info' && (
           <div className="location-editor__panel">
             <h3 className="location-editor__panel-title">Basic Information</h3>
-            
+
             <div className="location-editor__form-group">
               <label className="location-editor__label">Name</label>
               <input
@@ -200,7 +202,7 @@ export function LocationEditor({
                 className="location-editor__input"
               />
             </div>
-            
+
             <div className="location-editor__form-group">
               <label className="location-editor__label">Type</label>
               <div className="location-editor__type-selector">
@@ -224,7 +226,7 @@ export function LocationEditor({
                 </button>
               </div>
             </div>
-            
+
             <div className="location-editor__form-group">
               <label className="location-editor__label">Description</label>
               <textarea
@@ -238,7 +240,7 @@ export function LocationEditor({
                 rows={4}
               />
             </div>
-            
+
             <div className="location-editor__form-group">
               <label className="location-editor__label">Atmosphere</label>
               <input
@@ -252,7 +254,7 @@ export function LocationEditor({
                 className="location-editor__input"
               />
             </div>
-            
+
             <div className="location-editor__form-group">
               <label className="location-editor__label">Genre Tags</label>
               <input
@@ -268,7 +270,7 @@ export function LocationEditor({
             </div>
           </div>
         )}
-        
+
         {activeTab === 'cube' && location && (
           <div className="location-editor__cube-panel">
             {/* Cube Progress Bar */}
@@ -278,7 +280,7 @@ export function LocationEditor({
               onFaceClick={handleGenerateFace}
               onGenerateAll={handleGenerateAllFaces}
             />
-            
+
             {/* Cube Face Navigation */}
             <div className="location-editor__cube-faces">
               <span className="location-editor__cube-faces-label">Active Face:</span>
@@ -294,25 +296,25 @@ export function LocationEditor({
                 ))}
               </div>
             </div>
-            
+
             <p className="location-editor__hint">
               Use arrow keys to navigate between faces when this panel is focused.
             </p>
           </div>
         )}
-        
+
         {activeTab === 'skybox' && location && (
           <div className="location-editor__skybox-panel">
             <p className="location-editor__hint">Skybox Panel Placeholder - SkyboxPanel.tsx coming in Phase 4</p>
           </div>
         )}
-        
+
         {activeTab === 'assets' && location && (
           <div className="location-editor__assets-panel">
             <p className="location-editor__hint">Assets Panel Placeholder - LocationAssetsPanel.tsx coming in Phase 4</p>
           </div>
         )}
-        
+
         {activeTab === 'scene' && location && (
           <div className="location-editor__scene-panel">
             <h3 className="location-editor__panel-title">Scene Placement</h3>
@@ -329,26 +331,40 @@ export function LocationEditor({
             )}
           </div>
         )}
-        
+
         {activeTab === 'images' && location && (
           <LocationImagesSection
             location={location}
-            onImageGenerated={(tileUrl) => {
-              handleUpdateLocation({
+            onImageGenerated={(tileUrl, prompt) => {
+              const updates: Partial<Location> = {
                 metadata: {
                   ...location.metadata,
                   tile_image_path: tileUrl
                 }
-              });
+              };
+              if (prompt) {
+                updates.prompts = [...(location.prompts || []), prompt];
+              }
+              handleUpdateLocation(updates);
             }}
           />
         )}
+
+        {activeTab === 'prompts' && location && (
+          <div className="location-editor__panel">
+            <PromptsManager
+              prompts={location.prompts || []}
+              onUpdate={(newPrompts) => handleUpdateLocation({ prompts: newPrompts })}
+              entityName={location.name || 'Location'}
+            />
+          </div>
+        )}
       </div>
-      
+
       {/* Actions */}
       <div className="location-editor__actions">
         {/* Preview Mode Toggle */}
-        <button 
+        <button
           className={`location-editor__btn location-editor__btn--preview ${isPreviewMode ? 'location-editor__btn--preview--active' : ''}`}
           onClick={handlePreviewToggle}
           title="Toggle preview mode (Ctrl+P)"
@@ -356,16 +372,16 @@ export function LocationEditor({
           <Eye size={16} />
           {isPreviewMode ? 'Exit Preview' : 'Preview'}
         </button>
-        
+
         {/* Cancel Button */}
         <button className="location-editor__btn location-editor__btn--cancel" onClick={onCancel}>
           <X size={16} />
           Cancel
         </button>
-        
+
         {/* Save Button */}
-        <button 
-          className="location-editor__btn location-editor__btn--save" 
+        <button
+          className="location-editor__btn location-editor__btn--save"
           onClick={handleSave}
           disabled={!isDirty && !!location}
         >
@@ -373,7 +389,7 @@ export function LocationEditor({
           Save
         </button>
       </div>
-      
+
       {/* Keyboard Shortcuts Hint */}
       <div className="location-editor__shortcuts">
         <Keyboard size={14} />

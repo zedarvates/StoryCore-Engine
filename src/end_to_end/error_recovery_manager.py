@@ -433,8 +433,21 @@ class ErrorRecoveryManager:
             }
             
             # Save checkpoint
+            from dataclasses import is_dataclass, asdict
+            def dataclass_encoder(obj):
+                if is_dataclass(obj):
+                    return asdict(obj)
+                if isinstance(obj, Path):
+                    return str(obj)
+                if isinstance(obj, datetime):
+                    return obj.isoformat()
+                return str(obj)
+
+            # Ensure directory exists
+            checkpoint_file.parent.mkdir(parents=True, exist_ok=True)
+
             with open(checkpoint_file, 'w', encoding='utf-8') as f:
-                json.dump(checkpoint_data, f, indent=2)
+                json.dump(checkpoint_data, f, indent=2, default=dataclass_encoder)
                 
             logger.info(f"Checkpoint saved to {checkpoint_file}")
             return True
@@ -513,7 +526,7 @@ class ErrorRecoveryManager:
         error_type, error_severity = self.classify_error(error, {})
         
         message_parts = [
-            f"❌ Error in {context.workflow_step.value}:",
+            f"[ERROR] Error in {context.workflow_step.value}:",
             f"   Type: {error_type.value}",
             f"   Severity: {error_severity.value}",
             f"   Message: {context.error_message}",

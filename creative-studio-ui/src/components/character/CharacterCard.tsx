@@ -15,31 +15,32 @@ import './CharacterCard.css';
 export interface CharacterCardProps {
   /** The character to display */
   character: Character;
-  
+
   /** Optional click handler for the card */
   onClick?: () => void;
-  
+
   /** Whether the card is in selection mode (for Story Generator) */
   selectable?: boolean;
-  
+
   /** Whether the card is currently selected */
   selected?: boolean;
-  
+
   /** Handler for selection changes */
   onSelect?: (selected: boolean) => void;
-  
+
   /** Whether to show action buttons (edit, delete) */
   showActions?: boolean;
-  
+
   /** Handler for edit button click */
   onEdit?: () => void;
-  
+
   /** Handler for delete button click */
   onDelete?: () => void;
-  
+
   /** Handler for image generation */
-  onImageGenerated?: (imageUrl: string) => void;
-  
+  /** Handler for image generation */
+  onImageGenerated?: (imageUrl: string, prompt?: string) => void | Promise<void>;
+
   /** Whether the card is in loading state */
   loading?: boolean;
 }
@@ -72,13 +73,13 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(null);
-  
+
   const comfyuiService = ComfyUIService.getInstance();
   const project = useAppStore((state) => state.project);
-  
+
   // Get visual style from project
   const visualStyle = (project as any)?.visualStyle || (project as any)?.visual_style || 'realistic';
-  
+
   // Load display URL for saved portrait
   useEffect(() => {
     const loadDisplayUrl = async () => {
@@ -87,7 +88,7 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
         setDisplayImageUrl(generatedImageUrl);
         return;
       }
-      
+
       // Priority 2: Saved portrait path (persistent)
       if (character.visual_identity?.generated_portrait) {
         const portraitPath = character.visual_identity.generated_portrait;
@@ -100,17 +101,17 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
           return;
         }
       }
-      
+
       // Priority 3: Legacy thumbnail_url
       if ((character as any).thumbnail_url) {
         setDisplayImageUrl((character as any).thumbnail_url);
         return;
       }
-      
+
       // No image available
       setDisplayImageUrl(null);
     };
-    
+
     loadDisplayUrl();
   }, [character, generatedImageUrl, project?.metadata?.path]);
   // Format creation date
@@ -196,9 +197,9 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
   const buildVisualDetails = (): string[] => {
     const details: string[] = [];
     const visual = character.visual_identity;
-    
+
     if (!visual) return details;
-    
+
     // Face and hair
     if (visual.hair_color && visual.hair_style) {
       details.push(`${visual.hair_color} ${visual.hair_style} hair`);
@@ -232,7 +233,7 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
     if (visual.distinctive_features && visual.distinctive_features.length > 0) {
       details.push(visual.distinctive_features.join(', '));
     }
-    
+
     return details;
   };
 
@@ -276,9 +277,10 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
   const handleGenerateImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsGeneratingImage(true);
+    let prompt = ''; // Captured for persistence
 
     try {
-      const prompt = buildCharacterPrompt();
+      prompt = buildCharacterPrompt();
       const negativePrompt = buildNegativePrompt();
 
       devLog('🎨 [CharacterCard] Starting image generation');
@@ -302,7 +304,7 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
 
       devLog('✅ [CharacterCard] Image generated:', imageUrl);
       setGeneratedImageUrl(imageUrl);
-      
+
       // Download and save image to project folder
       const projectPath = project?.metadata?.path as string | undefined;
       if (projectPath) {
@@ -312,39 +314,39 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
           character.character_id,
           projectPath
         );
-        
+
         if (saveResult.success && saveResult.localPath) {
           devLog('✅ [CharacterCard] Image saved locally:', saveResult.localPath);
-          
+
           // Notify parent component to update character data
           if (onImageGenerated) {
-            onImageGenerated(saveResult.localPath);
+            onImageGenerated(saveResult.localPath, prompt);
           }
         } else {
           devWarn('⚠️ [CharacterCard] Failed to save image locally:', saveResult.error);
           // Still show the image from ComfyUI URL
           if (onImageGenerated) {
-            onImageGenerated(imageUrl);
+            onImageGenerated(imageUrl, prompt);
           }
         }
       } else {
         devWarn('⚠️ [CharacterCard] No project path available, image not saved locally');
         // Fallback: just notify with ComfyUI URL
         if (onImageGenerated) {
-          onImageGenerated(imageUrl);
+          onImageGenerated(imageUrl, prompt);
         }
       }
     } catch (err) {
       logger.error('❌ [CharacterCard] Failed to generate character portrait:', err);
-      
+
       // Show user-friendly error message
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      
+
       // Set a placeholder image with error message
       setGeneratedImageUrl(
         `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect fill="%23f0f0f0" width="256" height="256"/><text x="50%" y="40%" text-anchor="middle" fill="%23999" font-size="14" font-weight="bold">Generation Failed</text><text x="50%" y="55%" text-anchor="middle" fill="%23666" font-size="10">Check ComfyUI settings</text><text x="50%" y="65%" text-anchor="middle" fill="%23666" font-size="8">${encodeURIComponent(errorMessage.substring(0, 40))}</text></svg>`
       );
-      
+
       // You can also show a toast notification here if you have a notification system
       devWarn('💡 [CharacterCard] To fix: 1) Start ComfyUI 2) Configure in Settings > ComfyUI 3) Test connection');
     } finally {

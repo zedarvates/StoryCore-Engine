@@ -142,7 +142,7 @@ class ValidateHandler(BaseHandler):
                     if failed_validations:
                         fixed_count = self._attempt_fixes(project_path, failed_validations)
                         if fixed_count > 0:
-                            print(f"✓ Fixed {fixed_count} structure issue(s)")
+                            print(f"[SUCCESS] Fixed {fixed_count} structure issue(s)")
                             print("Run validation again to verify fixes")
 
                 if quality_scopes:

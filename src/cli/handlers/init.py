@@ -293,16 +293,16 @@ class InitHandler(BaseHandler):
         if success:
             project_path = Path(args.path) / config.project_name
             self.print_success(f"Project '{config.project_name}' created successfully!")
-            print(f"📁 Location: {project_path.absolute()}")
-            print(f"📋 Files created:")
-            print(f"   ✓ project.json (main configuration)")
-            print(f"   ✓ README.md (project documentation)")
-            print(f"   ✓ Directory structure (assets, exports, etc.)")
+            print(f"[PATH] Location: {project_path.absolute()}")
+            print(f"[INFO] Files created:")
+            print(f"   [SUCCESS] project.json (main configuration)")
+            print(f"   [SUCCESS] README.md (project documentation)")
+            print(f"   [SUCCESS] Directory structure (assets, exports, etc.)")
             
             # Show story documentation files if generated
             story_path = project_path / "story"
             if story_path.exists():
-                print(f"   ✓ Story documentation (story/):")
+                print(f"   [SUCCESS] Story documentation (story/):")
                 print(f"      - 00_master_outline.md")
                 print(f"      - 01_plot_core.md")
                 print(f"      - 02_lore_worldbuilding.md")
@@ -319,9 +319,9 @@ class InitHandler(BaseHandler):
                     getattr(args, 'project_type', 'video')
                 )
                 if memory_success:
-                    print(f"   ✓ Memory system initialized (assistant/ directory)")
+                    print(f"   [SUCCESS] Memory system initialized (assistant/ directory)")
             
-            print(f"\n🚀 Next steps:")
+            print(f"\n[NEXT STEPS] Next steps:")
             print(f"   cd {config.project_name}")
             print(f"   storycore grid")
             print(f"   storycore promote")
@@ -355,7 +355,7 @@ class InitHandler(BaseHandler):
         if not result["success"]:
             self.print_error(f"Failed to initialize project '{args.project_name}'")
             for error in result["errors"]:
-                print(f"  ✗ {error}")
+                print(f"  [ERROR] {error}")
             return 1
         
         project_path = Path(args.path) / args.project_name
@@ -372,7 +372,7 @@ class InitHandler(BaseHandler):
         if result["warnings"]:
             print(f"\n  Warnings:")
             for warning in result["warnings"]:
-                print(f"    ⚠ {warning}")
+                print(f"    [WARN] {warning}")
         
         # Initialize memory system if requested
         if args.enable_memory:
@@ -429,7 +429,7 @@ class InitHandler(BaseHandler):
             )
             
             if success:
-                print(f"  ✓ Memory system initialized successfully")
+                print(f"  [SUCCESS] Memory system initialized successfully")
                 print(f"    - assistant/discussions_raw/")
                 print(f"    - assistant/discussions_summary/")
                 print(f"    - assistant/memory.json")
@@ -439,15 +439,15 @@ class InitHandler(BaseHandler):
                 print(f"    - qa_reports/")
                 return True
             else:
-                print(f"  ✗ Failed to initialize memory system")
+                print(f"  [ERROR] Failed to initialize memory system")
                 return False
                 
         except ImportError as e:
-            print(f"  ⚠ Memory system not available: {e}")
+            print(f"  [WARN] Memory system not available: {e}")
             print(f"    Install memory_system module to use this feature")
             return False
         except Exception as e:
-            print(f"  ✗ Error initializing memory system: {e}")
+            print(f"  [ERROR] Error initializing memory system: {e}")
             return False
     
     def _should_enable_memory_wizard(self, wizard_state: Any) -> bool:

@@ -411,6 +411,9 @@ export interface Location {
   /** Cube mapping data for 6-directional views */
   cube_textures: CubeTextureMapping;
 
+  /** Associated prompts for location generation */
+  prompts: string[];
+
   /** Skybox configuration (for exterior locations) */
   skybox_config?: SkyBoxConfig;
 
@@ -503,6 +506,7 @@ export function createEmptyLocation(): Partial<Location> {
       tile_image_path: undefined,
     },
     cube_textures: {},
+    prompts: [],
     placed_assets: [],
     is_world_derived: false,
   };

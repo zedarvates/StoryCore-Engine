@@ -83,7 +83,7 @@ class IntegrationManager:
         """
         try:
             # Import and initialize 3D rendering engine
-            from src.3d.rendering_engine import RenderingEngine
+            from src.three_d.rendering_engine import RenderingEngine
             
             render_config = config or {'render_mode': 'REALTIME'}
             
@@ -245,27 +245,27 @@ async def main():
     status = manager.integrate_components()
     
     for component, stat in status.items():
-        symbol = "✓" if stat == 'initialized' else "✗"
+        symbol = "[SUCCESS]" if stat == 'initialized' else "[ERROR]"
         print(f"   {symbol} {component.capitalize()}: {stat}")
     
     # Start services
     print("\n2. Starting services...")
     if await manager.start_services():
-        print("   ✓ Services started successfully")
+        print("   [SUCCESS] Services started successfully")
     else:
-        print("   ✗ Failed to start services")
+        print("   [ERROR] Failed to start services")
     
     # Show integration status
     print("\n3. Integration Status:")
     current_status = manager.get_integration_status()
     for component, stat in current_status.items():
-        print(f"   • {component.capitalize()}: {stat}")
+        print(f"   * {component.capitalize()}: {stat}")
     
-    print("\n✅ Integration Manager demonstration complete!")
-    print("🎵 Audio Engine: Ready for sound generation")
-    print("🎬 3D Engine: Ready for cinematic rendering")
-    print("🌐 HTTP Server: Ready for API requests")
-    print("🔧 All components integrated and operational")
+    print("\n[SUCCESS] Integration Manager demonstration complete!")
+    print(" (Audio) Audio Engine: Ready for sound generation")
+    print(" (Video) 3D Engine: Ready for cinematic rendering")
+    print(" (Web) HTTP Server: Ready for API requests")
+    print(" (Core) All components integrated and operational")
 
 
 if __name__ == "__main__":

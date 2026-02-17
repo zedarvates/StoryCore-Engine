@@ -265,7 +265,7 @@ class EndToEndOrchestrator:
         
         # Log workflow start
         logger.info(f"Starting end-to-end workflow {self.workflow_id}")
-        print(f"\n🎬 Starting project creation...")
+        print(f"\n[START] Starting project creation...")
         print(f"   Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
         
         # Track errors and warnings
@@ -336,7 +336,7 @@ class EndToEndOrchestrator:
                 except Exception as e:
                     logger.error(f"Error in workflow complete hook: {e}")
             
-            print(f"\n✅ Project created successfully!")
+            print(f"\n[SUCCESS] Project created successfully!")
             print(f"   Duration: {duration}")
             print(f"   Video: {pipeline_result.video_path}")
             
@@ -515,33 +515,24 @@ class EndToEndOrchestrator:
         )
         
         try:
-            # Create project structure
+            # Create project structure (this now handles saving all components)
             structure = self.project_builder.create_project_structure(
                 project_path.name,
                 components
             )
             
-            # Save all components
-            success = self.project_builder.save_all_components(
-                project_path,
-                components
-            )
-            
-            if not success:
-                raise RuntimeError("Failed to save project components")
-            
             # Validate structure
             validation = self.project_builder.validate_structure(project_path)
             
-            if not validation["valid"]:
-                raise RuntimeError(f"Invalid project structure: {validation['errors']}")
+            if not validation.valid:
+                raise RuntimeError(f"Invalid project structure: {validation.errors}")
             
             # Update progress
             self.progress_monitor.complete_step(
                 step.value,
                 {
                     "project_path": str(project_path),
-                    "files_created": structure.file_count
+                    "files_created": structure.total_files
                 }
             )
             
@@ -568,6 +559,10 @@ class EndToEndOrchestrator:
         warnings: List[str]
     ) -> bool:
         """Execute image generation step with fallback."""
+        if getattr(self.config, 'no_comfyui', False):
+            logger.info("Skipping image generation as per configuration (no_comfyui=True)")
+            return False
+            
         step = WorkflowStep.IMAGE_GENERATION
         
         self.progress_monitor.update_step(
@@ -910,7 +905,7 @@ class EndToEndOrchestrator:
             warnings=warnings
         )
         
-        print(f"\n❌ Project creation failed!")
+        print(f"\n[ERROR] Project creation failed!")
         print(f"   Duration: {duration}")
         print(f"   Error: {error}")
         
@@ -934,6 +929,9 @@ class EndToEndOrchestrator:
         
         if "checkpoint_enabled" in options:
             self.config.checkpoint_enabled = options["checkpoint_enabled"]
+            
+        if "no_comfyui" in options:
+            self.config.no_comfyui = options["no_comfyui"]
     
     def get_progress(self) -> ProgressReport:
         """
@@ -1031,7 +1029,7 @@ class EndToEndOrchestrator:
         )
         
         logger.info(f"Resuming workflow from checkpoint at step: {checkpoint.current_step}")
-        print(f"\n🔄 Resuming workflow from: {path}")
+        print(f"\n[INFO] Resuming workflow from: {path}")
         print(f"   Starting at step: {checkpoint.current_step.value}")
         
         return True
@@ -1045,7 +1043,7 @@ class EndToEndOrchestrator:
             
         Requirement 11.1-11.8: Dependency verification
         """
-        return self.dependency_manager.check_all_dependencies()
+        return self.dependency_manager.verify_all_dependencies()
     
     def add_step_start_hook(self, hook: Callable[[WorkflowStep], None]) -> None:
         """

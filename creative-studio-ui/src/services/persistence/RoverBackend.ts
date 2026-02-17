@@ -36,7 +36,7 @@ export class RoverBackend implements StorageBackend {
                 this.projectPath,
                 projectId,
                 'Auto-save checkpoint',
-                parsedData
+                parsedData as unknown as Record<string, unknown>
             );
 
             // Also write the main project.json for compatibility with the rest of the app

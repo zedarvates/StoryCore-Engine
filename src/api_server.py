@@ -2,8 +2,13 @@
 StoryCore API Server - Simple HTTP Demo API
 Provides REST endpoints for StoryCore-Engine dashboard functionality.
 
+⚠️ DEPRECATED: This file is deprecated and will be removed in a future version.
+           Please use src/api_server_fastapi.py instead (FastAPI v2.0).
+
 Author: StoryCore-Engine Team
 Date: 2026-01-15
+Deprecated: 2026-02-15
+Migration: Use `python -m src.api_server_fastapi` or `uvicorn src.api_server_fastapi:app`
 """
 
 import json

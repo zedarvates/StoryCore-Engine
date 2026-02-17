@@ -287,40 +287,51 @@ class StoryStructureGenerator:
         parsed_prompt: ParsedPrompt,
         characters: List[Character]
     ) -> str:
-        """Get act description"""
+        """Get act description with more detail and professional storytelling elements."""
         protagonist_name = "the protagonist"
+        antagonist_name = "the antagonist"
+        
         if characters:
             protagonist = next(
-                (c for c in characters if "protagonist" in c.role.lower()),
+                (c for c in characters if "protagonist" in c.role.lower() or "hero" in c.role.lower()),
                 characters[0]
             )
             protagonist_name = protagonist.name
+            
+            antagonist = next(
+                (c for c in characters if "antagonist" in c.role.lower() or "villain" in c.role.lower()),
+                None
+            )
+            if antagonist:
+                antagonist_name = antagonist.name
+
+        genre = parsed_prompt.genre.lower()
+        setting = parsed_prompt.setting
         
-        if video_type == "trailer":
-            descriptions = [
-                f"Introduce {protagonist_name} and the world of {parsed_prompt.setting}",
-                f"Build tension and reveal the central conflict in {parsed_prompt.setting}",
-                f"Showcase the climactic moments and stakes"
-            ]
-        elif video_type == "teaser":
-            descriptions = [
-                f"Create intrigue with glimpses of {parsed_prompt.setting}",
-                f"Build mystery and anticipation"
-            ]
-        elif video_type == "commercial":
-            descriptions = [
-                "Present the problem or need",
-                "Demonstrate the solution",
-                "Motivate action"
-            ]
-        else:
-            descriptions = [
-                f"Establish {protagonist_name} in {parsed_prompt.setting}",
-                f"Develop the conflict and challenges",
-                f"Resolve the story and show transformation"
-            ]
+        # Professional 3-act structure descriptions
+        if act_index == 0:  # Setup
+            return (
+                f"Establishing the {genre} world of {setting}. "
+                f"We introduce {protagonist_name}, establishing their normal life and a deep-seated need. "
+                f"The inciting incident occurs when a mysterious event involving {parsed_prompt.mood[0] if parsed_prompt.mood else 'intrigue'} "
+                f"forces {protagonist_name} to consider a path toward {parsed_prompt.key_elements[0] if parsed_prompt.key_elements else 'their destiny'}."
+            )
+        elif act_index == 1:  # Confrontation / Build
+            return (
+                f"The journey into {setting} intensifies. {protagonist_name} faces escalating challenges "
+                f"and meets secondary characters. The conflict with {antagonist_name} begins to surface. "
+                f"Themes of {', '.join(self._generate_themes(parsed_prompt)[:2])} are explored through "
+                f"increasingly {parsed_prompt.mood[0] if parsed_prompt.mood else 'dramatic'} sequences."
+            )
+        elif act_index == 2:  # Climax / Resolution
+            return (
+                f"The ultimate confrontation in {setting}. {protagonist_name} must confront {antagonist_name} "
+                f"in a high-stakes climax. The emotional arc reaches its peak, leading to a resolution "
+                f"where the world is changed and {protagonist_name}'s transformation is complete, "
+                f"reinforcing the core theme of {self._generate_themes(parsed_prompt)[0]}."
+            )
         
-        return descriptions[act_index] if act_index < len(descriptions) else "Continue the story"
+        return "Continue the narrative progression."
     
     def _generate_themes(self, parsed_prompt: ParsedPrompt) -> List[str]:
         """Generate story themes"""

@@ -173,6 +173,7 @@ export function ObjectWizard({
           appearance: data.appearance || '',
           properties: data.properties || {},
           abilities: data.abilities || [],
+          prompts: data.prompts || [],
           significance: data.significance || '',
           history: data.history,
           currentOwner: data.currentOwner,

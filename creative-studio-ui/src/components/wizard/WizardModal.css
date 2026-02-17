@@ -20,8 +20,13 @@
 }
 
 @keyframes wizardOverlayIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Container with subtle border glow */
@@ -46,6 +51,7 @@
     opacity: 0;
     transform: translateY(20px) scale(0.97);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -58,7 +64,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 18px 24px;
-  background: linear-gradient(135deg, #0a0a0f 0%, #111127 50%, #0d0d1a 100%);
+  background: #1a1a1a;
   border-bottom: 1px solid rgba(138, 100, 255, 0.15);
   flex-shrink: 0;
   position: relative;
@@ -72,13 +78,12 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(138, 100, 255, 0.5) 25%, 
-    rgba(100, 180, 255, 0.4) 50%, 
-    rgba(138, 100, 255, 0.5) 75%, 
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(138, 100, 255, 0.5) 25%,
+      rgba(100, 180, 255, 0.4) 50%,
+      rgba(138, 100, 255, 0.5) 75%,
+      transparent 100%);
 }
 
 .wizard-modal-title {

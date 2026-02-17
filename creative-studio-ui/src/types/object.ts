@@ -70,6 +70,9 @@ export interface StoryObject {
   // Properties
   properties: ObjectProperties;
 
+  // Associated prompts
+  prompts: string[];
+
   // Abilities/Powers
   abilities?: ObjectAbility[];
   abilityStrings?: string[]; // Simplified abilities for AI generation
@@ -112,6 +115,7 @@ export function createEmptyObject(): Partial<StoryObject> {
     description: '',
     properties: {},
     abilities: [],
+    prompts: [],
     tags: [],
     generatedBy: 'user',
     createdAt: new Date(),

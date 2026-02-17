@@ -39,8 +39,9 @@ interface ModalsContainerProps {
   // Wizards
   showWorldWizard: boolean;
   onCloseWorldWizard: () => void;
-  onCompleteWorld: (world: unknown) => void;
+  onCompleteWorld: (world: unknown, nextAction?: string) => void;
 
+  characterWizardWorldContext?: unknown; // Should match World type
   showCharacterWizard: boolean;
   onCloseCharacterWizard: () => void;
   onCompleteCharacter: (character: unknown) => void;
@@ -92,6 +93,18 @@ interface ModalsContainerProps {
   showPendingReportsList: boolean;
   onClosePendingReportsList: () => void;
 
+  // Sequence Plan Wizard
+  showSequencePlanWizard: boolean;
+  onCloseSequencePlanWizard: () => void;
+  onCompleteSequencePlan: (plan: unknown) => void;
+  sequencePlanWizardContext?: unknown;
+
+  // Shot Wizard
+  showShotWizard: boolean;
+  onCloseShotWizard: () => void;
+  onCompleteShot: (shot: unknown) => void;
+  shotWizardContext?: unknown;
+
   // Generic Wizard
   activeWizardType: string | null;
   onCloseActiveWizard: () => void;
@@ -113,6 +126,7 @@ export function ModalsContainer({
   onCloseWorldWizard,
   onCompleteWorld,
 
+  characterWizardWorldContext,
   showCharacterWizard,
   onCloseCharacterWizard,
   onCompleteCharacter,
@@ -164,6 +178,18 @@ export function ModalsContainer({
   showPendingReportsList,
   onClosePendingReportsList,
 
+  // Sequence Plan Wizard
+  showSequencePlanWizard,
+  onCloseSequencePlanWizard,
+  onCompleteSequencePlan,
+  sequencePlanWizardContext,
+
+  // Shot Wizard
+  showShotWizard,
+  onCloseShotWizard,
+  onCompleteShot,
+  shotWizardContext,
+
   // Generic Wizard
   activeWizardType,
   onCloseActiveWizard,
@@ -188,6 +214,7 @@ export function ModalsContainer({
         isOpen={showCharacterWizard}
         onClose={onCloseCharacterWizard}
         onComplete={onCompleteCharacter}
+        worldContext={characterWizardWorldContext as any}
       />
       <ObjectWizardModal
         isOpen={showObjectWizard}
@@ -203,8 +230,20 @@ export function ModalsContainer({
       {/* Production Wizards */}
       <CreateProjectDialogModal />
       <ProjectSetupWizardModal />
-      <SequencePlanWizardModal />
-      <ShotWizardModal />
+      <SequencePlanWizardModal
+        isOpen={showSequencePlanWizard}
+        onClose={onCloseSequencePlanWizard}
+        onComplete={onCompleteSequencePlan}
+        initialPlan={sequencePlanWizardContext as any}
+        mode="create" // Assuming default mode
+      />
+      <ShotWizardModal
+        isOpen={showShotWizard}
+        onClose={onCloseShotWizard}
+        onComplete={onCompleteShot}
+        initialShot={shotWizardContext as any}
+        mode="create" // Assuming default mode
+      />
       <DialogueWriterWizardModal />
 
       {/* Generic Wizard Modal */}

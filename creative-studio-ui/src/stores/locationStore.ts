@@ -244,6 +244,7 @@ export const useLocationStore = create<LocationState>()(
                   genre_tags: location.metadata?.genre_tags,
                   world_id: location.world_id,
                   world_location_id: location.world_location_id,
+                  prompts: location.prompts,
                 }),
               });
               set((state) => ({

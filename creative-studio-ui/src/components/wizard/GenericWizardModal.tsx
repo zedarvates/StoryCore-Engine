@@ -9,16 +9,8 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, Info } from 'lucide-react';
+import { Loader2, AlertCircle, Info, X } from 'lucide-react';
 import { useAppStore, type WizardType as AppWizardType } from '@/stores/useAppStore';
 import { useWizardStore } from '@/stores/wizard/wizardStore';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +23,7 @@ import type { Character } from '@/types/character';
 import type { Shot } from '@/types';
 import { WizardChainOptions } from './WizardChainOptions';
 import type { WizardChainOption } from './WizardChainOptions';
+import './WizardModal.css';
 
 // Supported wizard types for GenericWizardModal (matching useAppStore WizardType)
 // Note: 'world', 'character', and 'storyteller' wizards are multi-step and use separate modals
@@ -343,7 +336,7 @@ export function GenericWizardModal({
   const [isChainLoading, setIsChainLoading] = useState(false);
   const { toast } = useToast();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
-  
+
   // Sync wizardType with wizardStore if provided via store
   const wizardTypeFromStore = useWizardStore((state) => state.wizardType) as AppWizardType | null;
   const effectiveWizardType = wizardType || wizardTypeFromStore;
@@ -418,8 +411,8 @@ export function GenericWizardModal({
       }
 
       // Check if there are chained wizards to show
-      if (chainOptions.isChained && chainOptions.triggeredWizards.length > 0 && 
-          chainOptions.currentChainIndex < chainOptions.triggeredWizards.length) {
+      if (chainOptions.isChained && chainOptions.triggeredWizards.length > 0 &&
+        chainOptions.currentChainIndex < chainOptions.triggeredWizards.length) {
         // Show chain options instead of closing
         setShowChainOptions(true);
         setIsSubmitting(false);
@@ -508,14 +501,23 @@ export function GenericWizardModal({
     );
 
     return (
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Wizard Not Available</DialogTitle>
-          </DialogHeader>
-          {unsupportedMessage}
-        </DialogContent>
-      </Dialog>
+      <div className="wizard-modal-overlay" onClick={onClose}>
+        <div className="wizard-modal-container max-w-md h-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="wizard-modal-header">
+            <h2 className="wizard-modal-title">Wizard Not Available</h2>
+            <button
+              className="wizard-modal-close"
+              onClick={onClose}
+              aria-label="Close wizard"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="wizard-modal-content p-0">
+            {unsupportedMessage}
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -523,66 +525,72 @@ export function GenericWizardModal({
   const wizardConfig = WIZARD_CONFIG[effectiveWizardType as AppWizardType];
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto"
-        aria-labelledby="wizard-modal-title"
-        aria-describedby="wizard-modal-description"
-      >
-        <DialogHeader>
-          <DialogTitle id="wizard-modal-title">
-            {wizardConfig.title}
-          </DialogTitle>
-          <DialogDescription id="wizard-modal-description">
-            {wizardConfig.description}
-          </DialogDescription>
-        </DialogHeader>
-
-        {/* LLM Status Banner */}
-        <LLMStatusBanner onConfigure={() => setShowLLMSettings(true)} />
-
-        {/* Render wizard form */}
-        <div className="py-4 relative">
-          {/* Loading overlay during submission */}
-          {isSubmitting && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-md">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="text-sm text-muted-foreground">Processing...</span>
-              </div>
-            </div>
-          )}
-
-          <WizardFormRenderer
-            wizardType={effectiveWizardType}
-            onSubmit={handleFormSubmit}
-            onCancel={onClose}
-            onChange={handleFormChange}
-            onFormReady={handleFormReady}
-            onValidationChange={handleValidationChange}
-          />
-        </div>
-
-        <DialogFooter className="flex justify-between sm:justify-between">
-          <Button
-            type="button"
-            variant="outline"
+    <div className="wizard-modal-overlay" onClick={onClose}>
+      <div className="wizard-modal-container" onClick={(e) => e.stopPropagation()}>
+        <div className="wizard-modal-header">
+          <div className="flex flex-col">
+            <h2 className="wizard-modal-title">{wizardConfig.title}</h2>
+            <p className="text-sm text-gray-400 mt-1 font-normal">{wizardConfig.description}</p>
+          </div>
+          <button
+            className="wizard-modal-close"
             onClick={onClose}
+            aria-label="Close wizard"
             disabled={isSubmitting}
           >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSubmitClick}
-            disabled={isSubmitting || !submitFormFn || !isFormValid}
-          >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? 'Processing...' : wizardConfig.submitLabel}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="wizard-modal-content flex flex-col h-full">
+          {/* LLM Status Banner */}
+          <LLMStatusBanner onConfigure={() => setShowLLMSettings(true)} />
+
+          {/* Render wizard form */}
+          <div className="py-4 relative flex-1 px-6">
+            {/* Loading overlay during submission */}
+            {isSubmitting && (
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-md">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Processing...</span>
+                </div>
+              </div>
+            )}
+
+            <WizardFormRenderer
+              wizardType={effectiveWizardType}
+              onSubmit={handleFormSubmit}
+              onCancel={onClose}
+              onChange={handleFormChange}
+              onFormReady={handleFormReady}
+              onValidationChange={handleValidationChange}
+            />
+          </div>
+
+          <div className="p-6 border-t border-white/10 flex justify-between bg-black/20 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="border-white/10 hover:bg-white/5 hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmitClick}
+              disabled={isSubmitting || !submitFormFn || !isFormValid}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting ? 'Processing...' : wizardConfig.submitLabel}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

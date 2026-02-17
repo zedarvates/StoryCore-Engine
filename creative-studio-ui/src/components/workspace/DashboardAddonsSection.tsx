@@ -9,10 +9,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { addonManager, AddonInfo, AddonAction } from '@/services/AddonManager';
 import { useAppStore } from '@/stores/useAppStore';
-import { 
-  Puzzle, 
-  Settings, 
-  ChevronRight, 
+import {
+  Puzzle,
+  Settings,
+  ChevronRight,
   Loader2,
   CheckCircle2,
   AlertCircle,
@@ -52,7 +52,7 @@ function getAddonIcon(addon: AddonInfo): string {
   if (addon.icon) {
     return addon.icon;
   }
-  
+
   // Default icons based on category
   switch (addon.category) {
     case 'ui':
@@ -138,9 +138,10 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
   const [hoveredAddon, setHoveredAddon] = useState<string | null>(null);
   const [addonActions, setAddonActions] = useState<Record<string, AddonAction[]>>({});
   const [togglingAddon, setTogglingAddon] = useState<string | null>(null);
-  
+
   // Get function to open settings modal from store
   const setShowGeneralSettings = useAppStore((state) => state.setShowGeneralSettings);
+  const openAddonSettings = useAppStore((state) => state.openAddonSettings);
 
   // Initialize addons and load them
   useEffect(() => {
@@ -153,7 +154,7 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
         // Get ALL addons (both enabled and disabled) to show all available addons
         const allAddons = addonManager.getAddons();
         setAddons(allAddons);
-        
+
         // Load custom actions for each addon
         const actions: Record<string, AddonAction[]> = {};
         for (const addon of allAddons) {
@@ -195,9 +196,9 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
   // Handle addon click - open settings or perform action
   const handleAddonClick = useCallback((addon: AddonInfo) => {
     if (addon.status === 'active') {
-      setShowGeneralSettings(true);
+      openAddonSettings(addon.id);
     }
-  }, [setShowGeneralSettings]);
+  }, [openAddonSettings]);
 
   // Handle wizard launch from addon
   const handleLaunchWizard = useCallback((addon: AddonInfo) => {
@@ -319,7 +320,7 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
           const isHovered = hoveredAddon === addon.id;
           const isEnabled = addon.enabled;
           const isToggling = togglingAddon === addon.id;
-          
+
           return (
             <div
               key={addon.id}
@@ -344,12 +345,12 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
                     <span>{addon.status}</span>
                   </div>
                 </div>
-                
+
                 <div className="addon-tile-content">
                   <h4 className={`addon-name ${colorScheme.text}`}>{addon.name}</h4>
                   <p className="addon-description">{addon.description}</p>
                 </div>
-                
+
                 <div className="addon-tile-footer">
                   <span className="addon-version">v{addon.version}</span>
                   <div className="addon-action">
@@ -358,7 +359,7 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
                   </div>
                 </div>
               </button>
-              
+
               {/* Quick action buttons - shown on hover for active addons */}
               {isHovered && (
                 <div className="addon-quick-actions">
@@ -383,7 +384,7 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
                       </>
                     )}
                   </button>
-                  
+
                   {/* Wizard Launch Button - Only for active addons */}
                   {isEnabled && hasWizard && onLaunchWizard && (
                     <button
@@ -398,7 +399,7 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
                       <span>Create</span>
                     </button>
                   )}
-                  
+
                   {/* Settings Button - Only for active addons */}
                   {isEnabled && (
                     <button
@@ -412,7 +413,7 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
                       <Settings className="w-3 h-3" />
                     </button>
                   )}
-                  
+
                   {/* Custom Actions */}
                   {isEnabled && actions.map((action) => (
                     <button
@@ -429,7 +430,7 @@ export function DashboardAddonsSection({ className = '', onLaunchWizard }: Dashb
                   ))}
                 </div>
               )}
-              
+
               {addon.errorMessage && (
                 <div className="addon-error">
                   <AlertCircle className="w-3 h-3" />

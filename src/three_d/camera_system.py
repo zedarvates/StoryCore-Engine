@@ -13,7 +13,7 @@ from enum import Enum
 import numpy as np
 import math
 
-from src.3d.rendering_engine import Camera3D, SceneObject
+from src.three_d.rendering_engine import Camera3D, SceneObject
 from src.camera_movement import CameraPosition as CameraPosition2D
 
 logger = logging.getLogger(__name__)
@@ -403,7 +403,7 @@ def main():
         samples=20
     )
     
-    print("✓ Created orbit path")
+    print("[SUCCESS] Created orbit path")
     
     # Test dolly path
     camera_system.create_dolly_path(
@@ -414,7 +414,7 @@ def main():
         duration=3.0
     )
     
-    print("✓ Created dolly path")
+    print("[SUCCESS] Created dolly path")
 
 
 if __name__ == "__main__":

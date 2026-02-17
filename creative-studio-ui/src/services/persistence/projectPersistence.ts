@@ -45,6 +45,7 @@ const ProjectSchema = z.object({
     last_modified: z.string(),
   }).optional(),
   metadata: z.record(z.string(), z.any()).optional(),
+  global_resume: z.string().optional(),
 });
 
 // ============================================================================

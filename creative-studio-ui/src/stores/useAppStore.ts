@@ -82,6 +82,7 @@ interface AppState {
   showFeedbackPanel: boolean;
   showPendingReportsList: boolean;
   showFactCheckModal: boolean;
+  settingsAddonId: string | null; // ID of the addon to show settings for
 
   // Production wizards state
   showSequencePlanWizard: boolean;
@@ -204,6 +205,10 @@ interface AppState {
   setShowCrossShotReferencePicker: (show: boolean) => void;
   setShowProjectBranchingDialog: (show: boolean) => void;
   setShowEpisodeReferenceDialog: (show: boolean) => void;
+
+  // Addon Settings
+  openAddonSettings: (addonId: string) => void;
+  closeAddonSettings: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -258,6 +263,7 @@ export const useAppStore = create<AppState>((set) => ({
   sequencePlanWizardContext: null,
   showShotWizard: false,
   shotWizardContext: null,
+  settingsAddonId: null,
 
   // Generic wizard forms initial state (simple forms in GenericWizardModal)
   showDialogueWriter: false,
@@ -473,4 +479,8 @@ export const useAppStore = create<AppState>((set) => ({
   setShowCrossShotReferencePicker: (show) => set({ showCrossShotReferencePicker: show }),
   setShowProjectBranchingDialog: (show) => set({ showProjectBranchingDialog: show }),
   setShowEpisodeReferenceDialog: (show) => set({ showEpisodeReferenceDialog: show }),
+
+  // Addon Settings
+  openAddonSettings: (addonId) => set({ settingsAddonId: addonId }),
+  closeAddonSettings: () => set({ settingsAddonId: null }),
 }));

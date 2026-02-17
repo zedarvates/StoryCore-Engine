@@ -13,7 +13,7 @@ from enum import Enum
 import json
 from pathlib import Path
 
-from src.3d.rendering_engine import Scene3D, SceneObject, Camera3D, LightSource, Material
+from src.three_d.rendering_engine import Scene3D, SceneObject, Camera3D, LightSource, Material
 
 logger = logging.getLogger(__name__)
 
@@ -378,17 +378,17 @@ def main():
     loaded_scene = manager.load_scene_from_file("test_scene.json")
     
     if loaded_scene:
-        print(f"✓ Successfully loaded scene: {loaded_scene.name}")
+        print(f"[SUCCESS] Successfully loaded scene: {loaded_scene.name}")
         print(f"  Objects: {len(loaded_scene.objects)}")
         print(f"  Camera position: {loaded_scene.camera.position}")
     else:
-        print("✗ Failed to load scene")
+        print("[ERROR] Failed to load scene")
     
     # Test scene sequence
     manager.create_scene("scene_2")
     manager.create_scene_sequence("test_sequence", ["test_scene", "scene_2"])
     
-    print(f"✓ Created scene sequence with {len(manager.list_scene_sequences())} sequences")
+    print(f"[SUCCESS] Created scene sequence with {len(manager.list_scene_sequences())} sequences")
 
 
 if __name__ == "__main__":

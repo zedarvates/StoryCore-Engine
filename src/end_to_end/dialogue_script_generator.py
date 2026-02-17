@@ -183,7 +183,8 @@ class DialogueScriptGenerator:
         # Generate action notes
         action_notes = self._generate_action_notes(
             scene_context,
-            parsed_prompt
+            parsed_prompt,
+            scene_characters
         )
         
         # Determine location and time
@@ -291,7 +292,7 @@ class DialogueScriptGenerator:
         line_index: int,
         parsed_prompt: ParsedPrompt
     ) -> DialogueLine:
-        """Generate a single dialogue line"""
+        """Generate a single dialogue line with character personality"""
         line_id = str(uuid.uuid4())
         
         # Select emotion based on context
@@ -302,6 +303,19 @@ class DialogueScriptGenerator:
         role_key = self._get_role_key(character.role)
         deliveries = self.delivery_templates.get(role_key, self.delivery_templates["default"])
         delivery = deliveries[line_index % len(deliveries)]
+        
+        # Add character gesture (Requirement Enhancement)
+        if hasattr(character, 'gestures') and character.gestures:
+            gesture = character.gestures[line_index % len(character.gestures)]
+            delivery = f"{delivery}. Character {gesture}"
+            
+        # Add voice inflection (Requirement Enhancement)
+        if hasattr(character, 'voice_inflection') and character.voice_inflection:
+            delivery = f"{delivery}, {character.voice_inflection.lower()}"
+            
+        # Add diction quirk to delivery notes for consistency (Requirement Enhancement)
+        if hasattr(character, 'diction_quirks') and character.diction_quirks:
+            delivery = f"{delivery} ({character.diction_quirks})"
         
         # Generate text based on context
         text = self._generate_line_text(
@@ -342,7 +356,7 @@ class DialogueScriptGenerator:
         line_index: int,
         parsed_prompt: ParsedPrompt
     ) -> str:
-        """Generate dialogue line text"""
+        """Generate dialogue line text with onomatopoeia"""
         # Create context-appropriate dialogue
         templates = {
             "setup": [
@@ -368,34 +382,51 @@ class DialogueScriptGenerator:
         }
         
         context_templates = templates.get(scene_context, templates["setup"])
-        return context_templates[line_index % len(context_templates)]
+        text = context_templates[line_index % len(context_templates)]
+        
+        # Occasionally mix in character-specific onomatopoeia (Requirement Enhancement)
+        if line_index % 3 == 0 and hasattr(character, 'onomatopoeia') and character.onomatopoeia:
+            ono = character.onomatopoeia[line_index % len(character.onomatopoeia)]
+            text = f"{ono} {text}"
+            
+        return text
     
     def _generate_action_notes(
         self,
         scene_context: str,
-        parsed_prompt: ParsedPrompt
+        parsed_prompt: ParsedPrompt,
+        characters: List[Character]
     ) -> List[str]:
-        """Generate action notes for scene"""
+        """Generate action notes for scene with character gestures"""
         action_templates = {
             "setup": [
-                f"Character surveys {parsed_prompt.setting}",
-                "Establishing shot of the environment"
+                f"Establishing shot of {parsed_prompt.setting}",
+                "The atmosphere is still, awaiting movement"
             ],
             "conflict": [
                 "Tension builds between characters",
-                "Action intensifies"
+                "Action intensifies as the stakes rise"
             ],
             "climax": [
-                "Dramatic confrontation",
-                "Peak action sequence"
+                "Dramatic confrontation reaches its peak",
+                "Rapid movement and high energy"
             ],
             "resolution": [
-                "Characters reflect on events",
-                "Final establishing shot"
+                "The characters reflect on the outcome",
+                "A slow fade as the world settles"
             ]
         }
         
-        return action_templates.get(scene_context, ["Scene action"])
+        notes = action_templates.get(scene_context, ["Scene action"])
+        
+        # Mix in character-specific gestures (Requirement Enhancement)
+        if characters:
+            main_char = characters[0]
+            if hasattr(main_char, 'gestures') and main_char.gestures:
+                gesture = main_char.gestures[0]
+                notes.append(f"{main_char.name} {gesture.lower()}")
+        
+        return notes
     
     def _determine_location(self, parsed_prompt: ParsedPrompt, act_number: int) -> str:
         """Determine scene location"""

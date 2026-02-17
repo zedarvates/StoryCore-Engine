@@ -1,0 +1,18 @@
+{
+  "location_id": "533bafa2-fb63-412b-b12f-5efd13254e81",
+  "name": "The Devouring Dark",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-17T05:04:17.787Z",
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A perpetual twilight realm where reality itself seems to writhe in agony. Shadows writhe like living things, while ghostly apparitions whisper forbidden knowledge to those brave – or foolhardy – enough to venture into its depths.",
+    "atmosphere": "Ethereal, unsettling, maddening",
+    "genre_tags": [],
+    "significance": "Threshold between worlds, where the veil between reality and madness is at its thinnest."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

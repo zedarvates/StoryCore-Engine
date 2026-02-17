@@ -81,6 +81,7 @@ export function mapWizardDataToCharacter(
       narrative_function: wizardData.role?.narrative_function || '',
       character_arc: wizardData.role?.character_arc || '',
     },
+    prompts: [],
   };
 }
 

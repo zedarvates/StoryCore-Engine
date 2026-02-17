@@ -1,28 +1,35 @@
 import React from 'react';
 import { MessageSquare, X } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
+import { useShallow } from 'zustand/react/shallow';
 
 interface ToggleButtonProps {
   position?: 'bottom-left' | 'bottom-right' | 'bottom-center';
   className?: string;
 }
 
-export const ToggleButton: React.FC<ToggleButtonProps> = ({ 
+export const ToggleButton: React.FC<ToggleButtonProps> = ({
   position = 'bottom-right',
   className = ''
 }) => {
-  const { showChat, setShowChat } = useAppStore();
-  
+  const {
+    showChat,
+    setShowChat
+  } = useAppStore(useShallow((state) => ({
+    showChat: state.showChat,
+    setShowChat: state.setShowChat
+  })));
+
   const positionClasses = {
     'bottom-left': 'left-6 bottom-6',
     'bottom-right': 'right-6 bottom-6',
     'bottom-center': 'left-1/2 -translate-x-1/2 bottom-6'
   };
-  
+
   const handleToggle = () => {
     setShowChat(!showChat);
   };
-  
+
   return (
     <button
       onClick={handleToggle}
@@ -53,7 +60,7 @@ export const ToggleButton: React.FC<ToggleButtonProps> = ({
           <MessageSquare className="w-6 h-6 text-white" aria-hidden="true" />
         )}
       </div>
-      
+
       {/* Pulse animation when chat is open */}
       {showChat && (
         <span className="absolute inset-0 rounded-full bg-pink-400 animate-ping opacity-20" />

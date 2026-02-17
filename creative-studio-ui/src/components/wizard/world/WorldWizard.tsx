@@ -12,14 +12,16 @@ import { Step2WorldRules } from './Step2WorldRules';
 import { Step3Locations } from './Step3Locations';
 import { Step4CulturalElements } from './Step4CulturalElements';
 import { Step5ReviewFinalize } from './Step5ReviewFinalize';
-import { Loader2 } from 'lucide-react';
+import { WizardChainOptions, WizardChainOption } from '../WizardChainOptions';
+import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // ============================================================================
 // World Wizard Component
 // ============================================================================
 
 export interface WorldWizardProps {
-  onComplete: (world: World) => void;
+  onComplete: (world: World, nextAction?: string) => void;
   onCancel: () => void;
   initialData?: Partial<World>;
 }
@@ -68,11 +70,11 @@ function WorldWizardContent({ steps, onCancel, renderStepContent, onComplete }: 
 
   const handleComplete = async () => {
     await submitWizard();
-      onComplete?.();
-      };
-      
-      return (
-      <ProductionWizardContainer
+    onComplete?.();
+  };
+
+  return (
+    <ProductionWizardContainer
       title="World Builder"
       steps={steps}
       onCancel={onCancel}
@@ -96,6 +98,10 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
 
   // Get world persistence hook
   const { saveWorld } = useWorldPersistence();
+
+  // Local state for success view
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [createdWorld, setCreatedWorld] = useState<World | null>(null);
 
   // ============================================================================
   // LLM Service Initialization
@@ -245,11 +251,24 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
         })
       );
 
-      // Call the onComplete callback
-      onComplete(world);
+      // Store created world for chaining
+      setCreatedWorld(world);
+      setIsSuccess(true);
     },
-    [onComplete, addWorld, saveWorld]
+    [addWorld, saveWorld]
   );
+
+  const handleChainNext = useCallback((wizard: WizardChainOption) => {
+    if (createdWorld) {
+      onComplete(createdWorld, wizard.wizardType);
+    }
+  }, [createdWorld, onComplete]);
+
+  const handleFinish = useCallback(() => {
+    if (createdWorld) {
+      onComplete(createdWorld);
+    }
+  }, [createdWorld, onComplete]);
 
   // ============================================================================
   // Render Step Content
@@ -312,6 +331,48 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
         >
           Retry
         </button>
+      </div>
+    );
+  }
+
+  if (isSuccess && createdWorld) {
+    const chainOptions: WizardChainOption[] = [
+      {
+        wizardType: 'create-character',
+        label: 'Create Character',
+        description: 'Populate your world with characters',
+        icon: 'UserPlus'
+      },
+      {
+        wizardType: 'create-location',
+        label: 'Add More Locations',
+        description: 'Detail specific places in your world',
+        icon: 'MapPin'
+      }
+    ];
+
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-6 h-full">
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle2 className="w-10 h-10 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold">World Created Successfully!</h2>
+          <p className="text-gray-600 max-w-md">
+            "{createdWorld.name}" has been saved and is ready to use.
+          </p>
+        </div>
+
+        <div className="w-full max-w-md border-t pt-6">
+          <WizardChainOptions
+            isChained={true}
+            triggeredWizards={chainOptions}
+            currentChainIndex={0}
+            onLaunchNext={handleChainNext}
+            onSkipChain={handleFinish}
+            onContinue={handleFinish}
+          />
+        </div>
       </div>
     );
   }

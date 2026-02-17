@@ -707,14 +707,14 @@ def main():
     result = camera_system.apply_movement(test_frames, pan_movement, frame_rate=24.0)
     
     if result.success:
-        print(f"✓ Camera movement successful")
+        print(f"[SUCCESS] Camera movement successful")
         print(f"  Movement type: {pan_movement.movement_type.value}")
         print(f"  Frames processed: {len(result.transformed_frames)}")
         print(f"  Processing time: {result.processing_time:.2f}s")
         print(f"  Max velocity: {result.movement_metadata['motion_statistics']['max_velocity']:.2f}")
         print(f"  Avg velocity: {result.movement_metadata['motion_statistics']['avg_velocity']:.2f}")
     else:
-        print(f"✗ Camera movement failed: {result.error_message}")
+        print(f"[ERROR] Camera movement failed: {result.error_message}")
     
     # Test compound movement (pan + zoom)
     zoom_movement = create_zoom_movement(
@@ -732,11 +732,11 @@ def main():
     compound_result = camera_system.apply_compound_movement(test_frames, compound, frame_rate=24.0)
     
     if compound_result.success:
-        print(f"✓ Compound movement successful")
+        print(f"[SUCCESS] Compound movement successful")
         print(f"  Combined movements: {len(compound.movements)}")
         print(f"  Processing time: {compound_result.processing_time:.2f}s")
     else:
-        print(f"✗ Compound movement failed: {compound_result.error_message}")
+        print(f"[ERROR] Compound movement failed: {compound_result.error_message}")
 
 
 if __name__ == "__main__":

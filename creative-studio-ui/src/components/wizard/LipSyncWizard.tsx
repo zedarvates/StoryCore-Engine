@@ -47,6 +47,7 @@ export function LipSyncWizard({
   preSelectedAudioFile
 }: LipSyncWizardProps) {
   const [currentStep, setCurrentStep] = useState<LipSyncWizardStep>(LipSyncWizardStep.SELECT_ASSETS);
+  const [isRecording, setIsRecording] = useState(false);
   
   // Store state
   const {
@@ -100,6 +101,71 @@ export function LipSyncWizard({
   const canProceedToConfig = characterFaceImage && audioFile;
   const canGenerate = canProceedToConfig && !isGenerating;
 
+  // Handle browse image button - uses file input (works in both Electron and browser)
+  const handleBrowseImage = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp,image/gif';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        // Create object URL for preview
+        const url = URL.createObjectURL(file);
+        setCharacterFaceImage(url);
+      }
+    };
+    input.click();
+  }, [setCharacterFaceImage]);
+
+  // Handle browse audio button
+  const handleBrowseAudio = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'audio/mpeg,audio/wav,audio/ogg,audio/m4a,audio/aac';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        setAudioFile(url);
+      }
+    };
+    input.click();
+  }, [setAudioFile]);
+
+  // Handle record audio button
+  const handleRecord = useCallback(() => {
+    if (isRecording) {
+      setIsRecording(false);
+      // Stop recording logic would go here
+    } else {
+      setIsRecording(true);
+      // Start recording logic would go here
+      console.log('Recording started...');
+    }
+  }, [isRecording]);
+
+  // Handle download video
+  const handleDownload = useCallback(() => {
+    if (currentJob?.output_video) {
+      const link = document.createElement('a');
+      link.href = currentJob.output_video;
+      link.download = `lipsync_video_${Date.now()}.mp4`;
+      link.click();
+    }
+  }, [currentJob?.output_video]);
+
+  // Handle add to timeline
+  const handleAddToTimeline = useCallback(() => {
+    if (currentJob?.output_video) {
+      // Dispatch event to add video to timeline
+      const event = new CustomEvent('add-to-timeline', {
+        detail: { videoUrl: currentJob.output_video }
+      });
+      window.dispatchEvent(event);
+      console.log('Video added to timeline:', currentJob.output_video);
+    }
+  }, [currentJob?.output_video]);
+
   /**
    * Render Step 1: Select Assets
    */
@@ -124,7 +190,7 @@ export function LipSyncWizard({
             placeholder="Enter image path or select from library"
             className="flex-1"
           />
-          <Button variant="outline" onClick={() => {/* TODO: Open image picker */}}>
+          <Button variant="outline" onClick={handleBrowseImage}>
             Browse
           </Button>
         </div>
@@ -151,11 +217,11 @@ export function LipSyncWizard({
             placeholder="Enter audio path or record new"
             className="flex-1"
           />
-          <Button variant="outline" onClick={() => {/* TODO: Open audio picker */}}>
+          <Button variant="outline" onClick={handleBrowseAudio}>
             Browse
           </Button>
-          <Button variant="outline" onClick={() => {/* TODO: Open recorder */}}>
-            Record
+          <Button variant="outline" onClick={handleRecord}>
+            {isRecording ? 'Stop' : 'Record'}
           </Button>
         </div>
         {audioFile && (
@@ -316,10 +382,10 @@ export function LipSyncWizard({
 
       {/* Actions */}
       <div className="flex gap-2">
-        <Button onClick={() => {/* TODO: Download */}}>
+        <Button onClick={handleDownload}>
           Download Video
         </Button>
-        <Button variant="outline" onClick={() => {/* TODO: Add to timeline */}}>
+        <Button variant="outline" onClick={handleAddToTimeline}>
           Add to Timeline
         </Button>
       </div>

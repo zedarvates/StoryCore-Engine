@@ -4,10 +4,10 @@
  * Fenêtre modale qui affiche le panneau de gestion des add-ons
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddonsPanel } from './AddonsPanel';
-import { AddonSettingsModal } from './AddonSettingsModal';
+import { useAppStore } from '@/stores/useAppStore';
 
 export interface AddonsModalProps {
   isOpen: boolean;
@@ -15,31 +15,14 @@ export interface AddonsModalProps {
 }
 
 export function AddonsModal({ isOpen, onClose }: AddonsModalProps) {
-  const [settingsModal, setSettingsModal] = useState<{
-    isOpen: boolean;
-    addonId: string;
-    addonName: string;
-  }>({
-    isOpen: false,
-    addonId: '',
-    addonName: ''
-  });
+  const openAddonSettings = useAppStore(state => state.openAddonSettings);
 
-  const handleOpenSettings = (addonId: string, addonName: string) => {
-    setSettingsModal({
-      isOpen: true,
-      addonId,
-      addonName
-    });
-  };
-
-  const handleCloseSettings = () => {
-    setSettingsModal(prev => ({ ...prev, isOpen: false }));
+  const handleOpenSettings = (addonId: string) => {
+    openAddonSettings(addonId);
   };
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Gestion des Add-ons</DialogTitle>
@@ -49,14 +32,6 @@ export function AddonsModal({ isOpen, onClose }: AddonsModalProps) {
           <AddonsPanel onOpenSettings={handleOpenSettings} className="h-full overflow-y-auto" />
         </div>
       </DialogContent>
-      </Dialog>
-
-      <AddonSettingsModal
-        isOpen={settingsModal.isOpen}
-        onClose={handleCloseSettings}
-        addonId={settingsModal.addonId}
-        addonName={settingsModal.addonName}
-      />
-    </>
+    </Dialog>
   );
 }

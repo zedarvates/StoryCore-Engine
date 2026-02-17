@@ -1,0 +1,18 @@
+{
+  "location_id": "735992dd-22db-4f0a-876d-123177268c2c",
+  "name": "New Erebo",
+  "creation_method": "wizard",
+  "creation_timestamp": "2026-02-17T05:04:17.786Z",
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A gleaming metropolis built upon a foundation of ancient ruins. Crystal spires pierce the sky, while holographic advertisements and augmented reality projections drown out the city's darker underbelly.",
+    "atmosphere": "Gaudy, oppressive, seductive",
+    "genre_tags": [],
+    "significance": "Seat of power for the ruling elite, where technology and magic converge to maintain control over the fractured world."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false
+}

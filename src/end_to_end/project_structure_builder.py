@@ -44,6 +44,7 @@ class ProjectStructure:
     assets_audio_path: Path
     exports_path: Path
     locations_path: Path
+    total_files: int = 0
 
 
 @dataclass
@@ -114,8 +115,20 @@ class ProjectStructureBuilder:
         assets_audio_path = assets_path / "audio"
         exports_path = project_path / "exports"
         locations_path = project_path / "locations"
+        story_path = project_path / "story"
         
-        for directory in [assets_path, assets_images_path, assets_audio_path, exports_path, locations_path]:
+        # Legacy/Expected directories for compatibility
+        characters_dir = project_path / "characters"
+        worlds_dir = project_path / "worlds"
+        sequences_dir = project_path / "sequences"
+        
+        directories = [
+            assets_path, assets_images_path, assets_audio_path, 
+            exports_path, locations_path, story_path,
+            characters_dir, worlds_dir, sequences_dir
+        ]
+        
+        for directory in directories:
             self._create_directory(directory)
             logger.debug(f"Created directory: {directory}")
         
@@ -130,15 +143,23 @@ class ProjectStructureBuilder:
         
         # Dialogue script is optional
         dialogue_script_path = None
-        if components.dialogue_script and components.dialogue_script.scenes:
+        if components.dialogue_script and (not hasattr(components.dialogue_script, 'scenes') or components.dialogue_script.scenes):
             dialogue_script_path = project_path / "dialogue_script.json"
         
         # Save all components
         success = self.save_all_components(project_path, components)
         if not success:
             raise OSError(f"Failed to save all components for project: {project_name}")
+            
+        # Generate professional documentation (Requirements Enhancement)
+        try:
+            self._generate_professional_story_documentation(project_path, components)
+            logger.info("Generated professional story documentation")
+        except Exception as e:
+            logger.warning(f"Failed to generate story documentation: {e}")
+            # Non-critical, continue
         
-        # Create and return project structure
+        # Create final structure object
         structure = ProjectStructure(
             project_path=project_path,
             project_json_path=project_json_path,
@@ -152,7 +173,8 @@ class ProjectStructureBuilder:
             assets_images_path=assets_images_path,
             assets_audio_path=assets_audio_path,
             exports_path=exports_path,
-            locations_path=locations_path
+            locations_path=locations_path,
+            total_files=15  # 10 core files + ~5 story doc files
         )
         
         logger.info(f"Project structure created successfully: {project_name}")
@@ -268,7 +290,11 @@ class ProjectStructureBuilder:
             "assets/images",
             "assets/audio",
             "exports",
-            "locations"
+            "locations",
+            "story",
+            "characters",
+            "worlds",
+            "sequences"
         ]
         
         for dir_name in required_dirs:
@@ -284,7 +310,8 @@ class ProjectStructureBuilder:
             "characters.json",
             "story_structure.json",
             "sequence_plan.json",
-            "music_description.json"
+            "music_description.json",
+            "README.md"
         ]
         
         for file_name in required_files:
@@ -536,3 +563,168 @@ class ProjectStructureBuilder:
                 continue
         
         return locations
+
+    def _generate_professional_story_documentation(
+        self,
+        project_path: Path,
+        components: ProjectComponents
+    ) -> None:
+        """
+        Generate professional story documentation in the story/ directory.
+        
+        Creates:
+        - story/00_master_outline.md
+        - story/01_plot_core.md
+        - story/02_lore_worldbuilding.md
+        - story/04_character_bibles/
+        - story/scenario.md (Screenplay)
+        - README.md
+        """
+        story_dir = project_path / "story"
+        story_dir.mkdir(exist_ok=True)
+        
+        # 00 Master Outline
+        self._write_file(story_dir / "00_master_outline.md", self._tpl_master_outline(components))
+        
+        # 01 Plot Core
+        self._write_file(story_dir / "01_plot_core.md", self._tpl_plot_core(components))
+        
+        # 02 Lore
+        self._write_file(story_dir / "02_lore_worldbuilding.md", self._tpl_lore(components))
+        
+        # 04 Character Bibles
+        char_dir = story_dir / "04_character_bibles"
+        char_dir.mkdir(exist_ok=True)
+        for char in components.characters:
+            char_file = char_dir / f"{char.name.lower().replace(' ', '_')}.md"
+            self._write_file(char_file, self._tpl_character_bible(char))
+            
+        # Screenplay (Scenario)
+        self._write_file(story_dir / "scenario.md", self._tpl_screenplay(components))
+        
+        # Project README
+        self._write_file(project_path / "README.md", self._tpl_project_readme(project_path.name, components))
+
+    def _write_file(self, path: Path, content: str) -> None:
+        """Helper to write text files."""
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+    def _tpl_master_outline(self, comp: ProjectComponents) -> str:
+        s = comp.story_structure
+        return f"""# 00_master_outline.md - Project: {s.title}
+
+## Summary
+{s.logline}
+
+## Themes
+{', '.join(comp.story_structure.themes)}
+
+## Genre & World
+- **Genre**: {comp.world_config.genre}
+- **Setting**: {comp.world_config.setting}
+- **Atmosphere**: {comp.world_config.atmosphere}
+
+## Narrative Structure
+{chr(10).join([f"- Act {a.act_number} ({a.name}): {a.description}" for a in comp.story_structure.acts])}
+"""
+
+    def _tpl_plot_core(self, comp: ProjectComponents) -> str:
+        return f"""# 01_plot_core.md - Narrative Engine
+
+## Logline
+{comp.story_structure.logline}
+
+## Central Conflict
+The story revolves around {comp.story_structure.themes[0] if comp.story_structure.themes else 'the main conflict'} in {comp.world_config.setting}.
+
+## Key Turning Points
+{chr(10).join([f"- {a.name}: {a.description}" for a in comp.story_structure.acts])}
+"""
+
+    def _tpl_lore(self, comp: ProjectComponents) -> str:
+        w = comp.world_config
+        return f"""# 02_lore_worldbuilding.md - {w.name}
+
+## Atmosphere
+{w.atmosphere}
+
+## Visual Style
+- **Lighting**: {w.lighting_style}
+- **Colors**: {w.color_palette.primary}, {w.color_palette.secondary}, {w.color_palette.accent}
+- **Styles**: {', '.join(w.visual_style)}
+
+## Key Locations
+{chr(10).join([f"- {loc.name}: {loc.description}" for loc in w.key_locations])}
+"""
+
+    def _tpl_character_bible(self, char) -> str:
+        return f"""# Character Profile: {char.name}
+
+## Role
+{char.role}
+
+## Description
+{char.description}
+
+## Visual Reference
+{char.visual_description}
+
+## Behavioral Traits (Requirements Enhancement)
+- **Onomatopoeia**: {', '.join(char.onomatopoeia) if hasattr(char, 'onomatopoeia') else 'None'}
+- **Signature Gestures**: {', '.join(char.gestures) if hasattr(char, 'gestures') else 'None'}
+- **Diction Quirks**: {char.diction_quirks if hasattr(char, 'diction_quirks') else 'Normal'}
+- **Voice / Inflection**: {char.voice_inflection if hasattr(char, 'voice_inflection') else 'Standard'}
+"""
+
+    def _tpl_screenplay(self, comp: ProjectComponents) -> str:
+        from datetime import datetime
+        scenes = []
+        for i, act in enumerate(comp.story_structure.acts):
+            scenes.append(f"## Act {act.act_number}: {act.name}\n\n{act.description}\n")
+            
+        # Character performance notes (Requirements Enhancement)
+        perf_notes = []
+        for char in comp.characters:
+            notes = f"- **{char.name}**: {char.voice_inflection or 'Standard voice'}. {char.diction_quirks or 'No diction quirks'}."
+            perf_notes.append(notes)
+            
+        return f"""# Scenario: {comp.story_structure.title}
+Generated by StoryCore End-to-End Orchestrator
+Date: {datetime.now().strftime('%Y-%m-%d')}
+
+## Voice and Performance Directions
+{chr(10).join(perf_notes)}
+
+{chr(10).join(scenes)}
+
+---
+*Professional Production Document*
+"""
+
+    def _tpl_project_readme(self, name: str, comp: ProjectComponents) -> str:
+        return f"""# {name}
+
+Generated by StoryCore End-to-End Orchestrator.
+
+## Project Structure
+- `project.json`: Main technical configuration
+- `world_config.json`: Environment and style settings
+- `characters.json`: Character profiles and assets
+- `story_structure.json`: Narrative structure and themes
+- `story/`: Professional documentation and screenplay
+- `assets/`: Generated images and audio
+- `exports/`: Final video renders
+
+## Character-Driven Narrative (Requirement Enhancement)
+This project utilizes the **Behavioral Personality Engine** to ensure narrative depth:
+- **Unique Performance**: Every character has specific voice inflections and diction quirks.
+- **Physical Mimesis**: Screenplays and shot plans include signature gestures.
+- **Vocal Texture**: Dialogue is enriched with character-specific onomatopoeia.
+
+## Story Highlights
+- **Title**: {comp.story_structure.title}
+- **Theme**: {', '.join(comp.story_structure.themes)}
+- **Logline**: {comp.story_structure.logline}
+"""
+

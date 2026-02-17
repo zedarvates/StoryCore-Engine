@@ -12,7 +12,7 @@ import logging
 
 from quality_validator import QualityValidator, ValidationMode, QualityStandard
 from quality_feedback import QualityFeedback
-from report_generator import JSONReportGenerator
+from report_generator import JSONReportGenerator, NumpyEncoder
 from audio_mixing_engine import AudioMixingEngine
 
 logger = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ class JobLogger:
         """Save job log to file"""
         try:
             with open(self.job_log_file, 'w') as f:
-                json.dump(self.jobs, f, indent=2)
+                json.dump(self.jobs, f, indent=2, cls=NumpyEncoder)
         except Exception as e:
             logger.error(f"Failed to save job log: {e}")
     

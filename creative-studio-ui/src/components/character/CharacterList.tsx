@@ -343,22 +343,28 @@ export function CharacterList({
   /**
    * Handle image generation - save to character data
    */
-  const handleImageGenerated = useCallback(async (character: Character, imagePath: string) => {
+  const handleImageGenerated = useCallback(async (character: Character, imagePath: string, prompt?: string) => {
     if (process.env.NODE_ENV === 'development') {
       console.log('🖼️ [CharacterList] Image generated for character:', character.name, imagePath);
     }
 
     try {
-      // Update character with the generated portrait path
-      await characterManager.updateCharacter(character.character_id, {
+      // Update character with the generated portrait path and prompt
+      const updates: Partial<Character> = {
         visual_identity: {
           ...character.visual_identity,
           generated_portrait: imagePath,
         },
-      });
+      };
+
+      if (prompt) {
+        updates.prompts = [...(character.prompts || []), prompt];
+      }
+
+      await characterManager.updateCharacter(character.character_id, updates);
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [CharacterList] Character updated with portrait path');
+        console.log('✅ [CharacterList] Character updated with portrait path and prompt');
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -452,7 +458,7 @@ export function CharacterList({
               showActions={showActions}
               onEdit={() => handleCharacterEdit(character)}
               onDelete={() => handleCharacterDelete(character)}
-              onImageGenerated={(imagePath) => handleImageGenerated(character, imagePath)}
+              onImageGenerated={(imagePath, prompt) => handleImageGenerated(character, imagePath, prompt)}
             />
           ))}
         </div>

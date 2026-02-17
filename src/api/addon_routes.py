@@ -46,18 +46,26 @@ def init_addon_api(manager: AddonManager, validator: AddonValidator, perm_manage
 async def list_addons(
     category: Optional[str] = Query(None, description="Filter by category (official, community)"),
     addon_type: Optional[str] = Query(None, description="Filter by type"),
-    status: Optional[str] = Query(None, description="Filter by status (enabled, disabled, error)")
+    status: Optional[str] = Query(None, description="Filter by status (enabled, disabled, error)"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page"),
+    sort_by: str = Query("name", description="Sort field (name, version, status)"),
+    sort_order: str = Query("asc", description="Sort order (asc, desc)")
 ):
     """
-    Liste tous les add-ons disponibles
+    Liste tous les add-ons disponibles avec pagination et tri
     
     Query Parameters:
         - category: Filtrer par catégorie
         - addon_type: Filtrer par type
         - status: Filtrer par statut
+        - page: Numéro de page (défaut: 1)
+        - page_size: Éléments par page (défaut: 20, max: 100)
+        - sort_by: Champ de tri (name, version, status)
+        - order: Ordre de tri (asc, desc)
     
     Returns:
-        Liste des add-ons avec leurs informations
+        Liste paginée des add-ons avec métadonnées
     """
     if not addon_manager:
         raise HTTPException(status_code=500, detail="Addon manager not initialized")
@@ -100,10 +108,38 @@ async def list_addons(
             
             addons_list.append(addon_data)
         
+        # Apply sorting
+        reverse = sort_order.lower() == "desc"
+        if sort_by == "name":
+            addons_list.sort(key=lambda x: x.get("name", ""), reverse=reverse)
+        elif sort_by == "version":
+            addons_list.sort(key=lambda x: x.get("version", ""), reverse=reverse)
+        elif sort_by == "status":
+            addons_list.sort(key=lambda x: x.get("status", ""), reverse=reverse)
+        
+        # Calculate pagination
+        total_items = len(addons_list)
+        total_pages = (total_items + page_size - 1) // page_size
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_items = addons_list[start_idx:end_idx]
+        
         return {
             "success": True,
-            "count": len(addons_list),
-            "addons": addons_list
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total_items": total_items,
+                "total_pages": total_pages,
+                "has_next": page < total_pages,
+                "has_prev": page > 1
+            },
+            "sort": {
+                "by": sort_by,
+                "order": sort_order
+            },
+            "count": len(paginated_items),
+            "addons": paginated_items
         }
     
     except Exception as e:
@@ -569,4 +605,298 @@ async def search_addons(
     
     except Exception as e:
         logger.error(f"Error searching addons: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================
+# NEW ENDPOINTS - Phase 2 Enhancements
+# ============================================
+
+@router.post("/bulk/enable")
+async def bulk_enable_addons(addon_names: List[str]):
+    """
+    Active plusieurs add-ons en une seule requête
+    
+    Body:
+        - addon_names: Liste des noms d'add-ons à activer
+    
+    Returns:
+        Statut de l'opération pour chaque add-on
+    """
+    if not addon_manager:
+        raise HTTPException(status_code=500, detail="Addon manager not initialized")
+    
+    results = []
+    for addon_name in addon_names:
+        try:
+            success = await addon_manager.enable_addon(addon_name)
+            results.append({
+                "name": addon_name,
+                "success": success,
+                "message": f"Addon '{addon_name}' enabled" if success else f"Failed to enable '{addon_name}'"
+            })
+        except Exception as e:
+            results.append({
+                "name": addon_name,
+                "success": False,
+                "message": str(e)
+            })
+    
+    success_count = sum(1 for r in results if r["success"])
+    return {
+        "success": True,
+        "total": len(addon_names),
+        "enabled": success_count,
+        "failed": len(addon_names) - success_count,
+        "results": results
+    }
+
+
+@router.post("/bulk/disable")
+async def bulk_disable_addons(addon_names: List[str]):
+    """
+    Désactive plusieurs add-ons en une seule requête
+    
+    Body:
+        - addon_names: Liste des noms d'add-ons à désactiver
+    
+    Returns:
+        Statut de l'opération pour chaque add-on
+    """
+    if not addon_manager:
+        raise HTTPException(status_code=500, detail="Addon manager not initialized")
+    
+    results = []
+    for addon_name in addon_names:
+        try:
+            success = await addon_manager.disable_addon(addon_name)
+            results.append({
+                "name": addon_name,
+                "success": success,
+                "message": f"Addon '{addon_name}' disabled" if success else f"Failed to disable '{addon_name}'"
+            })
+        except Exception as e:
+            results.append({
+                "name": addon_name,
+                "success": False,
+                "message": str(e)
+            })
+    
+    success_count = sum(1 for r in results if r["success"])
+    return {
+        "success": True,
+        "total": len(addon_names),
+        "disabled": success_count,
+        "failed": len(addon_names) - success_count,
+        "results": results
+    }
+
+
+@router.post("/{addon_name}/reload")
+async def reload_addon(addon_name: str):
+    """
+    Recharge un add-on sans redémarrage du serveur
+    
+    Path Parameters:
+        - addon_name: Nom de l'add-on à recharger
+    
+    Returns:
+        Statut de l'opération
+    """
+    if not addon_manager:
+        raise HTTPException(status_code=500, detail="Addon manager not initialized")
+    
+    try:
+        # Disable first
+        await addon_manager.disable_addon(addon_name)
+        # Then re-enable
+        success = await addon_manager.enable_addon(addon_name)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Addon '{addon_name}' reloaded successfully"
+            }
+        else:
+            raise HTTPException(status_code=400, detail=f"Failed to reload addon '{addon_name}'")
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error reloading addon: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{addon_name}/dependencies")
+async def get_addon_dependencies(addon_name: str, recursive: bool = Query(False)):
+    """
+    Récupère les dépendances d'un add-on
+    
+    Path Parameters:
+        - addon_name: Nom de l'add-on
+    
+    Query Parameters:
+        - recursive: Inclure les dépendances transitives
+    
+    Returns:
+        Liste des dépendances
+    """
+    if not addon_manager:
+        raise HTTPException(status_code=500, detail="Addon manager not initialized")
+    
+    info = addon_manager.get_addon_info(addon_name)
+    if not info:
+        raise HTTPException(status_code=404, detail=f"Addon '{addon_name}' not found")
+    
+    try:
+        dependencies = addon_manager.get_addon_dependencies(addon_name, recursive=recursive)
+        
+        # Enrich with details
+        dep_details = []
+        for dep_name in dependencies:
+            dep_info = addon_manager.get_addon_info(dep_name)
+            if dep_info:
+                dep_details.append({
+                    "name": dep_name,
+                    "version": dep_info.manifest.version,
+                    "enabled": dep_name in addon_manager.enabled_addons,
+                    "status": dep_info.state.value
+                })
+        
+        return {
+            "success": True,
+            "addon": addon_name,
+            "dependencies": dep_details,
+            "count": len(dep_details)
+        }
+    
+    except Exception as e:
+        logger.error(f"Error getting dependencies: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/marketplace/browse")
+async def browse_marketplace(
+    category: Optional[str] = Query(None, description="Filter by category"),
+    search: Optional[str] = Query(None, description="Search query"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=50, description="Items per page")
+):
+    """
+    Parcourt le marketplace des add-ons (mock implementation)
+    
+    Query Parameters:
+        - category: Catégorie à filtrer
+        - search: Terme de recherche
+        - page: Numéro de page
+        - page_size: Éléments par page
+    
+    Returns:
+        Liste des add-ons disponibles sur le marketplace
+    """
+    # Mock marketplace data
+    marketplace_addons = [
+        {
+            "id": "premium-video-filters",
+            "name": "Premium Video Filters",
+            "description": "Collection de filtres vidéo professionnels",
+            "author": "StoryCore Team",
+            "version": "1.2.0",
+            "category": "processing",
+            "rating": 4.8,
+            "downloads": 15000,
+            "price": "Free"
+        },
+        {
+            "id": "ai-voice-cloning",
+            "name": "AI Voice Cloning",
+            "description": "Clonez des voix pour vos personnages",
+            "author": "AI Labs",
+            "version": "2.0.0",
+            "category": "audio",
+            "rating": 4.5,
+            "downloads": 8500,
+            "price": "Premium"
+        },
+        {
+            "id": "3d-character-export",
+            "name": "3D Character Export",
+            "description": "Exportez vos personnages en format 3D",
+            "author": "3D Studios",
+            "version": "1.0.0",
+            "category": "export",
+            "rating": 4.2,
+            "downloads": 3200,
+            "price": "Free"
+        }
+    ]
+    
+    # Apply filters
+    results = marketplace_addons
+    if category:
+        results = [a for a in results if a["category"] == category]
+    if search:
+        search_lower = search.lower()
+        results = [a for a in results if search_lower in a["name"].lower() or search_lower in a["description"].lower()]
+    
+    # Pagination
+    total_items = len(results)
+    total_pages = (total_items + page_size - 1) // page_size
+    start_idx = (page - 1) * page_size
+    end_idx = start_idx + page_size
+    paginated_results = results[start_idx:end_idx]
+    
+    return {
+        "success": True,
+        "marketplace": {
+            "name": "StoryCore Addon Marketplace",
+            "version": "1.0.0"
+        },
+        "pagination": {
+            "page": page,
+            "page_size": page_size,
+            "total_items": total_items,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        },
+        "count": len(paginated_results),
+        "addons": paginated_results
+    }
+
+
+@router.get("/versions/check")
+async def check_version_compatibility():
+    """
+    Vérifie la compatibilité des versions d'add-ons
+    
+    Returns:
+        Statut de compatibilité pour chaque add-on
+    """
+    if not addon_manager:
+        raise HTTPException(status_code=500, detail="Addon manager not initialized")
+    
+    try:
+        results = []
+        for name, info in addon_manager.addons.items():
+            compatibility = await addon_manager.check_compatibility(name)
+            results.append({
+                "name": name,
+                "version": info.manifest.version,
+                "compatible": compatibility.get("compatible", False),
+                "issues": compatibility.get("issues", [])
+            })
+        
+        compatible_count = sum(1 for r in results if r["compatible"])
+        
+        return {
+            "success": True,
+            "total": len(results),
+            "compatible": compatible_count,
+            "incompatible": len(results) - compatible_count,
+            "addons": results
+        }
+    
+    except Exception as e:
+        logger.error(f"Error checking versions: {e}")
         raise HTTPException(status_code=500, detail=str(e))

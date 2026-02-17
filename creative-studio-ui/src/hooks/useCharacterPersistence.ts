@@ -111,13 +111,13 @@ async function retryWithBackoff<T>(
   }
 ): Promise<T> {
   let lastError: Error | null = null;
-  
+
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (attempt < config.maxAttempts) {
         const delay = config.delayMs * Math.pow(config.backoffMultiplier, attempt - 1);
         console.warn(`Attempt ${attempt} failed, retrying in ${delay}ms...`, error);
@@ -125,7 +125,7 @@ async function retryWithBackoff<T>(
       }
     }
   }
-  
+
   throw lastError || new Error('Retry failed');
 }
 
@@ -139,7 +139,7 @@ function handleQuotaExceeded(): void {
     'Your browser storage is full. Please export some characters to free up space, or clear old data.',
     10000
   );
-  
+
   // Log storage usage for debugging
   if (typeof navigator !== 'undefined' && 'storage' in navigator && 'estimate' in navigator.storage) {
     navigator.storage.estimate().then((estimate) => {
@@ -158,7 +158,7 @@ function handleQuotaExceeded(): void {
  */
 function handleFileSystemError(error: Error, operation: string): void {
   console.error(`File system ${operation} error:`, error);
-  
+
   toast.warning(
     'File System Error',
     `Failed to ${operation} character file. Data is saved in browser storage only.`,
@@ -192,7 +192,7 @@ function detectConcurrentModification(
  * Validates character data against schema
  * Requirements: 8.3
  */
-function validateCharacterSchema(data: unknown): { valid: boolean; errors: string[] } {
+function validateCharacterSchema(data: any): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   // Check required fields
@@ -538,7 +538,7 @@ export function useCharacterPersistence() {
   // ============================================================================
   // LocalStorage Operations - All useCallback hooks at top level
   // ============================================================================
-  
+
   /**
    * Save character to localStorage
    * Requirements: 8.1
@@ -556,7 +556,7 @@ export function useCharacterPersistence() {
         const allCharacterIds = JSON.parse(
           localStorage.getItem('character-ids') || '[]'
         ) as string[];
-        
+
         if (!allCharacterIds.includes(character.character_id)) {
           allCharacterIds.push(character.character_id);
           localStorage.setItem('character-ids', JSON.stringify(allCharacterIds));
@@ -657,11 +657,14 @@ export function useCharacterPersistence() {
           facial_structure: characterData.visual_identity?.facial_structure || '',
           distinctive_features: characterData.visual_identity?.distinctive_features || [],
           age_range: characterData.visual_identity?.age_range || '',
+          gender: characterData.visual_identity?.gender || 'neutral',
           height: characterData.visual_identity?.height || '',
           build: characterData.visual_identity?.build || '',
           posture: characterData.visual_identity?.posture || '',
           clothing_style: characterData.visual_identity?.clothing_style || '',
           color_palette: characterData.visual_identity?.color_palette || [],
+          reference_images: characterData.visual_identity?.reference_images || [],
+          reference_sheet_images: characterData.visual_identity?.reference_sheet_images || [],
         },
         personality: {
           traits: characterData.personality?.traits || [],
@@ -687,6 +690,7 @@ export function useCharacterPersistence() {
           narrative_function: characterData.role?.narrative_function || '',
           character_arc: characterData.role?.character_arc || '',
         },
+        prompts: characterData.prompts || [],
         // Optional metadata
         thumbnail_url: (characterData as PersistedCharacter).thumbnail_url,
         tags: (characterData as PersistedCharacter).tags,
@@ -710,7 +714,7 @@ export function useCharacterPersistence() {
         saveToLocalStorage(character);
       } catch (error) {
         if (error instanceof PersistenceError &&
-            error.type === PersistenceErrorType.STORAGE_QUOTA_EXCEEDED) {
+          error.type === PersistenceErrorType.STORAGE_QUOTA_EXCEEDED) {
           // Try to save to file system as fallback
           console.warn('localStorage quota exceeded, attempting file system save');
           await saveToFile(character);
@@ -763,13 +767,13 @@ export function useCharacterPersistence() {
           addCharacter(character);
           return character;
         }
-        
+
         console.warn(`Character not found: ${character_id}`);
         return null;
       } catch (error) {
         if (error instanceof PersistenceError) {
           console.error('Persistence error loading character:', error.message, error.details);
-          
+
           // For corrupted data, try to recover or skip
           if (error.type === PersistenceErrorType.CORRUPTED_DATA) {
             console.warn(`Skipping corrupted character: ${character_id}`);
@@ -792,10 +796,10 @@ export function useCharacterPersistence() {
       const characterIds = JSON.parse(
         localStorage.getItem('character-ids') || '[]'
       ) as string[];
-      
+
       const characters: Character[] = [];
       const errors: Array<{ id: string; error: unknown }> = [];
-      
+
       for (const id of characterIds) {
         try {
           const character = await loadCharacter(id);
@@ -843,12 +847,12 @@ export function useCharacterPersistence() {
     try {
       // First, load characters from project directory
       const projectCharacters = await loadCharactersFromProjectDirectory(projectPath);
-      
+
       if (projectCharacters.length > 0) {
         // Use setCharacters to bulk set all characters at once (more efficient)
         const existingCharacters = getAllCharacters();
         const allCharacters = [...existingCharacters];
-        
+
         for (const character of projectCharacters) {
           try {
             // Check if character already exists in store
@@ -875,7 +879,7 @@ export function useCharacterPersistence() {
 
         // Bulk update store with all characters
         setCharacters(allCharacters);
-        
+
         console.log(`[useCharacterPersistence] Loaded and synced ${loaded} characters from project directory`);
       }
 
@@ -883,7 +887,7 @@ export function useCharacterPersistence() {
       const characterIds = JSON.parse(
         localStorage.getItem('character-ids') || '[]'
       ) as string[];
-      
+
       for (const id of characterIds) {
         try {
           // Check if character is already loaded from project directory
@@ -895,7 +899,7 @@ export function useCharacterPersistence() {
               const existingIndex = existingCharacters.findIndex(
                 (c) => c.character_id === id
               );
-              
+
               if (existingIndex >= 0) {
                 // Update with localStorage version
                 updateCharacter(id, character);
