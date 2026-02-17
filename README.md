@@ -106,7 +106,7 @@ graph LR
     ```
 
 ### Video Demo
-[![StoryCore Presentation Video](assets/Screenshot-2026-02-15-060805.png)](https://www.youtube.com/watch?v=P0K7DueyICo)
+[![StoryCore Presentation Video]](https://www.youtube.com/watch?v=P0K7DueyICo)
 
 ---
 
