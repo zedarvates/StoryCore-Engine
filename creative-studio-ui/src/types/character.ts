@@ -48,7 +48,7 @@ export interface Character {
   role: Role;
 
   // Associated prompts
-  prompts: string[];
+  prompts?: string[];
 }
 
 export interface VisualIdentity {

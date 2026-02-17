@@ -16,32 +16,28 @@ export class RoverBackend implements StorageBackend {
      * Save project data and create a Rover checkpoint
      */
     async save(key: string, data: string): Promise<void> {
-        if (!window.electronAPI?.rover) {
-            console.warn('[RoverBackend] Rover API not available, falling back to basic FS');
-            if (window.electronAPI?.fs) {
-                // Fallback to direct file write if rover is not available but FS is
-                // We assume the key corresponds to the filename for simplicity in fallback
-                await window.electronAPI.fs.writeFile(this.projectPath + '/project.json', data);
-                return;
-            }
-            throw new Error('No persistence available');
-        }
-
         try {
             const parsedData = JSON.parse(data) as Project;
-            const projectId = parsedData.id;
+            const projectId = parsedData.id || (parsedData as any).project_id;
 
-            // We use 'Sync' as the primary save operation which also creates a history commit
-            await window.electronAPI.rover.sync(
-                this.projectPath,
-                projectId,
-                'Auto-save checkpoint',
-                parsedData as unknown as Record<string, unknown>
-            );
+            // Use Rover API if available
+            if (window.electronAPI?.rover?.sync) {
+                await window.electronAPI.rover.sync(
+                    this.projectPath,
+                    projectId,
+                    'Auto-save checkpoint',
+                    parsedData as unknown as Record<string, unknown>
+                );
+            } else {
+                console.warn('[RoverBackend] Rover API sync not available, using basic FS');
+            }
 
-            // Also write the main project.json for compatibility with the rest of the app
-            if (window.electronAPI.fs) {
+            // Always write the main project.json for compatibility with the rest of the app
+            if (window.electronAPI?.fs?.writeFile) {
                 await window.electronAPI.fs.writeFile(pathJoin(this.projectPath, 'project.json'), data);
+            } else {
+                console.error('[RoverBackend] FS API not available for save');
+                throw new Error('No persistence available');
             }
         } catch (error) {
             console.error('[RoverBackend] Save failed:', error);
@@ -53,8 +49,9 @@ export class RoverBackend implements StorageBackend {
      * Load project data
      */
     async load(key: string): Promise<string | null> {
-        if (!window.electronAPI?.fs) {
-            throw new Error('FS API not available');
+        if (!window.electronAPI?.fs?.readFile) {
+            console.error('[RoverBackend] FS API not available for load');
+            return null;
         }
 
         try {
@@ -75,16 +72,19 @@ export class RoverBackend implements StorageBackend {
      * Check if project exists
      */
     async exists(key: string): Promise<boolean> {
-        if (!window.electronAPI?.fs) return false;
-        return window.electronAPI.fs.exists(pathJoin(this.projectPath, 'project.json'));
+        if (!window.electronAPI?.fs?.exists) return false;
+        try {
+            return await window.electronAPI.fs.exists(pathJoin(this.projectPath, 'project.json'));
+        } catch (error) {
+            return false;
+        }
     }
 
     /**
      * Delete project file
-     * @param key - The key identifying the project (typically 'project.json')
      */
     async delete(key: string): Promise<void> {
-        if (!window.electronAPI?.fs) {
+        if (!window.electronAPI?.fs?.unlink) {
             throw new Error('FS API not available for delete operation');
         }
 

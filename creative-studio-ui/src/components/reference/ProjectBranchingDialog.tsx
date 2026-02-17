@@ -21,6 +21,7 @@ import {
   InputLabel,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   ListItemIcon,
   Checkbox,
@@ -32,7 +33,7 @@ import {
   Tab,
 } from '@mui/material';
 import {
-  BranchOutlined,
+  AccountTreeOutlined,
   MergeType,
   ContentCopy,
   History,
@@ -147,7 +148,7 @@ export const ProjectBranchingDialog: React.FC<ProjectBranchingDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <BranchOutlined color="primary" />
+          <AccountTreeOutlined color="primary" />
           <Typography variant="h6">Project Branching</Typography>
         </Box>
       </DialogTitle>
@@ -165,7 +166,7 @@ export const ProjectBranchingDialog: React.FC<ProjectBranchingDialogProps> = ({
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
               Create New Project Branch
             </Typography>
-            
+
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Start a new project variation from the current point. This allows you to explore
               different story directions without affecting the main project.
@@ -247,7 +248,7 @@ export const ProjectBranchingDialog: React.FC<ProjectBranchingDialogProps> = ({
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
               Import Branch Context
             </Typography>
-            
+
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Bring in characters, settings, or style references from another project branch
               to maintain visual and narrative consistency.
@@ -273,15 +274,17 @@ export const ProjectBranchingDialog: React.FC<ProjectBranchingDialogProps> = ({
               </Typography>
               <List dense>
                 {existingBranches.map((branch) => (
-                  <ListItem key={branch.id} button>
-                    <ListItemIcon>
-                      <MergeType />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={branch.name}
-                      secondary={`Created ${branch.createdAt.toLocaleDateString()}`}
-                    />
-                    <Chip size="small" label={branch.status} color="primary" />
+                  <ListItem key={branch.id} disablePadding>
+                    <ListItemButton>
+                      <ListItemIcon>
+                        <MergeType />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={branch.name}
+                        secondary={`Created ${branch.createdAt.toLocaleDateString()}`}
+                      />
+                      <Chip size="small" label={branch.status} color="primary" />
+                    </ListItemButton>
                   </ListItem>
                 ))}
               </List>
@@ -300,7 +303,7 @@ export const ProjectBranchingDialog: React.FC<ProjectBranchingDialogProps> = ({
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
               Branch History
             </Typography>
-            
+
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               View and manage all project branches created from this project.
             </Typography>
@@ -310,7 +313,7 @@ export const ProjectBranchingDialog: React.FC<ProjectBranchingDialogProps> = ({
                 <React.Fragment key={branch.id}>
                   <ListItem>
                     <ListItemIcon>
-                      <BranchOutlined />
+                      <AccountTreeOutlined />
                     </ListItemIcon>
                     <ListItemText
                       primary={
@@ -343,7 +346,7 @@ export const ProjectBranchingDialog: React.FC<ProjectBranchingDialogProps> = ({
         {tabValue === 0 && (
           <Button
             variant="contained"
-            startIcon={<BranchOutlined />}
+            startIcon={<AccountTreeOutlined />}
             onClick={handleCreateBranch}
             disabled={!branchName.trim()}
           >

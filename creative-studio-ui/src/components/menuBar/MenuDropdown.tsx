@@ -26,22 +26,22 @@ import {
 export interface MenuDropdownProps {
   /** Array of menu items to display */
   items: (Omit<MenuItemProps, 'focused' | 'tabIndex' | 'onFocus' | 'onMouseEnter'> | { id: string; separator: true })[];
-  
+
   /** Whether the dropdown is open */
   isOpen: boolean;
-  
+
   /** Callback when the dropdown should close */
   onClose: () => void;
-  
+
   /** Callback when an item is clicked */
   onItemClick?: (itemId: string) => void;
-  
+
   /** ARIA label for the menu */
   ariaLabel?: string;
-  
+
   /** Additional CSS classes */
   className?: string;
-  
+
   /** Position of the dropdown relative to trigger */
   position?: 'left' | 'right';
 }
@@ -77,7 +77,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
   const [focusedIndex, setFocusedIndex] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  
+
   // Get screen reader announcer (optional - only if provider is available)
   let announcer: ReturnType<typeof useScreenReaderAnnouncer> | null = null;
   try {
@@ -131,7 +131,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
             event.preventDefault();
             const letter = event.key.toLowerCase();
             const nextIndex = findMenuItemByFirstLetter(items, letter, focusedIndex + 1);
-            
+
             if (nextIndex !== -1) {
               setFocusedIndex(nextIndex);
             }
@@ -148,18 +148,18 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
   useEffect(() => {
     if (isOpen && itemRefs.current[focusedIndex]) {
       itemRefs.current[focusedIndex]?.focus();
-      
+
       // Announce focused item to screen readers
       // Requirements: 10.3
       const focusedItem = items[focusedIndex];
       if (focusedItem && announcer && !('separator' in focusedItem)) {
         const item = focusedItem as Omit<MenuItemProps, 'focused' | 'tabIndex' | 'onFocus' | 'onMouseEnter'>;
         const enabledState = item.enabled === false ? 'disabled' : 'enabled';
-        const checkedState = item.checked !== undefined 
+        const checkedState = item.checked !== undefined
           ? item.checked ? 'checked' : 'not checked'
           : '';
         const shortcutText = item.shortcut ? `, keyboard shortcut ${item.shortcut}` : '';
-        
+
         announcer.announce(
           `${item.label}${checkedState ? `, ${checkedState}` : ''}${shortcutText}, ${enabledState}`,
           'polite'
@@ -202,7 +202,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
 
     const handleClickOutside = (event: MouseEvent) => {
       if (!isMenuOpen || !menuContainer) return;
-      
+
       if (!menuContainer.contains(event.target as Node)) {
         // Use setTimeout to allow event propagation before closing
         setTimeout(() => {
@@ -228,19 +228,17 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
   const handleItemClick = (item: typeof items[0], index: number) => {
     // Skip if it's a separator
     if ('separator' in item) return;
-    
+
     const menuItem = item as Omit<MenuItemProps, 'focused' | 'tabIndex' | 'onFocus' | 'onMouseEnter'>;
-    
+
     if (menuItem.enabled === false) return;
 
-    // Call the item's onClick handler
-    if (menuItem.onClick) {
-      menuItem.onClick();
-    }
-
-    // Call the dropdown's onItemClick handler
+    // Prefer the dropdown's onItemClick handler if provided (unified handling)
     if (onItemClick) {
       onItemClick(menuItem.id);
+    } else if (menuItem.onClick) {
+      // Fallback to individual click handler
+      menuItem.onClick();
     }
 
     // Close the menu after clicking (unless it has a submenu)

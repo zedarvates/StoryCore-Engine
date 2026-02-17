@@ -10,6 +10,7 @@ import { llmConfigService } from '@/services/llmConfigService';
 import { Step1BasicInformation } from './Step1BasicInformation';
 import { Step2WorldRules } from './Step2WorldRules';
 import { Step3Locations } from './Step3Locations';
+import { Step4KeyObjects } from './Step4KeyObjects';
 import { Step4CulturalElements } from './Step4CulturalElements';
 import { Step5ReviewFinalize } from './Step5ReviewFinalize';
 import { WizardChainOptions, WizardChainOption } from '../WizardChainOptions';
@@ -44,11 +45,16 @@ const WIZARD_STEPS: WizardStep[] = [
   },
   {
     number: 4,
+    title: 'Key Objects',
+    description: 'Artifacts & Items',
+  },
+  {
+    number: 5,
     title: 'Culture',
     description: 'Cultural elements',
   },
   {
-    number: 5,
+    number: 6,
     title: 'Review',
     description: 'Finalize world',
   },
@@ -177,11 +183,22 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
           }
           break;
 
-        case 4: // Cultural Elements
+        case 4: // Key Objects
+          // Optional validation - objects can be empty
+          if (data.keyObjects && data.keyObjects.length > 0) {
+            data.keyObjects.forEach((object, index) => {
+              if (!object.name || object.name.trim() === '') {
+                errors[`object-${index}-name`] = ['Object name is required'];
+              }
+            });
+          }
+          break;
+
+        case 5: // Cultural Elements
           // Optional validation - cultural elements can be empty
           break;
 
-        case 5: // Review
+        case 6: // Review
           // Final validation - ensure all required fields are present
           if (!data.name || data.name.trim() === '') {
             errors.name = ['World name is required'];
@@ -218,6 +235,7 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
         tone: data.tone || [],
         locations: data.locations || [],
         rules: data.rules || [],
+        keyObjects: data.keyObjects || [],
         atmosphere: data.atmosphere || '',
         culturalElements: data.culturalElements || {
           languages: [],
@@ -283,8 +301,10 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
       case 3:
         return <Step3Locations />;
       case 4:
-        return <Step4CulturalElements />;
+        return <Step4KeyObjects />;
       case 5:
+        return <Step4CulturalElements />;
+      case 6:
         return <Step5ReviewFinalize />;
       default:
         return null;
@@ -380,7 +400,7 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
   return (
     <WizardProvider<World>
       wizardType="world"
-      totalSteps={5}
+      totalSteps={6}
       initialData={initialData || createEmptyWorld()}
       onSubmit={handleSubmit}
       onValidateStep={validateStep}

@@ -359,7 +359,7 @@ export class BackendApiService {
         return response;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        
+
         // Don't retry on abort (timeout)
         if (error instanceof Error && error.name === 'AbortError') {
           throw new Error('Request timeout');
@@ -445,6 +445,65 @@ export class BackendApiService {
     const response = await this.fetchWithRetry(url, { method: 'DELETE' });
     if (!response.ok) {
       throw new Error(`DELETE request failed: ${response.statusText}`);
+    }
+  }
+
+  // ============================================================================
+  // ComfyUI Proxy Methods
+  // ============================================================================
+
+  /**
+   * Get ComfyUI configuration from backend
+   */
+  getComfyUIConfig(): ComfyUIConfig | null {
+    // Synchronous access to cached config for UI components
+    return this.config.comfyui || null;
+  }
+
+  /**
+   * Get current ComfyUI queue status
+   */
+  async getComfyUIQueue(): Promise<ApiResponse<{ pending: number, running: number }>> {
+    try {
+      return await this.get<ApiResponse<{ pending: number, running: number }>>('/api/comfyui/queue');
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get ComfyUI queue',
+      };
+    }
+  }
+
+  /**
+   * Cancel a running ComfyUI workflow
+   */
+  async cancelComfyUIWorkflow(promptId: string): Promise<ApiResponse<void>> {
+    try {
+      await this.post('/api/comfyui/cancel', { promptId });
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to cancel ComfyUI workflow',
+      };
+    }
+  }
+
+  /**
+   * Get status of a specific ComfyUI workflow
+   */
+  async getComfyUIStatus(promptId: string): Promise<ApiResponse<ComfyUIStatusUpdate>> {
+    try {
+      const status = await this.get<ComfyUIStatusUpdate>(`/api/comfyui/status/${promptId}`);
+      return {
+        success: true,
+        data: status,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get ComfyUI status',
+      };
     }
   }
 }

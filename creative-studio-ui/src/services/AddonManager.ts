@@ -323,11 +323,15 @@ export class AddonManager {
    */
   searchAddons(query: string): AddonInfo[] {
     const lowercaseQuery = query.toLowerCase();
-    return this.getAddons().filter(addon =>
-      addon.name.toLowerCase().includes(lowercaseQuery) ||
-      addon.description.toLowerCase().includes(lowercaseQuery) ||
-      addon.tags?.some(tag => tag.toLowerCase().includes(lowercaseQuery))
-    );
+    return this.getAddons().filter(addon => {
+      if (!addon) return false;
+      const name = addon.name || '';
+      const description = addon.description || '';
+
+      return name.toLowerCase().includes(lowercaseQuery) ||
+        description.toLowerCase().includes(lowercaseQuery) ||
+        addon.tags?.some(tag => tag && tag.toLowerCase().includes(lowercaseQuery));
+    });
   }
 
   /**
@@ -1583,8 +1587,8 @@ export class AddonManager {
     }
     if (options.search) {
       const searchLower = options.search.toLowerCase();
-      results = results.filter(a => 
-        a.name.toLowerCase().includes(searchLower) || 
+      results = results.filter(a =>
+        a.name.toLowerCase().includes(searchLower) ||
         a.description.toLowerCase().includes(searchLower)
       );
     }

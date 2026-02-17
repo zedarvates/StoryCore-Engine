@@ -2,6 +2,15 @@
 
 // Import World types
 import type { World } from './world';
+// Import Generation types
+export type {
+  GenerationTask as CoreGenerationTask,
+  GenerationPipelineState,
+  StageState,
+  GeneratedAsset,
+  GeneratedPrompt
+} from './generation';
+
 // Import Character types
 import type { Character } from './character';
 // Import Story types
@@ -10,6 +19,9 @@ import type { Story, StoryVersion } from './story';
 import type { AssetMetadata } from './asset';
 // Import StoryObject types
 import type { StoryObject } from './object';
+// Import Shot and Production types
+import type { ShotType, TransitionType, ComfyUIParameters } from './shot';
+import type { SequencePlan, Act, Scene } from './sequencePlan';
 // Import Location Logic Loop types
 import type {
   LocationFunctionType,
@@ -38,40 +50,74 @@ import type {
 
 export interface Shot {
   id: string;
-  title?: string; // Made optional for compatibility
-  description?: string; // Made optional for compatibility
+  title?: string;
+  description?: string;
   duration: number; // in seconds
   image?: string; // URL or base64
+  position: number; // order in sequence
 
-  // Audio tracks (enhanced)
-  audioTracks?: AudioTrack[]; // Made optional
+  // Data Contract v1 / Dashboard Compatibility (snake_case for persistence)
+  sequence_id?: string;
+  start_time?: number;
+  prompt?: string;
+  generated_image_url?: string;
+  status?: string;
+  progress?: number;
+  promoted_panel_path?: string;
+
+  // CamelCase Aliases (for dashboard/store compatibility)
+  sequenceId?: string;
+  startTime?: number;
+  generatedImageUrl?: string;
+  name?: string; // alias for title
+  orderIndex?: number; // alias for position
+  thumbnailUrl?: string; // alias for image
+
+  // Wizard / Production specific
+  number?: number; // Alias for position
+  type?: ShotType;
+  category?: 'establishing' | 'action' | 'dialogue' | 'reaction' | 'insert' | 'transition' | 'custom';
+  timing?: {
+    duration: number;
+    inPoint: number;
+    outPoint: number;
+    transition: TransitionType;
+    transitionDuration: number;
+    trimStart?: number;
+    trimEnd?: number;
+  };
+
+  // Generation metadata
+  generation?: {
+    aiProvider: string;
+    model: string;
+    prompt: string;
+    negativePrompt: string;
+    comfyuiPreset: string;
+    parameters: ComfyUIParameters;
+    styleReferences: string[];
+    seed?: number;
+    referenceImage?: string;
+  };
+
+  // Audio tracks
+  audioTracks?: AudioTrack[];
 
   // Visual effects
-  effects?: Effect[]; // Made optional
+  effects?: Effect[];
 
   // Text layers
-  textLayers?: TextLayer[]; // Made optional
+  textLayers?: TextLayer[];
 
   // Keyframe animations
-  animations?: Animation[]; // Made optional
+  animations?: Animation[];
 
   // Transition to next shot
   transitionOut?: Transition;
 
-  position: number; // order in sequence
   metadata?: Record<string, unknown>;
-  promoted_panel_path?: string; // Path to promoted panel image
-  status?: string; // Status of the shot
-  progress?: number; // Progress percentage (0-100)
-
-  sequenceId?: string; // ID of the sequence this shot belongs to
-  startTime?: number; // Start time in sequence context
-
-  prompt?: string; // Generation prompt
-  generatedImageUrl?: string; // URL of generated image
-
-  referenceImage?: string; // Base64 or URL of the reference image for AI
-  result_url?: string; // Final generated video/image URL
+  referenceImage?: string; // Legacy/AI
+  result_url?: string;
 }
 
 // ============================================================================
@@ -330,30 +376,48 @@ export interface Asset {
 }
 
 export interface Project {
-  id: string; // Project unique identifier
+  id: string;
   schema_version: string; // "1.0" for Data Contract v1
-  path?: string; // Local file system path
   project_name: string;
+  path?: string;
   shots: Shot[];
   assets: Asset[];
-  worlds?: World[]; // Story worlds created via wizard
-  selectedWorldId?: string | null; // Currently active world for generation
-  characters?: Character[]; // Characters for the project
-  stories?: Story[]; // Stories for the project
-  storyVersions?: StoryVersion[]; // Version history for stories
-  objects?: StoryObject[]; // Story objects, props, and artifacts
+  worlds?: World[];
+  selectedWorldId?: string | null;
+  characters?: Character[];
+  stories?: Story[];
+  storyVersions?: StoryVersion[];
+  objects?: StoryObject[];
+
+  // Dashboard / Generation metadata
+  audio_phrases?: any[]; // For DialoguePhrase
+  master_coherence_sheet?: {
+    url: string;
+    generated_at: number;
+  };
+  generation_history?: any[];
+
   capabilities: {
     grid_generation: boolean;
     promotion_engine: boolean;
     qa_engine: boolean;
     autofix_engine: boolean;
-    character_casting?: boolean; // Character casting add-on capability
+    character_casting?: boolean;
+    voice_generation?: boolean;
   };
   generation_status: {
     grid: 'pending' | 'done' | 'failed' | 'passed';
     promotion: 'pending' | 'done' | 'failed' | 'passed';
+    wizard?: 'pending' | 'done' | 'failed' | 'passed';
   };
-  // Character casting data (added for Data Contract v1 extension)
+
+  // CamelCase Aliases (for dashboard compatibility)
+  name?: string; // alias for project_name
+  schemaVersion?: string; // alias for schema_version
+  audioPhrases?: any[]; // alias for audio_phrases
+  generationHistory?: any[]; // alias for generation_history
+
+  storyboard?: Shot[]; // Data Contract v1 alias for shots
   casting?: {
     version: string;
     assignments: Array<{

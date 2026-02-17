@@ -2,6 +2,8 @@
 // Story Types for Storyteller Wizard - LLM-Optimized
 // ============================================================================
 
+import type { MethodologyState } from '@/types/storyMethodology';
+
 /**
  * Story file format type - unified to .md for LLM optimization
  */
@@ -107,6 +109,7 @@ export interface Story {
   worldId?: string;
   parts?: StoryPart[]; // For iterative, multi-part generation
   fileFormat?: StoryFileFormat; // Always 'md' in new system
+  methodologyState?: MethodologyState; // State of the generation methodology
 }
 
 /**
@@ -133,6 +136,15 @@ export interface StoryVersion {
   changes: string;
 }
 
+export interface WorldObject {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  influence: string;
+  rules?: string;
+}
+
 /**
  * World context for story generation
  */
@@ -144,6 +156,7 @@ export interface WorldContext {
   rules: WorldRule[];
   culturalElements: CulturalElements;
   atmosphere: string;
+  keyObjects?: WorldObject[];
 }
 
 /**

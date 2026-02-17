@@ -46,6 +46,7 @@ import {
   getCameraMovementConfig,
   moodColors
 } from '@/types/cinematicTypes';
+import type { WorldObject } from '@/types/world';
 import './StoryboardGenerator.css';
 
 interface StoryboardGeneratorProps {
@@ -53,6 +54,7 @@ interface StoryboardGeneratorProps {
   shots: EnhancedShot[];
   characters: Character[];
   locations: Location[];
+  keyObjects?: WorldObject[];
   onUpdateShot: (shotId: string, updates: Partial<EnhancedShot>) => void;
   onGenerateImage: (shotId: string, prompt: string) => Promise<string>;
   className?: string;
@@ -87,6 +89,7 @@ export function StoryboardGenerator({
   shots,
   characters,
   locations,
+  keyObjects = [],
   onUpdateShot,
   onGenerateImage,
   className
@@ -127,7 +130,8 @@ export function StoryboardGenerator({
         cameraMovement: cameraConfig?.name || 'cinematic shot',
         characters: characterNames,
         location: locationName,
-        style: 'cinematic, film grain, professional lighting'
+        style: 'cinematic, film grain, professional lighting',
+        keyObjects
       });
 
       // Get director note content
@@ -186,8 +190,9 @@ export function StoryboardGenerator({
     characters: string;
     location: string;
     style: string;
+    keyObjects: WorldObject[];
   }): string {
-    const { title, description, mood, tone, cameraMovement, characters, location, style } = params;
+    const { title, description, mood, tone, cameraMovement, characters, location, style, keyObjects } = params;
 
     let prompt = `Professional cinematic storyboard: ${title}. `;
     prompt += `${description}. `;
@@ -200,6 +205,23 @@ export function StoryboardGenerator({
     if (location) {
       prompt += `Setting: ${location}. `;
     }
+
+    // Check for key objects in description or title
+    if (keyObjects && keyObjects.length > 0) {
+      const textToCheck = (title + ' ' + description).toLowerCase();
+      const relevantObjects = keyObjects.filter(obj =>
+        textToCheck.includes(obj.name.toLowerCase())
+      );
+
+      if (relevantObjects.length > 0) {
+        prompt += 'Key Objects: ';
+        relevantObjects.forEach(obj => {
+          prompt += `${obj.name} (${obj.description}), `;
+        });
+        prompt = prompt.slice(0, -2) + '. ';
+      }
+    }
+
     prompt += `${style}. `;
     prompt += 'Photorealist, 8K, high detail, cinematic lighting, sharp focus, professional film cinematography.';
 

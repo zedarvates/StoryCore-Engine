@@ -412,7 +412,7 @@ export interface Location {
   cube_textures: CubeTextureMapping;
 
   /** Associated prompts for location generation */
-  prompts: string[];
+  prompts?: string[];
 
   /** Skybox configuration (for exterior locations) */
   skybox_config?: SkyBoxConfig;

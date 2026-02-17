@@ -20,25 +20,25 @@ interface Object3D {
 interface ObjectPlacerProps {
   /** Current scene background image */
   backgroundImage?: string;
-  
+
   /** Canvas dimensions */
   width: number;
   height: number;
-  
+
   /** Current camera settings for perspective matching */
   cameraPosition: { x: number; y: number; z: number };
   cameraTarget: { x: number; y: number; z: number };
   cameraFOV: number;
-  
+
   /** Existing placements */
   placements: ObjectPlacement3D[];
-  
+
   /** Called when placement changes */
   onPlacementsChange: (placements: ObjectPlacement3D[]) => void;
-  
+
   /** Called when an object is selected */
   onObjectSelect?: (placementId: string | null) => void;
-  
+
   /** Available 3D objects from library */
   availableObjects: Object3D[];
 }
@@ -77,14 +77,14 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  
+
   // State
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<TransformMode>('translate');
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [showObjectLibrary, setShowObjectLibrary] = useState(false);
-  
+
   // Calculate 2D screen positions from 3D placements
   const screenPlacements = useMemo(() => {
     return placements.map(placement => ({
@@ -105,7 +105,7 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
       ),
     }));
   }, [placements, cameraPosition, cameraTarget, cameraFOV, width, height]);
-  
+
   // Handle mouse down on placement
   const handlePlacementMouseDown = useCallback((e: React.MouseEvent, placementId: string) => {
     e.stopPropagation();
@@ -114,31 +114,31 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
     setDragStart({ x: e.clientX, y: e.clientY });
     onObjectSelect?.(placementId);
   }, [onObjectSelect]);
-  
+
   // Handle mouse move for dragging
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging || !selectedPlacementId) return;
-    
+
     const deltaX = e.clientX - dragStart.x;
     const deltaY = e.clientY - dragStart.y;
-    
+
     // Update placement based on transform mode
     onPlacementsChange(placements.map(p => {
       if (p.placementId !== selectedPlacementId) return p;
-      
+
       if (transformMode === 'translate') {
         // Convert screen movement to 3D position change
         const position = { ...p.position };
-        
+
         // X movement affects X and Z (based on camera angle)
         position.x += deltaX * 0.01;
-        
+
         // Y movement affects Y (up/down)
         position.y -= deltaY * 0.01;
-        
+
         // Recalculate Z based on depth sorting
         position.z = calculateDepthFromPosition(position, cameraPosition);
-        
+
         return { ...p, position, depth: position.z };
       } else if (transformMode === 'rotate') {
         // Rotate based on drag direction
@@ -164,21 +164,21 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
       }
       return p;
     }));
-    
+
     setDragStart({ x: e.clientX, y: e.clientY });
   }, [isDragging, selectedPlacementId, dragStart, placements, transformMode, cameraPosition, onPlacementsChange]);
-  
+
   // Handle mouse up
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
   }, []);
-  
+
   // Handle canvas click (deselect)
   const handleCanvasClick = useCallback(() => {
     setSelectedPlacementId(null);
     onObjectSelect?.(null);
   }, [onObjectSelect]);
-  
+
   // Add new object from library
   const handleAddObject = useCallback((object: Object3D) => {
     const newPlacement: ObjectPlacement3D = {
@@ -191,44 +191,44 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
       visible: true,
       depth: 2,
     };
-    
+
     onPlacementsChange([...placements, newPlacement]);
     setShowObjectLibrary(false);
-    
+
     toast({
       title: 'Object Added',
       description: `Added ${object.name} to scene`,
       variant: 'success',
     });
   }, [placements, onPlacementsChange, toast]);
-  
+
   // Remove selected object
   const handleRemoveObject = useCallback(() => {
     if (!selectedPlacementId) return;
-    
+
     onPlacementsChange(placements.filter(p => p.placementId !== selectedPlacementId));
     setSelectedPlacementId(null);
-    
+
     toast({
       title: 'Object Removed',
       variant: 'info',
     });
   }, [selectedPlacementId, placements, onPlacementsChange, toast]);
-  
+
   // Update placement properties
   const updatePlacement = useCallback((updates: Partial<ObjectPlacement3D>) => {
     if (!selectedPlacementId) return;
-    
+
     onPlacementsChange(placements.map(p =>
       p.placementId === selectedPlacementId
         ? { ...p, ...updates }
         : p
     ));
   }, [selectedPlacementId, placements, onPlacementsChange]);
-  
+
   // Get selected placement
   const selectedPlacement = placements.find(p => p.placementId === selectedPlacementId);
-  
+
   return (
     <div className="object-placer">
       {/* Canvas / Preview Area */}
@@ -250,7 +250,7 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
             style={{ width, height }}
           />
         )}
-        
+
         {/* Placed Objects */}
         {screenPlacements.map(placement => (
           <ObjectPreview
@@ -260,11 +260,11 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
             onMouseDown={(e) => handlePlacementMouseDown(e, placement.placementId)}
           />
         ))}
-        
+
         {/* Grid Overlay */}
         <div className="grid-overlay" />
       </div>
-      
+
       {/* Toolbar */}
       <div className="object-placer-toolbar">
         {/* Transform Mode Selector */}
@@ -291,7 +291,7 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
             <ScaleIcon />
           </button>
         </div>
-        
+
         {/* Add Object Button */}
         <button
           className="add-object-btn"
@@ -301,7 +301,7 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
           <PlusIcon />
           <span>Add Object</span>
         </button>
-        
+
         {/* Selected Object Info */}
         {selectedPlacement && (
           <div className="selected-info">
@@ -311,7 +311,7 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
             </span>
           </div>
         )}
-        
+
         {/* Delete Button */}
         {selectedPlacement && (
           <button
@@ -323,7 +323,7 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
           </button>
         )}
       </div>
-      
+
       {/* Object Library Panel */}
       {showObjectLibrary && (
         <ObjectLibraryPanel
@@ -332,7 +332,7 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
           onClose={() => setShowObjectLibrary(false)}
         />
       )}
-      
+
       {/* Properties Panel for Selected Object */}
       {selectedPlacement && (
         <ObjectPropertiesPanel
@@ -353,7 +353,7 @@ const ObjectPreview: React.FC<{
   onMouseDown: (e: React.MouseEvent) => void;
 }> = ({ placement, isSelected, onMouseDown }) => {
   const size = 60 * placement.scaleFactor;
-  
+
   return (
     <div
       className={`object-preview ${isSelected ? 'selected' : ''}`}
@@ -376,10 +376,10 @@ const ObjectPreview: React.FC<{
             <span className="handle handle-br" />
           </div>
         )}
-        
+
         {/* Object icon/placeholder */}
         <span className="object-icon">📦</span>
-        
+
         {/* Depth indicator */}
         <span className="depth-indicator">{placement.depth.toFixed(1)}m</span>
       </div>
@@ -397,27 +397,31 @@ const ObjectLibraryPanel: React.FC<{
 }> = ({ objects, onSelect, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  
+
   const filteredObjects = useMemo(() => {
     return objects.filter(obj => {
-      const matchesSearch = obj.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        obj.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      if (!obj) return false;
+      const name = obj.name || '';
+      const tags = obj.tags || [];
+
+      const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tags.some((tag: string) => tag && tag.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCategory = categoryFilter === 'all' || obj.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
   }, [objects, searchTerm, categoryFilter]);
-  
+
   const categories = useMemo(() => {
     return [...new Set(objects.map(obj => obj.category))];
   }, [objects]);
-  
+
   return (
     <div className="object-library-panel">
       <div className="panel-header">
         <h3>3D Object Library</h3>
         <button className="close-btn" onClick={onClose}>×</button>
       </div>
-      
+
       <div className="panel-search">
         <input
           type="text"
@@ -427,7 +431,7 @@ const ObjectLibraryPanel: React.FC<{
           aria-label="Search objects"
         />
       </div>
-      
+
       <div className="panel-filters">
         <select
           value={categoryFilter}
@@ -440,7 +444,7 @@ const ObjectLibraryPanel: React.FC<{
           ))}
         </select>
       </div>
-      
+
       <div className="panel-objects">
         {filteredObjects.map(obj => (
           <div
@@ -470,7 +474,7 @@ const ObjectLibraryPanel: React.FC<{
             </div>
           </div>
         ))}
-        
+
         {filteredObjects.length === 0 && (
           <div className="no-results">
             <p>No objects found</p>
@@ -493,7 +497,7 @@ const ObjectPropertiesPanel: React.FC<{
       <div className="panel-header">
         <h3>Object Properties</h3>
       </div>
-      
+
       {/* Position */}
       <div className="property-group">
         <label>Position</label>
@@ -536,7 +540,7 @@ const ObjectPropertiesPanel: React.FC<{
           </div>
         </div>
       </div>
-      
+
       {/* Rotation */}
       <div className="property-group">
         <label>Rotation</label>
@@ -579,7 +583,7 @@ const ObjectPropertiesPanel: React.FC<{
           </div>
         </div>
       </div>
-      
+
       {/* Scale */}
       <div className="property-group">
         <label>Scale</label>
@@ -625,7 +629,7 @@ const ObjectPropertiesPanel: React.FC<{
           </div>
         </div>
       </div>
-      
+
       {/* Visibility */}
       <div className="property-group">
         <label className="checkbox-label">
@@ -656,7 +660,7 @@ function calculateScreenPosition(
     y: cameraTarget.y - cameraPosition.y,
     z: cameraTarget.z - cameraPosition.z,
   };
-  
+
   // Normalize forward vector
   const forwardLen = Math.hypot(forward.x, forward.y, forward.z);
   const normalizedForward = {
@@ -664,32 +668,32 @@ function calculateScreenPosition(
     y: forward.y / forwardLen,
     z: forward.z / forwardLen,
   };
-  
+
   // Calculate relative position
   const relPos = {
     x: position3D.x - cameraPosition.x,
     y: position3D.y - cameraPosition.y,
     z: position3D.z - cameraPosition.z,
   };
-  
+
   // Project to screen
   const fovRad = (fov * Math.PI) / 180;
   const tanFov = Math.tan(fovRad / 2);
   const aspect = screenWidth / screenHeight;
-  
+
   // Calculate distance
   const distance = relPos.x * normalizedForward.x +
     relPos.y * normalizedForward.y +
     relPos.z * normalizedForward.z;
-  
+
   if (distance <= 0.1) {
     return { x: screenWidth / 2, y: screenHeight / 2 };
   }
-  
+
   // Simplified projection
   const screenX = screenWidth / 2 + (relPos.x / (distance * tanFov * aspect)) * screenWidth / 2;
   const screenY = screenHeight / 2 - (relPos.y / (distance * tanFov)) * screenHeight / 2;
-  
+
   return { x: screenX, y: screenY };
 }
 
@@ -704,12 +708,12 @@ function calculateScaleFactor(
     position3D.y - cameraPosition.y,
     position3D.z - cameraPosition.z
   );
-  
+
   if (distance < 0.1) return 1;
-  
+
   const fovRad = (fov * Math.PI) / 180;
   const tanFov = Math.tan(fovRad / 2);
-  
+
   return 1 / (distance * tanFov) * screenHeight / 5;
 }
 

@@ -22,35 +22,36 @@ export const PresetPanel: React.FC<PresetPanelProps> = ({ onClose }) => {
     deleteCustomPreset,
     addCustomPreset,
   } = usePresetStore();
-  
-  const { applyPreset, panels } = useGridEditorStore();
-  
+
+  const { applyPreset, getAllPanels } = useGridEditorStore();
+  const panels = getAllPanels();
+
   const [hoveredPresetId, setHoveredPresetId] = useState<string | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
   const [newPresetDescription, setNewPresetDescription] = useState('');
-  
+
   const allPresets = getAllPresets();
-  
+
   const handleApplyPreset = (preset: Preset) => {
     selectPreset(preset.id);
     applyPreset(preset);
   };
-  
+
   const handleDeletePreset = (presetId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (window.confirm('Are you sure you want to delete this custom preset?')) {
       deleteCustomPreset(presetId);
     }
   };
-  
+
   const handleSaveCustomPreset = () => {
     if (!newPresetName.trim()) {
       alert('Please enter a preset name');
       return;
     }
-    
+
     // Create preset from current panel configuration
     const presetData = {
       name: newPresetName.trim(),
@@ -59,19 +60,19 @@ export const PresetPanel: React.FC<PresetPanelProps> = ({ onClose }) => {
       panelTransforms: panels.map(p => p.transform),
       panelCrops: panels.map(p => p.crop),
     };
-    
+
     addCustomPreset(presetData);
-    
+
     // Reset form
     setNewPresetName('');
     setNewPresetDescription('');
     setShowSaveDialog(false);
   };
-  
+
   const isCustomPreset = (presetId: string) => {
     return presetId.startsWith('preset-custom-');
   };
-  
+
   return (
     <div className="preset-panel">
       <div className="preset-panel-header">
@@ -86,7 +87,7 @@ export const PresetPanel: React.FC<PresetPanelProps> = ({ onClose }) => {
           </button>
         )}
       </div>
-      
+
       <div className="preset-panel-actions">
         <button
           className="save-preset-button"
@@ -95,7 +96,7 @@ export const PresetPanel: React.FC<PresetPanelProps> = ({ onClose }) => {
           Save as Preset
         </button>
       </div>
-      
+
       {showSaveDialog && (
         <div className="save-preset-dialog">
           <h3>Save Custom Preset</h3>
@@ -127,14 +128,13 @@ export const PresetPanel: React.FC<PresetPanelProps> = ({ onClose }) => {
           </div>
         </div>
       )}
-      
+
       <div className="preset-grid">
         {allPresets.map((preset) => (
           <div
             key={preset.id}
-            className={`preset-card ${selectedPresetId === preset.id ? 'selected' : ''} ${
-              hoveredPresetId === preset.id ? 'hovered' : ''
-            }`}
+            className={`preset-card ${selectedPresetId === preset.id ? 'selected' : ''} ${hoveredPresetId === preset.id ? 'hovered' : ''
+              }`}
             onClick={() => handleApplyPreset(preset)}
             onMouseEnter={() => setHoveredPresetId(preset.id)}
             onMouseLeave={() => setHoveredPresetId(null)}
@@ -153,12 +153,12 @@ export const PresetPanel: React.FC<PresetPanelProps> = ({ onClose }) => {
                 </div>
               )}
             </div>
-            
+
             <div className="preset-info">
               <h3 className="preset-name">{preset.name}</h3>
               <p className="preset-description">{preset.description}</p>
             </div>
-            
+
             {isCustomPreset(preset.id) && (
               <button
                 className="delete-preset-button"
@@ -169,7 +169,7 @@ export const PresetPanel: React.FC<PresetPanelProps> = ({ onClose }) => {
                 🗑️
               </button>
             )}
-            
+
             {hoveredPresetId === preset.id && (
               <div className="preset-preview-overlay">
                 <span>Click to apply</span>
@@ -178,7 +178,7 @@ export const PresetPanel: React.FC<PresetPanelProps> = ({ onClose }) => {
           </div>
         ))}
       </div>
-      
+
       {allPresets.length === 0 && (
         <div className="empty-state">
           <p>No presets available</p>

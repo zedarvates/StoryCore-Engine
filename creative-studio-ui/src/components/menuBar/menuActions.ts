@@ -115,7 +115,7 @@ function getErrorMessage(error: unknown, prefix?: string): string {
 
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('not found')) {
       return 'Project file not found. It may have been moved or deleted.';
     }
@@ -218,24 +218,24 @@ export const fileActions = {
         schema_version: '1.0',
         path: projectPath,
         project_name: projectData.project_name,
-        shots: projectData.storyboard?.flatMap((seq: unknown) =>
-          seq.shots?.map((shot: unknown) => ({
+        shots: (projectData.storyboard || []).flatMap((seq: any) =>
+          (seq.shots || []).map((shot: any) => ({
             id: shot.shot_id,
             sequenceId: seq.sequence_id,
             shotNumber: shot.shot_number,
             description: shot.description || '',
             status: shot.status || 'pending',
-          })) || []
-        ) || [],
-        assets: (projectData.assets || []).map((asset: unknown) => ({
+          }))
+        ),
+        assets: (projectData.assets || []).map((asset: any) => ({
           id: asset.id || `asset_${Date.now()}_${Math.random()}`,
           name: asset.filename || asset.name || 'Unnamed Asset',
           type: asset.type || 'image',
           url: asset.path || asset.url || '',
           thumbnail: asset.thumbnail,
-          metadata: asset,
+          metadata: asset as any,
         })),
-        characters: (projectData.characters || []).map((char: unknown) => ({
+        characters: (projectData.characters || []).map((char: any) => ({
           character_id: char.character_id || char.id || `char_${Date.now()}_${Math.random()}`,
           name: char.name || 'Unnamed Character',
           role: char.role || 'supporting',
@@ -785,8 +785,7 @@ export const toolsActions = {
     console.log('[MenuAction] Script Wizard');
     const store = useAppStore.getState();
     // Close all other wizards first (mutual exclusion)
-    store.closeActiveWizard();
-    store.setShowDialogueWriter(true);
+    store.openWizard('dialogue-writer');
   },
 
   batchGeneration(ctx: ActionContext): void {
@@ -884,13 +883,12 @@ export const wizardsActions = {
   scriptWizard(ctx: ActionContext): void {
     console.log('[MenuAction] Script Wizard');
     const store = useAppStore.getState();
-    store.closeActiveWizard();
-    store.setShowDialogueWriter(true);
+    store.openWizard('dialogue-writer');
   },
 
   audioProduction(ctx: ActionContext): void {
     console.log('[MenuAction] Audio Production Wizard');
-    const store = useAppStore.getState();
+    const store = useAppStore.getState() as any;
     store.closeActiveWizard();
     // Open audio production wizard
     if (typeof store.openAudioProductionWizard === 'function') {
@@ -907,7 +905,7 @@ export const wizardsActions = {
 
   videoProduction(ctx: ActionContext): void {
     console.log('[MenuAction] Video Production Wizard');
-    const store = useAppStore.getState();
+    const store = useAppStore.getState() as any;
     store.closeActiveWizard();
     // Open video production wizard
     if (typeof store.openVideoProductionWizard === 'function') {
@@ -943,11 +941,8 @@ export const helpActions = {
 
   about(ctx: ActionContext): void {
     console.log('[MenuAction] About');
-    ctx.services.notification.show({
-      type: 'info',
-      message: 'StoryCore Creative Studio v1.0.0',
-      duration: 5000,
-    });
+    const store = useAppStore.getState();
+    store.setShowAboutModal(true);
   },
 
   checkUpdates(ctx: ActionContext): void {
@@ -992,7 +987,7 @@ export const continuousCreationActions = {
   styleTransfer(ctx: ActionContext): void {
     console.log('[MenuAction] Style Transfer');
     const store = useAppStore.getState();
-    store.setShowStyleTransfer(true);
+    store.openWizard('style-transfer');
   },
 
   projectBranching(ctx: ActionContext): void {

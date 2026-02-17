@@ -18,40 +18,40 @@ import { Check, ChevronRight } from 'lucide-react';
 export interface MenuItemProps {
   /** Unique identifier for the menu item */
   id: string;
-  
+
   /** Display label for the menu item */
   label: string;
-  
+
   /** Whether the menu item is enabled (default: true) */
   enabled?: boolean;
-  
+
   /** Whether the menu item is checked (for toggle items) */
   checked?: boolean;
-  
+
   /** Keyboard shortcut display text (e.g., "Ctrl+S" or "⌘S") */
   shortcut?: string;
-  
+
   /** Icon component to display before the label */
   icon?: React.ReactNode;
-  
+
   /** Whether this item has a submenu */
   hasSubmenu?: boolean;
-  
+
   /** Whether this item is currently focused */
   focused?: boolean;
-  
+
   /** Click handler for the menu item */
   onClick?: () => void;
-  
+
   /** Focus handler for keyboard navigation */
   onFocus?: () => void;
-  
+
   /** Mouse enter handler for hover states */
   onMouseEnter?: () => void;
-  
+
   /** Tab index for keyboard navigation (-1 for roving tabindex) */
   tabIndex?: number;
-  
+
   /** Additional CSS classes */
   className?: string;
 }
@@ -145,34 +145,31 @@ export const MenuItem = React.forwardRef<HTMLButtonElement, MenuItemProps>(
           transition-all duration-100 ease-in-out
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
           whitespace-nowrap
-          ${
-            enabled
-              ? focused
-                ? 'bg-accent text-accent-foreground shadow-sm'
-                : 'text-foreground hover:bg-accent hover:text-accent-foreground hover:shadow-sm active:bg-accent/80'
-              : 'text-gray-500 dark:text-gray-400 cursor-not-allowed'
+          ${enabled
+            ? focused
+              ? 'bg-accent text-accent-foreground shadow-sm'
+              : 'text-foreground hover:bg-accent hover:text-accent-foreground hover:shadow-sm active:bg-accent/80'
+            : 'text-gray-500 dark:text-gray-400 cursor-not-allowed'
           }
           ${className}
         `}
       >
         {/* Left side: Icon, Checkmark, and Label */}
         <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
-          {/* Checkmark for toggle items */}
-          {checked !== undefined && (
-            <span className="flex-shrink-0 w-4 h-4" aria-hidden="true">
-              {checked && <Check className="w-4 h-4" />}
-            </span>
-          )}
+          {/* Column 1: Checkmark slot (always exists to keep labels aligned) */}
+          <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center" aria-hidden="true">
+            {checked && <Check className="w-4 h-4 text-primary" />}
+          </div>
 
-          {/* Icon */}
-          {icon && (
-            <span className="flex-shrink-0 w-4 h-4" aria-hidden="true">
-              {icon}
-            </span>
-          )}
+          {/* Column 2: Icon slot (always exists to keep labels aligned) */}
+          <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center" aria-hidden="true">
+            {icon || null}
+          </div>
 
           {/* Label */}
-          <span className={`truncate ${!enabled ? 'line-through opacity-60' : ''}`}>{label}</span>
+          <span className={`truncate ${!enabled ? 'line-through opacity-60' : ''}`}>
+            {label}
+          </span>
         </div>
 
         {/* Right side: Shortcut or Submenu indicator */}

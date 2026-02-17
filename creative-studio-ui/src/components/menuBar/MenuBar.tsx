@@ -17,6 +17,7 @@ import type { Project } from '../../types';
 import type { MenuItemConfig } from '../../types/menuConfig';
 import { evaluateEnabled, evaluateVisible, evaluateChecked } from '../../types/menuConfig';
 import { projectExportService } from '../../services/projectExportService';
+import { useToast } from '@/hooks/use-toast';
 
 export interface MenuBarProps {
   /** Current project state */
@@ -47,7 +48,8 @@ export interface MenuBarProps {
  */
 export const MenuBar: React.FC<MenuBarProps> = (props) => {
   const { t } = useI18n();
-  
+  const { toast } = useToast();
+
   // Local state for menu open/close
   const [openMenuId, setOpenMenuId] = useState<string | null>(() => {
     try {
@@ -58,7 +60,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
       return null;
     }
   });
-  
+
   // Refs for menu trigger buttons to enable Alt key focus
   const menuTriggerRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
 
@@ -73,7 +75,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
       // Check for Alt key (without other modifiers)
       if (event.key === 'Alt' && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
         event.preventDefault();
-        
+
         // Focus the first menu trigger button
         const firstMenuId = menuBarConfig[0]?.id;
         if (firstMenuId) {
@@ -83,29 +85,29 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
           }
         }
       }
-      
+
       // Handle horizontal arrow key navigation between menus when a menu trigger is focused
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         const activeElement = document.activeElement as HTMLElement;
-        
+
         // Check if a menu trigger button is focused
         const focusedMenuId = Array.from(menuTriggerRefs.current.entries()).find(
           ([_, ref]) => ref === activeElement
         )?.[0];
-        
+
         if (focusedMenuId) {
           event.preventDefault();
-          
+
           const currentIndex = menuBarConfig.findIndex(menu => menu.id === focusedMenuId);
           if (currentIndex === -1) return;
-          
+
           let nextIndex: number;
           if (event.key === 'ArrowRight') {
             nextIndex = (currentIndex + 1) % menuBarConfig.length;
           } else {
             nextIndex = (currentIndex - 1 + menuBarConfig.length) % menuBarConfig.length;
           }
-          
+
           const nextMenuId = menuBarConfig[nextIndex]?.id;
           if (nextMenuId) {
             const nextMenuButton = menuTriggerRefs.current.get(nextMenuId);
@@ -118,7 +120,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
@@ -197,19 +199,19 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
     if (props.isProcessing && menuId !== 'help') {
       return true;
     }
-    
+
     // Disable menus that require a project when no project is open
     if (!props.project) {
       if (['project', 'tools'].includes(menuId)) {
         return true;
       }
     }
-    
+
     // Disable Edit menu if nothing is selected
     if (menuId === 'edit' && !props.project) {
       return true;
     }
-    
+
     return false;
   }, [props.isProcessing, props.project]);
 
@@ -227,7 +229,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
   /**
    * Convert menu config items to Menu component props
    */
-  const convertMenuItems = useCallback((items: MenuItemConfig[]): unknown[] => {
+  const convertMenuItems = useCallback((items: MenuItemConfig[]): any[] => {
     const state = getAppState();
 
     return items
@@ -251,10 +253,16 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
                   notification: {
                     show: (notification: { type: 'success' | 'error' | 'warning' | 'info'; message: string; duration?: number }) => {
                       // Use toast notification from the app
-                      console.log(`[Notification] ${notification.type}: ${notification.message}`);
+                      toast({
+                        title: notification.type.charAt(0).toUpperCase() + notification.type.slice(1),
+                        description: notification.message,
+                        variant: notification.type === 'error' ? 'destructive' : 'default',
+                        duration: notification.duration || 3000,
+                      });
                       return `notification-${Date.now()}`;
                     },
                     dismiss: (id: string) => {
+                      // No-op for now as shadcn toast doesn't easily support programmatic dismissal by ID
                       console.log(`[Notification] Dismissed: ${id}`);
                     },
                   },

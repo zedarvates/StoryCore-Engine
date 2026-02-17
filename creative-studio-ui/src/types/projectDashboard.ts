@@ -10,63 +10,17 @@ import { z } from 'zod';
 // Core Data Models
 // ============================================================================
 
+import { Project as BaseProject, Shot as BaseShot, AudioTrack, Effect, TextLayer, Transition } from './index';
+
 /**
  * Shot with extended prompt management capabilities
  * Extends the base Shot type with prompt validation and generation metadata
  */
-export interface Shot {
-  id: string;
-  sequenceId: string;
-  startTime: number; // seconds
-  duration: number; // seconds
-  prompt: string;
+export interface Shot extends BaseShot {
   promptValidation?: PromptValidation;
-  generatedImageUrl?: string;
-  metadata: {
-    cameraAngle?: string;
-    lighting?: string;
-    mood?: string;
-  };
-  position: number; // Position in the sequence
-  status?: string; // Status of the shot (e.g., "Draft", "In Progress", "Completed")
-  progress?: number; // Progress percentage (0-100)
-  image?: string; // Image URL or base64 data
-  audioTracks?: AudioTrack[]; // Audio tracks associated with the shot
-  effects?: Effect[]; // Effects applied to the shot
-  textLayers?: TextLayer[]; // Text layers on the shot
-  transitionOut?: Transition; // Transition to the next shot
 }
 
-export interface AudioTrack {
-  id: string;
-  name: string;
-  url: string;
-  volume: number;
-}
-
-export interface Effect {
-  id: string;
-  name: string;
-  type: string;
-  parameters: Record<string, unknown>;
-}
-
-export interface TextLayer {
-  id: string;
-  text: string;
-  position: { x: number; y: number };
-  style: {
-    fontSize: number;
-    fontFamily: string;
-    color: string;
-  };
-}
-
-export interface Transition {
-  id: string;
-  type: string;
-  duration: number;
-}
+// Redundant types removed as they are now imported from ./index
 
 /**
  * Dialogue phrase with precise timing and voice characteristics
@@ -182,25 +136,8 @@ export interface GenerationStatus {
  * Extended Project interface with prompt and audio track management
  * Data Contract v1 compliant
  */
-export interface Project {
-  id: string;
-  name: string;
-  schemaVersion: string; // Data Contract v1
+export interface Project extends BaseProject {
   sequences: Sequence[];
-  shots: Shot[];
-  audioPhrases: DialoguePhrase[];
-  masterCoherenceSheet?: {
-    url: string;
-    generatedAt: number;
-  };
-  generationHistory: GenerationRecord[];
-  capabilities: {
-    gridGeneration: boolean;
-    promotionEngine: boolean;
-    qaEngine: boolean;
-    autofixEngine: boolean;
-    voiceGeneration: boolean;
-  };
 }
 
 /**

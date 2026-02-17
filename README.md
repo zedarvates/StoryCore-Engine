@@ -1,187 +1,217 @@
 # 🎬 StoryCore Engine
-## Créez des vidéos professionnelles avec IA locale
+### The Self-Correcting Multimodal Production Pipeline
 
-**Pipeline multimodal auto-correctif pour la génération vidéo locale avec cohérence visuelle garantie.**
+**From Script to Screen in Minutes — With Visual Coherence**
 
-[![Hackathon 2026](https://img.shields.io/badge/Hackathon-2026-blue)](https://github.com/zedarvates/StoryCore-Engine) [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org) [![React](https://img.shields.io/badge/React-18+-blue)](https://react.dev) [![ComfyUI](https://img.shields.io/badge/ComfyUI-Ready-orange)](https://comfyanonymous.github.io/ComfyUI_get/) [![Deterministic AI](https://img.shields.io/badge/Deterministic-AI-purple)](https://arxiv.org) [![Security](https://img.shields.io/badge/Security-Validated-green)](https://github.com/zedarvates/StoryCore-Engine/blob/main/SECURITY.md) [![Local Processing](https://img.shields.io/badge/Local-Processing-blue)](https://github.com/zedarvates/StoryCore-Engine)
+![Hackathon 2026](https://img.shields.io/badge/Hackathon-2026-blue) ![Python](https://img.shields.io/badge/Python-3.11+-green) ![React](https://img.shields.io/badge/React-18+-blue) ![ComfyUI](https://img.shields.io/badge/ComfyUI-Ready-orange) ![Deterministic AI](https://img.shields.io/badge/Deterministic-AI-purple) ![Security](https://img.shields.io/badge/Security-Validated-green) ![Local Processing](https://img.shields.io/badge/Local-Processing-blue)
+![License](https://img.shields.io/github/license/zedarvates/StoryCore-Engine)
 
-> **Du script à l'écran en minutes** - Pipeline vidéo multimodal auto-correctif avec cohérence visuelle garantie. Traitement 100% local. Souveraineté des données. 
-
----
-
-## 🎯 Pourquoi StoryCore
-
-### Avantages Compétitifs
-
-| Bénéfice | Impact |
-|----------|--------|
-| **Traitement 100% Local** | Données sécurisées sur votre machine | 
-| **Cohérence Visuelle** | Style constant sur toutes les scènes |
-| **Pipeline Auto-correctif** | Qualité garantie sans intervention manuelle |
-| **Intégration ComfyUI Native** | Flux de travail optimisé |
-| **Souveraineté des Données** | Pas de cloud, pas de risques |
-
-**Réduction des coûts** : De 30 personnes à 6-8 créateurs. **Gain de temps** : Du script à l'écran en 15 minutes.
+> **From Script to Screen in Minutes** - Self-correcting multimodal video pipeline with guaranteed visual coherence. 100% local processing. Data sovereignty.
 
 ---
 
-## 🚀 Exemples d'Usage Concrets
-
-### Cas d'Usage
-
-| Type de Contenu | Bénéfice | Temps Estimé |
-|-----------------|----------|--------------|
-| **Documentaires Scientifiques** | Précision visuelle garantie | 20-30 min |
-| **Courts-métrages Indépendants** | Cohérence stylistique | 15-25 min |
-| **Contenu Éducatif** | Qualité professionnelle | 10-20 min |
-| **Présentations d'Entreprise** | Branding constant | 5-15 min |
-
-### Workflow Type
-
-```
-✍️ ✅ ✏️ ✅ 🎨 ✅ 🎬 ✅ 📺 ✅ 📦
- Script → Storyboard → Génération Visuelle → Montage → Export
-```
+![StoryCore-Engine Preview](assets/Screenshot-2026-02-15-060825.png)
 
 ---
 
-## 🖥️ Installation et Démarrage Rapide
+## 🌟 A Message from the Creator
 
-### Prérequis Matériels
+StoryCore is more than just a pipeline. It’s a system that lets you control ComfyUI or other tools through add‑ons. It helps you organize your entire workflow for video creation — from the written story, to the script, to the dialogue.
 
-| Composant | Minimum | Recommandé |
-|-----------|---------|------------|
-| **GPU** | RTX 3060 (12GB VRAM) | RTX 4090+ (24GB -> 48GB vram)|
-| **RAM** | 32GB | 64GB |
-| **Stockage** | 500GB SSD | 1TB SSD |
-| **OS** | Windows 10/11 | Windows 11 |
+> "The future of the internet? And of cinema? It’s on‑demand videos built according to people’s tastes. According to each customer. Directly on their TV. Basically, it’s instant, made‑to‑order cinema."
 
-### Installation en 5 Minutes
+I wanted to create a tool that modernizes long‑form video production without losing the soul of the craft. We start from the classic storyboard methods—the ones that shaped generations of creators—and we bring them into the present with the tools of our era.
 
-```bash
-# 1. Cloner le dépôt
-git clone https://github.com/zedarvates/StoryCore-Engine.git
-cd storycore-engine
+**This isn't just another AI generator.** It's a complete production pipeline: storyboard, visual coherence, narrative continuity, scene organization, character tracking, location consistency. The system remembers the entire project, just like a full team dedicated to artistic supervision.
 
-# 2. Installer les dépendances
-pip install -r requirements.txt
-npm install
+But above all, it **respects the creators**. The goal is not to replace artists, but to give them back time, freedom, and control. AI handles the repetitive tasks, while humans keep the vision, the emotion, and the direction.
 
-# 3. Installer ComfyUI (optionnel mais recommandé)
-# Télécharger depuis https://comfyanonymous.github.io/ComfyUI_get/
+And everything runs **locally**. Your data, your images, your scripts, your industrial secrets—everything stays on your machine. It's a sovereign tool, designed for studios, agencies, and independent creators who must protect their work.
 
-# 4. Démarrer l'application
-python storycore.py
+---
 
-# 5. Lancer la démo
-python storycore.py demo
+## 🎯 Why StoryCore?
+
+### Competitive Advantages
+
+| Benefit | Impact |
+| :--- | :--- |
+| **100% Local Processing** | Data secured on your machine, no leaks. |
+| **Visual Coherence** | Consistent style across all scenes and shots. |
+| **Self-Correcting Pipeline** | Guaranteed quality without manual intervention. |
+| **Native ComfyUI Integration** | Optimized professional workflows. |
+| **Data Sovereignty** | No cloud, no subscription risks, full ownership. |
+
+**Cost Reduction**: From a team of 30 to 6-8 creators.
+**Time Saving**: From script to screen in minutes, not months.
+
+---
+
+## 🚀 Concrete Use Cases
+
+| Content Type | Benefit | Estimated Time |
+| :--- | :--- | :--- |
+| **Scientific Documentaries** | Guaranteed visual accuracy & fact-checking. | 20-30 min |
+| **Indie Short Films** | Stylistic consistency & narrative flow. | 15-25 min |
+| **Educational Content** | Professional quality & rapid iteration. | 10-20 min |
+| **Corporate Presentations** | Consistent branding & private data handling. | 5-15 min |
+
+### Workflow
+
+```mermaid
+graph LR
+    A --> B[✍️ Script] --> C[✅ Storyboard]
+    C --> D[🎨 Visual Gen]
+    D --> E[🎬 Editing]
+    E --> F[📦 Export]
 ```
 
-### Démo Vidéo
+---
 
-[![StoryCore Démo](https://img.shields.io/badge/Voir%20la%20démo-YouTube-red?style=for-the-badge)](https://www.youtube.com/watch?v=P0K7DueyICo)
+## 📋 System Requirements
+
+### Minimum Hardware
+- **GPU**: NVIDIA RTX 3060 with 12GB VRAM (RTX 4090+ recommended for speed)
+- **RAM**: 32GB system memory
+- **Storage**: ~500GB SSD (fast NVMe recommended)
+- **OS**: Windows 10/11 (WSL2 supported), Linux
+
+*Note: Generating a single high-quality image can take minutes on lower-end hardware. Video generation is compute-intensive.*
 
 ---
 
-## 🎨 Fonctionnalités Clés
+## ⚡ Quick Start
 
-### Génération Vidéo
-- **Cohérence Visuelle** : Système de grille maître
-- **Multi-modèles** : Flux, SDXL, NewBie, Qwen
-- **Vidéo HD** : HunyuanVideo, Wan Video
-- **Auto-correction** : Qualité garantie
+### Installation in 5 Minutes
 
-### Traitement Audio
-- **Dialogue IA** : Génération de voix naturelle
-- **Musique de Fond** : Composition automatique
-- **Effets Sonores** : Bibliothèque intégrée
-- **Mixage** : Synchronisation parfaite
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/zedarvates/StoryCore-Engine.git
+    cd storycore-engine
+    ```
 
-### Édition et Storyboard
-- **Wizard System** : Assistants guidés
-- **Sequence Editor** : Timeline vidéo/audio
-- **Character Portraits** : Génération cohérente
-- **Camera Angles** : Planification des mouvements
+2.  **Install dependencies**
+    ```bash
+    pip install -r requirements.txt
+    npm install
+    ```
 
-### Architecture
-- **100% Local** : Pas de cloud, pas de risques
-- **Extensible** : Système d'addons
-- **Sécurisé** : Validation et monitoring
-- **Résistant** : Patterns de résiliences
+3.  **Install ComfyUI (Optional but Recommended)**
+    - Download from [ComfyUI GitHub](https://github.com/comfyanonymous/ComfyUI)
+    - Default port: `8188`
+
+4.  **Start the Engine**
+    ```bash
+    python storycore.py
+    ```
+
+### Video Demo
+[![StoryCore Presentation Video](assets/Screenshot-2026-02-15-060805.png)](https://www.youtube.com/watch?v=P0K7DueyICo)
 
 ---
 
-## 🛠️ Pour les Développeurs
+## 📸 Interface
 
-### API et SDK
-- **REST API** : FastAPI backend
-- **WebSocket** : Communication temps réel
-- **Python SDK** : Intégration facile
-- **CLI Tools** : Automatisation
+![StoryCore Interface](assets/Screenshot-2026-02-15-060805.png)
+
+![StoryCore Dashboard](assets/Screenshot-2026-02-15-060909.png)
+
+![StoryCore Editor](assets/Screenshot-2026-02-15-060938.png)
+
+---
+
+## ✨ Key Features
+
+### 🎬 Video Generation
+- **Visual Coherence System**: Master Coherence Sheet ensures consistent style.
+- **Multi-Model Support**: Flux, SDXL, NewBie, Qwen, HunyuanVideo, Wan Video.
+- **Self-Correcting**: Automatic quality detection and auto-fix capability.
+
+### 🔊 Audio Processing
+- **AI Dialogue**: Natural voice generation with emotion control.
+- **Background Music**: Automatic composition based on scene mood.
+- **Sound Effects**: Integrated SFX library and synchronization.
+
+### 🛠️ Production Tools
+- **Wizard System**: Step-by-step guides for Characters, Scenes, and Objects.
+- **Sequence Editor**: Professional timeline for video/audio editing.
+- **Character Portraits**: Consistent character generation across different angles.
+- **Camera Control**: Advanced camera movement planning.
+
+### 🏗️ Architecture
+- **100% Local**: No external dependencies for core processing.
+- **Extensible**: Robust Add-on system for custom tools.
+- **Resilient**: Circuit breakers and retry mechanisms for long-running tasks.
+
+---
+
+## 🏗️ Architecture Overview
+
+```mermaid
+graph TD
+    Input[📝 Input Script/Prompt] --> StoryEngine
+    
+    subgraph StoryEngine [🧠 Story Engine]
+        LLM[LLM Processing - Ollama]
+        Scene[Scene Breakdown]
+        Char[Character Dev]
+    end
+    
+    StoryEngine --> VisualPlanning
+    
+    subgraph VisualPlanning [🎨 Visual Planning]
+        Grid[Visual Coherence Grid]
+        Shot[Shot Planning]
+    end
+    
+    VisualPlanning --> Production
+    
+    subgraph Production [🎬 Production Pipeline]
+        ImgGen[Image Gen]
+        VidGen[Video Gen]
+        AudioGen[Audio Gen]
+        AutoFix[Quality Check & Auto-fix]
+    end
+    
+    Production --> Export[📦 Export]
+```
+
+---
+
+## 🔧 For Developers
+
+### API & SDK
+- **REST API**: FastAPI backend for integration.
+- **WebSocket**: Real-time communication for UI updates.
+- **Python SDK**: Easy integration for custom scripts.
+- **CLI Tools**: Full automation capabilities.
 
 ### Documentation
-- **[Quick Start](documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md)** - Installation en 2 minutes
-- **[API Reference](documentation/api_reference/README.md)** - Documentation complète
-- **[Technical Guide](documentation/TECHNICAL_GUIDE.md)** - Architecture détaillée
-- **[Troubleshooting](documentation/TROUBLESHOOTING.md)** - Solutions aux problèmes courants
-
-### Contribution
-- **[Contributing Guidelines](CONTRIBUTING.md)** - Comment contribuer
-- **[Code of Conduct](CODE_OF_CONDUCT.md)** - Règles de la communauté
-- **[Roadmap](ROADMAP.md)** - Fonctionnalités à venir
+- **[Quick Start](documentation/user_guide/comfyui_integration/COMFYUI_QUICK_START.md)** - Setup guide
+- **[API Reference](documentation/api_reference/README.md)** - Full API docs
+- **[Technical Guide](documentation/TECHNICAL_GUIDE.md)** - Deep dive into architecture
+- **[Contributing](CONTRIBUTING.md)** - Join the project
 
 ---
 
-## 📊 Roadmap 2026
+## 🗺️ Roadmap 2026
 
-### Q1 2026
-- ✅ Amélioration de l'interface de génération d'images
-- ✅ Amélioration du dashboard
-- 🔄 Mouvements de caméra avancés
-
-### Q2 2026
-- 🔄 Export multi-format (MP4)
-- 🔄 Optimisation des performances
-- 🔄 Traitement parallèle
-
-### Q3-Q4 2026
-- 📋 Fonctionnalités collaboratives
-- 📋 Architecture de plugins
-- 📋 Déploiement cloud
+| Phase | Feature | Status |
+| :--- | :--- | :--- |
+| **Q1 2026** | Image Generation Dialog Enhancement | 🔄 In Progress |
+| **Q1 2026** | Dashboard Wizard Addon | 🔄 In Progress |
+| **Q1 2026** | Advanced Camera Movements | 🔜 Planned |
+| **Q2 2026** | Multi-format Export (MP4/WebM) | 🔜 Planned |
+| **Q3 2026** | Collaborative Features | 📋 Backlog |
+| **Q4 2026** | Cloud Deployment Options | 📋 Backlog |
 
 ---
 
-## 📱 Optimisation pour le Partage Social
+## 🏆 Built for Hackathon 2026
 
-### Méta-données
-```html
-<!-- Open Graph -->
-<meta property="og:title" content="StoryCore Engine - Créez des vidéos avec IA locale">
-<meta property="og:description" content="Pipeline vidéo multimodal auto-correctif. Cohérence visuelle garantie. Traitement 100% local. Du script à l'écran en minutes.">
-<meta property="og:image" content="https://github.com/zedarvates/StoryCore-Engine/assets/Screenshot-2026-02-15-060805.png">
+**Team**: StoryCore-Engine Development Team
+**Duration**: 210+ hours
+**Focus**: Coherence-first, measurable multimodal pipeline
+**Result**: Production-ready system with professional interfaces
 
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="StoryCore Engine - IA vidéo locale">
-<meta name="twitter:description" content="Pipeline auto-correctif avec cohérence visuelle. Traitement sécurisé sur votre machine.">
-```
-
-### Mots-clés SEO Intégrés
-- multimodal AI video generation
-- local video processing pipeline
-- visual coherence system
-- deterministic AI video
-- sovereign AI video creation
-- ComfyUI integration
-- Ollama LLM video
-
----
-
-## 🏆 Bâti pour Hackathon 2026
-
-**Équipe** : StoryCore-Engine Development Team  
-**Durée** : 210+ heures  
-**Focus** : Cohérence-first, pipeline multimodal mesurable  
-**Résultat** : Système production-ready avec interfaces professionnelles
-
-*Redéfinir comment les créateurs interagissent avec l'IA multimodale grâce à la cohérence visuelle garantie et au contrôle qualité autonome.*
+*Redefining how creators interact with multimodal AI through guaranteed visual coherence and autonomous quality control.*

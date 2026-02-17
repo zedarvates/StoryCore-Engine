@@ -207,9 +207,9 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   const { saveCharacter } = useCharacterPersistence();
   const characters = useStore((state) => state.characters);
   const world = useSelectedWorld();
-  
+
   // Get locations and stories from store for StorytellerWizard
-  const locations = useStore((state) => state.locations);
+  const locations = world?.locations || [];
   const stories = useStore((state) => state.stories);
 
   // Initialize shots from props or use default

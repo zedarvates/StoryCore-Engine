@@ -16,6 +16,7 @@ export interface World {
   magic: string;
   technologyMagic?: string; // Combined technology and magic field for hybrid settings
   conflicts: string[];
+  keyObjects: WorldObject[]; // Key objects/resources that influence the story
   threats?: string[]; // Optional threats field
   createdAt: Date;
   updatedAt: Date;
@@ -57,6 +58,15 @@ export interface CulturalElements {
   traditions: string[];
   historicalEvents: string[];
   culturalConflicts: string[];
+}
+
+export interface WorldObject {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  influence: string; // How it influences the story
+  rules?: string; // Specific rules associated with the object
 }
 
 // ============================================================================
@@ -120,6 +130,7 @@ export function createEmptyWorld(): Partial<World> {
       historicalEvents: [],
       culturalConflicts: [],
     },
+    keyObjects: [],
     technology: '',
     magic: '',
     conflicts: [],

@@ -54,6 +54,20 @@ export function formatWorldContextForPrompt(world: World): string {
     }
   }
 
+  // Key Objects
+  if (world.keyObjects && world.keyObjects.length > 0) {
+    sections.push('\nKey Objects & Artifacts:');
+    world.keyObjects.forEach((object) => {
+      sections.push(`- ${object.name} (${object.type}): ${object.description}`);
+      if (object.influence) {
+        sections.push(`  Influence: ${object.influence}`);
+      }
+      if (object.rules) {
+        sections.push(`  Rules: ${object.rules}`);
+      }
+    });
+  }
+
   // Cultural elements
   const { culturalElements } = world;
   if (
@@ -113,7 +127,7 @@ export function extractWorldStyleGuidance(world: World): {
 
   // Extract color palette hints from atmosphere and cultural elements
   const colorPalette: string[] = [];
-  
+
   // Common color associations
   const colorMap: Record<string, string[]> = {
     dark: ['black', 'deep purple', 'midnight blue'],

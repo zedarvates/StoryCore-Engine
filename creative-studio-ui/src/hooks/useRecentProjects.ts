@@ -1,4 +1,7 @@
-/// <reference path="../types/electron.d.ts" />
+/**
+ * useRecentProjects Hook
+ * Handles loading and managing recent projects list
+ */
 
 import { useState, useEffect, useCallback } from 'react';
 import type { RecentProject } from '@/utils/projectManager';

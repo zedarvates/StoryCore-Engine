@@ -46,7 +46,7 @@ export function Step5ReviewFinalize() {
             <p className="text-sm font-semibold text-gray-600">World Name</p>
             <p className="text-base">{formData.name || 'Not specified'}</p>
           </div>
-          
+
           <div>
             <p className="text-sm font-semibold text-gray-600">Time Period</p>
             <p className="text-base">{formData.timePeriod || 'Not specified'}</p>
@@ -199,6 +199,55 @@ export function Step5ReviewFinalize() {
         </CardContent>
       </Card>
 
+      {/* Key Objects */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Key Objects
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleEditSection(4)}
+              className="gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Edit
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {formData.keyObjects && formData.keyObjects.length > 0 ? (
+            <div className="space-y-3">
+              {formData.keyObjects.map((object) => (
+                <div key={object.id} className="p-3 bg-gray-50 rounded border">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold">{object.name}</p>
+                      <p className="text-xs text-gray-500">{object.type}</p>
+                      {object.description && (
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                          {object.description}
+                        </p>
+                      )}
+                      {object.influence && (
+                        <p className="text-xs text-blue-600 mt-1 italic">
+                          Influence: {object.influence}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No objects defined</p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Cultural Elements */}
       <Card>
         <CardHeader className="pb-3">
@@ -210,7 +259,7 @@ export function Step5ReviewFinalize() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleEditSection(4)}
+              onClick={() => handleEditSection(5)}
               className="gap-2"
             >
               <Edit className="h-4 w-4" />
@@ -299,7 +348,7 @@ export function Step5ReviewFinalize() {
                 Ready to Create World
               </h3>
               <p className="text-sm text-green-700 mt-1">
-                Your world "{formData.name || 'Unnamed World'}" is ready to be created. 
+                Your world "{formData.name || 'Unnamed World'}" is ready to be created.
                 Click "Complete" to save your world and make it available for your projects.
               </p>
             </div>

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Project, Shot, Asset, GenerationTask, PanelSizes, ChatMessage } from '@/types';
+import type { Project, Shot, Asset, GenerationTask, PanelSizes, ChatMessage, Sequence } from '@/types';
 import type { SequencePlanWizardContext, ShotWizardContext } from '@/types/wizard';
 import type { MasterReferenceSheet, SequenceReferenceSheet, ShotReference } from '@/types/reference';
 import type { World } from '@/types/world';
@@ -31,6 +31,8 @@ interface AppState {
   assets: Asset[];
   worlds: World[];
   characters: Character[];
+  currentShot: Shot | null;
+  currentSequence: Sequence | null;
 
   // UI state
   selectedShotId: string | null;
@@ -96,6 +98,7 @@ interface AppState {
   showSceneGenerator: boolean;
   showStoryboardCreator: boolean;
   showStyleTransfer: boolean;
+  showAboutModal: boolean;
   activeWizardType: WizardType | null;
 
   // Character integration system UI state
@@ -165,6 +168,7 @@ interface AppState {
   setShowDialogueEditor: (show: boolean) => void;
   setShowFeedbackPanel: (show: boolean) => void;
   setShowFactCheckModal: (show: boolean) => void;
+  setShowAboutModal: (show: boolean) => void;
   setShowPendingReportsList: (show: boolean) => void;
   openSequencePlanWizard: (context?: SequencePlanWizardContext) => void;
   closeSequencePlanWizard: () => void;
@@ -233,12 +237,15 @@ export const useAppStore = create<AppState>((set) => ({
   comfyuiStatus: 'disconnected',
   worlds: [],
   characters: [],
+  currentShot: null,
+  currentSequence: null,
   isPlaying: false,
   playbackSpeed: 1,
   chatMessages: [],
   history: [],
   historyIndex: -1,
   showInstallationWizard: false,
+  showAboutModal: false,
   installationComplete: false,
   showWorldWizard: false,
   showCharacterWizard: false,
@@ -353,6 +360,7 @@ export const useAppStore = create<AppState>((set) => ({
   },
   setShowImageGalleryModal: (show) => set({ showImageGalleryModal: show }),
   setShowFactCheckModal: (show) => set({ showFactCheckModal: show }),
+  setShowAboutModal: (show) => set({ showAboutModal: show }),
   setShowDialogueEditor: (show) => set({ showDialogueEditor: show }),
   setShowFeedbackPanel: (show) => set({ showFeedbackPanel: show }),
   setShowPendingReportsList: (show) => set({ showPendingReportsList: show }),
@@ -396,6 +404,7 @@ export const useAppStore = create<AppState>((set) => ({
       showSceneGenerator: false,
       showStoryboardCreator: false,
       showStyleTransfer: false,
+      showAboutModal: false,
       // Set active wizard type
       activeWizardType: wizardType,
       // Open the requested wizard

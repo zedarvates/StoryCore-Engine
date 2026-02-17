@@ -132,17 +132,17 @@ export function getTimeoutForStoryLength(length: string): number {
  * @returns Formatted character description string
  */
 function buildCharacterDescription(char: unknown): string {
-  const c = char as { 
-    name?: string; 
-    archetype?: string; 
-    role?: string; 
-    personality_traits?: string[]; 
-    backstory?: string; 
-    visual_identity?: { 
-      hair_color?: string; 
-      eye_color?: string; 
-      build?: string; 
-    } 
+  const c = char as {
+    name?: string;
+    archetype?: string;
+    role?: string;
+    personality_traits?: string[];
+    backstory?: string;
+    visual_identity?: {
+      hair_color?: string;
+      eye_color?: string;
+      build?: string;
+    }
   };
   const parts = [
     `**${c.name || 'Unknown'}** (${c.archetype || c.role || 'Character'})`,
@@ -176,12 +176,12 @@ function buildCharacterDescription(char: unknown): string {
  * @returns Formatted location description string
  */
 function buildLocationDescription(loc: unknown): string {
-  const l = loc as { 
-    name?: string; 
-    type?: string; 
-    description?: string; 
-    atmosphere?: string; 
-    significance?: string; 
+  const l = loc as {
+    name?: string;
+    type?: string;
+    description?: string;
+    atmosphere?: string;
+    significance?: string;
   };
   const parts = [
     `**${l.name || 'Unknown'}** (${l.type || 'Location'})`,
@@ -240,6 +240,32 @@ function buildWorldContextDescription(worldContext: WorldContext | undefined): s
     if (cultural.socialStructure) {
       worldContextDescription.push(`Social Structure: ${cultural.socialStructure}`);
     }
+  }
+
+  if (worldContext.keyObjects && worldContext.keyObjects.length > 0) {
+    worldContextDescription.push('\nKey Objects & Artifacts:');
+    worldContext.keyObjects.forEach((object) => {
+      worldContextDescription.push(`- ${object.name} (${object.type}): ${object.description}`);
+      if (object.influence) {
+        worldContextDescription.push(`  Influence: ${object.influence}`);
+      }
+      if (object.rules) {
+        worldContextDescription.push(`  Rules: ${object.rules}`);
+      }
+    });
+  }
+
+  if (worldContext.keyObjects && worldContext.keyObjects.length > 0) {
+    worldContextDescription.push('\nKey Objects & Artifacts:');
+    worldContext.keyObjects.forEach((object) => {
+      worldContextDescription.push(`- ${object.name} (${object.type}): ${object.description}`);
+      if (object.influence) {
+        worldContextDescription.push(`  Influence: ${object.influence}`);
+      }
+      if (object.rules) {
+        worldContextDescription.push(`  Rules: ${object.rules}`);
+      }
+    });
   }
 
   return worldContextDescription;
@@ -454,6 +480,19 @@ function buildExtendedWorldContextDescription(worldContext: WorldContext | undef
     }
   }
 
+  if (worldContext.keyObjects && worldContext.keyObjects.length > 0) {
+    worldContextDescription.push('\nKey Objects & Artifacts:');
+    worldContext.keyObjects.forEach((object) => {
+      worldContextDescription.push(`- ${object.name} (${object.type}): ${object.description}`);
+      if (object.influence) {
+        worldContextDescription.push(`  Influence: ${object.influence}`);
+      }
+      if (object.rules) {
+        worldContextDescription.push(`  Rules: ${object.rules}`);
+      }
+    });
+  }
+
   return worldContextDescription;
 }
 
@@ -601,8 +640,8 @@ export async function generateStory(
   } else {
     // Transform partial story to generation params
     const d = data;
-    const worldContext: WorldContext = d.worldId 
-      ? { id: d.worldId } as WorldContext 
+    const worldContext: WorldContext = d.worldId
+      ? { id: d.worldId } as WorldContext
       : { id: 'default' } as WorldContext;
     params = {
       genre: d.genre || [],
@@ -619,7 +658,7 @@ export async function generateStory(
 
   // Build final story object
   const storyId = ('id' in data && data.id) ? data.id : crypto.randomUUID();
-  
+
   return {
     id: storyId,
     title: params.totalTitle || 'Untitled Story',
@@ -679,7 +718,7 @@ export async function retryWithBackoff<T>(
  */
 export function handleLLMError(error: unknown): string {
   const err = error instanceof Error ? error : new Error(String(error));
-  
+
   if (err.message?.includes('network')) {
     return 'Network error: Unable to connect to LLM service. Please check your connection.';
   }

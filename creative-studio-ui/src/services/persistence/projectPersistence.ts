@@ -19,21 +19,36 @@ const ProjectSchema = z.object({
   id: z.string(),
   schema_version: z.string(),
   project_name: z.string(),
+  path: z.string().optional(),
   shots: z.array(z.any()),
   assets: z.array(z.any()),
   worlds: z.array(z.any()).optional(),
   selectedWorldId: z.string().nullable().optional(),
   characters: z.array(z.any()).optional(),
+  stories: z.array(z.any()).optional(),
+  storyVersions: z.array(z.any()).optional(),
+  objects: z.array(z.any()).optional(),
+
+  // Dashboard / Generation metadata
+  audio_phrases: z.array(z.any()).optional(),
+  master_coherence_sheet: z.object({
+    url: z.string(),
+    generated_at: z.number(),
+  }).optional(),
+  generation_history: z.array(z.any()).optional(),
+
   capabilities: z.object({
     grid_generation: z.boolean(),
     promotion_engine: z.boolean(),
     qa_engine: z.boolean(),
     autofix_engine: z.boolean(),
     character_casting: z.boolean().optional(),
+    voice_generation: z.boolean().optional(),
   }),
   generation_status: z.object({
     grid: z.enum(['pending', 'done', 'failed', 'passed']),
     promotion: z.enum(['pending', 'done', 'failed', 'passed']),
+    wizard: z.enum(['pending', 'done', 'failed', 'passed']).optional(),
   }),
   casting: z.object({
     version: z.string(),

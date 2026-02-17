@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Loader2, CheckCircle, AlertCircle, RefreshCw, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useStore } from '@/store';
-import type { GenerationProgress, StoryGenerationParams, WorldContext } from '@/types/story';
+import type { GenerationProgress, StoryGenerationParams, WorldContext, StoryPart, Story } from '@/types/story';
 import type { MethodologyState, StoryPhase } from '@/types/storyMethodology';
 import { generateStory } from '@/services/storyGenerationService';
 import { Star, ScrollText, Layers, FileEdit } from 'lucide-react';
@@ -44,11 +44,11 @@ interface PhaseProgressProps {
 }
 
 function PhaseProgress({ phases, currentPhase, progress }: PhaseProgressProps) {
-  const getPhaseIndex = (phase: StoryPhase) => 
+  const getPhaseIndex = (phase: StoryPhase) =>
     phases.findIndex(p => p.phase === phase);
-  
+
   const currentIndex = getPhaseIndex(currentPhase);
-  
+
   return (
     <div className="space-y-4">
       {/* Overall Progress */}
@@ -59,25 +59,24 @@ function PhaseProgress({ phases, currentPhase, progress }: PhaseProgressProps) {
         </div>
         <Progress value={progress} className="h-2" />
       </div>
-      
+
       {/* Phase Steps */}
       <div className="flex items-center justify-between">
         {phases.map((phase, index) => {
           const isComplete = index < currentIndex;
           const isCurrent = index === currentIndex;
           const isPending = index > currentIndex;
-          
+
           return (
             <React.Fragment key={phase.phase}>
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                    isComplete
-                      ? 'bg-green-500 text-white'
-                      : isCurrent
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${isComplete
+                    ? 'bg-green-500 text-white'
+                    : isCurrent
                       ? 'bg-blue-500 text-white animate-pulse'
                       : 'bg-muted text-muted-foreground'
-                  }`}
+                    }`}
                 >
                   {isComplete ? (
                     <CheckCircle className="w-5 h-5" />
@@ -163,7 +162,7 @@ function GenerationProgressComponent({ progress }: GenerationProgressProps) {
 // Story Preview Component
 // ============================================================================
 
-function StoryPartPreview({ part }: { part: unknown }) {
+function StoryPartPreview({ part }: { part: StoryPart }) {
   const scores = part.reviewScore;
 
   return (
@@ -206,7 +205,14 @@ function StoryPartPreview({ part }: { part: unknown }) {
   );
 }
 
-function StoryPreview({ title, summary, content, parts }: unknown) {
+interface StoryPreviewProps {
+  title: string;
+  summary: string;
+  content: string;
+  parts?: StoryPart[];
+}
+
+function StoryPreview({ title, summary, content, parts }: StoryPreviewProps) {
   const [activeTab, setActiveTab] = useState<'summary' | 'parts'>('parts');
 
   return (
@@ -244,7 +250,7 @@ function StoryPreview({ title, summary, content, parts }: unknown) {
       ) : (
         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           {parts && parts.length > 0 ? (
-            parts.map((part: unknown, index: number) => (
+            parts.map((part: StoryPart, index: number) => (
               <StoryPartPreview key={part.id || index} part={part} />
             ))
           ) : (
@@ -279,7 +285,7 @@ export function Step4StoryGeneration() {
     currentTask: 'Initializing story generation...',
   });
 
-  const [generatedStory, setGeneratedStory] = useState<any | null>(null);
+  const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasSkipped, setHasSkipped] = useState(false);
 
@@ -297,7 +303,7 @@ export function Step4StoryGeneration() {
       progress: 100,
       currentTask: 'Generation skipped - you can enter content manually in the next step',
     });
-    
+
     // Set empty content to allow proceeding
     updateFormData({
       generatedContent: '[Enter your story content here]',
@@ -331,10 +337,11 @@ export function Step4StoryGeneration() {
         })),
         culturalElements: currentWorld.culturalElements || {},
         atmosphere: currentWorld.atmosphere || '',
+        keyObjects: currentWorld.keyObjects || [],
       } : undefined;
 
       // Get selected characters and locations
-      const selectedCharacterIds = formData.selectedCharacters?.map((c: unknown) => c.id) || [];
+      const selectedCharacterIds = formData.selectedCharacters?.map((c: any) => c.id) || [];
       const selectedCharacters = characters.filter(c => selectedCharacterIds.includes(c.character_id));
       const selectedLocations = formData.selectedLocations || [];
 
@@ -343,8 +350,8 @@ export function Step4StoryGeneration() {
         genre: formData.genre || [],
         tone: formData.tone || [],
         length: formData.length || 'medium',
-        characters: selectedCharacters,
-        locations: selectedLocations,
+        characters: selectedCharacters as unknown as StoryGenerationParams['characters'],
+        locations: selectedLocations as unknown as StoryGenerationParams['locations'],
         worldContext: worldContext || {
           id: 'default',
           name: 'Default World',
@@ -363,9 +370,9 @@ export function Step4StoryGeneration() {
         currentTask: 'Analyzing story elements...',
       });
 
-      const story = await generateStory(params as any, (p: GenerationProgress) => {
+      const story = await generateStory(params, (p: GenerationProgress) => {
         setProgress(p);
-      }) as any;
+      });
 
       setGeneratedStory(story);
 

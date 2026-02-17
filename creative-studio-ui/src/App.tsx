@@ -44,11 +44,15 @@ import { LocationsModal } from '@/components/modals/LocationsModal';
 import { ObjectsModal } from '@/components/modals/ObjectsModal';
 import { ImageGalleryModal } from '@/components/modals/ImageGalleryModal';
 import { FactCheckModal } from '@/components/modals/FactCheckModal';
+import { AboutModal } from '@/components/modals/AboutModal';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { PendingReportsList } from '@/components/feedback/PendingReportsList';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ReferenceSheetManager } from '@/components/reference/ReferenceSheetManager';
 import { VideoReplicationDialog } from '@/components/reference/VideoReplicationDialog';
+import { CrossShotReferencePicker } from '@/components/reference/CrossShotReferencePicker';
+import { ProjectBranchingDialog } from '@/components/reference/ProjectBranchingDialog';
+import { EpisodeReferenceDialog } from '@/components/reference/EpisodeReferenceDialog';
 import DialogueEditor from '@/ui/DialogueEditor';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
@@ -120,6 +124,8 @@ function AppContent() {
     setShowPendingReportsList,
     showFactCheckModal,
     setShowFactCheckModal,
+    showAboutModal,
+    setShowAboutModal,
     showSequencePlanWizard,
     closeSequencePlanWizard,
     sequencePlanWizardContext,
@@ -134,6 +140,18 @@ function AppContent() {
     closeActiveWizard,
     settingsAddonId,
     closeAddonSettings,
+    // Continuous Creation state from store
+    showReferenceSheetManager,
+    setShowReferenceSheetManager,
+    showVideoReplicationDialog,
+    setShowVideoReplicationDialog,
+    showCrossShotReferencePicker,
+    setShowCrossShotReferencePicker,
+    showProjectBranchingDialog,
+    setShowProjectBranchingDialog,
+    showEpisodeReferenceDialog,
+    setShowEpisodeReferenceDialog,
+    selectedShotId,
   } = useAppStore(useShallow((state) => ({
     project: state.project,
     setProject: state.setProject,
@@ -175,6 +193,8 @@ function AppContent() {
     setShowPendingReportsList: state.setShowPendingReportsList,
     showFactCheckModal: state.showFactCheckModal,
     setShowFactCheckModal: state.setShowFactCheckModal,
+    showAboutModal: state.showAboutModal,
+    setShowAboutModal: state.setShowAboutModal,
     showSequencePlanWizard: state.showSequencePlanWizard,
     closeSequencePlanWizard: state.closeSequencePlanWizard,
     sequencePlanWizardContext: state.sequencePlanWizardContext,
@@ -189,6 +209,18 @@ function AppContent() {
     closeActiveWizard: state.closeActiveWizard,
     settingsAddonId: state.settingsAddonId,
     closeAddonSettings: state.closeAddonSettings,
+    // Continuous Creation state mappings
+    showReferenceSheetManager: state.showReferenceSheetManager,
+    setShowReferenceSheetManager: state.setShowReferenceSheetManager,
+    showVideoReplicationDialog: state.showVideoReplicationDialog,
+    setShowVideoReplicationDialog: state.setShowVideoReplicationDialog,
+    showCrossShotReferencePicker: state.showCrossShotReferencePicker,
+    setShowCrossShotReferencePicker: state.setShowCrossShotReferencePicker,
+    showProjectBranchingDialog: state.showProjectBranchingDialog,
+    setShowProjectBranchingDialog: state.setShowProjectBranchingDialog,
+    showEpisodeReferenceDialog: state.showEpisodeReferenceDialog,
+    setShowEpisodeReferenceDialog: state.setShowEpisodeReferenceDialog,
+    selectedShotId: state.selectedShotId,
   })));
 
   // MenuBar state management
@@ -203,9 +235,7 @@ function AppContent() {
     setHasUnsavedChanges(false);
   }, [project]);
 
-  // Local state for Continuous Creation modals
-  const [showReferenceSheetManager, setShowReferenceSheetManager] = useState(false);
-  const [showVideoReplicationDialog, setShowVideoReplicationDialog] = useState(false);
+  // Local state for Continuous Creation modals moved to store
   const [characterWizardWorldContext, setCharacterWizardWorldContext] = useState<World | undefined>(undefined);
   const [settingsAddonName, setSettingsAddonName] = useState('');
 
@@ -1075,6 +1105,11 @@ function AppContent() {
         onClose={() => setShowFactCheckModal(false)}
       />
 
+      <AboutModal
+        isOpen={showAboutModal}
+        onClose={() => setShowAboutModal(false)}
+      />
+
       {/* Continuous Creation Modals */}
       {/* Reference Sheet Manager Modal */}
       <ReferenceSheetManager
@@ -1096,6 +1131,52 @@ function AppContent() {
           toast({
             title: 'Replication Started',
             description: 'Video replication process has begun',
+          });
+        }}
+      />
+
+      {/* Cross-Shot Reference Picker */}
+      {showCrossShotReferencePicker && (
+        <CrossShotReferencePicker
+          currentShotId={selectedShotId || ''}
+          sequenceId="" // This could be enhanced to find the sequence ID of the shot
+          onSelect={(refs) => {
+            devLog('Borrowed references:', refs);
+            setShowCrossShotReferencePicker(false);
+            toast({
+              title: 'References Borrowed',
+              description: `Successfully borrowed ${refs.length} references`,
+            });
+          }}
+          onClose={() => setShowCrossShotReferencePicker(false)}
+        />
+      )}
+
+      {/* Project Branching Dialog */}
+      <ProjectBranchingDialog
+        open={showProjectBranchingDialog}
+        onClose={() => setShowProjectBranchingDialog(false)}
+        currentProjectId={project?.id || ''}
+        currentShotId={selectedShotId || undefined}
+        onBranchCreated={(branch) => {
+          devLog('Branch created:', branch);
+          toast({
+            title: 'Branch Created',
+            description: `Started new branch: ${branch.name}`,
+          });
+        }}
+      />
+
+      {/* Episode Reference Dialog */}
+      <EpisodeReferenceDialog
+        open={showEpisodeReferenceDialog}
+        onClose={() => setShowEpisodeReferenceDialog(false)}
+        currentProjectId={project?.id || ''}
+        onReferenceAdded={(ref) => {
+          devLog('Episode reference added:', ref);
+          toast({
+            title: 'Reference Linked',
+            description: `Linked to ${ref.episodeName}`,
           });
         }}
       />
