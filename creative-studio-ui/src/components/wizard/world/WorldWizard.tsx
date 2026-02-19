@@ -236,6 +236,11 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
           historicalEvents: [],
           culturalConflicts: [],
         },
+        visualIntent: data.visualIntent || {
+          colors: [],
+          style: '',
+          vibe: ''
+        },
         technology: data.technology || '',
         magic: data.magic || '',
         conflicts: data.conflicts || [],

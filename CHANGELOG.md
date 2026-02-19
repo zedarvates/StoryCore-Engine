@@ -1,5 +1,16 @@
 # StoryCore Engine - Changelog
 
+## [2026-02-20] - Neural Manufacturing & Genesis Sync
+### Added
+- **Neural Production Ledger**: Unified manifest for all AI-generated assets with verification badges and "Session Vault" persistence.
+- **Production Asset Manifestation**: High-fidelity character sheet generation workflow (Prompt Synthesis -> Latent Manifestation -> Rasterization).
+- **Director Rig Metadata Persistence**: Shot metadata (Lens, Sensor, Emotion) now correctly persists across sessions and is integrated into the Production Guide.
+- **World Genesis Synchronization**: "Visual Intent Registry" (Colors, Style, Vibe keywords) now fully persists via the World Wizard and is available to the Neural Assistant.
+
+### Fixed
+- **World Creation Bug**: Fixed missing `visualIntent` persistence during the final world instantiation step.
+- **Neural Assistant UI**: Corrected missing icons and hooks for the Production Ledger.
+
 ## [2026-02-19] - Directorial Intelligence & Neural Assistant
 
 ### ✨ Fonctionnalités (Features) 🚀

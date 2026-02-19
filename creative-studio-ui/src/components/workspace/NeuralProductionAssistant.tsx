@@ -11,7 +11,8 @@ import {
     Search,
     RefreshCw,
     Download,
-    Eye
+    Eye,
+    ClipboardList
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { useAppStore } from '@/stores/useAppStore';
@@ -28,6 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { ollamaClient } from '@/services/llm/OllamaClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface Character {
     character_id: string;
@@ -54,8 +56,12 @@ export function NeuralProductionAssistant() {
     const currentWorld = worlds.find(w => w.id === selectedWorldId);
 
     const [isGeneratingSheet, setIsGeneratingSheet] = useState<string | null>(null);
+    const [manifestedAssets, setManifestedAssets] = useState<any[]>([]);
+    const [isLedgerOpen, setIsLedgerOpen] = useState(false);
     const [advice, setAdvice] = useState<string | null>(null);
     const [isThinking, setIsThinking] = useState(false);
+    const [generationStep, setGenerationStep] = useState<string>('');
+    const { toast } = useToast();
 
     React.useEffect(() => {
         const handleGenEvent = (e: any) => {
@@ -98,13 +104,43 @@ export function NeuralProductionAssistant() {
     };
 
     const handleGenerateCharacterSheet = (charId: string) => {
+        const char = characters.find(c => c.character_id === charId);
+        if (!char) return;
+
         setIsGeneratingSheet(charId);
-        // Mock generation delay
+        setGenerationStep('Synthesizing Neural Prompt...');
+
+        // Step 1: Prompt Synthesis
         setTimeout(() => {
-            setIsGeneratingSheet(null);
-            // In a real scenario, this would trigger ComfyUI/StableDiffusion
-            console.log(`Character sheet generated for ${charId}`);
-        }, 3000);
+            setGenerationStep('Manifesting Latent Space...');
+
+            // Step 2: Latent Manifestation
+            setTimeout(() => {
+                setGenerationStep('Rasterizing Ontological Node...');
+
+                // Step 3: Completion
+                setTimeout(() => {
+                    const newSheet = {
+                        id: crypto.randomUUID(),
+                        characterId: charId,
+                        characterName: char.name,
+                        generatedAt: new Date().toISOString(),
+                        type: 'CHARACTER_REFERENCE_SHEET',
+                        // In real app, this would be a URL from ComfyUI
+                        url: char.visual_identity?.generated_portrait || `https://api.dicebear.com/7.x/avataaars/svg?seed=${char.name}`,
+                    };
+
+                    setManifestedAssets(prev => [newSheet, ...prev]);
+                    setIsGeneratingSheet(null);
+                    setGenerationStep('');
+
+                    toast({
+                        title: "MANIFESTATION COMPLETE",
+                        description: `${char.name} reference sheet has been added to the Production Ledger.`,
+                    });
+                }, 1500);
+            }, 1000);
+        }, 800);
     };
 
     return (
@@ -202,7 +238,7 @@ export function NeuralProductionAssistant() {
                                     ) : (
                                         <Layers className="w-3 h-3" />
                                     )}
-                                    {isGeneratingSheet === char.character_id ? 'Manifesting...' : 'Gen Sheet'}
+                                    {isGeneratingSheet === char.character_id ? generationStep : 'Gen Sheet'}
                                 </Button>
                             </div>
                         ))}
@@ -242,11 +278,65 @@ export function NeuralProductionAssistant() {
             </div>
 
             <div className="p-3 bg-primary/5 text-center">
-                <button className="text-[9px] font-black text-primary/60 uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-1 mx-auto">
-                    <Eye className="w-3 h-3" />
-                    Open Production Ledger
-                    <ChevronRight className="w-2.5 h-2.5" />
-                </button>
+                <Dialog open={isLedgerOpen} onOpenChange={setIsLedgerOpen}>
+                    <DialogTrigger asChild>
+                        <button className="text-[9px] font-black text-primary/60 uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-1 mx-auto">
+                            <Eye className="w-3 h-3" />
+                            Open Production Ledger
+                            <ChevronRight className="w-2.5 h-2.5" />
+                        </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl bg-[#0a0a0b] border-primary/20 text-white font-mono">
+                        <DialogHeader>
+                            <DialogTitle className="text-primary uppercase tracking-[0.3em] font-black text-xs flex items-center gap-2">
+                                <ClipboardList className="w-4 h-4" />
+                                Production Ledger: Manifested Assets
+                            </DialogTitle>
+                        </DialogHeader>
+
+                        <div className="grid grid-cols-3 gap-4 mt-6 max-h-[60vh] overflow-auto p-2">
+                            {manifestedAssets.length === 0 ? (
+                                <div className="col-span-3 py-20 text-center border border-dashed border-primary/10 rounded-sm">
+                                    <Layers className="w-12 h-12 mx-auto mb-4 text-primary/10" />
+                                    <p className="text-[10px] text-primary/40 uppercase tracking-widest">No assets manifested in current session</p>
+                                </div>
+                            ) : (
+                                manifestedAssets.map(asset => (
+                                    <div key={asset.id} className="group relative bg-white/5 border border-white/10 hover:border-primary/40 rounded-sm overflow-hidden transition-all">
+                                        <div className="aspect-[4/5] bg-black overflow-hidden relative">
+                                            <img src={asset.url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                                            <Badge className="absolute top-2 right-2 text-[8px] bg-primary text-black font-black uppercase">
+                                                Certified
+                                            </Badge>
+                                        </div>
+                                        <div className="p-3">
+                                            <p className="text-[11px] font-black text-white uppercase">{asset.characterName}</p>
+                                            <p className="text-[8px] text-white/40 uppercase mt-1">Ref: {asset.type}</p>
+                                            <div className="mt-3 flex items-center justify-between">
+                                                <span className="text-[8px] text-primary/60">{new Date(asset.generatedAt).toLocaleTimeString()}</span>
+                                                <Button size="icon" variant="ghost" className="h-6 w-6 text-primary/60 hover:text-primary hover:bg-primary/10">
+                                                    <Download className="w-3 h-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <DialogFooter className="mt-6 border-t border-primary/10 pt-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-[10px] font-black uppercase border-primary/20 hover:bg-primary hover:text-black"
+                                onClick={() => setIsLedgerOpen(false)}
+                            >
+                                Close Manifest
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </Card>
     );

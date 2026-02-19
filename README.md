@@ -133,9 +133,10 @@ graph LR
 - **Sound Effects**: Integrated SFX library and synchronization.
 
 ### 🛠️ Production Tools
-- **Neural Production Assistant**: Agentic sidebar for directorial advice and character sheet manifest.
-- **Wizard System**: Guided workflows for Characters, Scenes, and Worlds (with Aesthetic Registry).
-- **Sequence Editor**: Professional timeline with frame-accurate editing.
+- **Neural Production Assistant**: AI-driven directorial advice and "Neural Manufacturing" workflow.
+- **Production Ledger**: A verified manifest of all AI-generated assets (Character Sheets, Style Guides).
+- **Director Rig Metadata**: High-fidelity technical metadata for shots (Lens geometry, Sensor look, Emotional intensity).
+- **World Aesthetic Registry**: Persistent visual intent registry (Colors, Vibe, Artistic Signature) integrated with the World Genesis engine.
 - **Production Guide**: Comprehensive shot recap with Technical Rig metadata (Lens, Sensor, Emotion).
 - **Aesthetic Registry**: Persistent World blueprints (Color Slates, Vibe, Artistic Style).
 
