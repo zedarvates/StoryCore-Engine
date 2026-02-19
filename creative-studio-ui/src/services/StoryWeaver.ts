@@ -1,6 +1,7 @@
 
 import type { Story, StoryPart, StoryGenerationParams, GenerationProgress } from '../types/story';
 import type { StoryMethodologyType, MethodologyState } from '../types/storyMethodology';
+import { useMemoryStore } from '../stores/memoryStore';
 import { storyReviewer } from './StoryReviewer';
 import { generateStoryContent, generateStorySummary, retryWithBackoff } from './storyGenerationService';
 import { methodologyFactory } from './MethodologyFactory';
@@ -283,6 +284,10 @@ export class StoryWeaver {
             throw error;
         }
 
+        // Total Recall: Analyze for memory
+        const { projectMemory } = await import('./ProjectMemoryService');
+        projectMemory.analyzeForMemory(content, `Story Generation: ${type} ${partIndex || ''}`);
+
         let scores;
         try {
             scores = await storyReviewer.reviewPart(content, { genre: params.genre, tone: params.tone });
@@ -310,6 +315,7 @@ export class StoryWeaver {
 
     private getPartPrompt(type: string, params: StoryGenerationParams, previousSummary: string, partIndex?: number): string {
         const contextStr = previousSummary ? `\n\nPreviously in the story:\n${previousSummary}` : '';
+        const workingContext = useMemoryStore.getState().workingContext;
 
         let instructions = '';
         if (type === 'intro') {
@@ -324,6 +330,9 @@ export class StoryWeaver {
 You are writing a story in the following style:
 Genre: ${params.genre?.join(', ') || 'fantasy'}
 Tone: ${params.tone?.join(', ') || 'adventurous'}
+
+[LIVING PROJECT PROTOCOL]
+${workingContext}
 
 Instructions: ${instructions}${contextStr}
 

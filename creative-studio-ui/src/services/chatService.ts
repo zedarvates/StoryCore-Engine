@@ -944,7 +944,7 @@ export class ChatService {
   private async handleCreateCharacter(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
-    const name = nameMatch ? nameMatch[1].trim() : undefined;
+    let name = nameMatch ? nameMatch[1].trim() : undefined;
 
     let description = '';
     let generatedPrompts: string[] = [];
@@ -954,13 +954,19 @@ export class ChatService {
     // Generate details using LLM if available
     if (llmService && typeof llmService.generateCompletion === 'function') {
       try {
-        const prompt = `Generate a creative character profile based on this request: "${input}". 
+        const workingContext = useMemoryStore.getState().workingContext;
+        const prompt = `Generate a detailed character profile based on this request: "${input}". 
+        
+        [LIVING PROJECT PROTOCOL]
+        ${workingContext}
+
         Provide a JSON response with the following fields:
         {
-          "description": "Short but evocative description (2-3 sentences)",
-          "archetype": "The character archetype (e.g. Warrior, Sage, Rebel)",
-          "gender": "male, female, or non-binary",
-          "visual_prompts": ["Detailed prompt for generating a character portrait", "Detailed prompt for a full-body character sheet"]
+          "name": "A creative name (if not provided)",
+          "archetype": "The character's role (e.g. Hero, Villain, Mentor)",
+          "gender": "male/female/neutral",
+          "description": "Short description (2-3 sentences)",
+          "visual_prompts": ["3 descriptive prompts for image generation"]
         }`;
 
         const response = await llmService.generateCompletion({
@@ -979,6 +985,7 @@ export class ChatService {
               archetype = data.archetype || '';
               gender = data.gender || '';
               generatedPrompts = data.visual_prompts || [];
+              if (!name) name = data.name; // Use generated name if not provided
             } else {
               // Fallback if no JSON found
               description = response.data.content;
@@ -1023,27 +1030,32 @@ export class ChatService {
   /**
    * Handle location creation request
    */
-  /**
-   * Handle location creation request
-   */
   private async handleCreateLocation(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
-    const name = nameMatch ? nameMatch[1].trim() : undefined;
+    let name = nameMatch ? nameMatch[1].trim() : undefined;
 
     let description = '';
     let atmosphere = '';
     let generatedPrompts: string[] = [];
+    let type = '';
 
     // Generate details using LLM if available
     if (llmService && typeof llmService.generateCompletion === 'function') {
       try {
-        const prompt = `Generate a creative location profile based on this request: "${input}". 
+        const workingContext = useMemoryStore.getState().workingContext;
+        const prompt = `Generate a rich location profile based on this request: "${input}". 
+        
+        [LIVING PROJECT PROTOCOL]
+        ${workingContext}
+
         Provide a JSON response with the following fields:
         {
-          "description": "Evocative description of the location (2-3 sentences)",
-          "atmosphere": "The mood or atmosphere (e.g. ominous, peaceful, futuristic)",
-          "visual_prompts": ["Detailed prompt for generating a wide landscape shot", "Detailed prompt for an interior or detail shot"]
+          "name": "A creative name (if not provided)",
+          "type": "landmark/interior/exterior/city/nature",
+          "description": "Short description (2-3 sentences)",
+          "atmosphere": "The mood (e.g. spooky, bright, futuristic)",
+          "visual_prompts": ["3 descriptive prompts for image generation"]
         }`;
 
         const response = await llmService.generateCompletion({
@@ -1060,6 +1072,8 @@ export class ChatService {
               description = data.description || '';
               atmosphere = data.atmosphere || '';
               generatedPrompts = data.visual_prompts || [];
+              type = data.type || '';
+              if (!name) name = data.name; // Use generated name if not provided
             } else {
               description = response.data.content;
             }
@@ -1093,7 +1107,8 @@ export class ChatService {
           rawInput: input,
           description,
           atmosphere,
-          prompts: generatedPrompts
+          prompts: generatedPrompts,
+          type
         },
       }],
     };
@@ -1102,13 +1117,10 @@ export class ChatService {
   /**
    * Handle object creation request
    */
-  /**
-   * Handle object creation request
-   */
   private async handleCreateObject(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
-    const name = nameMatch ? nameMatch[1].trim() : undefined;
+    let name = nameMatch ? nameMatch[1].trim() : undefined;
 
     let description = '';
     let rarity = 'common';
@@ -1118,13 +1130,19 @@ export class ChatService {
     // Generate details using LLM if available
     if (llmService && typeof llmService.generateCompletion === 'function') {
       try {
+        const workingContext = useMemoryStore.getState().workingContext;
         const prompt = `Generate a creative object/artifact profile based on this request: "${input}". 
+        
+        [LIVING PROJECT PROTOCOL]
+        ${workingContext}
+
         Provide a JSON response with the following fields:
         {
-          "description": "Detailed description of the object (2-3 sentences)",
+          "name": "A creative name (if not provided)",
+          "description": "Short description (2-3 sentences)",
           "type": "weapon, tool, artifact, or prop",
           "rarity": "common, uncommon, rare, epic, or legendary",
-          "visual_prompts": ["Detailed prompt for generating a product shot of the object"]
+          "visual_prompts": ["3 descriptive prompts for image generation"]
         }`;
 
         const response = await llmService.generateCompletion({
@@ -1142,6 +1160,7 @@ export class ChatService {
               type = data.type || 'prop';
               rarity = data.rarity || 'common';
               generatedPrompts = data.visual_prompts || [];
+              if (!name) name = data.name; // Use generated name if not provided
             } else {
               description = response.data.content;
             }
@@ -1194,7 +1213,12 @@ export class ChatService {
     // Generate details using LLM if available
     if (llmService && typeof llmService.generateCompletion === 'function') {
       try {
+        const workingContext = useMemoryStore.getState().workingContext;
         const prompt = `Analyze this dialogue request: "${input}". 
+        
+        [LIVING PROJECT PROTOCOL]
+        ${workingContext}
+
         Provide a JSON response with the following fields:
         {
           "topic": "The main topic or context of the conversation",
@@ -1270,7 +1294,12 @@ export class ChatService {
     // Generate details using LLM if available
     if (llmService && typeof llmService.generateCompletion === 'function') {
       try {
+        const workingContext = useMemoryStore.getState().workingContext;
         const prompt = `Generate a creative story outline based on this request: "${input}". 
+        
+        [LIVING PROJECT PROTOCOL]
+        ${workingContext}
+
         Provide a JSON response with the following fields:
         {
           "title": "A creative title (if not provided)",
@@ -1356,7 +1385,12 @@ export class ChatService {
     // Generate details using LLM if available
     if (llmService && typeof llmService.generateCompletion === 'function') {
       try {
+        const workingContext = useMemoryStore.getState().workingContext;
         const prompt = `Generate a world building profile based on this request: "${input}". 
+        
+        [LIVING PROJECT PROTOCOL]
+        ${workingContext}
+
         Provide a JSON response with the following fields:
         {
           "name": "A creative name for the world (if not provided)",
@@ -1442,7 +1476,12 @@ export class ChatService {
     // Generate details using LLM if available
     if (llmService && typeof llmService.generateCompletion === 'function') {
       try {
+        const workingContext = useMemoryStore.getState().workingContext;
         const prompt = `Generate a scenario/script outline based on this request: "${input}". 
+        
+        [LIVING PROJECT PROTOCOL]
+        ${workingContext}
+
         Provide a JSON response with the following fields:
         {
           "title": "A creative title (if not provided)",

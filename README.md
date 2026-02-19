@@ -129,10 +129,13 @@ graph LR
 - **Multi-Model Support**: Flux, SDXL, NewBie, Qwen 2.5-VL, HunyuanVideo, Wan Video.
 - **Self-Correcting**: Automatic quality detection and auto-fix capability.
 
+### 🛠 Neural Augmented Creation & Project Genesis
+*   **Context-Bound Intelligence**: Every created character, world, and story part is cross-referenced with the **Total Recall Working Context**, ensuring zero narrative drift.
+*   **Autonomous Genesis**: AI can now autonomously suggest names, archetypes, and lore based on the project's living protocol, transforming creative prompts into fully realized entities instantly.
+*   **Multi-Methodology Weaving**: From legacy sequential generation to advanced structured drafting, the methodology engine uses neural augmentation to maintain consistency across different creative workflows.
+*   **Vision-to-Asset Genesis**: Transform visual inspiration into persistent project assets (Characters, Worlds, Objects) with the integrated Multimodal Vision system.
+
 ### ✍️ Story & Content Creation
-- **Augmented Creation Engine**: Significant upgrade in AI-driven generation for Characters, Locations, Objects, and Worlds with automatic detail enrichment.
-- **Neural Scenario Planning**: Automated breakdown of storyboards into optimized shot sequences with technical rig metadata.
-- **Project Genesis**: One-shot project creation from natural language descriptions, including automatic universe building.
 - **AI Dialogue**: Natural voice generation with emotion control.
 - **Background Music**: Automatic composition based on scene mood.
 - **Sound Effects**: Integrated SFX library and synchronization.
