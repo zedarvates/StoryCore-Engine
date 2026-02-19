@@ -12,7 +12,8 @@ import {
     Sparkles,
     Zap,
     Info,
-    Package
+    Package,
+    Brain
 } from 'lucide-react';
 import { useSequencePlanStore } from '@/stores/sequencePlanStore';
 import { useAppStore } from '@/stores/useAppStore';
@@ -21,6 +22,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useProductionStore, type ManifestedAsset } from '@/stores/productionStore';
+import { useMemoryStore } from '@/stores/memoryStore';
+import { projectMemory } from '@/services/ProjectMemoryService';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import './ProductionGuide.css';
 
 /**
@@ -41,6 +52,8 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
     const updateShot = useAppStore((state) => state.updateShot);
     const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
     const [isSyncing, setIsSyncing] = useState(false);
+    const [previewAsset, setPreviewAsset] = useState<ManifestedAsset | null>(null);
+    const manifestedAssets = useProductionStore((state) => state.manifestedAssets);
 
     // Get all objects from all worlds for lookup
     const allObjects = worlds.flatMap(w => w.keyObjects || []);
@@ -113,6 +126,11 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
 
     const handleNoteChange = (shotId: string, note: string) => {
         updateShot(shotId, { notes: note } as any);
+
+        // Analyze for memory (Write Gate) - Only for significant notes
+        if (note.length > 20) {
+            projectMemory.analyzeForMemory(note, `Production Note (Shot ${shotId})`);
+        }
     };
 
     const truncate = (text: string, length: number) => {
@@ -156,6 +174,16 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                         <div>
                             <span className="stat-label">Shots count</span>
                             <span className="stat-value">{currentPlan.shots.length} Fragments</span>
+                        </div>
+                    </div>
+
+                    <div className="info-stat border-primary/20 bg-primary/10">
+                        <Brain className="w-4 h-4 text-primary" />
+                        <div className="flex-1 min-w-0">
+                            <span className="stat-label">Living Protocol</span>
+                            <span className="stat-value text-[9px] leading-tight opacity-70 line-clamp-1">
+                                {useMemoryStore.getState().workingContext}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -283,8 +311,14 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                                                 {shot.composition?.characterIds?.length ? (
                                                     shot.composition.characterIds.map(cid => {
                                                         const char = characters.find(c => c.character_id === cid);
+                                                        const asset = manifestedAssets.find(a => a.characterId === cid);
                                                         return (
-                                                            <div key={cid} className="actor-ref" title={char?.name || 'Unknown Character'}>
+                                                            <div
+                                                                key={cid}
+                                                                className={cn("actor-ref", asset && "has-sheet")}
+                                                                title={char?.name || 'Unknown Character'}
+                                                                onClick={() => asset && setPreviewAsset(asset)}
+                                                            >
                                                                 {char?.visual_identity?.generated_portrait ? (
                                                                     <img src={char.visual_identity.generated_portrait} alt={char.name} />
                                                                 ) : (
@@ -298,11 +332,15 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                                             <div className="props-strip">
                                                 {shot.composition?.props?.length ? (
                                                     shot.composition.props.map((pid: string) => {
-                                                        // Find object in worlds or global store if possible
-                                                        // For now just show item count
+                                                        const asset = manifestedAssets.find(a => a.objectId === pid);
                                                         return (
-                                                            <div key={pid} className="prop-ref" title="Object Asset">
-                                                                <Package size={10} className="text-yellow-400/40" />
+                                                            <div
+                                                                key={pid}
+                                                                className={cn("prop-ref", asset && "has-sheet")}
+                                                                title={asset ? "View Manifested Reference" : "Object Asset"}
+                                                                onClick={() => asset && setPreviewAsset(asset)}
+                                                            >
+                                                                <Package size={10} className={asset ? "text-yellow-400" : "text-yellow-400/40"} />
                                                             </div>
                                                         );
                                                     })
@@ -324,8 +362,8 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                                                 <span>Composition</span>
                                             </button>
                                             <button
-                                                className="btn-gen-sheet"
-                                                title="Generate Reference Sheet"
+                                                className={`btn-gen-sheet ${manifestedAssets.some(a => a.characterId === shot.composition?.characterIds?.[0]) ? 'has-sheet' : ''}`}
+                                                title={manifestedAssets.some(a => a.characterId === shot.composition?.characterIds?.[0]) ? 'Reference Sheet Manifested' : 'Generate Reference Sheet'}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     // Trigger event for Neural Production Assistant or direct COM-API
@@ -424,6 +462,36 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                     })}
                 </div>
             </div>
+            {/* Asset Preview Modal */}
+            <Dialog open={!!previewAsset} onOpenChange={(open) => !open && setPreviewAsset(null)}>
+                <DialogContent className="max-w-xl bg-[#0a0a0b] border-primary/20 text-white font-mono">
+                    <DialogHeader>
+                        <DialogTitle className="text-primary uppercase tracking-[0.3em] font-black text-xs flex items-center gap-2">
+                            <Sparkles className="w-4 h-4" />
+                            Neural Manifestation Preview
+                        </DialogTitle>
+                    </DialogHeader>
+                    {previewAsset && (
+                        <div className="space-y-4 mt-4">
+                            <div className="aspect-square bg-black rounded-sm overflow-hidden border border-white/10">
+                                <img src={previewAsset.url} alt={previewAsset.characterName} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="p-4 bg-white/5 border border-white/5 rounded-sm">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className="text-xs font-black uppercase text-white">{previewAsset.characterName}</h3>
+                                    <Badge className="text-[8px] bg-primary text-black uppercase">{previewAsset.type.split('_')[0]}</Badge>
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="text-[9px] text-white/40 uppercase font-black">Synthesized Prompt:</p>
+                                    <p className="text-[10px] text-white/60 leading-relaxed italic pr-4">
+                                        {previewAsset.metadata?.prompt || 'Original manifest prompt unavailable'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

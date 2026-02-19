@@ -14,6 +14,7 @@ import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
+import { useMemoryStore } from '@/stores/memoryStore';
 import { cn } from '@/lib/utils';
 
 // Helper function to get option label safely
@@ -96,6 +97,9 @@ export function Step1RealityAnchor() {
 - Causal Frameworks (Genre): ${formData.genre.join(', ')}
 - Experiential Parameters (Tone): ${formData.tone.join(', ')}
 - Temporal Coordinates (Time Period): ${formData.timePeriod || 'unspecified'}
+
+[EXISTING PROJECT PROTOCOLS / MEMORY]:
+${useMemoryStore.getState().workingContext}
 
 Provide:
 1. A memorable reality designation

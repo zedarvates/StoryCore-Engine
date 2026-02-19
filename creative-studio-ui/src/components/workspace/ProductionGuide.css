@@ -326,6 +326,13 @@
     height: 24px;
 }
 
+.btn-gen-sheet.has-sheet {
+    background: #10b981;
+    color: #000;
+    border-color: transparent;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
 .btn-gen-sheet:hover {
     background: var(--primary);
     color: black;
@@ -477,3 +484,22 @@
     align-items: center;
     justify-content: center;
 }
+.prop-ref.has-sheet {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid #fbbf24;
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+.actor-ref.has-sheet {
+    border: 1px solid #fbbf24;
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+    cursor: pointer;
+}
+
+.actor-ref.has-sheet img {
+    border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+.prop-ref.has-sheet { cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.prop-ref.has-sheet:hover { filter: brightness(1.2); transform: scale(1.05); }
+

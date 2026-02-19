@@ -124,21 +124,26 @@ graph LR
 
 ### 🎬 Video Generation
 - **Visual Coherence System**: Master Coherence Sheet ensures consistent style.
-- **Multi-Model Support**: Flux, SDXL, NewBie, Qwen, HunyuanVideo, Wan Video.
+- **Total Recall (Living Protocol)**: Persistent neural memory that captures stylistic decisions, character facts, and production rules as they emerge during chat or creation.
+- **Multimodal Vision Analysis**: Native support for analyzing reference images to extract visual archetypes, atmospheres, and cinematic styles.
+- **Multi-Model Support**: Flux, SDXL, NewBie, Qwen 2.5-VL, HunyuanVideo, Wan Video.
 - **Self-Correcting**: Automatic quality detection and auto-fix capability.
 
-### 🔊 Audio Processing
+### ✍️ Story & Content Creation
+- **Augmented Creation Engine**: Significant upgrade in AI-driven generation for Characters, Locations, Objects, and Worlds with automatic detail enrichment.
+- **Neural Scenario Planning**: Automated breakdown of storyboards into optimized shot sequences with technical rig metadata.
+- **Project Genesis**: One-shot project creation from natural language descriptions, including automatic universe building.
 - **AI Dialogue**: Natural voice generation with emotion control.
 - **Background Music**: Automatic composition based on scene mood.
 - **Sound Effects**: Integrated SFX library and synchronization.
 
 ### 🛠️ Production Tools
 - **Neural Production Assistant**: AI-driven directorial advice and "Neural Manufacturing" workflow.
-- **Production Ledger**: A verified manifest of all AI-generated assets (Character Sheets, Style Guides).
+- **Neural Brain**: Dedicated interface for managing persistent project insights and distilling "Living Protocols."
+- **Production Ledger**: A verified manifest of all AI-generated assets (Character Sheets, Style Guides, Lore fragments).
 - **Director Rig Metadata**: High-fidelity technical metadata for shots (Lens geometry, Sensor look, Emotional intensity).
 - **World Aesthetic Registry**: Persistent visual intent registry (Colors, Vibe, Artistic Signature) integrated with the World Genesis engine.
 - **Production Guide**: Comprehensive shot recap with Technical Rig metadata (Lens, Sensor, Emotion).
-- **Aesthetic Registry**: Persistent World blueprints (Color Slates, Vibe, Artistic Style).
 
 ### 🏗️ Architecture
 - **100% Local**: No external dependencies for core processing.
@@ -202,9 +207,12 @@ graph TD
 | Phase | Feature | Status |
 | :--- | :--- | :--- |
 | **Q1 2026** | Neural Production Assistant | ✅ Completed |
-| **Q1 2026** | World Aesthetic Registry | ✅ Completed |
-| **Q1 2026** | Image Generation Dialog Enhancement | 🔄 In Progress |
+| **Q1 2026** | Total Recall AI Memory (Living Protocol) | ✅ Completed |
+| **Q1 2026** | Multimodal Vision Integration | ✅ Completed |
+| **Q1 2026** | World Aesthetic Registry & Genesis | ✅ Completed |
+| **Q1 2026** | Augmented Content Creation Engine | ✅ Completed |
 | **Q1 2026** | Advanced Camera Movements & Rigging | ✅ Completed |
+| **Q2 2026** | Image Generation Dialog Enhancement | 🔄 In Progress |
 | **Q2 2026** | Multi-format Export (MP4/WebM) | 🔜 Planned |
 | **Q3 2026** | Collaborative Features | 📋 Backlog |
 | **Q4 2026** | Cloud Deployment Options | 📋 Backlog |

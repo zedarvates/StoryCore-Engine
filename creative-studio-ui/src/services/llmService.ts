@@ -396,7 +396,18 @@ class OpenAIProvider extends LLMProviderBase {
         model: this.config.model,
         messages: [
           ...(request.systemPrompt ? [{ role: 'system', content: request.systemPrompt }] : []),
-          { role: 'user', content: request.prompt },
+          {
+            role: 'user',
+            content: request.images && request.images.length > 0
+              ? [
+                { type: 'text', text: request.prompt },
+                ...request.images.map(img => ({
+                  type: 'image_url',
+                  image_url: { url: img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}` }
+                }))
+              ]
+              : request.prompt
+          },
         ],
         temperature: request.temperature ?? this.config.parameters.temperature,
         max_tokens: request.maxTokens ?? this.config.parameters.maxTokens,
@@ -447,7 +458,18 @@ class OpenAIProvider extends LLMProviderBase {
         model: this.config.model,
         messages: [
           ...(request.systemPrompt ? [{ role: 'system', content: request.systemPrompt }] : []),
-          { role: 'user', content: request.prompt },
+          {
+            role: 'user',
+            content: request.images && request.images.length > 0
+              ? [
+                { type: 'text', text: request.prompt },
+                ...request.images.map(img => ({
+                  type: 'image_url',
+                  image_url: { url: img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}` }
+                }))
+              ]
+              : request.prompt
+          },
         ],
         temperature: request.temperature ?? this.config.parameters.temperature,
         max_tokens: request.maxTokens ?? this.config.parameters.maxTokens,
@@ -608,7 +630,22 @@ class AnthropicProvider extends LLMProviderBase {
         temperature: request.temperature ?? this.config.parameters.temperature,
         system: request.systemPrompt,
         messages: [
-          { role: 'user', content: request.prompt },
+          {
+            role: 'user',
+            content: request.images && request.images.length > 0
+              ? [
+                ...request.images.map(img => ({
+                  type: 'image',
+                  source: {
+                    type: 'base64',
+                    media_type: 'image/jpeg',
+                    data: img.startsWith('data:') ? img.split(',')[1] : img
+                  }
+                })),
+                { type: 'text', text: request.prompt }
+              ]
+              : request.prompt
+          },
         ],
         stream: false,
       }),
@@ -656,7 +693,22 @@ class AnthropicProvider extends LLMProviderBase {
         temperature: request.temperature ?? this.config.parameters.temperature,
         system: request.systemPrompt,
         messages: [
-          { role: 'user', content: request.prompt },
+          {
+            role: 'user',
+            content: request.images && request.images.length > 0
+              ? [
+                ...request.images.map(img => ({
+                  type: 'image',
+                  source: {
+                    type: 'base64',
+                    media_type: 'image/jpeg',
+                    data: img.startsWith('data:') ? img.split(',')[1] : img
+                  }
+                })),
+                { type: 'text', text: request.prompt }
+              ]
+              : request.prompt
+          },
         ],
         stream: true,
       }),
@@ -838,6 +890,7 @@ class CustomProvider extends LLMProviderBase {
             temperature: request.temperature ?? this.config.parameters.temperature,
             num_predict: numPredict,
           },
+          images: request.images,
         }),
         signal,
       });

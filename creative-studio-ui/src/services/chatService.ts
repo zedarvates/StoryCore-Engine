@@ -1,5 +1,8 @@
 import type { ChatMessage, Shot, Project, Asset } from '@/types';
 import type { LanguageCode } from '@/utils/llmConfigStorage';
+import { useMemoryStore } from '@/stores/memoryStore';
+import { projectMemory } from '@/services/ProjectMemoryService';
+import { ollamaClient } from '@/services/llm/OllamaClient';
 
 export interface ChatContext {
   project: Project | null;
@@ -142,7 +145,10 @@ export class ChatService {
         return await this.handleGenerateVideo(userInput, llmService, language);
 
       default:
-        return this.handleGeneral(input);
+        const response = await this.handleGeneral(userInput, llmService, language);
+        // Total Recall: Analyze for new insights
+        projectMemory.analyzeForMemory(response.message, 'Chat Assistant');
+        return response;
     }
   }
 
@@ -864,18 +870,65 @@ export class ChatService {
   }
 
   /**
-   * Handle general queries
+   * Handle general queries using LLM with Project Memory
    */
-  private handleGeneral(input: string): ChatResponse {
-    return {
-      message:
-        "I can help you create shots, add transitions, suggest audio settings, and more. What would you like to do?",
-      suggestions: [
-        'Create a new shot sequence',
-        'Add transitions between shots',
-        'Suggest audio for my scenes',
-      ],
-    };
+  private async handleGeneral(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    const workingContext = useMemoryStore.getState().workingContext;
+    const projectInfo = this.context.project ?
+      `Project: ${this.context.project.project_name}. ${this.context.project.metadata?.description || ''}` :
+      'No specific project loaded.';
+
+    const prompt = `You are the StoryCore AI Production Assistant. 
+    Acknowledge the user's request and provide a helpful response that respects the established project protocols.
+
+    [STABLE PROJECT PROTOCOLS]
+    ${workingContext}
+
+    [CURRENT CONTEXT]
+    ${projectInfo}
+    Shots in current plan: ${this.context.shots.length}
+
+    [USER REQUEST]
+    ${input}
+
+    Guidelines:
+    1. Be concise and professional (cine-tech tone).
+    2. If the user wants to create something (character, world, etc.), guide them or offer to help.
+    3. Refer to "Living Protocols" if relevant to show you remember past decisions.
+    
+    Response (${language}):`;
+
+    try {
+      let message = "";
+      if (llmService && typeof llmService.generateCompletion === 'function') {
+        const res = await llmService.generateCompletion({ prompt, maxTokens: 500, temperature: 0.7 });
+        message = res.data?.content || "I'm listening. How can I assist with your production today?";
+      } else {
+        // Fallback to direct ollama if llmService is missing but ollama might be there
+        message = await ollamaClient.generate('llama3', prompt, { temperature: 0.7 });
+      }
+
+      return {
+        message,
+        suggestions: language === 'fr' ? [
+          'Afficher les protocoles du projet',
+          'Analyser la cohérence de ma scène',
+          'Suggérer une nouvelle palette de couleurs'
+        ] : [
+          'Show project protocols',
+          'Analyze scene consistency',
+          'Suggest a new color palette'
+        ]
+      };
+    } catch (e) {
+      console.error('Failed to generate general chat response:', e);
+      return {
+        message: language === 'fr'
+          ? "Je suis là pour vous aider dans votre production. Que souhaitez-vous faire ?"
+          : "I'm here to help with your production. What would you like to do?",
+        suggestions: ['Create a shot sequence', 'Add transitions']
+      };
+    }
   }
 
   // ========================================================================
@@ -934,6 +987,10 @@ export class ChatService {
             console.warn('Failed to parse LLM character generation response', e);
             description = response.data.content;
           }
+
+          // Total Recall: Analyze for memory
+          const { projectMemory } = await import('@/services/ProjectMemoryService');
+          projectMemory.analyzeForMemory(description, 'Character Concept Analysis');
         }
       } catch (error) {
         console.error('Error generating character details:', error);
@@ -1010,6 +1067,10 @@ export class ChatService {
             console.warn('Failed to parse LLM location generation response', e);
             description = response.data.content;
           }
+
+          // Total Recall: Analyze for memory
+          const { projectMemory } = await import('@/services/ProjectMemoryService');
+          projectMemory.analyzeForMemory(`${description}\nAtmosphere: ${atmosphere}`, 'Location Concept Analysis');
         }
       } catch (error) {
         console.error('Error generating location details:', error);
@@ -1088,6 +1149,10 @@ export class ChatService {
             console.warn('Failed to parse LLM object generation response', e);
             description = response.data.content;
           }
+
+          // Total Recall: Analyze for memory
+          const { projectMemory } = await import('@/services/ProjectMemoryService');
+          projectMemory.analyzeForMemory(`${description}\nType: ${type}\nRarity: ${rarity}`, 'Object Concept Analysis');
         }
       } catch (error) {
         console.error('Error generating object details:', error);
@@ -1157,6 +1222,10 @@ export class ChatService {
           } catch (e) {
             console.warn('Failed to parse LLM dialogue analysis', e);
           }
+
+          // Total Recall: Analyze for memory
+          const { projectMemory } = await import('@/services/ProjectMemoryService');
+          projectMemory.analyzeForMemory(`Topic: ${topic}\nTone: ${tone}\nCharacters: ${characters.join(', ')}`, 'Dialogue Intent Analysis');
         }
       } catch (error) {
         console.error('Error analyzing dialogue request:', error);
@@ -1236,6 +1305,10 @@ export class ChatService {
             console.warn('Failed to parse LLM story generation response', e);
             plotOutline = response.data.content;
           }
+
+          // Total Recall: Analyze for memory
+          const { projectMemory } = await import('@/services/ProjectMemoryService');
+          projectMemory.analyzeForMemory(plotOutline, 'Story Outline Analysis');
         }
       } catch (error) {
         console.error('Error generating story details:', error);
@@ -1318,6 +1391,10 @@ export class ChatService {
             console.warn('Failed to parse LLM world generation response', e);
             description = response.data.content;
           }
+
+          // Total Recall: Analyze for memory
+          const { projectMemory } = await import('@/services/ProjectMemoryService');
+          projectMemory.analyzeForMemory(`${description}\nEra: ${era}\nGenre: ${genre}`, 'World Concept Analysis');
         }
       } catch (error) {
         console.error('Error generating world details:', error);
@@ -1397,6 +1474,10 @@ export class ChatService {
           } catch (e) {
             console.warn('Failed to parse LLM scenario generation response', e);
           }
+
+          // Total Recall: Analyze for memory
+          const { projectMemory } = await import('@/services/ProjectMemoryService');
+          projectMemory.analyzeForMemory(`${conflict}\nResolution: ${resolution}`, 'Scenario Intent Analysis');
         }
       } catch (error) {
         console.error('Error generating scenario details:', error);
@@ -1752,6 +1833,9 @@ export class ChatService {
 
         if (response.success && response.data) {
           analysis = response.data.content;
+          // Total Recall: Analyze for memory
+          const { projectMemory } = await import('@/services/ProjectMemoryService');
+          projectMemory.analyzeForMemory(analysis, 'Vision Analysis');
         } else {
           console.error("Vision API failed", response);
           analysis = language === 'fr'

@@ -1,4 +1,4 @@
-import { CheckCircle2, Edit, Globe, MapPin, BookOpen, Users } from 'lucide-react';
+import { CheckCircle2, Edit, Globe, MapPin, BookOpen, Users, Palette, Sparkles } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
 import type { World } from '@/types/world';
 import { WizardFormLayout } from '../WizardFormLayout';
@@ -92,22 +92,59 @@ export function Step6GenesisVerification() {
                                 </div>
                             </div>
 
-                            {/* Visual Intent */}
-                            <div>
-                                <p className="text-[9px] font-black text-primary/40 uppercase tracking-[0.2em] font-mono mb-2">// Artistic Signature</p>
-                                <div className="space-y-2">
-                                    <p className="text-xs text-white font-mono uppercase tracking-widest">{formData.visualIntent?.style || 'STANDARD_REALISM'}</p>
-                                    <div className="flex gap-1 mt-1">
-                                        {formData.visualIntent?.colors?.map((c, i) => (
-                                            <div key={i} className="w-8 h-1" style={{ backgroundColor: c }} title={c} />
-                                        ))}
+                            {/* Visual Intent / Aesthetic Registry */}
+                            <div className="md:col-span-2 lg:col-span-3 pt-4 border-t border-primary/10">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Palette className="h-3 w-3 text-primary/60" />
+                                    <p className="text-[9px] font-black text-primary/40 uppercase tracking-[0.2em] font-mono">// World Aesthetic Registry</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="space-y-2">
+                                        <p className="text-[8px] text-primary/40 uppercase font-mono">Artistic Signature</p>
+                                        <p className="text-xs text-white font-black uppercase tracking-widest font-mono">
+                                            {formData.visualIntent?.style || 'STANDARD_REALISM'}
+                                        </p>
                                     </div>
-                                    <div className="flex flex-wrap gap-1 mt-2">
-                                        {formData.visualIntent?.vibe?.split(',').map((v, i) => (
-                                            <span key={i} className="text-[8px] text-primary/60 border border-primary/10 px-1 font-mono uppercase">
-                                                {v.trim()}
-                                            </span>
-                                        ))}
+
+                                    <div className="space-y-2">
+                                        <p className="text-[8px] text-primary/40 uppercase font-mono">Color Slate</p>
+                                        <div className="flex gap-2">
+                                            {formData.visualIntent?.colors && formData.visualIntent.colors.length > 0 ? (
+                                                formData.visualIntent.colors.map((c, i) => (
+                                                    <div key={i} className="group relative">
+                                                        <div
+                                                            className="w-5 h-5 rounded-full border border-white/20 shadow-sm"
+                                                            style={{ backgroundColor: c }}
+                                                        />
+                                                        <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[6px] opacity-0 group-hover:opacity-100 transition-opacity font-mono text-white">
+                                                            {c}
+                                                        </span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="flex gap-2">
+                                                    <div className="w-5 h-5 rounded-full bg-gray-800 border border-white/5" />
+                                                    <div className="w-5 h-5 rounded-full bg-gray-700 border border-white/5" />
+                                                    <div className="w-5 h-5 rounded-full bg-gray-600 border border-white/5" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <p className="text-[8px] text-primary/40 uppercase font-mono">Atmospheric Keywords</p>
+                                        <div className="flex flex-wrap gap-1">
+                                            {formData.visualIntent?.vibe ? (
+                                                formData.visualIntent.vibe.split(',').map((v, i) => (
+                                                    <Badge key={i} variant="outline" className="text-[8px] py-0 border-primary/10 text-primary/60 font-mono uppercase bg-primary/5">
+                                                        {v.trim()}
+                                                    </Badge>
+                                                ))
+                                            ) : (
+                                                <span className="text-[8px] text-primary/20 italic font-mono uppercase">NO_KEYWORDS</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

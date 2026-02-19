@@ -327,6 +327,13 @@ export function SequencePlanWizard({
         clearWizardState('sequence-plan');
       }
 
+      // Total Recall: Analyze for memory
+      const { projectMemory } = await import('@/services/ProjectMemoryService');
+      projectMemory.analyzeForMemory(
+        `SEQUENCE PLAN COMPLETED: ${finalSequencePlan.name}\nDescription: ${finalSequencePlan.description}\nTarget Duration: ${finalSequencePlan.targetDuration}s\nActs: ${finalSequencePlan.acts.map(a => a.title).join(', ')}`,
+        'Sequence Planning'
+      );
+
       onComplete(finalSequencePlan);
       onClose();
     } catch (err) {

@@ -251,6 +251,13 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
       // Add to store (which also persists to localStorage and updates project)
       addWorld(world);
 
+      // Total Recall: Analyze for memory
+      const { projectMemory } = await import('@/services/ProjectMemoryService');
+      projectMemory.analyzeForMemory(
+        `WORLD CREATED: ${world.name}\nGenre: ${world.genre.join(', ')}\nAtmosphere: ${world.atmosphere}\nTime Period: ${world.timePeriod}\nRules: ${world.rules.map(r => r.rule + ': ' + r.implications).join('; ')}`,
+        'World Genesis'
+      );
+
       // Save to project directory if available
       try {
         await saveWorld(world);

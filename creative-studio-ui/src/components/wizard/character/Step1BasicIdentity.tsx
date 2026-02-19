@@ -18,6 +18,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { cn } from '@/lib/utils';
 import { LLMLoadingState, LLMErrorDisplay } from '../LLMErrorDisplay';
+import { useMemoryStore } from '@/stores/memoryStore';
 import { CHARACTER_ARCHETYPES, AGE_RANGES, GENDER_OPTIONS } from '@/constants/characterOptions';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
@@ -85,6 +86,9 @@ export function Step1BasicIdentity({ worldContext }: Step1BasicIdentityProps) {
 - Genre: ${context.worldGenre}
 - Time Period: ${context.worldTimePeriod}
 - Entropy ID: ${uniqueEntropy.sessionSeed}
+
+[EXISTING PROJECT PROTOCOLS / MEMORY]:
+${useMemoryStore.getState().workingContext}
 
 Format as a JSON array of strings: ["Name1", "Name2", "Name3"]`;
 
