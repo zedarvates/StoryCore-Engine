@@ -82,8 +82,8 @@ export interface CubeFaceTexture {
   /** Generation parameters used */
   generation_params: ImageGenerationParams;
 
-  /** ISO timestamp of generation */
-  generated_at: string;
+  /** timestamp of generation in ms */
+  generated_at: number;
 
   /** ComfyUI workflow URL if applicable */
   workflow_url?: string;
@@ -153,7 +153,7 @@ export interface FaceTexture {
   id: string;
   face: CubeFace;
   image_path: string;
-  generated_at: string;
+  generated_at: number; // timestamp in ms
 }
 
 // ============================================================================
@@ -293,8 +293,8 @@ export interface WorldLocationSnapshot {
   /** Original significance */
   significance?: string;
 
-  /** Snapshot timestamp */
-  snapshot_at: string;
+  /** Snapshot timestamp in ms */
+  snapshot_at: number;
 }
 
 // ============================================================================
@@ -393,8 +393,11 @@ export interface Location {
   /** Creation method: wizard-guided, auto-generated, or manual */
   creation_method: 'wizard' | 'auto_generated' | 'manual';
 
-  /** ISO timestamp of creation */
-  creation_timestamp: string;
+  /** timestamp of creation in ms */
+  creation_timestamp: number;
+
+  /** timestamp of last modification in ms */
+  last_modified?: number;
 
   /** Schema version for data migrations */
   version: string;
@@ -494,7 +497,8 @@ export function createEmptyLocation(): Partial<Location> {
     location_id: '',
     name: '',
     creation_method: 'manual',
-    creation_timestamp: new Date().toISOString(),
+    creation_timestamp: Date.now(),
+    last_modified: Date.now(),
     version: '1.0',
     location_type: 'exterior',
     texture_direction: 'outward',

@@ -21,19 +21,19 @@ export type Platform = 'mac' | 'windows' | 'linux';
 export interface KeyboardShortcut {
   /** Primary key (e.g., 's', 'Enter', 'ArrowDown') */
   key: string;
-  
+
   /** Ctrl key (Windows/Linux) or Cmd key (Mac) */
   ctrl?: boolean;
-  
+
   /** Shift key modifier */
   shift?: boolean;
-  
+
   /** Alt key modifier */
   alt?: boolean;
-  
+
   /** Meta key (Cmd on Mac, Windows key on Windows) */
   meta?: boolean;
-  
+
   /** Custom display text override (e.g., "Ctrl+S" or "⌘S") */
   displayText?: string;
 }
@@ -44,20 +44,20 @@ export interface KeyboardShortcut {
 export interface ViewState {
   /** Timeline panel visibility */
   timelineVisible: boolean;
-  
+
   /** Grid overlay visibility */
   gridVisible: boolean;
-  
+
   /** Current zoom level (percentage) */
   zoomLevel: number;
-  
+
   /** Panel visibility states */
   panelsVisible: {
     properties: boolean;
     assets: boolean;
     preview: boolean;
   };
-  
+
   /** Full screen mode */
   fullScreen: boolean;
 }
@@ -68,13 +68,13 @@ export interface ViewState {
 export interface UndoStack {
   /** Whether undo is available */
   canUndo: boolean;
-  
+
   /** Whether redo is available */
   canRedo: boolean;
-  
+
   /** Perform undo operation */
   undo: () => void;
-  
+
   /** Perform redo operation */
   redo: () => void;
 }
@@ -85,16 +85,16 @@ export interface UndoStack {
 export interface ClipboardState {
   /** Whether clipboard has content */
   hasContent: boolean;
-  
+
   /** Type of content in clipboard */
   contentType: 'shot' | 'asset' | 'text' | null;
-  
+
   /** Cut content to clipboard */
   cut: (content: unknown) => void;
-  
+
   /** Copy content to clipboard */
   copy: (content: unknown) => void;
-  
+
   /** Paste content from clipboard */
   paste: () => unknown;
 }
@@ -109,7 +109,7 @@ export interface MenuServices {
     loadProject: (projectId: string) => Promise<ProjectData>;
     openProject: () => Promise<ProjectData | null>;
   };
-  
+
   /** Project export service */
   export: {
     exportJSON: (project: ProjectData) => Promise<{ success: boolean; filePath?: string; error?: Error }>;
@@ -118,14 +118,14 @@ export interface MenuServices {
     setProgressCallback?: (callback: (progress: number, message: string) => void) => void;
     clearProgressCallback?: () => void;
   };
-  
+
   /** Recent projects service */
   recentProjects: {
     addProject: (project: ProjectData) => void;
     getRecentProjects: () => RecentProject[];
     removeProject: (projectId: string) => void;
   };
-  
+
   /** Modal manager */
   modal: {
     open: (modalId: string, props?: unknown) => void;
@@ -140,7 +140,7 @@ export interface RecentProject {
   id: string;
   name: string;
   path: string;
-  lastModified: Date;
+  lastModified: number; // timestamp
   thumbnail?: string;
 }
 
@@ -152,16 +152,16 @@ export interface RecentProject {
 export interface ActionContext {
   /** Current project (null if no project loaded) */
   project: ProjectData | null;
-  
+
   /** Current view state */
   viewState: ViewState;
-  
+
   /** Undo/redo stack */
   undoStack: UndoStack;
-  
+
   /** Clipboard state */
   clipboard: ClipboardState;
-  
+
   /** Service interfaces */
   services: MenuServices;
 }
@@ -174,16 +174,16 @@ export interface ActionContext {
 export interface ShortcutConfig {
   /** Unique identifier for the shortcut */
   id: string;
-  
+
   /** Keyboard shortcut definition */
   shortcut: KeyboardShortcut;
-  
+
   /** Action to execute when shortcut is triggered */
   action: () => void | Promise<void>;
-  
+
   /** Function to check if shortcut is currently enabled */
   enabled: () => boolean;
-  
+
   /** Optional description for documentation */
   description?: string;
 }
@@ -194,7 +194,7 @@ export interface ShortcutConfig {
 export interface KeyMatchResult {
   /** Whether the event matches the shortcut */
   matches: boolean;
-  
+
   /** The matched shortcut config (if any) */
   config?: ShortcutConfig;
 }

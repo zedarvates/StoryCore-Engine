@@ -44,33 +44,33 @@ export interface CharacterWizardProps {
 const WIZARD_STEPS: WizardStep[] = [
   {
     number: 1,
-    title: 'Basic Identity',
-    description: 'Name and role',
+    title: 'Neural Signature',
+    description: 'Establish core identity parameters',
   },
   {
     number: 2,
-    title: 'Appearance',
-    description: 'Physical traits',
+    title: 'Morphological Profile',
+    description: 'Synthesize visual appearance data',
   },
   {
     number: 3,
-    title: 'Personality',
-    description: 'Traits and values',
+    title: 'Cognitive Matrix',
+    description: 'Map heuristic traits and values',
   },
   {
     number: 4,
-    title: 'Background',
-    description: 'History and origin',
+    title: 'Chronological Data',
+    description: 'Access background and history',
   },
   {
     number: 5,
-    title: 'Relationships',
-    description: 'Character connections',
+    title: 'SocialGrid Nexus',
+    description: 'Map interpersonal connections',
   },
   {
     number: 6,
-    title: 'Review',
-    description: 'Finalize character',
+    title: 'Final Materialization',
+    description: 'Validate and commit consciousness',
   },
 ];
 
@@ -102,7 +102,7 @@ function CharacterWizardContent({
 
   return (
     <ProductionWizardContainer
-      title="Create Character"
+      title="Neural Character Synthesis"
       steps={steps}
       onCancel={onCancel}
       onComplete={handleComplete}
@@ -283,7 +283,7 @@ export function CharacterWizard({
           character_id: characterId,
           name: data.name || '',
           creation_method: 'wizard',
-          creation_timestamp: new Date().toISOString(),
+          creation_timestamp: Date.now(),
           version: '1.0',
           visual_identity: {
             hair_color: data.visual_identity?.hair_color || '',

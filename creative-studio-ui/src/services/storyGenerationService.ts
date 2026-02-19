@@ -334,14 +334,14 @@ export async function generateStoryContent(
 
   // Calculate target word count based on length
   const wordCountMap: Record<string, string> = {
-    short: '500-1000',
-    medium: '1000-2500',
-    long: '2500-5000',
-    scene: '200-500',
-    short_story: '1500-3000',
-    novella: '10000-20000',
-    novel: '40000-60000',
-    epic_novel: '80000-120000',
+    short: '1000-2000',
+    medium: '2500-4000',
+    long: '5000-8000',
+    scene: '500-1000',
+    short_story: '3000-5000',
+    novella: '15000-25000',
+    novel: '60000-80000',
+    epic_novel: '100000-150000',
   };
   const targetWordCount = wordCountMap[params.length];
 

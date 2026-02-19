@@ -29,19 +29,19 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
     isRecovering,
     error,
   } = useProjectRecovery();
-  
+
   const [selectedSnapshotId, setSelectedSnapshotId] = React.useState<string | null>(null);
-  
+
   // Don't show dialog if no crashed session and no snapshots
   if (!hasCrashedSession && recoverySnapshots.length === 0) {
     return null;
   }
-  
+
   const handleRecover = async () => {
     if (!selectedSnapshotId) {
       return;
     }
-    
+
     try {
       await recoverFromSnapshot(selectedSnapshotId);
       onClose?.();
@@ -50,12 +50,26 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
       console.error('Recovery failed:', err);
     }
   };
-  
+
   const handleDismiss = () => {
     dismissCrashRecovery();
     onClose?.();
   };
-  
+
+  // Handle escape key to close dialog
+  React.useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleDismiss();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [handleDismiss]);
+
   const handleDelete = (snapshotId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this recovery snapshot?')) {
@@ -65,10 +79,10 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
       }
     }
   };
-  
+
   return (
-    <div className="recovery-dialog-overlay">
-      <div className="recovery-dialog">
+    <div className="recovery-dialog-overlay" onClick={handleDismiss}>
+      <div className="recovery-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="recovery-dialog-header">
           <h2>
             {hasCrashedSession ? (
@@ -88,7 +102,7 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
             ×
           </button>
         </div>
-        
+
         <div className="recovery-dialog-content">
           {hasCrashedSession && (
             <div className="recovery-warning">
@@ -98,13 +112,13 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
               </p>
             </div>
           )}
-          
+
           {error && (
             <div className="recovery-error">
               <strong>Error:</strong> {error}
             </div>
           )}
-          
+
           {recoverySnapshots.length === 0 ? (
             <div className="recovery-empty">
               <p>No recovery snapshots available.</p>
@@ -116,9 +130,8 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
                 {recoverySnapshots.map((snapshot) => (
                   <div
                     key={snapshot.id}
-                    className={`recovery-snapshot ${
-                      selectedSnapshotId === snapshot.id ? 'selected' : ''
-                    }`}
+                    className={`recovery-snapshot ${selectedSnapshotId === snapshot.id ? 'selected' : ''
+                      }`}
                     onClick={() => setSelectedSnapshotId(snapshot.id)}
                   >
                     <div className="recovery-snapshot-info">
@@ -150,7 +163,7 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
             </div>
           )}
         </div>
-        
+
         <div className="recovery-dialog-footer">
           <button
             className="recovery-button recovery-button-secondary"

@@ -130,7 +130,7 @@ export function Step6ReviewFinalize({
   const handleExport = (format: 'json' | 'project') => {
     if (format === 'json') {
       const dataStr = JSON.stringify(sequencePlan, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
       const exportFileDefaultName = `${sequencePlan.name || 'sequence-plan'}.json`;
       const linkElement = document.createElement('a');
       linkElement.setAttribute('href', dataUri);
@@ -142,10 +142,10 @@ export function Step6ReviewFinalize({
   const renderValidationSummary = () => {
     if (validationIssues.length === 0) {
       return (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircleIcon className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
-            Your sequence plan looks complete! All required information is present.
+        <Alert className="border-green-200 bg-green-50/10 backdrop-blur-sm border-primary/30">
+          <CheckCircleIcon className="h-4 w-4 text-primary neon-text" />
+          <AlertDescription className="text-primary-foreground font-medium">
+            Your multishot sequence is ready for production! All validation checks passed.
           </AlertDescription>
         </Alert>
       );
@@ -169,13 +169,13 @@ export function Step6ReviewFinalize({
                 {errors.map((error, index) => (
                   <li key={index} className="text-red-700 text-sm">
                     • {error.message} (
-                      <Button
-                        variant="link"
-                        className="h-auto p-0 text-red-700 underline"
-                        onClick={() => onEditStep(error.step - 1)}
-                      >
-                        Edit Step {error.step}
-                      </Button>
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 text-red-700 underline"
+                      onClick={() => onEditStep(error.step - 1)}
+                    >
+                      Edit Step {error.step}
+                    </Button>
                     )
                   </li>
                 ))}
@@ -191,13 +191,13 @@ export function Step6ReviewFinalize({
                 {warnings.map((warning, index) => (
                   <li key={index} className="text-yellow-700 text-sm">
                     • {warning.message} (
-                      <Button
-                        variant="link"
-                        className="h-auto p-0 text-yellow-700 underline"
-                        onClick={() => onEditStep(warning.step - 1)}
-                      >
-                        Edit Step {warning.step}
-                      </Button>
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 text-yellow-700 underline"
+                      onClick={() => onEditStep(warning.step - 1)}
+                    >
+                      Edit Step {warning.step}
+                    </Button>
                     )
                   </li>
                 ))}
@@ -216,7 +216,7 @@ export function Step6ReviewFinalize({
         onClick={() => toggleSection('overview')}
       >
         <div>
-          <CardTitle className="text-lg">Sequence Overview</CardTitle>
+          <CardTitle className="text-lg neon-text">Scene Editor Overview</CardTitle>
           <CardDescription>Basic information and technical specifications</CardDescription>
         </div>
         {expandedSections.has('overview') ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
@@ -399,13 +399,13 @@ export function Step6ReviewFinalize({
         <CardContent>
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
-              Cancel
+              Back to Editor
             </Button>
             <Button onClick={() => {
               setShowConfirmDialog(false);
               onComplete();
-            }}>
-              Complete Sequence Plan
+            }} className="bg-primary text-primary-foreground">
+              Finalize Sequence
             </Button>
           </div>
         </CardContent>
@@ -449,10 +449,10 @@ export function Step6ReviewFinalize({
         <Button
           onClick={() => setShowConfirmDialog(true)}
           disabled={hasErrors}
-          className="px-6"
+          className="px-6 btn-neon"
         >
           <CheckCircleIcon className="h-4 w-4 mr-2" />
-          Complete Sequence Plan
+          Export to Production
         </Button>
       </div>
 

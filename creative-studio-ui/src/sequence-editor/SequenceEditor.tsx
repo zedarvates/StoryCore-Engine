@@ -199,7 +199,7 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
       aria-label="Sequence Editor"
     >
       {/* Recovery Dialog - Uses hook internally, no props needed */}
-      {(showRecoveryDialog || hasRecovery) && (
+      {showRecoveryDialog && (
         <RecoveryDialog />
       )}
 

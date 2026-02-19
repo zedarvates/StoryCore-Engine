@@ -1,60 +1,101 @@
 import { BACKEND_URL } from '../config/apiConfig';
+import {
+  LipSyncRequest,
+  LipSyncResponse,
+  LipSyncStatusResponse,
+  LipSyncStatus
+} from '../types/lipSync';
 
-export interface LipSyncRequest {
-  character_image: string; // Base64 or path
-  dialogue_audio: string;  // Base64 or path
-  preset?: string;
-  enhancer?: boolean;
-}
-
-export interface LipSyncJob {
-  job_id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  progress: number;
-  output_path?: string;
-  error?: string;
-}
-
+/**
+ * Lip Sync Service
+ * 
+ * Handles interaction with the Lip Sync backend API.
+ * Provides methods for starting jobs, checking status, and monitoring progress.
+ */
 class LipSyncService {
   private baseUrl: string;
 
   constructor() {
     // Typically runs on 8001 based on lip_sync_api.py main()
-    // But we should use the centralized backend and proxy if possible
     // For now, assume it's exposed through the main API at /api/lip-sync
-    this.baseUrl = (import.meta.env.VITE_BACKEND_URL || BACKEND_URL) + '/api';
+    this.baseUrl = (import.meta.env.VITE_BACKEND_URL || BACKEND_URL) + '/api/lip-sync';
   }
 
-  async startLipSync(request: LipSyncRequest): Promise<{ job_id: string }> {
-    const response = await fetch(`${this.baseUrl}/lip-sync/execute`, {
+  /**
+   * Start a new lip sync generation job
+   */
+  async generateLipSync(request: LipSyncRequest): Promise<LipSyncResponse> {
+    const response = await fetch(`${this.baseUrl}/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        character_image: request.characterFaceImage,
+        dialogue_audio: request.audioFile,
+        model: request.model,
+        enhancer: request.enhancer,
+        pads: request.pads,
+        nosmooth: request.nosmooth,
+        style: request.style,
+        project_id: request.projectId
+      }),
     });
 
-    if (!response.ok) throw new Error('Failed to start lip sync job');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to start lip sync job');
+    }
+
     return response.json();
   }
 
-  async getStatus(jobId: string): Promise<LipSyncJob> {
-    const response = await fetch(`${this.baseUrl}/lip-sync/status/${jobId}`);
+  /**
+   * Check the status of a specific job
+   */
+  async checkStatus(jobId: string): Promise<LipSyncStatusResponse> {
+    const response = await fetch(`${this.baseUrl}/status/${jobId}`);
     if (!response.ok) throw new Error('Failed to get lip sync status');
     return response.json();
   }
 
-  async monitorJob(
+  /**
+   * List all jobs for a project
+   */
+  async listJobs(projectId?: string): Promise<LipSyncStatusResponse[]> {
+    const url = projectId ? `${this.baseUrl}/jobs?projectId=${projectId}` : `${this.baseUrl}/jobs`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to list lip sync jobs');
+    return response.json();
+  }
+
+  /**
+   * Wait for a job to complete, with optional progress callback
+   */
+  async waitForCompletion(
     jobId: string,
-    onProgress?: (progress: number) => void
-  ): Promise<LipSyncJob> {
+    onStatusUpdate?: (status: LipSyncStatusResponse) => void,
+    maxAttempts: number = 180, // 6 minutes at 2s poll
+    interval: number = 2000
+  ): Promise<LipSyncStatusResponse> {
+    let attempts = 0;
+
     return new Promise((resolve, reject) => {
       const poll = async () => {
         try {
-          const job = await this.getStatus(jobId);
-          if (onProgress) onProgress(job.progress);
+          const status = await this.checkStatus(jobId);
+          if (onStatusUpdate) onStatusUpdate(status);
 
-          if (job.status === 'completed') resolve(job);
-          else if (job.status === 'failed') reject(new Error(job.error || 'Job failed'));
-          else setTimeout(poll, 2000);
+          if (status.status === 'completed') {
+            resolve(status);
+          } else if (status.status === 'failed') {
+            reject(new Error(status.error || 'Lip sync job failed'));
+          } else {
+            attempts++;
+            if (attempts >= maxAttempts) {
+              reject(new Error('Lip sync job timed out'));
+            } else {
+              setTimeout(poll, interval);
+            }
+          }
         } catch (error) {
           reject(error);
         }

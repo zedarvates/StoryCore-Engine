@@ -152,6 +152,28 @@ const RARITY_PATTERNS = {
     ],
 };
 
+const MATERIAL_PATTERNS = {
+    fr: [
+        /(?:matériau|matière|composition)\s*[:：]\s*(.+?)(?:\n|$)/gi,
+        /\*\*(?:Matériau|Matière)\s*[:：]?\*\*\s*(.+?)(?:\n|$)/gi,
+    ],
+    en: [
+        /(?:material|composition|made of)\s*[:：]\s*(.+?)(?:\n|$)/gi,
+        /\*\*(?:Material|Composition)\s*[:：]?\*\*\s*(.+?)(?:\n|$)/gi,
+    ],
+};
+
+const USAGE_PATTERNS = {
+    fr: [
+        /(?:utilisation|usage|fonction)\s*[:：]\s*(.+?)(?:\n|$)/gi,
+        /\*\*(?:Utilisation|Usage|Fonction)\s*[:：]?\*\*\s*(.+?)(?:\n|$)/gi,
+    ],
+    en: [
+        /(?:usage|use|function)\s*[:：]\s*(.+?)(?:\n|$)/gi,
+        /\*\*(?:Usage|Use|Function)\s*[:：]?\*\*\s*(.+?)(?:\n|$)/gi,
+    ],
+};
+
 // ============================================================================
 // LLMResponseParser Class
 // ============================================================================
@@ -323,6 +345,14 @@ class LLMResponseParserImpl {
         const rarity = this.extractFirstMatch(text, RARITY_PATTERNS[lang]);
         if (rarity) attributes.rarity = rarity.trim();
 
+        // Extract material
+        const material = this.extractFirstMatch(text, MATERIAL_PATTERNS[lang]);
+        if (material) attributes.material = material.trim();
+
+        // Extract usage
+        const usage = this.extractFirstMatch(text, USAGE_PATTERNS[lang]);
+        if (usage) attributes.usage = usage.trim();
+
         // Determine entity type from extracted attributes or context
         const detectedType = expectedType || this.inferTypeFromAttributes(attributes);
 
@@ -435,6 +465,10 @@ class LLMResponseParserImpl {
             'significance': 'significance',
             'résumé': 'summary',
             'synopsis': 'summary',
+            'matière': 'material',
+            'matériau': 'material',
+            'utilisation': 'usage',
+            'fonction': 'usage',
         };
 
         const lower = key.toLowerCase();

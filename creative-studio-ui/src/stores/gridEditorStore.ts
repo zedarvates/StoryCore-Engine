@@ -132,7 +132,7 @@ export interface Panel {
   crop: CropRegion | null;
   annotations: Annotation[];
   metadata: {
-    generatedAt?: string;
+    generatedAt?: number; // timestamp in ms
     seed?: number;
     qualityScore?: number;
     modified?: boolean;
@@ -158,8 +158,8 @@ export interface GridConfiguration {
   panels: Panel[];
   presets: Preset[];
   metadata: {
-    createdAt: string;
-    modifiedAt: string;
+    createdAt: number; // timestamp in ms
+    modifiedAt: number; // timestamp in ms
     author?: string;
     description?: string;
   };
@@ -190,7 +190,7 @@ export interface GridStore {
   // ============================================================================
   // State
   // ============================================================================
-  
+
   config: GridConfiguration;
   selectedPanelIds: string[];
   activeTool: Tool;
@@ -199,7 +199,7 @@ export interface GridStore {
   // ============================================================================
   // Selection Actions
   // ============================================================================
-  
+
   /**
    * Select a panel, optionally adding to existing selection
    * Requirements: 2.1, 2.2, 2.3
@@ -220,7 +220,7 @@ export interface GridStore {
   // ============================================================================
   // Transform Actions
   // ============================================================================
-  
+
   /**
    * Update transform for a specific panel
    * Requirements: 3.2, 3.3, 3.4, 3.5, 3.6, 3.8
@@ -236,7 +236,7 @@ export interface GridStore {
   // ============================================================================
   // Crop Actions
   // ============================================================================
-  
+
   /**
    * Update crop region for a specific panel
    * Requirements: 4.2, 4.3, 4.4, 4.6, 4.7
@@ -246,7 +246,7 @@ export interface GridStore {
   // ============================================================================
   // Layer Management Actions
   // ============================================================================
-  
+
   /**
    * Add a new layer to a panel
    * Requirements: 5.1
@@ -286,7 +286,7 @@ export interface GridStore {
   // ============================================================================
   // Generation Actions
   // ============================================================================
-  
+
   /**
    * Update panel image after generation
    * Requirements: 11.2
@@ -319,7 +319,7 @@ export interface GridStore {
   // ============================================================================
   // Tool Actions
   // ============================================================================
-  
+
   /**
    * Set the active editing tool
    * Requirements: 8.1, 8.2, 8.3, 8.4
@@ -329,7 +329,7 @@ export interface GridStore {
   // ============================================================================
   // Clipboard Actions
   // ============================================================================
-  
+
   /**
    * Copy a panel to clipboard
    * Requirements: 8.8
@@ -351,7 +351,7 @@ export interface GridStore {
   // ============================================================================
   // Configuration Persistence Actions
   // ============================================================================
-  
+
   /**
    * Load a grid configuration
    * Requirements: 10.2
@@ -372,7 +372,7 @@ export interface GridStore {
   // ============================================================================
   // Panel Query Helpers
   // ============================================================================
-  
+
   /**
    * Get panel by ID
    */
@@ -391,7 +391,7 @@ export interface GridStore {
   // ============================================================================
   // Preset Actions
   // ============================================================================
-  
+
   /**
    * Apply a preset to the grid
    * Requirements: 14.1, 14.2, 14.5
@@ -431,7 +431,7 @@ export const createDefaultPanel = (row: number, col: number): Panel => ({
  */
 export const createDefaultGridConfiguration = (projectId: string): GridConfiguration => {
   const panels: Panel[] = [];
-  
+
   // Create 3x3 grid of panels
   for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 3; col++) {
@@ -445,8 +445,8 @@ export const createDefaultGridConfiguration = (projectId: string): GridConfigura
     panels,
     presets: [],
     metadata: {
-      createdAt: new Date().toISOString(),
-      modifiedAt: new Date().toISOString(),
+      createdAt: Date.now(),
+      modifiedAt: Date.now(),
     },
   };
 };
@@ -462,7 +462,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Initial State
   // ============================================================================
-  
+
   config: createDefaultGridConfiguration('default'),
   selectedPanelIds: [],
   activeTool: 'select',
@@ -471,7 +471,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Selection Actions
   // ============================================================================
-  
+
   selectPanel: (panelId: string, addToSelection: boolean = false) => {
     set((state) => {
       if (addToSelection) {
@@ -503,7 +503,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Transform Actions
   // ============================================================================
-  
+
   updatePanelTransform: (panelId: string, transform: Transform) => {
     set((state) => ({
       config: {
@@ -515,7 +515,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -532,7 +532,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -541,7 +541,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Crop Actions
   // ============================================================================
-  
+
   updatePanelCrop: (panelId: string, crop: CropRegion | null) => {
     set((state) => ({
       config: {
@@ -553,7 +553,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -562,7 +562,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Layer Management Actions
   // ============================================================================
-  
+
   addLayer: (panelId: string, layer: Layer) => {
     set((state) => ({
       config: {
@@ -574,7 +574,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -587,14 +587,14 @@ export const useGridStore = create<GridStore>((set, get) => ({
         panels: state.config.panels.map((panel) =>
           panel.id === panelId
             ? {
-                ...panel,
-                layers: panel.layers.filter((layer) => layer.id !== layerId),
-              }
+              ...panel,
+              layers: panel.layers.filter((layer) => layer.id !== layerId),
+            }
             : panel
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -622,7 +622,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
         }),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -635,18 +635,18 @@ export const useGridStore = create<GridStore>((set, get) => ({
         panels: state.config.panels.map((panel) =>
           panel.id === panelId
             ? {
-                ...panel,
-                layers: panel.layers.map((layer) =>
-                  layer.id === layerId
-                    ? { ...layer, ...updates }
-                    : layer
-                ),
-              }
+              ...panel,
+              layers: panel.layers.map((layer) =>
+                layer.id === layerId
+                  ? { ...layer, ...updates }
+                  : layer
+              ),
+            }
             : panel
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -659,18 +659,18 @@ export const useGridStore = create<GridStore>((set, get) => ({
         panels: state.config.panels.map((panel) =>
           panel.id === panelId
             ? {
-                ...panel,
-                layers: panel.layers.map((layer) =>
-                  layer.id === layerId
-                    ? { ...layer, visible: !layer.visible }
-                    : layer
-                ),
-              }
+              ...panel,
+              layers: panel.layers.map((layer) =>
+                layer.id === layerId
+                  ? { ...layer, visible: !layer.visible }
+                  : layer
+              ),
+            }
             : panel
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -683,18 +683,18 @@ export const useGridStore = create<GridStore>((set, get) => ({
         panels: state.config.panels.map((panel) =>
           panel.id === panelId
             ? {
-                ...panel,
-                layers: panel.layers.map((layer) =>
-                  layer.id === layerId
-                    ? { ...layer, locked: !layer.locked }
-                    : layer
-                ),
-              }
+              ...panel,
+              layers: panel.layers.map((layer) =>
+                layer.id === layerId
+                  ? { ...layer, locked: !layer.locked }
+                  : layer
+              ),
+            }
             : panel
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -703,7 +703,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Tool Actions
   // ============================================================================
-  
+
   setActiveTool: (tool: Tool) => {
     set({ activeTool: tool });
   },
@@ -711,7 +711,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Clipboard Actions
   // ============================================================================
-  
+
   copyPanel: (panelId: string) => {
     const panel = get().getPanelById(panelId);
     if (panel) {
@@ -729,19 +729,19 @@ export const useGridStore = create<GridStore>((set, get) => ({
         panels: state.config.panels.map((panel) =>
           panel.id === targetPanelId
             ? {
-                ...panel,
-                layers: clipboard.layers.map((layer) => ({
-                  ...layer,
-                  id: `${layer.id}-copy-${Date.now()}`,
-                })),
-                transform: clipboard.transform,
-                crop: clipboard.crop,
-              }
+              ...panel,
+              layers: clipboard.layers.map((layer) => ({
+                ...layer,
+                id: `${layer.id}-copy-${Date.now()}`,
+              })),
+              transform: clipboard.transform,
+              crop: clipboard.crop,
+            }
             : panel
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -755,7 +755,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Configuration Persistence Actions
   // ============================================================================
-  
+
   loadConfiguration: (config: GridConfiguration) => {
     set({
       config,
@@ -780,7 +780,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Panel Query Helpers
   // ============================================================================
-  
+
   getPanelById: (panelId: string) => {
     return get().config.panels.find((panel) => panel.id === panelId);
   },
@@ -798,7 +798,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Generation Actions
   // ============================================================================
-  
+
   updatePanelImage: (
     panelId: string,
     imageUrl: string,
@@ -843,7 +843,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
             layers,
             metadata: {
               ...panel.metadata,
-              generatedAt: new Date().toISOString(),
+              generatedAt: Date.now(),
               seed: metadata.seed,
               qualityScore: metadata.qualityScore,
               modified: false, // Reset modified flag after generation
@@ -852,7 +852,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
         }),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -865,17 +865,17 @@ export const useGridStore = create<GridStore>((set, get) => ({
         panels: state.config.panels.map((panel) =>
           panel.id === panelId
             ? {
-                ...panel,
-                metadata: {
-                  ...panel.metadata,
-                  modified: true,
-                },
-              }
+              ...panel,
+              metadata: {
+                ...panel.metadata,
+                modified: true,
+              },
+            }
             : panel
         ),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));
@@ -892,7 +892,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   // ============================================================================
   // Preset Actions
   // ============================================================================
-  
+
   applyPreset: (preset: Preset) => {
     set((state) => ({
       config: {
@@ -906,7 +906,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
         })),
         metadata: {
           ...state.config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       },
     }));

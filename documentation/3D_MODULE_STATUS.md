@@ -1,132 +1,154 @@
-# 3D Module Status
+# Statut Module 3D — StoryCore-Engine
 
-## Overview
+> Dernière mise à jour : Février 2026
 
-The 3D module (`src/3d/`) provides scene composition and rendering capabilities for StoryCore-Engine. Currently, the module operates in **mock mode** by default, generating metadata without actual 3D rendering.
+## Résumé
 
-## Current Capabilities
+Le moteur 3D est **opérationnel** en mode headless Blender.  
+L'ancien système basé sur panda3d/open3d (mock mode) a été **remplacé** par une intégration complète avec Blender 4.x via scripts Python générés dynamiquement.
 
-### Working Features (Mock Mode)
-- ✅ Scene composition data structures
-- ✅ 3D object placement and transforms
-- ✅ Camera position and FOV calculations
-- ✅ 2D screen position projection from 3D coordinates
-- ✅ Depth sorting for object rendering order
-- ✅ Scene serialization (JSON import/export)
-- ✅ Camera path animation system
-- ✅ Object library management
+---
 
-### Not Implemented (Requires 3D Backend)
-- ❌ Actual 3D model rendering
-- ❌ Image/video output from 3D scenes
-- ❌ Shadow and lighting calculations
-- ❌ Material and texture rendering
-- ❌ Real-time 3D preview
+## État actuel
 
-## Dependencies
+| Fonctionnalité | Statut | Notes |
+|---|---|---|
+| Génération de scènes 3D depuis commande vocale | ✅ Opérationnel | `blender_bridge/voice_bridge.py` |
+| Caméras cinématographiques (11 types de plans) | ✅ Opérationnel | `blender_bridge/camera_system.py` |
+| Presets de lieux (5 intégrés) | ✅ Opérationnel | `blender_bridge/location_manager.py` |
+| Rigs placeholder humanoïdes | ✅ Opérationnel | `blender_bridge/rig_generator.py` |
+| Exécution Blender headless | ✅ Opérationnel* | `blender_bridge/headless_runner.py` |
+| Génération de scripts Blender Python | ✅ Opérationnel | `blender_bridge/script_generator.py` |
+| Projection 2.5D (image → scène 3D) | ✅ Opérationnel | `blender_projection/scene_builder.py` |
+| Plantation procédurale d'assets | ✅ Opérationnel | `blender_projection/asset_placer.py` |
+| Storyboard multi-beats | ✅ Opérationnel | `blender_bridge/backend_integration.py` |
+| CLI complète | ✅ Opérationnel | `python -m blender_bridge.cli` |
+| Tests unitaires | ✅ 85/85 passés | `tests/test_blender_bridge.py` |
 
-The module checks for optional 3D rendering backends at initialization:
+> *Nécessite Blender installé et configuré dans `config/blender_config.json`
 
-```python
-# From composition_engine.py
-try:
-    import panda3d
-    self.panda3d_available = True
-except ImportError:
-    pass
-
-try:
-    import open3d
-    self.open3d_available = True
-except ImportError:
-    pass
-```
-
-To enable actual 3D rendering, install one of:
-```bash
-pip install panda3d        # Full game engine with rendering
-pip install open3d         # 3D data processing library
-```
+---
 
 ## Architecture
 
 ```
-CompositionEngine --> Backend Available?
-                         |
-                         ├── Panda3D --> _render_panda3d (falls back to mock)
-                         ├── Open3D --> _render_open3d (falls back to mock)
-                         └── None --> _render_mock (Generate metadata only)
+Commande vocale (FR/EN)
+    ↓
+VoiceToSceneBridge          grammaire deterministe, stable
+    ↓
+SceneJSON                   contrat de donnees (séparation narrative / technique)
+    ↓
+BlenderScriptGenerator      génère un .py autonome, lisible, versionnable
+    ↓
+BlenderHeadlessRunner       blender --background --python script.py
+    ↓
+render.png                  sortie finale → pipeline IA vidéo
 ```
 
-## Usage Example
-
-```python
-from src.3d import CompositionEngine, SceneComposition
-
-# Create composition engine (operates in mock mode by default)
-engine = CompositionEngine()
-
-# Create a scene composition
-composition = engine.create_composition(
-    composition_id="scene_001",
-    name="Living Room",
-    background_image_path="backgrounds/living_room.jpg",
-    resolution=(1920, 1080)
-)
-
-# Add 3D objects
-engine.add_object(
-    composition,
-    object_id="chair_001",
-    object_name="Armchair",
-    position=(-1.5, 0, 3.0),
-    rotation=(0, -10, 0),
-    scale=(1.0, 1.0, 1.0)
-)
-
-# Calculate screen positions (works in mock mode)
-screen_x, screen_y = engine.calculate_screen_position(
-    composition, 
-    composition.objects[0],
-    screen_width=1920,
-    screen_height=1080
-)
-
-# Export composition data
-engine.export_composition_data(composition, "scene_001.json")
+**Séparation des couches (contrainte fondamentale) :**
+```
+Niveau 1 — Narratif    : "ruelle cyberpunk sous pluie, plan serré"
+Niveau 2 — SceneJSON   : {camera: {lens: 35, shot: low_angle}, atmosphere: {type: rain}}
+Niveau 3 — Script .py  : bpy.ops.camera_add(...), cam.lens = 35
+Niveau 4 — Blender CLI : blender -b -P script.py
+Niveau 5 — PNG         : image reference → IA video
 ```
 
-## Future Development
+---
 
-### Phase 1: Basic Rendering (Estimated: 4 weeks)
-- [ ] Implement Panda3D rendering pipeline
-- [ ] Add GLTF/GLB model loading
-- [ ] Basic lighting and shadows
-- [ ] Single frame rendering to image
+## Prérequis
 
-### Phase 2: Advanced Features (Estimated: 3 weeks)
-- [ ] Camera animation rendering
-- [ ] Material and texture support
-- [ ] Post-processing effects
-- [ ] Real-time preview mode
+### Blender
+Blender n'est **pas** dans `requirements.txt` (pas d'installation pip).  
+C'est un exécutable indépendant.
 
-### Phase 3: Integration (Estimated: 2 weeks)
-- [ ] Backend API endpoints for 3D operations
-- [ ] UI integration for scene composition
-- [ ] Video timeline integration
+1. Télécharger : https://www.blender.org/download/ (recommandé : 4.2 LTS)
+2. Configurer le chemin dans `config/blender_config.json` :
+   ```json
+   { "executable": "C:/Program Files/Blender Foundation/Blender 4.2/blender.exe" }
+   ```
+   Ou via variable d'environnement : `BLENDER_EXECUTABLE=...`
 
-## Related Files
+### Vérifier
+```bash
+python -m blender_bridge.cli status
+```
 
-- `src/3d/composition_engine.py` - Main composition logic
-- `src/3d/rendering_engine.py` - Panda3D/OpenGL backend
-- `src/3d/scene_manager.py` - Scene management
-- `src/3d/camera_system.py` - Camera animations
-- `src/3d/object_manager.py` - Object library
-- `src/integration/integration_manager.py` - System integration
+---
 
-## Status
+## Utilisation rapide
 
-| Date | Status | Notes |
-|------|--------|-------|
-| 2026-02-12 | Mock Mode | Module functional for metadata generation |
-| | Future Work | Full 3D rendering implementation planned |
+```bash
+# Statut
+python -m blender_bridge.cli status
+
+# Générer un script (sans Blender)
+python -m blender_bridge.cli script "Ruelle cyberpunk sous pluie"
+
+# Dry-run complet
+python -m blender_bridge.cli dry-run "Camera basse 35mm contre-plongee"
+
+# Rendu complet (Blender requis)
+python -m blender_bridge.cli render "Ruelle cyberpunk avec Alpha devant"
+
+# Storyboard depuis fichier JSON
+python -m blender_bridge.cli storyboard blender_bridge/presets/examples/storyboard_beats_example.json
+
+# Projection 2.5D depuis image IA
+python -m blender_bridge.cli project2d ./assets/generated/scene.png exterior --camera low_angle
+```
+
+---
+
+## Commandes vocales reconnues
+
+| Exemple | Effet |
+|---|---|
+| `"Ruelle cyberpunk sous pluie"` | preset `ruelle_cyberpunk` + atmosphère pluie |
+| `"Foret brumeuse au lever du jour"` | preset `foret_brumeuse` + brume |
+| `"Camera basse 35mm contre-plongee"` | `LOW_ANGLE` ou `LOW_ANGLE_CLOSE` + 35mm |
+| `"Plan serre sur visage"` | `CLOSE_UP` + 85mm |
+| `"Plan large grand angle"` | `WIDE` + 24mm |
+| `"Over shoulder dialogue"` | `OVER_SHOULDER` + 50mm |
+| `"Ajoute brouillard volumetrique dense"` | `VOLUMETRIC` × 1.5 |
+| `"Alpha a 2 metres devant camera"` | rig `Alpha` à position calculée |
+
+---
+
+## Types de plans (11)
+
+`wide` · `medium` · `close_up` · `over_shoulder` · `low_angle` · `low_angle_close` · `high_angle` · `bird_eye` · `worm_eye` · `dutch_angle` · `pov`
+
+---
+
+## Presets de lieux (5)
+
+| ID | Nom | Type |
+|---|---|---|
+| `ruelle_cyberpunk` | Ruelle Cyberpunk | exterior |
+| `foret_brumeuse` | Forêt Brumeuse | exterior |
+| `bureau_sombre` | Bureau Sombre | interior |
+| `studio_neutre` | Studio Neutre | interior |
+| `desert` | Désert | exterior |
+
+---
+
+## Ancien système (déprécié)
+
+L'ancien module `src/3d/` (CompositionEngine, panda3d/open3d) est **remplacé**.  
+Il était en mode mock uniquement et ne produisait aucun rendu réel.  
+Il peut être supprimé ou archivé sans impact sur le reste du projet.
+
+---
+
+## Fichiers
+
+```
+blender_bridge/           Pipeline vocal → JSON → Blender
+blender_projection/       Projection 2.5D (image → illusion 3D)
+config/blender_config.json Configuration Blender
+blender_bridge_cli.bat    Raccourci CLI Windows
+blender_bridge.sh         Raccourci CLI Linux/Mac
+tests/test_blender_bridge.py  85 tests unitaires
+documentation/BLENDER_INTEGRATION.md  Documentation complète
+```

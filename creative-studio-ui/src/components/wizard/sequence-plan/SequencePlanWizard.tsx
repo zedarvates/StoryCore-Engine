@@ -70,38 +70,38 @@ function templateToBaseSequencePlan(template: SequenceTemplate): Partial<Sequenc
 const SEQUENCE_PLAN_STEPS: WizardStep[] = [
   {
     number: 1,
-    title: 'Template Selection',
-    description: 'Choose a template or start from scratch',
+    title: 'Template & Concept',
+    description: 'Select a structural starting point',
     icon: ClipboardList,
   },
   {
     number: 2,
-    title: 'Basic Information',
-    description: 'Set name, world, duration, and resolution',
+    title: 'Project Context',
+    description: 'Resolution, world connection and duration',
     icon: Info,
   },
   {
     number: 3,
-    title: 'Narrative Structure',
-    description: 'Define acts and their narrative purpose',
+    title: 'Narrative Arc',
+    description: 'Define acts and pacing',
     icon: Clapperboard,
   },
   {
     number: 4,
-    title: 'Scene Planning',
-    description: 'Plan locations, characters, and beats for each scene',
+    title: 'Scene Sequencing',
+    description: 'Assemble locations, characters, and beats',
     icon: Film,
   },
   {
     number: 5,
-    title: 'Shot Preview',
-    description: 'Timeline preview of your sequence plan',
+    title: 'Timeline & Multishot',
+    description: 'Preview and fine-tune your sequence shots',
     icon: Monitor,
   },
   {
     number: 6,
-    title: 'Review & Finalize',
-    description: 'Review your plan and save to project',
+    title: 'Production Export',
+    description: 'Review and send to generation engine',
     icon: CheckSquare,
   },
 ];
@@ -443,12 +443,12 @@ export function SequencePlanWizard({
     <Dialog open={isOpen} onOpenChange={handleCancel}>
       <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col cyber-card border-primary/30 bg-card/95 backdrop-blur-sm">
         <DialogHeader className="border-b border-primary/30 bg-card/95 backdrop-blur-sm">
-          <DialogTitle className="neon-text text-primary text-xl font-bold">Create Sequence Plan</DialogTitle>
+          <DialogTitle className="neon-text text-primary text-xl font-bold">Sequence Editor Wizard</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto min-h-0">
           <ProductionWizardContainer
-            title="Sequence Plan Wizard"
+            title="Multishot Sequence Editor"
             steps={SEQUENCE_PLAN_STEPS}
             currentStep={wizardState.currentStep}
             onNextStep={nextStep}

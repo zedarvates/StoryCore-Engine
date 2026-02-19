@@ -1,0 +1,20 @@
+{
+  "location_id": "25680f3b-1dc2-4713-b207-ae1d7e6e6966",
+  "name": "The Nexus Gardens",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771480236672,
+  "last_modified": 1771480236672,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A sprawling, abandoned theme park on the outskirts of the city. Once a popular destination for families and thrill-seekers, it has since fallen into disrepair, its once-vibrant colors now faded and worn. The gardens are home to strange, glowing plants that seem to pulse with an otherworldly energy.",
+    "atmosphere": "Eerie, haunting, with hints of a forgotten magic.",
+    "genre_tags": [],
+    "significance": "A mysterious nexus point between worlds, where the boundaries between reality and fantasy blur."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

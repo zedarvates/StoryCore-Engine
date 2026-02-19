@@ -1,0 +1,45 @@
+{
+    "title": "Exemple de storyboard narratif",
+    "description": "Pipeline narratif de démonstration pour BlenderBridge",
+    "beats": [
+        {
+            "beat": "Arrivée dans la ruelle cyberpunk nocturne sous la pluie",
+            "camera": "plan large",
+            "atmosphere": "pluie légère",
+            "characters": []
+        },
+        {
+            "beat": "Alpha émerge de l'ombre",
+            "camera": "plan moyen",
+            "atmosphere": "brouillard dense",
+            "characters": [
+                "Alpha"
+            ]
+        },
+        {
+            "beat": "Regard intense d'Alpha vers la caméra",
+            "camera": "gros plan sur visage",
+            "atmosphere": "",
+            "characters": [
+                "Alpha"
+            ]
+        },
+        {
+            "beat": "Alpha et Beta se font face dans la ruelle",
+            "camera": "over shoulder",
+            "atmosphere": "fumée légère",
+            "characters": [
+                "Alpha",
+                "Beta"
+            ]
+        },
+        {
+            "beat": "Fuite dans la nuit sous une pluie intense",
+            "camera": "plan large",
+            "atmosphere": "pluie dense",
+            "characters": [
+                "Alpha"
+            ]
+        }
+    ]
+}

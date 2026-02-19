@@ -68,6 +68,9 @@ class PersonalityTrait(Enum):
     TEMPER = "temper"                  # Calm vs. volatile
     GENEROSITY = "generosity"          # Giving vs. selfish
     INDEPENDENCE = "independence"      # Self-reliant vs. dependent
+    CREATIVITY = "creativity"          # Imaginative vs. conventional
+    ANXIETY = "anxiety"                # Anxious vs. calm
+    WISDOM = "wisdom"                  # Wise vs. naive
 
 
 # Trait categories for organization and correlation analysis
@@ -222,6 +225,7 @@ class StressResponse(Enum):
     WITHDRAWS = "withdraws"    # Go inward, become quiet
     DEFLECTS = "deflects"      # Use humor or distraction
     BECOMES_DETERMINED = "becomes_determined"  # Get more focused
+    ADAPTS = "adapts"                          # Adjust behavior to the new situation
 
 
 class ConflictStyle(Enum):

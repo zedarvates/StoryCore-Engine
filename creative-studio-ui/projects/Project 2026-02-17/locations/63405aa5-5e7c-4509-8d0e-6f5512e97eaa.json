@@ -1,0 +1,24 @@
+{
+  "location_id": "63405aa5-5e7c-4509-8d0e-6f5512e97eaa",
+  "name": "The Wastes of Erebo",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771486137451,
+  "last_modified": 1771486137451,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A desolate expanse of twisted rock formations, ravines, and ash-filled canyons. The air is heavy with the stench of death.",
+    "atmosphere": {
+      "lighting": "Bleak sunlight, casting long shadows across the ash-scarred terrain",
+      "sounds": "Wailing wind, screeching ravens, and distant roars",
+      "scents": "Acrid smoke, charred earth, and ozone"
+    },
+    "genre_tags": [],
+    "significance": "The site of an ancient cataclysm that reshaped El Doria's landscape, now home to mutated creatures."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

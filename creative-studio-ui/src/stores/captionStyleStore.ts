@@ -101,7 +101,7 @@ export const useCaptionStyleStore = create<CaptionStyleStore>()(
 
     updatePreset: (id, updates) => set((state) => ({
       userPresets: state.userPresets.map((p) =>
-        p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p
+        p.id === id ? { ...p, ...updates, updatedAt: Date.now() } : p
       ),
     })),
 

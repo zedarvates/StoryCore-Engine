@@ -1,0 +1,20 @@
+{
+  "location_id": "cc7dda83-e309-45f1-b1e1-534c12bd3d1b",
+  "name": "The Elysium Tower",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771480236674,
+  "last_modified": 1771480236674,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A gleaming, crystalline monolith that pierces the sky like a shard of glass. The Elysium is home to El Doria's most influential citizens, who seek to transcend mortality through advanced technology and arcane rituals.",
+    "atmosphere": "Resplendent, almost otherworldly, with a hint of desperation.",
+    "genre_tags": [],
+    "significance": "A bastion of privilege and excess, where the elite seek to cheat death itself."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

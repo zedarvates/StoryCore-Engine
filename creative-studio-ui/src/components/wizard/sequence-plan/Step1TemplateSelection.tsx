@@ -34,8 +34,8 @@ export function Step1TemplateSelection({
   const filteredTemplates = useMemo(() => {
     return availableTemplates.filter(template => {
       const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
 
       const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
 
@@ -55,11 +55,11 @@ export function Step1TemplateSelection({
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900">Choose a Template</h2>
-       <p className="text-gray-800 max-w-2xl mx-auto">
-         Start with a proven structure or create your sequence plan from scratch.
-         Templates provide a solid foundation with suggested act structures and timing.
-       </p>
+        <h2 className="text-2xl font-bold neon-text text-primary">Template & Concept Selection</h2>
+        <p className="text-primary-foreground/80 max-w-2xl mx-auto">
+          Initialize your multishot sequence with a structural archetype or build from scratch.
+          Archetypes provide a narrative foundation with synchronized act pacing.
+        </p>
       </div>
 
       {/* Search and Filters */}
@@ -119,25 +119,28 @@ export function Step1TemplateSelection({
         {/* Start from Scratch Card */}
         <Card
           className={cn(
-            'cursor-pointer transition-all hover:shadow-lg border-2',
+            'cursor-pointer transition-all hover:shadow-lg border-2 relative overflow-hidden group cyber-card',
             selectedTemplate === undefined
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]'
+              : 'border-primary/20 hover:border-primary/40'
           )}
           onClick={handleStartFromScratch}
         >
+          <div className="absolute top-0 right-0 p-2">
+            <Badge variant="outline" className="text-[10px] uppercase border-primary/30 text-primary">Raw Input</Badge>
+          </div>
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-            <Plus className="h-6 w-6 text-gray-800" />
+            <div className="mx-auto w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Plus className="h-6 w-6 text-primary neon-text" />
             </div>
             <CardTitle className="text-lg">Start from Scratch</CardTitle>
-            <CardDescription>
-              Create a custom sequence plan with your own structure and timing
+            <CardDescription className="text-primary-foreground/60">
+              Complete creative control over structure and timing
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <Badge variant="secondary" className="mb-2 bg-blue-600 text-white">Recommended for Experts</Badge>
-            <p className="text-sm text-gray-800">Complete creative control</p>
+            <Badge variant="secondary" className="mb-2 bg-primary/20 text-primary border border-primary/30">Expert Mode</Badge>
+            <p className="text-sm font-mono opacity-80 uppercase tracking-tighter">Null Archetype</p>
           </CardContent>
         </Card>
 
@@ -201,10 +204,10 @@ function TemplateCard({ template, isSelected, onSelect, viewMode }: TemplateCard
       <CardHeader className={viewMode === 'list' ? 'pb-2' : ''}>
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2 neon-text text-primary">
               {template.name}
               {template.isBuiltIn && (
-                <Badge variant="outline" className="text-xs bg-blue-600 text-white">Built-in</Badge>
+                <Badge variant="outline" className="text-[10px] uppercase border-primary/30 text-primary">Core</Badge>
               )}
             </CardTitle>
             <CardDescription className="mt-1">
@@ -215,12 +218,12 @@ function TemplateCard({ template, isSelected, onSelect, viewMode }: TemplateCard
         </div>
 
         <div className="flex items-center gap-2 mt-3">
-          <Badge variant="secondary" className="bg-blue-600 text-white">{template.category.replace('-', ' ')}</Badge>
-          <Badge variant="outline" className="bg-blue-600 text-white">
-            {template.structure.acts.length} acts
+          <Badge variant="secondary" className="bg-primary/20 text-primary border border-primary/10 text-[10px] uppercase">{template.category.replace('-', ' ')}</Badge>
+          <Badge variant="outline" className="border-primary/20 text-primary-foreground/70 text-[10px]">
+            {template.structure.acts.length} ACTS
           </Badge>
-          <Badge variant="outline" className="bg-blue-600 text-white">
-            ~{template.defaults.targetDuration}s
+          <Badge variant="outline" className="border-primary/20 text-primary-foreground/70 text-[10px]">
+            ~{template.defaults.targetDuration}S
           </Badge>
         </div>
       </CardHeader>
@@ -250,12 +253,12 @@ function TemplateCard({ template, isSelected, onSelect, viewMode }: TemplateCard
             <div>
               <div className="flex flex-wrap gap-1">
                 {template.tags.slice(0, 3).map(tag => (
-                  <Badge key={tag} variant="outline" className="text-xs bg-blue-600 text-white">
+                  <Badge key={tag} variant="outline" className="text-[10px] uppercase border-primary/10 bg-primary/5 text-primary/60">
                     {tag}
                   </Badge>
                 ))}
                 {template.tags.length > 3 && (
-                  <Badge variant="outline" className="text-xs bg-blue-600 text-white">
+                  <Badge variant="outline" className="text-[10px] uppercase border-primary/10 bg-primary/5 text-primary/60">
                     +{template.tags.length - 3}
                   </Badge>
                 )}

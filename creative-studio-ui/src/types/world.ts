@@ -18,8 +18,15 @@ export interface World {
   conflicts: string[];
   keyObjects: WorldObject[]; // Key objects/resources that influence the story
   threats?: string[]; // Optional threats field
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: number; // timestamp
+  updatedAt: number; // timestamp
+  creation_timestamp?: string; // ISO string for legacy compatibility
+  visualIntent?: {
+    colors: string[];
+    vibe: string;
+    style: string;
+    lighting?: string;
+  };
 }
 
 /** Location type for interior/exterior classification */
@@ -29,8 +36,8 @@ export interface Location {
   id: string;
   name: string;
   description: string;
-  significance: string;
-  atmosphere: string;
+  significance?: string;
+  atmosphere?: string;
   // Extended properties for enhanced location support
   type?: string;
   /** Whether this location is interior (indoor) or exterior (outdoor) */
@@ -134,6 +141,11 @@ export function createEmptyWorld(): Partial<World> {
     technology: '',
     magic: '',
     conflicts: [],
+    visualIntent: {
+      colors: [],
+      vibe: '',
+      style: '',
+    },
   };
 }
 

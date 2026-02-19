@@ -1,0 +1,79 @@
+{
+    "_doc": "Exemple de fichier beats narratifs pour python -m blender_bridge.cli storyboard",
+    "_usage": "python -m blender_bridge.cli storyboard storyboard_beats_example.json --output ./renders/",
+    "_cli_with_render": "python -m blender_bridge.cli storyboard storyboard_beats_example.json --output ./renders/ --render",
+    "title": "Nuit Cyberpunk — Storyboard Demo",
+    "project": "demo_cyberpunk",
+    "total_beats": 5,
+    "beats": [
+        {
+            "index": 1,
+            "beat": "Ruelle cyberpunk nocturne sous pluie battante",
+            "description": "Plan d'ouverture - Establishing shot. La ruelle baignée de néons se découvre sous la pluie.",
+            "camera": "plan large grand angle 24mm",
+            "atmosphere": "pluie dense brouillard volumetrique",
+            "location": "ruelle cyberpunk neon urbain",
+            "characters": [],
+            "_expected_shot": "wide",
+            "_expected_lens": "24mm",
+            "_expected_preset": "ruelle_cyberpunk"
+        },
+        {
+            "index": 2,
+            "beat": "Alpha entre dans la ruelle, regard méfiant",
+            "description": "Plan moyen sur Alpha qui avance. Tension montante.",
+            "camera": "plan moyen 50mm",
+            "atmosphere": "pluie legere",
+            "location": "ruelle cyberpunk",
+            "characters": [
+                "Alpha"
+            ],
+            "_expected_shot": "medium",
+            "_expected_lens": "50mm"
+        },
+        {
+            "index": 3,
+            "beat": "Gros plan sur le visage d'Alpha — il aperçoit quelque chose",
+            "description": "Insert sur les yeux. Découverte d'un danger.",
+            "camera": "gros plan 85mm close",
+            "atmosphere": "pluie",
+            "characters": [
+                "Alpha"
+            ],
+            "_expected_shot": "close_up",
+            "_expected_lens": "85mm"
+        },
+        {
+            "index": 4,
+            "beat": "Contre-plongée dramatique — la menace approche",
+            "description": "Alpha vu de bas, écrasé par l'ombre du danger. Plan héroïque/tension.",
+            "camera": "camera basse 35mm contre-plongee dramatique",
+            "atmosphere": "brouillard volumetrique dense",
+            "characters": [
+                "Alpha"
+            ],
+            "_expected_shot": "low_angle_close",
+            "_expected_lens": "35mm"
+        },
+        {
+            "index": 5,
+            "beat": "Alpha fuit dans la ruelle sous une pluie diluvienne",
+            "description": "Plan large dynamique. La caméra suit la fuite. Action.",
+            "camera": "plan large wide action 24mm",
+            "atmosphere": "pluie tres dense brouillard",
+            "location": "ruelle cyberpunk nuit",
+            "characters": [
+                "Alpha"
+            ],
+            "_expected_shot": "wide",
+            "_expected_lens": "24mm"
+        }
+    ],
+    "_notes": {
+        "format": "Chaque beat est converti en SceneJSON par NarrativePipelineBridge",
+        "carry_over": "Le preset de lieu est hérité entre beats si non explicité",
+        "characters": "Les noms dans 'characters' sont cherchés dans projects/*/characters/",
+        "camera_voice": "Le champ 'camera' est parsé par CinematicCameraSystem.from_voice_description()",
+        "atmosphere_voice": "Le champ 'atmosphere' est parsé par VoiceToSceneBridge._parse_atmosphere_from_text()"
+    }
+}

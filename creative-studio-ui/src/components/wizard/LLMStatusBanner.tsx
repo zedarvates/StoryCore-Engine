@@ -3,31 +3,33 @@
  * 
  * Displays the current status of the LLM service with appropriate messaging
  * and actions for users to configure or troubleshoot the service.
+ * Cyber/Neon themed.
  */
 
-import { AlertCircle, Settings, Loader2, CheckCircle } from 'lucide-react';
+import { AlertCircle, Settings, Loader2, CheckCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLLMContext } from '@/providers/LLMProvider';
+import { cn } from '@/lib/utils';
 
 export interface LLMStatusBannerProps {
   onConfigure: () => void;
   showWhenConfigured?: boolean;
 }
 
-export function LLMStatusBanner({ 
+export function LLMStatusBanner({
   onConfigure,
-  showWhenConfigured = false 
+  showWhenConfigured = false
 }: LLMStatusBannerProps) {
   const { isInitialized, isLoading, error, config, service } = useLLMContext();
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(var(--primary-rgb),0.1)]">
         <div className="flex items-center gap-3">
-          <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0" />
-          <p className="text-sm text-blue-800">
-            Initializing LLM service...
+          <Loader2 className="w-5 h-5 text-primary animate-spin flex-shrink-0" />
+          <p className="text-xs font-bold text-primary uppercase tracking-widest animate-pulse">
+            Initializing Neural Interface...
           </p>
         </div>
       </div>
@@ -37,24 +39,26 @@ export function LLMStatusBanner({
   // Error state
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+      <div className="bg-red-500/5 border border-red-500/30 rounded-lg p-4 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+        <div className="flex items-start gap-4">
+          <div className="p-2 bg-red-500/20 rounded border border-red-500/30">
+            <AlertCircle className="w-5 h-5 text-red-500" />
+          </div>
           <div className="flex-1">
-            <h4 className="font-semibold text-red-800 mb-1">
-              LLM Service Error
+            <h4 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-1">
+              Neural Link Interrupted
             </h4>
-            <p className="text-sm text-red-700 mb-3">
+            <p className="text-xs text-red-400/70 mb-3 font-mono">
               {error}
             </p>
             <Button
               size="sm"
               variant="outline"
               onClick={onConfigure}
-              className="border-red-600 text-red-800 hover:bg-red-100"
+              className="border-red-500/40 text-red-400 hover:bg-red-500/10 text-[10px] uppercase font-bold tracking-widest h-8"
             >
-              <Settings className="w-4 h-4 mr-2" />
-              Configure LLM
+              <Settings className="w-3.5 h-3.5 mr-2" />
+              Recalibrate Link
             </Button>
           </div>
         </div>
@@ -65,33 +69,33 @@ export function LLMStatusBanner({
   // Not configured state
   if (!isInitialized || !config || !service) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(var(--primary-rgb),0.1)]">
+        <div className="flex items-start gap-4">
+          <div className="p-2 bg-primary/20 rounded border border-primary/30">
+            <Zap className="w-5 h-5 text-primary" />
+          </div>
           <div className="flex-1">
-            <h4 className="font-semibold text-yellow-800 mb-1">
-              LLM Service Not Configured
+            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-1">
+              Neural Link Standby
             </h4>
-            <p className="text-sm text-yellow-700 mb-3">
-              AI-powered features require LLM configuration. Please configure your LLM settings to use generation features in this wizard.
+            <p className="text-xs text-primary-foreground/60 mb-3 leading-relaxed">
+              AI-powered synthesis requires active neural link configuration. Enhance your world-building efficiency by establishing a link.
             </p>
-            <div className="text-xs text-yellow-600 mb-3 bg-yellow-100 p-2 rounded">
-              <strong>Note:</strong> If you're using Ollama, make sure it's running:
+            <div className="text-[10px] text-primary/60 mb-4 bg-primary/10 p-3 rounded border border-primary/10 font-mono">
+              <strong className="text-primary">DIAGNOSTIC:</strong> Establish link via local node (Ollama) or external matrix (OpenAI/Anthropic).
               <br />
-              • Check if Ollama is installed
+              • Check if Ollama service is active
               <br />
-              • Start Ollama service
-              <br />
-              • Verify it's accessible at http://localhost:11434
+              • Verify http://localhost:11434 accessibility
             </div>
             <Button
               size="sm"
               variant="outline"
               onClick={onConfigure}
-              className="border-yellow-600 text-yellow-800 hover:bg-yellow-100"
+              className="border-primary/40 text-primary hover:bg-primary/10 text-[10px] uppercase font-bold tracking-widest h-8"
             >
-              <Settings className="w-4 h-4 mr-2" />
-              Configure LLM Now
+              <Settings className="w-3.5 h-3.5 mr-2" />
+              Establish Neural Link
             </Button>
           </div>
         </div>
@@ -102,19 +106,19 @@ export function LLMStatusBanner({
   // Configured state (only show if requested)
   if (showWhenConfigured) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+      <div className="bg-primary/5 border border-primary/30 rounded-lg p-3 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]">
         <div className="flex items-center gap-3">
-          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+          <CheckCircle className="w-5 h-5 text-primary neon-text" />
           <div className="flex-1">
-            <p className="text-sm text-green-800">
-              LLM service configured: <span className="font-semibold">{config.provider}</span> - {config.model}
+            <p className="text-[10px] font-bold text-primary uppercase tracking-widest">
+              Neural Link Online: <span className="opacity-70">{config.provider.toUpperCase()}</span> // {config.model}
             </p>
           </div>
           <Button
             size="sm"
             variant="ghost"
             onClick={onConfigure}
-            className="text-green-700 hover:bg-green-100"
+            className="text-primary/60 hover:text-primary hover:bg-primary/10 h-7 w-7 p-0"
           >
             <Settings className="w-4 h-4" />
           </Button>

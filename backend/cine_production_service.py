@@ -32,6 +32,7 @@ class CineChainType(Enum):
     STORYBOARD_ONLY = "storyboard_only"         # Fast storyboard generation
     MUSIC_PRO = "music_pro"                     # Music generation with Ace Step 1.5 Professional
     AUDIO_REMIX = "audio_remix"                 # Regenerate audio for existing video
+    TTS_SPEAKING_CHARACTER = "tts_speaking"     # Text -> Qwen TTS -> LipSync Video
 
 class CineProductionRequest(BaseModel):
     chain_type: CineChainType
@@ -167,6 +168,8 @@ class CineProductionService:
                 await self._run_storyboard_only_chain(job)
             elif job.request.chain_type == CineChainType.AUDIO_REMIX:
                 await self._run_audio_remix_chain(job)
+            elif job.request.chain_type == CineChainType.TTS_SPEAKING_CHARACTER:
+                await self._run_tts_speaking_character_chain(job)
             
             # Phase 2: Persist results to Shot storage
             await self._update_shot_metadata(job, job.results)
@@ -391,6 +394,72 @@ class CineProductionService:
 
         # Step 4: Muxing (Optional but recommended for high-fidelity)
         await self._mux_results(job, video_result, audio_result)
+
+    async def _run_tts_speaking_character_chain(self, job: CineProductionJob):
+        """
+        Text Input -> Qwen TTS -> LipSync Video
+        """
+        job.current_step = "Generating TTS Audio (Qwen3)"
+        job.progress = 10.0
+        
+        from backend.qwen_tts_service import QwenTTSService
+        tts_service = QwenTTSService(comfyui_url=self.comfyui_url)
+        
+        # Load project context
+        project_context = await self._get_project_context(job.request.project_id)
+        
+        # Determine text and voice
+        text = job.request.audio_prompt or project_context.get("description", "Hello")
+        voice_id = job.request.character_id or "Ryan"
+        
+        # 1. Generate Audio
+        tts_result = await tts_service.text_to_speech(
+            text=text,
+            voice=voice_id,
+            instruct=job.request.tone or "neutral"
+        )
+        
+        if not tts_result.success:
+            raise Exception(f"TTS Failed: {tts_result.error_message}")
+            
+        audio_file = tts_result.audio_path
+        job.results.append({"step": "tts", "output": {"filename": audio_file}})
+        job.progress = 40.0
+        
+        # 2. Lip Sync
+        job.current_step = "Generating LipSync Video"
+        
+        # Ref image: character image or storyboard
+        ref_image = job.request.character_image_path
+        if not ref_image:
+            # Create a quick storyboard if missing? No, assume user provided it or we use default
+            ref_image = "default_character.png"
+            
+        # Call LipSync API (Internal call)
+        from backend.lipsync_api import LipSyncRequest, run_lipsync_generation
+        ls_job_id = str(uuid.uuid4())
+        ls_request = LipSyncRequest(
+            project_id=job.request.project_id,
+            character_face_image=ref_image,
+            audio_file=audio_file,
+            model="wav2lip",
+            enhancer=True
+        )
+        
+        # In a real system, we'd use a shared task queue. 
+        # Here we'll call the internal helper or _execute_workflow with a lipsync json
+        video_result = await self._execute_workflow(
+            "wan_s2v", # Reuse wan_s2v for lip sync if configured correctly
+            self.WORKFLOW_PATHS["wan_s2v"],
+            {
+                "positive": job.request.video_prompt or "cinematic character speaking",
+                "image": ref_image,
+                "audio": audio_file
+            }
+        )
+        
+        job.results.append({"step": "speaking_video", "output": video_result})
+        job.progress = 90.0
 
     async def _run_speaking_character_chain(self, job: CineProductionJob):
         """

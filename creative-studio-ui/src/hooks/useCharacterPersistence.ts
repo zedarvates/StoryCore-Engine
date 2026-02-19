@@ -52,8 +52,8 @@ export class PersistenceError extends Error {
 /**
  * Character with persistence metadata
  */
-interface PersistedCharacter extends Character {
-  last_modified?: string;
+export interface PersistedCharacter extends Character {
+  last_modified?: number; // timestamp in ms
   thumbnail_url?: string;
   tags?: string[];
   notes?: string;
@@ -63,7 +63,7 @@ interface PersistedCharacter extends Character {
 /**
  * Retry configuration
  */
-interface RetryConfig {
+export interface RetryConfig {
   maxAttempts: number;
   delayMs: number;
   backoffMultiplier: number;
@@ -205,8 +205,8 @@ function validateCharacterSchema(data: any): { valid: boolean; errors: string[] 
   if (!data.creation_method || !['wizard', 'auto_generated', 'manual'].includes(data.creation_method)) {
     errors.push('creation_method must be one of: wizard, auto_generated, manual');
   }
-  if (!data.creation_timestamp || typeof data.creation_timestamp !== 'string') {
-    errors.push('creation_timestamp is required and must be a string');
+  if (!data.creation_timestamp || (typeof data.creation_timestamp !== 'string' && typeof data.creation_timestamp !== 'number')) {
+    errors.push('creation_timestamp is required and must be a string or number');
   }
   if (!data.version || typeof data.version !== 'string') {
     errors.push('version is required and must be a string');
@@ -643,9 +643,9 @@ export function useCharacterPersistence() {
         character_id,
         name: characterData.name || '',
         creation_method: characterData.creation_method || 'wizard',
-        creation_timestamp: characterData.creation_timestamp || new Date().toISOString(),
+        creation_timestamp: characterData.creation_timestamp || Date.now(),
         version: characterData.version || '1.0',
-        last_modified: new Date().toISOString(), // Add modification timestamp
+        last_modified: Date.now(), // Add modification timestamp
         version_number: currentVersionNumber + 1, // Increment version for concurrent modification detection
         visual_identity: {
           hair_color: characterData.visual_identity?.hair_color || '',
@@ -883,7 +883,9 @@ export function useCharacterPersistence() {
         console.log(`[useCharacterPersistence] Loaded and synced ${loaded} characters from project directory`);
       }
 
-      // Also check localStorage for any characters not in project directory
+      /* 
+      // DISABLED: Indiscriminate loading from localStorage causes characters from other projects to appear
+      // also check localStorage for any characters not in project directory
       const characterIds = JSON.parse(
         localStorage.getItem('character-ids') || '[]'
       ) as string[];
@@ -913,6 +915,7 @@ export function useCharacterPersistence() {
           console.error(`[useCharacterPersistence] Failed to load character ${id} from localStorage:`, error);
         }
       }
+      */
 
       return { loaded, errors };
     } catch (error) {

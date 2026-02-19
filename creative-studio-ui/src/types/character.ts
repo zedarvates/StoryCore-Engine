@@ -10,7 +10,7 @@ export interface ReferenceImageData {
   url: string;
   type: 'reference' | 'reference_sheet';
   panel?: string;
-  created_at: string;
+  created_at: number; // timestamp in ms
   filename?: string;
 }
 
@@ -21,7 +21,7 @@ export interface SheetImageData {
   id: string;
   url: string;
   panel: string;  // 'front', 'left', 'right', 'back'
-  created_at: string;
+  created_at: number; // timestamp in ms
   filename?: string;
 }
 
@@ -29,7 +29,8 @@ export interface Character {
   character_id: string;
   name: string;
   creation_method: 'wizard' | 'auto_generated' | 'manual';
-  creation_timestamp: string;
+  creation_timestamp: number; // timestamp in ms
+  last_modified?: number; // timestamp in ms
   version: string;
 
   // Visual identity
@@ -117,7 +118,8 @@ export function createEmptyCharacter(): Partial<Character> {
     character_id: '',
     name: '',
     creation_method: 'wizard',
-    creation_timestamp: new Date().toISOString(),
+    creation_timestamp: Date.now(),
+    last_modified: Date.now(),
     version: '1.0',
     visual_identity: {
       hair_color: '',

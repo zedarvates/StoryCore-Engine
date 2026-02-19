@@ -1,0 +1,207 @@
+{
+    "_doc": "Exemple de SceneJSON complet — Ruelle cyberpunk nocturne",
+    "_usage": "python -m blender_bridge.cli scene --json < ce fichier, ou bridge.render(SceneJSON.from_json(...))",
+    "_cli": "python -m blender_bridge.cli render \"Ruelle cyberpunk sous pluie avec Alpha a 2 metres\"",
+    "scene_id": "ruelle_cyberpunk",
+    "scene_type": "exterior",
+    "description": "Ruelle urbaine cyberpunk sous pluie nocturne, néons, ambiance dystopique",
+    "location_preset_id": "ruelle_cyberpunk",
+    "camera": {
+        "position": [
+            0.0,
+            -4.0,
+            0.4
+        ],
+        "rotation": [
+            70.0,
+            0.0,
+            0.0
+        ],
+        "lens": 35.0,
+        "dof_enabled": true,
+        "f_stop": 2.0,
+        "focus_dist": 2.0,
+        "shot_type": "low_angle_close",
+        "sensor_width": 36.0
+    },
+    "lighting": {
+        "lights": [
+            {
+                "name": "Neon_Blue",
+                "light_type": "area",
+                "position": [
+                    -2.0,
+                    3.0,
+                    3.5
+                ],
+                "rotation": [
+                    90.0,
+                    0.0,
+                    0.0
+                ],
+                "color": [
+                    0.2,
+                    0.4,
+                    1.0
+                ],
+                "energy": 15.0,
+                "size": 2.0,
+                "cast_shadow": true
+            },
+            {
+                "name": "Neon_Red",
+                "light_type": "area",
+                "position": [
+                    2.5,
+                    5.0,
+                    3.0
+                ],
+                "rotation": [
+                    90.0,
+                    0.0,
+                    0.0
+                ],
+                "color": [
+                    1.0,
+                    0.15,
+                    0.2
+                ],
+                "energy": 10.0,
+                "size": 1.5,
+                "cast_shadow": true
+            },
+            {
+                "name": "Street_Lamp",
+                "light_type": "point",
+                "position": [
+                    0.0,
+                    0.0,
+                    4.5
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "color": [
+                    1.0,
+                    0.85,
+                    0.5
+                ],
+                "energy": 8.0,
+                "size": 1.0,
+                "cast_shadow": true
+            }
+        ],
+        "world_color": [
+            0.01,
+            0.01,
+            0.03
+        ],
+        "world_strength": 0.3,
+        "use_hdri": false,
+        "hdri_path": null,
+        "hdri_rotation": 0.0
+    },
+    "atmosphere": {
+        "type": "rain",
+        "density": 0.03,
+        "color": [
+            0.3,
+            0.4,
+            0.8
+        ],
+        "emission": 0.0,
+        "anisotropy": 0.2,
+        "height_falloff": 0.5
+    },
+    "characters": [
+        {
+            "name": "Alpha",
+            "rig_type": "humanoid",
+            "position": [
+                0.0,
+                -2.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "height": 1.75,
+            "material_color": [
+                0.2,
+                0.2,
+                0.3
+            ],
+            "pose": "T_POSE",
+            "facing_camera": true
+        }
+    ],
+    "props": [
+        {
+            "name": "Container_L",
+            "asset_path": null,
+            "position": [
+                -3.0,
+                2.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                15.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "material_override": null,
+            "visible": true,
+            "cast_shadow": true
+        },
+        {
+            "name": "Container_R",
+            "asset_path": null,
+            "position": [
+                3.0,
+                4.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                -8.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "material_override": null,
+            "visible": true,
+            "cast_shadow": true
+        }
+    ],
+    "render": {
+        "engine": "CYCLES",
+        "resolution_x": 1920,
+        "resolution_y": 1080,
+        "samples": 64,
+        "use_denoiser": true,
+        "output_format": "PNG",
+        "output_path": "./exports/blender/renders/ruelle_cyberpunk",
+        "frame_start": 1,
+        "frame_end": 1,
+        "fps": 24
+    },
+    "narrative_tags": [
+        "cyberpunk",
+        "urban",
+        "night",
+        "rain"
+    ],
+    "voice_command": "Ruelle cyberpunk sous pluie avec Alpha a 2 metres devant camera"
+}

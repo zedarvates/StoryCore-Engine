@@ -151,20 +151,20 @@ export function Step3NarrativeStructure({
         </p>
       </div>
 
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+      <div className="bg-primary/5 p-4 rounded-lg border border-primary/30 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium text-blue-900">Duration Summary</h3>
-          <Badge variant={isDurationValid ? "secondary" : "destructive"} className="bg-blue-600 text-white">
+          <h3 className="font-medium text-primary neon-text uppercase tracking-wider text-xs">Pacing & Duration Summary</h3>
+          <Badge variant={isDurationValid ? "secondary" : "destructive"} className="bg-primary/20 text-primary-foreground border-primary/40">
             {formatDuration(actsTotalDuration)} / {formatDuration(targetDuration)}
           </Badge>
         </div>
-        <div className="text-sm text-blue-800">
-          <div>Total acts duration: <span className="font-medium">{formatDuration(actsTotalDuration)}</span></div>
-          <div>Target duration: <span className="font-medium">{formatDuration(targetDuration)}</span></div>
+        <div className="text-sm text-primary-foreground/70 font-mono">
+          <div className="flex justify-between"><span>ACTS TOTAL:</span> <span className="font-medium text-primary">{formatDuration(actsTotalDuration)}</span></div>
+          <div className="flex justify-between"><span>SEQUENCE TARGET:</span> <span className="font-medium">{formatDuration(targetDuration)}</span></div>
           {!isDurationValid && (
-            <div className="text-red-600 mt-1">
-              ⚠️ Acts exceed target by {formatDuration(Math.abs(durationDifference))}
-              ({Math.abs(durationVariancePercent).toFixed(1)}% over)
+            <div className="text-destructive mt-1 border-t border-destructive/20 pt-1">
+              ⚠️ OVERFLOW: +{formatDuration(Math.abs(durationDifference))}
+              ({Math.abs(durationVariancePercent).toFixed(1)}%)
             </div>
           )}
         </div>

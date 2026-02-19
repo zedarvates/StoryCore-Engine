@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 # ============================================================================
 
 class CameraAnglePreset(str, Enum):
-    """Camera angle preset identifiers"""
+    """Camera angle preset identifiers (Legacy / Shortcuts)"""
     FRONT = "front"
     LEFT = "left"
     RIGHT = "right"
@@ -30,6 +30,32 @@ class CameraAnglePreset(str, Enum):
     WIDE_SHOT = "wide_shot"
     BIRD_EYE = "bird_eye"
     WORM_EYE = "worm_eye"
+
+
+class Azimuth(str, Enum):
+    """Horizontal rotation angles"""
+    FRONT = "front view shot"
+    FRONT_LEFT = "front-left side view shot"
+    LEFT = "left side view shot"
+    BACK_LEFT = "back-left side view shot"
+    BACK = "back side view shot"
+    BACK_RIGHT = "back-right side view shot"
+    RIGHT = "right side view shot"
+    FRONT_RIGHT = "front-right side view shot"
+
+
+class Elevation(str, Enum):
+    """Vertical rotation angles"""
+    EYE_LEVEL = "eye level shot"
+    LOW_ANGLE = "low angle shot"
+    HIGH_ANGLE = "high angle shot"
+
+
+class Distance(str, Enum):
+    """Camera distance settings"""
+    CLOSEUP = "closeup"
+    MEDIUM = "medium shot"
+    WIDE = "wide shot"
 
 
 class CameraAngleJobStatus(str, Enum):
@@ -119,16 +145,26 @@ CAMERA_ANGLE_PRESET_METADATA: Dict[str, Dict[str, str]] = {
 # Request Models
 # ============================================================================
 
+class GranularAngle(BaseModel):
+    """Specific camera angle with multi-angle LoRA parameters"""
+    azimuth: Azimuth = Field(default=Azimuth.FRONT)
+    elevation: Elevation = Field(default=Elevation.EYE_LEVEL)
+    distance: Distance = Field(default=Distance.MEDIUM)
+
+
 class CameraAngleRequest(BaseModel):
     """Request model for camera angle generation"""
     image_base64: str = Field(
         ...,
         description="Base64 encoded source image"
     )
-    angle_ids: List[CameraAnglePreset] = Field(
-        ...,
-        min_length=1,
-        description="List of camera angle presets to generate"
+    angle_ids: Optional[List[CameraAnglePreset]] = Field(
+        default=None,
+        description="List of camera angle presets (Legacy)"
+    )
+    granular_angles: Optional[List[GranularAngle]] = Field(
+        default=None,
+        description="List of specific granular angles to generate"
     )
     preserve_style: bool = Field(
         default=True,
@@ -169,7 +205,8 @@ class CameraAngleJob(BaseModel):
     id: str = Field(..., description="Unique job identifier")
     user_id: str = Field(..., description="User who created the job")
     image_base64: str = Field(..., description="Source image (base64)")
-    angle_ids: List[CameraAnglePreset] = Field(..., description="Angles to generate")
+    angle_ids: List[CameraAnglePreset] = Field(default=[], description="Angles to generate (presets)")
+    granular_angles: List[GranularAngle] = Field(default=[], description="Granular angles to generate")
     preserve_style: bool = Field(default=True, description="Style preservation flag")
     quality: str = Field(default="standard", description="Generation quality")
     seed: Optional[int] = Field(default=None, description="Random seed")
@@ -180,11 +217,11 @@ class CameraAngleJob(BaseModel):
     )
     progress: float = Field(default=0.0, ge=0.0, le=100.0, description="Progress percentage")
     current_step: Optional[str] = Field(default=None, description="Current processing step")
-    completed_angles: List[CameraAnglePreset] = Field(
+    completed_angles: List[str] = Field(
         default=[],
-        description="Completed angle generations"
+        description="Completed angle generations (IDs or strings)"
     )
-    remaining_angles: List[CameraAnglePreset] = Field(
+    remaining_angles: List[str] = Field(
         default=[],
         description="Remaining angle generations"
     )

@@ -119,6 +119,9 @@ export interface ProductionShot {
   camera: {
     framing: 'extreme-wide' | 'wide' | 'medium' | 'close-up' | 'extreme-close-up';
     angle: 'eye-level' | 'high' | 'low' | 'dutch' | 'birds-eye' | 'worms-eye';
+    azimuth?: number; // 0-360 degrees (0: front, 180: back)
+    elevation?: number; // -90 to 90 degrees (90: birds-eye, -90: worms-eye)
+    distance?: 'closeup' | 'medium' | 'wide';
     movement: CameraMovement;
   };
 

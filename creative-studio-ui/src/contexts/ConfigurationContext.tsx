@@ -165,7 +165,7 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
    * Validate configuration
    */
   const validateConfiguration = useCallback((config: unknown): ValidationResult => {
-    return validateProjectConfiguration(config);
+    return validateProjectConfiguration(config as ProjectConfiguration);
   }, []);
 
   /**
@@ -178,19 +178,19 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
         if (scope === 'project' && activeProject) {
           // Delete existing configuration
           await ConfigurationStore.deleteProjectConfig(activeProject.id);
-          
+
           // Reload configuration (will load defaults)
           await loadConfiguration(activeProject.id);
-          
+
           ;
         } else if (scope === 'global') {
           // Clear global configuration from storage
           localStorage.removeItem('storycore_global_config');
-          
+
           // Reload global configuration
           const defaultGlobalConfig = await ConfigurationStore.loadGlobalConfig();
           setGlobalConfig(defaultGlobalConfig);
-          
+
           ;
         }
       } catch (error) {
@@ -233,10 +233,10 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
       setIsSaving(true);
       try {
         await ConfigurationStore.importConfiguration(activeProject.id, data);
-        
+
         // Reload configuration
         await loadConfiguration(activeProject.id);
-        
+
         ;
       } catch (error) {
         console.error('Failed to import configuration:', error);
@@ -283,11 +283,11 @@ export function ConfigurationProvider({ children }: ConfigurationProviderProps) 
  */
 export function useConfiguration(): ConfigurationContextValue {
   const context = useContext(ConfigurationContext);
-  
+
   if (context === undefined) {
     throw new Error('useConfiguration must be used within a ConfigurationProvider');
   }
-  
+
   return context;
 }
 

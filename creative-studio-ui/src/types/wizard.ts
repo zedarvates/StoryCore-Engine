@@ -41,7 +41,7 @@ export interface WizardStep {
   number: number;
   title: string;
   description?: string;
-  icon?: React.ComponentType<{ size?: number; className?: string }>;
+  icon?: React.ElementType;
   requiredFields?: string[];
 }
 

@@ -263,10 +263,8 @@ function AppContent() {
   // Requirements: 8.1, 8.4
   const storeSetProject = useStore((state) => state.setProject);
   useEffect(() => {
-    if (project) {
-      console.log('🔄 [App] Syncing project to main store with', project.characters?.length || 0, 'characters');
-      storeSetProject(project);
-    }
+    console.log('🔄 [App] Syncing project to main store:', project ? project.project_name : 'null');
+    storeSetProject(project);
   }, [project, storeSetProject]);
 
   // Handle view state changes from MenuBar

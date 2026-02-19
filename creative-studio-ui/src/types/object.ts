@@ -97,8 +97,8 @@ export interface StoryObject {
   generatedBy?: 'user' | 'ai';
 
   // Timestamps
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: number; // timestamp
+  updatedAt: number; // timestamp
 
   // Tags for organization
   tags?: string[];
@@ -118,8 +118,8 @@ export function createEmptyObject(): Partial<StoryObject> {
     prompts: [],
     tags: [],
     generatedBy: 'user',
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   };
 }
 

@@ -23,22 +23,22 @@ const LIP_SYNC_STATUS_FAILED = 'failed';
 interface LipSyncState {
   // Current job
   currentJob: LipSyncStatusResponse | null;
-  
+
   // Selected assets
   characterFaceImage: string | null;
   audioFile: string | null;
-  
+
   // Options
   options: LipSyncOptions;
-  
+
   // Status
   isGenerating: boolean;
   progress: number;
   error: string | null;
-  
+
   // Jobs list
   jobs: LipSyncStatusResponse[];
-  
+
   // Actions
   setCharacterFaceImage: (image: string | null) => void;
   setAudioFile: (audio: string | null) => void;
@@ -63,36 +63,36 @@ const initialState = {
 
 export const useLipSyncStore = create<LipSyncState>((set, get) => ({
   ...initialState,
-  
+
   setCharacterFaceImage: (image) => {
     set({ characterFaceImage: image });
   },
-  
+
   setAudioFile: (audio) => {
     set({ audioFile: audio });
   },
-  
+
   setOptions: (newOptions) => {
     set((state) => ({
       options: { ...state.options, ...newOptions }
     }));
   },
-  
+
   generateLipSync: async (projectId) => {
     const { characterFaceImage, audioFile, options } = get();
-    
+
     if (!characterFaceImage) {
       set({ error: 'Please select a character face image' });
       return;
     }
-    
+
     if (!audioFile) {
       set({ error: 'Please select an audio file' });
       return;
     }
-    
+
     set({ isGenerating: true, progress: 0, error: null });
-    
+
     try {
       const request: LipSyncRequest = {
         projectId,
@@ -104,20 +104,20 @@ export const useLipSyncStore = create<LipSyncState>((set, get) => ({
         nosmooth: options.nosmooth,
         style: options.style,
       };
-      
+
       const response = await lipSyncService.generateLipSync(request);
-      
+
       set({
         currentJob: {
           job_id: response.job_id,
           status: response.status as LipSyncStatus,
           progress: response.progress,
-          created_at: new Date().toISOString(),
+          created_at: Date.now(),
         },
         isGenerating: true,
         progress: 0,
       });
-      
+
       // Poll for completion
       await lipSyncService.waitForCompletion(
         response.job_id,
@@ -131,10 +131,10 @@ export const useLipSyncStore = create<LipSyncState>((set, get) => ({
         120,
         2000
       );
-      
+
       // Refresh jobs list
       get().loadJobs(projectId);
-      
+
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Lip sync generation failed',
@@ -142,7 +142,7 @@ export const useLipSyncStore = create<LipSyncState>((set, get) => ({
       });
     }
   },
-  
+
   checkStatus: async (jobId) => {
     try {
       const status = await lipSyncService.checkStatus(jobId);
@@ -153,7 +153,7 @@ export const useLipSyncStore = create<LipSyncState>((set, get) => ({
       });
     }
   },
-  
+
   loadJobs: async (projectId) => {
     try {
       const jobs = await lipSyncService.listJobs(projectId);
@@ -162,11 +162,11 @@ export const useLipSyncStore = create<LipSyncState>((set, get) => ({
       console.error('Failed to load jobs:', error);
     }
   },
-  
+
   clearError: () => {
     set({ error: null });
   },
-  
+
   reset: () => {
     set(initialState);
   },

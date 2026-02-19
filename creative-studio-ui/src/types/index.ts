@@ -118,6 +118,22 @@ export interface Shot {
   metadata?: Record<string, unknown>;
   referenceImage?: string; // Legacy/AI
   result_url?: string;
+
+  // Dashboard compatibility
+  promptValidation?: {
+    isValid: boolean;
+    errors: Array<{
+      type: 'empty' | 'too_short' | 'too_long' | 'invalid_characters';
+      message: string;
+      field: string;
+    }>;
+    warnings: Array<{
+      type: 'inconsistent' | 'vague' | 'missing_detail';
+      message: string;
+      suggestion?: string;
+    }>;
+    suggestions: string[];
+  };
 }
 
 // ============================================================================
@@ -371,7 +387,7 @@ export interface Asset {
   previewUrl?: string;
   tags?: string[];
   source?: 'builtin' | 'user' | 'ai-generated';
-  createdAt?: Date;
+  createdAt?: number; // timestamp
   path?: string; // Local file path if available
 }
 
@@ -423,9 +439,9 @@ export interface Project {
     assignments: Array<{
       character_id: string;
       avatar_id: string;
-      assigned_at: string;
+      assigned_at: number;
     }>;
-    last_modified: string;
+    last_modified: number;
   };
   metadata?: Record<string, unknown>;
   global_resume?: string;
@@ -748,9 +764,9 @@ export interface GenerationTask {
   type: 'grid' | 'promotion' | 'refine' | 'qa' | 'image' | 'video' | 'upscale' | 'inpaint';
   status: 'pending' | 'processing' | 'completed' | 'failed';
   priority: number; // lower number = higher priority
-  createdAt: Date;
-  startedAt?: Date;
-  completedAt?: Date;
+  createdAt: number; // timestamp
+  startedAt?: number; // timestamp
+  completedAt?: number; // timestamp
   error?: string;
 
   // ComfyUI workflow parameters

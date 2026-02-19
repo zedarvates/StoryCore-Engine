@@ -14,12 +14,12 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useStore } from '../store';
 import type { Character } from '../types/character';
-import { toast } from './toast';
+import { toast } from '../utils/toast';
 import {
   PersistenceError,
   PersistenceErrorType,
-  type PersistedCharacter,
-  type RetryConfig,
+  PersistedCharacter,
+  RetryConfig,
   type ConflictResolution,
 } from './useCharacterPersistence';
 
@@ -122,7 +122,7 @@ async function retryWithBackoff<T>(
 /**
  * Validate character schema
  */
-function validateCharacterSchema(data: unknown): { valid: boolean; errors: string[] } {
+function validateCharacterSchema(data: any): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   if (!data.character_id || typeof data.character_id !== 'string') {
@@ -134,8 +134,8 @@ function validateCharacterSchema(data: unknown): { valid: boolean; errors: strin
   if (!data.creation_method || !['wizard', 'auto_generated', 'manual'].includes(data.creation_method)) {
     errors.push('creation_method must be one of: wizard, auto_generated, manual');
   }
-  if (!data.creation_timestamp || typeof data.creation_timestamp !== 'string') {
-    errors.push('creation_timestamp is required and must be a string');
+  if (!data.creation_timestamp || (typeof data.creation_timestamp !== 'string' && typeof data.creation_timestamp !== 'number')) {
+    errors.push('creation_timestamp is required and must be a string or number');
   }
   if (!data.version || typeof data.version !== 'string') {
     errors.push('version is required and must be a string');
@@ -494,9 +494,9 @@ export function useCharacterPersistenceOptimized() {
         character_id,
         name: characterData.name || '',
         creation_method: characterData.creation_method || 'wizard',
-        creation_timestamp: characterData.creation_timestamp || new Date().toISOString(),
+        creation_timestamp: characterData.creation_timestamp || Date.now(),
         version: characterData.version || '1.0',
-        last_modified: new Date().toISOString(),
+        last_modified: Date.now(),
         version_number: currentVersionNumber + 1,
         visual_identity: characterData.visual_identity || {} as any,
         personality: characterData.personality || {} as any,

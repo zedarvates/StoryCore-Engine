@@ -60,8 +60,8 @@ export interface LipSyncStatusResponse {
   progress: number;
   output_video?: string;
   error?: string;
-  created_at: string;
-  completed_at?: string;
+  created_at: number; // timestamp in ms
+  completed_at?: number; // timestamp in ms
 }
 
 export interface LipSyncModelInfo {
@@ -85,8 +85,8 @@ export interface LipSyncJob {
   progress: number;
   outputVideo?: string;
   error?: string;
-  createdAt: Date;
-  completedAt?: Date;
+  createdAt: number; // timestamp
+  completedAt?: number; // timestamp
   model: LipSyncModel;
   characterFaceImage: string;
   audioFile: string;

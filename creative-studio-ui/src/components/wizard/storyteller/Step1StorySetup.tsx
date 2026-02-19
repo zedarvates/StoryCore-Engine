@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout, FormField } from '../WizardFormLayout';
 import { ValidationErrorSummary } from '../ValidationErrorSummary';
@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MethodologySelector, FullSettings } from './MethodologySelector';
 import { WritingStyle, type MethodologyState } from '@/types/storyMethodology';
 import type { StorySetupData } from '@/types/story';
+import { loadStylePreferences, saveStylePreferences } from '@/services/globalTemplatesService';
 
 // ============================================================================
 // Constants
@@ -70,7 +71,44 @@ interface ExtendedStorySetupData extends StorySetupData {
 
 export function Step1StorySetup() {
   const { formData, updateFormData, validationErrors } = useWizard<ExtendedStorySetupData>();
-  
+
+  // Track if preferences have been applied to avoid infinite loops
+  const preferencesAppliedRef = React.useRef(false);
+
+  // Load saved style preferences on mount
+  useEffect(() => {
+    // Only apply preferences once per component lifecycle
+    if (preferencesAppliedRef.current) return;
+
+    const savedPreferences = loadStylePreferences();
+    if (savedPreferences) {
+      // Only apply saved preferences if form data is empty (first load)
+      const hasExistingGenre = (formData.genre?.length ?? 0) > 0;
+      const hasExistingTone = (formData.tone?.length ?? 0) > 0;
+      const hasExistingLength = formData.length && formData.length !== 'medium' && formData.length !== undefined;
+
+      const updates: Partial<ExtendedStorySetupData> = {};
+
+      if (!hasExistingGenre && savedPreferences.lastUsedGenre.length > 0) {
+        updates.genre = savedPreferences.lastUsedGenre;
+      }
+      if (!hasExistingTone && savedPreferences.lastUsedTone.length > 0) {
+        updates.tone = savedPreferences.lastUsedTone;
+      }
+      if (!hasExistingLength && savedPreferences.lastUsedLength) {
+        updates.length = savedPreferences.lastUsedLength as any;
+      }
+
+      // Only update if there are changes to make
+      if (Object.keys(updates).length > 0) {
+        console.log('[Step1StorySetup] Applying saved preferences:', updates);
+        updateFormData(updates);
+      }
+
+      preferencesAppliedRef.current = true;
+    }
+  }, [updateFormData]); // Include updateFormData in dependencies
+
   // Local state for methodology selection (synced with formData)
   const [selectedMethodology, setSelectedMethodology] = useState(formData.methodology || 'sequential');
   const [methodologyOptions, setMethodologyOptions] = useState<Record<string, unknown>>(
@@ -96,6 +134,8 @@ export function Step1StorySetup() {
       ? currentGenres.filter((g) => g !== genre)
       : [...currentGenres, genre];
     updateFormData({ genre: newGenres });
+    // Save to preferences
+    saveStylePreferences({ lastUsedGenre: newGenres });
   };
 
   const handleToneToggle = (tone: string) => {
@@ -104,10 +144,14 @@ export function Step1StorySetup() {
       ? currentTones.filter((t) => t !== tone)
       : [...currentTones, tone];
     updateFormData({ tone: newTones });
+    // Save to preferences
+    saveStylePreferences({ lastUsedTone: newTones });
   };
 
   const handleLengthChange = (value: string) => {
     updateFormData({ length: value as 'short' | 'medium' | 'long' });
+    // Save to preferences
+    saveStylePreferences({ lastUsedLength: value });
   };
 
   const handleMethodologyChange = (methodology: string) => {
@@ -304,7 +348,7 @@ export function Step1StorySetup() {
       {/* Info Box */}
       <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-md">
         <p className="text-sm text-blue-900 dark:text-blue-100">
-          💡 <strong>Tip:</strong> The genre and tone you select will influence how the AI generates your story. 
+          💡 <strong>Tip:</strong> The genre and tone you select will influence how the AI generates your story.
           You can combine multiple genres and tones to create unique narratives.
         </p>
       </div>

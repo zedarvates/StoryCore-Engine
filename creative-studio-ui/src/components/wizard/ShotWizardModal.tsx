@@ -35,6 +35,30 @@ const CAMERA_TYPES = [
   'Dolly Zoom', 'Dutch Angle', 'Low Angle', 'High Angle',
 ] as const;
 
+const Lenses = [
+  { id: '24mm', label: '24mm Wide', desc: 'Deep focus, architectural' },
+  { id: '35mm', label: '35mm Street', desc: 'Natural perspective' },
+  { id: '50mm', label: '50mm Prime', desc: 'Human eye equivalent' },
+  { id: '85mm', label: '85mm Portrait', desc: 'Compression, bokeh' },
+  { id: 'anamorphic', label: 'Anamorphic', desc: 'Ultra-wide cinematic' },
+] as const;
+
+const SENSORS = [
+  { id: '35mm', label: 'Full Frame (35mm)', desc: 'Standard' },
+  { id: 'imax', label: 'IMAX 70mm', desc: 'Ultra-high fidelity' },
+  { id: 'vhs', label: 'VHS / CRT', desc: 'Retro signal' },
+  { id: 'digital-cinema', label: 'Arri/RED style', desc: 'Modern film' },
+] as const;
+
+const EMOTIONS = [
+  { id: 'neutral', label: 'Neutral', icon: '😐' },
+  { id: 'joy', label: 'Joy', icon: '😊' },
+  { id: 'melancholy', label: 'Melancholy', icon: '😔' },
+  { id: 'fear', label: 'Fear', icon: '😨' },
+  { id: 'anger', label: 'Anger', icon: '😠' },
+  { id: 'awe', label: 'Awe / Wonder', icon: '😲' },
+] as const;
+
 const VISUAL_STYLES = [
   { id: 'cinematic', label: '🎬 Cinematic', desc: 'Film-grade look' },
   { id: 'realistic', label: '📷 Realistic', desc: 'Photorealistic rendering' },
@@ -80,6 +104,10 @@ export function ShotWizardModal({
     transition: string;
     characters: string;
     referenceImage: string;
+    lens: string;
+    sensor: string;
+    emotion: string;
+    emotionIntensity: number;
   }>({
     title: initialShot?.title || '',
     description: (initialShot as any)?.description || '',
@@ -90,6 +118,10 @@ export function ShotWizardModal({
     transition: (initialShot as any)?.metadata?.transition || 'Cut',
     characters: (initialShot as any)?.metadata?.characters || '',
     referenceImage: (initialShot as any)?.referenceImage || '',
+    lens: (initialShot as any)?.metadata?.lens || '50mm',
+    sensor: (initialShot as any)?.metadata?.sensor || '35mm',
+    emotion: (initialShot as any)?.metadata?.emotion || 'neutral',
+    emotionIntensity: (initialShot as any)?.metadata?.emotionIntensity || 50,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -135,12 +167,19 @@ export function ShotWizardModal({
       const models = await ollamaClient.listModels();
       const model = models[0]?.name;
       if (model) {
+        const lensLabel = Lenses.find(l => l.id === formData.lens)?.label;
+        const sensorLabel = SENSORS.find(s => s.id === formData.sensor)?.label;
+        const emotionLabel = EMOTIONS.find(e => e.id === formData.emotion)?.label;
+
         const prompt = `Tu es un directeur de photographie expert. Génère une description cinématique courte (2-3 phrases) pour ce plan :
 Titre: "${formData.title}"
 Type de caméra: ${formData.cameraType}
+Objectif (Lens): ${lensLabel}
+Capteur (Sensor/Look): ${sensorLabel}
+Emotion suggérée: ${emotionLabel} (Intensité: ${formData.emotionIntensity}%)
 Style visuel: ${formData.visualStyle}
 ${formData.characters ? `Personnages: ${formData.characters}` : ''}
-Réponds uniquement avec la description, sans préambule.`;
+Réponds uniquement avec la description, sans préambule. Utilise un langage technique de réalisateur.`;
         const response = await ollamaClient.generate(model, prompt);
         setFormData(prev => ({ ...prev, description: response.trim() }));
       }
@@ -175,11 +214,14 @@ Réponds uniquement avec la description, sans préambule.`;
           chainType: 'generate_scene',
           sceneDescription: formData.description,
           imagePrompt: imagePrompt,
-          genre: (project as any)?.projectSetup?.genre?.[0], // Get main genre if exists
+          genre: (project as any)?.projectSetup?.genre?.[0],
           style: formData.visualStyle,
           overrides: {
             reference_image: formData.referenceImage,
-            shot_id: shotId
+            shot_id: shotId,
+            lens: formData.lens,
+            emotion: formData.emotion,
+            intensity: formData.emotionIntensity
           }
         });
         setGenerationTaskId(jobId);
@@ -401,6 +443,10 @@ Réponds uniquement avec la description, sans préambule.`;
         visual_style: formData.visualStyle,
         transition: formData.transition,
         characters: formData.characters,
+        lens: formData.lens,
+        sensor: formData.sensor,
+        emotion: formData.emotion,
+        emotionIntensity: formData.emotionIntensity,
         updatedAt: new Date().toISOString(),
       },
       referenceImage: formData.referenceImage,
@@ -431,10 +477,98 @@ Réponds uniquement avec la description, sans préambule.`;
         </DialogHeader>
 
         <Tabs defaultValue="base" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="base">📝 Détails de base</TabsTrigger>
-            <TabsTrigger value="ai-3d">🤖 AI & 3D Setup</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="base">📝 Détails</TabsTrigger>
+            <TabsTrigger value="rig">🎬 Director Rig</TabsTrigger>
+            <TabsTrigger value="ai-3d">🤖 AI & 3D</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="rig" className="space-y-6 mt-4">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Camera className="w-5 h-5 text-blue-500" />
+                  <h3 className="text-lg font-semibold uppercase tracking-tighter">Optical Rig</h3>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Lens Geometry</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {Lenses.map(lens => (
+                      <button
+                        key={lens.id}
+                        type="button"
+                        onClick={() => handleChange('lens', lens.id)}
+                        className={`text-left p-2 rounded-md border transition-all ${formData.lens === lens.id ? 'bg-blue-500/10 border-blue-500 text-blue-400' : 'bg-background hover:border-muted-foreground/50'
+                          }`}
+                      >
+                        <div className="text-xs font-bold uppercase">{lens.label}</div>
+                        <div className="text-[10px] opacity-60">{lens.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Sensor / Film Stock</Label>
+                  <select
+                    value={formData.sensor}
+                    onChange={(e) => handleChange('sensor', e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    {SENSORS.map(s => (
+                      <option key={s.id} value={s.id}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-yellow-500" />
+                  <h3 className="text-lg font-semibold uppercase tracking-tighter">Emotional Directing</h3>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {EMOTIONS.map(emo => (
+                    <button
+                      key={emo.id}
+                      type="button"
+                      onClick={() => handleChange('emotion', emo.id)}
+                      className={`flex flex-col items-center justify-center p-3 rounded-md border transition-all ${formData.emotion === emo.id ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400' : 'bg-background hover:border-muted-foreground/50'
+                        }`}
+                    >
+                      <span className="text-xl mb-1">{emo.icon}</span>
+                      <span className="text-[9px] font-black uppercase">{emo.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-3 pt-4 border-t border-muted/30">
+                  <div className="flex justify-between items-center">
+                    <Label>Emotion Intensity</Label>
+                    <span className="text-xs font-mono text-primary">{formData.emotionIntensity}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={formData.emotionIntensity}
+                    onChange={(e) => handleChange('emotionIntensity', parseInt(e.target.value))}
+                    className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-muted/10 p-4 border border-dashed rounded-md mt-6">
+              <h5 className="text-[10px] font-black uppercase text-muted-foreground mb-2">// Director&apos;s Strategy</h5>
+              <p className="text-[11px] text-muted-foreground leading-relaxed italic">
+                These settings will be integrated into the AI prompt to guide the aesthetic depth and the actor&apos;s subtle performance.
+                Using specific lenses like 85mm Portrait will automatically prompt for shallow depth of field (bokeh).
+              </p>
+            </div>
+          </TabsContent>
 
           <TabsContent value="base" className="space-y-5 mt-4">
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -622,6 +756,7 @@ Réponds uniquement avec la description, sans préambule.`;
                         styleReferences: []
                       },
                       dialogues: [],
+                      status: 'pending' as any,
                     };
                     return (
                       <ShotPreview3D

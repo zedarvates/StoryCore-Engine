@@ -13,7 +13,7 @@ import { methodologyFactory } from './MethodologyFactory';
  */
 export class StoryWeaver {
     private methodology: MethodologyState | null = null;
-    
+
     /**
      * Generate a complete story using the specified methodology
      * @param params Generation parameters
@@ -32,20 +32,20 @@ export class StoryWeaver {
         if (!methodologyType || methodologyType === 'sequential') {
             return this.weaveStoryLegacy(params, onProgress);
         }
-        
+
         // Create methodology instance
         const methodology = methodologyFactory.createMethodology(
             methodologyType,
             methodologyOptions
         );
-        
+
         // Store methodology state
         this.methodology = methodology.getState();
-        
+
         // Generate content using the methodology
         const state = methodology.getState();
         const phases = state.phases;
-        
+
         // Generate each approved phase
         for (const phase of phases) {
             onProgress?.({
@@ -53,29 +53,29 @@ export class StoryWeaver {
                 progress: (phases.indexOf(phase) / phases.length) * 100,
                 currentTask: `Generating ${phase.phase}...`,
             });
-            
+
             try {
                 const result = await methodology.generateContent(phase.phase, params);
                 methodology.completePhase(phase.phase, result);
-                
+
                 // Auto-approve for generation flow
                 methodology.approvePhase(phase.phase);
             } catch (error) {
                 console.error(`[StoryWeaver] Failed to generate ${phase.phase}:`, error);
             }
         }
-        
+
         // Export the final story
         const story = await methodology.exportStory();
-        
+
         return {
             title: params.totalTitle || 'Untitled Story',
             content: story.content,
             summary: story.summary,
-            updatedAt: new Date(),
+            updatedAt: Date.now(),
         };
     }
-    
+
     /**
      * Legacy story generation for backward compatibility
      * @deprecated Use weaveStory with methodology instead
@@ -171,7 +171,7 @@ export class StoryWeaver {
         });
 
         const fullContent = parts.map(p => `### ${p.title}\n\n${p.content}`).join('\n\n');
-        
+
         let finalSummary = '';
         try {
             finalSummary = await generateStorySummary(fullContent);
@@ -192,7 +192,7 @@ export class StoryWeaver {
             content: fullContent,
             summary: finalSummary,
             parts,
-            updatedAt: new Date(),
+            updatedAt: Date.now(),
         };
     }
 
@@ -212,8 +212,8 @@ export class StoryWeaver {
         order: number,
         partIndex?: number
     ): StoryPart {
-        const charNames = params.characters?.map((c: unknown) => c.name).join(', ') || 'the characters';
-        const locationNames = params.locations?.map((l: unknown) => l.name).join(', ') || 'the world';
+        const charNames = params.characters?.map((c: any) => c.name).join(', ') || 'the characters';
+        const locationNames = params.locations?.map((l: any) => l.name).join(', ') || 'the world';
 
         let content = '';
         let summary = '';
@@ -246,8 +246,8 @@ export class StoryWeaver {
     private createBasicSummary(parts: StoryPart[], params: StoryGenerationParams): string {
         const chapterCount = parts.filter(p => p.type === 'chapter').length;
         return `A ${params.length} ${params.genre?.join(', ') || 'fantasy'} story with ${params.tone?.join(', ') || 'adventurous'} tone. ` +
-               `The story features ${chapterCount} chapters following the introduction and ending. ` +
-               `Key themes and elements from the ${params.genre?.[0] || 'fantasy'} genre are explored.`;
+            `The story features ${chapterCount} chapters following the introduction and ending. ` +
+            `Key themes and elements from the ${params.genre?.[0] || 'fantasy'} genre are explored.`;
     }
 
     /**
@@ -331,10 +331,10 @@ World Context:
 ${JSON.stringify(params.worldContext)}
 
 Character Context:
-${params.characters?.map((c: unknown) => `- ${c.name}: ${c.description || c.role}`).join('\n') || ''}
+${params.characters?.map((c: any) => `- ${c.name}: ${c.description || c.role}`).join('\n') || ''}
 
 Location Context:
-${params.locations?.map((l: unknown) => `- ${l.name}: ${l.description || l.type}`).join('\n') || ''}
+${params.locations?.map((l: any) => `- ${l.name}: ${l.description || l.type}`).join('\n') || ''}
 
 Write the next part of the story. Output only the story content, no meta-commentary.
 `;

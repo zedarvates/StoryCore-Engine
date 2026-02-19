@@ -1,0 +1,20 @@
+{
+  "location_id": "19804a60-1176-44d4-a194-c16389a446d5",
+  "name": "The Undercroft",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771480236650,
+  "last_modified": 1771480236650,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A labyrinthine network of abandoned tunnels and maintenance corridors beneath the city's streets. Once a hub for the city's infrastructure, it has since become a haven for smugglers, rebels, and those seeking to evade the watchful eyes of the authorities.",
+    "atmosphere": "Foreboding, claustrophobic, with whispers of forgotten history.",
+    "genre_tags": [],
+    "significance": "A hidden sanctuary for those who refuse to play by the rules, where secrets are kept and deals are made in the shadows."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

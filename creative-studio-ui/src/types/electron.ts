@@ -16,8 +16,8 @@ export interface Project {
   name: string;
   path: string;
   version: string;
-  createdAt: Date;
-  modifiedAt: Date;
+  createdAt: number; // timestamp
+  modifiedAt: number; // timestamp
   config: Record<string, unknown>;
 }
 
@@ -25,7 +25,7 @@ export interface RecentProject {
   id: string;
   name: string;
   path: string;
-  lastAccessed: Date;
+  lastAccessed: number; // timestamp
   exists?: boolean;
 }
 
@@ -33,10 +33,10 @@ export interface MergedProject {
   id?: string;
   name: string;
   path: string;
-  lastModified: Date;
-  createdAt?: Date;
+  lastModified: number; // timestamp
+  createdAt?: number; // timestamp
   isRecent: boolean;
-  lastOpened?: Date;
+  lastOpened?: number; // timestamp
   exists?: boolean;
 }
 
@@ -50,7 +50,7 @@ export interface DiscoveredProject {
     project_name: string;
     capabilities: Record<string, boolean>;
   };
-  createdAt?: Date;
+  createdAt?: number; // timestamp
   isRecent: boolean;
 }
 
@@ -117,7 +117,7 @@ export interface UpdateInfo {
   releaseNotes?: string;
   downloadUrl: string;
   fileSize?: number;
-  releaseDate: Date;
+  releaseDate: number; // timestamp
   mandatory?: boolean;
 }
 
@@ -200,8 +200,8 @@ export interface StoryCoreElectronAPI {
       isFile: boolean;
       isDirectory: boolean;
       size: number;
-      mtime: Date;
-      birthtime: Date;
+      mtime: number; // timestamp
+      birthtime: number; // timestamp
     }>;
     mkdir: (dirPath: string, options?: { recursive?: boolean }) => Promise<void>;
     unlink: (filePath: string) => Promise<void>;

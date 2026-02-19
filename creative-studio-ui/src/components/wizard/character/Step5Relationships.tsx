@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
-import { WizardFormLayout } from '../WizardFormLayout';
+import { WizardFormLayout, FormField } from '../WizardFormLayout';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -13,14 +12,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, AlertCircle, CheckCircle2, Share2, Users, Link2, GitCommit, Shield, Heart, Zap, ZapOff, Terminal, Activity } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCharacters } from '@/store';
+import { cn } from '@/lib/utils';
 import type { Character, CharacterRelationship } from '@/types/character';
 import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
-// Step 5: Relationships
+// Step 5: Social Linkages (Relationships)
 // ============================================================================
 
 interface Step5RelationshipsProps {
@@ -28,37 +28,34 @@ interface Step5RelationshipsProps {
 }
 
 const RELATIONSHIP_TYPES = [
-  'Family',
-  'Friend',
-  'Romantic Partner',
-  'Mentor',
-  'Student',
-  'Rival',
-  'Enemy',
-  'Ally',
-  'Colleague',
-  'Acquaintance',
-  'Other',
+  'Genetic / Unit',
+  'Allied Peer',
+  'Symbiotic Partner',
+  'Knowledge Node',
+  'Processing Node',
+  'Competitive Parallel',
+  'Antagonistic Adversary',
+  'Strategic Proxy',
+  'Operational Associate',
+  'Casual Node',
+  'Other / Custom',
 ];
 
 const RELATIONSHIP_DYNAMICS = [
-  'Supportive',
-  'Antagonistic',
-  'Complicated',
-  'Distant',
-  'Close',
-  'Evolving',
-  'Strained',
-  'Harmonious',
-  'Dependent',
-  'Independent',
+  'Augmenting',
+  'Subtractive',
+  'Non-Linear',
+  'High-Latency',
+  'Low-Latency',
+  'Adaptive',
+  'Fragmented',
+  'Synchronized',
+  'Sustained',
+  'Autonomous',
 ];
 
 export function Step5Relationships({ storyContext }: Step5RelationshipsProps = {}) {
-  const { formData, updateFormData, validationErrors, nextStep, previousStep } =
-    useWizard<Character>();
-  
-  // Get existing characters from the store
+  const { formData, updateFormData, validationErrors } = useWizard<Character>();
   const existingCharacters = useCharacters();
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -72,42 +69,38 @@ export function Step5Relationships({ storyContext }: Step5RelationshipsProps = {
   const [useExistingCharacter, setUseExistingCharacter] = useState<boolean>(true);
   const [validationError, setValidationError] = useState<string>('');
 
-  // Validate that the referenced character exists
   const validateCharacterExists = (characterId: string): boolean => {
     if (!characterId) return false;
     return existingCharacters.some((char) => char.character_id === characterId);
   };
 
-  // Get character name by ID
   const getCharacterNameById = (characterId: string): string => {
     const character = existingCharacters.find((char) => char.character_id === characterId);
     return character?.name || '';
   };
 
   const handleAddRelationship = () => {
-    // Validate
     if (useExistingCharacter && !validateCharacterExists(currentRelationship.character_id)) {
-      setValidationError('Please select a valid existing character');
+      setValidationError('Entity archival lookup failed: Selection required');
       return;
     }
 
     if (!useExistingCharacter && !currentRelationship.character_name.trim()) {
-      setValidationError('Please enter a character name');
+      setValidationError('Entity designation failed: Identifier required');
       return;
     }
 
     if (!currentRelationship.relationship_type) {
-      setValidationError('Please select a relationship type');
+      setValidationError('Linkage protocol failed: Type required');
       return;
     }
 
     setValidationError('');
 
-    // Prepare relationship data
     const relationshipData: CharacterRelationship = {
       ...currentRelationship,
-      character_id: useExistingCharacter 
-        ? currentRelationship.character_id 
+      character_id: useExistingCharacter
+        ? currentRelationship.character_id
         : crypto.randomUUID(),
       character_name: useExistingCharacter
         ? getCharacterNameById(currentRelationship.character_id)
@@ -115,20 +108,17 @@ export function Step5Relationships({ storyContext }: Step5RelationshipsProps = {
     };
 
     if (editingIndex !== null) {
-      // Update existing relationship
       const relationships = [...(formData.relationships || [])];
       relationships[editingIndex] = relationshipData;
       updateFormData({ relationships });
       setEditingIndex(null);
     } else {
-      // Add new relationship
       const relationships = formData.relationships || [];
       updateFormData({
         relationships: [...relationships, relationshipData],
       });
     }
 
-    // Reset form
     setCurrentRelationship({
       character_id: '',
       character_name: '',
@@ -136,7 +126,7 @@ export function Step5Relationships({ storyContext }: Step5RelationshipsProps = {
       description: '',
       dynamic: '',
     });
-    setUseExistingCharacter(true);
+    setUseExistingCharacter(existingCharacters.length > 0);
   };
 
   const handleEditRelationship = (index: number) => {
@@ -144,7 +134,6 @@ export function Step5Relationships({ storyContext }: Step5RelationshipsProps = {
     if (relationship) {
       setCurrentRelationship(relationship);
       setEditingIndex(index);
-      // Check if this is an existing character
       const isExisting = validateCharacterExists(relationship.character_id);
       setUseExistingCharacter(isExisting);
       setValidationError('');
@@ -167,7 +156,7 @@ export function Step5Relationships({ storyContext }: Step5RelationshipsProps = {
       description: '',
       dynamic: '',
     });
-    setUseExistingCharacter(true);
+    setUseExistingCharacter(existingCharacters.length > 0);
     setValidationError('');
   };
 
@@ -186,330 +175,226 @@ export function Step5Relationships({ storyContext }: Step5RelationshipsProps = {
     }
   };
 
-  // Check if a relationship references an existing character
   const isRelationshipValid = (relationship: CharacterRelationship): boolean => {
     return validateCharacterExists(relationship.character_id);
   };
 
   return (
     <WizardFormLayout
-      title="Relationships"
-      description="Define connections with other characters"
+      title="SocialGrid Nexus"
+      description="Initialize interpersonal linkages and map social proximity within the network"
     >
-      <div className="space-y-6">
-        {/* Info about existing characters */}
-        {existingCharacters.length > 0 && (
-          <Alert>
-            <CheckCircle2 className="h-4 w-4" />
-            <AlertDescription>
-              You have {existingCharacters.length} existing character{existingCharacters.length !== 1 ? 's' : ''} in your project.
-              You can create relationships with them or add new characters.
-            </AlertDescription>
-          </Alert>
-        )}
+      <div className="space-y-10">
+        {/* Connection Setup */}
+        <div className="p-6 border border-primary/20 bg-primary/5 backdrop-blur-sm relative">
+          <div className="absolute -top-3 left-6 bg-[#050b10] px-3 py-0.5 border border-primary/20">
+            <span className="text-[10px] font-black text-primary neon-text uppercase tracking-widest font-mono">
+              {editingIndex !== null ? '// Linkage Modification' : '// Linkage Initialization'}
+            </span>
+          </div>
 
-        {/* Add/Edit Relationship Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">
-              {editingIndex !== null ? 'Edit Relationship' : 'Add Relationship'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Character Selection Mode */}
+          <div className="space-y-6 mt-2">
+            {/* Source Selection */}
             {existingCharacters.length > 0 && (
-              <div className="space-y-2">
-                <Label>Character Source</Label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={useExistingCharacter}
-                      onChange={() => {
-                        setUseExistingCharacter(true);
-                        setCurrentRelationship({
-                          ...currentRelationship,
-                          character_id: '',
-                          character_name: '',
-                        });
-                        setValidationError('');
-                      }}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">Existing Character</span>
+              <div className="space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 font-mono italic">Select Entity Source:</span>
+                <div className="flex gap-6">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className={cn(
+                      "w-4 h-4 border flex items-center justify-center transition-all",
+                      useExistingCharacter ? "border-primary bg-primary/20 shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" : "border-primary/20 hover:border-primary/50"
+                    )}>
+                      {useExistingCharacter && <div className="w-1.5 h-1.5 bg-primary pulse-neon" />}
+                      <input type="radio" checked={useExistingCharacter} onChange={() => { setUseExistingCharacter(true); setValidationError(''); }} className="hidden" />
+                    </div>
+                    <span className={cn("text-[11px] font-mono uppercase tracking-wider transition-colors", useExistingCharacter ? "text-primary" : "text-primary/40 group-hover:text-primary/60")}>Archive Entity</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={!useExistingCharacter}
-                      onChange={() => {
-                        setUseExistingCharacter(false);
-                        setCurrentRelationship({
-                          ...currentRelationship,
-                          character_id: '',
-                          character_name: '',
-                        });
-                        setValidationError('');
-                      }}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">New Character</span>
+                  <label className="flex items-center gap-2 cursor-pointer group">
+                    <div className={cn(
+                      "w-4 h-4 border flex items-center justify-center transition-all",
+                      !useExistingCharacter ? "border-primary bg-primary/20 shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" : "border-primary/20 hover:border-primary/50"
+                    )}>
+                      {!useExistingCharacter && <div className="w-1.5 h-1.5 bg-primary pulse-neon" />}
+                      <input type="radio" checked={!useExistingCharacter} onChange={() => { setUseExistingCharacter(false); setValidationError(''); }} className="hidden" />
+                    </div>
+                    <span className={cn("text-[11px] font-mono uppercase tracking-wider transition-colors", !useExistingCharacter ? "text-primary" : "text-primary/40 group-hover:text-primary/60")}>Unregistered Entity</span>
                   </label>
                 </div>
               </div>
             )}
 
-            {/* Character Selection/Input */}
-            {useExistingCharacter && existingCharacters.length > 0 ? (
-              <div className="space-y-2">
-                <Label htmlFor="existing-character" className="required">
-                  Select Character
-                </Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {useExistingCharacter && existingCharacters.length > 0 ? (
+                <FormField label="Target Archive Entity" name="character_id">
+                  <Select
+                    value={currentRelationship.character_id}
+                    onValueChange={(value) => {
+                      setCurrentRelationship({
+                        ...currentRelationship,
+                        character_id: value,
+                        character_name: getCharacterNameById(value),
+                      });
+                      setValidationError('');
+                    }}
+                  >
+                    <SelectTrigger className="bg-primary/5 border-primary/20 font-mono text-[10px]">
+                      <SelectValue placeholder="Accessing archives..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#050b10] border-primary/30">
+                      {existingCharacters
+                        .filter((char) => char.character_id !== formData.character_id)
+                        .map((character) => (
+                          <SelectItem key={character.character_id} value={character.character_id} className="focus:bg-primary/20 text-[10px] font-mono uppercase">
+                            {character.name} {character.role?.archetype && `[${character.role.archetype}]`}
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              ) : (
+                <FormField label="Entity Designation" name="character_name">
+                  <Input
+                    value={currentRelationship.character_name}
+                    onChange={(e) => { setCurrentRelationship({ ...currentRelationship, character_name: e.target.value }); setValidationError(''); }}
+                    placeholder="Input identifier..."
+                    className="bg-primary/5 border-primary/20 font-mono text-[10px]"
+                  />
+                </FormField>
+              )}
+
+              <FormField label="Linkage Protocol (Type)" name="relationship_type">
                 <Select
-                  value={currentRelationship.character_id}
-                  onValueChange={(value) => {
-                    setCurrentRelationship({
-                      ...currentRelationship,
-                      character_id: value,
-                      character_name: getCharacterNameById(value),
-                    });
-                    setValidationError('');
-                  }}
+                  value={currentRelationship.relationship_type}
+                  onValueChange={(value) => setCurrentRelationship({ ...currentRelationship, relationship_type: value })}
                 >
-                  <SelectTrigger id="existing-character" aria-required="true">
-                    <SelectValue placeholder="Select a character" />
+                  <SelectTrigger className="bg-primary/5 border-primary/20 font-mono text-[10px]">
+                    <SelectValue placeholder="Protocol defined..." />
                   </SelectTrigger>
-                  <SelectContent className="z-[9999]">
-                    {existingCharacters
-                      .filter((char) => char.character_id !== formData.character_id) // Don't show current character
-                      .map((character) => (
-                        <SelectItem key={character.character_id} value={character.character_id}>
-                          {character.name}
-                          {character.role?.archetype && (
-                            <span className="text-muted-foreground ml-2">
-                              ({character.role.archetype})
-                            </span>
-                          )}
-                        </SelectItem>
-                      ))}
+                  <SelectContent className="bg-[#050b10] border-primary/30">
+                    {RELATIONSHIP_TYPES.map((type) => (
+                      <SelectItem key={type} value={type} className="focus:bg-primary/20 text-[10px] font-mono uppercase">
+                        {type}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-muted-foreground">
-                  Select an existing character from your project
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label htmlFor="character-name" className="required">
-                  Character Name
-                </Label>
-                <Input
-                  id="character-name"
-                  value={currentRelationship.character_name}
-                  onChange={(e) => {
-                    setCurrentRelationship({
-                      ...currentRelationship,
-                      character_name: e.target.value,
-                    });
-                    setValidationError('');
-                  }}
-                  placeholder="Name of the other character"
-                  aria-required="true"
+              </FormField>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField label="Iterative Dynamic" name="dynamic">
+                <Select
+                  value={currentRelationship.dynamic}
+                  onValueChange={(value) => setCurrentRelationship({ ...currentRelationship, dynamic: value })}
+                >
+                  <SelectTrigger className="bg-primary/5 border-primary/20 font-mono text-[10px]">
+                    <SelectValue placeholder="Dynamic state..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#050b10] border-primary/30">
+                    {RELATIONSHIP_DYNAMICS.map((dynamic) => (
+                      <SelectItem key={dynamic} value={dynamic} className="focus:bg-primary/20 text-[10px] font-mono uppercase">
+                        {dynamic}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+
+              <FormField label="Operational History" name="description">
+                <Textarea
+                  value={currentRelationship.description}
+                  onChange={(e) => setCurrentRelationship({ ...currentRelationship, description: e.target.value })}
+                  placeholder="Detail the causal history of this linkage..."
+                  rows={3}
+                  className="bg-primary/5 border-primary/20 text-[10px]"
                 />
-                <p className="text-sm text-muted-foreground">
-                  Enter the name of a character you'll create later
-                </p>
+              </FormField>
+            </div>
+
+            {validationError && (
+              <div className="p-2 border border-red-500/30 bg-red-500/5 flex items-center gap-2">
+                <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                <span className="text-[10px] text-red-400 font-mono uppercase tracking-tighter">{validationError}</span>
               </div>
             )}
 
-            {/* Relationship Type */}
-            <div className="space-y-2">
-              <Label htmlFor="relationship-type" className="required">
-                Relationship Type
-              </Label>
-              <Select
-                value={currentRelationship.relationship_type}
-                onValueChange={(value) =>
-                  setCurrentRelationship({
-                    ...currentRelationship,
-                    relationship_type: value,
-                  })
-                }
-              >
-                <SelectTrigger id="relationship-type" aria-required="true">
-                  <SelectValue placeholder="Select relationship type" />
-                </SelectTrigger>
-                <SelectContent className="z-[9999]">
-                  {RELATIONSHIP_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Dynamic */}
-            <div className="space-y-2">
-              <Label htmlFor="dynamic">Relationship Dynamic</Label>
-              <Select
-                value={currentRelationship.dynamic}
-                onValueChange={(value) =>
-                  setCurrentRelationship({
-                    ...currentRelationship,
-                    dynamic: value,
-                  })
-                }
-              >
-                <SelectTrigger id="dynamic">
-                  <SelectValue placeholder="Select dynamic (optional)" />
-                </SelectTrigger>
-                <SelectContent className="z-[9999]">
-                  {RELATIONSHIP_DYNAMICS.map((dynamic) => (
-                    <SelectItem key={dynamic} value={dynamic}>
-                      {dynamic}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="relationship-description">Description</Label>
-              <Textarea
-                id="relationship-description"
-                value={currentRelationship.description}
-                onChange={(e) =>
-                  setCurrentRelationship({
-                    ...currentRelationship,
-                    description: e.target.value,
-                  })
-                }
-                placeholder="Describe the relationship history and current status"
-                rows={4}
-              />
-              <p className="text-sm text-muted-foreground">
-                Example: "Met during military training, became close friends, now serve in different units but stay in touch"
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            {validationError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{validationError}</AlertDescription>
-              </Alert>
-            )}
-            
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button
                 onClick={handleAddRelationship}
                 disabled={!isFormValid()}
-                className="flex-1"
+                className="flex-1 btn-neon bg-primary/20 text-primary border-primary/20"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {editingIndex !== null ? 'Update Relationship' : 'Add Relationship'}
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  {editingIndex !== null ? 'Modify Linkage' : 'Initialize Linkage'}
+                </span>
               </Button>
               {editingIndex !== null && (
-                <Button onClick={handleCancelEdit} variant="outline">
-                  Cancel
+                <Button onClick={handleCancelEdit} variant="outline" className="border-primary/20 text-primary/60 hover:text-primary">
+                  <span className="text-[10px] font-black uppercase tracking-widest">Abort</span>
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Existing Relationships List */}
-        <div className="space-y-2">
-          <Label>Existing Relationships</Label>
+        {/* Linkage Archives */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-primary/60">
+            <Terminal className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Active Linkage Archives</span>
+          </div>
+
           {formData.relationships && formData.relationships.length > 0 ? (
-            <div className="space-y-3">
-              {formData.relationships.map((relationship, index) => {
-                const isValid = isRelationshipValid(relationship);
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {formData.relationships.map((rel, index) => {
+                const isValid = isRelationshipValid(rel);
                 return (
-                  <Card key={index} className={!isValid ? 'border-yellow-500' : ''}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-semibold">{relationship.character_name}</h4>
-                            <span className="text-sm text-muted-foreground">
-                              ({relationship.relationship_type})
-                            </span>
-                            {relationship.dynamic && (
-                              <span className="text-sm px-2 py-1 bg-muted rounded">
-                                {relationship.dynamic}
-                              </span>
-                            )}
-                            {isValid ? (
-                              <CheckCircle2 className="w-4 h-4 text-green-600" aria-label="Character exists" />
-                            ) : (
-                              <AlertCircle className="w-4 h-4 text-yellow-600" aria-label="Character not found - will be created later" />
-                            )}
-                          </div>
-                          {relationship.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {relationship.description}
-                            </p>
-                          )}
-                          {!isValid && (
-                            <p className="text-sm text-yellow-600">
-                              ⚠️ This character doesn't exist yet. You can create them later.
-                            </p>
-                          )}
+                  <div key={index} className={cn(
+                    "p-4 border bg-primary/5 relative group transition-all",
+                    isValid ? "border-primary/10 hover:border-primary/30" : "border-yellow-500/30 bg-yellow-500/5 hover:border-yellow-500/50"
+                  )}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-black uppercase text-primary tracking-wider">{rel.character_name}</span>
+                          {isValid ? <CheckCircle2 className="w-3 h-3 text-green-500" /> : <AlertCircle className="w-3 h-3 text-yellow-500" />}
                         </div>
-                        <div className="flex gap-2 ml-4">
-                          <Button
-                            onClick={() => handleEditRelationship(index)}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() => handleDeleteRelationship(index)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 border border-primary/20 bg-primary/10 text-primary/80 uppercase tracking-tighter">{rel.relationship_type}</span>
+                          {rel.dynamic && <span className="text-[9px] font-mono px-1.5 py-0.5 border border-primary/20 bg-primary/10 text-primary/60 uppercase tracking-tighter">{rel.dynamic}</span>}
                         </div>
                       </div>
-                      {validationErrors[`relationship-${index}-name`] && (
-                        <p className="text-sm text-destructive mt-2" role="alert">
-                          {validationErrors[`relationship-${index}-name`][0]}
-                        </p>
-                      )}
-                      {validationErrors[`relationship-${index}-type`] && (
-                        <p className="text-sm text-destructive mt-2" role="alert">
-                          {validationErrors[`relationship-${index}-type`][0]}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
+                      <div className="flex gap-1">
+                        <Button onClick={() => handleEditRelationship(index)} variant="ghost" size="icon" className="h-7 w-7 text-primary/40 hover:text-primary hover:bg-primary/10">
+                          <Activity className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button onClick={() => handleDeleteRelationship(index)} variant="ghost" size="icon" className="h-7 w-7 text-primary/20 hover:text-red-500 hover:bg-red-500/10">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    {rel.description && (
+                      <p className="text-[10px] font-mono text-primary/60 italic line-clamp-2 mt-2 pt-2 border-t border-primary/5">
+                        "{rel.description}"
+                      </p>
+                    )}
+                    {!isValid && (
+                      <div className="mt-2 text-[9px] text-yellow-600 font-mono uppercase tracking-tighter opacity-70">
+                        [!] archival target unregistered [!]
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
           ) : (
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground text-center">
-                  No relationships added yet. Add relationships to define how this character
-                  connects with others in your story.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="p-8 border border-dashed border-primary/10 flex flex-col items-center justify-center opacity-40">
+              <Share2 className="h-8 w-8 text-primary/20 mb-3" />
+              <p className="text-[10px] font-mono uppercase tracking-widest text-primary/60">No linkages initialized</p>
+            </div>
           )}
-        </div>
-
-        {/* Info Box */}
-        <div className="p-4 bg-muted rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            <strong>Tip:</strong> Relationships help create depth and conflict in your story.
-            Consider adding at least 2-3 key relationships that will drive the narrative.
-          </p>
         </div>
       </div>
     </WizardFormLayout>

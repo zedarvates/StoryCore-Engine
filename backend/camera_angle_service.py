@@ -20,6 +20,10 @@ import aiohttp
 
 from backend.camera_angle_types import (
     CameraAnglePreset,
+    Azimuth,
+    Elevation,
+    Distance,
+    GranularAngle,
     CameraAngleJobStatus,
     CameraAngleJob,
     CameraAngleResult,
@@ -55,10 +59,28 @@ CAMERA_ANGLE_PROMPTS = {
     CameraAnglePreset.WORM_EYE.value: "worm's eye view, ground level shot, extreme low angle looking up",
 }
 
+# ============================================================================
+# Camera Angle Mappings (Preset to Granular)
+# ============================================================================
+
+PRESET_TO_GRANULAR = {
+    CameraAnglePreset.FRONT: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM),
+    CameraAnglePreset.LEFT: GranularAngle(azimuth=Azimuth.LEFT, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM),
+    CameraAnglePreset.RIGHT: GranularAngle(azimuth=Azimuth.RIGHT, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM),
+    CameraAnglePreset.BACK: GranularAngle(azimuth=Azimuth.BACK, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM),
+    CameraAnglePreset.TOP: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.HIGH_ANGLE, distance=Distance.MEDIUM),
+    CameraAnglePreset.BOTTOM: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.LOW_ANGLE, distance=Distance.MEDIUM),
+    CameraAnglePreset.ISOMETRIC: GranularAngle(azimuth=Azimuth.FRONT_LEFT, elevation=Elevation.HIGH_ANGLE, distance=Distance.MEDIUM),
+    CameraAnglePreset.CLOSE_UP: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.EYE_LEVEL, distance=Distance.CLOSEUP),
+    CameraAnglePreset.WIDE_SHOT: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.EYE_LEVEL, distance=Distance.WIDE),
+    CameraAnglePreset.BIRD_EYE: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.HIGH_ANGLE, distance=Distance.WIDE),
+    CameraAnglePreset.WORM_EYE: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.LOW_ANGLE, distance=Distance.MEDIUM),
+}
+
 QUALITY_SETTINGS = {
-    "draft": {"steps": 15, "cfg_scale": 7.0, "width": 512, "height": 512},
-    "standard": {"steps": 25, "cfg_scale": 7.5, "width": 768, "height": 768},
-    "high": {"steps": 40, "cfg_scale": 8.0, "width": 1024, "height": 1024},
+    "draft": {"steps": 10, "cfg_scale": 7.0, "width": 512, "height": 512}, # Lower steps for Flux Klein efficiency
+    "standard": {"steps": 20, "cfg_scale": 7.5, "width": 768, "height": 768},
+    "high": {"steps": 35, "cfg_scale": 8.0, "width": 1024, "height": 1024},
 }
 
 
@@ -223,6 +245,41 @@ class CameraAngleService:
         self._active_tasks[job_id] = task
         
         return job_id
+
+    async def generate_character_turnaround_async(
+        self,
+        image_base64: str,
+        user_id: str,
+        quality: str = "standard",
+        seed: Optional[int] = None
+    ) -> str:
+        """
+        Generate a full 360-degree character turnaround (8 angles).
+        
+        Args:
+            image_base64: Base64 encoded source image
+            user_id: User ID
+            quality: Generation quality
+            seed: Random seed
+            
+        Returns:
+            Job ID
+        """
+        # Define the 8 standard azimuth angles for a turnaround
+        turnaround_angles = [
+            GranularAngle(azimuth=az, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM)
+            for az in list(Azimuth)
+        ]
+        
+        request = CameraAngleRequest(
+            image_base64=image_base64,
+            granular_angles=turnaround_angles,
+            preserve_style=True,
+            quality=quality,
+            seed=seed
+        )
+        
+        return await self.generate_multiple_angles(request, user_id)
     
     def _create_job(self, request: CameraAngleRequest, user_id: str) -> str:
         """
@@ -241,13 +298,15 @@ class CameraAngleService:
             id=job_id,
             user_id=user_id,
             image_base64=request.image_base64,
-            angle_ids=request.angle_ids,
+            angle_ids=request.angle_ids or [],
+            granular_angles=request.granular_angles or [],
             preserve_style=request.preserve_style,
             quality=request.quality,
             seed=request.seed,
             custom_prompt=request.custom_prompt,
             status=CameraAngleJobStatus.PENDING,
-            remaining_angles=list(request.angle_ids),
+            remaining_angles=[a.value for a in (request.angle_ids or [])] + 
+                             [f"granular_{i}" for i in range(len(request.granular_angles or []))],
             created_at=datetime.utcnow()
         )
         
@@ -363,8 +422,9 @@ class CameraAngleService:
         # Convert enums to values
         job_data['status'] = job.status.value
         job_data['angle_ids'] = [a.value for a in job.angle_ids]
-        job_data['completed_angles'] = [a.value for a in job.completed_angles]
-        job_data['remaining_angles'] = [a.value for a in job.remaining_angles]
+        job_data['granular_angles'] = [a.model_dump() for a in job.granular_angles]
+        job_data['completed_angles'] = job.completed_angles
+        job_data['remaining_angles'] = job.remaining_angles
         
         self.storage.save(job.id, job_data)
     
@@ -399,27 +459,47 @@ class CameraAngleService:
             results: List[CameraAngleResult] = []
             total_angles = len(job.angle_ids)
             
-            for i, angle_id in enumerate(job.angle_ids):
+            # Prepare all work items
+            work_items = []
+            for angle_id in job.angle_ids:
+                work_items.append(("preset", angle_id))
+            for i, granular in enumerate(job.granular_angles):
+                work_items.append(("granular", granular, f"granular_{i}"))
+
+            total_items = len(work_items)
+            results: List[CameraAngleResult] = []
+            
+            for i, item in enumerate(work_items):
                 # Check for cancellation
                 if job.status == CameraAngleJobStatus.CANCELLED:
                     return
                 
-                job.current_step = f"Generating {CAMERA_ANGLE_PRESET_METADATA[angle_id.value]['display_name']}"
+                if item[0] == "preset":
+                    angle_id = item[1]
+                    display_name = CAMERA_ANGLE_PRESET_METADATA[angle_id.value]['display_name']
+                    angle_param = PRESET_TO_GRANULAR.get(angle_id, GranularAngle())
+                    angle_label = angle_id.value
+                else:
+                    angle_param = item[1]
+                    display_name = f"{angle_param.azimuth} {angle_param.elevation}"
+                    angle_label = item[2]
+
+                job.current_step = f"Generating {display_name}"
                 self._save_job(job)
                 self._notify_progress(
                     job_id,
-                    (i / total_angles) * 100,
+                    (i / total_items) * 100,
                     job.current_step
                 )
                 
-                # Build prompt
-                prompt = self._build_prompt(job, angle_id)
+                # Build prompt using SKS trigger word
+                prompt = self._build_prompt(job, angle_param)
                 
                 # Generate image via ComfyUI
                 result = await self._generate_single_angle(
                     job_id=job_id,
                     image_base64=job.image_base64,
-                    angle_id=angle_id,
+                    angle_id=angle_label, # Pass the label for tracking
                     prompt=prompt,
                     quality=job.quality,
                     seed=job.seed
@@ -427,12 +507,12 @@ class CameraAngleService:
                 
                 if result:
                     results.append(result)
-                    job.completed_angles.append(angle_id)
-                    if angle_id in job.remaining_angles:
-                        job.remaining_angles.remove(angle_id)
+                    job.completed_angles.append(angle_label)
+                    if angle_label in job.remaining_angles:
+                        job.remaining_angles.remove(angle_label)
                 
                 # Update progress
-                job.progress = ((i + 1) / total_angles) * 100
+                job.progress = ((i + 1) / total_items) * 100
                 self._save_job(job)
             
             # Store results
@@ -529,27 +609,28 @@ class CameraAngleService:
     def _build_prompt(
         self,
         job: CameraAngleJob,
-        angle_id: CameraAnglePreset
+        angle: GranularAngle
     ) -> str:
         """
-        Build the generation prompt for a camera angle.
+        Build the generation prompt for a camera angle using SKS formula.
         
         Args:
             job: Generation job
-            angle_id: Camera angle preset
+            angle: Granular angle settings
             
         Returns:
             Complete prompt string
         """
-        parts = []
+        parts = ["SKS"] # Trigger word for Multi-angle LoRA
         
-        # Add angle-specific prompt
-        angle_prompt = CAMERA_ANGLE_PROMPTS.get(angle_id.value, "")
-        parts.append(angle_prompt)
+        # SKS + azimuth + elevation + distance
+        parts.append(angle.azimuth.value)
+        parts.append(angle.elevation.value)
+        parts.append(angle.distance.value)
         
         # Add style preservation
         if job.preserve_style:
-            parts.append("maintaining original style and composition")
+            parts.append("maintaining original style and character consistency")
         
         # Add custom prompt if provided
         if job.custom_prompt:
@@ -561,7 +642,7 @@ class CameraAngleService:
         self,
         job_id: str,
         image_base64: str,
-        angle_id: CameraAnglePreset,
+        angle_id: str, # Changed from CameraAnglePreset to str
         prompt: str,
         quality: str,
         seed: Optional[int]
@@ -621,7 +702,7 @@ class CameraAngleService:
             
             return CameraAngleResult(
                 id=str(uuid.uuid4()),
-                angle_id=angle_id,
+                angle_id=angle_id if isinstance(angle_id, CameraAnglePreset) else CameraAnglePreset.FRONT, # Fallback
                 original_image_base64=image_base64[:100] + "...",  # Truncated for storage
                 generated_image_base64=generated_image,
                 prompt_used=prompt,

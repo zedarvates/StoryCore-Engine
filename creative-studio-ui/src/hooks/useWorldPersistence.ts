@@ -57,8 +57,9 @@ async function saveWorldToProjectDirectory(world: World, projectPath: string): P
     // Prepare world data for saving
     const worldData = {
       ...world,
-      createdAt: world.createdAt instanceof Date ? world.createdAt.toISOString() : world.createdAt,
-      updatedAt: new Date().toISOString(),
+      createdAt: typeof world.createdAt === 'number' ? world.createdAt : new Date(world.createdAt).getTime(),
+      updatedAt: Date.now(),
+      creation_timestamp: typeof world.createdAt === 'number' ? new Date(world.createdAt).toISOString() : String(world.createdAt),
     };
 
     console.log('[useWorldPersistence] World data prepared, size:', JSON.stringify(worldData).length, 'bytes');
@@ -171,13 +172,13 @@ async function loadWorldsFromProjectDirectory(projectPath: string): Promise<Worl
           contentString = rawContent;
         }
 
-        const worldData = JSON.parse(contentString);
+        const worldData = JSON.parse(contentString.trim());
 
-        // Validate and convert dates
+        // Validate and convert dates to timestamps (number)
         const world: World = {
           ...worldData,
-          createdAt: new Date(worldData.createdAt),
-          updatedAt: new Date(worldData.updatedAt),
+          createdAt: typeof worldData.createdAt === 'number' ? worldData.createdAt : new Date(worldData.createdAt).getTime(),
+          updatedAt: typeof worldData.updatedAt === 'number' ? worldData.updatedAt : new Date(worldData.updatedAt).getTime(),
         };
 
         worlds.push(world);
@@ -245,8 +246,9 @@ export function useWorldPersistence() {
 
         const worldData = {
           ...world,
-          createdAt: world.createdAt instanceof Date ? world.createdAt.toISOString() : world.createdAt,
-          updatedAt: new Date().toISOString(),
+          createdAt: typeof world.createdAt === 'number' ? world.createdAt : new Date(world.createdAt).getTime(),
+          updatedAt: Date.now(),
+          creation_timestamp: typeof world.createdAt === 'number' ? new Date(world.createdAt).toISOString() : String(world.createdAt),
         };
 
         if (worldIndex >= 0) {
@@ -395,8 +397,9 @@ export function useWorldPersistence() {
             const worldIndex = existingWorldsStorage.findIndex((w: World) => w.id === world.id);
             const worldData = {
               ...world,
-              createdAt: world.createdAt instanceof Date ? world.createdAt.toISOString() : world.createdAt,
-              updatedAt: new Date().toISOString(),
+              createdAt: typeof world.createdAt === 'number' ? world.createdAt : new Date(world.createdAt).getTime(),
+              updatedAt: Date.now(),
+              creation_timestamp: typeof world.createdAt === 'number' ? new Date(world.createdAt).toISOString() : String(world.createdAt),
             };
 
             if (worldIndex >= 0) {
@@ -442,11 +445,11 @@ export function useWorldPersistence() {
       if (storedWorlds) {
         const parsedWorlds: World[] = JSON.parse(storedWorlds);
 
-        // Convert date strings back to Date objects
+        // Ensure timestamps are numbers
         const worldsWithDates = parsedWorlds.map((world) => ({
           ...world,
-          createdAt: new Date(world.createdAt),
-          updatedAt: new Date(world.updatedAt),
+          createdAt: typeof world.createdAt === 'number' ? world.createdAt : new Date(world.createdAt).getTime(),
+          updatedAt: typeof world.updatedAt === 'number' ? world.updatedAt : new Date(world.updatedAt).getTime(),
         }));
 
         console.log(`[useWorldPersistence] Loaded ${worldsWithDates.length} worlds from localStorage`);
@@ -553,8 +556,8 @@ export function useWorldImport() {
             const importedWorld: World = {
               ...world,
               id: crypto.randomUUID(),
-              createdAt: new Date(world.createdAt),
-              updatedAt: new Date(),
+              createdAt: typeof world.createdAt === 'number' ? world.createdAt : (world.createdAt ? new Date(world.createdAt).getTime() : Date.now()),
+              updatedAt: Date.now(),
             };
 
             addWorld(importedWorld);

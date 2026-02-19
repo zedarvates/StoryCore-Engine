@@ -77,7 +77,7 @@ export interface RecentProject {
   /** File system path to project */
   path: string;
   /** Last modified timestamp */
-  lastModified: Date;
+  lastModified: number; // timestamp
   /** Optional thumbnail URL */
   thumbnail?: string;
 }

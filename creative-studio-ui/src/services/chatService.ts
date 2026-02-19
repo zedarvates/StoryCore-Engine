@@ -1,4 +1,5 @@
 import type { ChatMessage, Shot, Project, Asset } from '@/types';
+import type { LanguageCode } from '@/utils/llmConfigStorage';
 
 export interface ChatContext {
   project: Project | null;
@@ -76,18 +77,18 @@ export class ChatService {
   /**
    * Process user input and generate AI response with context awareness
    */
-  async processMessage(userInput: string, attachments?: ChatAttachment[], llmService?: any): Promise<ChatResponse> {
+  async processMessage(userInput: string, attachments?: ChatAttachment[], llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const input = userInput.toLowerCase();
 
     // Handle vision requests if attachments are present
     if (attachments && attachments.length > 0 && llmService) {
-      return this.handleVisionRequest(userInput, attachments, llmService);
+      return this.handleVisionRequest(userInput, attachments, llmService, language);
     }
 
-    // Check for project creation request first
+    // Check for project creation request first (Project creation usually has its own localized logic)
     const projectRequest = this.parseProjectCreationRequest(userInput);
     if (projectRequest) {
-      return this.handleProjectCreation(projectRequest, userInput);
+      return await this.handleProjectCreation(projectRequest, userInput, language);
     }
 
     // Analyze intent
@@ -118,27 +119,27 @@ export class ChatService {
 
       // Content creation intents
       case 'create_character':
-        return await this.handleCreateCharacter(userInput, llmService);
+        return await this.handleCreateCharacter(userInput, llmService, language);
       case 'create_location':
-        return await this.handleCreateLocation(userInput, llmService);
+        return await this.handleCreateLocation(userInput, llmService, language);
       case 'create_object':
-        return await this.handleCreateObject(userInput, llmService);
+        return await this.handleCreateObject(userInput, llmService, language);
       case 'create_dialogue':
-        return await this.handleCreateDialogue(userInput, llmService);
+        return await this.handleCreateDialogue(userInput, llmService, language);
       case 'create_story':
-        return await this.handleCreateStory(userInput, llmService);
+        return await this.handleCreateStory(userInput, llmService, language);
       case 'create_world':
-        return await this.handleCreateWorld(userInput, llmService);
+        return await this.handleCreateWorld(userInput, llmService, language);
       case 'create_scenario':
-        return await this.handleCreateScenario(userInput, llmService);
+        return await this.handleCreateScenario(userInput, llmService, language);
 
       // Media generation intents
       case 'generate_image':
-        return await this.handleGenerateImage(userInput, llmService);
+        return await this.handleGenerateImage(userInput, llmService, language);
       case 'generate_audio':
-        return await this.handleGenerateAudio(userInput, llmService);
+        return await this.handleGenerateAudio(userInput, llmService, language);
       case 'generate_video':
-        return await this.handleGenerateVideo(userInput, llmService);
+        return await this.handleGenerateVideo(userInput, llmService, language);
 
       default:
         return this.handleGeneral(input);
@@ -309,17 +310,24 @@ export class ChatService {
    */
   private async handleProjectCreation(
     request: ProjectCreationRequest,
-    originalInput: string
+    originalInput: string,
+    language: LanguageCode = 'fr'
   ): Promise<ChatResponse> {
     // Return a response that includes the project creation action
     // The actual project creation will be handled by the component that uses this service
-    const themeInfo = request.theme ? ` with a ${request.theme} theme` : '';
-    const universeInfo = request.universe ? ` set in a universe where ${request.universe}` : '';
-    const genreInfo = request.genre ? ` in the ${request.genre} genre` : '';
+    const themeInfo = request.theme ? (language === 'fr' ? ` avec un thème ${request.theme}` : ` with a ${request.theme} theme`) : '';
+    const universeInfo = request.universe ? (language === 'fr' ? ` se déroulant dans un univers où ${request.universe}` : ` set in a universe where ${request.universe}`) : '';
+    const genreInfo = request.genre ? (language === 'fr' ? ` dans le genre ${request.genre}` : ` in the ${request.genre} genre`) : '';
 
     return {
-      message: `I'll create a project called "${request.name}"${themeInfo}${universeInfo}${genreInfo}. Setting up the project structure now...`,
-      suggestions: [
+      message: language === 'fr'
+        ? `Je vais créer un projet appelé "${request.name}"${themeInfo}${universeInfo}${genreInfo}. Configuration de la structure du projet en cours...`
+        : `I'll create a project called "${request.name}"${themeInfo}${universeInfo}${genreInfo}. Setting up the project structure now...`,
+      suggestions: language === 'fr' ? [
+        'Ajouter des personnages au projet',
+        'Créer la première scène',
+        'Configurer les paramètres du projet',
+      ] : [
         'Add characters to the project',
         'Create the first scene',
         'Configure project settings',
@@ -880,7 +888,7 @@ export class ChatService {
   /**
    * Handle character creation request
    */
-  private async handleCreateCharacter(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleCreateCharacter(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     const name = nameMatch ? nameMatch[1].trim() : undefined;
@@ -961,7 +969,7 @@ export class ChatService {
   /**
    * Handle location creation request
    */
-  private async handleCreateLocation(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleCreateLocation(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     const name = nameMatch ? nameMatch[1].trim() : undefined;
@@ -1036,7 +1044,7 @@ export class ChatService {
   /**
    * Handle object creation request
    */
-  private async handleCreateObject(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleCreateObject(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     const name = nameMatch ? nameMatch[1].trim() : undefined;
@@ -1112,7 +1120,7 @@ export class ChatService {
   /**
    * Handle dialogue creation request
    */
-  private async handleCreateDialogue(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleCreateDialogue(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     let topic = '';
     let tone = 'neutral';
     let characters: string[] = [];
@@ -1178,7 +1186,7 @@ export class ChatService {
   /**
    * Handle story creation request
    */
-  private async handleCreateStory(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleCreateStory(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     // Regex extraction as fallback/priority for explicit quotes
     const nameMatch = input.match(/(?:appelée?|nommée?|intitulée?|named|called|titled)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
@@ -1261,7 +1269,7 @@ export class ChatService {
   /**
    * Handle world creation request
    */
-  private async handleCreateWorld(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleCreateWorld(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     let name = nameMatch ? nameMatch[1].trim() : undefined;
@@ -1343,7 +1351,7 @@ export class ChatService {
   /**
    * Handle scenario creation request
    */
-  private async handleCreateScenario(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleCreateScenario(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const nameMatch = input.match(/(?:appelé|nommé|intitulé|named|called|titled)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     let title = nameMatch ? nameMatch[1].trim() : undefined;
@@ -1429,7 +1437,7 @@ export class ChatService {
   /**
    * Handle image generation request
    */
-  private async handleGenerateImage(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleGenerateImage(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     // Extract the description/prompt from the user input
     const descMatch = input.match(/(?:image|illustration|dessin|drawing|photo|picture|portrait|visuel|visual|artwork)\s+(?:de|of|d'|du|d’|pour|for)?\s*(.+)/i)
       || input.match(/(?:génère|generate|crée|create|dessine|draw)\s+(?:une?|an?)?\s*(.+)/i);
@@ -1479,7 +1487,7 @@ export class ChatService {
   /**
    * Handle audio/voice generation request
    */
-  private async handleGenerateAudio(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleGenerateAudio(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     // Extract the text to convert to speech
     const textMatch = input.match(/(?:lis?|read|parle|speak|dis?|say)\s+["'«]([^"'»]+)["'»]/i)
       || input.match(/(?:voix|voice|audio|narration)\s+(?:pour|for|de|of)?\s*["'«]([^"'»]+)["'»]/i)
@@ -1570,7 +1578,7 @@ export class ChatService {
   /**
    * Handle video generation request
    */
-  private async handleGenerateVideo(input: string, llmService?: any): Promise<ChatResponse> {
+  private async handleGenerateVideo(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     // Extract the description/prompt
     const descMatch = input.match(/(?:vidéo|video|animation|clip)\s+(?:de|of|d'|d’|du|pour|for)?\s*(.+)/i)
       || input.match(/(?:anime|animate|génère|generate|crée|create)\s+(?:une?|an?)?\s*(?:vidéo|video|animation)?\s*(.+)/i);
@@ -1579,9 +1587,9 @@ export class ChatService {
     // Enhance prompt
     if (prompt && llmService && typeof llmService.generateCompletion === 'function' && prompt.length < 150) {
       try {
-        const enhancementPrompt = `Enhance this video generation prompt for Wan 2.1 / Kling AI: "${prompt}". 
-        Add motion details, camera movement, and lighting. Keep it under 75 tokens.
-        Reply ONLY with the enhanced prompt text.`;
+        const enhancementPrompt = language === 'fr'
+          ? `Améliore ce prompt de génération vidéo pour Wan 2.1 / Kling AI : "${prompt}". Ajoute des détails sur le mouvement, le mouvement de caméra et l'éclairage. Garde cela sous 75 tokens. Réponds UNIQUEMENT avec le texte du prompt amélioré en anglais.`
+          : `Enhance this video generation prompt for Wan 2.1 / Kling AI: "${prompt}". Add motion details, camera movement, and lighting. Keep it under 75 tokens. Reply ONLY with the enhanced prompt text.`;
 
         const response = await llmService.generateCompletion({
           prompt: enhancementPrompt,
@@ -1599,9 +1607,17 @@ export class ChatService {
 
     return {
       message: prompt
-        ? `🎬 I'll generate a video based on: "${prompt}". This will use the configured video generation pipeline.`
-        : `🎬 I'll generate a video for you! Describe the scene you'd like to animate using AI video generation.`,
-      suggestions: [
+        ? (language === 'fr'
+          ? `🎬 Je vais générer une vidéo basée sur : "${prompt}". Cela utilisera le pipeline de génération vidéo configuré.`
+          : `🎬 I'll generate a video based on: "${prompt}". This will use the configured video generation pipeline.`)
+        : (language === 'fr'
+          ? `🎬 Je vais générer une vidéo pour vous ! Décrivez la scène que vous aimeriez animer via l'IA.`
+          : `🎬 I'll generate a video for you! Describe the scene you'd like to animate using AI video generation.`),
+      suggestions: language === 'fr' ? [
+        'Animer un personnage qui marche',
+        'Créer une vidéo d\'eau qui coule',
+        'Générer l\'animation d\'un dragon volant',
+      ] : [
         'Animate a walking character',
         'Create a video of flowing water',
         'Generate an animation of a flying dragon',
@@ -1620,7 +1636,7 @@ export class ChatService {
   /**
    * Handle requests involving images/vision
    */
-  private async handleVisionRequest(input: string, attachments: ChatAttachment[], llmService: any): Promise<ChatResponse> {
+  private async handleVisionRequest(input: string, attachments: ChatAttachment[], llmService: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const image = attachments[0]; // Process first image for now
     const lowerInput = input.toLowerCase();
 
@@ -1641,34 +1657,88 @@ export class ChatService {
     // Project context for style adaptation
     let projectContext = '';
     if (this.context.project) {
-      // Extract genre and tone if available (assuming project structure)
-      // We'll use a generic approach as specific fields might vary
       const p = this.context.project as any;
       const genre = p.genre || p.metadata?.genre || '';
       const tone = p.tone || p.metadata?.tone || '';
       const style = p.style || p.metadata?.style || '';
 
       if (genre || tone || style) {
-        projectContext = `\n\nProject Context:\nGenre: ${genre}\nTone: ${tone}\nStyle: ${style}\n\nIMPORTANT: Adapt your analysis and description to fit this project's style and tone.`;
+        projectContext = language === 'fr'
+          ? `\n\nContexte du projet:\nGenre: ${genre}\nTon: ${tone}\nStyle: ${style}\n\nIMPORTANT: Adapte ton analyse et ta description pour correspondre au style et au ton de ce projet.`
+          : `\n\nProject Context:\nGenre: ${genre}\nTone: ${tone}\nStyle: ${style}\n\nIMPORTANT: Adapt your analysis and description to fit this project's style and tone.`;
       }
     }
 
     try {
       // Construct a prompt based on the detected or default entity type
-      let prompt = "Analyze this image in detail.";
+      let prompt = language === 'fr' ? "Analyse cette image en détail." : "Analyze this image in detail.";
       if (entityType === 'character') {
-        prompt = "Analyze this image as a character reference. Describe the physical appearance, clothing, distinctive features, possible personality traits inferred from expression, and the overall style. Provide a detailed prompt that could be used to regenerate this character." + projectContext;
+        prompt = language === 'fr'
+          ? "Analyse cette image comme une référence de personnage. Décris le personnage en utilisant ces étiquettes spécifiques :\n" +
+          "- Name: (nom suggéré)\n" +
+          "- Appearance: (description physique détaillée, vêtements, caractéristiques)\n" +
+          "- Personality: (traits déduits de l'expression/pose)\n" +
+          "- Archetype: (rôle ou classe de personnage)\n" +
+          "- Gender: (estimé)\n" +
+          "- Age: (tranche d'âge estimée)\n" +
+          "- Style: (style artistique global)\n\n" +
+          "Fournis également un prompt détaillé en anglais qui pourrait être utilisé pour régénérer ce personnage." + projectContext
+          : "Analyze this image as a character reference. Describe the character using these specific labels:\n" +
+          "- Name: (suggested name if not provided)\n" +
+          "- Appearance: (detailed physical description, clothing, features)\n" +
+          "- Personality: (traits inferred from expression/pose)\n" +
+          "- Archetype: (role or character class)\n" +
+          "- Gender: (estimated)\n" +
+          "- Age: (estimated range)\n" +
+          "- Style: (overall artistic style)\n\n" +
+          "Also provide a detailed prompt that could be used to regenerate this character." + projectContext;
       } else if (entityType === 'location') {
-        prompt = "Analyze this image as a location reference. Describe the atmosphere, lighting, architectural style or natural features, time of day, and potential story significance. Provide a detailed prompt that could be used to regenerate this location." + projectContext;
+        prompt = language === 'fr'
+          ? "Analyse cette image comme une référence de lieu. Décris le lieu en utilisant ces étiquettes spécifiques :\n" +
+          "- Name: (nom suggéré)\n" +
+          "- Description: (aperçu visuel)\n" +
+          "- Atmosphere: (éclairage, humeur, météo)\n" +
+          "- Style: (style architectural ou caractéristiques naturelles)\n" +
+          "- Time: (moment de la journée)\n" +
+          "- Significance: (rôle potentiel dans l'histoire)\n\n" +
+          "Fournis également un prompt détaillé en anglais qui pourrait être utilisé pour régénérer ce lieu." + projectContext
+          : "Analyze this image as a location reference. Describe the location using these specific labels:\n" +
+          "- Name: (suggested name if not provided)\n" +
+          "- Description: (visual overview)\n" +
+          "- Atmosphere: (lighting, mood, weather)\n" +
+          "- Style: (architectural style or natural features)\n" +
+          "- Time: (time of day)\n" +
+          "- Significance: (potential story role)\n\n" +
+          "Also provide a detailed prompt that could be used to regenerate this location." + projectContext;
       } else if (entityType === 'object') {
-        prompt = "Analyze this image as an object reference. Describe its material, condition, potential usage, magical properties if any, and visual details. Provide a detailed prompt that could be used to regenerate this object." + projectContext;
+        prompt = language === 'fr'
+          ? "Analyse cette image comme une référence d'objet. Décris l'objet en utilisant ces étiquettes spécifiques :\n" +
+          "- Name: (nom suggéré)\n" +
+          "- Description: (aperçu visuel)\n" +
+          "- Material: (de quoi il est fait)\n" +
+          "- Condition: (neuf, usé, antique)\n" +
+          "- Usage: (ce qu'il fait ou son but)\n" +
+          "- Style: (style artistique global)\n\n" +
+          "Fournis également un prompt détaillé en anglais qui pourrait être utilisé pour régénérer cet objet." + projectContext
+          : "Analyze this image as an object reference. Describe the object using these specific labels:\n" +
+          "- Name: (suggested name if not provided)\n" +
+          "- Description: (visual overview)\n" +
+          "- Material: (what it's made of)\n" +
+          "- Condition: (new, worn, artifact)\n" +
+          "- Usage: (what it does or its purpose)\n" +
+          "- Style: (overall artistic style)\n\n" +
+          "Also provide a detailed prompt that could be used to regenerate this object." + projectContext;
       } else {
-        prompt = "Analyze this image and describe what you see in detail. Identify if it is a character, a location, or an object." + projectContext;
+        prompt = language === 'fr'
+          ? "Analyse cette image et décris ce que tu vois en détail. Identifie s'il s'agit d'un personnage, d'un lieu ou d'un objet." + projectContext
+          : "Analyze this image and describe what you see in detail. Identify if it is a character, a location, or an object." + projectContext;
       }
 
       // Add user's specific question if any
       if (input.trim()) {
-        prompt += `\n\nAlso answer this user request: "${input}"`;
+        prompt += language === 'fr'
+          ? `\n\nRÉPONDS AUSSI À CETTE REQUETE UTILISATEUR : "${input}"`
+          : `\n\nAlso answer this user request: "${input}"`;
       }
 
       // Check if llmService is available and capable
@@ -1684,116 +1754,185 @@ export class ChatService {
           analysis = response.data.content;
         } else {
           console.error("Vision API failed", response);
-          analysis = "I could not analyze the image due to an error with the AI service. Please check your connection and configuration.";
+          analysis = language === 'fr'
+            ? "Je n'ai pas pu analyser l'image en raison d'une erreur de l'IA. Vérifiez votre connexion."
+            : "I could not analyze the image due to an error with the AI service. Please check your connection and configuration.";
         }
       } else {
         console.warn("LLM Service does not support vision or is not available");
-        analysis = "Vision capabilities are currently unavailable. Please ensure the AI service is configured.";
+        analysis = language === 'fr'
+          ? "Les capacités visuelles sont indisponibles actuellement."
+          : "Vision capabilities are currently unavailable. Please ensure the AI service is configured.";
       }
     } catch (e) {
       console.error("Vision analysis error", e);
-      analysis = "I encountered an error while trying to process the image.";
+      analysis = language === 'fr'
+        ? "J'ai rencontré une erreur lors du traitement de l'image."
+        : "I encountered an error while trying to process the image.";
     }
 
-    // Generate specific prompts for the entity based on analysis and project context
-    const generatedPrompts = [
-      `Analysis: ${analysis.substring(0, 100)}...`, // Store summary of analysis
-      `Generation Prompt: ${analysis}` // Use full analysis as base generation prompt
-    ];
-
-    // Add specific prompts based on type
-    if (this.context.project) {
-      const p = this.context.project as any;
-      const style = p.style || p.metadata?.style || 'Cinematic';
-
-      if (entityType === 'character') {
-        generatedPrompts.push(`Character Sheet: Full body character sheet of ${this.extractName(input) || 'character'}, ${analysis.substring(0, 200)}, style ${style}, multiple views (front, side, back), white background`);
-        generatedPrompts.push(`Portrait: Close-up portrait of ${this.extractName(input) || 'character'}, ${analysis.substring(0, 200)}, style ${style}, detailed face, expressive`);
-      } else if (entityType === 'location') {
-        generatedPrompts.push(`Landscape: Wide shot of ${this.extractName(input) || 'location'}, ${analysis.substring(0, 200)}, style ${style}, atmospheric lighting, 8k resolution`);
-      } else if (entityType === 'object') {
-        generatedPrompts.push(`Prop Design: Detailed asset view of ${this.extractName(input) || 'object'}, ${analysis.substring(0, 200)}, style ${style}, neutral background, 3d render style`);
-      }
-    }
-
-    // Based on analysis and entity type, propose creation
-    const suggestions: string[] = [];
-    const actions: ChatAction[] = [];
+    // Parse labeled data from analysis (labels remain in English internally as they are keys)
+    const parsedData = this.parseLabeledAnalysis(analysis);
+    const suggestedName = (parsedData.name as string) || this.extractName(input);
 
     // Determine entity type from analysis if unknown
     if (entityType === 'unknown') {
       const lowerAnalysis = analysis.toLowerCase();
-      if (lowerAnalysis.includes('character') || lowerAnalysis.includes('person') || lowerAnalysis.includes('portrait')) {
+      if (lowerAnalysis.includes('character') || lowerAnalysis.includes('person') || lowerAnalysis.includes('portrait') || lowerAnalysis.includes('personnage')) {
         entityType = 'character';
-      } else if (lowerAnalysis.includes('location') || lowerAnalysis.includes('landscape') || lowerAnalysis.includes('environment')) {
+      } else if (lowerAnalysis.includes('location') || lowerAnalysis.includes('landscape') || lowerAnalysis.includes('environment') || lowerAnalysis.includes('lieu')) {
         entityType = 'location';
-      } else if (lowerAnalysis.includes('object') || lowerAnalysis.includes('item') || lowerAnalysis.includes('artifact')) {
+      } else if (lowerAnalysis.includes('object') || lowerAnalysis.includes('item') || lowerAnalysis.includes('artifact') || lowerAnalysis.includes('objet')) {
         entityType = 'object';
       }
     }
 
+    // Generate specific prompts for the entity based on analysis and project context
+    const generatedPrompts: string[] = [];
+    const p = this.context.project as any;
+    const style = p?.style || p?.metadata?.style || parsedData.style || 'Cinematic';
+
     if (entityType === 'character') {
-      suggestions.push('Create this character', 'Generate profile based on image');
+      const appearance = (parsedData.appearance as string) || (parsedData.Appearance as string) || analysis.substring(0, 300);
+      generatedPrompts.push(`Character Sheet: Full body character sheet of ${suggestedName || 'character'}, ${appearance}, style ${style}, multiple views (front, side, back), white background, highly detailed, 8k`);
+      generatedPrompts.push(`Portrait: Close-up portrait of ${suggestedName || 'character'}, ${appearance}, style ${style}, detailed face, expressive lighting, masterpiece`);
+      generatedPrompts.push(`Action Shot: ${suggestedName || 'character'} in a cinematic action pose, ${appearance}, style ${style}, dramatic atmosphere`);
+    } else if (entityType === 'location') {
+      const desc = (parsedData.description as string) || (parsedData.Description as string) || analysis.substring(0, 300);
+      const atmos = (parsedData.atmosphere as string) || (parsedData.Atmosphere as string) || '';
+      generatedPrompts.push(`Landscape: Wide shot of ${suggestedName || 'location'}, ${desc}, ${atmos}, style ${style}, atmospheric lighting, 8k resolution, cinematic composition`);
+      generatedPrompts.push(`Interior: Interior view of ${suggestedName || 'location'}, ${desc}, ${atmos}, style ${style}, detailed environment, immersive lighting`);
+    } else if (entityType === 'object') {
+      const desc = (parsedData.description as string) || (parsedData.Description as string) || analysis.substring(0, 300);
+      const material = (parsedData.material as string) || (parsedData.Material as string) || '';
+      generatedPrompts.push(`Prop Design: Detailed asset view of ${suggestedName || 'object'}, ${desc}, made of ${material}, style ${style}, neutral background, 3d render style, studio lighting`);
+      generatedPrompts.push(`Icon: Stylized icon of ${suggestedName || 'object'}, ${desc}, style ${style}, game asset style, isolated on background`);
+    }
+
+    // Add raw analysis for reference
+    generatedPrompts.push(`Vision Analysis: ${analysis}`);
+
+    const suggestions: string[] = [];
+    const actions: ChatAction[] = [];
+
+    if (entityType === 'character') {
+      suggestions.push(language === 'fr' ? 'Créer ce personnage' : 'Create this character');
       actions.push({
         type: 'createCharacter',
         payload: {
-          name: this.extractName(input) || "New Character",
+          name: suggestedName || (language === 'fr' ? "Nouveau Personnage" : "New Character"),
           rawInput: input,
-          description: analysis,
+          description: (parsedData.appearance as string) || (parsedData.Appearance as string) || analysis,
+          appearance: (parsedData.appearance as string) || (parsedData.Appearance as string) || analysis,
+          personality: (parsedData.personality as string[]) || (parsedData.Personality as string[]) || [],
+          archetype: (parsedData.archetype as string) || (parsedData.Archetype as string) || '',
+          gender: (parsedData.gender as string) || (parsedData.Gender as string) || 'neutral',
+          age: (parsedData.age as string) || (parsedData.Age as string) || '',
           visualRef: image.content,
           prompts: generatedPrompts
         }
       });
       return {
-        message: `I've analyzed the image matching your project's style.\n\nHere is what I see:\n${analysis}\n\nI've also prepared generation prompts for character sheets and portraits. Would you like to create this character profile?`,
+        message: language === 'fr'
+          ? `J'ai analysé l'image en l'adaptant au style de votre projet.\n\nVoici ce que je vois :\n${analysis}\n\nJ'ai préparé les prompts de génération et extrait les détails du personnage. Voulez-vous créer ce profil ?`
+          : `I've analyzed the image matching your project's style.\n\nHere is what I see:\n${analysis}\n\nI've prepared generation prompts and extracted character details. Would you like to create this character profile?`,
         suggestions,
         actions
       };
     } else if (entityType === 'location') {
-      suggestions.push('Create this location', 'Save as new setting');
+      suggestions.push(language === 'fr' ? 'Créer ce lieu' : 'Create this location');
       actions.push({
         type: 'createLocation',
         payload: {
-          name: this.extractName(input) || "New Location",
+          name: suggestedName || (language === 'fr' ? "Nouveau Lieu" : "New Location"),
           rawInput: input,
-          description: analysis,
+          description: (parsedData.description as string) || (parsedData.Description as string) || analysis,
+          atmosphere: (parsedData.atmosphere as string) || (parsedData.Atmosphere as string) || '',
+          significance: (parsedData.significance as string) || (parsedData.Significance as string) || '',
           visualRef: image.content,
           prompts: generatedPrompts
         }
       });
       return {
-        message: `I've analyzed the image matching your project's style.\n\nDescription:\n${analysis}\n\nI've prepared atmosphere and environment prompts. Shall we add this to your world?`,
+        message: language === 'fr'
+          ? `J'ai analysé l'image selon le style de votre projet.\n\nDescription :\n${analysis}\n\nJ'ai préparé les prompts d'ambiance. Voulez-vous ajouter ce lieu à votre monde ?`
+          : `I've analyzed the image matching your project's style.\n\nDescription:\n${analysis}\n\nI've prepared atmosphere and environment prompts. Shall we add this to your world?`,
         suggestions,
         actions
       };
     } else if (entityType === 'object') {
-      suggestions.push('Create this object', 'Add to inventory');
+      suggestions.push(language === 'fr' ? 'Créer cet objet' : 'Create this object');
       actions.push({
         type: 'createObject',
         payload: {
-          name: this.extractName(input) || "New Object",
+          name: suggestedName || (language === 'fr' ? "Nouvel Objet" : "New Object"),
           rawInput: input,
-          description: analysis,
+          description: (parsedData.description as string) || (parsedData.Description as string) || analysis,
+          material: (parsedData.material as string) || (parsedData.Material as string) || '',
+          usage: (parsedData.usage as string) || (parsedData.Usage as string) || '',
           visualRef: image.content,
           prompts: generatedPrompts
         }
       });
       return {
-        message: `I've analyzed the image matching your project's style.\n\nDetails:\n${analysis}\n\nI've generated detailed prop design prompts. Do you want to create an item from this?`,
+        message: language === 'fr'
+          ? `J'ai analysé l'image en fonction de votre projet.\n\nDétails :\n${analysis}\n\nJ'ai généré des prompts de design d'accessoires. Voulez-vous créer cet objet ?`
+          : `I've analyzed the image matching your project's style.\n\nDetails:\n${analysis}\n\nI've generated detailed prop design prompts. Do you want to create an item from this?`,
         suggestions,
         actions
       };
     }
 
     return {
-      message: `I've analyzed the image:\n\n${analysis}\n\nWhat would you like to do with it?`,
-      suggestions: ['Create a character', 'Create a location', 'Create an object'],
+      message: language === 'fr'
+        ? `J'ai analysé l'image :\n\n${analysis}\n\nQue souhaitez-vous en faire ?`
+        : `I've analyzed the image:\n\n${analysis}\n\nWhat would you like to do with it?`,
+      suggestions: language === 'fr' ? ['Créer un personnage', 'Créer un lieu', 'Créer un objet'] : ['Create a character', 'Create a location', 'Create an object'],
       actions: [{
         type: 'analyzeImage',
         payload: { analysis }
       }]
     };
   }
+
+  /**
+   * Parse labeled analysis text from Vision Model
+   */
+  private parseLabeledAnalysis(analysis: string): Record<string, string | string[]> {
+    const data: Record<string, string | string[]> = {};
+    const lines = analysis.split('\n');
+
+    const labels = [
+      'Name', 'Appearance', 'Personality', 'Archetype', 'Gender', 'Age', 'Style',
+      'Description', 'Atmosphere', 'Time', 'Significance',
+      'Material', 'Condition', 'Usage'
+    ];
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) continue;
+
+      for (const label of labels) {
+        const regex = new RegExp(`^-?\\s*${label}:?\\s*(.*)`, 'i');
+        const match = trimmedLine.match(regex);
+        if (match) {
+          const value = match[1].trim();
+          const key = label.toLowerCase();
+
+          if (key === 'personality') {
+            // Split personality traits by comma or semicolon
+            data[key] = value.split(/[,;]/).map(t => t.trim()).filter(t => t.length > 0);
+          } else {
+            data[key] = value;
+          }
+        }
+      }
+    }
+
+    return data;
+  }
+
+
 
   /**
    * Helper to extract name from input if present

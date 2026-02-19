@@ -61,10 +61,10 @@ interface FileMetadata {
 
 function generateYAMLFrontmatter(metadata: FileMetadata): string {
   const lines = ['---'];
-  
+
   for (const [key, value] of Object.entries(metadata)) {
     if (value === undefined) continue;
-    
+
     if (Array.isArray(value)) {
       lines.push(`${key}:`);
       value.forEach(item => lines.push(`  - ${item}`));
@@ -77,55 +77,55 @@ function generateYAMLFrontmatter(metadata: FileMetadata): string {
       lines.push(`${key}: ${value}`);
     }
   }
-  
+
   lines.push('---');
   return lines.join('\n');
 }
 
 function parseYAMLFrontmatter(content: string): { metadata: Partial<FileMetadata>; body: string } {
   const lines = content.split('\n');
-  
+
   if (lines[0] !== '---') {
     return { metadata: {}, body: content };
   }
-  
+
   const endIndex = lines.findIndex((line, i) => i > 0 && line === '---');
   if (endIndex === -1) {
     return { metadata: {}, body: content };
   }
-  
+
   const yamlLines = lines.slice(1, endIndex);
   const body = lines.slice(endIndex + 1).join('\n').trim();
-  
+
   const metadata: Partial<FileMetadata> = {};
   let currentKey = '';
   let currentArray: string[] = [];
   let isArray = false;
-  
+
   for (const line of yamlLines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
-    
+
     // Check if it's an array item
     if (trimmed.startsWith('- ')) {
       currentArray.push(trimmed.substring(2));
       isArray = true;
       continue;
     }
-    
+
     // Save previous array if exists
     if (isArray && currentKey) {
       (metadata as any)[currentKey] = currentArray;
       currentArray = [];
       isArray = false;
     }
-    
+
     // Parse key-value
     const colonIndex = trimmed.indexOf(':');
     if (colonIndex > 0) {
       currentKey = trimmed.substring(0, colonIndex).trim();
       const value = trimmed.substring(colonIndex + 1).trim();
-      
+
       if (value) {
         // Try to parse as number
         const numValue = Number(value);
@@ -133,12 +133,12 @@ function parseYAMLFrontmatter(content: string): { metadata: Partial<FileMetadata
       }
     }
   }
-  
+
   // Save final array if exists
   if (isArray && currentKey) {
     (metadata as any)[currentKey] = currentArray;
   }
-  
+
   return { metadata, body };
 }
 
@@ -169,11 +169,11 @@ export function generateStoryPartFile(part: StoryPart, context: {
     prev_part: context.prevPart,
     next_part: context.nextPart,
   };
-  
+
   if (part.reviewScore) {
     metadata.review_score = part.reviewScore;
   }
-  
+
   const lines: string[] = [
     generateYAMLFrontmatter(metadata),
     '',
@@ -193,7 +193,7 @@ export function generateStoryPartFile(part: StoryPart, context: {
     '',
     '> **Note for LLM**: This file is part of a multi-part story. Use the "Summary for Next Part" section as context when generating subsequent parts.',
   ];
-  
+
   return lines.join('\n');
 }
 
@@ -207,17 +207,17 @@ export function generateStoryIndexFile(story: Story): string {
     locations: story.locationsUsed.map(l => l.name),
     generated_at: new Date().toISOString(),
   };
-  
+
   const partsList = story.parts?.map((part, index) => {
-    const fileName = part.type === 'intro' 
-      ? FILE_NAMES.intro 
-      : part.type === 'ending' 
-        ? FILE_NAMES.ending 
+    const fileName = part.type === 'intro'
+      ? FILE_NAMES.intro
+      : part.type === 'ending'
+        ? FILE_NAMES.ending
         : FILE_NAMES.chapter(part.order - 1);
-    
+
     return `- [${part.title}](./${fileName}) - Order: ${part.order}`;
   }).join('\n') || '';
-  
+
   const lines: string[] = [
     generateYAMLFrontmatter(metadata),
     '',
@@ -228,8 +228,8 @@ export function generateStoryIndexFile(story: Story): string {
     `- **Genre**: ${story.genre.join(', ')}`,
     `- **Tone**: ${story.tone.join(', ')}`,
     `- **Length**: ${story.length}`,
-    `- **Created**: ${story.createdAt.toLocaleDateString()}`,
-    `- **Updated**: ${story.updatedAt.toLocaleDateString()}`,
+    `- **Created**: ${new Date(story.createdAt).toLocaleDateString()}`,
+    `- **Updated**: ${new Date(story.updatedAt).toLocaleDateString()}`,
     '',
     '## Summary',
     '',
@@ -251,13 +251,13 @@ export function generateStoryIndexFile(story: Story): string {
     '',
     '*This index file is automatically maintained by StoryCore-Engine.*',
   ];
-  
+
   return lines.join('\n');
 }
 
 export function generateRollingSummaryFile(parts: StoryPart[]): string {
   const lastPart = parts[parts.length - 1];
-  
+
   const metadata: FileMetadata = {
     title: 'Rolling Summary',
     type: 'summary',
@@ -265,11 +265,11 @@ export function generateRollingSummaryFile(parts: StoryPart[]): string {
     total_parts: parts.length,
     generated_at: new Date().toISOString(),
   };
-  
-  const cumulativeSummary = parts.map(p => 
+
+  const cumulativeSummary = parts.map(p =>
     `### ${p.title}\n${p.summary}`
   ).join('\n\n');
-  
+
   const lines: string[] = [
     generateYAMLFrontmatter(metadata),
     '',
@@ -289,7 +289,7 @@ export function generateRollingSummaryFile(parts: StoryPart[]): string {
     '',
     '> **LLM Instruction**: Use "Current Context" for generating the next part. Use "Full Story Arc" for understanding the complete narrative.',
   ];
-  
+
   return lines.join('\n');
 }
 
@@ -325,7 +325,7 @@ export function storyToMarkdown(story: Story): string {
   if (story.parts && story.parts.length > 0) {
     lines.push('## Parts');
     lines.push('');
-    
+
     for (const part of story.parts) {
       lines.push(`### ${part.title}`);
       lines.push('');
@@ -390,8 +390,8 @@ export function markdownToStory(markdown: string, existingStory?: Partial<Story>
     charactersUsed: existingStory?.charactersUsed || [],
     locationsUsed: existingStory?.locationsUsed || [],
     autoGeneratedElements: existingStory?.autoGeneratedElements || [],
-    createdAt: existingStory?.createdAt || new Date(),
-    updatedAt: new Date(),
+    createdAt: existingStory?.createdAt || Date.now(),
+    updatedAt: Date.now(),
     version: (existingStory?.version || 0) + 1,
     worldId: existingStory?.worldId,
   };
@@ -479,8 +479,8 @@ export async function saveStoryToDisk(projectPath: string, story: Story): Promis
     throw new Error('Electron API not available');
   }
 
-const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
-  
+  const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
+
   try {
     // Ensure directory exists with recursive option
     await window.electronAPI.fs.mkdir(storyDir, { recursive: true });
@@ -493,18 +493,18 @@ const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
     if (story.parts && story.parts.length > 0) {
       const characterNames = story.charactersUsed.map(c => c.name);
       const locationNames = story.locationsUsed.map(l => l.name);
-      
+
       for (let i = 0; i < story.parts.length; i++) {
         const part = story.parts[i];
         const prevPart = i > 0 ? story.parts[i - 1] : undefined;
         const nextPart = i < story.parts.length - 1 ? story.parts[i + 1] : undefined;
-        
-        const fileName = part.type === 'intro' 
-          ? FILE_NAMES.intro 
-          : part.type === 'ending' 
-            ? FILE_NAMES.ending 
+
+        const fileName = part.type === 'intro'
+          ? FILE_NAMES.intro
+          : part.type === 'ending'
+            ? FILE_NAMES.ending
             : FILE_NAMES.chapter(part.order - 1);
-        
+
         const content = generateStoryPartFile(part, {
           totalParts: story.parts.length,
           genre: story.genre,
@@ -514,7 +514,7 @@ const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
           prevPart: prevPart?.title,
           nextPart: nextPart?.title,
         });
-        
+
         await window.electronAPI.fs.writeFile(`${storyDir}/${fileName}`, content);
       }
 
@@ -542,7 +542,7 @@ export async function loadStoryPartsFromDisk(projectPath: string): Promise<Story
   }
 
   const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
-  
+
   try {
     // Check if directory exists
     const exists = await window.electronAPI.fs.exists(storyDir);
@@ -552,7 +552,7 @@ export async function loadStoryPartsFromDisk(projectPath: string): Promise<Story
 
     // List files in directory
     const files = await window.electronAPI.fs.readdir(storyDir);
-    const partFiles = files.filter((f: string) => 
+    const partFiles = files.filter((f: string) =>
       f.startsWith('story-') && f.endsWith('.md') && f !== 'story-index.md' && f !== 'story-summary.md'
     );
 
@@ -660,6 +660,7 @@ export async function saveStoryToFile(projectPath: string, story: Story): Promis
  * Creates a new story.md file with default template content
  */
 export function createDefaultStory(projectName: string): Story {
+  const now = Date.now();
   return {
     id: crypto.randomUUID(),
     title: projectName,
@@ -671,8 +672,8 @@ export function createDefaultStory(projectName: string): Story {
     charactersUsed: [],
     locationsUsed: [],
     autoGeneratedElements: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
     version: 1,
   };
 }
@@ -756,17 +757,17 @@ export async function updateStoryPartContent(
     throw new Error('Electron API not available');
   }
 
-const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
-  
+  const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
+
   try {
     // Ensure directory exists with recursive option
     await window.electronAPI.fs.mkdir(storyDir, { recursive: true });
 
     // Determine file name based on part type
-    const fileName = part.type === 'intro' 
-      ? FILE_NAMES.intro 
-      : part.type === 'ending' 
-        ? FILE_NAMES.ending 
+    const fileName = part.type === 'intro'
+      ? FILE_NAMES.intro
+      : part.type === 'ending'
+        ? FILE_NAMES.ending
         : FILE_NAMES.chapter(part.order - 1);
 
     const filePath = `${storyDir}/${fileName}`;
@@ -830,17 +831,17 @@ export async function saveStoryPartToDisk(
     throw new Error('Electron API not available');
   }
 
-const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
-  
+  const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
+
   try {
     // Ensure directory exists with recursive option
     await window.electronAPI.fs.mkdir(storyDir, { recursive: true });
 
     // Determine file name based on part type
-    const fileName = part.type === 'intro' 
-      ? FILE_NAMES.intro 
-      : part.type === 'ending' 
-        ? FILE_NAMES.ending 
+    const fileName = part.type === 'intro'
+      ? FILE_NAMES.intro
+      : part.type === 'ending'
+        ? FILE_NAMES.ending
         : FILE_NAMES.chapter(part.order - 1);
 
     const filePath = `${storyDir}/${fileName}`;
@@ -854,6 +855,232 @@ const storyDir = `${projectPath}/${STORY_DIR_NAME}`;
     console.log(`[StoryFileIO] Saved story part: ${fileName}`);
   } catch (error) {
     console.error('[StoryFileIO] Failed to save story part:', error);
+    throw error;
+  }
+}
+
+// ============================================================================
+// Scenario File Generation (for video/film production)
+// ============================================================================
+
+/**
+ * Generate scenario.md file content in standard screenplay format
+ */
+export function generateScenarioContent(story: Story): string {
+  const lines: string[] = [];
+
+  // Title page
+  lines.push('# SCENARIO');
+  lines.push('');
+  lines.push(`**${story.title.toUpperCase()}**`);
+  lines.push('');
+  lines.push(`Genre: ${story.genre.join(', ')}`);
+  lines.push(`Ton: ${story.tone.join(', ')}`);
+  lines.push(`Durée estimée: ${getEstimatedDuration(story.length)}`);
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+
+  // Characters section
+  if (story.charactersUsed.length > 0) {
+    lines.push('## PERSONNAGES');
+    lines.push('');
+    story.charactersUsed.forEach((char) => {
+      lines.push(`**${char.name}** - ${char.role}`);
+    });
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+  }
+
+  // Locations section
+  if (story.locationsUsed.length > 0) {
+    lines.push('## LIEUX');
+    lines.push('');
+    story.locationsUsed.forEach((loc) => {
+      lines.push(`**${loc.name}** - ${loc.significance}`);
+    });
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+  }
+
+  // Synopsis
+  lines.push('## SYNOPSIS');
+  lines.push('');
+  lines.push(story.summary);
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+
+  // Story content formatted as scenario
+  lines.push('## SCÉNARIO');
+  lines.push('');
+
+  // Parse story content into scenes
+  const scenes = parseStoryToScenes(story.content, story.parts);
+
+  scenes.forEach((scene, index) => {
+    lines.push(`### SCÈNE ${index + 1}`);
+    lines.push('');
+    lines.push(`**LIEU:** ${scene.location}`);
+    lines.push(`**TEMPS:** ${scene.timeOfDay}`);
+    lines.push('');
+
+    // Scene description
+    lines.push('*' + scene.description + '*');
+    lines.push('');
+
+    // Dialogues
+    scene.dialogues.forEach((dialogue) => {
+      lines.push(`**${dialogue.character}:**`);
+      lines.push(dialogue.text);
+      lines.push('');
+    });
+
+    lines.push('---');
+    lines.push('');
+  });
+
+  // Footer
+  lines.push('*Généré automatiquement par StoryCore-Engine*');
+
+  return lines.join('\n');
+}
+
+/**
+ * Parse story content into scenes
+ */
+function parseStoryToScenes(content: string, parts?: StoryPart[]): Scene[] {
+  const scenes: Scene[] = [];
+
+  if (parts && parts.length > 0) {
+    // Use parts if available
+    parts.forEach((part, index) => {
+      scenes.push({
+        location: 'À déterminer',
+        timeOfDay: 'Jour',
+        description: part.summary || part.content.substring(0, 200),
+        dialogues: extractDialogues(part.content),
+      });
+    });
+  } else {
+    // Parse content into scenes
+    const paragraphs = content.split(/\n\n+/);
+    let currentScene: Scene = {
+      location: 'À déterminer',
+      timeOfDay: 'Jour',
+      description: '',
+      dialogues: [],
+    };
+
+    paragraphs.forEach((para) => {
+      const trimmed = para.trim();
+      if (!trimmed) return;
+
+      // Check for scene header
+      if (trimmed.match(/^(INT\.|EXT\.|CHAPITRE|SCÈNE)/i)) {
+        if (currentScene.description || currentScene.dialogues.length > 0) {
+          scenes.push(currentScene);
+        }
+        currentScene = {
+          location: extractLocation(trimmed),
+          timeOfDay: 'Jour',
+          description: '',
+          dialogues: [],
+        };
+      } else if (trimmed.includes(':') && trimmed.length < 500) {
+        // Likely dialogue
+        const colonIndex = trimmed.indexOf(':');
+        currentScene.dialogues.push({
+          character: trimmed.substring(0, colonIndex).trim(),
+          text: trimmed.substring(colonIndex + 1).trim(),
+        });
+      } else {
+        currentScene.description += (currentScene.description ? ' ' : '') + trimmed;
+      }
+    });
+
+    if (currentScene.description || currentScene.dialogues.length > 0) {
+      scenes.push(currentScene);
+    }
+  }
+
+  return scenes.length > 0 ? scenes : [{
+    location: 'À déterminer',
+    timeOfDay: 'Jour',
+    description: content.substring(0, 500),
+    dialogues: [],
+  }];
+}
+
+interface Scene {
+  location: string;
+  timeOfDay: string;
+  description: string;
+  dialogues: Array<{ character: string; text: string }>;
+}
+
+function extractDialogues(content: string): Array<{ character: string; text: string }> {
+  const dialogues: Array<{ character: string; text: string }> = [];
+  const lines = content.split('\n');
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (trimmed.includes(':') && trimmed.length < 300) {
+      const colonIndex = trimmed.indexOf(':');
+      const beforeColon = trimmed.substring(0, colonIndex).trim();
+      // Check if it looks like a character name (short, starts with capital)
+      if (beforeColon.length < 30 && /^[A-ZÉÈÊËÀÂÄÙÛÜÔÖÎÏÇ]/.test(beforeColon)) {
+        dialogues.push({
+          character: beforeColon,
+          text: trimmed.substring(colonIndex + 1).trim(),
+        });
+      }
+    }
+  });
+
+  return dialogues;
+}
+
+function extractLocation(header: string): string {
+  const match = header.match(/(?:INT\.|EXT\.)\s*[:-]?\s*(.+)/i);
+  return match ? match[1].trim() : 'À déterminer';
+}
+
+function getEstimatedDuration(length: Story['length']): string {
+  const durations: Record<string, string> = {
+    scene: '1-2 minutes',
+    short: '2-5 minutes',
+    short_story: '5-10 minutes',
+    medium: '10-20 minutes',
+    novella: '20-40 minutes',
+    long: '40-60 minutes',
+    novel: '60-90 minutes',
+    epic_novel: '90-120 minutes',
+  };
+  return durations[length] || '15-30 minutes';
+}
+
+/**
+ * Save scenario.md file to project
+ */
+export async function saveScenarioToDisk(projectPath: string, story: Story): Promise<void> {
+  if (!window.electronAPI?.fs) {
+    throw new Error('Electron API not available');
+  }
+
+  try {
+    // Generate scenario content
+    const scenarioContent = generateScenarioContent(story);
+
+    // Write scenario.md at project root
+    const scenarioPath = `${projectPath}/scenario.md`;
+    await window.electronAPI.fs.writeFile(scenarioPath, scenarioContent);
+
+    console.log(`[StoryFileIO] Scenario saved: ${scenarioPath}`);
+  } catch (error) {
+    console.error('[StoryFileIO] Failed to save scenario:', error);
     throw error;
   }
 }

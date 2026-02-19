@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Edit } from 'lucide-react';
+import { Edit, HardDrive, Binary, Cpu, Activity, Share2, Terminal, ShieldCheck, Zap } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Character } from '@/types/character';
 import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
-// Step 6: Review and Finalize
+// Step 6: Final Materialization (Review and Finalize)
 // ============================================================================
 
 interface Step6ReviewFinalizeProps {
@@ -26,320 +27,221 @@ export function Step6ReviewFinalize({ storyContext }: Step6ReviewFinalizeProps =
 
   return (
     <WizardFormLayout
-      title="Review and Finalize"
-      description="Review your character before saving"
+      title="Final Materialization"
+      description="Validate consciousness parameters and commit entity to active archives"
     >
-      <div className="space-y-6">
-        {/* Basic Identity */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg">Basic Identity</CardTitle>
-            <Button
-              onClick={() => handleEdit(1)}
-              variant="ghost"
-              size="sm"
-              className="h-8"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Name</p>
-              <p className="text-lg font-semibold">{formData.name || 'Not specified'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Archetype</p>
-              <p>{formData.role?.archetype || 'Not specified'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Age Range</p>
-              <p>{formData.visual_identity?.age_range || 'Not specified'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Gender</p>
-              <p>{formData.visual_identity?.gender || 'Not specified'}</p>
-            </div>
-            {formData.role?.narrative_function && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Narrative Function</p>
-                <p className="text-sm">{formData.role.narrative_function}</p>
-              </div>
-            )}
-            {formData.role?.character_arc && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Character Arc</p>
-                <p className="text-sm">{formData.role.character_arc}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="space-y-8">
+        {/* Neural Signature (Basic Identity) */}
+        <div className="p-6 border border-primary/20 bg-primary/5 backdrop-blur-sm relative transition-all hover:border-primary/40">
+          <div className="absolute -top-3 left-6 bg-[#050b10] px-3 py-0.5 border border-primary/20 flex items-center gap-2">
+            <ShieldCheck className="w-3 h-3 text-primary" />
+            <span className="text-[10px] font-black text-primary neon-text uppercase tracking-widest font-mono">// Neural Signature</span>
+          </div>
+          <Button
+            onClick={() => handleEdit(1)}
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4 h-7 text-[10px] uppercase font-black tracking-widest text-primary/40 hover:text-primary hover:bg-primary/10"
+          >
+            <Edit className="w-3 h-3 mr-2" />
+            Modify
+          </Button>
 
-        {/* Physical Appearance */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg">Physical Appearance</CardTitle>
-            <Button
-              onClick={() => handleEdit(2)}
-              variant="ghost"
-              size="sm"
-              className="h-8"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-4">
-              {formData.visual_identity?.hair_color && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Hair</p>
-                  <p className="text-sm">
-                    {formData.visual_identity.hair_color}{' '}
-                    {formData.visual_identity.hair_style}{' '}
-                    {formData.visual_identity.hair_length}
-                  </p>
-                </div>
-              )}
-              {formData.visual_identity?.eye_color && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Eyes</p>
-                  <p className="text-sm">
-                    {formData.visual_identity.eye_color}{' '}
-                    {formData.visual_identity.eye_shape}
-                  </p>
-                </div>
-              )}
-              {formData.visual_identity?.skin_tone && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Skin Tone</p>
-                  <p className="text-sm">{formData.visual_identity.skin_tone}</p>
-                </div>
-              )}
-              {formData.visual_identity?.facial_structure && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Face</p>
-                  <p className="text-sm">{formData.visual_identity.facial_structure}</p>
-                </div>
-              )}
-              {formData.visual_identity?.height && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Height</p>
-                  <p className="text-sm">{formData.visual_identity.height}</p>
-                </div>
-              )}
-              {formData.visual_identity?.build && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Build</p>
-                  <p className="text-sm">{formData.visual_identity.build}</p>
-                </div>
-              )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+            <div className="space-y-1">
+              <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Entity Designation</p>
+              <p className="text-sm font-black text-primary uppercase tracking-wider font-mono">{formData.name || 'UNSPECIFIED'}</p>
             </div>
-            {formData.visual_identity?.distinctive_features &&
-              formData.visual_identity.distinctive_features.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Distinctive Features
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.visual_identity.distinctive_features.map((feature, index) => (
-                      <Badge key={index} variant="secondary">
-                        {feature}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            {formData.visual_identity?.color_palette &&
-              formData.visual_identity.color_palette.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Color Palette
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.visual_identity.color_palette.map((color, index) => (
-                      <Badge key={index} variant="outline">
-                        {color}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-          </CardContent>
-        </Card>
-
-        {/* Personality */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg">Personality</CardTitle>
-            <Button
-              onClick={() => handleEdit(3)}
-              variant="ghost"
-              size="sm"
-              className="h-8"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {formData.personality?.traits && formData.personality.traits.length > 0 && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Traits</p>
-                <div className="flex flex-wrap gap-2">
-                  {formData.personality.traits.map((trait, index) => (
-                    <Badge key={index} variant="secondary">
-                      {trait}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-            {formData.personality?.values && formData.personality.values.length > 0 && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Values</p>
-                <div className="flex flex-wrap gap-2">
-                  {formData.personality.values.map((value, index) => (
-                    <Badge key={index} variant="outline">
-                      {value}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-4">
-              {formData.personality?.temperament && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Temperament</p>
-                  <p className="text-sm">{formData.personality.temperament}</p>
-                </div>
-              )}
-              {formData.personality?.communication_style && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Communication Style
-                  </p>
-                  <p className="text-sm">{formData.personality.communication_style}</p>
-                </div>
-              )}
+            <div className="space-y-1">
+              <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Core Archetype</p>
+              <p className="text-xs font-mono text-primary/80 uppercase">{formData.role?.archetype || 'DATA MISSING'}</p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="space-y-1">
+              <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Maturity / Variant</p>
+              <p className="text-xs font-mono text-primary/80 uppercase">{formData.visual_identity?.age_range} | {formData.visual_identity?.gender}</p>
+            </div>
+          </div>
+        </div>
 
-        {/* Background */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg">Background</CardTitle>
-            <Button
-              onClick={() => handleEdit(4)}
-              variant="ghost"
-              size="sm"
-              className="h-8"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        {/* Morphological Profile (Physical Appearance) */}
+        <div className="p-6 border border-primary/20 bg-primary/5 backdrop-blur-sm relative transition-all hover:border-primary/40">
+          <div className="absolute -top-3 left-6 bg-[#050b10] px-3 py-0.5 border border-primary/20 flex items-center gap-2">
+            <Binary className="w-3 h-3 text-primary" />
+            <span className="text-[10px] font-black text-primary neon-text uppercase tracking-widest font-mono">// Morphological Profile</span>
+          </div>
+          <Button
+            onClick={() => handleEdit(2)}
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4 h-7 text-[10px] uppercase font-black tracking-widest text-primary/40 hover:text-primary hover:bg-primary/10"
+          >
+            <Edit className="w-3 h-3 mr-2" />
+            Modify
+          </Button>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-4">
+            <div className="space-y-1 col-span-2">
+              <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Spectral Data (Ocular/Follicular)</p>
+              <div className="flex flex-wrap gap-2">
+                {formData.visual_identity?.eye_color && <Badge variant="outline" className="bg-primary/5 border-primary/20 text-[9px] font-mono text-primary/60 uppercase">EYE: {formData.visual_identity.eye_color}</Badge>}
+                {formData.visual_identity?.hair_color && <Badge variant="outline" className="bg-primary/5 border-primary/20 text-[9px] font-mono text-primary/60 uppercase">HAIR: {formData.visual_identity.hair_color}</Badge>}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Structural Build</p>
+              <p className="text-xs font-mono text-primary/80 uppercase">{formData.visual_identity?.build || 'GENERIC'}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Dimensional Height</p>
+              <p className="text-xs font-mono text-primary/80 uppercase">{formData.visual_identity?.height || 'STANDARD'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Cognitive Matrix (Personality) */}
+        <div className="p-6 border border-primary/20 bg-primary/5 backdrop-blur-sm relative transition-all hover:border-primary/40">
+          <div className="absolute -top-3 left-6 bg-[#050b10] px-3 py-0.5 border border-primary/20 flex items-center gap-2">
+            <Cpu className="w-3 h-3 text-primary" />
+            <span className="text-[10px] font-black text-primary neon-text uppercase tracking-widest font-mono">// Cognitive Matrix</span>
+          </div>
+          <Button
+            onClick={() => handleEdit(3)}
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4 h-7 text-[10px] uppercase font-black tracking-widest text-primary/40 hover:text-primary hover:bg-primary/10"
+          >
+            <Edit className="w-3 h-3 mr-2" />
+            Modify
+          </Button>
+
+          <div className="space-y-6 pt-4">
+            <div className="space-y-2">
+              <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Heuristic Attributes (Traits)</p>
+              <div className="flex flex-wrap gap-2">
+                {formData.personality?.traits?.map((trait, i) => (
+                  <Badge key={i} className="bg-primary/20 text-primary border-primary/20 text-[9px] font-mono uppercase tracking-widest">{trait}</Badge>
+                ))}
+                {(!formData.personality?.traits || formData.personality.traits.length === 0) && <span className="text-[10px] text-primary/20 uppercase font-mono italic">No traits initialized</span>}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Emotional Baseline</p>
+                <p className="text-xs font-mono text-primary/80 uppercase">{formData.personality?.temperament || 'UNDEFINED'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Interface Protocol</p>
+                <p className="text-xs font-mono text-primary/80 uppercase">{formData.personality?.communication_style || 'UNDEFINED'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Chronological Data (Background) */}
+        <div className="p-6 border border-primary/20 bg-primary/5 backdrop-blur-sm relative transition-all hover:border-primary/40">
+          <div className="absolute -top-3 left-6 bg-[#050b10] px-3 py-0.5 border border-primary/20 flex items-center gap-2">
+            <HardDrive className="w-3 h-3 text-primary" />
+            <span className="text-[10px] font-black text-primary neon-text uppercase tracking-widest font-mono">// Chronological Data</span>
+          </div>
+          <Button
+            onClick={() => handleEdit(4)}
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4 h-7 text-[10px] uppercase font-black tracking-widest text-primary/40 hover:text-primary hover:bg-primary/10"
+          >
+            <Edit className="w-3 h-3 mr-2" />
+            Modify
+          </Button>
+
+          <div className="space-y-4 pt-4">
             {formData.background?.origin && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Origin</p>
-                <p className="text-sm">{formData.background.origin}</p>
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Causal Inception (Origin)</p>
+                <p className="text-[11px] font-mono text-primary/60 italic">"{formData.background.origin}"</p>
               </div>
             )}
-            {formData.background?.occupation && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Occupation</p>
-                <p className="text-sm">{formData.background.occupation}</p>
-              </div>
-            )}
-            {formData.background?.significant_events &&
-              formData.background.significant_events.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Significant Events
-                  </p>
-                  <ul className="list-disc list-inside space-y-1">
-                    {formData.background.significant_events.map((event, index) => (
-                      <li key={index} className="text-sm">
-                        {event}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-          </CardContent>
-        </Card>
-
-        {/* Relationships */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg">Relationships</CardTitle>
-            <Button
-              onClick={() => handleEdit(5)}
-              variant="ghost"
-              size="sm"
-              className="h-8"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {formData.relationships && formData.relationships.length > 0 ? (
-              <div className="space-y-3">
-                {formData.relationships.map((relationship, index) => (
-                  <div key={index}>
-                    {index > 0 && <Separator className="my-3" />}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{relationship.character_name}</p>
-                        <Badge variant="outline">{relationship.relationship_type}</Badge>
-                        {relationship.dynamic && (
-                          <Badge variant="secondary">{relationship.dynamic}</Badge>
-                        )}
-                      </div>
-                      {relationship.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {relationship.description}
-                        </p>
-                      )}
+            {formData.background?.significant_events && formData.background.significant_events.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[9px] font-black uppercase text-primary/40 tracking-widest">Critical Iterations (Significant Events)</p>
+                <div className="space-y-1.5">
+                  {formData.background.significant_events.map((event, i) => (
+                    <div key={i} className="flex items-start gap-2 border-l border-primary/20 pl-3">
+                      <Terminal className="w-2.5 h-2.5 text-primary/40 mt-0.5" />
+                      <p className="text-[10px] font-mono text-primary/80 uppercase tracking-tighter">{event}</p>
                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* SocialGrid Nexus (Relationships) */}
+        <div className="p-6 border border-primary/20 bg-primary/5 backdrop-blur-sm relative transition-all hover:border-primary/40">
+          <div className="absolute -top-3 left-6 bg-[#050b10] px-3 py-0.5 border border-primary/20 flex items-center gap-2">
+            <Share2 className="w-3 h-3 text-primary" />
+            <span className="text-[10px] font-black text-primary neon-text uppercase tracking-widest font-mono">// SocialGrid Nexus</span>
+          </div>
+          <Button
+            onClick={() => handleEdit(5)}
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4 h-7 text-[10px] uppercase font-black tracking-widest text-primary/40 hover:text-primary hover:bg-primary/10"
+          >
+            <Edit className="w-3 h-3 mr-2" />
+            Modify
+          </Button>
+
+          <div className="pt-4">
+            {formData.relationships && formData.relationships.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formData.relationships.map((rel, i) => (
+                  <div key={i} className="p-3 border border-primary/10 bg-primary/5 flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] font-black text-primary uppercase tracking-wider">{rel.character_name}</p>
+                      <p className="text-[9px] font-mono text-primary/60 uppercase">{rel.relationship_type} | {rel.dynamic}</p>
+                    </div>
+                    <Activity className="w-3.5 h-3.5 text-primary/20" />
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No relationships defined</p>
+              <p className="text-[10px] font-mono text-primary/20 uppercase italic pt-2">No interpersonal linkages detected</p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Summary Info */}
-        <div className="p-4 bg-muted rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            <strong>Ready to create?</strong> Review all sections above. You can edit any
-            section by clicking the Edit button. Once you're satisfied, click "Create
-            Character" to save your character.
+        {/* Final Confirmation Message */}
+        <div className="p-4 border border-primary/20 bg-primary/10 flex items-center gap-4">
+          <Zap className="h-5 w-5 text-primary pulse-neon shrink-0" />
+          <p className="text-[10px] font-mono text-primary/80 uppercase tracking-widest leading-relaxed">
+            System components verified. All heuristic datasets and morphological profiles are synchronized. Press the button below to materialize this entity into the primary narrative archive.
           </p>
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between pt-4">
+        <div className="flex justify-between pt-6 border-t border-primary/10">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={previousStep}
             disabled={isSubmitting}
+            className="text-[10px] font-black uppercase tracking-widest text-primary/60 hover:text-primary"
           >
-            Back
+            ← Access Previous Data
           </Button>
           <Button
             type="button"
             onClick={submitWizard}
             disabled={isSubmitting}
+            className="btn-neon bg-primary text-black font-black uppercase tracking-widest px-8"
           >
-            {isSubmitting ? 'Creating Character...' : 'Create Character'}
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin h-3 w-3 border-2 border-black border-t-transparent rounded-full" />
+                <span>Materializing...</span>
+              </div>
+            ) : 'Materialize Entity'}
           </Button>
         </div>
       </div>

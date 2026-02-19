@@ -45,6 +45,7 @@ import { notificationService } from '@/services/NotificationService';
 import { StoryObject, ObjectType, ObjectRarity } from '@/types/object';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PromptsManager } from '../common/PromptsManager';
+import { buildVisualPromptForObject } from '@/lib/promptUtils';
 
 interface ObjectsModalProps {
   isOpen: boolean;
@@ -108,8 +109,8 @@ export function ObjectsModal({ isOpen, onClose }: ObjectsModalProps) {
         weight: 1,
       },
       tags: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     };
     setEditingObject(newObject);
     setShowCreateForm(true);
@@ -127,7 +128,7 @@ export function ObjectsModal({ isOpen, onClose }: ObjectsModalProps) {
     try {
       const exists = objects.some(o => o.id === obj.id);
       if (exists) {
-        await updateObject(projectId, { ...obj, updatedAt: new Date() });
+        await updateObject(projectId, { ...obj, updatedAt: Date.now() });
       } else {
         await addObject(projectId, obj);
       }
@@ -398,6 +399,21 @@ export function ObjectsModal({ isOpen, onClose }: ObjectsModalProps) {
 function ObjectEditModal({ object, onSave, onCancel }: { object: StoryObject, onSave: (obj: StoryObject) => void, onCancel: () => void }) {
   const [edited, setEdited] = useState<StoryObject>({ ...object });
   const [newAbility, setNewAbility] = useState('');
+
+  // Auto-populate base visual prompt if empty
+  useEffect(() => {
+    if (edited.prompts && edited.prompts.length === 0) {
+      const basePrompt = buildVisualPromptForObject(edited);
+      if (basePrompt) {
+        setEdited(prev => ({
+          ...prev,
+          prompts: [basePrompt]
+        }));
+      }
+    }
+  }, []); // Only run on mount or when object changes? 
+  // Actually, if we just created it, edited.prompts will be empty.
+
 
   const handleAddAbility = () => {
     if (newAbility.trim()) {

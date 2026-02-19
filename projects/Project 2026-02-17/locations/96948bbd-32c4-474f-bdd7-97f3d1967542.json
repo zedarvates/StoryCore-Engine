@@ -1,0 +1,20 @@
+{
+  "location_id": "96948bbd-32c4-474f-bdd7-97f3d1967542",
+  "name": "The Spire of Krael",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771480236621,
+  "last_modified": 1771480236621,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A towering skyscraper in the heart of the city's financial district, its surface a latticework of gleaming metals and holographic advertisements. The Spire is home to the powerful conglomerate, Omicron Innovations, and a hub for high-stakes business deals.",
+    "atmosphere": "Energetic, high-pressure, with an undercurrent of desperation.",
+    "genre_tags": [],
+    "significance": "The seat of power for El Doria's elite, where fortunes are made and lost with each passing day."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

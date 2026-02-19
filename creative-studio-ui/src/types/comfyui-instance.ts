@@ -59,7 +59,7 @@ export interface InstanceHealth {
   status: InstanceHealthStatus;
 
   /** Last health check timestamp */
-  lastChecked: Date;
+  lastChecked: number; // timestamp
 
   /** Response time in milliseconds */
   responseTime: number;
@@ -103,7 +103,7 @@ export interface InstanceStats {
   uptime: number;
 
   /** Last error timestamp */
-  lastErrorAt?: Date;
+  lastErrorAt?: number; // timestamp
 
   /** Last error message */
   lastError?: string;
@@ -129,10 +129,10 @@ export interface ComfyUIInstance {
   stats: InstanceStats;
 
   /** Creation timestamp */
-  createdAt: Date;
+  createdAt: number; // timestamp
 
   /** Last usage timestamp */
-  lastUsedAt: Date;
+  lastUsedAt: number; // timestamp
 
   /** Associated ComfyUI client (lazy-loaded) */
   // Using 'any' to avoid circular import dependency with ComfyUIClient

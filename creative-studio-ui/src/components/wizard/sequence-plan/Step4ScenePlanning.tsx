@@ -11,6 +11,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { Act, Scene } from '@/types/sequencePlan';
 import { useWorldById, useStore } from '@/store';
+import { Location } from '@/types/world';
+import { Character } from '@/types/character';
 
 interface Step4ScenePlanningProps {
   scenes: Scene[];
@@ -181,8 +183,8 @@ export function ScenePlanningInterface({
 interface ActScenesSectionProps {
   act: Act;
   scenes: Scene[];
-  locations: unknown[];
-  allCharacters: unknown[];
+  locations: Location[];
+  allCharacters: Character[];
   onAddScene: () => void;
   onEditScene: (scene: Scene) => void;
   onDeleteScene: (sceneId: string) => void;
@@ -284,8 +286,8 @@ function ActScenesSection({
 interface SceneCardProps {
   scene: Scene;
   index: number;
-  locations: unknown[];
-  allCharacters: unknown[];
+  locations: Location[];
+  allCharacters: Character[];
   onEdit: () => void;
   onDelete: () => void;
   onDragStart: () => void;
@@ -308,6 +310,10 @@ function SceneCard({
 }: SceneCardProps) {
   const location = locations.find(loc => loc.id === scene.locationId);
   const sceneCharacters = allCharacters.filter(char => scene.characterIds.includes(char.character_id));
+
+  // Requirement: Detect unreachable assets (P1.8)
+  const missingLocation = scene.locationId && !location;
+  const missingCharacterIds = scene.characterIds.filter(id => !allCharacters.some(c => c.character_id === id));
 
   return (
     <div
@@ -340,24 +346,38 @@ function SceneCard({
 
               {/* Scene Details */}
               <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                {location && (
+                {location ? (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
                     {location.name}
                   </span>
-                )}
+                ) : missingLocation ? (
+                  <span className="flex items-center gap-1 text-destructive font-bold">
+                    <AlertTriangle className="h-3 w-3" />
+                    Unreachable Location
+                  </span>
+                ) : null}
+
                 {sceneCharacters.length > 0 && (
                   <span className="flex items-center gap-1">
                     <User className="h-3 w-3" />
                     {sceneCharacters.length} character{sceneCharacters.length !== 1 ? 's' : ''}
                   </span>
                 )}
+
+                {missingCharacterIds.length > 0 && (
+                  <span className="flex items-center gap-1 text-destructive font-bold" title={`Unreachable IDs: ${missingCharacterIds.join(', ')}`}>
+                    <AlertTriangle className="h-3 w-3" />
+                    {missingCharacterIds.length} Missing Character{missingCharacterIds.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+
                 <span className="flex items-center gap-1">
                   <FileText className="h-3 w-3" />
                   {scene.estimatedShotCount} shot{scene.estimatedShotCount !== 1 ? 's' : ''}
                 </span>
                 {scene.beats.length > 0 && (
-                  <Badge variant="outline" className="text-xs border-gray-600 text-gray-700 bg-gray-50">
+                  <Badge variant="outline" className="text-xs border-primary/40 text-primary-foreground bg-primary/20">
                     {scene.beats.length} beat{scene.beats.length !== 1 ? 's' : ''}
                   </Badge>
                 )}
@@ -385,8 +405,8 @@ interface SceneEditorDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (sceneData: Partial<Scene>) => void;
-  locations: unknown[];
-  allCharacters: unknown[];
+  locations: Location[];
+  allCharacters: Character[];
 }
 
 function SceneEditorDialog({

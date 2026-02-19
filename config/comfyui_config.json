@@ -1,0 +1,25 @@
+{
+    "_doc": "Configuration ComfyUI pour StoryCore-Engine. Modifiez ce fichier selon votre installation.",
+    "_editions": {
+        "standard": "ComfyUI classique (github.com/comfyanonymous/ComfyUI) -> port 8188",
+        "desktop": "ComfyUI Desktop (app officielle) -> port 8000",
+        "portable": "ComfyUI Portable (Windows) -> port 8188",
+        "remote": "ComfyUI sur serveur distant -> adapter host + port"
+    },
+    "host": "127.0.0.1",
+    "port": 8188,
+    "_port_presets": {
+        "comfyui_standard": 8188,
+        "comfyui_desktop": 8000,
+        "comfyui_portable": 8188
+    },
+    "timeout_seconds": 300,
+    "poll_interval_seconds": 2.0,
+    "output_dirs": {
+        "assets_3d": "./exports/assets_3d",
+        "puppets": "./exports/puppets",
+        "organic": "./exports/organic",
+        "references": "./exports/blender/references"
+    },
+    "_note": "Si vous utilisez ComfyUI Desktop, changez port a 8000. Si votre ComfyUI est sur un autre PC/serveur, changez host par son adresse IP."
+}

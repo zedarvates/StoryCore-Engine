@@ -105,4 +105,21 @@ export const COMMON_SHORTCUTS = {
   SPACE: ' ',
 } as const;
 
+/**
+ * Formats a KeyboardShortcut into a human-readable string
+ * e.g. { ctrlKey: true, key: 's' } → "Ctrl+S"
+ */
+export function formatShortcut(shortcut: KeyboardShortcut): string {
+  const parts: string[] = [];
+  if (shortcut.ctrlKey) parts.push('Ctrl');
+  if (shortcut.altKey) parts.push('Alt');
+  if (shortcut.shiftKey) parts.push('Shift');
+  if (shortcut.metaKey) parts.push('Meta');
+
+  const key = shortcut.key === ' ' ? 'Space' : shortcut.key;
+  parts.push(key.length === 1 ? key.toUpperCase() : key);
+
+  return parts.join('+');
+}
+
 export default useKeyboardShortcuts;

@@ -19,7 +19,7 @@ export interface DiscoveredProject {
     project_name: string;
     capabilities: Record<string, boolean>;
   };
-  createdAt?: Date;
+  createdAt?: number; // timestamp
   isRecent: boolean;
 }
 

@@ -1,0 +1,34 @@
+{
+    "_comment": "Configuration pour blender_projection — Scène 2.5D par projection d'image",
+    "_usage": "blender -b -P <script.py> -- image.png exterior",
+    "_generated_by": "StoryCore-Engine BlenderProjection",
+    "scene_type": "exterior",
+    "global_scale": 10.0,
+    "use_depth_map": false,
+    "depth_map_path": null,
+    "depth_strength": 0.3,
+    "depth_subdivisions": 8,
+    "camera_mode": "low_angle",
+    "dof_enabled": true,
+    "f_stop": 2.8,
+    "plant_trees": true,
+    "tree_count": 7,
+    "tree_asset_path": null,
+    "engine": "EEVEE",
+    "resolution_x": 1920,
+    "resolution_y": 1080,
+    "samples": 32,
+    "output_path": "./exports/blender/projection_render",
+    "output_format": "PNG",
+    "_camera_modes": [
+        "wide",
+        "close",
+        "over_shoulder",
+        "low_angle",
+        "high_angle"
+    ],
+    "_scene_types": [
+        "exterior",
+        "interior"
+    ]
+}

@@ -9,4 +9,5 @@ export { PlanSequencesSection } from './PlanSequencesSection';
 export { StoryPartCard } from './StoryPartCard';
 export { StoryPartsSection } from './StoryPartsSection';
 export { VaultGallery } from './VaultGallery';
+export { ProductionGuide } from './ProductionGuide';
 

@@ -74,6 +74,8 @@ import {
 import { SequenceEditModal } from './SequenceEditModal';
 import { DashboardAddonsSection } from './DashboardAddonsSection';
 import { CollapsibleSection } from '@/components/ui';
+import { ProductionGuide } from './ProductionGuide';
+import { NeuralProductionAssistant } from './NeuralProductionAssistant';
 import './ProjectDashboardNew.css';
 
 // ============================================================================
@@ -1738,6 +1740,15 @@ export function ProjectDashboardNew({
     setShowShotWizardModal(true);
   };
 
+  // Listen for production guide sync request
+  useEffect(() => {
+    const handleSyncRequest = () => {
+      handleSyncSequences();
+    };
+    window.addEventListener('storycore:sync-production-guide', handleSyncRequest);
+    return () => window.removeEventListener('storycore:sync-production-guide', handleSyncRequest);
+  }, [sequences, stories]); // Re-bind when data changes
+
   return (
     <div className="project-dashboard-new">
       {/* Top Section: Quick Access (Compact) */}
@@ -2104,6 +2115,16 @@ export function ProjectDashboardNew({
             </div>
           </CollapsibleSection>
 
+          {/* Production Guide (Cine Mode) */}
+          <CollapsibleSection
+            title="Production Guide"
+            icon={<Clapperboard className="w-5 h-5 text-primary" />}
+            defaultExpanded={true}
+            className="production-guide-section-wrapper"
+          >
+            <ProductionGuide onEditCharacter={openCharacterEditor} />
+          </CollapsibleSection>
+
           {/* Locations Section */}
           <CollapsibleSection
             title="Locations"
@@ -2164,6 +2185,11 @@ export function ProjectDashboardNew({
 
         {/* Right Column: Recent Activity & Asset Quick View */}
         <div className="dashboard-right">
+          {/* Neural Production Assistant */}
+          <div className="mb-6">
+            <NeuralProductionAssistant />
+          </div>
+
           {/* Recent Assets Quick View */}
           <div className="recent-assets-section mb-6">
             <div className="flex items-center justify-between mb-4">

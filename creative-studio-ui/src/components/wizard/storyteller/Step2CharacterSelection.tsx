@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus, Sparkles, Users, Bookmark } from 'lucide-react';
 import { useStore } from '@/store';
 import type { CharacterSelectionData, CharacterCreationRequest, WorldContext } from '@/types/story';
 import type { Character } from '@/types/character';
@@ -18,6 +18,11 @@ import { useAppStore } from '@/stores/useAppStore';
 import { LLMErrorCategory, type ErrorRecoveryOptions } from '@/services/llmService';
 import { CharacterList } from '@/components/character/CharacterList';
 import { eventEmitter } from '@/services/eventEmitter';
+import {
+  getCharacterTemplatesByGenre,
+  characterTemplateToReference,
+  type CharacterTemplate
+} from '@/services/globalTemplatesService';
 
 // ============================================================================
 // Step 2: Character Selection
@@ -27,7 +32,7 @@ export function Step2CharacterSelection() {
   const { formData, updateFormData, validationErrors } = useWizard<CharacterSelectionData>();
   const addCharacter = useStore((state) => state.addCharacter);
   const currentWorld = useStore((state) => state.worlds?.find(w => w.id === state.selectedWorldId));
-  
+
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<ErrorRecoveryOptions | null>(null);
@@ -40,8 +45,32 @@ export function Step2CharacterSelection() {
   const { llmConfigured } = useServiceStatus();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
+  // Get character templates based on selected genre (from global templates)
+  const genreFromWizard = (formData as any).genre || [];
+  const characterTemplates = getCharacterTemplatesByGenre(genreFromWizard);
+
   // Get selected character IDs from form data
   const selectedCharacterIds = (formData.selectedCharacters || []).map(c => c.id);
+
+  /**
+   * Handle selecting a template character
+   */
+  const handleSelectTemplate = useCallback((template: CharacterTemplate) => {
+    const templateRef = characterTemplateToReference(template);
+
+    // Check if already selected
+    if (selectedCharacterIds.includes(template.id)) {
+      return;
+    }
+
+    // Add to selected characters
+    updateFormData({
+      selectedCharacters: [
+        ...(formData.selectedCharacters || []),
+        templateRef
+      ]
+    });
+  }, [selectedCharacterIds, formData.selectedCharacters, updateFormData]);
 
   /**
    * Handle character selection changes
@@ -50,12 +79,12 @@ export function Step2CharacterSelection() {
   const handleSelectionChange = useCallback((ids: string[]) => {
     // Get all characters from store
     const allCharacters = useStore.getState().characters || [];
-    
+
     // Map IDs to character summary objects
     const selectedCharacters = ids.map(id => {
       const character = allCharacters.find(c => c.character_id === id);
       if (!character) return null;
-      
+
       return {
         id: character.character_id,
         name: character.name,
@@ -176,6 +205,41 @@ export function Step2CharacterSelection() {
         />
       </div>
 
+      {/* Global Templates Section */}
+      {characterTemplates.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Bookmark className="w-4 h-4 text-purple-500" />
+            <Label className="text-sm font-semibold">Quick Start Templates</Label>
+            <span className="text-xs text-muted-foreground">(Outside project - click to add)</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {characterTemplates.map((template) => {
+              const isSelected = selectedCharacterIds.includes(template.id);
+              return (
+                <button
+                  key={template.id}
+                  onClick={() => handleSelectTemplate(template)}
+                  disabled={isSelected}
+                  className={`p-3 rounded-lg border text-left transition-all ${isSelected
+                      ? 'border-green-500 bg-green-50 dark:bg-green-950/20 cursor-default'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 cursor-pointer'
+                    }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{template.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{template.role}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Create New Character Button */}
       {/* Requirements: 3.2 */}
       <Button
@@ -191,7 +255,7 @@ export function Step2CharacterSelection() {
       {/* Info Box */}
       <div className="mt-6 bg-amber-50 dark:bg-amber-950/20 p-4 rounded-md">
         <p className="text-sm text-amber-900 dark:text-amber-100">
-          💡 <strong>Tip:</strong> You can select multiple characters or proceed without any. 
+          💡 <strong>Tip:</strong> You can select multiple characters or proceed without any.
           The AI will use selected characters in the story or create new ones as needed.
         </p>
       </div>

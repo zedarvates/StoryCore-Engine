@@ -55,7 +55,7 @@ interface WizardState {
     error?: string;
   };
   preservedData?: {
-    timestamp: string;
+    timestamp: number; // timestamp in ms
     data: Record<string, unknown>;
   };
 }
@@ -382,7 +382,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     if (activeWizard) {
       const preservedData = {
-        timestamp: new Date().toISOString(),
+        timestamp: Date.now(),
         data: activeWizard.formData,
       };
 
@@ -403,9 +403,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     try {
       const preservedData = JSON.parse(stored);
-      const timestamp = new Date(preservedData.timestamp);
-      const now = new Date();
-      const hoursDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60);
+      const timestamp = preservedData.timestamp;
+      const now = Date.now();
+      const hoursDiff = (now - timestamp) / (1000 * 60 * 60);
 
       // Check if session is within 24 hours
       if (hoursDiff > 24) {

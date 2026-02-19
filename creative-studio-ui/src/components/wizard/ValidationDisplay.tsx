@@ -1,4 +1,4 @@
-import { AlertCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AlertLiveRegion } from './LiveRegion';
 
@@ -14,10 +14,6 @@ interface InlineFieldErrorProps {
 
 /**
  * Inline error message displayed below a form field
- * 
- * @param error - The error message to display
- * @param fieldName - The name of the field (for accessibility)
- * @param className - Optional CSS classes
  */
 export function InlineFieldError({
   error,
@@ -28,12 +24,12 @@ export function InlineFieldError({
 
   return (
     <div
-      className={cn('flex items-start gap-2 text-sm text-red-600 mt-1', className)}
+      className={cn('flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-400 mt-2 font-mono bg-red-500/5 border border-red-500/20 p-2 rounded-sm', className)}
       role="alert"
       aria-live="polite"
       id={`${fieldName}-error`}
     >
-      <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
+      <ShieldAlert className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
       <span>{error}</span>
     </div>
   );
@@ -51,10 +47,6 @@ interface FieldRequirementProps {
 
 /**
  * Visual indicator for required/optional fields
- * 
- * @param required - Whether the field is required
- * @param optional - Whether to show "optional" label
- * @param className - Optional CSS classes
  */
 export function FieldRequirement({
   required,
@@ -64,15 +56,15 @@ export function FieldRequirement({
   if (!required && !optional) return null;
 
   return (
-    <span className={cn('text-sm', className)}>
+    <span className={cn('text-[10px] uppercase font-black tracking-widest font-mono', className)}>
       {required && (
-        <span className="text-red-500 font-medium" aria-label="required field">
-          *
+        <span className="text-red-500" aria-label="required parameter">
+          [CRITICAL]
         </span>
       )}
       {optional && !required && (
-        <span className="text-gray-500 italic" aria-label="optional field">
-          (optional)
+        <span className="text-primary/40" aria-label="optional parameter">
+          [OPTIONAL]
         </span>
       )}
     </span>
@@ -92,21 +84,15 @@ interface ValidationErrorSummaryProps {
 
 /**
  * Summary of all validation errors in the current step
- * Displayed at the top of the form
- * 
- * @param errors - Object mapping field names to error messages
- * @param title - Optional custom title
- * @param onFieldClick - Optional callback when clicking on a field error
- * @param className - Optional CSS classes
  */
 export function ValidationErrorSummary({
   errors,
-  title = 'Please fix the following errors:',
+  title = 'System Integrity Conflict Detect',
   onFieldClick,
   className,
 }: ValidationErrorSummaryProps) {
   const errorEntries = Object.entries(errors);
-  
+
   if (errorEntries.length === 0) {
     return null;
   }
@@ -117,7 +103,6 @@ export function ValidationErrorSummary({
     if (onFieldClick) {
       onFieldClick(fieldName);
     } else {
-      // Default behavior: focus the field
       const field = document.getElementById(fieldName);
       if (field) {
         field.focus();
@@ -129,34 +114,45 @@ export function ValidationErrorSummary({
   return (
     <>
       <AlertLiveRegion
-        message={`${totalErrors} validation ${totalErrors === 1 ? 'error' : 'errors'} found. Please review and correct the highlighted fields.`}
+        message={`${totalErrors} validation conflicts found. Please resolve all parameters.`}
         type="error"
       />
       <div
         className={cn(
-          'rounded-lg border-2 border-red-200 bg-red-50 p-4 mb-6',
+          'rounded border-2 border-red-500/30 bg-red-500/5 p-6 mb-8 backdrop-blur-xl shadow-[0_0_20px_rgba(239,68,68,0.1)] relative overflow-hidden',
           className
         )}
         role="alert"
         aria-labelledby="error-summary-title"
       >
-        <div className="flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="absolute top-0 right-0 p-2 opacity-20">
+          <Zap className="h-12 w-12 text-red-500" />
+        </div>
+
+        <div className="flex items-start gap-4 relative z-10">
+          <div className="p-2 bg-red-500/20 rounded border border-red-500/30">
+            <ShieldAlert className="h-5 w-5 text-red-500" aria-hidden="true" />
+          </div>
           <div className="flex-1">
-            <h3 id="error-summary-title" className="text-sm font-semibold text-red-800 mb-2">
+            <h3 id="error-summary-title" className="text-xs font-black text-red-400 uppercase tracking-[0.3em] font-mono mb-4">
               {title}
             </h3>
-            <ul className="space-y-2 text-sm text-red-700">
+            <ul className="space-y-3">
               {errorEntries.map(([fieldName, fieldErrors]) =>
                 fieldErrors.map((error, index) => (
                   <li key={`${fieldName}-${index}`} className="flex items-start gap-2">
-                    <span className="mt-0.5">•</span>
+                    <span className="text-red-500 mt-1 font-mono">▶</span>
                     <button
                       type="button"
                       onClick={() => handleFieldClick(fieldName)}
-                      className="text-left hover:underline focus:outline-none focus:underline"
+                      className="text-left group focus:outline-none"
                     >
-                      <span className="font-medium">{formatFieldName(fieldName)}:</span> {error}
+                      <span className="text-[11px] font-black font-mono text-red-300/60 uppercase group-hover:text-red-400 transition-colors mr-2">
+                        [{formatFieldName(fieldName)}]
+                      </span>
+                      <span className="text-[11px] font-mono text-red-100/80 uppercase tracking-tight group-hover:text-white transition-colors">
+                        {error}
+                      </span>
                     </button>
                   </li>
                 ))
@@ -180,15 +176,6 @@ interface FieldValidationStatusProps {
   className?: string;
 }
 
-/**
- * Visual indicator of field validation status
- * Shows checkmark for valid, spinner for validating, error icon for invalid
- * 
- * @param isValid - Whether the field is valid
- * @param isValidating - Whether validation is in progress
- * @param error - Error message if invalid
- * @param className - Optional CSS classes
- */
 export function FieldValidationStatus({
   isValid,
   isValidating,
@@ -197,29 +184,29 @@ export function FieldValidationStatus({
 }: FieldValidationStatusProps) {
   if (isValidating) {
     return (
-      <div className={cn('flex items-center gap-2 text-sm text-gray-500', className)} role="status" aria-live="polite">
-        <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-gray-600 rounded-full" aria-hidden="true" />
-        <span>Validating...</span>
+      <div className={cn('flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary/40 font-mono', className)} role="status" aria-live="polite">
+        <div className="animate-spin h-3 w-3 border-2 border-primary/20 border-t-primary rounded-full" aria-hidden="true" />
+        <span>Analyzing...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={cn('flex items-center gap-2 text-sm text-red-600', className)} role="alert" aria-live="polite">
-        <XCircle className="h-4 w-4" aria-hidden="true" />
-        <span>{error}</span>
+      <div className={cn('flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-400 font-mono', className)} role="alert" aria-live="polite">
+        <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
+        <span>Integrity Breach</span>
       </div>
     );
   }
 
   if (isValid) {
     return (
-      <div className={cn('flex items-center gap-2 text-sm text-green-600', className)} role="status" aria-live="polite">
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        <span>Valid</span>
+      <div className={cn('flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary font-mono', className)} role="status" aria-live="polite">
+        <div className="h-3.5 w-3.5 flex items-center justify-center bg-primary/20 rounded-full">
+          <div className="h-1.5 w-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary-rgb),0.8)]" />
+        </div>
+        <span>Verified</span>
       </div>
     );
   }
@@ -237,34 +224,29 @@ interface WarningMessageProps {
   className?: string;
 }
 
-/**
- * Warning message component for non-critical issues
- * 
- * @param message - The warning message
- * @param title - Optional title
- * @param className - Optional CSS classes
- */
 export function WarningMessage({
   message,
-  title = 'Warning',
+  title = 'Signal Interference',
   className,
 }: WarningMessageProps) {
   return (
     <div
       className={cn(
-        'rounded-lg border border-yellow-200 bg-yellow-50 p-4',
+        'rounded border-2 border-amber-500/20 bg-amber-500/5 p-4 backdrop-blur-md',
         className
       )}
       role="alert"
       aria-labelledby="warning-title"
     >
-      <div className="flex items-start gap-3">
-        <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+      <div className="flex items-start gap-4">
+        <div className="p-1.5 bg-amber-500/20 rounded border border-amber-500/30">
+          <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" aria-hidden="true" />
+        </div>
         <div className="flex-1">
-          <h3 id="warning-title" className="text-sm font-semibold text-yellow-800">
+          <h3 id="warning-title" className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em] font-mono mb-1">
             {title}
           </h3>
-          <p className="mt-1 text-sm text-yellow-700">
+          <p className="text-[11px] font-mono text-amber-100/60 uppercase tracking-tight">
             {message}
           </p>
         </div>
@@ -277,14 +259,10 @@ export function WarningMessage({
 // Helper Functions
 // ============================================================================
 
-/**
- * Format field name for display
- * Converts camelCase or snake_case to Title Case
- */
 function formatFieldName(fieldName: string): string {
   return fieldName
     .replace(/([A-Z])/g, ' $1')
     .replace(/_/g, ' ')
-    .replace(/^./, (str) => str.toUpperCase())
+    .toUpperCase()
     .trim();
 }

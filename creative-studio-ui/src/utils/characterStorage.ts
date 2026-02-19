@@ -31,7 +31,8 @@ export function mapWizardDataToCharacter(
     character_id,
     name: wizardData.name || '',
     creation_method: 'wizard',
-    creation_timestamp: new Date().toISOString(),
+    creation_timestamp: Date.now(),
+    last_modified: Date.now(),
     version: '1.0',
 
     visual_identity: {
@@ -205,9 +206,7 @@ export function sortCharactersByName(characters: Character[]): Character[] {
  */
 export function sortCharactersByDate(characters: Character[]): Character[] {
   return [...characters].sort((a, b) => {
-    const dateA = new Date(a.creation_timestamp).getTime();
-    const dateB = new Date(b.creation_timestamp).getTime();
-    return dateB - dateA;
+    return (b.creation_timestamp || 0) - (a.creation_timestamp || 0);
   });
 }
 

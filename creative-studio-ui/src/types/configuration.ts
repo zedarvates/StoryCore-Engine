@@ -70,7 +70,7 @@ export interface ComfyUIServer {
   timeout: number; // Connection timeout in milliseconds
   enableQueueMonitoring: boolean; // Enable queue status monitoring
   availableWorkflows?: string[]; // Workflows fetched from server
-  lastTested?: Date; // Last connection test timestamp
+  lastTested?: number; // timestamp
   status?: 'connected' | 'disconnected' | 'unknown'; // Connection status
   errorMessage?: string; // Error message from last connection attempt (e.g., CORS errors)
 }
@@ -231,11 +231,11 @@ export interface ConfigurationContextValue {
   projectConfig: ProjectConfiguration | null;
   globalConfig: GlobalConfiguration | null;
   activeProject: ProjectMetadata | null;
-  
+
   // Loading states
   isLoading: boolean;
   isSaving: boolean;
-  
+
   // Actions
   loadConfiguration: (projectId: string) => Promise<void>;
   saveProjectConfig: (config: Partial<ProjectConfiguration>) => Promise<void>;

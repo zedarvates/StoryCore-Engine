@@ -44,6 +44,11 @@ class ClothingStyle(Enum):
     GRUNGE = "grunge"
     CLASSIC = "classic"
     ATHLEISURE = "athleisure"
+    VIBRANT = "vibrant"
+    DARK = "dark"
+    PASTEL = "pastel"
+    BLACK = "black"
+    LIGHT = "light"
 
 
 class ColorPalette(Enum):

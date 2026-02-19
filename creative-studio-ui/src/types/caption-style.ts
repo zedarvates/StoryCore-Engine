@@ -170,8 +170,8 @@ export interface CaptionStylePreset {
   description: string;
   styleId: CaptionStyleId;
   customizations: Partial<CaptionStyle>;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: number; // timestamp in ms
+  updatedAt: number; // timestamp in ms
   author: string;
   isPublic: boolean;
   tags: string[];

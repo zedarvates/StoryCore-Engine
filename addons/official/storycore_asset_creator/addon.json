@@ -1,0 +1,43 @@
+{
+    "name": "storycore_asset_creator",
+    "version": "1.0.0",
+    "type": "blender_addon",
+    "author": "StoryCore-Engine",
+    "description": "Creation d'assets 3D depuis images via ComfyUI Trellis2. Pipelines : Image->3D, Personnage->Puppet, Organique multi-etapes (tronc + feuillage).",
+    "compatibility": {
+        "engine_version": ">=2.0.0",
+        "blender_version": ">=4.0.0",
+        "python_version": ">=3.10"
+    },
+    "permissions": [
+        "model_access",
+        "file_system",
+        "network"
+    ],
+    "entry_points": {
+        "main": "src/__init__.py"
+    },
+    "workflows": {
+        "trellis2_standard": "workflows/trellis2_standard.json",
+        "trellis2_lowvram": "workflows/trellis2_lowvram.json",
+        "trellis2_trunk_only": "workflows/trellis2_trunk_only.json"
+    },
+    "dependencies": {
+        "python": [
+            "requests",
+            "Pillow"
+        ]
+    },
+    "metadata": {
+        "created_with": "storycore-engine",
+        "category": "official",
+        "tags": [
+            "3d",
+            "trellis2",
+            "comfyui",
+            "assets",
+            "puppet",
+            "organic"
+        ]
+    }
+}

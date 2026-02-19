@@ -20,7 +20,13 @@ from ..config import APIConfig
 from ..router import APIRouter
 from ..clients.comfy_client import ComfyUIClient
 from ..services.asset_vault import AssetVault
-from ...video_processing_engine import VideoProcessingEngine
+try:
+    from ...video_processing_engine import VideoProcessingEngine
+except ImportError:
+    try:
+        from src.video_processing_engine import VideoProcessingEngine
+    except ImportError:
+        from video_processing_engine import VideoProcessingEngine
 
 from .export_integration_models import (
     ExportPackageRequest,
@@ -965,6 +971,9 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
             self.log_response("storycore.integration.comfyui.generate_video", response, context)
             return response
 
+        except Exception as e:
+            return self.handle_exception(e, context)
+
     def comfyui_get_status(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
         """Get the status of a video generation task."""
         self.log_request("storycore.integration.comfyui.get_status", params, context)
@@ -1047,9 +1056,6 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
                     "status": "failed",
                     "error": str(e)
                 })
-            
-        except Exception as e:
-            return self.handle_exception(e, context)
 
     # Vault operations
     

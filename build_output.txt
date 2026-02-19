@@ -1,0 +1,141 @@
+
+> creative-studio-ui@0.0.0 prebuild
+> npm run clean && npm run validate
+
+
+> creative-studio-ui@0.0.0 clean
+> node scripts/clean-build-artifacts.cjs
+
+
+============================================================
+Cleanup Complete
+============================================================
+Files removed: 0
+Errors encountered: 0
+Duration: 29ms
+============================================================
+
+
+> creative-studio-ui@0.0.0 validate
+> node scripts/validate-build-config.cjs
+
+
+============================================================
+Build Configuration Validation
+============================================================
+
+Checking for .js files in src/...
+Validating TypeScript configuration...
+Validating .gitignore patterns...
+
+============================================================
+Validation Results
+============================================================
+
+Ô£ô No .js files found in src/
+
+Ô£ô TypeScript configuration is correct
+
+Ô£ô .gitignore patterns are correct
+
+============================================================
+Ô£à Build configuration is valid
+
+Duration: 29ms
+============================================================
+
+
+> creative-studio-ui@0.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 14563 modules transformed.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/storycore-engine/creative-studio-ui/src/stores/useAppStore.ts is dynamically imported by C:/storycore-engine/creative-studio-ui/src/services/SyncManager.ts, C:/storycore-engine/creative-studio-ui/src/services/SyncManager.ts but also statically imported by C:/storycore-engine/creative-studio-ui/src/App.tsx, C:/storycore-engine/creative-studio-ui/src/components/ChatPanel.tsx, C:/storycore-engine/creative-studio-ui/src/components/FloatingAIAssistant.tsx, C:/storycore-engine/creative-studio-ui/src/components/ToggleButton.tsx, C:/storycore-engine/creative-studio-ui/src/components/character/CharacterCard.tsx, C:/storycore-engine/creative-studio-ui/src/components/character/CharacterEditor.tsx, C:/storycore-engine/creative-studio-ui/src/components/character/CharacterList.tsx, C:/storycore-engine/creative-studio-ui/src/components/launcher/LandingChatBox.tsx, C:/storycore-engine/creative-studio-ui/src/components/location/editor/LocationImageGenerator.tsx, C:/storycore-engine/creative-studio-ui/src/components/menuBar/menuActions.ts, C:/storycore-engine/creative-studio-ui/src/components/modals/CharactersModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/modals/FactCheckModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/modals/ImageGalleryModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/modals/LocationsModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/modals/ObjectsModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/modals/WorldModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/objects/ObjectsSection.tsx, C:/storycore-engine/creative-studio-ui/src/components/reference/CrossShotReferencePicker.tsx, C:/storycore-engine/creative-studio-ui/src/components/settings/AddonsModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/CharacterWizardModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/CreateProjectDialogModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/DialogueWriterWizardModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/GenericWizardModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/ObjectWizardModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/ProjectSetupWizardModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/ShotWizardModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/StorytellerWizardModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/WizardLauncher.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/WorldWizardModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/character/Step1BasicIdentity.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/project-setup/Step1ProjectInfo.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/project-setup/Step2ProjectSettings.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/Step2CharacterSelection.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/Step3LocationSelection.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/world/Step1BasicInformation.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/world/Step2WorldRules.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/world/Step3Locations.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/world/Step4CulturalElements.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/world/Step4KeyObjects.tsx, C:/storycore-engine/creative-studio-ui/src/components/workspace/DashboardAddonsSection.tsx, C:/storycore-engine/creative-studio-ui/src/components/workspace/ProjectDashboardNew.tsx, C:/storycore-engine/creative-studio-ui/src/components/workspace/ProjectResumeSection.tsx, C:/storycore-engine/creative-studio-ui/src/components/workspace/StoryPartsSection.tsx, C:/storycore-engine/creative-studio-ui/src/hooks/useCharacterManager.ts, C:/storycore-engine/creative-studio-ui/src/hooks/useGlobalKeyboardShortcuts.ts, C:/storycore-engine/creative-studio-ui/src/hooks/useLandingPage.ts, C:/storycore-engine/creative-studio-ui/src/pages/ProjectDashboardPage.tsx, C:/storycore-engine/creative-studio-ui/src/services/PromptGenerationService.ts, C:/storycore-engine/creative-studio-ui/src/services/ServiceStatusMonitor.ts, C:/storycore-engine/creative-studio-ui/src/services/llm/PipelineAwareLLM.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/storycore-engine/creative-studio-ui/src/services/comfyuiServersService.ts is dynamically imported by C:/storycore-engine/creative-studio-ui/src/components/character/editor/CharacterImagesSection.tsx, C:/storycore-engine/creative-studio-ui/src/components/character/editor/CharacterImagesSection.tsx, C:/storycore-engine/creative-studio-ui/src/hooks/useServiceStatus.ts but also statically imported by C:/storycore-engine/creative-studio-ui/src/components/settings/ComfyUIServersPanel.tsx, C:/storycore-engine/creative-studio-ui/src/services/wizard/WizardService.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/storycore-engine/creative-studio-ui/src/store/index.ts is dynamically imported by C:/storycore-engine/creative-studio-ui/src/services/MigrationService.ts, C:/storycore-engine/creative-studio-ui/src/services/MigrationService.ts, C:/storycore-engine/creative-studio-ui/src/services/MigrationService.ts, C:/storycore-engine/creative-studio-ui/src/services/PersistenceService.ts, C:/storycore-engine/creative-studio-ui/src/services/PersistenceService.ts, C:/storycore-engine/creative-studio-ui/src/services/PersistenceService.ts, C:/storycore-engine/creative-studio-ui/src/services/PersistenceService.ts, C:/storycore-engine/creative-studio-ui/src/services/SyncManager.ts, C:/storycore-engine/creative-studio-ui/src/services/SyncManager.ts, C:/storycore-engine/creative-studio-ui/src/services/SyncManager.ts, C:/storycore-engine/creative-studio-ui/src/services/SyncManager.ts but also statically imported by C:/storycore-engine/creative-studio-ui/src/App.tsx, C:/storycore-engine/creative-studio-ui/src/components/character/CharacterList.tsx, C:/storycore-engine/creative-studio-ui/src/components/character/editor/CharacterImagesSection.tsx, C:/storycore-engine/creative-studio-ui/src/components/launcher/LandingChatBox.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/character/Step5Relationships.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/sequence-plan/Step4ScenePlanning.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/Step2CharacterSelection.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/Step3LocationSelection.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/Step4StoryGeneration.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/Step5ReviewExport.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/StorytellerWizard.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/world/WorldWizard.tsx, C:/storycore-engine/creative-studio-ui/src/components/workspace/ProjectDashboardNew.tsx, C:/storycore-engine/creative-studio-ui/src/components/workspace/ProjectResumeSection.tsx, C:/storycore-engine/creative-studio-ui/src/components/workspace/StoryPartsSection.tsx, C:/storycore-engine/creative-studio-ui/src/hooks/useCharacterManager.ts, C:/storycore-engine/creative-studio-ui/src/hooks/useCharacterPersistence.ts, C:/storycore-engine/creative-studio-ui/src/hooks/useWorldPersistence.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/storycore-engine/creative-studio-ui/src/services/project/ProjectService.ts is dynamically imported by C:/storycore-engine/creative-studio-ui/src/components/menuBar/menuActions.ts but also statically imported by C:/storycore-engine/creative-studio-ui/src/stores/editorStore.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/storycore-engine/creative-studio-ui/src/services/llmService.ts is dynamically imported by C:/storycore-engine/creative-studio-ui/src/services/StoryReviewer.ts, C:/storycore-engine/creative-studio-ui/src/services/StoryWeaver.ts, C:/storycore-engine/creative-studio-ui/src/services/llmService.ts, C:/storycore-engine/creative-studio-ui/src/services/storyGenerationService.ts, C:/storycore-engine/creative-studio-ui/src/services/storyGenerationService.ts, C:/storycore-engine/creative-studio-ui/src/services/storyGenerationService.ts, C:/storycore-engine/creative-studio-ui/src/services/storyGenerationService.ts, C:/storycore-engine/creative-studio-ui/src/services/storyMethodologies.ts, C:/storycore-engine/creative-studio-ui/src/utils/secureStorage.ts but also statically imported by C:/storycore-engine/creative-studio-ui/src/components/launcher/LandingChatBox.tsx, C:/storycore-engine/creative-studio-ui/src/components/modals/FactCheckModal.tsx, C:/storycore-engine/creative-studio-ui/src/components/settings/LLMSettingsPanel.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/LLMErrorDisplay.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/Step2CharacterSelection.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/Step3LocationSelection.tsx, C:/storycore-engine/creative-studio-ui/src/hooks/useLLMGeneration.ts, C:/storycore-engine/creative-studio-ui/src/hooks/useOllamaInit.ts, C:/storycore-engine/creative-studio-ui/src/services/llmConfigService.ts, C:/storycore-engine/creative-studio-ui/src/services/settingsPropagation.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/storycore-engine/creative-studio-ui/src/services/llmConfigService.ts is dynamically imported by C:/storycore-engine/creative-studio-ui/src/components/wizard/DialogueWriterWizard.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/storyteller/Step5ReviewExport.tsx but also statically imported by C:/storycore-engine/creative-studio-ui/src/App.tsx, C:/storycore-engine/creative-studio-ui/src/components/launcher/LandingChatBox.tsx, C:/storycore-engine/creative-studio-ui/src/components/ui/service-warning.tsx, C:/storycore-engine/creative-studio-ui/src/components/wizard/world/WorldWizard.tsx, C:/storycore-engine/creative-studio-ui/src/components/workspace/ProjectDashboardNew.tsx, C:/storycore-engine/creative-studio-ui/src/hooks/useLLMGeneration.ts, C:/storycore-engine/creative-studio-ui/src/providers/LLMProvider.tsx, C:/storycore-engine/creative-studio-ui/src/services/ContentCreationService.ts, C:/storycore-engine/creative-studio-ui/src/services/ObjectsAIService.ts, C:/storycore-engine/creative-studio-ui/src/services/ServiceStatusMonitor.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+[2mdist/[22m[32mindex.html                                  [39m[1m[2m    1.54 kB[22m[1m[22m[2m Ôöé gzip:   0.63 kB[22m
+[2mdist/[22m[35massets/style-BG0FeNW3.css                   [39m[1m[2m  462.06 kB[22m[1m[22m[2m Ôöé gzip:  65.88 kB[22m
+[2mdist/[22m[36massets/index-CMYiIZsW.js                    [39m[1m[2m    0.50 kB[22m[1m[22m[2m Ôöé gzip:   0.35 kB[22m
+[2mdist/[22m[36massets/index-BMML4Qk2.js                    [39m[1m[2m    0.50 kB[22m[1m[22m[2m Ôöé gzip:   0.35 kB[22m
+[2mdist/[22m[36massets/zustand-store-CHyoH4Xl.js            [39m[1m[2m    0.66 kB[22m[1m[22m[2m Ôöé gzip:   0.41 kB[22m
+[2mdist/[22m[36massets/ollamaModelDetection-CgQrIMNv.js     [39m[1m[2m    0.95 kB[22m[1m[22m[2m Ôöé gzip:   0.54 kB[22m
+[2mdist/[22m[36massets/index-JE-Go9L3.js                    [39m[1m[2m    3.05 kB[22m[1m[22m[2m Ôöé gzip:   1.13 kB[22m
+[2mdist/[22m[36massets/index-CxPI2Ti0.js                    [39m[1m[2m    3.18 kB[22m[1m[22m[2m Ôöé gzip:   1.19 kB[22m
+[2mdist/[22m[36massets/index-D2SQho6-.js                    [39m[1m[2m    3.40 kB[22m[1m[22m[2m Ôöé gzip:   1.36 kB[22m
+[2mdist/[22m[36massets/index-BCHkfuaQ.js                    [39m[1m[2m    3.54 kB[22m[1m[22m[2m Ôöé gzip:   1.26 kB[22m
+[2mdist/[22m[36massets/index-7xJvY8Fd.js                    [39m[1m[2m    3.69 kB[22m[1m[22m[2m Ôöé gzip:   1.32 kB[22m
+[2mdist/[22m[36massets/index-BHFK-Pje.js                    [39m[1m[2m    3.80 kB[22m[1m[22m[2m Ôöé gzip:   1.34 kB[22m
+[2mdist/[22m[36massets/index-DZIIp3Y5.js                    [39m[1m[2m    4.82 kB[22m[1m[22m[2m Ôöé gzip:   1.53 kB[22m
+[2mdist/[22m[36massets/index-BwaA82mH.js                    [39m[1m[2m    4.89 kB[22m[1m[22m[2m Ôöé gzip:   1.67 kB[22m
+[2mdist/[22m[36massets/PromptGenerationDialog-DN67Pp7J.js   [39m[1m[2m    5.79 kB[22m[1m[22m[2m Ôöé gzip:   2.01 kB[22m
+[2mdist/[22m[36massets/StoryWeaver-B_PMhUmI.js              [39m[1m[2m    6.64 kB[22m[1m[22m[2m Ôöé gzip:   2.62 kB[22m
+[2mdist/[22m[36massets/AudioGenerationDialog-Biv528FJ.js    [39m[1m[2m    6.88 kB[22m[1m[22m[2m Ôöé gzip:   2.40 kB[22m
+[2mdist/[22m[36massets/ImageGenerationDialog-WjSXFPhI.js    [39m[1m[2m    7.33 kB[22m[1m[22m[2m Ôöé gzip:   2.49 kB[22m
+[2mdist/[22m[36massets/VideoGenerationDialog-BB_0Yfgj.js    [39m[1m[2m    8.74 kB[22m[1m[22m[2m Ôöé gzip:   2.92 kB[22m
+[2mdist/[22m[36massets/GenerationProgressModal-DJ-0Iaer.js  [39m[1m[2m   10.97 kB[22m[1m[22m[2m Ôöé gzip:   3.00 kB[22m
+[2mdist/[22m[36massets/OllamaClient-CyGLkcUv.js             [39m[1m[2m   15.01 kB[22m[1m[22m[2m Ôöé gzip:   5.28 kB[22m
+[2mdist/[22m[36massets/PresetManager-CUUP6-bp.js            [39m[1m[2m   16.13 kB[22m[1m[22m[2m Ôöé gzip:   5.82 kB[22m
+[2mdist/[22m[36massets/purify.es-B9ZVCkUG.js                [39m[1m[2m   22.64 kB[22m[1m[22m[2m Ôöé gzip:   8.75 kB[22m
+[2mdist/[22m[36massets/react-vendor-DvjGUD7S.js             [39m[1m[2m   97.39 kB[22m[1m[22m[2m Ôöé gzip:  32.86 kB[22m
+[2mdist/[22m[36massets/radix-ui-DFWZw8NR.js                 [39m[1m[2m  111.25 kB[22m[1m[22m[2m Ôöé gzip:  35.92 kB[22m
+[2mdist/[22m[36massets/index.es-7wy0F57L.js                 [39m[1m[2m  150.51 kB[22m[1m[22m[2m Ôöé gzip:  51.48 kB[22m
+[2mdist/[22m[36massets/ui-libs-jNFPAWk6.js                  [39m[1m[2m  333.90 kB[22m[1m[22m[2m Ôöé gzip: 102.22 kB[22m
+[2mdist/[22m[36massets/pdf-export-CZEhCUar.js               [39m[1m[33m  590.64 kB[39m[22m[2m Ôöé gzip: 175.98 kB[22m
+[2mdist/[22m[36massets/index-vI0CDOAM.js                    [39m[1m[33m3,051.91 kB[39m[22m[2m Ôöé gzip: 802.79 kB[22m
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[32mÔ£ô built in 23.15s[39m
+
+> creative-studio-ui@0.0.0 postbuild
+> npm run validate
+
+
+> creative-studio-ui@0.0.0 validate
+> node scripts/validate-build-config.cjs
+
+
+============================================================
+Build Configuration Validation
+============================================================
+
+Checking for .js files in src/...
+Validating TypeScript configuration...
+Validating .gitignore patterns...
+
+============================================================
+Validation Results
+============================================================
+
+Ô£ô No .js files found in src/
+
+Ô£ô TypeScript configuration is correct
+
+Ô£ô .gitignore patterns are correct
+
+============================================================
+Ô£à Build configuration is valid
+
+Duration: 30ms
+============================================================
+

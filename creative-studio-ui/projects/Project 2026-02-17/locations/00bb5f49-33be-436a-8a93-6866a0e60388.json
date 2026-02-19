@@ -1,0 +1,24 @@
+{
+  "location_id": "00bb5f49-33be-436a-8a93-6866a0e60388",
+  "name": "The Abyssal Siphon",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771486137455,
+  "last_modified": 1771486137455,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A foreboding, massive tunnel carved into the living rock, its entrance a maw-like void that seems to draw in all light.",
+    "atmosphere": {
+      "lighting": "Pitch-black darkness, illuminated only by eerie, bioluminescent fungi",
+      "sounds": "Echoing groans, distant screams, and the sound of reality tearing apart",
+      "scents": "Moldy earth, decay, and an otherworldly presence"
+    },
+    "genre_tags": [],
+    "significance": "A hidden conduit for an ancient, eldritch power that threatens to consume El Doria whole."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

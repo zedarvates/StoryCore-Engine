@@ -1,0 +1,20 @@
+{
+  "location_id": "75bf07a5-4088-4563-8f57-7dced8869cf6",
+  "name": "The Blackwater Docks",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771480236673,
+  "last_modified": 1771480236673,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A ramshackle collection of warehouses and cargo bays on the city's waterfront. The docks are home to El Doria's naval fleet, as well as a thriving black market for illicit goods and services.",
+    "atmosphere": "Cramped, squalid, with an air of perpetual chaos.",
+    "genre_tags": [],
+    "significance": "A hub for smuggling and trade, where the rules of society are ignored in favor of profit and survival."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

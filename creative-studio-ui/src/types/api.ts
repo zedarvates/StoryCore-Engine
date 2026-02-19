@@ -46,8 +46,8 @@ export interface TaskStatus {
   message?: string;
   result?: unknown;
   error?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: number; // timestamp
+  updatedAt: number; // timestamp
 }
 
 export interface TaskRequest {
@@ -65,8 +65,8 @@ export interface Project {
   name: string;
   path: string;
   version: string;
-  createdAt: Date;
-  modifiedAt: Date;
+  createdAt: number; // timestamp
+  modifiedAt: number; // timestamp
   config: ProjectConfig;
 }
 
@@ -267,7 +267,7 @@ export interface FormData {
 export interface EventPayload<T = unknown> {
   type: string;
   data: T;
-  timestamp: Date;
+  timestamp: number; // timestamp
   source?: string;
 }
 

@@ -15,6 +15,7 @@ import { useLocationStore } from '@/stores/locationStore';
 import { CubeProgressBar } from './editor/CubeProgressBar';
 import { LocationImagesSection } from './editor/LocationImagesSection';
 import { PromptsManager } from '../common/PromptsManager';
+import { buildVisualPromptForLocation } from '@/lib/promptUtils';
 import './LocationEditor.css';
 
 // ============================================================================
@@ -68,6 +69,24 @@ export function LocationEditor({
   const [description, setDescription] = useState(location?.metadata?.description || '');
   const [atmosphere, setAtmosphere] = useState(location?.metadata?.atmosphere || '');
   const [genreTags, setGenreTags] = useState<string>(location?.metadata?.genre_tags?.join(', ') || '');
+  const [prompts, setPrompts] = useState<string[]>(location?.prompts || []);
+
+  // Initialize prompts and auto-populate if empty
+  useEffect(() => {
+    if (location) {
+      const initialPrompts = location.prompts || [];
+      if (initialPrompts.length === 0) {
+        const basePrompt = buildVisualPromptForLocation(location);
+        if (basePrompt) {
+          setPrompts([basePrompt]);
+          // Note: we don't call handleUpdateLocation here to avoid marking dirty immediately
+          // but it will be saved when the user saves the whole form
+        }
+      } else {
+        setPrompts(initialPrompts);
+      }
+    }
+  }, [location]);
 
   // Active tab
   const [activeTab, setActiveTab] = useState<'info' | 'cube' | 'skybox' | 'assets' | 'scene' | 'images' | 'prompts'>('info');
@@ -96,10 +115,11 @@ export function LocationEditor({
         atmosphere,
         genre_tags: genreTags.split(',').map((tag) => tag.trim()).filter(Boolean),
       },
+      prompts,
     };
     onSave(updates);
     setIsDirty(false);
-  }, [name, locationType, description, atmosphere, genreTags, location?.metadata, onSave]);
+  }, [name, locationType, description, atmosphere, genreTags, location?.metadata, prompts, onSave]);
 
   const handlePreviewToggle = useCallback(() => {
     setIsPreviewMode(!isPreviewMode);
@@ -353,9 +373,12 @@ export function LocationEditor({
         {activeTab === 'prompts' && location && (
           <div className="location-editor__panel">
             <PromptsManager
-              prompts={location.prompts || []}
-              onUpdate={(newPrompts) => handleUpdateLocation({ prompts: newPrompts })}
-              entityName={location.name || 'Location'}
+              prompts={prompts}
+              onUpdate={(newPrompts) => {
+                setPrompts(newPrompts);
+                handleInputChange();
+              }}
+              entityName={name || 'Location'}
             />
           </div>
         )}

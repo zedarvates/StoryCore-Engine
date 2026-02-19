@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ShieldAlert, ShieldCheck, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -33,7 +33,7 @@ export function ValidationDisplay({
 
   return (
     <div
-      className={cn('space-y-2', className)}
+      className={cn('space-y-3', className)}
       role="alert"
       aria-live="polite"
       aria-label="Validation errors"
@@ -42,19 +42,20 @@ export function ValidationDisplay({
         <div
           key={field}
           className={cn(
-            'flex items-start gap-2 p-3 rounded-md border',
-            compact ? 'text-sm' : 'text-base',
-            'border-red-200 bg-red-50 text-red-800'
+            'flex items-start gap-4 p-4 rounded border-2 backdrop-blur-md',
+            'border-red-500/30 bg-red-500/5 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.1)]'
           )}
         >
           {showIcons && (
-            <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="p-1.5 bg-red-500/20 rounded border border-red-500/30">
+              <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" aria-hidden="true" />
+            </div>
           )}
           <div className="flex-1">
-            <div className="font-medium capitalize">
-              {field.replace(/([A-Z])/g, ' $1').toLowerCase()}
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400 mb-1 font-mono">
+              Integrity Breach: {field.replace(/([A-Z])/g, ' $1').toLowerCase()}
             </div>
-            <div className={cn(compact ? 'text-sm' : 'text-base', 'mt-1')}>
+            <div className={cn(compact ? 'text-[11px]' : 'text-xs', 'font-mono opacity-80 leading-relaxed uppercase tracking-tight')}>
               {message}
             </div>
           </div>
@@ -87,17 +88,17 @@ export function FieldValidation({
     return null;
   }
 
-  const message = error || warning || '';
+  const message = error || warning || (success ? 'Parameter Validated' : '');
   const isError = !!error;
   const isWarning = !!warning && !error;
 
   return (
     <div
       className={cn(
-        'flex items-center gap-2 mt-1 text-sm',
-        isError && 'text-red-600',
-        isWarning && 'text-yellow-600',
-        success && 'text-green-600',
+        'flex items-center gap-2 mt-2 py-1 px-2 rounded-sm text-[10px] font-black uppercase tracking-widest border transition-all duration-300',
+        isError && 'text-red-400 border-red-500/20 bg-red-500/5',
+        isWarning && 'text-amber-400 border-amber-500/20 bg-amber-500/5',
+        success && 'text-primary border-primary/20 bg-primary/5',
         className
       )}
       role={isError ? 'alert' : 'status'}
@@ -105,12 +106,12 @@ export function FieldValidation({
     >
       {showIcons && (
         <>
-          {isError && <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />}
-          {isWarning && <AlertTriangle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />}
-          {success && <CheckCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />}
+          {isError && <ShieldAlert className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />}
+          {isWarning && <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />}
+          {success && <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />}
         </>
       )}
-      <span>{message}</span>
+      <span className="font-mono">{message}</span>
     </div>
   );
 }
@@ -131,7 +132,7 @@ export function ValidationSummary({
   errors,
   warnings,
   className,
-  title = 'Please review the following issues:',
+  title = 'System Integrity Check Failed',
   showIcons = true,
 }: ValidationSummaryProps) {
   if (errors.length === 0 && warnings.length === 0) {
@@ -140,27 +141,33 @@ export function ValidationSummary({
 
   return (
     <div
-      className={cn('rounded-lg border p-4', className)}
+      className={cn('rounded border-2 p-6 backdrop-blur-xl bg-black/40 border-primary/20 shadow-[0_0_30px_rgba(var(--primary-rgb),0.05)]', className)}
       role="alert"
       aria-live="polite"
     >
-      <h3 className="font-medium text-gray-900 mb-3">{title}</h3>
+      <div className="flex items-center gap-3 mb-6">
+        <Zap className="h-5 w-5 text-primary animate-pulse" />
+        <h3 className="text-sm font-black text-white uppercase tracking-[0.3em] font-mono">{title}</h3>
+      </div>
 
       {/* Errors */}
       {errors.length > 0 && (
-        <div className="space-y-2 mb-4">
-          <h4 className="text-sm font-medium text-red-800">Errors ({errors.length})</h4>
-          <ul className="space-y-1">
+        <div className="space-y-4 mb-8">
+          <div className="flex items-center gap-4">
+            <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest">Critical Conflicts [{errors.length}]</h4>
+            <div className="h-px flex-1 bg-red-500/20" />
+          </div>
+          <ul className="space-y-3">
             {errors.map((error, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm text-red-700">
+              <li key={index} className="flex items-start gap-3 text-[11px] text-red-400 font-mono group">
                 {showIcons && (
-                  <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <div className="mt-0.5 w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] group-hover:scale-125 transition-transform" />
                 )}
                 <span>
-                  <strong className="capitalize">
-                    {error.field.replace(/([A-Z])/g, ' $1').toLowerCase()}:
+                  <strong className="uppercase mr-2 opacity-60">
+                    [{error.field}]
                   </strong>{' '}
-                  {error.message}
+                  {error.message.toUpperCase()}
                 </span>
               </li>
             ))}
@@ -170,19 +177,22 @@ export function ValidationSummary({
 
       {/* Warnings */}
       {warnings.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-yellow-800">Warnings ({warnings.length})</h4>
-          <ul className="space-y-1">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Neural Fluctuations [{warnings.length}]</h4>
+            <div className="h-px flex-1 bg-amber-500/20" />
+          </div>
+          <ul className="space-y-3">
             {warnings.map((warning, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm text-yellow-700">
+              <li key={index} className="flex items-start gap-3 text-[11px] text-amber-400 font-mono group">
                 {showIcons && (
-                  <AlertTriangle className="h-4 w-4 text-yellow-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <div className="mt-0.5 w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] group-hover:scale-125 transition-transform" />
                 )}
                 <span>
-                  <strong className="capitalize">
-                    {warning.field.replace(/([A-Z])/g, ' $1').toLowerCase()}:
+                  <strong className="uppercase mr-2 opacity-60">
+                    [{warning.field}]
                   </strong>{' '}
-                  {warning.message}
+                  {warning.message.toUpperCase()}
                 </span>
               </li>
             ))}

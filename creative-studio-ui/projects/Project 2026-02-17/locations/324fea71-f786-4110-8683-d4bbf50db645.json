@@ -1,0 +1,24 @@
+{
+  "location_id": "324fea71-f786-4110-8683-d4bbf50db645",
+  "name": "The Shattered Spire",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771486137387,
+  "last_modified": 1771486137387,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A once-majestic crystal spire, shattered and overgrown with vines, its peak now lost to the clouds. The air is thick with an otherworldly energy.",
+    "atmosphere": {
+      "lighting": "Dim, ethereal glow emanating from cracks in the crystal",
+      "sounds": "Creaking wind, distant whispers on the breeze",
+      "scents": "Earthy, ozone-rich air"
+    },
+    "genre_tags": [],
+    "significance": "Birthplace of ancient El Dorian magic, said to hold secrets of the past."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

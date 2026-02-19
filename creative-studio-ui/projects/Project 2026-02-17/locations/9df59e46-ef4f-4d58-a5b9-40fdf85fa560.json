@@ -1,0 +1,24 @@
+{
+  "location_id": "9df59e46-ef4f-4d58-a5b9-40fdf85fa560",
+  "name": "Nexarion's Gate",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771486137419,
+  "last_modified": 1771486137419,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A foreboding city gate forged from dark iron, adorned with twisted carvings of forgotten deities. The walls surrounding it seem to absorb the light around them.",
+    "atmosphere": {
+      "lighting": "Deep shadows, flickering torches casting eerie silhouettes",
+      "sounds": "Distant screams, creaking iron, and muffled chanting",
+      "scents": "Burning coal, decay, and corruption"
+    },
+    "genre_tags": [],
+    "significance": "Gateway to the cursed city of Nexarion, said to be home to unspeakable horrors."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

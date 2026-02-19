@@ -133,15 +133,17 @@ graph LR
 - **Sound Effects**: Integrated SFX library and synchronization.
 
 ### 🛠️ Production Tools
-- **Wizard System**: Step-by-step guides for Characters, Scenes, and Objects.
-- **Sequence Editor**: Professional timeline for video/audio editing.
-- **Character Portraits**: Consistent character generation across different angles.
-- **Camera Control**: Advanced camera movement planning.
+- **Neural Production Assistant**: Agentic sidebar for directorial advice and character sheet manifest.
+- **Wizard System**: Guided workflows for Characters, Scenes, and Worlds (with Aesthetic Registry).
+- **Sequence Editor**: Professional timeline with frame-accurate editing.
+- **Production Guide**: Comprehensive shot recap with Technical Rig metadata (Lens, Sensor, Emotion).
+- **Aesthetic Registry**: Persistent World blueprints (Color Slates, Vibe, Artistic Style).
 
 ### 🏗️ Architecture
 - **100% Local**: No external dependencies for core processing.
 - **Extensible**: Robust Add-on system for custom tools.
 - **Resilient**: Circuit breakers and retry mechanisms for long-running tasks.
+- **Agent-Ready**: Event-driven communication for AI assistants.
 
 ---
 
@@ -198,9 +200,10 @@ graph TD
 
 | Phase | Feature | Status |
 | :--- | :--- | :--- |
+| **Q1 2026** | Neural Production Assistant | ✅ Completed |
+| **Q1 2026** | World Aesthetic Registry | ✅ Completed |
 | **Q1 2026** | Image Generation Dialog Enhancement | 🔄 In Progress |
-| **Q1 2026** | Dashboard Wizard Addon | 🔄 In Progress |
-| **Q1 2026** | Advanced Camera Movements | 🔜 Planned |
+| **Q1 2026** | Advanced Camera Movements & Rigging | ✅ Completed |
 | **Q2 2026** | Multi-format Export (MP4/WebM) | 🔜 Planned |
 | **Q3 2026** | Collaborative Features | 📋 Backlog |
 | **Q4 2026** | Cloud Deployment Options | 📋 Backlog |

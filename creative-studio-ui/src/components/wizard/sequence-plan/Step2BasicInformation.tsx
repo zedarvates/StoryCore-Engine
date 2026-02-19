@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SequencePlan } from '@/types/sequencePlan';
+import { useStore } from '@/store';
 import { GenreSelector, VisualStyleSelector, ColorPaletteSelector } from '@/components/assets/AssetSelector';
 
 interface Step2BasicInformationProps {
@@ -22,20 +23,7 @@ export function Step2BasicInformation({
   validationErrors,
 }: Step2BasicInformationProps) {
   const [tagInput, setTagInput] = useState('');
-  const [worlds, setWorlds] = useState<Array<{ id: string; name: string; description?: string }>>([]);
-
-  // Mock worlds data - in real implementation, this would come from a service
-  useEffect(() => {
-    // Simulate loading worlds from a service
-    const mockWorlds = [
-      { id: 'world-1', name: 'Modern City', description: 'Contemporary urban setting' },
-      { id: 'world-2', name: 'Medieval Fantasy', description: 'Magical medieval kingdom' },
-      { id: 'world-3', name: 'Sci-Fi Future', description: 'Advanced technological society' },
-      { id: 'world-4', name: 'Post-Apocalyptic', description: 'Dystopian wasteland' },
-      { id: 'world-5', name: 'Historical 1920s', description: 'Roaring twenties era' },
-    ];
-    setWorlds(mockWorlds);
-  }, []);
+  const worlds = useStore(state => state.worlds);
 
   const handleInputChange = (field: keyof SequencePlan, value: unknown) => {
     onChange({ [field]: value });
@@ -188,8 +176,8 @@ export function Step2BasicInformation({
                     <SelectItem key={world.id} value={world.id}>
                       <div>
                         <div className="font-medium">{world.name}</div>
-                        {world.description && (
-                          <div className="text-xs text-slate-600">{world.description}</div>
+                        {world.atmosphere && (
+                          <div className="text-xs text-slate-600">{world.atmosphere}</div>
                         )}
                       </div>
                     </SelectItem>
@@ -312,7 +300,7 @@ export function Step2BasicInformation({
                     <SelectItem key={option.value} value={option.value.toString()}>
                       <div>
                         <div className="font-medium">{option.label}</div>
-                      <div className="text-xs text-slate-600">{option.description}</div>
+                        <div className="text-xs text-slate-600">{option.description}</div>
                       </div>
                     </SelectItem>
                   ))}
@@ -359,19 +347,17 @@ export function Step2BasicInformation({
           </div>
 
           {/* Summary Card */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h4 className="font-medium text-blue-900 mb-2">Sequence Summary</h4>
-            <div className="space-y-1 text-sm text-blue-800">
-              <div>Name: <span className="font-medium">{formData.name || 'Not set'}</span></div>
-              <div>World: <span className="font-medium">
-                {worlds.find(w => w.id === formData.worldId)?.name || 'Not selected'}
-              </span></div>
-              <div>Duration: <span className="font-medium">{formatDuration(formData.targetDuration)}</span></div>
-              <div>Resolution: <span className="font-medium">
-                {formData.resolution ? `${formData.resolution.width}x${formData.resolution.height}` : '1920x1080'}
-              </span></div>
-              <div>Frame Rate: <span className="font-medium">{formData.frameRate || 24} fps</span></div>
-              <div>Tags: <span className="font-medium">{(formData.tags || []).length} tags</span></div>
+          <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 backdrop-blur-sm">
+            <h4 className="font-medium text-primary neon-text mb-2 uppercase tracking-wider text-xs">Sequence Setup Summary</h4>
+            <div className="space-y-1 text-sm text-primary-foreground/80 font-mono">
+              <div><span className="text-primary/60">NAME:</span> {formData.name || '---'}</div>
+              <div><span className="text-primary/60">WORLD:</span> {worlds.find(w => w.id === formData.worldId)?.name || 'NONE'}</div>
+              <div><span className="text-primary/60">DURATION:</span> {formatDuration(formData.targetDuration)}</div>
+              <div><span className="text-primary/60">RES:</span> {formData.resolution ? `${formData.resolution.width}x${formData.resolution.height}` : '1920x1080'}</div>
+              <div><span className="text-primary/60">FPS:</span> {formData.frameRate || 24}</div>
+              <div className="pt-2 flex flex-wrap gap-1">
+                {(formData.tags || []).map(t => <span key={t} className="text-[10px] bg-primary/20 px-1 rounded uppercase">#{t}</span>)}
+              </div>
             </div>
           </div>
         </div>

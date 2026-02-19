@@ -50,6 +50,12 @@ from src.automation.character_grid import (
 dialogue_automation = create_dialogue_automation(storage_dir="data/dialogues")
 character_grid_automation = create_character_grid_automation(base_output_dir="assets/characters")
 
+# Store centralisé exposé pour les tests et modules externes
+automation_store: dict = {
+    "dialogue": dialogue_automation,
+    "character_grid": character_grid_automation,
+}
+
 
 # ==================== MODÈLES DE REQUÊTE/RÉPONSE ====================
 

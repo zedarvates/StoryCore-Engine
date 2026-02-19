@@ -1,0 +1,25 @@
+{
+    "_doc": "Configuration Blender pour StoryCore-Engine. Modifiez ce fichier selon votre installation.",
+    "_platforms": {
+        "windows_default": "C:/Program Files/Blender Foundation/Blender 4.2/blender.exe",
+        "linux": "/usr/bin/blender",
+        "mac": "/Applications/Blender.app/Contents/MacOS/blender"
+    },
+    "executable": "",
+    "_executable_note": "Laisser vide = auto-detection (PATH + chemins communs). Sinon mettre le chemin complet.",
+    "version_preference": "4.2",
+    "render": {
+        "timeout_seconds": 600,
+        "default_engine": "BLENDER_EEVEE",
+        "default_samples": 32,
+        "default_resolution_x": 1920,
+        "default_resolution_y": 1080
+    },
+    "paths": {
+        "scripts_output": "./exports/blender/scripts",
+        "renders_output": "./exports/blender/renders",
+        "projection_output": "./exports/blender/projection_scripts"
+    },
+    "_env_override": "La variable d'environnement BLENDER_EXECUTABLE surcharge toujours ce fichier.",
+    "_note": "Pour trouver votre executable Blender : dans Blender > Help > System Info, ou 'where blender' dans un terminal."
+}

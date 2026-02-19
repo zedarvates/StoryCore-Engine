@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, RefreshCw, Edit3, X, Info } from 'lucide-react';
+import { AlertCircle, RefreshCw, Edit3, X, Info, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,31 +50,31 @@ export function LLMErrorDisplay({
     }
   };
 
-  const getErrorColor = () => {
+  const getErrorColorClass = () => {
     switch (error.category) {
       case LLMErrorCategory.AUTHENTICATION:
       case LLMErrorCategory.INVALID_REQUEST:
-        return 'border-red-200 bg-red-50 text-red-800';
+        return 'border-red-500/30 bg-red-500/5 text-red-400';
       case LLMErrorCategory.RATE_LIMIT:
       case LLMErrorCategory.TIMEOUT:
-        return 'border-yellow-200 bg-yellow-50 text-yellow-800';
+        return 'border-amber-500/30 bg-amber-500/5 text-amber-400';
       case LLMErrorCategory.NETWORK:
       case LLMErrorCategory.SERVER_ERROR:
-        return 'border-orange-200 bg-orange-50 text-orange-800';
+        return 'border-orange-500/30 bg-orange-500/5 text-orange-400';
       default:
-        return 'border-gray-200 bg-gray-50 text-gray-800';
+        return 'border-primary/20 bg-primary/5 text-primary';
     }
   };
 
   return (
-    <Card className={cn('border-2', getErrorColor(), className)}>
+    <Card className={cn('backdrop-blur-sm shadow-[0_0_15px_rgba(var(--primary-rgb),0.05)] border-2', getErrorColorClass(), className)}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5">{getErrorIcon()}</div>
+          <div className="flex items-start gap-4">
+            <div className="mt-1 p-2 bg-current/10 rounded border border-current/20">{getErrorIcon()}</div>
             <div>
-              <CardTitle className="text-base">AI Generation Failed</CardTitle>
-              <CardDescription className="mt-1 text-sm">
+              <CardTitle className="text-sm uppercase tracking-widest font-bold font-mono">Synthesis System Failure</CardTitle>
+              <CardDescription className="mt-1 text-xs opacity-80 font-mono">
                 {error.userMessage}
               </CardDescription>
             </div>
@@ -84,7 +84,7 @@ export function LLMErrorDisplay({
               variant="ghost"
               size="sm"
               onClick={onDismiss}
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 p-0 text-current/60 hover:text-current hover:bg-current/10"
               aria-label="Dismiss error"
             >
               <X className="h-4 w-4" />
@@ -101,10 +101,10 @@ export function LLMErrorDisplay({
               onClick={handleRetry}
               disabled={isRetrying}
               size="sm"
-              variant="default"
+              className="bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 text-[10px] uppercase font-bold tracking-widest h-8"
             >
-              <RefreshCw className={cn('h-4 w-4 mr-2', isRetrying && 'animate-spin')} />
-              {isRetrying ? 'Retrying...' : 'Retry'}
+              <RefreshCw className={cn('h-3.5 w-3.5 mr-2', isRetrying && 'animate-spin')} />
+              {isRetrying ? 'Re-Syncing...' : 'Retry Link'}
             </Button>
           )}
 
@@ -112,10 +112,11 @@ export function LLMErrorDisplay({
             <Button
               onClick={onManualEntry}
               size="sm"
-              variant={error.retryable ? 'outline' : 'default'}
+              variant="outline"
+              className="border-primary/20 text-primary/70 hover:bg-primary/10 text-[10px] uppercase font-bold tracking-widest h-8"
             >
-              <Edit3 className="h-4 w-4 mr-2" />
-              Enter Manually
+              <Edit3 className="h-3.5 w-3.5 mr-2" />
+              Manual Override
             </Button>
           )}
 
@@ -125,6 +126,10 @@ export function LLMErrorDisplay({
               onClick={action.action}
               size="sm"
               variant={action.primary ? 'default' : 'outline'}
+              className={cn(
+                "text-[10px] uppercase font-bold tracking-widest h-8",
+                action.primary ? "bg-primary text-primary-foreground shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" : "border-primary/20 text-primary/70"
+              )}
             >
               {action.label}
             </Button>
@@ -133,12 +138,12 @@ export function LLMErrorDisplay({
 
         {/* Technical Details (collapsible) */}
         {error.message && (
-          <details className="text-xs">
-            <summary className="cursor-pointer flex items-center gap-2 text-gray-600 hover:text-gray-800">
+          <details className="group">
+            <summary className="cursor-pointer flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-current/40 hover:text-current/60 transition-colors">
               <Info className="h-3 w-3" />
-              Technical Details
+              Diagnostic Logs
             </summary>
-            <div className="mt-2 p-2 bg-white rounded border text-gray-700 font-mono">
+            <div className="mt-2 p-3 bg-black/40 rounded border border-current/10 text-[10px] text-current/70 font-mono leading-relaxed overflow-x-auto">
               {error.message}
             </div>
           </details>
@@ -152,19 +157,17 @@ export function LLMErrorDisplay({
 // Inline LLM Error Component (for form fields)
 // ============================================================================
 
-interface InlineLLMErrorProps {
-  error: ErrorRecoveryOptions;
-  onRetry?: () => void | Promise<void>;
-  onManualEntry?: () => void;
-  className?: string;
-}
-
 export function InlineLLMError({
   error,
   onRetry,
   onManualEntry,
   className,
-}: InlineLLMErrorProps) {
+}: {
+  error: ErrorRecoveryOptions;
+  onRetry?: () => void | Promise<void>;
+  onManualEntry?: () => void;
+  className?: string;
+}) {
   const [isRetrying, setIsRetrying] = useState(false);
 
   const handleRetry = async () => {
@@ -180,31 +183,31 @@ export function InlineLLMError({
   return (
     <div
       className={cn(
-        'flex items-start gap-2 p-3 rounded-lg border bg-red-50 border-red-200',
+        'flex items-start gap-3 p-3 rounded-lg border bg-red-500/5 border-red-500/20 backdrop-blur-sm',
         className
       )}
       role="alert"
       aria-live="polite"
     >
-      <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+      <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-red-800 font-medium">{error.userMessage}</p>
-        <div className="flex flex-wrap gap-2 mt-2">
+        <p className="text-[11px] text-red-400 font-bold uppercase tracking-wider">{error.userMessage}</p>
+        <div className="flex flex-wrap gap-4 mt-2">
           {error.retryable && onRetry && (
             <button
               onClick={handleRetry}
               disabled={isRetrying}
-              className="text-xs text-red-700 hover:text-red-900 underline disabled:opacity-50"
+              className="text-[10px] text-red-400/60 hover:text-red-400 underline uppercase tracking-widest font-bold disabled:opacity-50"
             >
-              {isRetrying ? 'Retrying...' : 'Retry'}
+              {isRetrying ? 'Syncing...' : 'Retry Link'}
             </button>
           )}
           {onManualEntry && (
             <button
               onClick={onManualEntry}
-              className="text-xs text-red-700 hover:text-red-900 underline"
+              className="text-[10px] text-red-400/60 hover:text-red-400 underline uppercase tracking-widest font-bold"
             >
-              Enter manually
+              Manual Override
             </button>
           )}
         </div>
@@ -217,34 +220,35 @@ export function InlineLLMError({
 // Loading State Component
 // ============================================================================
 
-interface LLMLoadingStateProps {
+export function LLMLoadingState({
+  message = 'Initializing Suggestion Synthesis...',
+  onCancel,
+  showProgress = false,
+  className,
+}: {
   message?: string;
   onCancel?: () => void;
   showProgress?: boolean;
   className?: string;
-}
-
-export function LLMLoadingState({
-  message = 'Generating AI suggestions...',
-  onCancel,
-  showProgress = false,
-  className,
-}: LLMLoadingStateProps) {
+}) {
   return (
     <div
       className={cn(
-        'flex items-center justify-between p-4 rounded-lg border bg-blue-50 border-blue-200',
+        'flex items-center justify-between p-4 rounded-lg border bg-primary/5 border-primary/20 backdrop-blur-sm shadow-[inset_0_0_10px_rgba(var(--primary-rgb),0.05)]',
         className
       )}
       role="status"
       aria-live="polite"
     >
-      <div className="flex items-center gap-3">
-        <RefreshCw className="h-5 w-5 text-blue-600 animate-spin" />
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <RefreshCw className="h-5 w-5 text-primary animate-spin" />
+          <div className="absolute inset-0 bg-primary/20 blur-md animate-pulse"></div>
+        </div>
         <div>
-          <p className="text-sm font-medium text-blue-900">{message}</p>
+          <p className="text-xs font-bold text-primary uppercase tracking-widest">{message}</p>
           {showProgress && (
-            <p className="text-xs text-blue-700 mt-1">This may take a few moments...</p>
+            <p className="text-[10px] text-primary-foreground/40 mt-1 uppercase tracking-tighter">Analyzing Reality Parameters...</p>
           )}
         </div>
       </div>
@@ -253,9 +257,9 @@ export function LLMLoadingState({
           onClick={onCancel}
           size="sm"
           variant="ghost"
-          className="text-blue-700 hover:text-blue-900"
+          className="text-primary/40 hover:text-primary hover:bg-primary/10 text-[10px] uppercase font-bold tracking-widest"
         >
-          Cancel
+          Abort
         </Button>
       )}
     </div>
@@ -266,30 +270,28 @@ export function LLMLoadingState({
 // Manual Entry Mode Banner
 // ============================================================================
 
-interface ManualEntryBannerProps {
+export function ManualEntryBanner({
+  reason = 'Neural link offline',
+  onTryAI,
+  className,
+}: {
   reason?: string;
   onTryAI?: () => void;
   className?: string;
-}
-
-export function ManualEntryBanner({
-  reason = 'AI generation is unavailable',
-  onTryAI,
-  className,
-}: ManualEntryBannerProps) {
+}) {
   return (
     <div
       className={cn(
-        'flex items-start justify-between p-3 rounded-lg border bg-gray-50 border-gray-200',
+        'flex items-start justify-between p-3 rounded-lg border bg-secondary/30 border-primary/10 backdrop-blur-sm',
         className
       )}
       role="status"
     >
-      <div className="flex items-start gap-2">
-        <Info className="h-4 w-4 text-gray-600 mt-0.5 flex-shrink-0" />
+      <div className="flex items-start gap-3">
+        <Info className="h-4 w-4 text-primary/60 mt-0.5 flex-shrink-0" />
         <div>
-          <p className="text-sm font-medium text-gray-900">Manual Entry Mode</p>
-          <p className="text-xs text-gray-600 mt-1">{reason}</p>
+          <p className="text-[11px] font-bold text-primary/80 uppercase tracking-widest">Manual Entry Mode Active</p>
+          <p className="text-[10px] text-primary-foreground/40 mt-1 uppercase font-mono">{reason}</p>
         </div>
       </div>
       {onTryAI && (
@@ -297,9 +299,9 @@ export function ManualEntryBanner({
           onClick={onTryAI}
           size="sm"
           variant="outline"
-          className="text-xs"
+          className="text-[10px] h-7 border-primary/20 text-primary uppercase font-bold tracking-widest"
         >
-          Try AI Again
+          Resume Neural Link
         </Button>
       )}
     </div>

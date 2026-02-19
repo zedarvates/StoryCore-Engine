@@ -1,0 +1,24 @@
+{
+  "location_id": "0dddbcd9-56a4-49b2-a7df-e12b54ab0488",
+  "name": "The Cathedral of Echoes",
+  "creation_method": "wizard",
+  "creation_timestamp": 1771486137453,
+  "last_modified": 1771486137453,
+  "version": "1.0",
+  "location_type": "exterior",
+  "texture_direction": "outward",
+  "metadata": {
+    "description": "A hauntingly beautiful structure with an ever-changing façade, its walls whispering ancient secrets to those who listen.",
+    "atmosphere": {
+      "lighting": "Flickering luminescent orbs casting an otherworldly glow",
+      "sounds": "Whispering walls, soft chanting, and distant, mournful sighs",
+      "scents": "Incense, forgotten knowledge, and the hint of mystical energies"
+    },
+    "genre_tags": [],
+    "significance": "A sacred site where the El Dorian gods are said to communicate with mortals through whispers and echoes."
+  },
+  "cube_textures": {},
+  "placed_assets": [],
+  "is_world_derived": false,
+  "prompts": []
+}

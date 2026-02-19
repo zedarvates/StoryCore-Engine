@@ -1,5 +1,26 @@
 # StoryCore Engine - Changelog
 
+## [2026-02-19] - Directorial Intelligence & Neural Assistant
+
+### ✨ Fonctionnalités (Features) 🚀
+- **Neural Production Assistant** - Added an AI-driven directorial sidebar providing real-time production advice and neural manufacturing shortcuts.
+- **World Aesthetic Registry** - Implemented "Visual Intent" blueprint for Worlds, including persistent Color Slates, Artistic Signatures, and Vibe keyword registries.
+- **Advanced Directing Metadata** - Shot metadata now includes Lens selection (24mm, 35mm, 85mm, etc.), Sensor types (IMAX, 35mm, VHS), and Emotion tracking (intensity 0-100%).
+- **Neural Manufacturing** - Direct shortcut for generating Character Reference Sheets within the Production Assistant.
+- **Production Guide V2** - Enhanced shot recap with inline editing for Motion Prompts and Technical Rig parameters.
+
+### 🎨 UI/UX
+- Integrated `NeuralProductionAssistant` into the main Project Dashboard.
+- Added Visual Intent review step to the World Building Wizard (Genesis Verification).
+- Improved `ProductionGuide` layout with quick action rows for character composition.
+
+### 🛠️ Qualité & Architecture
+- Enhanced `Shot` and `World` types to support aesthetic persistence and technical rig metadata.
+- Implemented event-driven communication between `ProductionGuide` and `NeuralProductionAssistant` for asynchronous manifest sequences.
+- Fixed `OllamaClient` import paths and improved model selection logic in production assistants.
+
+---
+
 ## [2026-02-16] - Mise à Jour Documentation
 
 ### Documentation 📚

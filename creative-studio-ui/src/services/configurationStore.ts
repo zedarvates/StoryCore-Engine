@@ -74,11 +74,11 @@ export class ConfigurationStore {
     try {
       // Encrypt sensitive fields
       const configToSave = this.encryptSensitiveFields(config);
-      
+
       // Save to local storage
       const key = `${PROJECT_CONFIG_PREFIX}${projectId}`;
       localStorage.setItem(key, JSON.stringify(configToSave));
-      
+
     } catch (error) {
       console.error('Failed to save project configuration:', error);
       throw new Error(`Failed to save project configuration: ${error}`);
@@ -92,12 +92,12 @@ export class ConfigurationStore {
     try {
       const key = `${PROJECT_CONFIG_PREFIX}${projectId}`;
       const stored = localStorage.getItem(key);
-      
+
       if (!stored) {
         // Return default configuration if not found
         return this.getDefaultProjectConfig(projectId);
       }
-      
+
       const config = JSON.parse(stored);
 
       // Decrypt sensitive fields
@@ -133,11 +133,11 @@ export class ConfigurationStore {
   static async loadGlobalConfig(): Promise<GlobalConfiguration> {
     try {
       const stored = localStorage.getItem(GLOBAL_CONFIG_KEY);
-      
+
       if (!stored) {
         return DEFAULT_GLOBAL_CONFIG;
       }
-      
+
       const config = JSON.parse(stored);
       return this.validateAndMergeGlobalConfig(config);
     } catch (error) {
@@ -166,14 +166,14 @@ export class ConfigurationStore {
     try {
       const projectConfig = await this.loadProjectConfig(projectId);
       const globalConfig = await this.loadGlobalConfig();
-      
+
       const exportData = {
         version: '1.0',
         timestamp: new Date().toISOString(),
         projectConfig,
         globalConfig,
       };
-      
+
       return JSON.stringify(exportData, null, 2);
     } catch (error) {
       console.error('Failed to export configuration:', error);
@@ -187,21 +187,21 @@ export class ConfigurationStore {
   static async importConfiguration(projectId: string, data: string): Promise<void> {
     try {
       const importData = JSON.parse(data);
-      
+
       // Validate import data structure
       if (!importData.version || !importData.projectConfig) {
         throw new Error('Invalid configuration format');
       }
-      
+
       // Save imported configurations
       if (importData.projectConfig) {
         await this.saveProjectConfig(projectId, importData.projectConfig);
       }
-      
+
       if (importData.globalConfig) {
         await this.saveGlobalConfig(importData.globalConfig);
       }
-      
+
     } catch (error) {
       console.error('Failed to import configuration:', error);
       throw new Error(`Failed to import configuration: ${error}`);
@@ -215,43 +215,48 @@ export class ConfigurationStore {
   /**
    * Encrypt sensitive fields in configuration
    */
-  private static encryptSensitiveFields(config: ProjectConfiguration): unknown {
-    const encrypted = JSON.parse(JSON.stringify(config));
-    
+  private static encryptSensitiveFields(config: ProjectConfiguration): Record<string, unknown> {
+    const encrypted = JSON.parse(JSON.stringify(config)) as Record<string, unknown>;
+    const encryptedTyped = encrypted as {
+      api?: { endpoints?: Record<string, { apiKey?: string }> };
+      llm?: { openai?: { apiKey?: string }; anthropic?: { apiKey?: string }; custom?: { apiKey?: string } };
+      comfyui?: { apiKey?: string; servers?: Array<{ apiKey?: string }> };
+    };
+
     // Encrypt API keys
-    if (encrypted.api?.endpoints) {
-      Object.keys(encrypted.api.endpoints).forEach(key => {
-        if (encrypted.api.endpoints[key].apiKey) {
-          encrypted.api.endpoints[key].apiKey = encryptSensitiveData(
-            encrypted.api.endpoints[key].apiKey
+    if (encryptedTyped.api?.endpoints) {
+      Object.keys(encryptedTyped.api.endpoints).forEach(key => {
+        if (encryptedTyped.api!.endpoints![key].apiKey) {
+          encryptedTyped.api!.endpoints![key].apiKey = encryptSensitiveData(
+            encryptedTyped.api!.endpoints![key].apiKey!
           );
         }
       });
     }
-    
+
     // Encrypt LLM API keys
-    if (encrypted.llm?.openai?.apiKey) {
-      encrypted.llm.openai.apiKey = encryptSensitiveData(encrypted.llm.openai.apiKey);
+    if (encryptedTyped.llm?.openai?.apiKey) {
+      encryptedTyped.llm.openai.apiKey = encryptSensitiveData(encryptedTyped.llm.openai.apiKey);
     }
-    if (encrypted.llm?.anthropic?.apiKey) {
-      encrypted.llm.anthropic.apiKey = encryptSensitiveData(encrypted.llm.anthropic.apiKey);
+    if (encryptedTyped.llm?.anthropic?.apiKey) {
+      encryptedTyped.llm.anthropic.apiKey = encryptSensitiveData(encryptedTyped.llm.anthropic.apiKey);
     }
-    if (encrypted.llm?.custom?.apiKey) {
-      encrypted.llm.custom.apiKey = encryptSensitiveData(encrypted.llm.custom.apiKey);
+    if (encryptedTyped.llm?.custom?.apiKey) {
+      encryptedTyped.llm.custom.apiKey = encryptSensitiveData(encryptedTyped.llm.custom.apiKey);
     }
-    
+
     // Encrypt ComfyUI API keys (legacy and multi-server)
-    if (encrypted.comfyui?.apiKey) {
-      encrypted.comfyui.apiKey = encryptSensitiveData(encrypted.comfyui.apiKey);
+    if (encryptedTyped.comfyui?.apiKey) {
+      encryptedTyped.comfyui.apiKey = encryptSensitiveData(encryptedTyped.comfyui.apiKey);
     }
-    if (encrypted.comfyui?.servers) {
-      encrypted.comfyui.servers.forEach((server: unknown) => {
+    if (encryptedTyped.comfyui?.servers) {
+      encryptedTyped.comfyui.servers.forEach((server: { apiKey?: string }) => {
         if (server.apiKey) {
           server.apiKey = encryptSensitiveData(server.apiKey);
         }
       });
     }
-    
+
     return encrypted;
   }
 
@@ -259,19 +264,23 @@ export class ConfigurationStore {
    * Decrypt sensitive fields in configuration
    */
   private static decryptSensitiveFields(config: unknown): ProjectConfiguration {
-    const decrypted = JSON.parse(JSON.stringify(config));
-    
+    const decrypted = JSON.parse(JSON.stringify(config)) as {
+      api?: { endpoints?: Record<string, { apiKey?: string }> };
+      llm?: { openai?: { apiKey?: string }; anthropic?: { apiKey?: string }; custom?: { apiKey?: string } };
+      comfyui?: { apiKey?: string; servers?: Array<{ apiKey?: string }> };
+    };
+
     // Decrypt API keys
     if (decrypted.api?.endpoints) {
       Object.keys(decrypted.api.endpoints).forEach(key => {
-        if (decrypted.api.endpoints[key].apiKey) {
-          decrypted.api.endpoints[key].apiKey = decryptSensitiveData(
-            decrypted.api.endpoints[key].apiKey
+        if (decrypted.api!.endpoints![key].apiKey) {
+          decrypted.api!.endpoints![key].apiKey = decryptSensitiveData(
+            decrypted.api!.endpoints![key].apiKey!
           );
         }
       });
     }
-    
+
     // Decrypt LLM API keys
     if (decrypted.llm?.openai?.apiKey) {
       decrypted.llm.openai.apiKey = decryptSensitiveData(decrypted.llm.openai.apiKey);
@@ -282,20 +291,20 @@ export class ConfigurationStore {
     if (decrypted.llm?.custom?.apiKey) {
       decrypted.llm.custom.apiKey = decryptSensitiveData(decrypted.llm.custom.apiKey);
     }
-    
+
     // Decrypt ComfyUI API keys (legacy and multi-server)
     if (decrypted.comfyui?.apiKey) {
       decrypted.comfyui.apiKey = decryptSensitiveData(decrypted.comfyui.apiKey);
     }
     if (decrypted.comfyui?.servers) {
-      decrypted.comfyui.servers.forEach((server: unknown) => {
+      decrypted.comfyui.servers.forEach((server: { apiKey?: string }) => {
         if (server.apiKey) {
           server.apiKey = decryptSensitiveData(server.apiKey);
         }
       });
     }
-    
-    return decrypted;
+
+    return decrypted as unknown as ProjectConfiguration;
   }
 
   /**
@@ -317,12 +326,13 @@ export class ConfigurationStore {
   private static validateAndMergeProjectConfig(
     config: unknown
   ): ProjectConfiguration {
+    const c = config as Partial<ProjectConfiguration>;
     return {
-      projectId: config.projectId || '',
-      api: { ...DEFAULT_API_CONFIG, ...config.api },
-      llm: { ...DEFAULT_LLM_CONFIG, ...config.llm },
-      comfyui: { ...DEFAULT_COMFYUI_CONFIG, ...config.comfyui },
-      wizards: config.wizards || [],
+      projectId: c.projectId || '',
+      api: { ...DEFAULT_API_CONFIG, ...(c.api || {}) },
+      llm: { ...DEFAULT_LLM_CONFIG, ...(c.llm || {}) },
+      comfyui: { ...DEFAULT_COMFYUI_CONFIG, ...(c.comfyui || {}) },
+      wizards: c.wizards || [],
     };
   }
 
@@ -334,7 +344,7 @@ export class ConfigurationStore {
   ): GlobalConfiguration {
     return {
       ...DEFAULT_GLOBAL_CONFIG,
-      ...config,
+      ...(config as Partial<GlobalConfiguration>),
     };
   }
 

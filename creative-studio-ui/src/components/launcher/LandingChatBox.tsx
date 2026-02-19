@@ -12,6 +12,8 @@ import { buildSystemPrompt } from '@/utils/systemPromptBuilder';
 import { getWelcomeMessage } from '@/utils/chatboxTranslations';
 import { InlineLLMError } from '@/components/wizard/LLMErrorDisplay';
 import { getInitialLanguagePreference } from '@/utils/languageDetection';
+import { type World } from '@/types/world';
+import { type Story } from '@/types/story';
 import { useAppStore } from '@/stores/useAppStore'; // NEW: Use global store for LLM settings
 import {
   type LanguageCode,
@@ -871,16 +873,16 @@ export function LandingChatBox({
         if (actionType === 'createProject') continue; // Already handled
 
         if (actionType === 'generateImage') {
-          handleCreation('image', payload);
+          handleCreation('image', payload, chatServiceResponse.message);
         } else if (actionType === 'generateAudio') {
-          handleCreation('audio', payload);
+          handleCreation('audio', payload, chatServiceResponse.message);
         } else if (actionType === 'generateVideo') {
-          handleCreation('video', payload);
+          handleCreation('video', payload, chatServiceResponse.message);
         } else if (actionType.startsWith('create')) {
           // Map action types like 'createCharacter' to 'character' ContentType
           const rawType = actionType.replace('create', '');
           const contentType = (rawType.charAt(0).toLowerCase() + rawType.slice(1)) as ContentType;
-          handleCreation(contentType, payload);
+          handleCreation(contentType, payload, chatServiceResponse.message);
         }
       }
 
@@ -1119,7 +1121,7 @@ export function LandingChatBox({
   }, [messages.length]);
 
   // Handle creation action from button click
-  const handleCreation = useCallback(async (type: ContentType, data: Record<string, unknown>) => {
+  const handleCreation = useCallback(async (type: ContentType, data: Record<string, unknown>, contextMessage?: string) => {
     setIsCreating(true);
     setCreatingType(type);
 
@@ -1138,14 +1140,14 @@ export function LandingChatBox({
       // Determine world context from current project
       const worldContext = project?.project_name || undefined;
 
-      // Find the most recent assistant message to use for parsing (if available)
-      const recentAssistantMsg = [...messages].reverse().find(m => m.type === 'assistant' && !m.creationResult);
+      // Find context message for parsing - prefer explicit contextMessage passed in
+      const assistantContent = contextMessage || [...messages].reverse().find(m => m.type === 'assistant' && !m.creationResult)?.content;
 
       let result;
-      if (recentAssistantMsg && recentAssistantMsg.content) {
+      if (assistantContent) {
         // Use createFromLLMResponse to extract structured data from the assistant's response
         result = await contentCreationService.createFromLLMResponse(
-          recentAssistantMsg.content,
+          assistantContent,
           type,
           data,
           worldContext as string | undefined,
@@ -1170,25 +1172,29 @@ export function LandingChatBox({
               // Add character to store
               const baseCharacter = createEmptyCharacter();
 
+              const entity = result.entity as any;
               const newCharacter: Character = {
                 ...baseCharacter,
-                character_id: (result.entity.id as string) || crypto.randomUUID(),
-                name: (result.entity.name as string) || 'Unnamed Character',
+                character_id: (entity.id as string) || crypto.randomUUID(),
+                name: (entity.name as string) || 'Unnamed Character',
                 role: {
                   ...baseCharacter.role,
-                  archetype: (result.entity.archetype as string) || baseCharacter.role?.archetype || '',
-                  narrative_function: (result.entity.role as string) || baseCharacter.role?.narrative_function || '',
+                  archetype: (entity.archetype as string) || baseCharacter.role?.archetype || '',
+                  narrative_function: (entity.role as string) || baseCharacter.role?.narrative_function || '',
                 },
                 visual_identity: {
                   ...baseCharacter.visual_identity,
-                  gender: (result.entity.gender as string) || baseCharacter.visual_identity?.gender || '',
-                  age_range: (result.entity.age as string) || baseCharacter.visual_identity?.age_range || '',
+                  gender: (entity.gender as string) || baseCharacter.visual_identity?.gender || '',
+                  age_range: (entity.age as string) || baseCharacter.visual_identity?.age_range || '',
+                  generated_portrait: entity.visual_identity?.generated_portrait || entity.imageUrl || '',
                   // Map description to distinctive_features if it exists
-                  distinctive_features: result.entity.description
-                    ? [...(baseCharacter.visual_identity?.distinctive_features || []), result.entity.description as string]
+                  distinctive_features: entity.description
+                    ? [...(baseCharacter.visual_identity?.distinctive_features || []), entity.description as string]
                     : baseCharacter.visual_identity?.distinctive_features || [],
                 },
-                creation_timestamp: new Date().toISOString(),
+                prompts: (entity.prompts as string[]) || [],
+                creation_timestamp: entity.creation_timestamp || entity.createdAt || Date.now(),
+                last_modified: entity.last_modified || entity.updatedAt || Date.now(),
                 version: '1.0',
               } as Character;
 
@@ -1241,6 +1247,8 @@ export function LandingChatBox({
                 thumbnail_path: loadedMetadata.thumbnail_path,
               },
               prompts: (entity.prompts as string[]) || [],
+              creation_timestamp: entity.creation_timestamp || entity.createdAt || Date.now(),
+              last_modified: entity.last_modified || entity.updatedAt || Date.now(),
             } as Location;
 
             useLocationStore.getState().addLocation(newLocation);
@@ -1257,8 +1265,15 @@ export function LandingChatBox({
               type: entity.type || 'prop',
               rarity: entity.rarity || 'common',
               description: entity.description || '',
+              properties: {
+                ...baseObject.properties,
+                material: entity.properties?.material || entity.material || '',
+                usage: entity.properties?.usage || entity.usage || '',
+              },
               imageUrl: entity.imageUrl,
               prompts: (entity.prompts as string[]) || [],
+              createdAt: entity.createdAt || entity.creation_timestamp || Date.now(),
+              updatedAt: entity.updatedAt || entity.last_modified || Date.now(),
             } as StoryObject;
 
             if (mainStore.addObject) {
@@ -1268,12 +1283,28 @@ export function LandingChatBox({
             break;
           }
           case 'world': {
-            window.dispatchEvent(new CustomEvent('storycore:world-created', { detail: result.entity }));
+            const newWorld = result.entity as unknown as World;
+            if (mainStore.addWorld) {
+              mainStore.addWorld(newWorld);
+            }
+            window.dispatchEvent(new CustomEvent('storycore:world-created', { detail: newWorld }));
             break;
           }
-          case 'story':
+          case 'story': {
+            const newStory = result.entity as unknown as Story;
+            if (mainStore.addStory) {
+              mainStore.addStory(newStory);
+            }
+            window.dispatchEvent(new CustomEvent('storycore:story-created', { detail: newStory }));
+            break;
+          }
           case 'scenario': {
-            window.dispatchEvent(new CustomEvent('storycore:story-created', { detail: result.entity }));
+            const scenarioStory = result.entity as unknown as Story;
+            if (mainStore.addStory) {
+              mainStore.addStory(scenarioStory);
+            }
+            window.dispatchEvent(new CustomEvent('storycore:story-created', { detail: scenarioStory }));
+            window.dispatchEvent(new CustomEvent('storycore:scenario-created', { detail: scenarioStory }));
             break;
           }
           case 'dialogue': {

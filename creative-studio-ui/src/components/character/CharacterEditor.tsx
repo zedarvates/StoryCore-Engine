@@ -10,6 +10,7 @@ import { BackgroundSection } from './editor/BackgroundSection';
 import { RelationshipsSection } from './editor/RelationshipsSection';
 import { CharacterImagesSection } from './editor/CharacterImagesSection';
 import { PromptsManager } from '../common/PromptsManager';
+import { buildVisualPromptForCharacter } from '@/lib/promptUtils';
 import './CharacterEditor.css';
 
 /**
@@ -81,9 +82,19 @@ export function CharacterEditor({
   // Initialize form data when character loads
   useEffect(() => {
     if (originalCharacter) {
+      const initialPrompts = originalCharacter.prompts || [];
+
+      // If no prompts exist, suggest a base visual prompt
+      if (initialPrompts.length === 0) {
+        const basePrompt = buildVisualPromptForCharacter(originalCharacter);
+        if (basePrompt) {
+          initialPrompts.push(basePrompt);
+        }
+      }
+
       setFormData({
         ...originalCharacter,
-        prompts: originalCharacter.prompts || [],
+        prompts: initialPrompts,
       });
     }
   }, [originalCharacter]);

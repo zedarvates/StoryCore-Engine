@@ -7,14 +7,14 @@ import { createEmptyWorld } from '@/types/world';
 import { useStore } from '@/store';
 import { useWorldPersistence } from '@/hooks/useWorldPersistence';
 import { llmConfigService } from '@/services/llmConfigService';
-import { Step1BasicInformation } from './Step1BasicInformation';
-import { Step2WorldRules } from './Step2WorldRules';
-import { Step3Locations } from './Step3Locations';
-import { Step4KeyObjects } from './Step4KeyObjects';
-import { Step4CulturalElements } from './Step4CulturalElements';
-import { Step5ReviewFinalize } from './Step5ReviewFinalize';
+import { Step1RealityAnchor } from './Step1RealityAnchor';
+import { Step2OntologicalGovernance } from './Step2OntologicalGovernance';
+import { Step3TopographicCartography } from './Step3TopographicCartography';
+import { Step4RegistryOfRelics } from './Step4RegistryOfRelics';
+import { Step5SocietalMatrix } from './Step5SocietalMatrix';
+import { Step6GenesisVerification } from './Step6GenesisVerification';
 import { WizardChainOptions, WizardChainOption } from '../WizardChainOptions';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2, Globe, Shield, MapPin, Package, Users, ClipboardList, Zap, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // ============================================================================
@@ -30,33 +30,39 @@ export interface WorldWizardProps {
 const WIZARD_STEPS: WizardStep[] = [
   {
     number: 1,
-    title: 'Basic Info',
-    description: 'Name, genre, and tone',
+    title: 'Reality Anchor',
+    description: 'Designation and temporal coordinates',
+    icon: Globe,
   },
   {
     number: 2,
-    title: 'World Rules',
-    description: 'Laws and systems',
+    title: 'Ontological Governance',
+    description: 'Systemic laws and constraints',
+    icon: Shield,
   },
   {
     number: 3,
-    title: 'Locations',
-    description: 'Key places',
+    title: 'Topographic Cartography',
+    description: 'Environmental node mapping',
+    icon: MapPin,
   },
   {
     number: 4,
-    title: 'Key Objects',
-    description: 'Artifacts & Items',
+    title: 'Registry of Relics',
+    description: 'Artifact registry and physical assets',
+    icon: Package,
   },
   {
     number: 5,
-    title: 'Culture',
-    description: 'Cultural elements',
+    title: 'Societal Matrix',
+    description: 'Cultural and social protocols',
+    icon: Users,
   },
   {
     number: 6,
-    title: 'Review',
-    description: 'Finalize world',
+    title: 'Genesis Verification',
+    description: 'Ontological synchronization',
+    icon: ClipboardList,
   },
 ];
 
@@ -81,7 +87,7 @@ function WorldWizardContent({ steps, onCancel, renderStepContent, onComplete }: 
 
   return (
     <ProductionWizardContainer
-      title="World Builder"
+      title="Genesis Engine"
       steps={steps}
       onCancel={onCancel}
       onComplete={handleComplete}
@@ -153,7 +159,7 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
       const errors: Record<string, string[]> = {};
 
       switch (step) {
-        case 1: // Basic Information
+        case 0: // Reality Anchor (Step 1)
           if (!data.name || data.name.trim() === '') {
             errors.name = ['World name is required'];
           }
@@ -168,12 +174,10 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
           }
           break;
 
-        case 2: // World Rules
-          // Optional validation - rules can be empty
+        case 1: // Ontological Systems (Step 2)
           break;
 
-        case 3: // Locations
-          // Optional validation - locations can be empty
+        case 2: // Environmental Nodes (Step 3)
           if (data.locations && data.locations.length > 0) {
             data.locations.forEach((location, index) => {
               if (!location.name || location.name.trim() === '') {
@@ -183,8 +187,7 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
           }
           break;
 
-        case 4: // Key Objects
-          // Optional validation - objects can be empty
+        case 3: // Artifact Registry (Step 4)
           if (data.keyObjects && data.keyObjects.length > 0) {
             data.keyObjects.forEach((object, index) => {
               if (!object.name || object.name.trim() === '') {
@@ -194,23 +197,12 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
           }
           break;
 
-        case 5: // Cultural Elements
-          // Optional validation - cultural elements can be empty
+        case 4: // Societal Matrix (Step 5)
           break;
 
-        case 6: // Review
-          // Final validation - ensure all required fields are present
+        case 5: // Genesis Verification (Step 6)
           if (!data.name || data.name.trim() === '') {
             errors.name = ['World name is required'];
-          }
-          if (!data.timePeriod || data.timePeriod.trim() === '') {
-            errors.timePeriod = ['Time period is required'];
-          }
-          if (!data.genre || data.genre.length === 0) {
-            errors.genre = ['At least one genre must be selected'];
-          }
-          if (!data.tone || data.tone.length === 0) {
-            errors.tone = ['At least one tone must be selected'];
           }
           break;
       }
@@ -247,8 +239,8 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
         technology: data.technology || '',
         magic: data.magic || '',
         conflicts: data.conflicts || [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       // Add to store (which also persists to localStorage and updates project)
@@ -293,30 +285,27 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
   // ============================================================================
 
   const renderStepContent = (currentStep: number) => {
+    // Steps are 0-indexed in the wizard context
     switch (currentStep) {
+      case 0:
+        return <Step1RealityAnchor />;
       case 1:
-        return <Step1BasicInformation />;
+        return <Step2OntologicalGovernance />;
       case 2:
-        return <Step2WorldRules />;
+        return <Step3TopographicCartography />;
       case 3:
-        return <Step3Locations />;
+        return <Step4RegistryOfRelics />;
       case 4:
-        return <Step4KeyObjects />;
+        return <Step5SocietalMatrix />;
       case 5:
-        return <Step4CulturalElements />;
-      case 6:
-        return <Step5ReviewFinalize />;
+        return <Step6GenesisVerification />;
       default:
         return null;
     }
   };
 
-  // Create a simple no-arg callback for WizardContainer
-  // The actual world data is handled by handleSubmit (passed to WizardProvider.onSubmit)
   const handleWizardComplete = useCallback(() => {
     // This callback is called after submitWizard() completes successfully
-    // The world has already been created and onComplete(world) was called by handleSubmit
-    // This is just a notification that the wizard finished
   }, []);
 
   // ============================================================================
@@ -325,18 +314,24 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
 
   if (isInitializing) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 space-y-4">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Initializing services...</p>
+      <div className="flex flex-col items-center justify-center p-12 space-y-6 h-[400px] border border-primary/10 rounded-xl bg-primary/5 backdrop-blur-sm">
+        <div className="relative">
+          <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
+          <Database className="w-6 h-6 text-primary absolute inset-0 m-auto animate-pulse" />
+        </div>
+        <div className="text-center space-y-2">
+          <p className="text-lg font-bold text-primary neon-text uppercase tracking-widest">Initializing Core</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-tighter">Synchronizing with Genesis Engine...</p>
+        </div>
       </div>
     );
   }
 
   if (initError) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 space-y-4">
-        <p className="text-sm text-red-500">Failed to initialize: {initError}</p>
-        <button
+      <div className="flex flex-col items-center justify-center p-12 space-y-6 border border-red-500/20 rounded-xl bg-red-500/5 backdrop-blur-sm">
+        <p className="text-sm text-red-400 font-mono">CRITICAL_INIT_FAILURE: {initError}</p>
+        <Button
           onClick={() => {
             setInitError(null);
             setIsInitializing(true);
@@ -347,10 +342,11 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
               setIsInitializing(false);
             });
           }}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+          variant="outline"
+          className="border-red-500/30 text-red-500 hover:bg-red-500/10"
         >
-          Retry
-        </button>
+          Re-initialize System
+        </Button>
       </div>
     );
   }
@@ -359,31 +355,35 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
     const chainOptions: WizardChainOption[] = [
       {
         wizardType: 'create-character',
-        label: 'Create Character',
-        description: 'Populate your world with characters',
+        label: 'Initialize Persona Nodes',
+        description: 'Populate reality with sentient character manifests',
         icon: 'UserPlus'
       },
       {
         wizardType: 'create-location',
-        label: 'Add More Locations',
-        description: 'Detail specific places in your world',
+        label: 'Detail Supplementary Nodes',
+        description: 'Specify additional environmental data points',
         icon: 'MapPin'
       }
     ];
 
     return (
-      <div className="flex flex-col items-center justify-center p-8 space-y-6 h-full">
-        <div className="flex flex-col items-center text-center space-y-2">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle2 className="w-10 h-10 text-green-600" />
+      <div className="flex flex-col items-center justify-center p-12 space-y-8 h-full bg-primary/5 backdrop-blur-md border border-primary/20 rounded-2xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+        <div className="flex flex-col items-center text-center space-y-4 relative z-10">
+          <div className="w-24 h-24 bg-primary/20 rounded-2xl flex items-center justify-center mb-2 border border-primary/30 shadow-[0_0_40px_rgba(var(--primary-rgb),0.3)] group">
+            <CheckCircle2 className="w-14 h-14 text-primary neon-text group-hover:scale-110 transition-transform duration-500" />
           </div>
-          <h2 className="text-2xl font-bold">World Created Successfully!</h2>
-          <p className="text-gray-600 max-w-md">
-            "{createdWorld.name}" has been saved and is ready to use.
+          <h2 className="text-4xl font-extrabold neon-text text-primary uppercase tracking-tighter">Genesis Complete</h2>
+          <p className="text-primary-foreground/90 max-w-md text-lg leading-relaxed">
+            The world of <span className="text-primary font-bold">"{createdWorld.name}"</span> has been successfully instantiated in the global registry.
           </p>
+          <div className="flex items-center gap-2 text-primary/60 font-mono text-xs uppercase tracking-widest bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
+            <Zap className="h-3 w-3" /> System Synchronized
+          </div>
         </div>
 
-        <div className="w-full max-w-md border-t pt-6">
+        <div className="w-full max-w-lg border-t border-primary/10 pt-8 relative z-10">
           <WizardChainOptions
             isChained={true}
             triggeredWizards={chainOptions}
@@ -416,4 +416,3 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
     </WizardProvider>
   );
 }
-

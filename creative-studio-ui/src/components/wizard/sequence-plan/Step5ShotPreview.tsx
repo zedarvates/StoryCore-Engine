@@ -23,17 +23,24 @@ interface PreviewShot extends Omit<ProductionShot, 'id' | 'sequencePlanId'> {
   videoUrl?: string; // URL to the generated video preview
 }
 
-// Camera angle presets for shot generation
-const CAMERA_ANGLES: { type: ShotType; framing: string; angle: string; description: string }[] = [
-  { type: 'wide', framing: 'wide', angle: 'eye-level', description: 'Establishing wide shot' },
-  { type: 'medium', framing: 'medium', angle: 'eye-level', description: 'Medium conversation shot' },
-  { type: 'close-up', framing: 'close-up', angle: 'eye-level', description: 'Close-up on character' },
-  { type: 'over-the-shoulder', framing: 'medium', angle: 'eye-level', description: 'Over-the-shoulder POV' },
-  { type: 'pov', framing: 'medium', angle: 'eye-level', description: 'First-person POV' },
-];
+// Camera angle presets for shot generation (Coherence Character LoRA ready)
+const CAMERA_PRESETS: {
+  type: ShotType;
+  framing: string;
+  angle: string;
+  azimuth: number;
+  elevation: number;
+  distance: 'closeup' | 'medium' | 'wide';
+  description: string
+}[] = [
+    { type: 'wide', framing: 'wide', angle: 'eye-level', azimuth: 0, elevation: 0, distance: 'wide', description: 'Establishing front shot' },
+    { type: 'medium', framing: 'medium', angle: 'eye-level', azimuth: 30, elevation: 10, distance: 'medium', description: '3/4 angle conversation' },
+    { type: 'close-up', framing: 'close-up', angle: 'eye-level', azimuth: 0, elevation: 0, distance: 'closeup', description: 'Character close-up' },
+    { type: 'over-the-shoulder', framing: 'medium', angle: 'eye-level', azimuth: 150, elevation: 15, distance: 'medium', description: 'Over-the-shoulder POV' },
+    { type: 'pov', framing: 'medium', angle: 'eye-level', azimuth: 0, elevation: 0, distance: 'medium', description: 'Subjective POV' },
+  ];
 
-// Shot generation logic
-function generateShotsFromScenes(scenes: Scene[], sequencePlanId: string): PreviewShot[] {
+function generateShotsFromScenes(scenes: Scene[], sequencePlanId: string, characters: any[] = []): PreviewShot[] {
   const shots: PreviewShot[] = [];
   let shotCounter = 1;
 
@@ -45,29 +52,39 @@ function generateShotsFromScenes(scenes: Scene[], sequencePlanId: string): Previ
     const totalShots = Math.max(shotCount, scene.beats.length + 1);
 
     for (let i = 0; i < totalShots; i++) {
-      const cameraAngle = CAMERA_ANGLES[i % CAMERA_ANGLES.length];
+      const preset = CAMERA_PRESETS[i % CAMERA_PRESETS.length];
+
+      // Get character names for prompt
+      const sceneCharacters = characters.filter(c => scene.characterIds.includes(c.character_id));
+      const charNames = sceneCharacters.map(c => c.name).join(', ');
+
+      // Coherence Trigger: Add SKS for recognized characters (Requirement: CP1.0)
+      const cohTrigger = sceneCharacters.length > 0 ? `SKS character ${charNames}` : 'a cinematic character';
 
       const shot: PreviewShot = {
         id: `shot-${scene.id}-${i + 1}`,
         sequencePlanId,
         sceneId: scene.id,
         number: shotCounter++,
-        type: cameraAngle.type,
+        type: preset.type,
         category: i === 0 ? 'establishing' : i === totalShots - 1 ? 'reaction' : 'action',
         description: scene.beats[i] || `Shot ${i + 1} of scene ${scene.number}`,
         estimatedDuration: defaultDuration,
-        videoUrl: `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4`, // Mock video URL for demo
+        videoUrl: undefined, // Clear mock URL to force placeholder instead of BigBuckBunny
         composition: {
           characterIds: scene.characterIds,
-          characterPositions: [], // Will be populated based on shot type
+          characterPositions: [],
           environmentId: scene.locationId,
           props: [],
-          lightingMood: 'natural',
-          timeOfDay: 'day',
+          lightingMood: 'cinematic',
+          timeOfDay: 'dramatic',
         },
         camera: {
-          framing: cameraAngle.framing as any,
-          angle: cameraAngle.angle as any,
+          framing: preset.framing as any,
+          angle: preset.angle as any,
+          azimuth: preset.azimuth,
+          elevation: preset.elevation,
+          distance: preset.distance,
           movement: { type: 'static' },
         },
         timing: {
@@ -78,24 +95,24 @@ function generateShotsFromScenes(scenes: Scene[], sequencePlanId: string): Previ
           transitionDuration: 0,
         },
         generation: {
-          aiProvider: 'default',
-          model: 'default',
-          prompt: `Generate a ${cameraAngle.description.toLowerCase()} for scene: ${scene.title}`,
-          negativePrompt: '',
-          comfyuiPreset: 'default',
+          aiProvider: 'flux_klein', // Default to the optimized model
+          model: 'flux-v2-dev',
+          prompt: `High quality cinematic shot, ${preset.description.toLowerCase()}, ${cohTrigger}, at location: ${scene.title}. Cinematic lighting, 8k resolution.`,
+          negativePrompt: 'low quality, blurry, deformed, watermark',
+          comfyuiPreset: 'cinematic_v2',
           parameters: {
             width: 1920,
             height: 1080,
-            steps: 20,
-            cfgScale: 7,
-            sampler: 'euler',
-            scheduler: 'normal',
+            steps: 25,
+            cfgScale: 7.5,
+            sampler: 'dpmpp_2m',
+            scheduler: 'karras',
           },
           styleReferences: [],
         },
         status: 'planned',
-        notes: cameraAngle.description,
-        tags: [`scene-${scene.number}`, cameraAngle.type],
+        notes: preset.description,
+        tags: [`scene-${scene.number}`, preset.type, 'coherent'],
         templates: [],
       };
 
@@ -119,14 +136,16 @@ export function Step5ShotPreview({
   const [viewerZoom, setViewerZoom] = useState(1);
   const timelineRef = useRef<HTMLDivElement>(null);
 
+  const allCharacters = useStore(state => state.characters);
+
   // Generate shots when scenes change
   useEffect(() => {
     if (sequencePlan.scenes && sequencePlan.scenes.length > 0 && sequencePlan.id) {
-      const shots = generateShotsFromScenes(sequencePlan.scenes, sequencePlan.id);
+      const shots = generateShotsFromScenes(sequencePlan.scenes, sequencePlan.id, allCharacters);
       setGeneratedShots(shots);
       onShotsChange(shots);
     }
-  }, [sequencePlan.scenes, sequencePlan.id, onShotsChange]);
+  }, [sequencePlan.scenes, sequencePlan.id, onShotsChange, allCharacters]);
 
   // Calculate total duration
   const totalDuration = useMemo(() => {
@@ -453,8 +472,12 @@ export function Step5ShotPreview({
               <div className="text-sm">{formatDuration(selectedShot.estimatedDuration)}</div>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-600">Camera</label>
-              <div className="text-sm">{selectedShot.camera.framing} • {selectedShot.camera.angle}</div>
+              <label className="text-sm font-medium text-gray-600">Camera Specs</label>
+              <div className="text-sm">
+                Framing: {selectedShot.camera.framing} <br />
+                Angle: {selectedShot.camera.angle} <br />
+                Azimuth: {selectedShot.camera.azimuth}° | Elev: {selectedShot.camera.elevation}°
+              </div>
             </div>
           </div>
           <div className="mt-2">

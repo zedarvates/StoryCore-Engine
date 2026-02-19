@@ -1,0 +1,127 @@
+{
+    "_comment": "Exemple d'inventaire complet pour le personnage Alpha — projet cyberpunk",
+    "character_name": "Alpha",
+    "project_id": "cyberpunk_001",
+    "notes": "Mercenaire cyberpunk, opère dans les ruelles basses ville",
+    "equipped_slots": {
+        "main_hand": "epee_alpha_001",
+        "chest": "manteau_alpha_001",
+        "accessory_1": "implant_optique_001"
+    },
+    "items": [
+        {
+            "id": "epee_alpha_001",
+            "name": "Epee Brisee d'Alpha",
+            "object_type": "weapon",
+            "description": "Lame courte brisee au tiers, rouille ancienne, gravee d'un symbole inconnu cote gauche",
+            "story_notes": "Trouvee dans la ruelle lors du premier acte. Liee a l'identite perdue d'Alpha.",
+            "owner": "Alpha",
+            "project_id": "cyberpunk_001",
+            "material": "metal_rusty",
+            "color_override": null,
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tags": [
+                "cyberpunk",
+                "weapon",
+                "sword",
+                "rusty",
+                "narrative_key"
+            ],
+            "created_at": "2026-02-18",
+            "narrative_context": "Acte 1 - Ruelle nocturne",
+            "blender_script_path": null,
+            "preview_image_path": null,
+            "blend_file_path": null
+        },
+        {
+            "id": "manteau_alpha_001",
+            "name": "Manteau de Combat",
+            "object_type": "armor",
+            "description": "Manteau synthetique noir, usure aux epaules, doublure thermique active",
+            "story_notes": "Equipement standard des mercenaires basse ville. Protege contre la pluie acide.",
+            "owner": "Alpha",
+            "project_id": "cyberpunk_001",
+            "material": "matte_black",
+            "color_override": null,
+            "scale": [
+                1.2,
+                1.0,
+                1.4
+            ],
+            "tags": [
+                "cyberpunk",
+                "armor",
+                "worn",
+                "black"
+            ],
+            "created_at": "2026-02-18",
+            "narrative_context": "Equipement de base",
+            "blender_script_path": null,
+            "preview_image_path": null,
+            "blend_file_path": null
+        },
+        {
+            "id": "implant_optique_001",
+            "name": "Implant Optique Droit",
+            "object_type": "device",
+            "description": "Oeil cybernétique bleu lumineux, modele militaire reconverti, zoom x20",
+            "story_notes": "L'implant enregistre tout. Contient des memoires cryptees de la faction Nexus.",
+            "owner": "Alpha",
+            "project_id": "cyberpunk_001",
+            "material": "glowing_blue",
+            "color_override": [
+                0.2,
+                0.5,
+                1.0
+            ],
+            "scale": [
+                0.4,
+                0.4,
+                0.4
+            ],
+            "tags": [
+                "cyberpunk",
+                "implant",
+                "tech",
+                "glowing",
+                "narrative_key"
+            ],
+            "created_at": "2026-02-18",
+            "narrative_context": "Acte 2 - Decouverte identite",
+            "blender_script_path": null,
+            "preview_image_path": null,
+            "blend_file_path": null
+        },
+        {
+            "id": "carnet_chiffre_001",
+            "name": "Carnet Chiffre",
+            "object_type": "book",
+            "description": "Petit carnet noir, ecriture microscopique, encre UV, couverture cuir artificiel",
+            "story_notes": "Codes d'acces aux tunnels sous la ville. Alpha ignore pourquoi il le possede.",
+            "owner": "Alpha",
+            "project_id": "cyberpunk_001",
+            "material": "leather",
+            "color_override": null,
+            "scale": [
+                0.8,
+                0.6,
+                1.0
+            ],
+            "tags": [
+                "document",
+                "mystery",
+                "codes",
+                "narrative_key"
+            ],
+            "created_at": "2026-02-18",
+            "narrative_context": "Acte 1 - Possession inexpliquee",
+            "blender_script_path": null,
+            "preview_image_path": null,
+            "blend_file_path": null
+        }
+    ]
+}
