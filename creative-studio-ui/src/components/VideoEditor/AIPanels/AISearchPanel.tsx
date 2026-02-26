@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Scissors, Music, Wand2, ZoomIn, Brain, Mic, Palette } from 'lucide-react';
+import { Search, Scissors, Music, ZoomIn, Brain, Mic, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -32,7 +32,7 @@ export const AISearchPanel: React.FC = () => {
       });
       const data = await response.json();
       setResults(data.results);
-    } catch (error) {
+    } catch {
       toast({
         title: "Erreur de recherche",
         description: "Impossible de contacter le service AI.",

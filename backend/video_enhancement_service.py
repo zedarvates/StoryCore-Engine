@@ -762,3 +762,29 @@ class VideoEnhancementService:
         ]
         
         return self._run_command(cmd)
+
+    def _apply_vignette_grain(
+        self,
+        input_path: str,
+        output_path: str,
+        config: EnhancementConfig
+    ) -> bool:
+        """Ajoute un effet de vignette et de grain de pellicule."""
+        logger.info(f"Appliquer Vignette & Grain à {input_path}")
+        strength = config.strength
+        
+        # Vignette + Noise (Grain)
+        vignette_str = f"vignette=angle={0.1 + strength * 0.4}"
+        noise_str = f"noise=alls={strength * 10}:allf=t+u"
+        
+        cmd = [
+            self.ffmpeg, "-y",
+            "-i", input_path,
+            "-vf", f"{vignette_str},{noise_str}",
+            "-c:v", "libx264",
+            "-preset", "medium",
+            "-crf", "23",
+            output_path
+        ]
+        
+        return self._run_command(cmd)

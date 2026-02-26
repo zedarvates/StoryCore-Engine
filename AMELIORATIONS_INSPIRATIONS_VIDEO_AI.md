@@ -45,13 +45,13 @@ Inspirations pour donner un look "professionnel" instantané aux vidéos produit
 2. **Beat Detection**: ✅ Implémenté via `librosa/energy-based` et exposé via `/ai/detect-beats`.
 3. **Hellation Plugin**: ✅ Ajouté comme type d'amélioration dans `video_enhancement_service.py` et exposé via `/ai/enhance`.
 
-### Phase 4: Audio Mastering & Cinematic Polish - 🚀 À VENIR
+### Phase 4: Audio Mastering & Cinematic Polish - ✅ RÉUSSIE
 
-1. **Auto-Ducking Audio**: Baisser automatiquement la musique de fond lors des voix-off/dialogues.
-2. **AI Voice Isolation**: Supprimer le bruit de fond des enregistrements pour une clarté pro.
-3. **Color Isolation (HSL Qualifier)**: Isoler une couleur spécifique (ex: rouge) pour des effets de style "Sin City".
-4. **Smart Pan & Scan**: Suivi de visage dynamique pour garder le sujet au centre des mouvements de caméra.
-5. **Dynamic Vignette & Grain**: Ajout de textures cinéma automatiques basées sur l'ambiance de la scène.
+1. **Auto-Ducking Audio**: ✅ Algorithme de sidechain compression FFmpeg intégré dans `DialogueAutomationService`.
+2. **AI Voice Isolation**: ✅ Filtre de réduction de bruit et d'isolation de fréquences vocales dans `AudioCleaningService`.
+3. **Color Isolation (HSL Qualifier)**: ✅ Filtre `hsvhold` FFmpeg implémenté dans `VideoEnhancementService`.
+4. **Smart Pan & Scan**: ✅ Suivi de visage automatique pour recadrage 9:16 dynamique dans `SmartCropService`.
+5. **Dynamic Vignette & Grain**: ✅ Textures cinéma automatiques ajoutées via `_apply_vignette_grain`.
 
 ---
 
