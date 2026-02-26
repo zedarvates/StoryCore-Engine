@@ -215,6 +215,9 @@ graph TD
 | **Q1 2026** | World Aesthetic Registry & Genesis | ✅ Completed |
 | **Q1 2026** | Augmented Content Creation Engine | ✅ Completed |
 | **Q1 2026** | Advanced Camera Movements & Rigging | ✅ Completed |
+| **Q1 2026** | Neural Augmented Creation & Project Genesis | ✅ Completed |
+| **Q1 2026** | Recursive LLM Service (RLM) | ✅ Completed |
+| **Q1 2026** | Location & Object Reference Sheets | ✅ Completed |
 | **Q2 2026** | Image Generation Dialog Enhancement | 🔄 In Progress |
 | **Q2 2026** | Multi-format Export (MP4/WebM) | 🔜 Planned |
 | **Q3 2026** | Collaborative Features | 📋 Backlog |

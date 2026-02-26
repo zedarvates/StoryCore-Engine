@@ -2,7 +2,7 @@
 
 Welcome to the StoryCore-Engine public roadmap! This document provides visibility into our development direction, organized by timeline and priority.
 
-**Last Updated:** January 27, 2026 at 11:00 AM
+**Last Updated:** February 26, 2026 at 5:00 AM
 
 ## About This Roadmap
 
@@ -650,6 +650,33 @@ All audit findings have been resolved. The codebase is now production-ready with
 **Risks and Mitigation**:
 - **Risk**: Régression potentielle due aux modifications majeures.
   **Mitigation**: Une couverture de test complète (>95%) et des tests de validation en production ont été mis en place pour garantir la stabilité du système.
+
+---
+
+## Recent Implementation Achievements (February 2026)
+
+### ✅ Neural Augmented Creation & Project Genesis - COMPLETED 26/02/2026
+**Status**: ✅ **FULLY IMPLEMENTED AND PRODUCTION READY**  
+**Reference**: [creative-studio-ui/src/services/](creative-studio-ui/src/services/)
+
+**Key Achievements**:
+- **Total Recall AI Memory System**: Persistent neural memory that captures stylistic decisions, character facts, and production rules
+- **Recursive LLM Service (RLM)**: Self-calling LLM with sandbox state management for complex cinematic reasoning
+- **Project Genesis Integration**: Autonomous AI suggestions for names, archetypes, and lore based on living protocols
+- **Enhanced Neural Production Assistant v3.1**: Complete redesign with 900+ new lines of code
+
+**New Capabilities**:
+- **Project Memory Service**: "Write Gate" logic for auto-logging high-confidence insights
+- **Active Recall Synthesis**: Transform disconnected memory points into "Living Project Protocol"
+- **Vision-to-Asset Genesis**: Transform visual inspiration into persistent project assets
+- **Reasoning Trajectory Trace**: Transparent AI decision-making with depth tracking
+- **Memory Correction System**: User feedback integration for AI learning
+
+**Technical Implementation**:
+- `ProjectMemoryService.ts`: Memory management with Write Gate and Active Recall
+- `RecursiveLLMService.ts`: Recursive reasoning with sandbox variables
+- `StoryWeaver.ts`: Story generation with Total Recall integration
+- `NeuralProductionAssistant.tsx`: Expanded with Location/Object Reference Sheets
 
 ---
 

@@ -1,5 +1,31 @@
 # StoryCore Engine - Changelog
 
+## [2026-02-26] - Neural Augmented Creation & Project Genesis
+### Added
+- **Neural Augmented Creation Engine**: Every character, world, and story part is now context-bound via "Total Recall" living protocols.
+- **Project Genesis Integration**: AI can autonomously suggest names, archetypes, and lore based on the project's living protocol.
+- **Recursive LLM Service (RLM)**: New service enabling the LLM to recursively call itself, manage sub-tasks, and interact with a virtual sandbox context for complex cinematic logic.
+- **Project Memory Service**: Inspired by "Total Recall" methodology - implements "Write Gate" and "Active Recall" synthesis for persistent project insights.
+- **StoryWeaver Neural Integration**: Story generation now integrates with Total Recall memory system for consistent narrative across all parts.
+- **Enhanced Neural Production Assistant v3.1**:
+  - Added support for Location Reference Sheets (Neural Environments)
+  - Added support for Object Reference Sheets (Neural Artifacts)
+  - Integrated Reasoning Trajectory Trace for transparent AI decisions
+  - Memory Brain panel for managing project protocols
+  - Memory Correction system for user feedback integration
+
+### Improved
+- **Context-Bound Intelligence**: Characters and worlds created are now automatically cross-referenced with Total Recall Working Context.
+- **Vision-to-Asset Genesis**: Visual inspiration can now be transformed into persistent project assets with memory awareness.
+
+### Technical
+- Created `ProjectMemoryService.ts` for memory management with Write Gate logic
+- Created `RecursiveLLMService.ts` for recursive AI reasoning with sandbox state
+- Enhanced `StoryWeaver.ts` with Total Recall integration
+- Major expansion of `NeuralProductionAssistant.tsx` with 900+ new lines
+
+---
+
 ## [2026-02-20] - Neural Manufacturing & Genesis Sync
 ### Added
 - **Neural Production Ledger**: Unified manifest for all AI-generated assets with verification badges and "Session Vault" persistence.
