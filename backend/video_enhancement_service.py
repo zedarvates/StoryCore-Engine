@@ -22,6 +22,7 @@ class EnhancementType(Enum):
     HELLATION = "halation"
     MAGIC_MASK = "magic_mask" # Background removal/Segmentation
     COLOR_ISOLATION = "color_isolation" # HSL Qualifier style
+    VIGNETTE_GRAIN = "vignette_grain" # Cinematic textures
 
 class UpscaleModel(Enum):
     REAL_ESRGAN_4X = "realesrgan_4x"
@@ -177,6 +178,10 @@ class VideoEnhancementService:
                     )
                 elif enhancement.type == EnhancementType.COLOR_ISOLATION:
                     success = self._apply_color_isolation(
+                        current_input, intermediate_output, enhancement
+                    )
+                elif enhancement.type == EnhancementType.VIGNETTE_GRAIN:
+                    success = self._apply_vignette_grain(
                         current_input, intermediate_output, enhancement
                     )
                 
