@@ -70,7 +70,7 @@
     "framer-motion": "^12.29.0",
     "fuse.js": "^7.1.0",
     "idb": "^8.0.3",
-    "jspdf": "^4.0.0",
+    "jspdf": "^4.1.0",
     "lucide-react": "^0.468.0",
     "react": "^19.2.0",
     "react-dnd": "^16.0.1",
@@ -101,11 +101,11 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitejs/plugin-react-swc": "^4.2.2",
-    "@vitest/coverage-v8": "^2.1.8",
-    "@vitest/ui": "^2.1.8",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.20",
     "axe-core": "^4.11.1",
-    "electron": "^40.2.1",
+    "electron": "^40.4.1",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -120,7 +120,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^5.4.10",
-    "vitest": "^2.1.8"
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
   }
 }
