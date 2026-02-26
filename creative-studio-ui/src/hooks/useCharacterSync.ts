@@ -346,7 +346,7 @@ export function useCharacterSync(): CharacterSyncResult {
   const projectHasCharacters = (project?.characters?.length || 0) > 0;
 
   // Check if store and project are in sync
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const isInSync = useMemo(() => {
     if (!project) return true; // No project, always in sync
     const projectCharacters = project.characters as any[];

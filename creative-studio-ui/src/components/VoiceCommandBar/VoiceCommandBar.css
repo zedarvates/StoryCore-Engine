@@ -1,0 +1,282 @@
+/* ============================================================================
+   VoiceCommandBar — Styles
+   ============================================================================ */
+
+/* ── Racine ──────────────────────────────────────────────────────────────── */
+.vcb-root {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* ── Barre principale ─────────────────────────────────────────────────────── */
+.vcb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 6px 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vcb-bar:focus-within {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
+}
+
+.vcb-bar--listening {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+  animation: vcb-pulse-border 1.5s ease-in-out infinite;
+}
+
+@keyframes vcb-pulse-border {
+  0%, 100% { border-color: rgba(239, 68, 68, 0.6); }
+  50%       { border-color: rgba(239, 68, 68, 1.0); }
+}
+
+/* ── Bouton micro ─────────────────────────────────────────────────────────── */
+.vcb-mic-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+
+.vcb-mic-btn:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.25);
+  color: #a78bfa;
+  transform: scale(1.05);
+}
+
+.vcb-mic-active {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #f87171 !important;
+}
+
+.vcb-mic-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Ripple effect sur écoute */
+.vcb-ripple {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  animation: vcb-ripple-anim 1.2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes vcb-ripple-anim {
+  0%   { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* ── Champ texte ──────────────────────────────────────────────────────────── */
+.vcb-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13.5px;
+  font-family: inherit;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.vcb-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+}
+
+/* ── Boutons actions ──────────────────────────────────────────────────────── */
+.vcb-suggestions-btn,
+.vcb-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.vcb-suggestions-btn:hover {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.vcb-send-btn:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+}
+
+.vcb-send-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* ── Indicateur écoute ────────────────────────────────────────────────────── */
+.vcb-listening-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #f87171;
+}
+
+.vcb-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: vcb-pulse-dot 1s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes vcb-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+.vcb-transcript-preview {
+  margin-left: auto;
+  font-style: italic;
+  opacity: 0.7;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Résultat de commande ─────────────────────────────────────────────────── */
+.vcb-result {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  animation: vcb-slide-in 0.2s ease;
+}
+
+@keyframes vcb-slide-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.vcb-result--success {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.vcb-result--warning {
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+/* ── Suggestions dropdown ─────────────────────────────────────────────────── */
+.vcb-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #1e1b2e;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: vcb-dropdown-in 0.15s ease;
+}
+
+@keyframes vcb-dropdown-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.vcb-suggestions-header {
+  padding: 10px 14px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.vcb-suggestions-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+.vcb-suggestion-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, color 0.12s;
+}
+
+.vcb-suggestion-item:hover {
+  background: rgba(139, 92, 246, 0.12);
+  color: #a78bfa;
+}
+
+.vcb-suggestion-icon {
+  color: rgba(139, 92, 246, 0.6);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.vcb-suggestions-footer {
+  padding: 8px 14px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ── Compact mode ─────────────────────────────────────────────────────────── */
+.vcb-compact {
+  display: inline-flex;
+  align-items: center;
+}
+
+.vcb-compact .vcb-mic-btn {
+  width: 30px;
+  height: 30px;
+}

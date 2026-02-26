@@ -101,6 +101,12 @@ export function saveProjectToJSON(project: Project): string {
     capabilities: project.capabilities,
     generation_status: project.generation_status,
     metadata: project.metadata,
+    stories: project.stories,
+    storyVersions: project.storyVersions,
+    worlds: project.worlds,
+    characters: project.characters,
+    objects: project.objects,
+    sequencePlans: project.sequencePlans,
   };
 
   return JSON.stringify(serialized, null, 2);
@@ -167,6 +173,12 @@ export function loadProjectFromJSON(json: string): Project {
     capabilities: data.capabilities,
     generation_status: data.generation_status,
     metadata: data.metadata,
+    stories: data.stories || [],
+    storyVersions: data.storyVersions || [],
+    worlds: data.worlds || [],
+    characters: data.characters || [],
+    objects: data.objects || [],
+    sequencePlans: data.sequencePlans || [],
   };
 }
 

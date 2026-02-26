@@ -7,7 +7,6 @@
 
 import { create } from 'zustand';
 import {
-  LipSyncModel,
   LipSyncStatus,
   LipSyncRequest,
   LipSyncStatusResponse,
@@ -26,7 +25,9 @@ interface LipSyncState {
 
   // Selected assets
   characterFaceImage: string | null;
+  faceImageFile: File | null;
   audioFile: string | null;
+  audioFileObject: File | null;
 
   // Options
   options: LipSyncOptions;
@@ -40,8 +41,8 @@ interface LipSyncState {
   jobs: LipSyncStatusResponse[];
 
   // Actions
-  setCharacterFaceImage: (image: string | null) => void;
-  setAudioFile: (audio: string | null) => void;
+  setCharacterFaceImage: (image: string | null, file?: File | null) => void;
+  setAudioFile: (audio: string | null, file?: File | null) => void;
   setOptions: (options: Partial<LipSyncOptions>) => void;
   generateLipSync: (projectId: string) => Promise<void>;
   checkStatus: (jobId: string) => Promise<void>;
@@ -53,7 +54,9 @@ interface LipSyncState {
 const initialState = {
   currentJob: null,
   characterFaceImage: null,
+  faceImageFile: null,
   audioFile: null,
+  audioFileObject: null,
   options: DEFAULT_LIP_SYNC_OPTIONS,
   isGenerating: false,
   progress: 0,
@@ -64,12 +67,12 @@ const initialState = {
 export const useLipSyncStore = create<LipSyncState>((set, get) => ({
   ...initialState,
 
-  setCharacterFaceImage: (image) => {
-    set({ characterFaceImage: image });
+  setCharacterFaceImage: (image, file = null) => {
+    set({ characterFaceImage: image, faceImageFile: file });
   },
 
-  setAudioFile: (audio) => {
-    set({ audioFile: audio });
+  setAudioFile: (audio, file = null) => {
+    set({ audioFile: audio, audioFileObject: file });
   },
 
   setOptions: (newOptions) => {
@@ -94,10 +97,28 @@ export const useLipSyncStore = create<LipSyncState>((set, get) => ({
     set({ isGenerating: true, progress: 0, error: null });
 
     try {
+      // Step 0: Upload assets if they are File objects
+      let faceImagePath = get().characterFaceImage || '';
+      let audioPath = get().audioFile || '';
+
+      const { faceImageFile, audioFileObject } = get();
+
+      if (faceImageFile) {
+        set({ progress: 5 }); // Indicate upload started
+        const upload = await lipSyncService.uploadAsset(faceImageFile);
+        faceImagePath = upload.filename; // Use the filename on the backend
+      }
+
+      if (audioFileObject) {
+        set({ progress: 10 });
+        const upload = await lipSyncService.uploadAsset(audioFileObject);
+        audioPath = upload.filename;
+      }
+
       const request: LipSyncRequest = {
         projectId,
-        characterFaceImage,
-        audioFile,
+        characterFaceImage: faceImagePath,
+        audioFile: audioPath,
         model: options.model,
         enhancer: options.enhancer,
         pads: options.pads,

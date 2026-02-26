@@ -1,9 +1,9 @@
 import { BACKEND_URL } from '../config/apiConfig';
+import { getComfyUIServersService } from './comfyuiServersService';
 import {
   LipSyncRequest,
   LipSyncResponse,
-  LipSyncStatusResponse,
-  LipSyncStatus
+  LipSyncStatusResponse
 } from '../types/lipSync';
 
 /**
@@ -22,9 +22,40 @@ class LipSyncService {
   }
 
   /**
+   * Upload an asset (image or audio) to the backend
+   */
+  async uploadAsset(file: File): Promise<{ filename: string; url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${this.baseUrl}/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload asset');
+    }
+
+    return response.json();
+  }
+
+  /**
    * Start a new lip sync generation job
    */
   async generateLipSync(request: LipSyncRequest): Promise<LipSyncResponse> {
+    // Automatically inject active ComfyUI server URL if not provided
+    if (!request.comfyuiUrl) {
+      try {
+        const activeUrl = getComfyUIServersService().getActiveServerUrl();
+        if (activeUrl) {
+          request.comfyuiUrl = activeUrl;
+        }
+      } catch (error) {
+        console.warn('[LipSyncService] Failed to get active ComfyUI server:', error);
+      }
+    }
+
     const response = await fetch(`${this.baseUrl}/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -36,7 +67,8 @@ class LipSyncService {
         pads: request.pads,
         nosmooth: request.nosmooth,
         style: request.style,
-        project_id: request.projectId
+        project_id: request.projectId,
+        comfyui_url: request.comfyuiUrl
       }),
     });
 

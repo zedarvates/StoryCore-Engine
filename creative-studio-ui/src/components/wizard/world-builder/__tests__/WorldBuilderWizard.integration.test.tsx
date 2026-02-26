@@ -1,281 +1,124 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { WorldBuilderWizard } from '../WorldBuilderWizard';
-import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../../stores/worldBuilderStore';
+import { useStore } from '@/store';
+import { useWorldPersistence } from '@/hooks/useWorldPersistence';
 
-// Mock the store hooks
-vi.mock('../../../../stores/worldBuilderStore', () => ({
-  useWorldBuilderSelectors: vi.fn(),
-  useWorldBuilderActions: vi.fn(),
-}));
-
-// Mock the step components
-jest.mock('../steps/FoundationsStep', () => ({
-  FoundationsStep: () => <div data-testid="foundations-step">Foundations Step</div>,
-}));
-jest.mock('../steps/RulesStep', () => ({
-  RulesStep: () => <div data-testid="rules-step">Rules Step</div>,
-}));
-jest.mock('../steps/CultureStep', () => ({
-  CultureStep: () => <div data-testid="culture-step">Culture Step</div>,
-}));
-jest.mock('../steps/LocationsStep', () => ({
-  LocationsStep: () => <div data-testid="locations-step">Locations Step</div>,
-}));
-jest.mock('../steps/SynthesisStep', () => ({
-  SynthesisStep: () => <div data-testid="synthesis-step">Synthesis Step</div>,
+// Mock the store and hooks
+vi.mock('@/store', () => ({
+  useStore: vi.fn(),
 }));
 
-// Mock other components
-jest.mock('../StepNavigator', () => ({
-  StepNavigator: ({ onStepChange }: { onStepChange: (step: string) => void }) => (
-    <div data-testid="step-navigator">
-      <button onClick={() => onStepChange('foundations')}>Foundations</button>
-      <button onClick={() => onStepChange('rules')}>Rules</button>
+vi.mock('@/hooks/useWorldPersistence', () => ({
+  useWorldPersistence: vi.fn(),
+}));
+
+// Mock child components to simplify testing the wizard logic
+vi.mock('../steps/QuickSetupStep', () => ({
+  QuickSetupStep: ({ onUpdate, onApplyPreset }: any) => (
+    <div data-testid="quick-setup-step">
+      <button onClick={() => onUpdate({ name: 'Test World', genre: ['Fantasy'] })}>Set Name</button>
+      <button onClick={() => onApplyPreset({ name: 'Preset World', genre: ['Sci-Fi'], culturalElements: {} })}>Apply Preset</button>
     </div>
   ),
 }));
-jest.mock('../ProgressIndicator', () => ({
-  ProgressIndicator: () => <div data-testid="progress-indicator">Progress</div>,
-}));
-jest.mock('../ErrorBoundary', () => ({
-  ErrorBoundary: ({ children, onError }: { children: React.ReactNode; onError: (error: Error) => void }) => (
-    <div data-testid="error-boundary">{children}</div>
+
+vi.mock('../steps/LocationsRulesStep', () => ({
+  LocationsRulesStep: ({ onAddLocation }: any) => (
+    <div data-testid="locations-rules-step">
+      <button onClick={onAddLocation}>Add Location</button>
+    </div>
   ),
 }));
-jest.mock('../LLMAssistant', () => ({
-  LLMAssistant: () => <div data-testid="llm-assistant">LLM Assistant</div>,
-}));
-jest.mock('../WorldPreview', () => ({
-  WorldPreview: () => <div data-testid="world-preview">World Preview</div>,
+
+vi.mock('../steps/CultureReviewStep', () => ({
+  CultureReviewStep: ({ onComplete }: any) => (
+    <div data-testid="culture-review-step">
+      <button onClick={onComplete}>Complete</button>
+    </div>
+  ),
 }));
 
 describe('WorldBuilderWizard Integration', () => {
-  const mockSelectors = {
-    worldData: null,
-    currentStep: 'foundations',
-    isLoading: false,
-    error: null,
-  };
-
-  const mockActions = {
-    initializeWorld: jest.fn(),
-    saveWorld: jest.fn(),
-    setError: jest.fn(),
-  };
+  const mockAddWorld = vi.fn();
+  const mockSaveWorld = vi.fn();
+  const mockOnComplete = vi.fn();
+  const mockOnCancel = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-
-    (useWorldBuilderSelectors as jest.Mock).mockReturnValue(mockSelectors);
-    (useWorldBuilderActions as jest.Mock).mockReturnValue(mockActions);
+    vi.clearAllMocks();
+    (useStore as any).mockImplementation((selector: any) => selector({ addWorld: mockAddWorld }));
+    (useWorldPersistence as any).mockReturnValue({ saveWorld: mockSaveWorld });
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
+  it('renders Step 1 (Foundations) initially', () => {
+    render(<WorldBuilderWizard onComplete={mockOnComplete} onCancel={mockOnCancel} />);
+    expect(screen.getByTestId('quick-setup-step')).toBeInTheDocument();
+    expect(screen.getByText(/Foundations/)).toBeInTheDocument();
   });
 
-  describe('Initialization', () => {
-    it('should initialize world on mount when no worldData exists', () => {
-      render(<WorldBuilderWizard />);
+  it('updates data and enables navigation when Step 1 is valid', async () => {
+    render(<WorldBuilderWizard onComplete={mockOnComplete} onCancel={mockOnCancel} />);
+    
+    // Step 1 is invalid initially (no name/genre)
+    const nextButton = screen.getByText('Continue Core');
+    expect(nextButton).toBeDisabled();
 
-      expect(mockActions.initializeWorld).toHaveBeenCalledWith({});
+    // Set valid data
+    fireEvent.click(screen.getByText('Set Name'));
+    
+    await waitFor(() => {
+      expect(nextButton).not.toBeDisabled();
     });
 
-    it('should initialize world with initialData when provided', () => {
-      const initialData = { id: 'test', foundations: { name: 'Test World' } };
-      render(<WorldBuilderWizard initialData={initialData} />);
-
-      expect(mockActions.initializeWorld).toHaveBeenCalledWith(initialData);
-    });
-
-    it('should not initialize world when worldData already exists', () => {
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
-        ...mockSelectors,
-        worldData: { id: 'existing', foundations: { name: 'Existing World' } },
-      });
-
-      render(<WorldBuilderWizard />);
-
-      expect(mockActions.initializeWorld).not.toHaveBeenCalled();
-    });
-
-    it('should show loading state when isLoading is true and no worldData', () => {
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
-        ...mockSelectors,
-        isLoading: true,
-      });
-
-      render(<WorldBuilderWizard />);
-
-      expect(screen.getByText('Loading world builder...')).toBeInTheDocument();
-    });
+    fireEvent.click(nextButton);
+    expect(screen.getByTestId('locations-rules-step')).toBeInTheDocument();
   });
 
-  describe('Auto-save functionality', () => {
-    it('should auto-save every 30 seconds when worldData exists', async () => {
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
-        ...mockSelectors,
-        worldData: { id: 'test', foundations: { name: 'Test World' } },
-      });
+  it('requires at least one location in Step 2', async () => {
+    render(<WorldBuilderWizard onComplete={mockOnComplete} onCancel={mockOnCancel} />);
+    
+    // Move to Step 2
+    fireEvent.click(screen.getByText('Set Name'));
+    fireEvent.click(screen.getByText('Continue Core'));
+    
+    const nextButton = screen.getByText('Continue Core');
+    expect(nextButton).toBeDisabled();
 
-      render(<WorldBuilderWizard />);
-
-      // Fast-forward 30 seconds
-      act(() => {
-        jest.advanceTimersByTime(30000);
-      });
-
-      await waitFor(() => {
-        expect(mockActions.saveWorld).toHaveBeenCalled();
-      });
+    // Add location
+    fireEvent.click(screen.getByText('Add Location'));
+    
+    await waitFor(() => {
+      expect(nextButton).not.toBeDisabled();
     });
 
-    it('should not auto-save when no worldData exists', () => {
-      render(<WorldBuilderWizard />);
-
-      act(() => {
-        jest.advanceTimersByTime(30000);
-      });
-
-      expect(mockActions.saveWorld).not.toHaveBeenCalled();
-    });
-
-    it('should clear auto-save interval on unmount', () => {
-      const { unmount } = render(<WorldBuilderWizard />);
-
-      unmount();
-
-      act(() => {
-        jest.advanceTimersByTime(30000);
-      });
-
-      expect(mockActions.saveWorld).not.toHaveBeenCalled();
-    });
+    fireEvent.click(nextButton);
+    expect(screen.getByTestId('culture-review-step')).toBeInTheDocument();
   });
 
-  describe('Step navigation', () => {
-    it('should render current step component', () => {
-      render(<WorldBuilderWizard />);
-
-      expect(screen.getByTestId('foundations-step')).toBeInTheDocument();
-    });
-
-    it('should render different step component based on currentStep', () => {
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
-        ...mockSelectors,
-        currentStep: 'rules',
-      });
-
-      render(<WorldBuilderWizard />);
-
-      expect(screen.getByTestId('rules-step')).toBeInTheDocument();
-    });
-
-    it('should render error banner when error exists', () => {
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
-        ...mockSelectors,
-        error: 'Test error message',
-      });
-
-      render(<WorldBuilderWizard />);
-
-      expect(screen.getByText('Test error message')).toBeInTheDocument();
-    });
-
-    it('should call setError(null) when error close button is clicked', () => {
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
-        ...mockSelectors,
-        error: 'Test error message',
-      });
-
-      render(<WorldBuilderWizard />);
-
-      const closeButton = screen.getByRole('button', { name: /×/ });
-      fireEvent.click(closeButton);
-
-      expect(mockActions.setError).toHaveBeenCalledWith(null);
-    });
+  it('completes the wizard and saves the world', async () => {
+    render(<WorldBuilderWizard onComplete={mockOnComplete} onCancel={mockOnCancel} />);
+    
+    // Complete Step 1
+    fireEvent.click(screen.getByText('Set Name'));
+    fireEvent.click(screen.getByText('Continue Core'));
+    
+    // Complete Step 2
+    fireEvent.click(screen.getByText('Add Location'));
+    fireEvent.click(screen.getByText('Continue Core'));
+    
+    // Complete Step 3
+    fireEvent.click(screen.getByText('Complete'));
+    
+    expect(mockAddWorld).toHaveBeenCalled();
+    expect(mockSaveWorld).toHaveBeenCalled();
+    expect(mockOnComplete).toHaveBeenCalled();
   });
 
-  describe('UI Components rendering', () => {
-    it('should render all main UI components', () => {
-      render(<WorldBuilderWizard />);
-
-      expect(screen.getByText('World Builder')).toBeInTheDocument();
-      expect(screen.getByTestId('progress-indicator')).toBeInTheDocument();
-      expect(screen.getByTestId('step-navigator')).toBeInTheDocument();
-      expect(screen.getByTestId('llm-assistant')).toBeInTheDocument();
-      expect(screen.getByTestId('world-preview')).toBeInTheDocument();
-      expect(screen.getByTestId('error-boundary')).toBeInTheDocument();
-    });
-
-    it('should render close button with correct accessibility', () => {
-      const onClose = jest.fn();
-      render(<WorldBuilderWizard onClose={onClose} />);
-
-      const closeButton = screen.getByRole('button', { name: 'Close wizard' });
-      expect(closeButton).toBeInTheDocument();
-
-      fireEvent.click(closeButton);
-      expect(onClose).toHaveBeenCalled();
-    });
-  });
-
-  describe('Error handling', () => {
-    it('should handle step navigation errors gracefully', () => {
-      render(<WorldBuilderWizard />);
-
-      // The step navigator mock includes buttons that call onStepChange
-      const foundationsButton = screen.getByText('Foundations');
-      fireEvent.click(foundationsButton);
-
-      // Should not crash - navigation logic is handled internally
-      expect(screen.getByTestId('foundations-step')).toBeInTheDocument();
-    });
-
-    it('should render Suspense fallback during step loading', () => {
-      // Mock a lazy-loaded component that suspends
-      const SuspenseStep = () => {
-        throw new Promise(() => {}); // Never resolves
-      };
-
-      jest.doMock('../steps/FoundationsStep', () => ({
-        FoundationsStep: SuspenseStep,
-      }));
-
-      render(<WorldBuilderWizard />);
-
-      expect(screen.getByText('Loading step...')).toBeInTheDocument();
-    });
-  });
-
-  describe('Performance and memory', () => {
-    it('should not cause unnecessary re-renders on prop changes', () => {
-      const { rerender } = render(<WorldBuilderWizard />);
-
-      // Re-render with same props
-      rerender(<WorldBuilderWizard />);
-
-      // Components should still be present
-      expect(screen.getByTestId('foundations-step')).toBeInTheDocument();
-    });
-
-    it('should handle rapid step changes without issues', () => {
-      render(<WorldBuilderWizard />);
-
-      const foundationsButton = screen.getByText('Foundations');
-      const rulesButton = screen.getByText('Rules');
-
-      // Rapid clicking
-      fireEvent.click(rulesButton);
-      fireEvent.click(foundationsButton);
-      fireEvent.click(rulesButton);
-
-      // Should still render properly
-      expect(screen.getByTestId('foundations-step')).toBeInTheDocument();
-    });
+  it('calls onCancel when cancel button is clicked', () => {
+    render(<WorldBuilderWizard onComplete={mockOnComplete} onCancel={mockOnCancel} />);
+    fireEvent.click(screen.getByText('Cancel Genesis'));
+    expect(mockOnCancel).toHaveBeenCalled();
   });
 });

@@ -17,8 +17,8 @@ from src.style_transfer_processor import (
     StyleTransferProcessor, StyleConfig, StyleType,
     StyleInfo, StyledFrame
 )
-from src.ai_enhancement_engine import VideoFrame, QualityLevel, PerformanceMode
-from src.model_manager import ModelManager, ModelManagerConfig
+from src.ai_enhancement_engine import VideoFrame, QualityLevel, PerformanceMode, ModelConfig
+from src.model_manager import ModelManager
 
 
 # Hypothesis strategies for generating test data
@@ -71,9 +71,8 @@ class TestStyleTransferProperties:
     @pytest.fixture
     async def processor(self):
         """Create a style transfer processor for testing."""
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
-        await model_manager.initialize()
         processor = StyleTransferProcessor(model_manager)
         yield processor
         await model_manager.shutdown()
@@ -93,9 +92,8 @@ class TestStyleTransferProperties:
         
         Validates: Requirements 1.1, 1.3
         """
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
-        await model_manager.initialize()
         processor = StyleTransferProcessor(model_manager)
         
         try:
@@ -149,9 +147,8 @@ class TestStyleTransferProperties:
             frame.timestamp = float(i)
             frame.frame_id = f"seq_frame_{i}"
         
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
-        await model_manager.initialize()
         processor = StyleTransferProcessor(model_manager)
         
         try:
@@ -202,9 +199,8 @@ class TestStyleTransferProperties:
         
         Validates: Requirement 1.5
         """
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
-        await model_manager.initialize()
         processor = StyleTransferProcessor(model_manager)
         
         try:
@@ -254,9 +250,8 @@ class TestStyleTransferProperties:
         """
         assume(style_type1 != style_type2)  # Test different styles
         
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
-        await model_manager.initialize()
         processor = StyleTransferProcessor(model_manager)
         
         try:
@@ -305,9 +300,8 @@ class TestStyleTransferProperties:
         
         Validates: Requirements 1.1, 1.3
         """
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
-        await model_manager.initialize()
         processor = StyleTransferProcessor(model_manager)
         
         try:
@@ -346,9 +340,8 @@ class TestStyleTransferProperties:
         
         Validates: Requirement 1.4
         """
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
-        await model_manager.initialize()
         processor = StyleTransferProcessor(model_manager)
         
         try:
@@ -396,9 +389,8 @@ class TestStyleTransferProperties:
             frame.timestamp = float(i)
             frame.frame_id = f"stat_frame_{i}"
         
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
-        await model_manager.initialize()
         processor = StyleTransferProcessor(model_manager)
         
         try:

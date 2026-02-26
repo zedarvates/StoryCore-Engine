@@ -305,6 +305,7 @@ class RenderSettings:
     frame_start:    int     = 1
     frame_end:      int     = 1
     fps:            int     = 24
+    export_controlnet: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -378,7 +379,10 @@ class SceneJSON:
         atmosphere = AtmosphereConfig(**atm_data) if atm_data else AtmosphereConfig()
         characters = [CharacterRig.from_dict(c) for c in d.get("characters", [])]
         props = [PropObject(**p) for p in d.get("props", [])]
-        render = RenderSettings(**d.get("render", {})) if d.get("render") else RenderSettings()
+        render_data = d.get("render", {})
+        if "export_controlnet" in d: # Rétrocompatibilité si au mauvais endroit
+            render_data["export_controlnet"] = d["export_controlnet"]
+        render = RenderSettings(**render_data) if render_data else RenderSettings()
 
         return cls(
             scene_id=d.get("scene_id", "scene_001"),

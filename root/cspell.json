@@ -1,0 +1,22 @@
+{
+  "version": 0.2,
+  "language": "en",
+  "words": [
+    "Playhead",
+    "Timecode",
+    "Time",
+    "denoising",
+    "euler",
+    "PlayheadIndicator",
+    "TimeRuler",
+    "TimelineControls",
+    "GoToTimeDialog",
+    "Timeline",
+    "TimecodeSeparator"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    "dist/**",
+    ".next/**"
+  ]
+}

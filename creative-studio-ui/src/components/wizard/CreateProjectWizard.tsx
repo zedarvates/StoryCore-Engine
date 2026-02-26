@@ -4,7 +4,6 @@
  */
 
 import React, { useState } from 'react';
-import { useAppStore } from '@/stores/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { StepProgress } from '@/components/ui/progress';
 import {
@@ -14,9 +13,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
-  Sparkles,
   Plus,
-  Trash2,
   Trash2,
   Loader2,
   Wand2,
@@ -27,7 +24,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 
 interface World {
   id: string;
@@ -74,7 +70,6 @@ export function CreateProjectWizard({
   const [isAIProcessing, setIsAIProcessing] = useState(false);
 
   const [currentStep, setCurrentStep] = useState<Step>('world');
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [world, setWorld] = useState<World>({
@@ -122,6 +117,8 @@ export function CreateProjectWizard({
         return;
       }
       goToStep('scenario');
+    } else {
+      handleComplete();
     }
   };
 
@@ -509,7 +506,7 @@ export function CreateProjectWizard({
       <div className="flex justify-between">
         <button
           onClick={currentStep === 'world' ? onCancel : prevStep}
-          disabled={isLoading || isSaving}
+          disabled={isSaving}
           className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
         >
           <ChevronLeft className="w-4 h-4 inline mr-2" />
@@ -518,7 +515,7 @@ export function CreateProjectWizard({
 
         <button
           onClick={nextStep}
-          disabled={isLoading || isSaving}
+          disabled={isSaving}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
         >
           {isSaving ? (

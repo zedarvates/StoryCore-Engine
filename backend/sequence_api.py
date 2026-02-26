@@ -31,6 +31,111 @@ from sse_starlette.sse import EventSourceResponse
 from backend.auth import verify_jwt_token
 from backend.storage import JSONFileStorage
 
+# Import AsyncTaskQueue for advanced job processing
+try:
+    import sys
+    import os
+    # Add src to path for async_task_queue
+    src_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')
+    if src_path not in sys.path:
+        sys.path.insert(0, src_path)
+    
+    from async_task_queue import (
+        get_async_task_queue,
+        TaskPriority,
+        TaskState
+    )
+    ASYNC_QUEUE_AVAILABLE = True
+except ImportError:
+    ASYNC_QUEUE_AVAILABLE = False
+    logging.warning("AsyncTaskQueue not available, using basic queue management")
+
+# Import LLM Client for sequence generation
+try:
+    from src.character_wizard.llm_client import (
+        LLMManager,
+        LLMProvider,
+        GenerationConfig,
+        get_llm_client
+    )
+    LLM_AVAILABLE = True
+except ImportError:
+    LLM_AVAILABLE = False
+    logging.warning("LLM client not available, using mock generation")
+
+
+# ============================================================================
+# AsyncTaskQueue Integration
+# ============================================================================
+
+def _convert_priority_to_task_priority(priority: int) -> TaskPriority:
+    """Convert numeric priority (1-10) to TaskPriority enum."""
+    if priority <= 2:
+        return TaskPriority.CRITICAL
+    elif priority <= 4:
+        return TaskPriority.HIGH
+    elif priority <= 7:
+        return TaskPriority.NORMAL
+    else:
+        return TaskPriority.LOW
+
+
+async def submit_job_to_async_queue(
+    job_id: str,
+    coroutine,
+    priority: int = 10,
+    timeout_seconds: int = 300
+) -> bool:
+    """
+    Submit a job to the AsyncTaskQueue for advanced processing.
+    
+    Args:
+        job_id: Unique job identifier
+        coroutine: Async function to execute
+        priority: Job priority (1 = highest, 10 = lowest)
+        timeout_seconds: Maximum execution time
+    
+    Returns:
+        True if submission succeeded
+    """
+    if not ASYNC_QUEUE_AVAILABLE:
+        return False
+    
+    try:
+        queue = get_async_task_queue()
+        await queue.submit_task(
+            task_id=job_id,
+            coroutine=coroutine,
+            priority=_convert_priority_to_task_priority(priority),
+            timeout_seconds=timeout_seconds
+        )
+        logger.info(f"Job {job_id} submitted to AsyncTaskQueue with priority {priority}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to submit job {job_id} to AsyncTaskQueue: {e}")
+        return False
+
+
+async def cancel_job_in_async_queue(job_id: str) -> bool:
+    """
+    Cancel a job in the AsyncTaskQueue.
+    
+    Args:
+        job_id: Job identifier to cancel
+    
+    Returns:
+        True if cancellation succeeded
+    """
+    if not ASYNC_QUEUE_AVAILABLE:
+        return False
+    
+    try:
+        queue = get_async_task_queue()
+        return await queue.cancel_task(job_id)
+    except Exception as e:
+        logger.error(f"Failed to cancel job {job_id} in AsyncTaskQueue: {e}")
+        return False
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -284,12 +389,83 @@ async def generate_sequence(job_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate a sequence based on the job data.
     
-    In production, this would call ComfyUI or similar AI services.
+    Uses LLM for intelligent shot generation when available.
     """
     prompt = job_data.get('prompt', '')
     shot_count = job_data.get('shot_count', 5)
+    style = job_data.get('style', 'cinematic')
+    mood = job_data.get('mood', 'neutral')
     
-    # Generate shots
+    # Try to use LLM for intelligent generation
+    if LLM_AVAILABLE:
+        try:
+            # Build a detailed prompt for shot generation
+            shot_prompt = f"""Generate a detailed shot breakdown for this story prompt:
+            
+Original Prompt: {prompt}
+Style: {style}
+Mood: {mood}
+Number of shots: {shot_count}
+
+For each shot, provide:
+1. A descriptive name
+2. A detailed visual prompt for image generation
+3. Shot type (wide, medium, close-up, etc.)
+4. Duration in seconds
+5. Camera movement description
+
+Format as a JSON array with keys: name, prompt, shot_type, duration, camera_movement"""
+
+            # Get LLM client and generate
+            llm = await get_llm_client(LLMProvider.OLLAMA, "llama3.2")
+            await llm.connect()
+            
+            result = await llm.generate(
+                prompt=shot_prompt,
+                system_prompt="You are a cinematic expert. Generate detailed shot breakdowns in JSON format."
+            )
+            
+            # Try to parse the JSON response
+            try:
+                import re
+                # Extract JSON from response
+                json_match = re.search(r'\[.*\]', result.text, re.DOTALL)
+                if json_match:
+                    shots_data = json.loads(json_match.group())
+                    # Convert LLM response to our format
+                    shots = []
+                    for i, shot in enumerate(shots_data[:shot_count]):
+                        shots.append({
+                            "id": str(uuid.uuid4()),
+                            "order_index": i,
+                            "name": shot.get("name", f"Shot {i+1}"),
+                            "prompt": shot.get("prompt", f"{prompt} - Shot {i+1}"),
+                            "duration_seconds": shot.get("duration", settings.default_shot_duration),
+                            "shot_type": shot.get("shot_type", "action"),
+                            "camera_movement": shot.get("camera_movement", "static")
+                        })
+                    
+                    # Build sequence with LLM-generated shots
+                    sequence = {
+                        "id": str(uuid.uuid4()),
+                        "project_id": job_data.get('project_id'),
+                        "name": f"Generated Sequence from {prompt[:50]}...",
+                        "description": f"A sequence of {len(shots)} shots generated by AI",
+                        "shots": shots,
+                        "total_duration": sum(s["duration_seconds"] for s in shots),
+                        "prompt": prompt,
+                        "style": style,
+                        "mood": mood,
+                        "created_at": datetime.utcnow().isoformat(),
+                        "generation_method": "llm"
+                    }
+                    return sequence
+            except (json.JSONDecodeError, AttributeError) as e:
+                logger.warning(f"Failed to parse LLM JSON response: {e}, using fallback")
+        except Exception as e:
+            logger.warning(f"LLM generation failed: {e}, using fallback")
+    
+    # Fallback: Generate basic shots (original behavior)
     shots = []
     for i in range(shot_count):
         shot = {
@@ -311,9 +487,10 @@ async def generate_sequence(job_data: Dict[str, Any]) -> Dict[str, Any]:
         "shots": shots,
         "total_duration": shot_count * settings.default_shot_duration,
         "prompt": prompt,
-        "style": job_data.get('style'),
-        "mood": job_data.get('mood'),
-        "created_at": datetime.utcnow().isoformat()
+        "style": style,
+        "mood": mood,
+        "created_at": datetime.utcnow().isoformat(),
+        "generation_method": "fallback"
     }
     
     return sequence
@@ -390,7 +567,32 @@ async def generate_sequence_endpoint(
         )
     
     # Start background generation
-    background_tasks.add_task(run_generation, job_id, GenerationJob(**job_dict))
+    # Try to submit to AsyncTaskQueue first for advanced queue management
+    if ASYNC_QUEUE_AVAILABLE:
+        try:
+            # Create a coroutine wrapper for the generation task
+            async def generation_task():
+                await run_generation(job_id, GenerationJob(**job_dict))
+            
+            success = await submit_job_to_async_queue(
+                job_id=job_id,
+                coroutine=generation_task,
+                priority=job_dict.get('priority', 10),
+                timeout_seconds=settings.generation_timeout_seconds
+            )
+            if success:
+                logger.info(f"Job {job_id} submitted to AsyncTaskQueue")
+            else:
+                # Fallback to BackgroundTasks if AsyncTaskQueue submission failed
+                background_tasks.add_task(run_generation, job_id, GenerationJob(**job_dict))
+                logger.info(f"Job {job_id} submitted to BackgroundTasks (AsyncTaskQueue unavailable)")
+        except Exception as e:
+            logger.error(f"AsyncTaskQueue submission failed: {e}, using BackgroundTasks")
+            background_tasks.add_task(run_generation, job_id, GenerationJob(**job_dict))
+    else:
+        # Use FastAPI BackgroundTasks as fallback
+        background_tasks.add_task(run_generation, job_id, GenerationJob(**job_dict))
+        logger.info(f"Job {job_id} submitted to BackgroundTasks")
     
     logger.info(f"Generation job {job_id} created successfully")
     

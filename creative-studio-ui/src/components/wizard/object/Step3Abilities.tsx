@@ -11,7 +11,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import './ObjectWizardSteps.css';
 
 export function Step3Abilities() {
-  const { data, updateData } = useWizard<StoryObject>();
+  const { formData: data, updateFormData: updateData } = useWizard<StoryObject>();
 
   const abilities = data.abilities || [];
 

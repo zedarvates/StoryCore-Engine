@@ -298,7 +298,7 @@ export class CharacterGenerator {
   /**
    * Determine required archetypes based on genre
    */
-  private determineRequiredArchetypes(genre?: string, hintCount: number): string[] {
+  private determineRequiredArchetypes(genre: string | undefined, hintCount: number): string[] {
     const archetypes = ['protagonist', 'antagonist'];
     
     // Add archetypes based on genre

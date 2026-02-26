@@ -5,14 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Download, CheckCircle, AlertCircle, History, RotateCcw, RefreshCw, ChevronLeft } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Download, CheckCircle, AlertCircle, History, RotateCcw, Wand2, Image, Music, Video, Copy, FolderOpen, Files } from 'lucide-react';
-import type { ExportOptions, Story } from '@/types/story';
+import type { ExportOptions, Story, StoryPart, CharacterReference, LocationReference } from '@/types/story';
 import { exportStory } from '@/services/storyExportService';
 import { saveStoryToDisk } from '@/utils/storyFileIO';
 import { useStore } from '@/store';
-import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import {
   Select,
   SelectContent,
@@ -29,23 +27,27 @@ interface StoryWizardFormData {
   title?: string;
   genre?: string[];
   tone?: string[];
-  length?: 'short' | 'medium' | 'long';
-  selectedCharacters?: Array<{ id: string; name: string; role: string }>;
-  selectedLocations?: Array<{ id: string; name: string; significance: string }>;
+  length?: 'short' | 'medium' | 'long' | 'scene' | 'short_story' | 'novella' | 'novel' | 'epic_novel';
+  selectedCharacters?: CharacterReference[];
+  selectedLocations?: LocationReference[];
   generatedContent?: string;
   generatedSummary?: string;
-  parts?: any[];
-  assetPrompts?: any;
+  parts?: StoryPart[];
+  assetPrompts?: Record<string, string>;
 }
 
 // ============================================================================
 // Step 5: Review and Export
 // ============================================================================
 
-export function Step5ReviewExport() {
+interface Step5ReviewExportProps {
+  onBack?: () => void;
+  onRegenerateAll?: () => void;
+}
+
+export function Step5ReviewExport({ onBack, onRegenerateAll }: Step5ReviewExportProps) {
   const { formData, updateFormData } = useWizard<StoryWizardFormData>();
   const { getVersionsByStoryId, loadVersion } = useStore();
-  const [isAIProcessing, setIsAIProcessing] = useState(false);
 
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
@@ -55,12 +57,6 @@ export function Step5ReviewExport() {
   const [storyId] = useState(() => crypto.randomUUID()); // Generate stable ID for this story
   const [versions, setVersions] = useState<Array<{ id: string; versionNumber: number; createdAt: number; changes: string }>>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
-
-  const [assetPrompts, setAssetPrompts] = useState<{
-    image?: string;
-    audio?: string;
-    video?: string;
-  }>({});
 
   // Load versions when component mounts or storyId changes
   useEffect(() => {
@@ -161,68 +157,6 @@ export function Step5ReviewExport() {
     }
   };
 
-  const generateContent = async (prompt: string, type: 'image' | 'audio' | 'video'): Promise<string | null> => {
-    setIsAIProcessing(true);
-    try {
-      const { llmConfigService } = await import('@/services/llmConfigService');
-      const service = llmConfigService.getService();
-
-      if (!service) {
-        return null;
-      }
-
-      let systemPrompt = '';
-      if (type === 'image') systemPrompt = 'You are an expert AI art prompt engineer.';
-      if (type === 'audio') systemPrompt = 'You are an expert sound designer and music supervisor.';
-      if (type === 'video') systemPrompt = 'You are an expert video director and cinematographer.';
-
-      const response = await service.generateCompletion({
-        prompt,
-        systemPrompt,
-        temperature: 0.7
-      });
-
-      if (response.success && response.data) {
-        return response.data.content;
-      }
-      return null;
-    } catch (error) {
-      console.error(`Failed to generate ${type} prompts`, error);
-      return null;
-    } finally {
-      setIsAIProcessing(false);
-    }
-  };
-
-  const generateAssetPrompts = async (type: 'image' | 'audio' | 'video') => {
-    if (!formData.generatedSummary && !formData.generatedContent) return;
-
-    const context = formData.generatedSummary || formData.generatedContent?.substring(0, 1000) || '';
-
-    let prompt = '';
-
-    switch (type) {
-      case 'image':
-        prompt = `Based on this story summary, generate 3 detailed Midjourney/DALL-E image prompts for the main scenes/characters: \n\n${context}`;
-        break;
-      case 'audio':
-        prompt = `Based on this story summary, describe the audio atmosphere, creating a prompt for music generation and a list of key sound effects: \n\n${context}`;
-        break;
-      case 'video':
-        prompt = `Based on this story summary, create a prompt for an AI video generator (like Sora/Runway) to create a cinematic trailer for this story: \n\n${context}`;
-        break;
-    }
-
-    const result = await generateContent(prompt, type);
-    if (result) {
-      setAssetPrompts(prev => ({ ...prev, [type]: result }));
-    }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
   const wordCount = formData.generatedContent?.split(' ').length || 0;
   const characterCount = formData.generatedContent?.length || 0;
 
@@ -306,12 +240,25 @@ export function Step5ReviewExport() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="story-content">Story Content</Label>
-          {hasUnsavedChanges && (
-            <span className="text-xs text-amber-600 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              Unsaved changes
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {onRegenerateAll && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRegenerateAll}
+                className="h-7 gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Tout Régénérer
+              </Button>
+            )}
+            {hasUnsavedChanges && (
+              <span className="text-xs text-amber-600 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Unsaved changes
+              </span>
+            )}
+          </div>
         </div>
         <Textarea
           id="story-content"
@@ -370,7 +317,7 @@ export function Step5ReviewExport() {
               <div>story/</div>
               <div className="pl-4">├── story-index.md <span className="text-muted-foreground"># Index & metadata</span></div>
               <div className="pl-4">├── story-intro.md <span className="text-muted-foreground"># Introduction</span></div>
-              {formData.parts.filter((p: any) => p.type === 'chapter').map((part: any, i: number) => (
+              {formData.parts.filter((p: StoryPart) => p.type === 'chapter').map((part: StoryPart, i: number) => (
                 <div key={part.id} className="pl-4">├── story-chapter-{String(i + 1).padStart(2, '0')}.md <span className="text-muted-foreground"># {part.title}</span></div>
               ))}
               <div className="pl-4">├── story-ending.md <span className="text-muted-foreground"># Conclusion</span></div>
@@ -441,16 +388,29 @@ export function Step5ReviewExport() {
         </div>
       </div>
 
-      {/* Export Button */}
-      <Button
-        onClick={handleExport}
-        disabled={isExporting || !formData.generatedContent}
-        className="w-full gap-2"
-        size="lg"
-      >
-        <Download className="w-4 h-4" />
-        {isExporting ? 'Exporting...' : 'Export Story'}
-      </Button>
+      {/* Action Buttons */}
+      <div className="flex gap-4">
+        {onBack && (
+          <Button
+            variant="outline"
+            onClick={onBack}
+            className="flex-1 gap-2"
+            size="lg"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Retour
+          </Button>
+        )}
+        <Button
+          onClick={handleExport}
+          disabled={isExporting || !formData.generatedContent}
+          className="flex-[2] gap-2"
+          size="lg"
+        >
+          <Download className="w-4 h-4" />
+          {isExporting ? 'Exporting...' : 'Export Story'}
+        </Button>
+      </div>
 
       {/* Export Success Message */}
       {exportSuccess && (

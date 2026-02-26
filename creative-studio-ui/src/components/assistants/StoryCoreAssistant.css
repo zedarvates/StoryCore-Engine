@@ -18,7 +18,7 @@
   gap: 12px;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-color, #e1e5e9);
-  background: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--secondary-color, #764ba2) 100%);
+  background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--secondary-color, #1e40af) 100%);
   color: white;
 }
 
@@ -108,7 +108,7 @@
 }
 
 .message.user .message-content {
-  background: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--secondary-color, #764ba2) 100%);
+  background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--secondary-color, #1e40af) 100%);
   color: white;
   border-bottom-right-radius: 4px;
 }
@@ -139,14 +139,14 @@
 }
 
 .suggestion-button:hover {
-  background: var(--primary-color, #667eea);
+  background: var(--primary-color, #2563eb);
   color: white;
-  border-color: var(--primary-color, #667eea);
+  border-color: var(--primary-color, #2563eb);
 }
 
 .suggestion-button.high {
-  border-color: var(--primary-color, #667eea);
-  color: var(--primary-color, #667eea);
+  border-color: var(--primary-color, #2563eb);
+  color: var(--primary-color, #2563eb);
 }
 
 .suggestion-button.medium {
@@ -196,8 +196,8 @@
 }
 
 .upload-button:hover {
-  background: var(--primary-color, #667eea);
-  border-color: var(--primary-color, #667eea);
+  background: var(--primary-color, #2563eb);
+  border-color: var(--primary-color, #2563eb);
   color: white;
   transform: scale(1.05);
 }
@@ -221,8 +221,8 @@
 
 .assistant-input textarea:focus {
   outline: none;
-  border-color: var(--primary-color, #667eea);
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary-color, #2563eb);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
 .assistant-input textarea::placeholder {
@@ -231,7 +231,7 @@
 
 .send-button {
   padding: 10px 16px;
-  background: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--secondary-color, #764ba2) 100%);
+  background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--secondary-color, #1e40af) 100%);
   color: white;
   border: none;
   border-radius: 20px;
@@ -243,7 +243,7 @@
 
 .send-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
 }
 
 .send-button:disabled {
@@ -273,7 +273,7 @@
 .score-value {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--primary-color, #667eea);
+  color: var(--primary-color, #2563eb);
 }
 
 .analysis-issues {
@@ -318,9 +318,9 @@
 }
 
 .wizard-tag:hover {
-  background: var(--primary-color, #667eea);
+  background: var(--primary-color, #2563eb);
   color: white;
-  border-color: var(--primary-color, #667eea);
+  border-color: var(--primary-color, #2563eb);
 }
 
 /* Dark theme support */
@@ -331,7 +331,7 @@
   }
 
   .assistant-header {
-    background: linear-gradient(135deg, var(--primary-color-dark, #4c51bf) 0%, var(--secondary-color-dark, #553c9a) 100%);
+    background: linear-gradient(135deg, var(--primary-color-dark, #2563eb) 0%, var(--secondary-color-dark, #1e40af) 100%);
   }
 
   .assistant-messages,

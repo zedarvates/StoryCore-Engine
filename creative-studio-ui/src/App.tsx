@@ -1,5 +1,5 @@
-
 import { useState, useEffect, useCallback } from 'react';
+import type { Shot, StoryObject, SequencePlan } from '@/types';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/store';
@@ -9,20 +9,19 @@ import { LLMProvider } from '@/providers/LLMProvider';
 import { SecretModeProvider, useSecretMode } from '@/contexts/SecretModeContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
-import { I18nProvider } from '@/utils/i18n';
-import { MenuBar } from '@/components/menuBar/MenuBar';
-import { FloatingAIAssistant } from '@/components/FloatingAIAssistant';
 import { DEFAULT_VIEW_STATE } from '@/types/menuBarState';
 import type { ViewState, UndoStack, ClipboardState } from '@/types/menuBarState';
+import { MenuBar } from '@/components/menuBar/MenuBar';
+import { FloatingAIAssistant } from '@/components/FloatingAIAssistant';
 import { ToggleButton } from '@/components/ToggleButton';
-import { WorldWizardDemo } from '@/pages/WorldWizardDemo';
-import { LandingPageDemo } from '@/pages/LandingPageDemo';
+import { I18nProvider } from '@/utils/i18n';
 import { LandingPageWithHooks } from '@/pages/LandingPageWithHooks';
 import { EditorPageSimple } from '@/pages/EditorPageSimple';
 import { ProjectDashboardPage } from '@/pages/ProjectDashboardPage';
 import { AdvancedGridEditorPage } from '@/pages/experimental/AdvancedGridEditorPage';
 import { AIAssistantV3Page } from '@/pages/experimental/AIAssistantV3Page';
 import { PerformanceProfilerPage } from '@/pages/experimental/PerformanceProfilerPage';
+import { DetachedChatPage } from '@/pages/DetachedChatPage';
 import { InstallationWizardModal } from '@/components/installation/InstallationWizardModal';
 import { WorldWizardModal } from '@/components/wizard/WorldWizardModal';
 import { CharacterWizardModal } from '@/components/wizard/CharacterWizardModal';
@@ -33,6 +32,16 @@ import { CreateProjectDialogModal } from '@/components/wizard/CreateProjectDialo
 import { SequencePlanWizardModal } from '@/components/wizard/SequencePlanWizardModal';
 import { ShotWizardModal } from '@/components/wizard/ShotWizardModal';
 import { GenericWizardModal } from '@/components/wizard/GenericWizardModal';
+import { RogerWizardModal } from './components/wizard/RogerWizardModalWrapper';
+import { GhostTrackerWizardModal } from './components/wizard/GhostTrackerWizardModal';
+import { DialogueWriterWizardModal } from './components/wizard/DialogueWriterWizardModal';
+import { LipSyncWizardModal } from './components/wizard/LipSyncWizardModal';
+import { AudioProductionWizardModal } from '@/components/wizard/production/AudioProductionWizardModal';
+import { VideoEditorWizardModal } from '@/components/wizard/production/VideoEditorWizardModal';
+import { ComicToSequenceWizardModal } from '@/components/wizard/production/ComicToSequenceWizardModal';
+import { MarketingWizardModal } from '@/components/wizard/marketing/MarketingWizardModal';
+import { ScenarioBuilderWizardModal } from '@/components/wizard/ScenarioBuilderWizardModal';
+import { DialogueBuilderWizardModal } from '@/components/wizard/DialogueBuilderWizardModal';
 import { LLMSettingsModal } from '@/components/settings/LLMSettingsModal';
 import { ComfyUISettingsModal } from '@/components/settings/ComfyUISettingsModal';
 import { GeneralSettingsWindow } from '@/components/configuration/GeneralSettingsWindow';
@@ -43,8 +52,11 @@ import { WorldModal } from '@/components/modals/WorldModal';
 import { LocationsModal } from '@/components/modals/LocationsModal';
 import { ObjectsModal } from '@/components/modals/ObjectsModal';
 import { ImageGalleryModal } from '@/components/modals/ImageGalleryModal';
+import { VaultModal } from '@/components/modals/VaultModal';
 import { FactCheckModal } from '@/components/modals/FactCheckModal';
 import { AboutModal } from '@/components/modals/AboutModal';
+import { DocumentationModal } from '@/components/modals/menuBar/DocumentationModal';
+import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { PendingReportsList } from '@/components/feedback/PendingReportsList';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -58,7 +70,9 @@ import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { useOllamaInit } from '@/hooks/useOllamaInit';
 import { useGlobalKeyboardShortcuts } from '@/hooks/useGlobalKeyboardShortcuts';
-import { useCharacterRestoration } from '@/hooks/useCharacterRestoration'; // NEW: Restore characters on app load
+import { useVoiceHotkey } from '@/hooks/useVoiceHotkey';
+import { useSystemVoiceCommands } from '@/hooks/useSystemVoiceCommands';
+import { useNeuralAssistant } from '@/hooks/useNeuralAssistant';
 import { initializeLLMConfigService } from '@/services/llmConfigService'; // NEW: Initialize unified LLM service
 import { initializeLLMConfig } from '@/utils/migrateLLMConfig'; // NEW: Migrate legacy configs
 import { globalErrorHandler } from '@/utils/globalErrorHandler'; // NEW: Global error handler
@@ -68,16 +82,11 @@ import { addonManager } from '@/services/AddonManager';
 import type { FeedbackInitialContext } from '@/components/feedback/types';
 import { logger } from '@/utils/logger';
 import { devLog } from '@/utils/devOnly';
-import {
-  createEmptyProject,
-  getRecentProjects,
-  addRecentProject,
-  loadProjectFromFile,
-  downloadProject,
-  type RecentProject,
-} from '@/utils/projectManager';
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
+import { eventEmitter, WizardEventType, GenerationCompletedPayload } from '@/services/eventEmitter';
+import { DialogueBuilderData } from '@/components/wizard/dialogue-builder/DialogueBuilderWizard';
+
 
 function AppContent() {
   // Get secret mode context to check for experimental features
@@ -126,17 +135,21 @@ function AppContent() {
     setShowFactCheckModal,
     showAboutModal,
     setShowAboutModal,
+    showDocumentationModal,
+    setShowDocumentationModal,
+    showKeyboardShortcutsDialog,
+    setShowKeyboardShortcutsDialog,
     showSequencePlanWizard,
     closeSequencePlanWizard,
     sequencePlanWizardContext,
     showShotWizard,
     closeShotWizard,
     shotWizardContext,
+    showScenarioBuilder,
+    setShowScenarioBuilder,
+    showDialogueBuilder,
+    setShowDialogueBuilder,
     // Generic wizard state (simple forms in GenericWizardModal)
-    showDialogueWriter,
-    showSceneGenerator,
-    showStoryboardCreator,
-    showStyleTransfer,
     closeActiveWizard,
     settingsAddonId,
     closeAddonSettings,
@@ -195,17 +208,21 @@ function AppContent() {
     setShowFactCheckModal: state.setShowFactCheckModal,
     showAboutModal: state.showAboutModal,
     setShowAboutModal: state.setShowAboutModal,
+    showDocumentationModal: state.showDocumentationModal,
+    setShowDocumentationModal: state.setShowDocumentationModal,
+    showKeyboardShortcutsDialog: state.showKeyboardShortcutsDialog,
+    setShowKeyboardShortcutsDialog: state.setShowKeyboardShortcutsDialog,
     showSequencePlanWizard: state.showSequencePlanWizard,
     closeSequencePlanWizard: state.closeSequencePlanWizard,
     sequencePlanWizardContext: state.sequencePlanWizardContext,
     showShotWizard: state.showShotWizard,
     closeShotWizard: state.closeShotWizard,
     shotWizardContext: state.shotWizardContext,
+    showScenarioBuilder: state.showScenarioBuilder,
+    setShowScenarioBuilder: state.setShowScenarioBuilder,
+    showDialogueBuilder: state.showDialogueBuilder,
+    setShowDialogueBuilder: state.setShowDialogueBuilder,
     // Generic wizard state (simple forms in GenericWizardModal)
-    showDialogueWriter: state.showDialogueWriter,
-    showSceneGenerator: state.showSceneGenerator,
-    showStoryboardCreator: state.showStoryboardCreator,
-    showStyleTransfer: state.showStyleTransfer,
     closeActiveWizard: state.closeActiveWizard,
     settingsAddonId: state.settingsAddonId,
     closeAddonSettings: state.closeAddonSettings,
@@ -225,19 +242,15 @@ function AppContent() {
 
   // MenuBar state management
   // Requirements: 1.1-15.6
+  // NOTE: isProcessing and hasUnsavedChanges are currently static (not yet wired to actual state)
+  // TODO: Wire these to actual processing/unsaved changes state when implemented
+  const isProcessing = false;
+  const hasUnsavedChanges = false;
   const [viewState, setViewState] = useState<ViewState>(DEFAULT_VIEW_STATE);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  // Track unsaved changes when project changes
-  useEffect(() => {
-    // Reset unsaved changes flag when project changes
-    setHasUnsavedChanges(false);
-  }, [project]);
 
   // Local state for Continuous Creation modals moved to store
-  const [characterWizardWorldContext, setCharacterWizardWorldContext] = useState<World | undefined>(undefined);
   const [settingsAddonName, setSettingsAddonName] = useState('');
+  // characterWizardWorldContext is no longer used as initialWorldContext is removed from CharacterWizardModal
 
   // Fetch addon name when showing settings
   useEffect(() => {
@@ -251,8 +264,8 @@ function AppContent() {
           // Fallback if addon not found directly (might be async init issue, but usually addons are loaded by dashboard)
           setSettingsAddonName('Addon Settings');
         }
-      } catch (e) {
-        console.warn('Failed to get addon info for settings:', e);
+      } catch (_e) {
+        console.warn('Failed to get addon info for settings:', _e);
         setSettingsAddonName('Addon Settings');
       }
     }
@@ -271,7 +284,7 @@ function AppContent() {
   // Requirements: 3.1-3.9
   const handleViewStateChange = useCallback((updates: Partial<ViewState>) => {
     setViewState(prev => ({ ...prev, ...updates }));
-  }, []);
+  }, [setViewState]);
 
   // Handle project changes from MenuBar
   // Requirements: 1.1-1.8
@@ -304,11 +317,11 @@ function AppContent() {
   const clipboard: ClipboardState = {
     hasContent: false,
     contentType: null,
-    cut: (content: unknown) => {
-      console.log('Cut operation not yet implemented', content);
+    cut: () => {
+      console.log('Cut operation not yet implemented');
     },
-    copy: (content: unknown) => {
-      console.log('Copy operation not yet implemented', content);
+    copy: () => {
+      console.log('Copy operation not yet implemented');
     },
     paste: () => {
       console.log('Paste operation not yet implemented');
@@ -323,10 +336,19 @@ function AppContent() {
   const { toast } = useToast();
 
   // Initialize Ollama on app startup
-  const ollamaState = useOllamaInit();
+  useOllamaInit();
 
   // Initialize global keyboard shortcuts
   useGlobalKeyboardShortcuts();
+
+  // Initialize voice hotkey for speech recognition
+  useVoiceHotkey();
+
+  // Initialize global system voice commands (undo, redo, save, navigate)
+  useSystemVoiceCommands();
+
+  // Initialize Neural Intent Engine (V2 Orchestrator)
+  useNeuralAssistant();
 
   // Restore characters from localStorage on app load (Requirement 8.4)
   // useCharacterRestoration(); // Disabled to prevent mixing characters between projects
@@ -359,15 +381,11 @@ function AppContent() {
   // Initialize LLM configuration service (NEW)
   useEffect(() => {
     async function initializeLLM() {
-      ;
-
       // Migrate legacy configurations
       await initializeLLMConfig();
 
       // Initialize unified service
       await initializeLLMConfigService();
-
-      ;
     }
 
     initializeLLM();
@@ -378,7 +396,6 @@ function AppContent() {
     validateFeatureRegistry();
   }, []);
 
-  // Set up service status monitoring (NEW)
   useEffect(() => {
     serviceStatusMonitor.start();
     return () => {
@@ -386,16 +403,25 @@ function AppContent() {
     };
   }, []);
 
-  // Show Ollama status in console
+  // Generation notifications (Toasts)
   useEffect(() => {
-    if (ollamaState.isInitialized && ollamaState.recommendation) {
-      if (ollamaState.isOllamaAvailable) {
-      } else {
-        console.warn('Ollama not available:', ollamaState.recommendation);
-      }
-    }
-  }, [ollamaState]);
-  const setRecentProjects = useState<RecentProject[]>(getRecentProjects())[1];
+    const handleGenerationCompleted = (payload: GenerationCompletedPayload) => {
+      const isSuccess = payload.status === 'completed';
+      
+      toast({
+        title: isSuccess ? 'Generation Complete' : 'Generation Failed',
+        description: isSuccess 
+          ? `Successfully generated ${payload.type}: "${payload.prompt.substring(0, 50)}..."`
+          : `Error generating ${payload.type}: ${payload.error || 'Unknown error'}`,
+        variant: isSuccess ? 'default' : 'destructive',
+        duration: 5000,
+      });
+    };
+
+    const sub = eventEmitter.on(WizardEventType.GENERATION_COMPLETED, handleGenerationCompleted);
+    return () => sub.unsubscribe();
+  }, [toast]);
+
   const [currentView, setCurrentView] = useState<'dashboard' | 'editor'>('dashboard');
   const [selectedSequenceId, setSelectedSequenceId] = useState<string | undefined>(undefined);
 
@@ -428,135 +454,14 @@ function AppContent() {
     };
   }, [setProject, setShots]);
 
-  const handleNewProject = useCallback(() => {
-    try {
-      const newProject = createEmptyProject('Untitled Project');
-      setProject(newProject);
-      setShots([]);
+  // handleNewProject removed - use store actions directly or via menuActions
 
-      toast({
-        title: 'New Project',
-        description: 'Empty project created',
-      });
-    } catch (error) {
-      console.error('Failed to create new project:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create new project',
-        variant: 'destructive',
-      });
-    }
-  }, [setProject, setShots, toast]);
+  // Project command handlers removed - replaced by direct store actions in menuActions
+  // handleOpenProject, handleSaveProject, handleExportProject, handleCloseProject removed as per instructions.
 
-  const handleOpenProject = useCallback(() => {
-    // Create file input element
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      try {
-        const loadedProject = await loadProjectFromFile(file);
-        setProject(loadedProject);
-        setShots(loadedProject.shots);
-
-        // Add to recent projects
-        const recentProject: RecentProject = {
-          id: crypto.randomUUID(),
-          name: loadedProject.project_name,
-          path: file.name,
-          lastAccessed: new Date(),
-        };
-        addRecentProject(recentProject);
-        setRecentProjects(getRecentProjects());
-
-        toast({
-          title: 'Project Loaded',
-          description: `"${loadedProject.project_name}" loaded successfully`,
-        });
-      } catch (error) {
-        logger.error('Failed to load project:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load project. Please check the file format.',
-          variant: 'destructive',
-        });
-      }
-    };
-
-    input.click();
-  }, [setProject, setShots, toast]);
-
-
-
-  const handleSaveProject = useCallback(() => {
-    try {
-      if (!project) {
-        toast({
-          title: 'Error',
-          description: 'No project to save',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      downloadProject(project);
-
-      toast({
-        title: 'Success',
-        description: 'Project saved successfully',
-      });
-    } catch (error) {
-      console.error('Failed to save project:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save project',
-        variant: 'destructive',
-      });
-    }
-  }, [project, toast]);
-
-  const handleExportProject = useCallback(() => {
-    try {
-      if (!project) {
-        toast({
-          title: 'Error',
-          description: 'No project to export',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      downloadProject(project);
-
-      toast({
-        title: 'Success',
-        description: 'Project exported successfully',
-      });
-    } catch (error) {
-      console.error('Failed to export project:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to export project',
-        variant: 'destructive',
-      });
-    }
-  }, [project, toast]);
-
-  const handleCloseProject = useCallback(() => {
-    setProject(null);
-    setShots([]);
-    setCurrentView('dashboard');
-  }, [setProject, setShots]);
-
-  const handleInstallationComplete = (installationPath: string) => {
-    ;
+  const handleInstallationComplete = () => {
     setInstallationComplete(true);
     setShowInstallationWizard(false);
-    // Could update app configuration here
   };
 
   const handleCloseInstallationWizard = () => {
@@ -574,7 +479,7 @@ function AppContent() {
       const worldExists = state.worlds?.some(w => w.id === world.id);
 
       if (!worldExists) {
-        logger.warn('World not found in store after creation');
+        logger.warn('World created but not found in store after creation');
         toast({
           title: 'Warning',
           description: 'World created but not found in store',
@@ -591,11 +496,8 @@ function AppContent() {
 
       // Handle chaining
       if (nextAction === 'create-character') {
-        setCharacterWizardWorldContext(world);
-        // Small timeout to allow modal animation to finish
-        setTimeout(() => {
-          setShowCharacterWizard(true);
-        }, 300);
+        // characterWizardWorldContext is no longer used, but we still need to show the wizard
+        setShowCharacterWizard(true);
       } else if (nextAction === 'create-location') {
         // TODO: Implement location wizard chaining
         // Currently we don't have a standalone Location Wizard modal exposed in App.tsx easily
@@ -678,7 +580,27 @@ function AppContent() {
     }
   };
 
-  const handleObjectComplete = (object: any) => {
+  const handleScenarioComplete = (story: Partial<Story>) => {
+    devLog('Scenario building complete:', story);
+    setShowScenarioBuilder(false);
+    toast({
+      title: 'Scenario Created',
+      description: `Story structure for "${story.title}" generated`,
+    });
+  };
+
+  const handleDialogueBuilderComplete = (data: DialogueBuilderData, result?: string) => {
+    devLog('Dialogue building complete:', data);
+    setShowDialogueBuilder(false);
+    if (result) {
+      toast({
+        title: 'Dialogue Forge Complete',
+        description: 'New dialogue has been generated and refined',
+      });
+    }
+  };
+
+  const handleObjectComplete = (object: StoryObject) => {
     try {
       if (!object || !object.id) {
         throw new Error('Invalid object data');
@@ -738,9 +660,9 @@ function AppContent() {
     }
   };
 
-  const handleStorytellerComplete = async (story: unknown) => {
+  const handleStorytellerComplete = async (story: Story) => {
     try {
-      const storyData = story as Story;
+      const storyData = story;
       if (!storyData || !storyData.id) {
         throw new Error('Invalid story data');
       }
@@ -782,40 +704,68 @@ function AppContent() {
   };
 
   // Sequence Plan Wizard Handler
-  const handleSequencePlanComplete = (plan: any) => {
+  const handleSequencePlanComplete = (plan: SequencePlan) => {
+    // Log event in development
+    if (import.meta.env.DEV) {
+      devLog('Sequence plan complete:', plan.id);
+    }
     // Save to project structure
     if (project) {
       const updatedProject = { ...project };
       // Assuming project has a sequences array or we store it in metadata for now
-      // This adapts to the available structure. If sequences doesn't exist, we init it.
-      // real implementation should likely have a dedicated store slice or project property
-      const sequences = (updatedProject.metadata as any).sequences || [];
-      const existingIndex = sequences.findIndex((s: any) => s.id === plan.id);
+      // Update sequencePlans array in project
+      const sequencePlans = updatedProject.sequencePlans || [];
+      const existingIndex = sequencePlans.findIndex((s) => s.id === plan.id);
 
       if (existingIndex >= 0) {
-        sequences[existingIndex] = plan;
+        sequencePlans[existingIndex] = plan;
       } else {
-        sequences.push(plan);
+        sequencePlans.push(plan);
       }
 
-      updatedProject.metadata = {
-        ...updatedProject.metadata,
-        sequences
-      };
-
+      updatedProject.sequencePlans = sequencePlans;
       setProject(updatedProject);
+
+      // If a preferred engine is selected, trigger production automatically
+      if (plan.preferredEngine) {
+        import('@/services/wanVideoService').then(({ wanVideoService }) => {
+          wanVideoService.generateSequence({
+            projectId: updatedProject.id,
+            sceneId: plan.id,
+            sceneDescription: plan.description || plan.name,
+            engine: plan.preferredEngine,
+            overrides: {
+              plan: plan
+            }
+          }, () => {
+            // progress logging disabled to reduce console noise unless needed
+          }).then(() => {
+            toast({
+              title: 'Production Started',
+              description: `Generating via ${plan.preferredEngine}...`
+            });
+          }).catch(err => {
+            console.error('Production failed:', err);
+            toast({
+              title: 'Production Error',
+              description: err.message,
+              variant: 'destructive'
+            });
+          });
+        });
+      }
     }
 
     console.log('Sequence Plan saved:', plan);
     closeSequencePlanWizard();
     toast({
-      title: 'Plan de séquence sauvegardé',
-      description: `Le plan "${plan.name}" a été enregistré avec succès.`
+      title: 'Sequence Plan Saved',
+      description: `The plan "${plan.name}" has been successfully saved.`
     });
   };
 
   // Shot Wizard Handler
-  const handleShotComplete = (shot: any) => {
+  const handleShotComplete = (shot: Shot) => {
     // Use store actions to update shots
     const { shots, addShot, updateShot } = useAppStore.getState();
     const existingShot = shots.find(s => s.id === shot.id);
@@ -835,13 +785,12 @@ function AppContent() {
   };
 
   // Generic wizard completion handler (Requirement 5.3, 9.1)
-  const handleWizardComplete = (data: any) => {
-    ;
-
+  const handleWizardComplete = (data: unknown) => {
+    const wizardData = data as Record<string, unknown>;
     // Integrate wizard results into project based on wizard type (Requirement 5.3)
     if (activeWizardType && project) {
       switch (activeWizardType) {
-        case 'dialogue-writer':
+        case 'dialogue-writer': {
           // Add generated dialogue to project metadata
           // In a real implementation, this would update specific shots with dialogue
           const updatedProjectWithDialogue = {
@@ -849,7 +798,7 @@ function AppContent() {
             metadata: {
               ...project.metadata,
               lastDialogueGeneration: {
-                timestamp: new Date().toISOString(),
+                timestamp: Date.now(),
                 data,
               },
             },
@@ -858,11 +807,12 @@ function AppContent() {
 
           toast({
             title: 'Dialogue Generated',
-            description: `Dialogue has been generated for ${data.characters?.length || 0} characters`,
+            description: `Dialogue has been generated for ${(wizardData.characters as unknown[])?.length || 0} characters`,
           });
           break;
+        }
 
-        case 'scene-generator':
+        case 'scene-generator': {
           // Add generated scene to project metadata
           // In a real implementation, this would create new shots
           const updatedProjectWithScene = {
@@ -870,7 +820,7 @@ function AppContent() {
             metadata: {
               ...project.metadata,
               lastSceneGeneration: {
-                timestamp: new Date().toISOString(),
+                timestamp: Date.now(),
                 data,
               },
             },
@@ -879,11 +829,12 @@ function AppContent() {
 
           toast({
             title: 'Scene Generated',
-            description: `Scene "${data.concept}" has been generated`,
+            description: `Scene "${wizardData.concept as string}" has been generated`,
           });
           break;
+        }
 
-        case 'storyboard-creator':
+        case 'storyboard-creator': {
           // Add storyboard metadata to project
           // In a real implementation, this would create/update shots based on mode
           const updatedProjectWithStoryboard = {
@@ -891,8 +842,8 @@ function AppContent() {
             metadata: {
               ...project.metadata,
               lastStoryboardGeneration: {
-                timestamp: new Date().toISOString(),
-                mode: data.mode,
+                timestamp: Date.now(),
+                mode: wizardData.mode as string,
                 data,
               },
             },
@@ -901,11 +852,12 @@ function AppContent() {
 
           toast({
             title: 'Storyboard Created',
-            description: `Storyboard has been ${data.mode === 'replace' ? 'created' : 'appended'} with ${data.visualStyle} style`,
+            description: `Storyboard has been ${(wizardData.mode as string) === 'replace' ? 'created' : 'appended'} with ${wizardData.visualStyle as string} style`,
           });
           break;
+        }
 
-        case 'style-transfer':
+        case 'style-transfer': {
           // Apply style to selected shot
           // In a real implementation, this would update the shot's style parameters
           const updatedProjectWithStyle = {
@@ -913,9 +865,9 @@ function AppContent() {
             metadata: {
               ...project.metadata,
               lastStyleTransfer: {
-                timestamp: new Date().toISOString(),
-                shotId: data.shotId,
-                styleImage: data.styleReferenceImage?.name,
+                timestamp: Date.now(),
+                shotId: wizardData.shotId as string,
+                styleImage: (wizardData.styleReferenceImage as { name?: string })?.name,
               },
             },
           };
@@ -926,6 +878,7 @@ function AppContent() {
             description: 'Style has been applied to the selected shot',
           });
           break;
+        }
       }
     }
 
@@ -953,18 +906,53 @@ function AppContent() {
         isOpen={showWorldWizard}
         onClose={() => setShowWorldWizard(false)}
         onComplete={handleWorldComplete}
-        initialData={{
+        initialData={project?.worlds?.[0] || {
           // Pre-fill genre and tone from project setup
-          genre: (project as any)?.projectSetup?.genre,
-          tone: (project as any)?.projectSetup?.tone,
+          genre: project?.projectSetup?.genre,
+          tone: project?.projectSetup?.tone,
         }}
       />
 
       {/* Character Wizard Modal */}
       <CharacterWizardModal
+        onComplete={handleCharacterComplete}
         isOpen={showCharacterWizard}
         onClose={() => setShowCharacterWizard(false)}
-        onComplete={handleCharacterComplete}
+        worldContext={project?.worlds?.[0]}
+        initialData={{
+          // Pre-fill genre and tone from project setup to aid AI
+          role: {
+            archetype: project?.projectSetup?.genre?.[0] || '',
+          } as Character['role'],
+          // If we wanted to edit existing, we'd need a way to select which one
+        }}
+      />
+
+      {/* Scenario Builder Wizard Modal */}
+      <ScenarioBuilderWizardModal
+        isOpen={showScenarioBuilder}
+        onClose={() => setShowScenarioBuilder(false)}
+        onComplete={handleScenarioComplete}
+        initialData={project?.stories?.[0] || {
+          genre: project?.projectSetup?.genre,
+          tone: project?.projectSetup?.tone,
+        }}
+      />
+
+      {/* Dialogue Builder Wizard Modal */}
+      <DialogueBuilderWizardModal
+        isOpen={showDialogueBuilder}
+        onClose={() => setShowDialogueBuilder(false)}
+        onComplete={handleDialogueBuilderComplete}
+        initialData={{
+          tone: project?.projectSetup?.tone?.[0] || 'Casual',
+        }}
+      />
+
+      {/* Documentation Modal */}
+      <DocumentationModal
+        isOpen={showDocumentationModal}
+        onClose={() => setShowDocumentationModal(false)}
       />
 
       {/* Object Wizard Modal */}
@@ -981,8 +969,8 @@ function AppContent() {
         onComplete={handleStorytellerComplete}
         initialData={{
           // Pre-fill genre and tone from project setup
-          genre: (project as any)?.projectSetup?.genre,
-          tone: (project as any)?.projectSetup?.tone,
+          genre: project?.projectSetup?.genre,
+          tone: project?.projectSetup?.tone,
         }}
       />
 
@@ -996,16 +984,26 @@ function AppContent() {
         onClose={closeSequencePlanWizard}
         onComplete={handleSequencePlanComplete}
         mode={sequencePlanWizardContext?.mode || 'create'}
-        initialPlan={sequencePlanWizardContext?.existingSequencePlan as any}
+        initialPlan={sequencePlanWizardContext?.existingSequencePlan as SequencePlan}
       />
       <ShotWizardModal
         isOpen={showShotWizard}
         onClose={closeShotWizard}
         onComplete={handleShotComplete}
         mode={shotWizardContext?.mode || 'create'}
-        initialShot={shotWizardContext?.existingShot as any}
+        initialShot={shotWizardContext?.existingShot as Shot}
         sequenceId={shotWizardContext?.sequenceId}
       />
+
+      {/* Specialty Wizards */}
+      <RogerWizardModal />
+      <GhostTrackerWizardModal />
+      <DialogueWriterWizardModal />
+      <LipSyncWizardModal />
+      <AudioProductionWizardModal />
+      <VideoEditorWizardModal />
+      <ComicToSequenceWizardModal />
+      <MarketingWizardModal />
 
       {/* Generic Wizard Modal (Requirements 1.2, 1.3, 1.4) */}
       <GenericWizardModal
@@ -1077,6 +1075,12 @@ function AppContent() {
         onClose={() => setShowImageGalleryModal(false)}
       />
 
+      {/* Vault Modal */}
+      <VaultModal
+        isOpen={useAppStore.getState().showVaultModal}
+        onClose={() => useAppStore.getState().setShowVaultModal(false)}
+      />
+
       {/* Dialogue Editor */}
       <DialogueEditor
         isOpen={showDialogueEditor}
@@ -1108,6 +1112,12 @@ function AppContent() {
         onClose={() => setShowAboutModal(false)}
       />
 
+      {/* Keyboard Shortcuts Dialog */}
+      <KeyboardShortcutsDialog
+        isOpen={showKeyboardShortcutsDialog}
+        onClose={() => setShowKeyboardShortcutsDialog(false)}
+      />
+
       {/* Continuous Creation Modals */}
       {/* Reference Sheet Manager Modal */}
       <ReferenceSheetManager
@@ -1115,8 +1125,8 @@ function AppContent() {
         onClose={() => setShowReferenceSheetManager(false)}
         projectId={project?.id || ''}
         projectPath={project?.path || ''}
-        onSheetUpdate={(sheetId) => {
-          devLog('Reference sheet updated:', sheetId);
+        onSheetUpdate={() => {
+          devLog('Reference sheet updated');
         }}
       />
 
@@ -1124,8 +1134,8 @@ function AppContent() {
       <VideoReplicationDialog
         open={showVideoReplicationDialog}
         onClose={() => setShowVideoReplicationDialog(false)}
-        onReplicationComplete={(projectId) => {
-          devLog('Video replication started:', projectId);
+        onReplicationComplete={(_projectId) => {
+          devLog('Video replication started:', _projectId);
           toast({
             title: 'Replication Started',
             description: 'Video replication process has begun',
@@ -1138,12 +1148,12 @@ function AppContent() {
         <CrossShotReferencePicker
           currentShotId={selectedShotId || ''}
           sequenceId="" // This could be enhanced to find the sequence ID of the shot
-          onSelect={(refs) => {
-            devLog('Borrowed references:', refs);
+          onSelect={(_refs) => {
+            devLog('Borrowed references:', _refs);
             setShowCrossShotReferencePicker(false);
             toast({
               title: 'References Borrowed',
-              description: `Successfully borrowed ${refs.length} references`,
+              description: `Successfully borrowed ${_refs.length} references`,
             });
           }}
           onClose={() => setShowCrossShotReferencePicker(false)}
@@ -1156,11 +1166,11 @@ function AppContent() {
         onClose={() => setShowProjectBranchingDialog(false)}
         currentProjectId={project?.id || ''}
         currentShotId={selectedShotId || undefined}
-        onBranchCreated={(branch) => {
-          devLog('Branch created:', branch);
+        onBranchCreated={(_branch) => {
+          devLog('Branch created:', _branch);
           toast({
             title: 'Branch Created',
-            description: `Started new branch: ${branch.name}`,
+            description: `Started new branch: ${_branch.name}`,
           });
         }}
       />
@@ -1170,11 +1180,11 @@ function AppContent() {
         open={showEpisodeReferenceDialog}
         onClose={() => setShowEpisodeReferenceDialog(false)}
         currentProjectId={project?.id || ''}
-        onReferenceAdded={(ref) => {
-          devLog('Episode reference added:', ref);
+        onReferenceAdded={(_ref) => {
+          devLog('Episode reference added:', _ref);
           toast({
             title: 'Reference Linked',
-            description: `Linked to ${ref.episodeName}`,
+            description: `Linked to ${_ref.episodeName}`,
           });
         }}
       />
@@ -1184,23 +1194,34 @@ function AppContent() {
     </>
   );
 
+  // Check for detached chat route
+  const isDetachedChat = typeof window !== 'undefined' && window.location.pathname === '/detached-chat';
+
+  if (isDetachedChat) {
+    return <DetachedChatPage />;
+  }
+
   // Show experimental features if one is selected (Requirements: 2.1, 2.2, 7.3)
   if (currentExperimentalFeature) {
     let ExperimentalPage: React.FC | null = null;
 
     switch (currentExperimentalFeature) {
-      case 'advanced-grid-editor':
+      case 'advanced-grid-editor': {
         ExperimentalPage = AdvancedGridEditorPage;
         break;
-      case 'ai-assistant-v3':
+      }
+      case 'ai-assistant-v3': {
         ExperimentalPage = AIAssistantV3Page;
         break;
-      case 'performance-profiler':
+      }
+      case 'performance-profiler': {
         ExperimentalPage = PerformanceProfilerPage;
         break;
-      default:
+      }
+      default: {
         logger.warn(`Unknown experimental feature: ${currentExperimentalFeature}`);
         ExperimentalPage = null;
+      }
     }
 
     if (ExperimentalPage) {
@@ -1208,13 +1229,13 @@ function AppContent() {
         <>
           <MenuBar
             project={project}
-            hasUnsavedChanges={hasUnsavedChanges}
+            hasUnsavedChanges={false}
             onProjectChange={handleProjectChange}
             onViewStateChange={handleViewStateChange}
-            viewState={viewState}
+            viewState={DEFAULT_VIEW_STATE} // Fallback
             undoStack={undoStack}
             clipboard={clipboard}
-            isProcessing={isProcessing}
+            isProcessing={false}
           />
           <ExperimentalPage />
           {/* Single instance of all modals - accessible from experimental pages */}

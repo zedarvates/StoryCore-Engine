@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { FormField, FormSection, FormGrid } from '../WizardFormLayout';
+import { FormField, FormSection } from '../WizardFormLayout';
 import { Button } from '@/components/ui/button';
 import { Sparkles } from 'lucide-react';
 import './DialogueWriterForm.css';
@@ -55,7 +55,7 @@ const TONE_OPTIONS = [
   'Confrontational',
 ];
 
-export function DialogueWriterForm({
+export const DialogueWriterForm = React.forwardRef<HTMLFormElement, DialogueWriterFormProps>(({
   initialData,
   characters,
   onSubmit,
@@ -64,7 +64,7 @@ export function DialogueWriterForm({
   onValidationChange,
   isGenerating = false,
   showFooter = true,
-}: DialogueWriterFormProps) {
+}, ref) => {
   const [formData, setFormData] = useState<DialogueInput>({
     sceneContext: initialData?.sceneContext || '',
     characters: initialData?.characters || [],
@@ -100,11 +100,15 @@ export function DialogueWriterForm({
 
   // Validate form whenever data changes
   useEffect(() => {
-    // Skip validation on initial mount
-    if (formData.sceneContext || formData.characters.length > 0 || formData.tone) {
-      validateForm();
-    }
-  }, [formData, validateForm]);
+        // Skip validation on initial mount - only validate if user has interacted
+        if (formData.sceneContext || formData.characters.length > 0 || formData.tone) {
+            // Use setTimeout to defer setState to next event loop tick
+            const timeoutId = setTimeout(() => {
+                validateForm();
+            }, 0);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [formData, validateForm]);
 
   const handleFieldChange = useCallback((field: keyof DialogueInput, value: unknown) => {
     setFormData(prev => {
@@ -134,7 +138,7 @@ export function DialogueWriterForm({
   }, [formData, validateForm, onSubmit]);
 
   return (
-    <form className="dialogue-writer-form" onSubmit={handleSubmit}>
+    <form ref={ref} className="dialogue-writer-form" onSubmit={handleSubmit}>
       <FormSection title="Scene Context">
         <FormField
           name="sceneContext"
@@ -258,4 +262,4 @@ export function DialogueWriterForm({
       )}
     </form>
   );
-}
+});

@@ -15,7 +15,7 @@ import { OBJECT_CONDITION_LABELS } from '@/types/object';
 import './ObjectWizardSteps.css';
 
 export function Step2Properties() {
-  const { data, updateData } = useWizard<StoryObject>();
+  const { formData: data, updateFormData: updateData } = useWizard<StoryObject>();
 
   const handlePropertyChange = (field: string, value: unknown) => {
     updateData({

@@ -488,7 +488,7 @@ export function resolveConflicts(
   conflicts: ConfigurationConflict[],
   resolutionStrategy: 'keep_current' | 'use_imported' | 'merge' = 'use_imported'
 ): GridEditorConfiguration {
-  let resolved = { ...currentConfig };
+  const resolved = { ...currentConfig };
   
   for (const conflict of conflicts) {
     const strategy = resolutionStrategy === 'merge' 

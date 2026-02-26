@@ -82,6 +82,7 @@
     "react-router-dom": "^7.13.0",
     "react-window": "^2.2.5",
     "tailwind-merge": "^2.6.0",
+    "tesseract.js": "^7.0.0",
     "three": "^0.182.0",
     "uuid": "^13.0.0",
     "zod": "^4.3.5",

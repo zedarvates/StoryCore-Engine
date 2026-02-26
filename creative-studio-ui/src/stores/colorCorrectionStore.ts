@@ -10,7 +10,6 @@ import {
   ColorCorrectionLayer,
   ColorGradingState,
   ColorCorrectionSettings,
-  ColorCorrectionPresetLibrary,
 } from '../types/color-correction';
 
 interface ColorCorrectionStore {
@@ -37,6 +36,10 @@ interface ColorCorrectionStore {
   selectedPresetId: string | null;
   compareMode: boolean;
   beforeAfterView: boolean;
+  isPickingColor: boolean;
+  sampledColor: string | null;
+  setIsPickingColor: (isPicking: boolean) => void;
+  setSampledColor: (color: string | null) => void;
   
   // Actions
   // Preset management
@@ -76,6 +79,7 @@ interface ColorCorrectionStore {
   // Reset
   resetAll: () => void;
   resetLayer: (id: string) => void;
+  setPresets: (presets: ColorCorrectionPreset[]) => void;
 }
 
 const defaultSettings: ColorCorrectionSettings = {
@@ -99,16 +103,21 @@ export const useColorCorrectionStore = create<ColorCorrectionStore>()(
     state: {
       activePresets: [],
       globalAdjustment: {
+        lift: [0, 0, 0],
+        gamma: [1, 1, 1],
+        gain: [1, 1, 1],
+        offset: [0, 0, 0],
         exposure: 0,
         contrast: 0,
+        pivot: 0.5,
+        saturation: 1.0,
+        vibrance: 0,
+        temperature: 0,
+        tint: 0,
         highlights: 0,
         shadows: 0,
         whites: 0,
         blacks: 0,
-        temperature: 0,
-        tint: 0,
-        saturation: 0,
-        vibrance: 0,
         clarity: 0,
         fade: 0,
         grain: 0,
@@ -125,6 +134,21 @@ export const useColorCorrectionStore = create<ColorCorrectionStore>()(
           highlights: [0, 0, 0],
         },
         hsl: [],
+        qualifier: {
+          enabled: false,
+          hue: { center: 0, width: 60, softness: 10 },
+          saturation: { low: 0, high: 1, softLow: 0.1, softHigh: 0.1 },
+          luminance: { low: 0, high: 1, softLow: 0.1, softHigh: 0.1 },
+          softness: 0,
+          showMatte: false,
+        },
+        curves: {
+          rgb: [[], [], [], []],
+          hueVsHue: [],
+          hueVsSat: [],
+          hueVsLum: [],
+          lumVsSat: [],
+        },
       },
       beforeCorrection: false,
       afterCorrection: true,
@@ -136,6 +160,10 @@ export const useColorCorrectionStore = create<ColorCorrectionStore>()(
     selectedPresetId: null,
     compareMode: false,
     beforeAfterView: false,
+    isPickingColor: false,
+    sampledColor: null,
+    setIsPickingColor: (isPicking) => set({ isPickingColor: isPicking }),
+    setSampledColor: (color) => set({ sampledColor: color }),
     
     // Preset management
     loadPreset: (preset) => set((state) => ({
@@ -228,6 +256,8 @@ export const useColorCorrectionStore = create<ColorCorrectionStore>()(
     
     selectPreset: (id) => set({ selectedPresetId: id }),
     
+    setPresets: (presets) => set({ presets }),
+    
     // Global adjustment
     updateGlobalAdjustment: (adjustments) => set((state) => ({
       globalAdjustment: {
@@ -256,7 +286,7 @@ export const useColorCorrectionStore = create<ColorCorrectionStore>()(
     // Reset
     resetAll: () => set({
       layers: [],
-      globalAdjustment: defaultSettings as any,
+      globalAdjustment: null,
     }),
     
     resetLayer: (id) => {

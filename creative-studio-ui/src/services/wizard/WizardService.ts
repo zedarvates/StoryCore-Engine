@@ -281,6 +281,7 @@ export class WizardService {
 
   /**
    * Check ComfyUI connection status using ComfyUI Servers Service
+   * Note: ComfyUI is an OPTIONAL service - connection failures are expected and should be silent
    */
   async checkComfyUIConnection(): Promise<ConnectionStatus> {
     try {
@@ -291,9 +292,6 @@ export class WizardService {
       const availableServer = await comfyuiServersService.getAvailableServer();
 
       if (availableServer) {
-        // Use the available server's URL
-        logger.debug('[WizardService] Using active ComfyUI server:', availableServer.serverUrl);
-
         // Test the connection using the ComfyUI service
         const testResult = await testComfyUIConnection({
           serverUrl: availableServer.serverUrl,
@@ -302,14 +300,13 @@ export class WizardService {
         });
 
         if (testResult.success) {
-          logger.debug('[WizardService] ComfyUI connection successful using configured server:', availableServer.serverUrl);
           return {
             connected: true,
             service: 'comfyui',
             endpoint: availableServer.serverUrl
           };
         } else {
-          logger.debug('[WizardService] ComfyUI connection failed:', testResult.message);
+          // ComfyUI not running - this is expected for optional service
           return {
             connected: false,
             service: 'comfyui',
@@ -318,18 +315,16 @@ export class WizardService {
           };
         }
       } else {
-        // No servers configured - return disconnected without attempting connection
-        logger.debug('[WizardService] No ComfyUI server configured');
+        // No servers configured - return disconnected silently
         return {
           connected: false,
           service: 'comfyui',
           endpoint: '',
-          error: 'No ComfyUI server configured. Please configure a server in settings.'
+          error: 'No ComfyUI server configured'
         };
       }
     } catch (error) {
-      logger.error('[WizardService] Error checking ComfyUI connection:', error instanceof Error ? error.message : 'Unknown error');
-
+      // ComfyUI connection failed - this is OK for optional service
       return {
         connected: false,
         service: 'comfyui',
@@ -597,7 +592,8 @@ export class WizardService {
     };
   }
 
-  async executeDialogueWriter(input: DialogueInput): Promise<WizardOutput> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async executeDialogueWriter(_input: DialogueInput): Promise<WizardOutput> {
     logger.warn('executeDialogueWriter not fully implemented, returning mock');
     return {
       type: 'dialogue',

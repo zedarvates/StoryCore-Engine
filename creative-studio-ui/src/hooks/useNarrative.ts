@@ -66,7 +66,7 @@ export function useNarrative(initialPath?: string): UseNarrativeReturn {
     if (initialPath) {
       loadNarrative(initialPath);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // Only run when initialPath changes - loadNarrative is intentionally excluded
   }, [initialPath]);
 

@@ -129,8 +129,12 @@ class Settings(BaseSettings):
     # ComfyUI Configuration
     # =======================
     COMFYUI_BASE_URL: str = Field(
-        default="http://127.0.0.1:7860",
+        default="http://127.0.0.1:8000",
         description="ComfyUI service base URL"
+    )
+    COMFYUI_SERVERS: str = Field(
+        default="local:http://127.0.0.1:8000,backup:http://127.0.0.1:8188",
+        description="Registry of ComfyUI servers (format: name1:url1,name2:url2)"
     )
     COMFYUI_TIMEOUT: int = Field(
         default=600,
@@ -267,6 +271,18 @@ class Settings(BaseSettings):
         validate_assignment = True
         extra = "ignore"  # Ignore extra environment variables
     
+    def get_comfyui_servers(self) -> dict:
+        """Parse COMFYUI_SERVERS string into a dictionary"""
+        servers = {}
+        for server_entry in self.COMFYUI_SERVERS.split(","):
+            if ":" in server_entry:
+                try:
+                    name, url = server_entry.split(":", 1)
+                    servers[name.strip()] = url.strip()
+                except ValueError:
+                    continue
+        return servers
+
     def get_cors_origins_list(self) -> list:
         """Parse CORS_ORIGINS string into a list"""
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
@@ -303,9 +319,11 @@ def get_ollama_url(endpoint: str = "") -> str:
     return f"{base}/{endpoint.lstrip('/')}" if endpoint else base
 
 
-def get_comfyui_url(endpoint: str = "") -> str:
-    """Get full ComfyUI URL for an endpoint"""
-    base = settings.COMFYUI_BASE_URL.rstrip("/")
+def get_comfyui_url(endpoint: str = "", server_name: str = "default") -> str:
+    """Get full ComfyUI URL for an endpoint or server name"""
+    servers = settings.get_comfyui_servers()
+    # Fallback order: named server -> base url setting
+    base = servers.get(server_name, settings.COMFYUI_BASE_URL).rstrip("/")
     return f"{base}/{endpoint.lstrip('/')}" if endpoint else base
 
 

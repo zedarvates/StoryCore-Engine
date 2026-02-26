@@ -143,9 +143,15 @@ def test_validate_coherence_basic(component_generator, sample_parsed_prompt):
             timeline=[]
         ),
         metadata=ProjectMetadata(
+            project_id="test-project-1",
+            project_name="Test Project",
             created_at=datetime.now(),
             updated_at=datetime.now(),
-            version="1.0"
+            version="1.0",
+            video_type="trailer",
+            duration_seconds=60,
+            aspect_ratio="16:9",
+            resolution="1920x1080"
         )
     )
     

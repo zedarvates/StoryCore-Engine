@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useContext } from 'react';
 import { WizardProvider, useWizard } from '@/contexts/WizardContext';
 import { ProductionWizardContainer as WizardContainer } from '../production-wizards/ProductionWizardContainer';
 import type { WizardStep } from '@/types';
@@ -13,7 +13,10 @@ import { Step5ReviewExport } from './Step5ReviewExport';
 import { saveStoryToDisk, saveScenarioToDisk } from '@/utils/storyFileIO';
 import { toast } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
-import { FileText, Plus, RefreshCw, Save, FileSpreadsheet, Book, Users, MapPin, Sparkles, ClipboardCheck } from 'lucide-react';
+import { FileText, Plus, RefreshCw, Book, Users, MapPin, Sparkles, ClipboardCheck } from 'lucide-react';
+
+import { ProjectContext } from '@/contexts/ProjectContext';
+import type { ProjectContextValue } from '@/contexts/ProjectContext';
 
 // ============================================================================
 // Storyteller Wizard Component - Updated to use hasSavedProgress
@@ -186,7 +189,12 @@ function StorytellerWizardInner({ steps, onCancel, renderStepContent }: Storytel
 
 export function StorytellerWizard({ onComplete, onCancel, initialData }: StorytellerWizardProps) {
   const addStory = useStore((state) => state.addStory);
-  const currentProject = useStore((state) => state.project);
+  const currentProjectFromStore = useStore((state) => state.project);
+  
+  // Try to get project from ProjectContext if available (Task 4)
+  // We use useContext directly to avoid throwing if outside provider
+  const projectContext = useContext(ProjectContext) as ProjectContextValue | null;
+  const currentProject = projectContext?.project || currentProjectFromStore;
 
   const getInitialStoryData = useCallback((): Partial<Story> => {
     const baseData = initialData || createEmptyStory();
@@ -297,13 +305,23 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
     [onComplete, addStory, currentProject]
   );
 
+  const handleRegenerateAll = useCallback(() => {
+    // Navigate back to generation step
+    window.dispatchEvent(new CustomEvent('wizard-navigate', { detail: { step: 4 } }));
+  }, []);
+
   const renderStepContent = (currentStep: number) => {
     switch (currentStep) {
       case 1: return <Step1StorySetup />;
       case 2: return <Step2CharacterSelection />;
       case 3: return <Step3LocationSelection />;
       case 4: return <Step4StoryGeneration />;
-      case 5: return <Step5ReviewExport />;
+      case 5: return (
+        <Step5ReviewExport 
+          onBack={() => window.dispatchEvent(new CustomEvent('wizard-navigate', { detail: { step: 4 } }))}
+          onRegenerateAll={handleRegenerateAll}
+        />
+      );
       default: return null;
     }
   };

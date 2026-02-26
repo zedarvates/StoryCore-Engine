@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Minimize2, Maximize2, Move, Grip, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, Minimize2, Maximize2, Move, Grip, ChevronUp, ExternalLink } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import { LandingChatBox } from './launcher/LandingChatBox';
 import { 
   loadChatPanelState, 
-  saveChatPanelState,
-  DEFAULT_CHAT_PANEL_STATE 
+  saveChatPanelState
 } from '@/utils/chatPanelStorage';
 import './ChatPanel.css';
 
@@ -33,15 +32,23 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   size: initialSize,
 }) => {
   const { showChat, setShowChat, chatPanelMinimized, setChatPanelMinimized, project } = useAppStore();
-  const [position, setPosition] = useState(initialPosition || DEFAULT_POSITION);
-  const [size, setSize] = useState(initialSize || DEFAULT_SIZE);
+  const [position, setPosition] = useState(() => {
+    if (initialPosition) return initialPosition;
+    const savedState = loadChatPanelState();
+    return savedState?.position || DEFAULT_POSITION;
+  });
+  const [size, setSize] = useState(() => {
+    if (initialSize) return initialSize;
+    const savedState = loadChatPanelState();
+    return savedState?.size || DEFAULT_SIZE;
+  });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const [previousState, setPreviousState] = useState<{ position: typeof position; size: typeof size } | null>(null);
-  const [zIndex, setZIndex] = useState(50);
+  const [previousState, setPreviousState] = useState<{ position: { x: number; y: number }; size: { width: number; height: number } } | null>(null);
+  const [zIndex, setZIndex] = useState(9999);
   const [maxSize, setMaxSize] = useState(getMaxSize());
   const [showShortcuts, setShowShortcuts] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -70,15 +77,28 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     return DEFAULT_POSITION;
   }, [project]);
 
-  // Load position and size from local storage
+  // Load minimized state from local storage
   useEffect(() => {
     const savedState = loadChatPanelState();
     if (savedState) {
-      setPosition(savedState.position);
-      setSize(savedState.size);
-      setChatPanelMinimized(savedState.isMinimized);
+      const timer = setTimeout(() => {
+        setChatPanelMinimized(savedState.isMinimized);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [setChatPanelMinimized]);
+
+  // Position fallback if not saved
+  useEffect(() => {
+    const savedState = loadChatPanelState();
+    if (!savedState && project && !initialPosition) {
+      // Use a timeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => {
+        setPosition(getContextAwarePosition());
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [project, getContextAwarePosition, initialPosition]);
 
   // Save position and size to local storage (debounced)
   useEffect(() => {
@@ -106,7 +126,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     bringToFront();
   };
 
-  const handleDrag = (e: MouseEvent) => {
+  const handleDrag = useCallback((e: MouseEvent) => {
     if (!isDragging || !panelRef.current) return;
     
     // Use requestAnimationFrame for smoother drag
@@ -131,7 +151,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         y: constrainedY,
       });
     });
-  };
+  }, [isDragging]);
 
   const handleDragEnd = () => {
     setIsDragging(false);
@@ -145,7 +165,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     bringToFront();
   };
 
-  const handleResize = (e: MouseEvent) => {
+  const handleResize = useCallback((e: MouseEvent) => {
     if (!isResizing || !panelRef.current) return;
     
     requestAnimationFrame(() => {
@@ -158,7 +178,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         height: newHeight,
       });
     });
-  };
+  }, [isResizing, maxSize]);
 
   const handleResizeEnd = () => {
     setIsResizing(false);
@@ -187,11 +207,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   const bringToFront = () => {
-    setZIndex(51);
+    setZIndex(9999);
   };
 
   const handlePanelClick = () => {
-    if (zIndex < 51) {
+    if (zIndex < 9999) {
       bringToFront();
     }
   };
@@ -203,9 +223,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   // Handle open/close animations
   useEffect(() => {
     if (showChat) {
-      setIsOpening(true);
-      const timer = setTimeout(() => setIsOpening(false), 300);
-      return () => clearTimeout(timer);
+      // Use a brief timeout to allow initial render before starting animation
+      const animTimer = setTimeout(() => {
+        setIsOpening(true);
+      }, 10);
+      
+      const resetTimer = setTimeout(() => setIsOpening(false), 310);
+      return () => {
+        clearTimeout(animTimer);
+        clearTimeout(resetTimer);
+      };
     }
   }, [showChat]);
 
@@ -240,7 +267,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       window.removeEventListener('mousemove', handleResize);
       window.removeEventListener('mouseup', handleResizeEnd);
     };
-  }, [isDragging, isResizing]);
+  }, [isDragging, isResizing, handleDrag, handleResize]);
 
   // Handle close with animation
   const handleCloseWithAnimation = () => {
@@ -249,6 +276,20 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       setShowChat(false);
       setIsClosing(false);
     }, 280);
+  };
+
+  const handleDetach = () => {
+    const width = size.width || 400;
+    const height = size.height || 600;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+    
+    window.open(
+      '/detached-chat', 
+      'StoryCoreChat', 
+      `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes`
+    );
+    setShowChat(false);
   };
 
   return (
@@ -308,6 +349,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               title="Keyboard shortcuts (?)"
             >
               <span className="text-xs font-semibold px-1">?</span>
+            </button>
+            {/* Detach Button */}
+            <button
+              onClick={handleDetach}
+              className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-500 rounded transition-colors"
+              aria-label="Detach chat"
+              title="Detach window"
+            >
+              <ExternalLink className="w-4 h-4" />
             </button>
             {/* Maximize/Restore Button */}
             <button

@@ -8,7 +8,7 @@
  */
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-import type { Track, LayerType } from '../../types';
+import type { Track, LayerType } from '@/sequence-editor/types';
 
 interface TrackHeaderProps {
   track: Track;
@@ -24,7 +24,6 @@ interface TrackHeaderProps {
   onMuteToggle?: () => void;
   onSoloToggle?: () => void;
   onRecordToggle?: () => void;
-  zoomLevel: number;
 }
 
 // Track type configuration
@@ -51,12 +50,10 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
   onMuteToggle,
   onSoloToggle,
   onRecordToggle,
-  zoomLevel,
 }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStartY, setResizeStartY] = useState(0);
   const [resizeStartHeight, setResizeStartHeight] = useState(track.height);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
   const config = TRACK_CONFIG[track.type] || { color: '#888888', icon: '📁', name: track.type, minHeight: 30 };
@@ -104,7 +101,6 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
 
   // Handle drag end
   const handleDragEnd = useCallback(() => {
-    setDragOverIndex(null);
     if (headerRef.current) {
       headerRef.current.classList.remove('dragging');
     }
@@ -116,13 +112,6 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
     e.dataTransfer.dropEffect = 'move';
   }, []);
 
-  // Handle drag enter
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    // Calculate which index we're dragging over
-    // This will be handled by the parent component
-  }, []);
-
   // Handle drop for reordering
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -130,7 +119,6 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
     if (!isNaN(fromIndex) && fromIndex !== index) {
       onReorder(fromIndex, index);
     }
-    setDragOverIndex(null);
   }, [index, onReorder]);
 
   // Get audio-specific state

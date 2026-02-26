@@ -11,7 +11,7 @@ import React, { useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector, store } from '../../store';
 import { setActiveTool } from '../../store/slices/toolsSlice';
 import { markSaved, setSaveStatus } from '../../store/slices/projectSlice';
-import { setActivePanel } from '../../store/slices/panelsSlice';
+import { setActivePanel, toggleLayerManager } from '../../store/slices/panelsSlice';
 import { saveProjectToFile, generateProjectFilename } from '../../services/projectPersistence';
 import type { ToolType } from '../../types';
 import './toolBar.css';
@@ -177,6 +177,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
   // Redux state
   const { activeTool } = useAppSelector((state) => state.tools);
   const { saveStatus } = useAppSelector((state) => state.project);
+  const { showLayerManager } = useAppSelector((state) => state.panels);
 
   // Handle tool selection
   const handleToolSelect = useCallback((toolId: ToolType) => {
@@ -269,6 +270,12 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
     });
   }, [dispatch]);
 
+  // Handle toggle advanced mode (@)
+  const handleToggleAdvanced = useCallback(() => {
+    dispatch(toggleLayerManager());
+    console.log('Toggling advanced mode/layer manager');
+  }, [dispatch]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -284,6 +291,13 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
         return;
       }
 
+      // Check for '@' (Advanced Mode)
+      if (e.key === '@') {
+        e.preventDefault();
+        handleToggleAdvanced();
+        return;
+      }
+
       // Check for tool shortcuts
       const key = e.shiftKey ? `Shift+${e.key.toUpperCase()}` : e.key.toUpperCase();
 
@@ -296,7 +310,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleToolSelect, handleSaveProject]);
+  }, [handleToolSelect, handleSaveProject, handleToggleAdvanced]);
 
   // Get cursor style for active tool
   const getCursorClass = useCallback(() => {
@@ -432,6 +446,17 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
 
       {/* Project Management Tools */}
       <div className="tool-group project-tools">
+        {/* Advanced Editor / Layer Manager Toggle */}
+        <button
+          className={`tool-btn project-btn ${showLayerManager ? 'active' : ''}`}
+          onClick={handleToggleAdvanced}
+          title="Advanced Mode / Layer Manager (@)"
+          aria-label="Advanced Mode"
+        >
+          <span className="tool-icon">@</span>
+          <span className="tool-label">Advanced</span>
+        </button>
+
         <button
           className="tool-btn project-btn"
           onClick={handleProjectSettings}

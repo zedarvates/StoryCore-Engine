@@ -26,44 +26,199 @@
     --radius: 0.5rem;
   }
 
-  /* Dark theme with neon/cyberpunk accents */
-  .dark {
-    --background: 240 20% 2%; /* Deep black with subtle blue tint */
-    --foreground: 180 100% 95%; /* Bright cyan-white text */
-    --card: 240 15% 4%; /* Slightly lighter black */
+  /* Theme: Dark Neon (Cyberpunk) */
+  .theme-dark-neon,
+  .dark:not([class*="theme-"]) {
+    --background: 240 20% 2%;
+    --foreground: 180 100% 95%;
+    --card: 240 15% 4%;
     --card-foreground: 180 100% 95%;
     --popover: 240 15% 4%;
     --popover-foreground: 180 100% 95%;
-    --primary: 280 100% 70%; /* Electric purple #b366ff */
+    --primary: 220 100% 65%;
     --primary-foreground: 240 20% 2%;
-    --secondary: 240 20% 8%; /* Dark blue-gray */
+    --secondary: 240 20% 8%;
     --secondary-foreground: 180 100% 95%;
     --muted: 240 20% 8%;
-    --muted-foreground: 180 50% 70%; /* Muted cyan */
-    --accent: 200 100% 60%; /* Electric blue #0099ff */
+    --muted-foreground: 180 50% 70%;
+    --accent: 200 100% 60%;
     --accent-foreground: 240 20% 2%;
-    --destructive: 0 100% 60%; /* Bright red #ff0000 */
-    --destructive-foreground: 180 100% 95%;
-    --border: 240 20% 15%; /* Subtle dark border */
+    --destructive: 0 100% 60%;
+    --border: 240 20% 15%;
     --input: 240 20% 8%;
-    --ring: 280 100% 70%; /* Neon purple ring */
+    --ring: 220 100% 65%;
 
-    /* Enhanced neon color palette */
     --neon-purple: 280 100% 70%;
     --neon-blue: 200 100% 60%;
-    --neon-pink: 320 100% 70%;
+    --neon-pink: 180 100% 70%;
     --neon-cyan: 180 100% 60%;
     --neon-green: 120 100% 60%;
     --neon-orange: 30 100% 60%;
+  }
+
+  /* Theme: Dark Onyx (Minimalist) */
+  .theme-dark-onyx {
+    --background: 240 10% 4%;
+    /* Deep carbon */
+    --foreground: 0 0% 90%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 90%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 90%;
+    --primary: 45 100% 50%;
+    /* Pure Gold */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 240 10% 12%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 240 10% 10%;
+    --muted-foreground: 240 5% 60%;
+    --accent: 45 100% 50%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 62.8% 30.6%;
+    --border: 240 10% 15%;
+    --input: 240 10% 12%;
+    --ring: 45 100% 50%;
+  }
+
+  /* Theme: Light Snow (Clean Apple-style) */
+  .theme-light-snow {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+  }
+
+  /* Theme: Light Sepia (Warm Paper) */
+  .theme-light-sepia {
+    --background: 35 30% 92%;
+    --foreground: 25 20% 15%;
+    --card: 35 30% 94%;
+    --card-foreground: 25 20% 15%;
+    --popover: 35 30% 94%;
+    --popover-foreground: 25 20% 15%;
+    --primary: 25 60% 35%;
+    /* Terracotta */
+    --primary-foreground: 35 30% 98%;
+    --secondary: 35 25% 85%;
+    --secondary-foreground: 25 20% 15%;
+    --muted: 35 20% 88%;
+    --muted-foreground: 25 10% 45%;
+    --accent: 35 25% 85%;
+    --accent-foreground: 25 60% 35%;
+    --destructive: 0 50% 40%;
+    --border: 35 20% 80%;
+    --input: 35 20% 80%;
+    --ring: 25 60% 35%;
+  }
+
+  /* Theme: Classic Slate (Professional) */
+  .theme-classic-slate {
+    --background: 215 25% 27%;
+    --foreground: 210 40% 98%;
+    --card: 217 25% 33%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217 25% 33%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 199 89% 48%;
+    /* Azure blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 25% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 215 25% 20%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 199 89% 48%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --border: 215 25% 18%;
+    --input: 215 25% 20%;
+    --ring: 199 89% 48%;
+  }
+
+  /* Theme: Classic Retro (Terminal Gold) */
+  .theme-classic-retro {
+    --background: 45 100% 2%;
+    --foreground: 45 100% 60%;
+    /* Amber phosphor */
+    --card: 45 100% 4%;
+    --card-foreground: 45 100% 60%;
+    --popover: 45 100% 4%;
+    --popover-foreground: 45 100% 60%;
+    --primary: 45 100% 50%;
+    --primary-foreground: 45 100% 2%;
+    --secondary: 45 50% 8%;
+    --secondary-foreground: 45 100% 60%;
+    --muted: 45 50% 8%;
+    --muted-foreground: 45 40% 40%;
+    --accent: 45 100% 50%;
+    --accent-foreground: 45 100% 5%;
+    --destructive: 0 100% 50%;
+    --border: 45 80% 20%;
+    --input: 45 50% 8%;
+    --ring: 45 100% 50%;
+  }
+
+  /* Theme: Plasma Plex Neon (KDE Plasma-inspired) */
+  .theme-plasma-plex-neon {
+    --background: 260 30% 6%;
+    /* Deep purple-black */
+    --foreground: 260 20% 95%;
+    /* Soft white with purple tint */
+    --card: 260 25% 10%;
+    /* Elevated card background */
+    --card-foreground: 260 20% 95%;
+    --popover: 260 25% 8%;
+    --popover-foreground: 260 20% 95%;
+    --primary: 280 100% 65%;
+    /* Neon purple */
+    --primary-foreground: 260 30% 6%;
+    --secondary: 260 30% 15%;
+    /* Deep purple surface */
+    --secondary-foreground: 260 20% 95%;
+    --muted: 260 20% 18%;
+    --muted-foreground: 260 15% 65%;
+    --accent: 200 100% 60%;
+    /* Cyan neon accent */
+    --accent-foreground: 260 30% 6%;
+    --destructive: 0 100% 60%;
+    --border: 280 50% 25%;
+    /* Purple border */
+    --input: 260 25% 12%;
+    --ring: 280 100% 65%;
+
+    /* Plasma Plex Neon custom palette */
+    --plasma-purple: 280 100% 65%;
+    --plasma-cyan: 190 100% 55%;
+    --plasma-magenta: 320 100% 60%;
+    --plasma-blue: 220 100% 60%;
+    --plasma-pink: 340 100% 65%;
+    --plasma-teal: 170 100% 45%;
+    --plasma-glow-intensity: 0.8;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
+
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 
   /* Enhanced neon glow effects for dark theme */
@@ -77,7 +232,7 @@
        transition: all 0.3s ease;
     } 
     */
-    
+
     /* Only apply glow to specific neon classes */
     .btn-neon:hover {
       text-shadow: 0 0 12px rgba(179, 102, 255, 0.8), 0 0 24px rgba(179, 102, 255, 0.4);
@@ -88,9 +243,9 @@
     .neon-border {
       border: 2px solid hsl(var(--primary));
       box-shadow:
-        0 0 10px rgba(179, 102, 255, 0.5),
-        0 0 20px rgba(179, 102, 255, 0.3),
-        inset 0 0 10px rgba(179, 102, 255, 0.1);
+        0 0 10px rgba(0, 153, 255, 0.5),
+        0 0 20px rgba(0, 153, 255, 0.3),
+        inset 0 0 10px rgba(0, 153, 255, 0.1);
       animation: neon-pulse 2s ease-in-out infinite alternate;
     }
 
@@ -123,19 +278,19 @@
     /* Cyberpunk card effects */
     .cyber-card {
       background: linear-gradient(135deg,
-        hsl(var(--card)) 0%,
-        hsl(var(--secondary)) 100%);
+          hsl(var(--card)) 0%,
+          hsl(var(--secondary)) 100%);
       border: 1px solid hsl(var(--border));
       box-shadow:
         0 4px 6px rgba(0, 0, 0, 0.1),
-        0 0 20px rgba(179, 102, 255, 0.1);
+        0 0 20px rgba(0, 153, 255, 0.1);
       transition: box-shadow 0.3s ease;
     }
 
     .cyber-card:hover {
       box-shadow:
         0 8px 12px rgba(0, 0, 0, 0.2),
-        0 0 30px rgba(179, 102, 255, 0.2),
+        0 0 30px rgba(0, 153, 255, 0.2),
         0 0 40px rgba(0, 153, 255, 0.1);
     }
 
@@ -145,8 +300,8 @@
     select:focus {
       border-color: hsl(var(--primary));
       box-shadow:
-        0 0 0 2px rgba(179, 102, 255, 0.3),
-        0 0 10px rgba(179, 102, 255, 0.2);
+        0 0 0 2px rgba(0, 153, 255, 0.3),
+        0 0 10px rgba(0, 153, 255, 0.2);
       outline: none;
     }
 
@@ -155,7 +310,7 @@
       background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--neon-blue)));
       color: hsl(var(--primary-foreground));
       border: none;
-      box-shadow: 0 0 20px rgba(179, 102, 255, 0.4);
+      box-shadow: 0 0 20px rgba(0, 153, 255, 0.4);
       transition: box-shadow 0.3s ease;
     }
 
@@ -181,10 +336,11 @@
   @keyframes neon-pulse {
     from {
       box-shadow:
-        0 0 10px rgba(179, 102, 255, 0.5),
-        0 0 20px rgba(179, 102, 255, 0.3),
-        inset 0 0 10px rgba(179, 102, 255, 0.1);
+        0 0 10px rgba(0, 153, 255, 0.5),
+        0 0 20px rgba(0, 153, 255, 0.3),
+        inset 0 0 10px rgba(0, 153, 255, 0.1);
     }
+
     to {
       box-shadow:
         0 0 15px rgba(179, 102, 255, 0.7),
@@ -207,21 +363,21 @@
 
 .dark ::-webkit-scrollbar-thumb {
   background: linear-gradient(135deg,
-    hsl(var(--primary)) 0%,
-    hsl(var(--neon-blue)) 100%);
+      hsl(var(--primary)) 0%,
+      hsl(var(--neon-blue)) 100%);
   border-radius: 6px;
   border: 2px solid hsl(var(--background));
-  box-shadow: 0 0 8px rgba(179, 102, 255, 0.4);
+  box-shadow: 0 0 8px rgba(0, 153, 255, 0.4);
   transition: all 0.3s ease;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg,
-    hsl(var(--neon-pink)) 0%,
-    hsl(var(--primary)) 100%);
+      hsl(var(--neon-cyan)) 0%,
+      hsl(var(--primary)) 100%);
   box-shadow:
-    0 0 12px rgba(179, 102, 255, 0.6),
-    0 0 20px rgba(255, 0, 128, 0.4);
+    0 0 12px rgba(0, 153, 255, 0.6),
+    0 0 20px rgba(0, 255, 255, 0.4);
 }
 
 .dark ::-webkit-scrollbar-corner {
@@ -239,6 +395,7 @@
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(400%);
   }
@@ -264,7 +421,8 @@
 
 /* Focus visible styles for keyboard navigation */
 @layer utilities {
-  .focus-visible-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  .focus-visible-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary));
   }
 }

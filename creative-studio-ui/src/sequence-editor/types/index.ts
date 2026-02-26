@@ -75,6 +75,11 @@ export interface VideoEffects {
     hue: number;
   };
   blur?: number;
+  vignette?: {
+    intensity: number;  // 0-100
+    roundness: number;  // 0-100
+    softness: number;   // 0-100
+  };
 }
 
 export interface MediaLayerData {
@@ -149,13 +154,52 @@ export interface KeyframeLayerData {
   interpolation: 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out';
 }
 
+// ============================================================================
+// TTS and Speech Types
+// ============================================================================
+
+export interface TTSCharacter {
+  id: string;
+  name: string;
+  voiceId?: string;
+  language?: string;
+  gender?: 'male' | 'female' | 'neutral';
+  preview?: string; // URL to voice preview
+}
+
+export interface TTSMethod {
+  id: string;
+  name: string;
+  provider: 'elevenlabs' | 'openai' | 'coqui' | 'sapi' | 'local';
+  requiresApiKey?: boolean;
+  supportedLanguages?: string[];
+  voiceCount?: number;
+}
+
+export interface SpeechLayerData {
+  text: string;
+  characterId?: string;
+  characterName?: string;
+  ttsMethod?: string;
+  voiceId?: string;
+  speed: number; // 0.5 - 2.0
+  pitch: number; // -10 to +10
+  volume: number; // 0-1
+  emotion?: string;
+  // Generated audio
+  audioUrl?: string;
+  audioDuration?: number; // in frames
+  generatedAt?: number;
+}
+
 export type LayerData =
   | MediaLayerData
   | AudioLayerData
   | EffectsLayerData
   | TransitionLayerData
   | TextLayerData
-  | KeyframeLayerData;
+  | KeyframeLayerData
+  | SpeechLayerData;
 
 export interface Layer {
   id: string;

@@ -1,0 +1,48 @@
+openapi: 3.0.0
+info:
+  title: StoryCore - API Task Status
+  version: 1.0.0
+paths:
+  /api/tasks/api/{job_id}:
+    get:
+      summary: Get API-driven API task status
+      operationId: GetApiTaskStatus
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APITaskStatusResponse'
+        '404':
+          description: API task not found
+components:
+  schemas:
+    APITaskStatusResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+        progress:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        error:
+          type: string
+          nullable: true

@@ -8,8 +8,8 @@ import type {
   AssetMetadata,
   ValidationResult,
   ImportResult,
-} from '../../types/asset';
-import { ASSET_VALIDATION_RULES } from '../../types/asset';
+} from '@/types/asset';
+import { ASSET_VALIDATION_RULES } from '@/types/asset';
 
 export class AssetService {
   /**
@@ -386,7 +386,7 @@ export class AssetService {
     // For now, we'll use a placeholder that assumes Electron IPC is available
     if (window.electronAPI && window.electronAPI.fs) {
       // Ensure directory exists
-      await window.electronAPI.fs.ensureDir(targetDir);
+      await window.electronAPI.fs.mkdir(targetDir, { recursive: true });
 
       // Read file as ArrayBuffer
       const arrayBuffer = await file.arrayBuffer();
@@ -516,7 +516,7 @@ export class AssetService {
     }
 
     // Update assets array
-    projectData.assets = assets;
+    (projectData as any).assets = assets;
 
     // Write back to project.json
     const jsonString = JSON.stringify(projectData, null, 2);

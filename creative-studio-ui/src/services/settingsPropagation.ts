@@ -13,7 +13,7 @@ import type {
   LLMSettingsUpdatedPayload,
   ComfyUISettingsUpdatedPayload,
 } from './eventEmitter';
-import { getLLMService, setDefaultLLMService, createLLMService } from './llmService';
+import { llmService, setDefaultLLMService, createLLMService } from './llmService';
 import type { LLMConfig } from './llmService';
 import { backendApi } from './backendApiService';
 import type { ComfyUIConfig } from './comfyuiService';
@@ -90,7 +90,7 @@ class SettingsPropagationManager {
 
     try {
       // Get the current LLM service
-      const llmService = getLLMService();
+      const service = llmService;
 
       // Load full configuration from storage
       const storedConfig = this.loadLLMConfigFromStorage();
@@ -316,8 +316,8 @@ class SettingsPropagationManager {
   async triggerLLMPropagation(): Promise<void> {
     const config = this.loadLLMConfigFromStorage();
     if (config) {
-      const llmService = getLLMService();
-      llmService.updateConfig(config);
+      const service = llmService;
+      service.updateConfig(config);
       await this.notifyLLMListeners(config);
     }
   }

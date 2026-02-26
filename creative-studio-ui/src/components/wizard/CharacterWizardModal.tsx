@@ -5,7 +5,7 @@
  * Integrates with app state and provides modal UI
  */
 
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { CharacterWizard } from './character/CharacterWizard';
 import { LLMStatusBanner } from './LLMStatusBanner';
@@ -32,6 +32,27 @@ export function CharacterWizardModal({
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
   console.log('[CharacterWizardModal] Rendered with isOpen:', isOpen);
+
+  // Handle Escape key to close modal
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      console.log('[CharacterWizardModal] Escape key pressed, closing modal');
+      onClose();
+    }
+  }, [onClose]);
+
+  // Add/remove keyboard event listener
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, handleKeyDown]);
 
   if (!isOpen) {
     return null;

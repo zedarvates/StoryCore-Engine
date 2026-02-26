@@ -25,7 +25,7 @@ export async function getInstalledOllamaModels(
   try {
     const response = await fetch(`${endpoint}/api/tags`, {
       method: 'GET',
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!response.ok) {

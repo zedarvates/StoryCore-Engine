@@ -51,9 +51,9 @@ export interface ProjectContextValue {
   saveProject: () => Promise<void>;
 
   // Shot Management (Task 3.2)
-  updateShot: (shotId: string, updates: Partial<Shot>) => void;
+  updateShot: (shotId: string, updates: Partial<DashboardShot>) => void;
   deleteShot: (shotId: string, deletePhrases: boolean) => void;
-  validateAllShots: () => { valid: boolean; invalidShots: Shot[] };
+  validateAllShots: () => { valid: boolean; invalidShots: DashboardShot[] };
   getPromptCompletionStatus: () => { complete: number; incomplete: number; total: number };
 
   // Dialogue Phrase Management (Task 3.3)
@@ -67,7 +67,7 @@ export interface ProjectContextValue {
   cancelGeneration: () => void;
 
   // Selection Management
-  selectShot: (shot: Shot | null) => void;
+  selectShot: (shot: DashboardShot | null) => void;
 }
 
 // ============================================================================
@@ -256,7 +256,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
    * Requirements: 1.2, 1.4
    * Uses memoized validation for performance (Requirements: 10.1)
    */
-  const updateShot = useCallback((shotId: string, updates: Partial<Shot>) => {
+  const updateShot = useCallback((shotId: string, updates: Partial<DashboardShot>) => {
     setProject(prev => {
       if (!prev) return prev;
 
@@ -351,7 +351,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
    * Requirements: 2.3, 6.1, 6.2
    * Uses memoized validation for performance (Requirements: 10.1)
    */
-  const validateAllShots = useCallback((): { valid: boolean; invalidShots: Shot[] } => {
+  const validateAllShots = useCallback((): { valid: boolean; invalidShots: DashboardShot[] } => {
     if (!project) {
       return { valid: true, invalidShots: [] };
     }
@@ -610,7 +610,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
    * Select a shot for editing
    * Requirements: 1.4
    */
-  const selectShot = useCallback((shot: Shot | null) => {
+  const selectShot = useCallback((shot: DashboardShot | null) => {
     setSelectedShot(shot);
   }, []);
 

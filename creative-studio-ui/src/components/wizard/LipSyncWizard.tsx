@@ -1,512 +1,251 @@
 /**
  * Lip Sync Wizard Component
- *
- * Modal wizard for generating lip-synced videos.
- * Synchronizes character face with audio dialogue.
  */
 
-import React, { useState, useCallback } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  X, 
+  Upload, 
+  Mic, 
+  Video, 
+  Settings, 
+  ChevronRight, 
+  CheckCircle2, 
+  AlertCircle,
+  Play,
+  RotateCcw,
+  FileVideo,
+  Download,
+  Plus
+} from 'lucide-react';
 import { useLipSyncStore } from '@/stores/lipSyncStore';
-import { LipSyncModel, LipSyncStyle } from '@/types/lipSync';
+import { useAppStore } from '@/stores/useAppStore';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import './WizardModal.css';
 
 export interface LipSyncWizardProps {
   isOpen: boolean;
   onClose: () => void;
-  projectId: string;
-  onComplete?: (videoUrl: string) => void;
-  preSelectedCharacterImage?: string;
-  preSelectedAudioFile?: string;
+  projectId?: string;
+  context?: {
+    characterImage?: string;
+    audioFile?: string;
+    shotId?: string;
+  };
+  updateShot?: (shotId: string, updates: any) => void;
 }
 
-/**
- * Lip Sync Wizard Steps
- */
-export enum LipSyncWizardStep {
-  SELECT_ASSETS = 'select_assets',
-  CONFIGURE = 'configure',
-  GENERATE = 'generate',
-  COMPLETE = 'complete'
-}
-
-export function LipSyncWizard({
-  isOpen,
-  onClose,
-  projectId,
-  onComplete,
-  preSelectedCharacterImage,
-  preSelectedAudioFile
+export function LipSyncWizard({ 
+  isOpen, 
+  onClose, 
+  projectId, 
+  context,
+  updateShot 
 }: LipSyncWizardProps) {
-  const [currentStep, setCurrentStep] = useState<LipSyncWizardStep>(LipSyncWizardStep.SELECT_ASSETS);
-  const [isRecording, setIsRecording] = useState(false);
+  const [step, setStep] = useState<'assets' | 'configure' | 'generate' | 'complete'>('assets');
+  const [characterImage, setCharacterImage] = useState<string | null>(context?.characterImage || null);
+  const [audioFile, setAudioFile] = useState<string | null>(context?.audioFile || null);
   
-  // Store state
-  const {
-    characterFaceImage,
-    audioFile,
-    options,
-    isGenerating,
-    progress,
-    error,
-    currentJob,
-    setCharacterFaceImage,
-    setAudioFile,
-    setOptions,
-    generateLipSync,
-    clearError,
-    reset
+  const { 
+    isGenerating, 
+    progress, 
+    generateLipSync, 
+    generatedVideo,
+    reset 
   } = useLipSyncStore();
-
-  // Initialize with pre-selected values
-  React.useEffect(() => {
-    if (preSelectedCharacterImage) {
-      setCharacterFaceImage(preSelectedCharacterImage);
-    }
-    if (preSelectedAudioFile) {
-      setAudioFile(preSelectedAudioFile);
-    }
-  }, [preSelectedCharacterImage, preSelectedAudioFile]);
-
-  const handleGenerate = useCallback(async () => {
-    clearError();
-    setCurrentStep(LipSyncWizardStep.GENERATE);
-    
-    try {
-      await generateLipSync(projectId);
-      
-      if (currentJob?.status === 'completed' && currentJob.output_video) {
-        setCurrentStep(LipSyncWizardStep.COMPLETE);
-        onComplete?.(currentJob.output_video);
-      }
-    } catch (err) {
-      // Error is handled by the store
-    }
-  }, [projectId, generateLipSync, currentJob, onComplete]);
 
   const handleClose = useCallback(() => {
     reset();
-    setCurrentStep(LipSyncWizardStep.SELECT_ASSETS);
     onClose();
-  }, [reset, onClose]);
+  }, [onClose, reset]);
 
-  const canProceedToConfig = characterFaceImage && audioFile;
-  const canGenerate = canProceedToConfig && !isGenerating;
-
-  // Handle browse image button - uses file input (works in both Electron and browser)
-  const handleBrowseImage = useCallback(() => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/jpeg,image/png,image/webp,image/gif';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        // Create object URL for preview
-        const url = URL.createObjectURL(file);
-        setCharacterFaceImage(url);
+  // Handle Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleClose();
       }
-    };
-    input.click();
-  }, [setCharacterFaceImage]);
+    },
+    [handleClose]
+  );
 
-  // Handle browse audio button
-  const handleBrowseAudio = useCallback(() => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'audio/mpeg,audio/wav,audio/ogg,audio/m4a,audio/aac';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        setAudioFile(url);
-      }
-    };
-    input.click();
-  }, [setAudioFile]);
-
-  // Handle record audio button
-  const handleRecord = useCallback(() => {
-    if (isRecording) {
-      setIsRecording(false);
-      // Stop recording logic would go here
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+      if (context?.characterImage) setCharacterImage(context.characterImage);
+      if (context?.audioFile) setAudioFile(context.audioFile);
     } else {
-      setIsRecording(true);
-      // Start recording logic would go here
-      console.log('Recording started...');
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
     }
-  }, [isRecording]);
 
-  // Handle download video
-  const handleDownload = useCallback(() => {
-    if (currentJob?.output_video) {
-      const link = document.createElement('a');
-      link.href = currentJob.output_video;
-      link.download = `lipsync_video_${Date.now()}.mp4`;
-      link.click();
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, handleKeyDown, context]);
+
+  const handleGenerate = async () => {
+    if (!characterImage || !audioFile) {
+      toast({ title: "Assets missing", description: "Please select both character and audio.", variant: "destructive" });
+      return;
     }
-  }, [currentJob?.output_video]);
 
-  // Handle add to timeline
-  const handleAddToTimeline = useCallback(() => {
-    if (currentJob?.output_video) {
-      // Dispatch event to add video to timeline
-      const event = new CustomEvent('add-to-timeline', {
-        detail: { videoUrl: currentJob.output_video }
-      });
-      window.dispatchEvent(event);
-      console.log('Video added to timeline:', currentJob.output_video);
-    }
-  }, [currentJob?.output_video]);
-
-  /**
-   * Render Step 1: Select Assets
-   */
-  const renderSelectAssets = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Select Assets</h3>
-        <p className="text-sm text-muted-foreground mb-6">
-          Choose the character face image and audio file to synchronize.
-        </p>
-      </div>
-
-      {/* Character Face Image */}
-      <div className="space-y-2">
-        <Label htmlFor="character-face">Character Face Image</Label>
-        <div className="flex gap-2">
-          <Input
-            id="character-face"
-            type="text"
-            value={characterFaceImage || ''}
-            onChange={(e) => setCharacterFaceImage(e.target.value)}
-            placeholder="Enter image path or select from library"
-            className="flex-1"
-          />
-          <Button variant="outline" onClick={handleBrowseImage}>
-            Browse
-          </Button>
-        </div>
-        {characterFaceImage && (
-          <div className="mt-2 border rounded-md p-2 max-w-xs">
-            <img 
-              src={characterFaceImage} 
-              alt="Character face preview" 
-              className="w-full h-auto object-contain rounded"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Audio File */}
-      <div className="space-y-2">
-        <Label htmlFor="audio-file">Audio File (Dialogue)</Label>
-        <div className="flex gap-2">
-          <Input
-            id="audio-file"
-            type="text"
-            value={audioFile || ''}
-            onChange={(e) => setAudioFile(e.target.value)}
-            placeholder="Enter audio path or record new"
-            className="flex-1"
-          />
-          <Button variant="outline" onClick={handleBrowseAudio}>
-            Browse
-          </Button>
-          <Button variant="outline" onClick={handleRecord}>
-            {isRecording ? 'Stop' : 'Record'}
-          </Button>
-        </div>
-        {audioFile && (
-          <div className="mt-2">
-            <audio controls src={audioFile} className="w-full" />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  /**
-   * Render Step 2: Configure Options
-   */
-  const renderConfigure = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Configure Lip Sync</h3>
-        <p className="text-sm text-muted-foreground mb-6">
-          Adjust parameters for optimal lip synchronization.
-        </p>
-      </div>
-
-      {/* Model Selection */}
-      <div className="space-y-2">
-        <Label>Lip Sync Model</Label>
-        <Select
-          value={options.model}
-          onValueChange={(value) => setOptions({ model: value as LipSyncModel })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select model" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="wav2lip">Wav2Lip (Fast)</SelectItem>
-            <SelectItem value="wav2lip_gan">Wav2Lip GAN (High Quality)</SelectItem>
-            <SelectItem value="sadtalker">SadTalker (Expressive)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Style */}
-      <div className="space-y-2">
-        <Label>Expression Style</Label>
-        <Select
-          value={options.style}
-          onValueChange={(value) => setOptions({ style: value as LipSyncStyle })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select style" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="neutral">Neutral</SelectItem>
-            <SelectItem value="happy">Happy</SelectItem>
-            <SelectItem value="sad">Sad</SelectItem>
-            <SelectItem value="angry">Angry</SelectItem>
-            <SelectItem value="surprised">Surprised</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Enhancer */}
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="enhancer"
-          checked={options.enhancer}
-          onCheckedChange={(checked) => setOptions({ enhancer: !!checked })}
-        />
-        <Label htmlFor="enhancer">Use Face Enhancer (GFPGAN)</Label>
-      </div>
-
-      {/* Padding */}
-      <div className="space-y-2">
-        <Label>Face Padding</Label>
-        <Input
-          value={options.pads}
-          onChange={(e) => setOptions({ pads: e.target.value })}
-          placeholder="0 0 0 0"
-        />
-        <p className="text-xs text-muted-foreground">
-          Format: top right bottom left (in pixels)
-        </p>
-      </div>
-    </div>
-  );
-
-  /**
-   * Render Step 3: Generate
-   */
-  const renderGenerate = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Generating Lip Sync</h3>
-        <p className="text-sm text-muted-foreground mb-6">
-          Please wait while your video is being generated.
-        </p>
-      </div>
-
-      {/* Progress */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span>Progress</span>
-          <span>{progress}%</span>
-        </div>
-        <Progress value={progress} className="w-full" />
-      </div>
-
-      {/* Status */}
-      {currentJob && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">
-              {currentJob.status === 'processing' && 'Processing lip sync...'}
-              {currentJob.status === 'enhancing' && 'Enhancing face quality...'}
-              {currentJob.status === 'completed' && 'Generation complete!'}
-              {currentJob.status === 'failed' && 'Generation failed'}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Error */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-    </div>
-  );
-
-  /**
-   * Render Step 4: Complete
-   */
-  const renderComplete = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Lip Sync Complete!</h3>
-        <p className="text-sm text-muted-foreground mb-6">
-          Your lip-synced video has been generated successfully.
-        </p>
-      </div>
-
-      {/* Preview */}
-      {currentJob?.output_video && (
-        <div className="border rounded-md overflow-hidden">
-          <video 
-            src={currentJob.output_video} 
-            controls 
-            className="w-full"
-            autoPlay
-          />
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <Button onClick={handleDownload}>
-          Download Video
-        </Button>
-        <Button variant="outline" onClick={handleAddToTimeline}>
-          Add to Timeline
-        </Button>
-      </div>
-    </div>
-  );
-
-  /**
-   * Render current step content
-   */
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case LipSyncWizardStep.SELECT_ASSETS:
-        return renderSelectAssets();
-      case LipSyncWizardStep.CONFIGURE:
-        return renderConfigure();
-      case LipSyncWizardStep.GENERATE:
-        return renderGenerate();
-      case LipSyncWizardStep.COMPLETE:
-        return renderComplete();
-      default:
-        return null;
+    setStep('generate');
+    try {
+      await generateLipSync(characterImage, audioFile);
+      setStep('complete');
+    } catch (error) {
+      toast({ title: "Generation failed", description: "Error during lip sync generation.", variant: "destructive" });
+      setStep('configure');
     }
   };
 
-  /**
-   * Get step title
-   */
-  const getStepTitle = () => {
-    switch (currentStep) {
-      case LipSyncWizardStep.SELECT_ASSETS:
-        return 'Select Assets';
-      case LipSyncWizardStep.CONFIGURE:
-        return 'Configure';
-      case LipSyncWizardStep.GENERATE:
-        return 'Generate';
-      case LipSyncWizardStep.COMPLETE:
-        return 'Complete';
-      default:
-        return '';
+  const handleAddToTimeline = () => {
+    if (generatedVideo && context?.shotId && updateShot) {
+      updateShot(context.shotId, { video: generatedVideo });
+      toast({ title: "Success", description: "Video added to shot." });
+      handleClose();
     }
   };
+
+  if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Lip Sync Wizard</DialogTitle>
-          <DialogDescription>
-            Step {Object.values(LipSyncWizardStep).indexOf(currentStep) + 1} of 4: {getStepTitle()}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="mt-4">
-          {/* Step Indicator */}
-          <div className="flex items-center gap-2 mb-6">
-            {Object.values(LipSyncWizardStep).map((step, index) => (
-              <React.Fragment key={step}>
-                <div
-                  className={`w-3 h-3 rounded-full ${
-                    step === currentStep
-                      ? 'bg-primary'
-                      : Object.values(LipSyncWizardStep).indexOf(step) < Object.values(LipSyncWizardStep).indexOf(currentStep)
-                      ? 'bg-primary/50'
-                      : 'bg-muted'
-                  }`}
-                />
-                {index < Object.values(LipSyncWizardStep).length - 1 && (
-                  <div className="flex-1 h-0.5 bg-muted" />
-                )}
-              </React.Fragment>
-            ))}
+    <div className="wizard-modal-overlay" onClick={handleClose}>
+      <div className="wizard-modal-container max-w-4xl" onClick={(e) => e.stopPropagation()}>
+        <div className="wizard-modal-header">
+           <div className="flex items-center gap-3">
+            <div className="p-2 bg-pink-500/20 rounded-lg text-pink-400">
+              <Video size={20} className="animate-pulse" />
+            </div>
+            <div className="flex flex-col">
+              <h2 className="wizard-modal-title">AI Lip Sync Wizard</h2>
+              <span className="text-[10px] text-pink-400/70 uppercase tracking-widest font-black">Sync Engine v2.0</span>
+            </div>
           </div>
-
-          {/* Step Content */}
-          {renderStepContent()}
+          <button
+            className="wizard-modal-close"
+            onClick={handleClose}
+            aria-label="Fermer"
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        {/* Navigation */}
-        <DialogFooter className="mt-6">
-          {currentStep !== LipSyncWizardStep.GENERATE && currentStep !== LipSyncWizardStep.COMPLETE && (
-            <>
-              {currentStep !== LipSyncWizardStep.SELECT_ASSETS && (
+        <div className="wizard-modal-content p-8">
+          <div className="flex justify-between items-center mb-8 bg-black/40 p-4 rounded-xl border border-white/5">
+             {['Assets', 'Configure', 'Generate', 'Complete'].map((s, i) => (
+               <div key={s} className="flex items-center gap-2">
+                 <div className={cn(
+                   "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black",
+                   step === s.toLowerCase() ? "bg-pink-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)]" : "bg-white/10 text-slate-500"
+                 )}>
+                   {i + 1}
+                 </div>
+                 <span className={cn(
+                   "text-[10px] uppercase font-black tracking-widest",
+                   step === s.toLowerCase() ? "text-pink-500" : "text-slate-500"
+                 )}>{s}</span>
+                 {i < 3 && <div className="w-8 h-px bg-white/10 mx-2" />}
+               </div>
+             ))}
+          </div>
+
+          {step === 'assets' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h3 className="text-2xl font-black uppercase tracking-tight text-white mb-6">Import Media</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-pink-400">Character Model</span>
+                  <div className="aspect-square bg-black/40 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-pink-500/50 hover:bg-pink-500/5 transition-all overflow-hidden relative">
+                    {characterImage ? (
+                      <img src={characterImage} className="w-full h-full object-cover" alt="Avatar" />
+                    ) : (
+                      <>
+                        <Upload className="text-slate-600 mb-2" size={32} />
+                        <span className="text-xs text-slate-500">Drop frame here</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-blue-400">Audio Track</span>
+                  <div className="aspect-square bg-black/40 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all overflow-hidden relative">
+                    {audioFile ? (
+                      <div className="flex flex-col items-center">
+                        <Mic className="text-blue-500 mb-2" size={32} />
+                        <span className="text-xs text-blue-400 font-mono">Audio Loaded</span>
+                      </div>
+                    ) : (
+                      <>
+                        <Mic className="text-slate-600 mb-2" size={32} />
+                        <span className="text-xs text-slate-500">Drop audio here</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-12 flex justify-end">
                 <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    const currentIndex = Object.values(LipSyncWizardStep).indexOf(currentStep);
-                    setCurrentStep(Object.values(LipSyncWizardStep)[currentIndex - 1]);
-                  }}
+                  disabled={!characterImage || !audioFile}
+                  onClick={() => setStep('configure')}
+                  className="bg-pink-600 hover:bg-pink-500 px-10 h-12 font-black uppercase tracking-widest text-xs"
                 >
-                  Back
+                  Configure Sync <ChevronRight className="ml-2" size={16} />
                 </Button>
-              )}
-              
-              {currentStep === LipSyncWizardStep.SELECT_ASSETS ? (
-                <Button 
-                  onClick={() => setCurrentStep(LipSyncWizardStep.CONFIGURE)}
-                  disabled={!canProceedToConfig}
-                >
-                  Next
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleGenerate}
-                  disabled={!canGenerate}
-                >
-                  {isGenerating ? 'Generating...' : 'Generate Lip Sync'}
-                </Button>
-              )}
-            </>
+              </div>
+            </div>
           )}
-          
-          {currentStep === LipSyncWizardStep.COMPLETE && (
-            <Button onClick={handleClose}>
-              Close
-            </Button>
+
+          {step === 'generate' && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+               <div className="w-24 h-24 bg-pink-500/10 rounded-full flex items-center justify-center mb-8 relative">
+                 <Video className="text-pink-500 animate-pulse" size={40} />
+                 <div className="absolute inset-0 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+               </div>
+               <h3 className="text-2xl font-black uppercase tracking-widest text-white mb-2">Generating Lip Sync</h3>
+               <p className="text-slate-400 mb-8 max-w-sm">Synthesizing visual frames with audio waveform dynamics. Please wait...</p>
+               
+               <div className="w-full max-w-md bg-black/40 h-2 rounded-full overflow-hidden mb-2">
+                 <div 
+                   className="h-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-300"
+                   style={{ width: `${progress}%` }}
+                 ></div>
+               </div>
+               <span className="text-[10px] font-black text-pink-500 tracking-[0.3em]">{progress}% COMPLETE</span>
+            </div>
           )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+
+          {step === 'complete' && generatedVideo && (
+            <div className="animate-in zoom-in-95 duration-500">
+               <div className="aspect-video bg-black rounded-2xl border border-white/10 mb-8 overflow-hidden flex items-center justify-center relative group">
+                  <video src={generatedVideo} className="w-full h-full" controls />
+               </div>
+               
+               <div className="flex justify-between items-center gap-4">
+                 <Button variant="outline" onClick={() => setStep('assets')} className="border-white/10 text-slate-400 font-black uppercase tracking-widest text-[10px]">
+                   <RotateCcw className="mr-2" size={14} /> New Generation
+                 </Button>
+                 
+                 <div className="flex gap-4">
+                   <Button variant="secondary" className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-black uppercase tracking-widest text-[10px]">
+                     <Download className="mr-2" size={14} /> Export Video
+                   </Button>
+                   <Button onClick={handleAddToTimeline} className="bg-emerald-600 hover:bg-emerald-500 px-8 font-black uppercase tracking-widest text-[10px]">
+                     <Plus className="mr-2" size={14} /> Add to Timeline
+                   </Button>
+                 </div>
+               </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
-
-export default LipSyncWizard;
-

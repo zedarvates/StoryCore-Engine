@@ -81,35 +81,37 @@ export function StateRecoveryDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-md transition-all duration-300"
       role="dialog"
       aria-modal="true"
       aria-labelledby="recovery-dialog-title"
     >
-      <div className="max-w-lg w-full mx-4 bg-white rounded-lg shadow-xl">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-start gap-4">
+      <div className="max-w-xl w-full mx-4 bg-card border border-primary/30 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+        {/* Header with gradient strip */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500" />
+
+        <div className="p-8 border-b border-border/50">
+          <div className="flex items-start gap-6">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-yellow-600" />
+              <div className="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center border border-yellow-500/20 shadow-inner">
+                <AlertTriangle className="w-8 h-8 text-yellow-500" />
               </div>
             </div>
             <div className="flex-1">
               <h2
                 id="recovery-dialog-title"
-                className="text-xl font-semibold text-gray-900 mb-1"
+                className="text-2xl font-bold text-foreground mb-1 tracking-tight"
               >
-                State Corruption Detected
+                Inconsistance de données
               </h2>
-              <p className="text-sm text-gray-500">
-                Your wizard data may be corrupted or incompatible
+              <p className="text-muted-foreground">
+                Des données corrompues ou incompatibles ont été détectées.
               </p>
             </div>
             {onDismiss && (
               <button
                 onClick={onDismiss}
-                className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 rounded"
+                className="flex-shrink-0 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl transition-all"
                 aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
@@ -119,107 +121,77 @@ export function StateRecoveryDialog({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4">
-          {/* Errors */}
+        <div className="p-8 space-y-6 max-h-[50vh] overflow-y-auto">
+          {/* Errors section */}
           {validationResult.errors.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">Errors:</h3>
-              <ul className="space-y-1">
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-destructive/80">Erreurs critiques :</h3>
+              <div className="space-y-2">
                 {validationResult.errors.map((error, index) => (
-                  <li key={index} className="text-sm text-red-600 flex items-start gap-2">
-                    <span className="text-red-400 mt-0.5">•</span>
+                  <div key={index} className="text-sm text-destructive bg-destructive/5 p-3 rounded-lg border border-destructive/10 flex items-start gap-3">
+                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-destructive flex-shrink-0" />
                     <span>{error}</span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
-          {/* Warnings */}
-          {validationResult.warnings.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">Warnings:</h3>
-              <ul className="space-y-1">
-                {validationResult.warnings.map((warning, index) => (
-                  <li key={index} className="text-sm text-yellow-600 flex items-start gap-2">
-                    <span className="text-yellow-400 mt-0.5">•</span>
-                    <span>{warning}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Recovery Strategy */}
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">
-              Recommended Action:
+          {/* Strategy Recommendation */}
+          <div className="p-5 bg-primary/5 rounded-xl border border-primary/10 shadow-inner">
+            <h3 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Action recommandée :
             </h3>
-            <p className="text-sm text-blue-800">
+            <p className="text-sm text-foreground/80 leading-relaxed">
               {validationResult.recoveryStrategy === 'reset' && (
-                <>
-                  The state is too corrupted to recover. We recommend exporting your data
-                  for manual recovery, then resetting to a clean state.
-                </>
+                "L'état est trop corrompu pour être récupéré automatiquement. Nous recommandons d'exporter vos données pour une sauvegarde manuelle, puis de réinitialiser le wizard."
               )}
               {validationResult.recoveryStrategy === 'partial' && (
-                <>
-                  Some data can be recovered. We'll attempt to preserve as much of your
-                  work as possible.
-                </>
+                "Certaines données peuvent être récupérées. Nous allons tenter de préserver un maximum de votre travail."
               )}
               {validationResult.recoveryStrategy === 'migrate' && (
-                <>
-                  Your data is from a different version. We'll attempt to migrate it to
-                  the current format.
-                </>
+                "Vos données proviennent d'une version antérieure. Nous allons tenter de les migrer vers le format actuel."
               )}
               {!validationResult.recoveryStrategy && (
-                <>
-                  Your data appears to be valid but may have minor issues. You can
-                  continue or reset to a clean state.
-                </>
+                "Vos données semblent plus ou moins valides mais présentent des anomalies mineures. Vous pouvez continuer ou réinitialiser proprement."
               )}
             </p>
           </div>
 
-          {/* Data Preservation Notice */}
-          <div className="p-3 bg-gray-50 rounded border border-gray-200">
-            <p className="text-xs text-gray-600">
-              <strong>Note:</strong> Before taking any action, we recommend exporting your
-              data as a backup. This will allow you to manually recover your work if
-              needed.
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground italic bg-accent/30 p-3 rounded-lg">
+            <strong>Conseil :</strong> Avant toute action radicale, exportez vos données. Cela vous permettra de ne rien perdre en cas d'échec de la récupération automatique.
+          </p>
         </div>
 
-        {/* Actions */}
-        <div className="p-6 bg-gray-50 border-t border-gray-200 space-y-3">
-          <div className="flex gap-3">
+        {/* Actions bar */}
+        <div className="p-8 bg-accent/20 border-t border-border/50 flex flex-col gap-4">
+          <div className="flex gap-4">
             {validationResult.canRecover && onRecover && (
               <button
                 onClick={handleRecover}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-[2] flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
               >
-                <RefreshCw className="w-4 h-4" />
-                Attempt Recovery
+                <RefreshCw className="w-5 h-5" />
+                Tenter la récupération
               </button>
             )}
             <button
               onClick={handleExport}
               disabled={isExporting}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-background border border-border text-foreground rounded-xl font-medium hover:bg-accent active:scale-[0.98] transition-all"
             >
-              <Download className="w-4 h-4" />
-              {isExporting ? 'Exporting...' : 'Export Data'}
+              <Download className="w-5 h-5" />
+              {isExporting ? 'Export...' : 'Exporter'}
             </button>
           </div>
+
           <button
             onClick={handleReset}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all text-sm font-medium border border-transparent hover:border-destructive/20"
           >
             <Trash2 className="w-4 h-4" />
-            Reset to Clean State
+            Réinitialiser complètement (Sûr)
           </button>
         </div>
       </div>

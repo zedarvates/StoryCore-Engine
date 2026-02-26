@@ -88,7 +88,7 @@ class TestCharacterGridConfig:
         assert config.grid_size == GridSize.GRID_3X3
         assert len(config.poses) >= 4
         assert len(config.expressions) >= 4
-        assert config.resolution == 512
+        assert config.resolution == 1024
     
     def test_custom_config(self):
         """Test une configuration personnalisée"""

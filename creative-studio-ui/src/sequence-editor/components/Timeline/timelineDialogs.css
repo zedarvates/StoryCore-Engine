@@ -1,0 +1,561 @@
+/**
+ * Timeline Dialogs Styles
+ * 
+ * Styles for VideoExtensionDialog and SpeechConfigDialog
+ */
+
+/* Dialog Overlay */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Dialog Base */
+.dialog {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  min-width: 480px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #252525;
+  border-bottom: 1px solid #333;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.dialog-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.dialog-close:hover {
+  background: #333;
+  color: #fff;
+}
+
+.dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(90vh - 130px);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #252525;
+  border-top: 1px solid #333;
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #aaa;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #333;
+  border: 1px solid #444;
+  color: #fff;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #3a3a3a;
+}
+
+.btn-primary {
+  background: #4A90E2;
+  border: 1px solid #4A90E2;
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #5a9ff2;
+}
+
+.btn-preview {
+  background: #333;
+  border: 1px solid #444;
+  color: #fff;
+  width: 100%;
+  padding: 12px;
+}
+
+.btn-preview:hover:not(:disabled) {
+  background: #3a3a3a;
+}
+
+/* Video Extension Dialog */
+.video-extension-dialog .shot-info {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #252525;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.video-extension-dialog .shot-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.video-extension-dialog .shot-duration {
+  color: #888;
+  font-size: 12px;
+}
+
+.video-extension-dialog .extension-modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.video-extension-dialog .mode-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: #252525;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.video-extension-dialog .mode-button:hover {
+  border-color: #4A90E2;
+}
+
+.video-extension-dialog .mode-button.active {
+  border-color: #4A90E2;
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.video-extension-dialog .mode-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.video-extension-dialog .mode-name {
+  font-weight: 600;
+  color: #fff;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.video-extension-dialog .mode-description {
+  font-size: 11px;
+  color: #888;
+  text-align: center;
+}
+
+.video-extension-dialog .duration-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.video-extension-dialog .duration-input input[type="range"] {
+  flex: 1;
+}
+
+.video-extension-dialog .duration-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.video-extension-dialog .duration-value input {
+  width: 60px;
+  padding: 4px 8px;
+  background: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #fff;
+  text-align: center;
+}
+
+.video-extension-dialog .duration-presets {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.video-extension-dialog .preset-button {
+  padding: 4px 12px;
+  background: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.video-extension-dialog .preset-button:hover {
+  border-color: #4A90E2;
+  color: #fff;
+}
+
+.video-extension-dialog .preset-button.active {
+  background: #4A90E2;
+  border-color: #4A90E2;
+  color: #fff;
+}
+
+.video-extension-dialog .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.video-extension-dialog .checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.video-extension-dialog .transition-options {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.video-extension-dialog .transition-button {
+  padding: 6px 12px;
+  background: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.video-extension-dialog .transition-button:hover {
+  border-color: #4A90E2;
+  color: #fff;
+}
+
+.video-extension-dialog .transition-button.active {
+  background: #4A90E2;
+  border-color: #4A90E2;
+  color: #fff;
+}
+
+.video-extension-dialog .preview-panel {
+  background: #252525;
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 16px;
+}
+
+.video-extension-dialog .preview-panel h3 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+}
+
+.video-extension-dialog .preview-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.video-extension-dialog .preview-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.video-extension-dialog .preview-item .label {
+  color: #888;
+  font-size: 12px;
+}
+
+.video-extension-dialog .preview-item .value {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Speech Config Dialog */
+.speech-config-dialog {
+  min-width: 560px;
+}
+
+.speech-config-dialog textarea {
+  width: 100%;
+  padding: 12px;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.speech-config-dialog textarea:focus {
+  outline: none;
+  border-color: #4A90E2;
+}
+
+.speech-config-dialog .text-counter {
+  text-align: right;
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.speech-config-dialog .character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.speech-config-dialog .character-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: #252525;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.speech-config-dialog .character-button:hover {
+  border-color: #4A90E2;
+}
+
+.speech-config-dialog .character-button.active {
+  border-color: #4A90E2;
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.speech-config-dialog .character-avatar {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.speech-config-dialog .character-name {
+  font-size: 12px;
+  color: #fff;
+  text-align: center;
+}
+
+.speech-config-dialog select {
+  width: 100%;
+  padding: 10px 12px;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.speech-config-dialog select:focus {
+  outline: none;
+  border-color: #4A90E2;
+}
+
+.speech-config-dialog .method-info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #666;
+}
+
+.speech-config-dialog .speed-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.speech-config-dialog .speed-button {
+  padding: 4px 8px;
+  background: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #888;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.speech-config-dialog .speed-button:hover {
+  border-color: #4A90E2;
+  color: #fff;
+}
+
+.speech-config-dialog .speed-button.active {
+  background: #4A90E2;
+  border-color: #4A90E2;
+  color: #fff;
+}
+
+.speech-config-dialog input[type="range"] {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.speech-config-dialog .pitch-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #666;
+}
+
+.speech-config-dialog .emotion-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.speech-config-dialog .emotion-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px;
+  background: #252525;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.speech-config-dialog .emotion-button:hover {
+  border-color: #4A90E2;
+}
+
+.speech-config-dialog .emotion-button.active {
+  border-color: #4A90E2;
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.speech-config-dialog .emotion-icon {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.speech-config-dialog .emotion-name {
+  font-size: 10px;
+  color: #888;
+}
+
+/* Timeline resize handle indicators */
+.timeline-shot {
+  position: relative;
+}
+
+.timeline-shot .resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+  z-index: 10;
+}
+
+.timeline-shot .resize-handle-left {
+  left: 0;
+}
+
+.timeline-shot .resize-handle-right {
+  right: 0;
+}
+
+.timeline-shot .resize-handle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.timeline-shot.resizing {
+  opacity: 0.8;
+}
+
+.timeline-shot .resize-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.timeline-shot:hover .resize-indicator {
+  opacity: 1;
+}
+
+.timeline-shot .resize-indicator-left {
+  left: 2px;
+}
+
+.timeline-shot .resize-indicator-right {
+  right: 2px;
+}

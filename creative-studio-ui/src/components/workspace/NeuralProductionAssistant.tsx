@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+/* cspell:ignore ollama Agentic Methode Bartelemi euler */
+import React, { useState, useCallback, useEffect } from 'react';
 import {
     Sparkles,
     Layers,
@@ -7,9 +8,8 @@ import {
     UserPlus,
     Zap,
     Info,
-    ChevronRight,
-    Search,
     RefreshCw,
+    Search,
     Download,
     Trash2,
     Brain,
@@ -20,14 +20,14 @@ import {
     AlertCircle,
     ClipboardList,
     Eye,
-    History,
+    History as HistoryIcon,
     BrainCircuit,
     Activity,
     MapPin,
     Package,
     Settings
 } from 'lucide-react';
-import { generateImage, type GenerationParams, WORKFLOW_OPTIONS } from '@/services/imageGenerationService';
+import { generateImage, WORKFLOW_OPTIONS } from '@/services/imageGenerationService';
 import { useStore } from '@/store';
 import { useAppStore } from '@/stores/useAppStore';
 import { useSequencePlanStore } from '@/stores/sequencePlanStore';
@@ -47,19 +47,13 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { ollamaClient } from '@/services/llm/OllamaClient';
-import { rlmService } from '@/services/RecursiveLLMService';
+import { rlmService, type RLMTrajectoryStep } from '@/services/RecursiveLLMService';
 import { useMemoryStore } from '@/stores/memoryStore';
 import { projectMemory } from '@/services/ProjectMemoryService';
+import { type WorkflowType } from '@/services/comfyuiService';
+import { type ProductionShot } from '@/types/shot';
+import { CinematicAdviceService, type CinematicAdvice } from '@/services/cinematic/CinematicAdviceService';
 
-interface Character {
-    character_id: string;
-    name: string;
-    visual_identity?: {
-        generated_portrait?: string;
-        clothing_style?: string;
-        hair_color?: string;
-    };
-}
 
 /**
  * Neural Production Assistant
@@ -69,12 +63,11 @@ interface Character {
  */
 export function NeuralProductionAssistant() {
     const characters = useStore((state) => state.characters);
-    const setCharacters = useStore((state) => state.setCharacters);
-    const updateCharacter = useStore((state) => state.updateCharacter);
     const worlds = useStore((state) => state.worlds);
     const selectedWorldId = useStore((state) => state.selectedWorldId);
     const currentWorld = worlds.find(w => w.id === selectedWorldId);
     const currentPlan = useSequencePlanStore((state) => state.currentPlanData);
+    const project = useAppStore((state) => state.project);
 
     const {
         manifestedAssets,
@@ -94,93 +87,27 @@ export function NeuralProductionAssistant() {
     const [useRecursiveReasoning, setUseRecursiveReasoning] = useState(true);
     const [isMemoryOpen, setIsMemoryOpen] = useState(false);
     const [isCorrectionOpen, setIsCorrectionOpen] = useState(false);
+    const [isTrajectoryOpen, setIsTrajectoryOpen] = useState(false);
     const [correctionText, setCorrectionText] = useState('');
     const [manualInsightText, setManualInsightText] = useState('');
-    const [isTrajectoryOpen, setIsTrajectoryOpen] = useState(false);
+    const [projectAdvice, setProjectAdvice] = useState<CinematicAdvice[]>([]);
+    
+    // Auto-audit project on change
+    useEffect(() => {
+        const advice = CinematicAdviceService.getProjectAdvice(project, characters);
+        setProjectAdvice(advice);
+    }, [project, characters]);
     const [isDistilling, setIsDistilling] = useState(false);
     const [ledgerFilter, setLedgerFilter] = useState<'ALL' | 'CHARACTER_REFERENCE_SHEET' | 'LOCATION_REFERENCE_SHEET' | 'OBJECT_REFERENCE_SHEET'>('ALL');
 
     const { insights, workingContext, promoteInsight, removeInsight, addInsight } = useMemoryStore();
     const { lastTrajectory } = useProductionStore();
+
     const { toast } = useToast();
 
     const advice = adviceHistory[0]?.text || null;
 
-    React.useEffect(() => {
-        const handleGenEvent = (e: any) => {
-            if (e.detail?.characterId) {
-                handleManifestAsset(e.detail.characterId, 'CHARACTER');
-            }
-        };
-        window.addEventListener('storycore:gen-char-sheet', handleGenEvent);
-        return () => window.removeEventListener('storycore:gen-char-sheet', handleGenEvent);
-    }, []);
-
-    const handleGenerateAdvice = async () => {
-        setIsThinking(true);
-        try {
-            const worldInfo = currentWorld ?
-                `World: ${currentWorld.name}, Tone: ${currentWorld.tone.join(', ')}, Vibe: ${currentWorld.visualIntent?.vibe || 'N/A'}` :
-                'No world selected';
-
-            const planInfo = currentPlan ?
-                `Current Plan: ${currentPlan.name} with ${currentPlan.shots.length} shots. 
-                First shot prompt: ${(currentPlan.shots[0] as any)?.generation?.prompt || 'N/A'}` :
-                'No sequence plan active';
-
-            const workingContext = useMemoryStore.getState().workingContext;
-
-            const prompt = `Provide 3 precise directorial tips for visual consistency based on the "Neural Reality Synthesis" protocol.
-            Analyze the current production context:
-
-            [STABLE PROJECT PROTOCOLS]
-            ${workingContext}
-
-            [WORLD BLUEPRINT]
-            ${worldInfo}
-
-            [PRODUCTION PLAN]
-            ${planInfo}
-
-            [LOCKED REFERENCE SHEETS]
-            ${manifestedAssets.map(a => `- ${a.characterName} (${a.type})`).join('\n')}
-
-            Focus on continuity specifically for the locked reference sheets compared to the production plan.
-            Analyze possible lighting transitions, lens geometry continuity, and technical rig alignment.
-            Format: Markdown bullet points with bold keywords.`;
-
-            // Use the general generation method with a default model
-            const availableModels = await ollamaClient.listModels();
-            const modelToUse = availableModels.find(m => m.category === 'storytelling' || m.category === 'general')?.name || 'llama3';
-
-            let responseText = '';
-            if (useRecursiveReasoning) {
-                setGenerationStep('Engaging RLM Recursive Chain...');
-                const { response, trajectory } = await rlmService.executeTask(prompt, modelToUse);
-                responseText = response;
-                useProductionStore.getState().setLastTrajectory(trajectory);
-            } else {
-                responseText = await ollamaClient.generate(modelToUse, prompt, { temperature: 0.7 });
-                useProductionStore.getState().setLastTrajectory([]); // Clear trajectory for standard calls
-            }
-
-            addAdvice(responseText, worldInfo);
-
-            // Total Recall: Analyze for new insights
-            projectMemory.analyzeForMemory(responseText, 'Directorial Advice');
-        } catch (err) {
-            console.error('Failed to get directorial advice:', err);
-            toast({
-                title: "NEURAL LINK ERROR",
-                description: "Failed to communicate with LLM for directorial advice.",
-                variant: "destructive"
-            });
-        } finally {
-            setIsThinking(false);
-        }
-    };
-
-    const handleManifestAsset = async (id: string, type: 'CHARACTER' | 'LOCATION' | 'OBJECT') => {
+    const handleManifestAsset = useCallback(async (id: string, type: 'CHARACTER' | 'LOCATION' | 'OBJECT') => {
         let name = 'Unknown';
         let baseDescription = '';
         let targetType: ManifestedAsset['type'] = 'CHARACTER_REFERENCE_SHEET';
@@ -236,7 +163,7 @@ export function NeuralProductionAssistant() {
                 cfgScale: 7.5,
                 sampler: 'euler',
                 scheduler: 'normal',
-                workflowType: selectedModel as any
+                workflowType: selectedModel as WorkflowType
             }, (progress, message) => {
                 setGenerationStep(`${Math.round(progress * 100)}%: ${message}`);
             });
@@ -266,17 +193,112 @@ export function NeuralProductionAssistant() {
                 title: "MANIFESTATION COMPLETE",
                 description: `${name} reference has been added to the Production Ledger.`,
             });
-        } catch (error: any) {
-            console.error('Manifestation failed:', error);
+        } catch (error) {
+            const err = error as Error;
+            console.error('Manifestation failed:', err);
             setIsGeneratingSheet(null);
             setGenerationStep('');
             toast({
                 variant: "destructive",
                 title: "MANIFESTATION FAILED",
-                description: error.message || "Failed to engage neural synthesis engine.",
+                description: err.message || "Failed to engage neural synthesis engine.",
             });
         }
+    }, [characters, currentWorld, selectedModel, addManifestedAsset, toast]);
+
+    useEffect(() => {
+        const handleGenEvent = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            if (detail?.characterId) {
+                handleManifestAsset(detail.characterId, 'CHARACTER');
+            }
+        };
+        window.addEventListener('storycore:gen-char-sheet', handleGenEvent);
+        return () => window.removeEventListener('storycore:gen-char-sheet', handleGenEvent);
+    }, [handleManifestAsset]);
+
+    // Function to update a shot in the production guide (can be called by LLM)
+    const updateProductionShot = useCallback((shotId: string, updates: Record<string, unknown>) => {
+        window.dispatchEvent(new CustomEvent('storycore:llm-update-shot', {
+            detail: { shotId, updates }
+        }));
+    }, []);
+
+    // Listen for requests to update shots from external sources (e.g., chat commands)
+    useEffect(() => {
+        const handleUpdateShotRequest = (e: Event) => {
+            const detail = (e as CustomEvent<{ shotId: string; updates: Record<string, unknown> }>).detail;
+            if (detail?.shotId && detail?.updates) {
+                updateProductionShot(detail.shotId, detail.updates);
+            }
+        };
+        window.addEventListener('storycore:request-shot-update', handleUpdateShotRequest as EventListener);
+        return () => window.removeEventListener('storycore:request-shot-update', handleUpdateShotRequest as EventListener);
+    }, [updateProductionShot]);
+
+    const handleGenerateAdvice = async () => {
+        setIsThinking(true);
+        try {
+            const worldInfo = currentWorld ?
+                `World: ${currentWorld.name}, Tone: ${currentWorld.tone.join(', ')}, Vibe: ${currentWorld.visualIntent?.vibe || 'N/A'}` :
+                'No world selected';
+
+            const planInfo = currentPlan ?
+                `Current Plan: ${currentPlan.name} with ${currentPlan.shots.length} shots. 
+                First shot prompt: ${(currentPlan.shots[0] as unknown as ProductionShot)?.generation?.prompt || 'N/A'}` :
+                'No sequence plan active';
+
+            const workingContext = useMemoryStore.getState().workingContext;
+
+            const prompt = `Provide 3 precise directorial tips for visual consistency based on the "Neural Reality Synthesis" protocol.
+            Analyze the current production context:
+
+            [STABLE PROJECT PROTOCOLS]
+            ${workingContext}
+
+            [WORLD BLUEPRINT]
+            ${worldInfo}
+
+            [PRODUCTION PLAN]
+            ${planInfo}
+
+            [LOCKED REFERENCE SHEETS]
+            ${manifestedAssets.map(a => `- ${a.characterName} (${a.type})`).join('\n')}
+
+            Focus on continuity specifically for the locked reference sheets compared to the production plan.
+            Analyze possible lighting transitions, lens geometry continuity, and technical rig alignment.
+            Format: Markdown bullet points with bold keywords.`;
+
+            // Use the general generation method with a dynamic model
+            const modelToUse = await ollamaClient.getBestAvailableModel('storytelling');
+
+            let responseText = '';
+            if (useRecursiveReasoning) {
+                setGenerationStep('Engaging RLM Recursive Chain...');
+                const { response, trajectory } = await rlmService.executeTask(prompt, modelToUse);
+                responseText = response;
+                useProductionStore.getState().setLastTrajectory(trajectory);
+            } else {
+                responseText = await ollamaClient.generate(modelToUse, prompt, { temperature: 0.7 });
+                useProductionStore.getState().setLastTrajectory([]); // Clear trajectory for standard calls
+            }
+
+            addAdvice(responseText, worldInfo);
+
+            // Total Recall: Analyze for new insights
+            projectMemory.analyzeForMemory(responseText, 'Directorial Advice');
+        } catch (err) {
+            console.error('Failed to get directorial advice:', err);
+            toast({
+                title: "NEURAL LINK ERROR",
+                description: "Failed to communicate with LLM for directorial advice.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsThinking(false);
+        }
     };
+
 
     const handleCorrection = async () => {
         if (!correctionText.trim()) return;
@@ -332,8 +354,8 @@ export function NeuralProductionAssistant() {
     };
 
     return (
-        <Card className="neural-assistant-panel bg-black/40 border-primary/20 backdrop-blur-xl overflow-hidden">
-            <div className="p-4 border-b border-primary/10 flex items-center justify-between bg-primary/5">
+        <Card className="neural-assistant-panel bg-card/40 border-primary/30 backdrop-blur-xl overflow-hidden shadow-[0_0_15px_rgba(var(--primary-rgb),0.1)]">
+            <div className="p-4 border-b border-primary/10 flex items-center justify-between bg-primary/10 backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] font-mono text-primary/80">
@@ -372,7 +394,7 @@ export function NeuralProductionAssistant() {
                                 className="h-6 w-6 p-0 text-primary/40 hover:text-primary hover:bg-primary/10"
                                 title="Advice History"
                             >
-                                <History className="w-3 h-3" />
+                                <HistoryIcon className="w-3 h-3" />
                             </Button>
                             <Button
                                 variant="ghost"
@@ -404,15 +426,15 @@ export function NeuralProductionAssistant() {
                                         Trace
                                     </Button>
                                 )}
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setIsCorrectionOpen(true)}
-                                    className="h-6 px-2 bg-[#0a0a0b] border border-primary/20 text-[8px] uppercase font-black hover:bg-primary hover:text-black"
-                                >
-                                    <MessageSquareQuote size={10} className="mr-1" />
-                                    Correct AI
-                                </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => setIsCorrectionOpen(true)}
+                                        className="h-6 px-2 bg-background border border-primary/20 text-[8px] uppercase font-black hover:bg-primary hover:text-black"
+                                    >
+                                        <MessageSquareQuote size={10} className="mr-1" />
+                                        Correct AI
+                                    </Button>
                             </div>
                         </div>
                     ) : (
@@ -429,19 +451,47 @@ export function NeuralProductionAssistant() {
                 </div>
 
                 {/* Production Health Indicators */}
-                {currentPlan && (
-                    <div className="p-3 bg-white/5 border border-white/5 rounded-sm space-y-3">
-                        <div className="flex items-center gap-2 text-primary/40">
-                            <Activity className="w-3 h-3" />
-                            <span className="text-[8px] font-bold uppercase tracking-widest">Production Integrity</span>
-                        </div>
+                <div className="p-3 bg-white/5 border border-white/5 rounded-sm space-y-3">
+                    <div className="flex items-center gap-2 text-primary/40">
+                        <Activity className="w-3 h-3" />
+                        <span className="text-[8px] font-bold uppercase tracking-widest">Assistant Diagnostic</span>
+                    </div>
 
+                    {projectAdvice.length > 0 ? (
                         <div className="space-y-2">
+                            {projectAdvice.map(adv => (
+                                <div key={adv.id} className={cn(
+                                    "p-2 rounded-xs border-l-2 text-[9px] leading-tight",
+                                    adv.level === 'warning' ? "bg-red-500/10 border-red-500/50 text-red-200" :
+                                    adv.level === 'success' ? "bg-green-500/10 border-green-500/50 text-green-200" :
+                                    "bg-blue-500/10 border-blue-500/50 text-blue-200"
+                                )}>
+                                    <div className="flex items-start gap-1.5">
+                                        {adv.level === 'warning' ? <AlertCircle className="w-2.5 h-2.5 mt-0.5" /> : <Info className="w-2.5 h-2.5 mt-0.5" />}
+                                        <p>{adv.text}</p>
+                                    </div>
+                                    {adv.actionLabel && (
+                                        <button className="mt-1 text-primary hover:underline font-bold uppercase tracking-tighter text-[7px]">
+                                            {adv.actionLabel}
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 text-[9px] text-green-400/60 p-2">
+                            <ShieldCheck className="w-3 h-3" />
+                            <span>Neural Consistency Optimized</span>
+                        </div>
+                    )}
+
+                    {currentPlan && (
+                        <div className="pt-2 border-t border-white/5 space-y-2">
                             <div className="flex justify-between items-center text-[9px] uppercase">
                                 <span className="text-white/40">Reference Coverage</span>
                                 <span className="text-primary font-black">
                                     {(() => {
-                                        const planChars = new Set(currentPlan.shots.flatMap((s: any) => s.composition?.characterIds || []));
+                                        const planChars = new Set(currentPlan.shots.flatMap((s) => (s as unknown as ProductionShot).composition?.characterIds || []));
                                         if (planChars.size === 0) return '0%';
                                         const manifested = planChars.size > 0 ? Array.from(planChars).filter(cid => manifestedAssets.some(a => a.characterId === cid)).length : 0;
                                         return `${Math.round((manifested / planChars.size) * 100)}%`;
@@ -453,7 +503,7 @@ export function NeuralProductionAssistant() {
                                     className="h-full bg-primary transition-all duration-1000"
                                     style={{
                                         width: (() => {
-                                            const planChars = new Set(currentPlan.shots.flatMap((s: any) => s.composition?.characterIds || []));
+                                            const planChars = new Set(currentPlan.shots.flatMap((s) => (s as unknown as ProductionShot).composition?.characterIds || []));
                                             if (planChars.size === 0) return '0%';
                                             const manifested = Array.from(planChars).filter(cid => manifestedAssets.some(a => a.characterId === cid)).length;
                                             return `${(manifested / planChars.size) * 100}%`;
@@ -462,8 +512,8 @@ export function NeuralProductionAssistant() {
                                 />
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {/* Manufacturing Section: Character Reference Sheets */}
                 <div className="space-y-4">
@@ -646,7 +696,7 @@ export function NeuralProductionAssistant() {
                             Settings
                         </button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md bg-[#0a0a0b] border-primary/20 text-white font-mono">
+                    <DialogContent className="max-w-md bg-card border-primary/20 text-white font-mono backdrop-blur-2xl">
                         <DialogHeader>
                             <DialogTitle className="text-primary uppercase tracking-[0.3em] font-black text-xs flex items-center gap-2">
                                 <Settings className="w-4 h-4" />
@@ -701,7 +751,7 @@ export function NeuralProductionAssistant() {
                             Memory
                         </button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-3xl bg-[#0a0a0b] border-primary/20 text-white font-mono">
+                    <DialogContent className="max-w-3xl bg-card border-primary/20 text-white font-mono backdrop-blur-2xl">
                         <DialogHeader>
                             <DialogTitle className="text-primary uppercase tracking-[0.3em] font-black text-xs flex items-center gap-2">
                                 <Database className="w-4 h-4" />
@@ -829,7 +879,7 @@ export function NeuralProductionAssistant() {
                             Ledger
                         </button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl bg-[#0a0a0b] border-primary/20 text-white font-mono">
+                    <DialogContent className="max-w-4xl bg-card border-primary/20 text-white font-mono backdrop-blur-2xl">
                         <DialogHeader>
                             <DialogTitle className="text-primary uppercase tracking-[0.3em] font-black text-xs flex items-center gap-2">
                                 <ClipboardList className="w-4 h-4" />
@@ -879,7 +929,7 @@ export function NeuralProductionAssistant() {
                                         .filter(a => ledgerFilter === 'ALL' || a.type === ledgerFilter)
                                         .filter(a => a.characterName?.toLowerCase().includes(ledgerSearch.toLowerCase()))
                                         .map(asset => (
-                                            <div key={asset.id} className="group relative bg-[#0d0d0e] border border-white/10 hover:border-primary/40 rounded-sm overflow-hidden transition-all shadow-xl">
+                                            <div key={asset.id} className="group relative bg-card/60 border border-white/10 hover:border-primary/40 rounded-sm overflow-hidden transition-all shadow-xl backdrop-blur-sm">
                                                 <div className="aspect-[4/5] bg-black overflow-hidden relative">
                                                     <img src={asset.url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
@@ -941,14 +991,14 @@ export function NeuralProductionAssistant() {
                 <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
                     <DialogTrigger asChild>
                         <button className="text-[9px] font-black text-white/40 uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-1">
-                            <History size={11} />
+                            <HistoryIcon size={11} />
                             Logs
                         </button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl bg-[#0a0a0b] border-primary/20 text-white font-mono">
+                    <DialogContent className="max-w-2xl bg-card border-primary/20 text-white font-mono backdrop-blur-2xl">
                         <DialogHeader>
                             <DialogTitle className="text-primary uppercase tracking-[0.3em] font-black text-xs flex items-center gap-2">
-                                <History className="w-4 h-4" />
+                                <HistoryIcon className="w-4 h-4" />
                                 Directorial Advice History
                             </DialogTitle>
                         </DialogHeader>
@@ -992,7 +1042,7 @@ export function NeuralProductionAssistant() {
 
                 {/* Correction Dialog */}
                 <Dialog open={isCorrectionOpen} onOpenChange={setIsCorrectionOpen}>
-                    <DialogContent className="max-w-md bg-[#0a0a0b] border-primary/20 text-white font-mono">
+                    <DialogContent className="max-w-md bg-card border-primary/20 text-white font-mono backdrop-blur-2xl">
                         <DialogHeader>
                             <DialogTitle className="text-primary uppercase tracking-[0.3em] font-black text-xs flex items-center gap-2">
                                 <AlertCircle className="w-4 h-4" />
@@ -1036,7 +1086,7 @@ export function NeuralProductionAssistant() {
 
                 {/* Trajectory Trace Dialog */}
                 <Dialog open={isTrajectoryOpen} onOpenChange={setIsTrajectoryOpen}>
-                    <DialogContent className="max-w-3xl bg-[#0a0a0b] border-primary/20 text-white font-mono">
+                    <DialogContent className="max-w-3xl bg-card border-primary/20 text-white font-mono backdrop-blur-2xl">
                         <DialogHeader>
                             <DialogTitle className="text-primary uppercase tracking-[0.3em] font-black text-xs flex items-center gap-2">
                                 <Layers className="w-4 h-4" />
@@ -1045,7 +1095,7 @@ export function NeuralProductionAssistant() {
                         </DialogHeader>
 
                         <div className="space-y-4 mt-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                            {lastTrajectory.map((step: any, i: number) => (
+                            {lastTrajectory.map((step: RLMTrajectoryStep, i: number) => (
                                 <div key={i} className="relative pl-6 border-l border-primary/10 pb-4 last:pb-0">
                                     <div className="absolute -left-[5px] top-0 w-2 h-2 rounded-full bg-primary/40 border border-primary/20" />
 

@@ -471,7 +471,7 @@ export function useFFmpeg(): UseFFmpegReturn {
         abortControllerRef.current.abort();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // Intentionally run only on mount - cleanup should happen once on unmount
   }, []);
 

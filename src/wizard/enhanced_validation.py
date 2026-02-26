@@ -494,6 +494,6 @@ def get_user_friendly_message(error: ValidationError) -> str:
     base_message = error.message
 
     if error.suggested_fix:
-        return f"{base_message}\n💡 Suggestion: {error.suggested_fix}"
+        return f"{base_message}\n[INFO] Suggestion: {error.suggested_fix}"
 
     return base_message

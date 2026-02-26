@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProductionWizardContainer } from '../production-wizards/ProductionWizardContainer';
 import { WizardStep } from '@/types/wizard';
-import { useAudioRemixStore, RemixStyle } from '@/stores/audioRemixStore';
+import { useAudioRemixStore, RemixStyle, MusicStructure } from '@/stores/audioRemixStore';
 import { Music, BarChart3, Palette, Clock, Zap, Save } from 'lucide-react';
+import '../WizardModal.css'; // Assuming this CSS file exists for wizard-modal-overlay
 
 // ============================================================================
 // Wizard Steps Configuration
@@ -111,13 +111,7 @@ export function AudioProductionWizard({
   // Initialization Effects
   // ============================================================================
 
-  useEffect(() => {
-    if (isOpen) {
-      initializeWizard();
-    }
-  }, [isOpen]);
-
-  const initializeWizard = async () => {
+  const initializeWizard = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -149,14 +143,23 @@ export function AudioProductionWizard({
       // Auto-load track if provided
       if (initialAudioId && initialAudioUrl) {
         await store.loadTrack(initialAudioId, initialAudioUrl);
+      } else {
+        store.reset();
       }
+
     } catch (err) {
       console.error('Failed to initialize wizard:', err);
-      setError(err instanceof Error ? err.message : 'Failed to initialize wizard');
+      setError('Impossible d\'initialiser l\'assistant de production audio.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [initialAudioId, initialAudioUrl, loadDraftFromLocalStorage, store]);
+
+  useEffect(() => {
+    if (isOpen) {
+      initializeWizard();
+    }
+  }, [isOpen, initializeWizard]);
 
   // ============================================================================
   // Auto-save Effect
@@ -200,7 +203,7 @@ export function AudioProductionWizard({
   // Completion Handler
   // ============================================================================
 
-  const handleComplete = useCallback(async () => {
+  const handleSubmit = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -318,62 +321,88 @@ export function AudioProductionWizard({
     }
   };
 
+  const canProceedToNextStep = useCallback(() => {
+    if (wizardState.currentStep === 0 && !wizardState.selectedAudioId) {
+      return false;
+    }
+    return true;
+  }, [wizardState.currentStep, wizardState.selectedAudioId]);
+
+  // Handle Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, handleKeyDown]);
+
+  if (!isOpen) return null;
+
   // ============================================================================
   // Render
   // ============================================================================
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleCancel}>
-      <DialogContent className="max-w-4xl h-[85vh] overflow-hidden flex flex-col cyber-card border-primary/30 bg-card/95 backdrop-blur-sm">
-        <DialogHeader className="border-b border-primary/30 bg-card/95 backdrop-blur-sm">
-          <DialogTitle className="neon-text text-primary text-xl font-bold">
-            Audio Production Wizard
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <ProductionWizardContainer
-            title="Audio Production Wizard"
-            steps={AUDIO_PRODUCTION_STEPS}
-            currentStep={wizardState.currentStep}
-            onNextStep={nextStep}
-            onPreviousStep={previousStep}
-            onGoToStep={goToStep}
-            onCancel={handleCancel}
-            onComplete={handleComplete}
-            allowJumpToStep={false}
-            showAutoSaveIndicator={!initialAudioId}
-            canProceed={true}
-            isDirty={wizardState.isDirty}
-            lastSaved={wizardState.lastSaved}
-            className="h-full"
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-muted-foreground neon-text-blue">Loading...</p>
-                </div>
+    <div className="wizard-modal-overlay" onClick={handleCancel}>
+      <div className="wizard-modal-container max-w-6xl h-[92vh]" onClick={(e) => e.stopPropagation()}>
+        <ProductionWizardContainer
+          title="Sonic Remix Architect"
+          steps={AUDIO_PRODUCTION_STEPS}
+          currentStep={wizardState.currentStep}
+          onNextStep={nextStep}
+          onPreviousStep={previousStep}
+          onGoToStep={goToStep}
+          onCancel={handleCancel}
+          onComplete={handleSubmit}
+          canProceed={canProceedToNextStep()}
+          isDirty={wizardState.isDirty}
+          lastSaved={wizardState.lastSaved}
+          className="h-full"
+        >
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground neon-text-blue">Loading...</p>
               </div>
-            ) : error ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <p className="mb-4 text-destructive neon-text-pink">{error}</p>
-                  <button
-                    onClick={initializeWizard}
-                    className="px-4 py-2 btn-neon rounded neon-border"
-                  >
-                    Retry
-                  </button>
-                </div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <p className="mb-4 text-destructive neon-text-pink">{error}</p>
+                <button
+                  onClick={initializeWizard}
+                  className="px-4 py-2 btn-neon rounded neon-border"
+                >
+                  Retry
+                </button>
               </div>
-            ) : (
-              renderStepContent()
-            )}
-          </ProductionWizardContainer>
-        </div>
-      </DialogContent>
-    </Dialog>
+            </div>
+          ) : (
+            <div className="overflow-y-auto h-full p-8">
+              {renderStepContent()}
+            </div>
+          )}
+        </ProductionWizardContainer>
+      </div>
+    </div>
   );
 }
 
@@ -383,7 +412,7 @@ export function AudioProductionWizard({
 
 interface Step1AudioImportProps {
   selectedAudioUrl: string | null;
-  onAudioSelect: (id: string, url: string) => void;
+  onAudioSelect: (audioId: string, audioUrl: string) => void;
 }
 
 function Step1AudioImport({ selectedAudioUrl, onAudioSelect }: Step1AudioImportProps) {
@@ -398,11 +427,14 @@ function Step1AudioImport({ selectedAudioUrl, onAudioSelect }: Step1AudioImportP
 
       <div className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
         <div className="mb-4">
-          <span className="text-4xl">🎵</span>
+          <span className="text-4xl text-primary"><Music size={48} className="mx-auto" /></span>
         </div>
         <p className="mb-2 font-medium">Drop your audio file here</p>
         <p className="text-sm text-muted-foreground mb-4">or click to browse</p>
-        <button className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90">
+        <button 
+          onClick={() => onAudioSelect('mock-track-1', 'https://example.com/audio.mp3')}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+        >
           Browse Files
         </button>
       </div>
@@ -419,7 +451,7 @@ function Step1AudioImport({ selectedAudioUrl, onAudioSelect }: Step1AudioImportP
 interface Step2AnalyzeStructureProps {
   isAnalyzing: boolean;
   analysisError: string | null;
-  musicStructure: unknown;
+  musicStructure: MusicStructure | null;
   onAnalyze: () => Promise<void>;
   currentTrackUrl: string | null;
 }
@@ -470,8 +502,8 @@ function Step2AnalyzeStructure({
                   <p className="text-xl font-semibold">{Math.round(musicStructure.duration)}s</p>
                 </div>
                 <div className="p-4 bg-accent/10 rounded-lg">
-                  <p className="text-sm text-muted-foreground">BPM</p>
-                  <p className="text-xl font-semibold">{musicStructure.bpm || 'N/A'}</p>
+                  <p className="text-sm text-muted-foreground">Tempo (BPM)</p>
+                  <p className="text-xl font-semibold">{musicStructure.tempo || 'N/A'}</p>
                 </div>
                 <div className="p-4 bg-accent/10 rounded-lg">
                   <p className="text-sm text-muted-foreground">Sections</p>
@@ -483,12 +515,12 @@ function Step2AnalyzeStructure({
                 <div>
                   <h4 className="font-medium mb-2">Detected Sections</h4>
                   <div className="space-y-2">
-                    {musicStructure.sections.map((section: unknown, index: number) => (
+                    {musicStructure.sections.map((section, index) => (
                       <div key={index} className="p-3 bg-accent/5 rounded border border-primary/10">
                         <div className="flex justify-between">
-                          <span className="font-medium">{section.name || `Section ${index + 1}`}</span>
+                          <span className="font-medium">{section.label || section.sectionType || `Section ${index + 1}`}</span>
                           <span className="text-muted-foreground">
-                            {Math.round(section.start)}s - {Math.round(section.end)}s
+                            {Math.round(section.startTime)}s - {Math.round(section.endTime)}s
                           </span>
                         </div>
                       </div>
@@ -534,7 +566,7 @@ function Step3RemixStyle({ selectedStyle, onStyleSelect }: Step3RemixStyleProps)
             onClick={() => onStyleSelect(style.id)}
             className={`p-4 rounded-lg border text-left transition-all ${
               selectedStyle === style.id
-                ? 'border-primary bg-primary/10'
+                ? 'border-primary bg-primary/10 shadow-inner'
                 : 'border-primary/20 hover:border-primary/40'
             }`}
           >
@@ -549,7 +581,7 @@ function Step3RemixStyle({ selectedStyle, onStyleSelect }: Step3RemixStyleProps)
 
 interface Step4DurationProps {
   targetDuration: number;
-  musicStructure: unknown;
+  musicStructure: MusicStructure | null;
   onDurationChange: (duration: number) => void;
 }
 
@@ -606,7 +638,15 @@ interface Step5EffectsProps {
   crossfadeDuration: number;
   preserveIntro: boolean;
   preserveOutro: boolean;
-  suggestedCuts: unknown[];
+  suggestedCuts: Array<{
+    id?: string;
+    section: string;
+    originalStart: number;
+    originalEnd: number;
+    suggestedStart: number;
+    suggestedEnd: number;
+    removed: number;
+  }>;
   selectedCuts: string[];
   onEffectChange: (effect: string, value: number | boolean) => void;
   onToggleCut: (cutId: string) => void;
@@ -624,111 +664,131 @@ function Step5Effects({
   onToggleCut,
 }: Step5EffectsProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h3 className="text-lg font-semibold mb-2">Effects & Modifications</h3>
         <p className="text-muted-foreground">
-          Apply fade effects and configure section cuts.
+          Finetune the remix with effects and structural modifications.
         </p>
       </div>
 
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Fade In (seconds)</label>
-            <input
-              type="number"
-              min="0"
-              max="10"
-              step="0.1"
-              value={fadeInDuration}
-              onChange={(e) => onEffectChange('fadeIn', Number(e.target.value))}
-              className="w-full px-3 py-2 border border-primary/20 rounded"
-              title="Fade in duration"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">Fade Out (seconds)</label>
-            <input
-              type="number"
-              min="0"
-              max="10"
-              step="0.1"
-              value={fadeOutDuration}
-              onChange={(e) => onEffectChange('fadeOut', Number(e.target.value))}
-              className="w-full px-3 py-2 border border-primary/20 rounded"
-              title="Fade out duration"
-            />
+      <div className="grid grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <h4 className="font-medium">Transitions</h4>
+          
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between mb-2">
+                <label className="text-sm">Fade In</label>
+                <span className="text-sm font-medium">{fadeInDuration}s</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.1"
+                value={fadeInDuration}
+                onChange={(e) => onEffectChange('fadeIn', parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-2">
+                <label className="text-sm">Fade Out</label>
+                <span className="text-sm font-medium">{fadeOutDuration}s</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.1"
+                value={fadeOutDuration}
+                onChange={(e) => onEffectChange('fadeOut', parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-2">
+                <label className="text-sm">Crossfade</label>
+                <span className="text-sm font-medium">{crossfadeDuration}s</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.1"
+                value={crossfadeDuration}
+                onChange={(e) => onEffectChange('crossfade', parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
 
-        <div>
-          <label className="text-sm font-medium mb-2 block">Crossfade (seconds)</label>
-          <input
-            type="number"
-            min="0"
-            max="10"
-            step="0.1"
-            value={crossfadeDuration}
-            onChange={(e) => onEffectChange('crossfade', Number(e.target.value))}
-            className="w-full px-3 py-2 border border-primary/20 rounded"
-            title="Crossfade duration"
-          />
-        </div>
+        <div className="space-y-6">
+          <h4 className="font-medium">Preservation</h4>
+          
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={preserveIntro}
+                onChange={(e) => onEffectChange('preserveIntro', e.target.checked)}
+                className="rounded text-primary"
+              />
+              <span>Preserve Original Intro</span>
+            </label>
 
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={preserveIntro}
-              onChange={(e) => onEffectChange('preserveIntro', e.target.checked)}
-              className="rounded border-primary/20"
-            />
-            <span className="text-sm">Preserve Intro</span>
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={preserveOutro}
-              onChange={(e) => onEffectChange('preserveOutro', e.target.checked)}
-              className="rounded border-primary/20"
-            />
-            <span className="text-sm">Preserve Outro</span>
-          </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={preserveOutro}
+                onChange={(e) => onEffectChange('preserveOutro', e.target.checked)}
+                className="rounded text-primary"
+              />
+              <span>Preserve Original Outro</span>
+            </label>
+          </div>
         </div>
       </div>
 
       {suggestedCuts.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="font-medium">Suggested Cuts</h4>
-          <p className="text-sm text-muted-foreground">
-            Select which sections to remove for the target duration.
-          </p>
-          <div className="space-y-2">
-            {suggestedCuts.map((cut: unknown) => (
-              <label
-                key={cut.id}
-                className={`p-3 rounded-lg border cursor-pointer flex items-center gap-3 ${
-                  selectedCuts.includes(cut.id)
-                    ? 'border-primary bg-primary/10'
-                    : 'border-primary/20 hover:border-primary/40'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedCuts.includes(cut.id)}
-                  onChange={() => onToggleCut(cut.id)}
-                  className="rounded border-primary/20"
-                />
-                <div className="flex-1">
-                  <p className="font-medium">{cut.section}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {Math.round(cut.originalStart)}s - {Math.round(cut.originalEnd)}s
-                    ({Math.round(cut.removed)}s removed)
-                  </p>
+        <div className="space-y-4 pt-4 border-t border-primary/10">
+          <h4 className="font-medium italic text-primary">Suggested Structural Optimizations</h4>
+          <div className="grid grid-cols-1 gap-3">
+            {suggestedCuts.map((cut, index) => {
+              const cutId = cut.id || `cut-${index}`;
+              const isSelected = selectedCuts.includes(cutId);
+              
+              return (
+                <div 
+                  key={cutId}
+                  className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                    isSelected 
+                      ? 'bg-primary/20 border-primary shadow-sm' 
+                      : 'bg-accent/5 border-primary/10 hover:border-primary/30'
+                  }`}
+                  onClick={() => onToggleCut(cutId)}
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center ${
+                        isSelected ? 'bg-primary border-primary' : 'border-primary/30'
+                      }`}>
+                        {isSelected && <div className="w-2 h-2 bg-white rounded-sm" />}
+                      </div>
+                      <span className="font-medium">Section: {cut.section}</span>
+                    </div>
+                    <span className="text-xs font-mono text-muted-foreground">
+                      {Math.round(cut.originalStart)}s → {Math.round(cut.originalEnd)}s 
+                      <span className="ml-2 text-amber-500">(-{Math.round(cut.removed)}s)</span>
+                    </span>
+                  </div>
                 </div>
-              </label>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -757,7 +817,7 @@ function Step6Export({ isExporting, exportError, exportedUrl, onExport }: Step6E
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block">Output Format</label>
-            <select className="w-full px-3 py-2 border border-primary/20 rounded" title="Output format selection">
+            <select className="w-full px-3 py-2 border border-primary/20 rounded bg-background" title="Output format selection">
               <option value="mp3">MP3 (128 kbps)</option>
               <option value="mp3-high">MP3 (320 kbps)</option>
               <option value="wav">WAV (Lossless)</option>
@@ -768,7 +828,7 @@ function Step6Export({ isExporting, exportError, exportedUrl, onExport }: Step6E
           <button
             onClick={() => onExport('mp3')}
             disabled={isExporting}
-            className="w-full px-4 py-3 bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50"
+            className="w-full px-4 py-3 bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
             {isExporting ? 'Exporting...' : 'Export Audio'}
           </button>
@@ -786,19 +846,17 @@ function Step6Export({ isExporting, exportError, exportedUrl, onExport }: Step6E
             <p className="text-sm mt-1">Your audio has been exported successfully.</p>
           </div>
 
-          <audio controls src={exportedUrl} className="w-full" />
+          <audio controls src={exportedUrl} className="w-full mt-4" />
 
           <a
             href={exportedUrl}
             download="remixed-audio.mp3"
-            className="block text-center px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+            className="block text-center px-4 py-3 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors mt-4"
           >
-            Download
+            Download Remix
           </a>
         </div>
       )}
     </div>
   );
 }
-
-

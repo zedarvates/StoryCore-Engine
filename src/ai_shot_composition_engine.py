@@ -290,8 +290,65 @@ class AIShotCompositionEngine:
     - Composition rule application
     - Visual balance assessment
     - Shot type recommendations
-    - Lighting style suggestions
     """
+    
+    async def generate_config_with_ai(self, scene_description: str) -> Dict[str, Any]:
+        """
+        Intelligently suggest shot parameters using LLM in a compact format.
+        
+        Args:
+            scene_description: Text description of the scene
+            
+        Returns:
+            Dictionary containing suggested shot configuration
+        """
+        if not self.ai_config or not hasattr(self.ai_config, 'llm_client'):
+            # Fallback to smart defaults if no LLM
+            return {
+                "type": "medium_shot",
+                "angle": "eye_level",
+                "movement": "static",
+                "lighting": "natural",
+                "reasoning": "Default cinematic choice (No LLM active)"
+            }
+
+        prompt = f"""[TASK] Suggest optimal shot parameters for: "{scene_description}"
+[FORMAT] Return ONLY JSON.
+[SCHEMA]
+{{
+  "config": ["type", "angle", "movement", "lighting"],
+  "reasoning": "one sentence"
+}}
+[OPTIONS]
+Type: extreme_close_up|close_up|medium_shot|long_shot|establishing
+Angle: low_angle|eye_level|high_angle|dutch_angle
+Movement: static|pan|tilt|dolly|tracking
+Lighting: high_key|low_key|natural|dramatic|soft
+[RULES] No talk. Use high_speed extraction.
+"""
+        try:
+            response = await self.ai_config.llm_client.complete(prompt, max_tokens=150)
+            data = json.loads(response.text)
+            
+            # Map array format back to dict if needed, or just return as is
+            vals = data.get("config", ["medium_shot", "eye_level", "static", "natural"])
+            return {
+                "type": vals[0],
+                "angle": vals[1],
+                "movement": vals[2],
+                "lighting": vals[3],
+                "reasoning": data.get("reasoning", "")
+            }
+        except Exception as e:
+            self.logger.error(f"AI Shot Config generation failed: {e}")
+            return {
+                "type": "medium_shot",
+                "angle": "eye_level",
+                "movement": "static",
+                "lighting": "natural",
+                "reasoning": "Error during generation, used defaults"
+            }
+
     
     def __init__(self, ai_config: AIConfig):
         """Initialize AI Shot Composition Engine."""

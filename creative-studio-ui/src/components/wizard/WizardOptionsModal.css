@@ -98,7 +98,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--secondary-color, #764ba2) 100%);
+  background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--secondary-color, #1e40af) 100%);
   border-radius: 12px;
   color: white;
 }
@@ -144,8 +144,8 @@
 .option-select:focus,
 .option-input:focus {
   outline: none;
-  border-color: var(--primary-color, #667eea);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary-color, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .option-checkbox {
@@ -161,7 +161,7 @@
 .option-checkbox input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: var(--primary-color, #667eea);
+  accent-color: var(--primary-color, #2563eb);
 }
 
 .option-help {
@@ -202,14 +202,14 @@
 }
 
 .launch-button {
-  background: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--secondary-color, #764ba2) 100%);
+  background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--secondary-color, #1e40af) 100%);
   color: white;
   min-width: 120px;
 }
 
 .launch-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .launch-button:active {
@@ -246,8 +246,8 @@
 
   .option-select:focus,
   .option-input:focus {
-    border-color: var(--primary-color, #667eea);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    border-color: var(--primary-color, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
   }
 
   .cancel-button {

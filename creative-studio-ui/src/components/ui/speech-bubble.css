@@ -1,0 +1,539 @@
+/**
+ * Speech Bubble Styles - Style bulle de BD avec effets glow
+ * 
+ * Styles pour les bulles de conversation style bande dessinée:
+ * - Bulles de l'utilisateur (droite)
+ * - Bulles de l'assistant (gauche) avec glow animé
+ */
+
+/* ============================================================================
+   Variables
+   ============================================================================ */
+
+:root {
+  --speech-bubble-user-bg: #2563eb;
+  --speech-bubble-user-text: #ffffff;
+  --speech-bubble-assistant-bg: #1f2937;
+  --speech-bubble-assistant-text: #e5e7eb;
+  --speech-bubble-glow-color: #3b82f6;
+  --speech-bubble-glow-intensity: 0.4;
+  --speech-bubble-border-radius: 16px;
+  --speech-bubble-padding: 12px 16px;
+  --speech-bubble-animation-duration: 300ms;
+}
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.speech-bubble-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+  animation: speechBubbleFadeIn var(--speech-bubble-animation-duration) ease-out;
+}
+
+.speech-bubble-user {
+  flex-direction: row-reverse;
+}
+
+.speech-bubble-assistant {
+  flex-direction: row;
+}
+
+/* ============================================================================
+   Avatar
+   ============================================================================ */
+
+.speech-bubble-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.speech-bubble-avatar-user {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.speech-bubble-avatar-inner {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+   Bubble
+   ============================================================================ */
+
+.speech-bubble {
+  position: relative;
+  max-width: 75%;
+  padding: var(--speech-bubble-padding);
+  border-radius: var(--speech-bubble-border-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.speech-bubble:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* User bubble */
+.speech-bubble-right {
+  background: var(--speech-bubble-user-bg);
+  color: var(--speech-bubble-user-text);
+  border-bottom-right-radius: 4px;
+}
+
+/* Assistant bubble */
+.speech-bubble-left {
+  background: var(--speech-bubble-assistant-bg);
+  color: var(--speech-bubble-assistant-text);
+  border-bottom-left-radius: 4px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* ============================================================================
+   Glow Effect - Expansion Animation
+   ============================================================================ */
+
+.speech-bubble-glow {
+  position: relative;
+  animation: speechBubbleGlowPulse 2s ease-in-out infinite;
+}
+
+.speech-bubble-glow::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: calc(var(--speech-bubble-border-radius) + 3px);
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.6) 0%,
+    rgba(37, 99, 235, 0.3) 50%,
+    rgba(59, 130, 246, 0.6) 100%
+  );
+  z-index: -1;
+  animation: speechBubbleGlowExpand 2s ease-in-out infinite;
+  opacity: 0.7;
+}
+
+.speech-bubble-glow::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: calc(var(--speech-bubble-border-radius) + 6px);
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.3) 0%,
+    rgba(37, 99, 235, 0.1) 50%,
+    rgba(59, 130, 246, 0.3) 100%
+  );
+  z-index: -2;
+  animation: speechBubbleGlowExpandOuter 2.5s ease-in-out infinite;
+  opacity: 0.5;
+}
+
+/* ============================================================================
+   Tail (style BD)
+   ============================================================================ */
+
+.speech-bubble-tail {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  transform: rotate(45deg);
+}
+
+.speech-bubble-right .speech-bubble-tail {
+  bottom: 4px;
+  right: -6px;
+  border-bottom-right-radius: 4px;
+}
+
+.speech-bubble-left .speech-bubble-tail {
+  bottom: 4px;
+  left: -6px;
+  border-bottom-left-radius: 4px;
+}
+
+/* ============================================================================
+   Content
+   ============================================================================ */
+
+.speech-bubble-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Role indicator */
+.speech-bubble-role {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--speech-bubble-glow-color);
+}
+
+.speech-bubble-role-icon {
+  font-size: 14px;
+}
+
+.speech-bubble-role-text {
+  font-weight: 600;
+}
+
+/* Typing indicator */
+.speech-bubble-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.speech-bubble-dot {
+  width: 4px;
+  height: 4px;
+  background: var(--speech-bubble-glow-color);
+  border-radius: 50%;
+  animation: speechBubbleTypingBounce 1.4s ease-in-out infinite;
+}
+
+.speech-bubble-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.speech-bubble-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.speech-bubble-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Text */
+.speech-bubble-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Cursor */
+.speech-bubble-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: currentColor;
+  margin-left: 2px;
+  animation: speechBubbleCursorBlink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+/* Timestamp */
+.speech-bubble-timestamp {
+  font-size: 11px;
+  opacity: 0.6;
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* ============================================================================
+   Suggestions
+   ============================================================================ */
+
+.speech-bubble-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.speech-bubble-suggestion {
+  padding: 4px 10px;
+  font-size: 12px;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  color: #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speech-bubble-suggestion:hover {
+  background: rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+/* Fade in */
+@keyframes speechBubbleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glow pulse */
+@keyframes speechBubbleGlowPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.15),
+      0 0 15px rgba(59, 130, 246, 0.3),
+      0 0 30px rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.15),
+      0 0 25px rgba(59, 130, 246, 0.5),
+      0 0 50px rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* Glow expand (inner) */
+@keyframes speechBubbleGlowExpand {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+}
+
+/* Glow expand (outer) */
+@keyframes speechBubbleGlowExpandOuter {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.6;
+  }
+}
+
+/* Typing bounce */
+@keyframes speechBubbleTypingBounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Cursor blink */
+@keyframes speechBubbleCursorBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ============================================================================
+   Dark mode adjustments (if needed)
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .speech-bubble-left {
+    background: #1f2937;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .speech-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+  }
+
+  .speech-bubble-container {
+    gap: 6px;
+  }
+
+  .speech-bubble-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .speech-bubble-text {
+    font-size: 13px;
+  }
+}
+
+/* ============================================================================
+   Attachments
+   ============================================================================ */
+
+.speech-bubble-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.speech-bubble-attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.speech-bubble-attachment-icon {
+  font-size: 14px;
+}
+
+.speech-bubble-attachment-name {
+  color: var(--speech-bubble-assistant-text);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================================
+   Creation Actions
+   ============================================================================ */
+
+.speech-bubble-actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.speech-bubble-actions-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f59e0b; /* Amber 500 */
+}
+
+.speech-bubble-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.speech-bubble-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.speech-bubble-action-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+  filter: brightness(1.1);
+}
+
+.speech-bubble-action-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.speech-bubble-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.speech-bubble-loading-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: speechBubbleSpin 0.8s linear infinite;
+}
+
+@keyframes speechBubbleSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+   Results & Errors
+   ============================================================================ */
+
+.speech-bubble-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  color: #10b981;
+  font-size: 13px;
+}
+
+.speech-bubble-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 13px;
+}
+
+.speech-bubble-error-icon {
+  flex-shrink: 0;
+}

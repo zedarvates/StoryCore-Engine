@@ -87,7 +87,7 @@
 
 /* Header Styles */
 .chat-panel .chat-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   color: white;
 }
 
@@ -119,13 +119,13 @@
 /* Pulse Animation for New Messages */
 @keyframes messagePulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
   }
 }
 
@@ -196,13 +196,13 @@
   }
   
   .chat-panel .chat-header {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   }
 }
 
 /* Focus States for Accessibility */
 .chat-panel button:focus-visible {
-  outline: 2px solid #667eea;
+  outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
 
@@ -224,7 +224,7 @@
   width: 32px;
   height: 32px;
   border: 3px solid #e5e7eb;
-  border-top-color: #667eea;
+  border-top-color: #2563eb;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

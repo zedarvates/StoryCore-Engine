@@ -1,29 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useThemeStore, ThemeType } from '@/stores/themeStore';
 
 export function useTheme() {
-    const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
-        const saved = localStorage.getItem('theme');
-        if (saved === 'light' || saved === 'dark') return saved;
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    });
-
-    const setTheme = (newTheme: 'light' | 'dark') => {
-        setThemeState(newTheme);
-        localStorage.setItem('theme', newTheme);
-        if (newTheme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    };
+    const { theme, effectiveTheme, setTheme, syncWithSystem } = useThemeStore();
 
     useEffect(() => {
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [theme]);
+        syncWithSystem();
+    }, [syncWithSystem]);
 
-    return { theme, setTheme };
+    return {
+        theme,
+        effectiveTheme, // The computed 'light' or 'dark'
+        setTheme: (newTheme: ThemeType) => setTheme(newTheme),
+        // Helper for the toggle button in sidebar
+        toggleTheme: () => {
+            if (effectiveTheme === 'dark') {
+                setTheme('light-snow');
+            } else {
+                setTheme('dark-neon');
+            }
+        }
+    };
 }

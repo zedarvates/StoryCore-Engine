@@ -6,6 +6,7 @@
  *  - Masking (shape masks, image masks, AI alpha masks)
  *  - Color Correction (brightness, contrast, saturation, hue)
  *  - Blur
+ *  - Vignette
  *  - Speed control
  *
  * Similar to CapCut's "Effects" and "Background Removal" tools.
@@ -16,7 +17,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { updateLayer } from '../../store/slices/timelineSlice';
-import type { Layer, Shot, MediaLayerData, VideoMask, VideoEffects } from '../../types';
+import type { Shot, MediaLayerData, VideoMask, VideoEffects } from '../../types';
 import './videoEffectsPanel.css';
 
 interface VideoEffectsPanelProps {
@@ -29,25 +30,22 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
     selectedLayerId,
 }) => {
     const dispatch = useDispatch();
-    const [activeTab, setActiveTab] = useState<'mask' | 'chroma' | 'color' | 'blur'>('mask');
+    const [activeTab, setActiveTab] = useState<'mask' | 'chroma' | 'color' | 'blur' | 'vignette'>('mask');
     const [isProcessingAI, setIsProcessingAI] = useState(false);
 
     const selectedLayer = selectedLayerId
         ? shot.layers.find(l => l.id === selectedLayerId)
         : null;
 
-    if (!selectedLayer || selectedLayer.type !== 'media') {
-        return (
-            <div className="video-effects-panel">
-                <div className="video-effects-empty">
-                    <div className="video-effects-empty-icon">🎬</div>
-                    <p>Select a media layer to apply effects</p>
-                </div>
-            </div>
-        );
-    }
+    // Get media data safely
+    const getMediaData = (): MediaLayerData => {
+        if (selectedLayer && selectedLayer.type === 'media') {
+            return selectedLayer.data as MediaLayerData;
+        }
+        return {} as MediaLayerData;
+    };
 
-    const mediaData = selectedLayer.data as MediaLayerData;
+    const mediaData = getMediaData();
     const currentEffects: VideoEffects = mediaData.effects ?? {};
     const currentMask: VideoMask | undefined = mediaData.mask;
 
@@ -55,7 +53,8 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
     // Helpers
     // ---------------------------------------------------------------------------
 
-    const updateMediaData = (updates: Partial<MediaLayerData>) => {
+    const updateMediaData = useCallback((updates: Partial<MediaLayerData>) => {
+        if (!selectedLayer) return;
         dispatch(
             updateLayer({
                 shotId: shot.id,
@@ -68,23 +67,24 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                 },
             }),
         );
-    };
+    }, [dispatch, shot.id, selectedLayer, mediaData]);
 
-    const updateEffects = (updates: Partial<VideoEffects>) => {
+    const updateEffects = useCallback((updates: Partial<VideoEffects>) => {
         updateMediaData({
             effects: { ...currentEffects, ...updates },
         });
-    };
+    }, [updateMediaData, currentEffects]);
 
-    const updateMask = (mask: VideoMask | undefined) => {
+    const updateMask = useCallback((mask: VideoMask | undefined) => {
         updateMediaData({ mask });
-    };
+    }, [updateMediaData]);
 
     // ---------------------------------------------------------------------------
     // AI Background Removal (Magic Cut)
     // ---------------------------------------------------------------------------
 
     const handleAIRemoveBackground = useCallback(async () => {
+        if (!selectedLayer) return;
         setIsProcessingAI(true);
         try {
             // TODO: Call actual AI backend (rembg or ComfyUI segment-anything)
@@ -102,7 +102,21 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
         } finally {
             setIsProcessingAI(false);
         }
-    }, [selectedLayer, mediaData]);
+    }, [selectedLayer, updateMask]);
+
+    // Show empty state if no valid layer selected
+    if (!selectedLayer || selectedLayer.type !== 'media') {
+        return (
+            <div className="video-effects-panel">
+                <div className="video-effects-empty">
+                    <div className="video-effects-empty-icon">🎬</div>
+                    <p>Select a media layer to apply effects</p>
+                </div>
+            </div>
+        );
+    }
+
+    const isLocked = selectedLayer.locked;
 
     // ---------------------------------------------------------------------------
     // Render
@@ -116,7 +130,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
 
             {/* Tab Bar */}
             <div className="video-effects-tabs">
-                {(['mask', 'chroma', 'color', 'blur'] as const).map(tab => (
+                {(['mask', 'chroma', 'color', 'blur', 'vignette'] as const).map(tab => (
                     <button
                         key={tab}
                         className={`vfx-tab ${activeTab === tab ? 'active' : ''}`}
@@ -126,6 +140,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                         {tab === 'chroma' && '🟢'}
                         {tab === 'color' && '🎨'}
                         {tab === 'blur' && '💨'}
+                        {tab === 'vignette' && '⬛'}
                         <span>{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
                     </button>
                 ))}
@@ -143,7 +158,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                         <button
                             className="vfx-action-btn vfx-action-btn-primary"
                             onClick={handleAIRemoveBackground}
-                            disabled={isProcessingAI || selectedLayer.locked}
+                            disabled={isProcessingAI || isLocked}
                         >
                             {isProcessingAI ? (
                                 <span className="vfx-spinner" />
@@ -160,7 +175,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                                 <button
                                     className={`vfx-shape-btn ${currentMask?.type === 'shape' && currentMask?.source === 'circle' ? 'active' : ''}`}
                                     onClick={() => updateMask({ type: 'shape', source: 'circle', invert: false })}
-                                    disabled={selectedLayer.locked}
+                                    disabled={isLocked}
                                     title="Circle"
                                 >
                                     ⭕
@@ -168,7 +183,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                                 <button
                                     className={`vfx-shape-btn ${currentMask?.type === 'shape' && currentMask?.source === 'rectangle' ? 'active' : ''}`}
                                     onClick={() => updateMask({ type: 'shape', source: 'rectangle', invert: false })}
-                                    disabled={selectedLayer.locked}
+                                    disabled={isLocked}
                                     title="Rectangle"
                                 >
                                     ▬
@@ -176,7 +191,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                                 <button
                                     className={`vfx-shape-btn ${currentMask?.type === 'shape' && currentMask?.source === 'star' ? 'active' : ''}`}
                                     onClick={() => updateMask({ type: 'shape', source: 'star', invert: false })}
-                                    disabled={selectedLayer.locked}
+                                    disabled={isLocked}
                                     title="Star"
                                 >
                                     ⭐
@@ -184,7 +199,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                                 <button
                                     className="vfx-shape-btn"
                                     onClick={() => updateMask(undefined)}
-                                    disabled={selectedLayer.locked}
+                                    disabled={isLocked}
                                     title="Remove Mask"
                                 >
                                     ✖
@@ -200,7 +215,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                                     type="checkbox"
                                     checked={currentMask.invert ?? false}
                                     onChange={e => updateMask({ ...currentMask, invert: e.target.checked })}
-                                    disabled={selectedLayer.locked}
+                                    disabled={isLocked}
                                 />
                             </div>
                         )}
@@ -228,7 +243,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                                         },
                                     })
                                 }
-                                disabled={selectedLayer.locked}
+                                disabled={isLocked}
                             />
                         </div>
 
@@ -248,7 +263,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                                         },
                                     })
                                 }
-                                disabled={selectedLayer.locked}
+                                disabled={isLocked}
                             />
                             <span className="vfx-value">{currentEffects.chromaKey?.similarity ?? 40}%</span>
                         </div>
@@ -256,10 +271,11 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                         <button
                             className="vfx-action-btn vfx-action-btn-danger"
                             onClick={() => {
-                                const { chromaKey, ...rest } = currentEffects;
+                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                const { chromaKey: _chromaKey, ...rest } = currentEffects;
                                 updateMediaData({ effects: rest });
                             }}
-                            disabled={!currentEffects.chromaKey || selectedLayer.locked}
+                            disabled={!currentEffects.chromaKey || isLocked}
                         >
                             Remove Chroma Key
                         </button>
@@ -278,42 +294,50 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                             { label: 'Contrast', key: 'contrast', min: 0, max: 3, step: 0.05, defaultVal: 1 },
                             { label: 'Saturation', key: 'saturation', min: 0, max: 3, step: 0.05, defaultVal: 1 },
                             { label: 'Hue', key: 'hue', min: -180, max: 180, step: 1, defaultVal: 0 },
-                        ].map(({ label, key, min, max, step, defaultVal }) => (
-                            <div className="vfx-row" key={key}>
-                                <label className="vfx-label">{label}</label>
-                                <input
-                                    type="range"
-                                    className="vfx-slider"
-                                    min={min}
-                                    max={max}
-                                    step={step}
-                                    value={(currentEffects.colorCorrection as any)?.[key] ?? defaultVal}
-                                    onChange={e =>
-                                        updateEffects({
-                                            colorCorrection: {
-                                                brightness: currentEffects.colorCorrection?.brightness ?? 0,
-                                                contrast: currentEffects.colorCorrection?.contrast ?? 1,
-                                                saturation: currentEffects.colorCorrection?.saturation ?? 1,
-                                                hue: currentEffects.colorCorrection?.hue ?? 0,
+                        ].map(({ label, key, min, max, step, defaultVal }) => {
+                            const colorCorrection = currentEffects.colorCorrection ?? {
+                                brightness: 0,
+                                contrast: 1,
+                                saturation: 1,
+                                hue: 0,
+                            };
+                            const value = colorCorrection[key as keyof typeof colorCorrection] ?? defaultVal;
+                            return (
+                                <div className="vfx-row" key={key}>
+                                    <label className="vfx-label">{label}</label>
+                                    <input
+                                        type="range"
+                                        className="vfx-slider"
+                                        min={min}
+                                        max={max}
+                                        step={step}
+                                        value={value}
+                                        onChange={e => {
+                                            const newColorCorrection = {
+                                                ...colorCorrection,
                                                 [key]: Number(e.target.value),
-                                            },
-                                        })
-                                    }
-                                    disabled={selectedLayer.locked}
-                                />
-                                <span className="vfx-value">
-                                    {((currentEffects.colorCorrection as any)?.[key] ?? defaultVal).toFixed(2)}
-                                </span>
-                            </div>
-                        ))}
+                                            };
+                                            updateEffects({
+                                                colorCorrection: newColorCorrection,
+                                            });
+                                        }}
+                                        disabled={isLocked}
+                                    />
+                                    <span className="vfx-value">
+                                        {typeof value === 'number' ? value.toFixed(2) : defaultVal}
+                                    </span>
+                                </div>
+                            );
+                        })}
 
                         <button
                             className="vfx-action-btn"
                             onClick={() => {
-                                const { colorCorrection, ...rest } = currentEffects;
+                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                const { colorCorrection: _colorCorrection, ...rest } = currentEffects;
                                 updateMediaData({ effects: rest });
                             }}
-                            disabled={!currentEffects.colorCorrection || selectedLayer.locked}
+                            disabled={!currentEffects.colorCorrection || isLocked}
                         >
                             Reset Colors
                         </button>
@@ -336,7 +360,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                                 max={50}
                                 value={currentEffects.blur ?? 0}
                                 onChange={e => updateEffects({ blur: Number(e.target.value) })}
-                                disabled={selectedLayer.locked}
+                                disabled={isLocked}
                             />
                             <span className="vfx-value">{currentEffects.blur ?? 0}px</span>
                         </div>
@@ -344,9 +368,96 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                         <button
                             className="vfx-action-btn"
                             onClick={() => updateEffects({ blur: 0 })}
-                            disabled={selectedLayer.locked}
+                            disabled={isLocked}
                         >
                             Remove Blur
+                        </button>
+                    </div>
+                )}
+
+                {/* ================================================================ */}
+                {/* VIGNETTE TAB                                                     */}
+                {/* ================================================================ */}
+                {activeTab === 'vignette' && (
+                    <div className="vfx-section">
+                        <div className="vfx-section-title">Vignette Effect</div>
+
+                        <div className="vfx-row">
+                            <label className="vfx-label">Intensity</label>
+                            <input
+                                type="range"
+                                className="vfx-slider"
+                                min={0}
+                                max={100}
+                                value={currentEffects.vignette?.intensity ?? 0}
+                                onChange={e =>
+                                    updateEffects({
+                                        vignette: {
+                                            intensity: Number(e.target.value),
+                                            roundness: currentEffects.vignette?.roundness ?? 50,
+                                            softness: currentEffects.vignette?.softness ?? 50,
+                                        },
+                                    })
+                                }
+                                disabled={isLocked}
+                            />
+                            <span className="vfx-value">{currentEffects.vignette?.intensity ?? 0}%</span>
+                        </div>
+
+                        <div className="vfx-row">
+                            <label className="vfx-label">Roundness</label>
+                            <input
+                                type="range"
+                                className="vfx-slider"
+                                min={0}
+                                max={100}
+                                value={currentEffects.vignette?.roundness ?? 50}
+                                onChange={e =>
+                                    updateEffects({
+                                        vignette: {
+                                            intensity: currentEffects.vignette?.intensity ?? 0,
+                                            roundness: Number(e.target.value),
+                                            softness: currentEffects.vignette?.softness ?? 50,
+                                        },
+                                    })
+                                }
+                                disabled={isLocked}
+                            />
+                            <span className="vfx-value">{currentEffects.vignette?.roundness ?? 50}%</span>
+                        </div>
+
+                        <div className="vfx-row">
+                            <label className="vfx-label">Softness</label>
+                            <input
+                                type="range"
+                                className="vfx-slider"
+                                min={0}
+                                max={100}
+                                value={currentEffects.vignette?.softness ?? 50}
+                                onChange={e =>
+                                    updateEffects({
+                                        vignette: {
+                                            intensity: currentEffects.vignette?.intensity ?? 0,
+                                            roundness: currentEffects.vignette?.roundness ?? 50,
+                                            softness: Number(e.target.value),
+                                        },
+                                    })
+                                }
+                                disabled={isLocked}
+                            />
+                            <span className="vfx-value">{currentEffects.vignette?.softness ?? 50}%</span>
+                        </div>
+
+                        <button
+                            className="vfx-action-btn"
+                            onClick={() => {
+                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                const { vignette: _vignette, ...rest } = currentEffects;
+                                updateMediaData({ effects: rest });
+                            }}
+                            disabled={!currentEffects.vignette || isLocked}
+                        >
+                            Remove Vignette
                         </button>
                     </div>
                 )}

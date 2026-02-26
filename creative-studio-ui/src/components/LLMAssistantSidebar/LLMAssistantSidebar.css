@@ -1,0 +1,391 @@
+/**
+ * LLMAssistantSidebar Styles
+ * 
+ * Collapsible sidebar with carrot icon for voice commands
+ */
+
+/* Base Sidebar Styles */
+.llm-assistant-sidebar {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Collapsed State */
+.llm-assistant-sidebar.collapsed {
+  width: 50px;
+}
+
+/* Expanded State */
+.llm-assistant-sidebar.expanded {
+  width: 320px;
+  max-height: 80vh;
+}
+
+/* Header */
+.llm-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+  border-radius: 0 12px 12px 0;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.llm-sidebar-header:hover {
+  background: linear-gradient(135deg, #2a2a3e 0%, #3a3a55 100%);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+.llm-sidebar-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.llm-sidebar-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Carrot Icon */
+.llm-carrot-icon {
+  font-size: 24px;
+  animation: carrotBounce 2s infinite;
+}
+
+@keyframes carrotBounce {
+  0%, 100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+.llm-sidebar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+.llm-sidebar-subtitle {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+/* Expand Arrow */
+.llm-expand-arrow {
+  font-size: 10px;
+  color: #94a3b8;
+  transition: transform 0.3s ease;
+}
+
+.llm-expand-arrow.expanded {
+  transform: rotate(90deg);
+}
+
+/* Sidebar Content */
+.llm-sidebar-content {
+  background: linear-gradient(180deg, #1e1e2e 0%, #16162a 100%);
+  border-radius: 0 0 12px 0;
+  padding: 12px;
+  max-height: calc(80vh - 50px);
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Language Toggle */
+.llm-language-toggle {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.llm-lang-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.llm-lang-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.llm-lang-btn.active {
+  background: rgba(99, 102, 241, 0.3);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* Scrollbar Styling */
+.llm-sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.llm-sidebar-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.llm-sidebar-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.llm-sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Search Container */
+.llm-search-container {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.llm-search-input {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.llm-search-input::placeholder {
+  color: #64748b;
+}
+
+.llm-search-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.llm-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+/* Category Filters */
+.llm-category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.llm-category-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.llm-category-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.llm-category-btn.active {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: var(--category-color, #6366f1);
+  color: #e2e8f0;
+}
+
+.llm-category-icon {
+  font-size: 12px;
+}
+
+.llm-category-label {
+  white-space: nowrap;
+}
+
+/* Commands List */
+.llm-commands-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Command Group */
+.llm-command-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.llm-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.llm-group-commands {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Command Item */
+.llm-command-item {
+  position: relative;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.llm-command-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateX(4px);
+}
+
+.llm-command-item.copied {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.llm-command-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e2e8f0;
+  margin-bottom: 2px;
+}
+
+.llm-command-desc {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Copied Badge */
+.llm-copied-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  background: #10b981;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* No Results */
+.llm-no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #64748b;
+  text-align: center;
+}
+
+.llm-no-results-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* Help Section */
+.llm-help-section {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.llm-help-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.llm-help-text {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .llm-assistant-sidebar {
+    /* Already dark themed */
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .llm-assistant-sidebar.expanded {
+    width: 280px;
+  }
+  
+  .llm-category-label {
+    display: none;
+  }
+  
+  .llm-category-btn {
+    padding: 6px 8px;
+  }
+}

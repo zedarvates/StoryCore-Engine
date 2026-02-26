@@ -54,7 +54,7 @@ export const TransformOverlay: React.FC<TransformOverlayProps> = ({
         const dx = (e.clientX - initialMousePos.x) / zoom;
         const dy = (e.clientY - initialMousePos.y) / zoom;
 
-        let newTransform = { ...initialTransform };
+        const newTransform = { ...initialTransform };
 
         if (dragMode === 'move') {
             newTransform.position = {

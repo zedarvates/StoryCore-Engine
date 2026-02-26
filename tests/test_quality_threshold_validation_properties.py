@@ -16,7 +16,7 @@ from hypothesis import given, strategies as st, settings, assume
 import numpy as np
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from quality_validator import QualityValidator, QualityMetrics, QualityThresholds
 

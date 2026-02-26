@@ -605,6 +605,68 @@ restoreCheckpoint: (projectPath: string, commitId: string) => Promise<any>;
      */
     validate: (config: any, rules: any[]) => Promise<any>;
   };
+
+  // Chat window management
+  chatWindow: {
+    /**
+     * Open the detached chat window
+     */
+    open: () => Promise<void>;
+
+    /**
+     * Close the detached chat window
+     */
+    close: () => Promise<void>;
+
+    /**
+     * Toggle the detached chat window
+     */
+    toggle: () => Promise<void>;
+
+    /**
+     * Check if chat window is open
+     * @returns True if chat window is open
+     */
+    isOpen: () => Promise<boolean>;
+
+    /**
+     * Listen for chat window state changes
+     * @param callback Callback function for state changes
+     * @returns Cleanup function
+     */
+    onStateChanged: (callback: (state: { isOpen: boolean }) => void) => () => void;
+
+    /**
+     * Send a message to the chat window
+     * @param message Message to send
+     */
+    sendMessage: (message: any) => void;
+
+    /**
+     * Listen for messages from the chat window
+     * @param callback Callback function for messages
+     * @returns Cleanup function
+     */
+    onMessage: (callback: (message: any) => void) => () => void;
+
+    /**
+     * Sync state with the chat window
+     * @param state State to sync
+     */
+    syncState: (state: any) => void;
+
+    /**
+     * Listen for state updates from the chat window
+     * @param callback Callback function for state updates
+     * @returns Cleanup function
+     */
+    onStateUpdate: (callback: (state: any) => void) => () => void;
+  };
+
+  // Event listening
+  on: (channel: string, func: (...args: any[]) => void) => () => void;
+  once: (channel: string, func: (...args: any[]) => void) => void;
+  off: (channel: string, func: (...args: any[]) => void) => void;
 }
 
 /**

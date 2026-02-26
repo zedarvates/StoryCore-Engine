@@ -56,6 +56,9 @@ export class MigrationService {
   async migrateAllData(projectPath?: string): Promise<MigrationResult> {
     const startTime = Date.now();
     const migrationId = `migration-${Date.now()}`;
+    if (projectPath) {
+      sessionStorage.setItem(`migration_attempted_${projectPath}`, 'true');
+    }
 
 
     try {
@@ -229,7 +232,7 @@ export class MigrationService {
 
       const characters = store.characters || [];
       let migrated = 0;
-      let skipped = 0;
+      const skipped = 0;
       const errors: MigrationError[] = [];
 
       for (const character of characters) {
@@ -294,21 +297,21 @@ export class MigrationService {
   /**
    * Migration des séquences existantes
    */
-  private async migrateSequences(projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
+  private async migrateSequences(_projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
     return { migrated: 0, skipped: 0, errors: [] };
   }
 
   /**
    * Migration des scènes existantes
    */
-  private async migrateScenes(projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
+  private async migrateScenes(_projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
     return { migrated: 0, skipped: 0, errors: [] };
   }
 
   /**
    * Migration des plans existants
    */
-  private async migrateShots(projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
+  private async migrateShots(_projectPath?: string): Promise<{ migrated: number, skipped: number, errors: MigrationError[] }> {
     return { migrated: 0, skipped: 0, errors: [] };
   }
 
@@ -447,12 +450,21 @@ export class MigrationService {
         return false; // Rien à migrer
       }
 
-      // Vérifier si les données ont déjà été migrées
-      // (logique simplifiée - à améliorer)
+      // Vérifier si une migration a déjà été tentée dans cette session pour ce projet
+      const sessionKey = `migration_attempted_${projectPath || 'default'}`;
+      if (sessionStorage.getItem(sessionKey)) {
+        return false;
+      }
+
+      // Vérifier si les données ont déjà été migrées avec succès (statistiques mémoire)
       const stats = this.getMigrationStats();
       const hasRecentMigration = stats.migratedEntities > 0;
 
-      return !hasRecentMigration;
+      if (hasRecentMigration) {
+        return false;
+      }
+
+      return true;
 
     } catch (error) {
       console.error('[MigrationService] Error checking migration need:', error);

@@ -232,7 +232,7 @@ export class ConversationExportService {
       conv.messages.forEach(msg => {
         const content = msg.content.toLowerCase();
         let matchScore = 0;
-        let matchedWords: string[] = [];
+        const matchedWords: string[] = [];
 
         queryWords.forEach(word => {
           if (content.includes(word)) {

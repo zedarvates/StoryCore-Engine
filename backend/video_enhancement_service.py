@@ -19,6 +19,9 @@ class EnhancementType(Enum):
     FACE_ENHANCEMENT = "face_enhancement"
     BACKGROUND_BLUR = "background_blur"
     STYLE_TRANSFER = "style_transfer"
+    HELLATION = "halation"
+    MAGIC_MASK = "magic_mask" # Background removal/Segmentation
+    COLOR_ISOLATION = "color_isolation" # HSL Qualifier style
 
 class UpscaleModel(Enum):
     REAL_ESRGAN_4X = "realesrgan_4x"
@@ -162,6 +165,18 @@ class VideoEnhancementService:
                     )
                 elif enhancement.type == EnhancementType.DEBLURRING:
                     success = self._apply_deblurring(
+                        current_input, intermediate_output, enhancement
+                    )
+                elif enhancement.type == EnhancementType.HELLATION:
+                    success = self._apply_halation(
+                        current_input, intermediate_output, enhancement
+                    )
+                elif enhancement.type == EnhancementType.MAGIC_MASK:
+                    success = self._apply_magic_mask(
+                        current_input, intermediate_output, enhancement
+                    )
+                elif enhancement.type == EnhancementType.COLOR_ISOLATION:
+                    success = self._apply_color_isolation(
                         current_input, intermediate_output, enhancement
                     )
                 
@@ -637,3 +652,108 @@ class VideoEnhancementService:
         
         result = self.enhance_video(input_path, output_path, enhancements)
         return result.get("success", False)
+
+    def _apply_halation(
+        self,
+        input_path: str,
+        output_path: str,
+        config: EnhancementConfig
+    ) -> bool:
+        """Appliquer l'effet Hellation (Bloom/Glow cinématographique rouge sur les hautes lumières)"""
+        logger.info(f"Appliquer Hellation à {input_path}")
+        
+        strength = config.strength
+        sigma = 5 + (strength * 15)  # Rayon du flou
+        threshold = 220 - (strength * 60)  # Seuil de luminosité
+        
+        # Filtre FFmpeg complexe pour la hellation :
+        # 1. Isoler les hautes lumières
+        # 2. Flou gaussien
+        # 3. Teinter en rouge (augmentation canal rouge, diminution légère vert/bleu)
+        # 4. Superposer à l'image d'origine
+        filter_str = (
+            f"[0:v]split=2[orig][mask];"
+            f"[mask]lutyuv='y=if(gt(val,{threshold}),val,0):u=128:v=128',gblur=sigma={sigma},"
+            f"colorchannelmixer=rr=2:rg=0:rb=0:gr=0:gg=0.8:gb=0:br=0:bg=0:bb=0.8[glow];"
+            f"[orig][glow]blend=all_mode=lighten:all_opacity={strength}[out]"
+        )
+        
+        cmd = [
+            self.ffmpeg, "-y",
+            "-i", input_path,
+            "-filter_complex", filter_str,
+            "-map", "[out]",
+            "-map", "0:a?", # Garder l'audio si présent
+            "-c:v", "libx264",
+            "-preset", "medium",
+            "-crf", "23",
+            "-c:a", "copy",
+            output_path
+        ]
+        
+        return self._run_command(cmd)
+
+    def _apply_magic_mask(
+        self,
+        input_path: str,
+        output_path: str,
+        config: EnhancementConfig
+    ) -> bool:
+        """
+        Appliquer Magic Mask (Détourage/Segmentation).
+        En attendant l'intégration de Segment Anything Model (SAM), 
+        on utilise un filtre de chromakey adaptatif ou un flou d'arrière-plan intelligent.
+        """
+        logger.info(f"Appliquer Magic Mask à {input_path}")
+        strength = config.strength
+        
+        # Effet : Détourage basique (fond noir) ou flou d'arrière-plan
+        # Ici on simule un flou d'arrière-plan progressif
+        filter_str = (
+            f"split=2[orig][bg];"
+            f"[bg]boxblur=20:20[blurred];"
+            f"[orig]edgedetect=low=0.1:high=0.4,dilation,erosion[mask];"
+            f"[orig][blurred][mask]maskedmerge[out]"
+        )
+        
+        cmd = [
+            self.ffmpeg, "-y",
+            "-i", input_path,
+            "-filter_complex", filter_str,
+            "-map", "[out]",
+            "-c:v", "libx264",
+            "-preset", "medium",
+            "-crf", "23",
+            output_path
+        ]
+        
+        return self._run_command(cmd)
+
+    def _apply_color_isolation(
+        self,
+        input_path: str,
+        output_path: str,
+        config: EnhancementConfig
+    ) -> bool:
+        """
+        Isole une couleur spécifique (par défaut le rouge) et désature le reste.
+        Simule un HSL Qualifier de DaVinci.
+        """
+        logger.info(f"Appliquer Color Isolation à {input_path}")
+        strength = config.strength
+        
+        # Filtre FFmpeg : hsvhold
+        # Par défaut on garde le rouge (hue=0)
+        filter_str = f"hsvhold=h=0:s=0.5:v=0.5:similarity={0.1 + strength * 0.2}"
+        
+        cmd = [
+            self.ffmpeg, "-y",
+            "-i", input_path,
+            "-vf", filter_str,
+            "-c:v", "libx264",
+            "-preset", "medium",
+            "-crf", "23",
+            output_path
+        ]
+        
+        return self._run_command(cmd)

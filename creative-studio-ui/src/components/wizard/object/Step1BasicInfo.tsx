@@ -16,7 +16,7 @@ import { OBJECT_TYPE_LABELS, OBJECT_RARITY_LABELS } from '@/types/object';
 import './ObjectWizardSteps.css';
 
 export function Step1BasicInfo() {
-  const { data, updateData, errors } = useWizard<StoryObject>();
+  const { formData: data, updateFormData: updateData, validationErrors: errors } = useWizard<StoryObject>();
 
   const handleChange = (field: keyof StoryObject, value: unknown) => {
     updateData({ [field]: value });

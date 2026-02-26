@@ -247,7 +247,7 @@ class QwenTTSConfig:
         generation: Default generation configuration
         unload_model_after_generate: Whether to unload model after generation
     """
-    comfyui_url: str = "http://127.0.0.1:8188"
+    comfyui_url: str = "http://127.0.0.1:8000"
     timeout: int = 300
     model: QwenTTSModelConfig = field(default_factory=QwenTTSModelConfig)
     generation: QwenTTSGenerationConfig = field(default_factory=QwenTTSGenerationConfig)

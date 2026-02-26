@@ -55,14 +55,13 @@ const MOOD_OPTIONS = [
   'Peaceful',
 ];
 
-export function SceneGeneratorForm({
+export const SceneGeneratorForm = React.forwardRef<HTMLFormElement, SceneGeneratorFormProps>(({
   initialData,
   characters,
   onSubmit,
-  onCancel,
   onChange,
   onValidationChange,
-}: SceneGeneratorFormProps) {
+}, ref) => {
   const [formData, setFormData] = useState<SceneGeneratorInput>({
     concept: initialData?.concept || '',
     mood: initialData?.mood || '',
@@ -72,14 +71,6 @@ export function SceneGeneratorForm({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-
-  // Validate form whenever data changes
-  useEffect(() => {
-    // Skip validation on initial mount
-    if (formData.concept || formData.mood || formData.characters.length > 0 || formData.location) {
-      validateForm();
-    }
-  }, [formData]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -112,6 +103,18 @@ export function SceneGeneratorForm({
     return isValid;
   }, [formData, onValidationChange]);
 
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.concept || formData.mood || formData.characters.length > 0 || formData.location) {
+      // Use setTimeout to defer setState to next event loop tick
+      const timeoutId = setTimeout(() => {
+        validateForm();
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, validateForm]);
+
   const handleFieldChange = useCallback((field: keyof SceneGeneratorInput, value: unknown) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
@@ -140,7 +143,7 @@ export function SceneGeneratorForm({
   }, [formData, validateForm, onSubmit]);
 
   return (
-    <form className="scene-generator-form" onSubmit={handleSubmit}>
+    <form ref={ref} className="scene-generator-form" onSubmit={handleSubmit}>
       <FormSection title="Scene Overview">
         <FormField
           name="concept"
@@ -255,5 +258,5 @@ export function SceneGeneratorForm({
       </FormSection>
     </form>
   );
-}
+});
 

@@ -30,38 +30,38 @@ export interface WorldWizardProps {
 const WIZARD_STEPS: WizardStep[] = [
   {
     number: 1,
-    title: 'Reality Anchor',
-    description: 'Designation and temporal coordinates',
+    title: 'Identity & Era',
+    description: 'Name, genre, and time period',
     icon: Globe,
   },
   {
     number: 2,
-    title: 'Ontological Governance',
-    description: 'Systemic laws and constraints',
+    title: 'Laws & Physics',
+    description: 'Rules, magic, and technology',
     icon: Shield,
   },
   {
     number: 3,
-    title: 'Topographic Cartography',
-    description: 'Environmental node mapping',
+    title: 'Geography & Places',
+    description: 'Map out the key locations',
     icon: MapPin,
   },
   {
     number: 4,
-    title: 'Registry of Relics',
-    description: 'Artifact registry and physical assets',
+    title: 'Objects & Relics',
+    description: 'Key items and artifacts',
     icon: Package,
   },
   {
     number: 5,
-    title: 'Societal Matrix',
-    description: 'Cultural and social protocols',
+    title: 'Society & Culture',
+    description: 'Customs, languages, and history',
     icon: Users,
   },
   {
     number: 6,
-    title: 'Genesis Verification',
-    description: 'Ontological synchronization',
+    title: 'Review & Save',
+    description: 'Final check of your world',
     icon: ClipboardList,
   },
 ];
@@ -87,7 +87,7 @@ function WorldWizardContent({ steps, onCancel, renderStepContent, onComplete }: 
 
   return (
     <ProductionWizardContainer
-      title="Genesis Engine"
+      title="World Creator"
       steps={steps}
       onCancel={onCancel}
       onComplete={handleComplete}
@@ -218,6 +218,14 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
 
   const handleSubmit = useCallback(
     async (data: Partial<World>) => {
+      // Filter out locations and objects without names (empty entries)
+      const filteredLocations = (data.locations || []).filter(
+        (location) => location.name && location.name.trim() !== ''
+      );
+      const filteredKeyObjects = (data.keyObjects || []).filter(
+        (object) => object.name && object.name.trim() !== ''
+      );
+
       // Create complete world object
       const world: World = {
         id: crypto.randomUUID(),
@@ -225,9 +233,9 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
         genre: data.genre || [],
         timePeriod: data.timePeriod || '',
         tone: data.tone || [],
-        locations: data.locations || [],
+        locations: filteredLocations,
         rules: data.rules || [],
-        keyObjects: data.keyObjects || [],
+        keyObjects: filteredKeyObjects,
         atmosphere: data.atmosphere || '',
         culturalElements: data.culturalElements || {
           languages: [],
@@ -367,14 +375,14 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
     const chainOptions: WizardChainOption[] = [
       {
         wizardType: 'create-character',
-        label: 'Initialize Persona Nodes',
-        description: 'Populate reality with sentient character manifests',
+        label: 'Add Characters',
+        description: 'Create inhabitants for your new world',
         icon: 'UserPlus'
       },
       {
         wizardType: 'create-location',
-        label: 'Detail Supplementary Nodes',
-        description: 'Specify additional environmental data points',
+        label: 'Add Locations',
+        description: 'Define more specific places in this world',
         icon: 'MapPin'
       }
     ];
@@ -386,12 +394,12 @@ export function WorldWizard({ onComplete, onCancel, initialData }: WorldWizardPr
           <div className="w-24 h-24 bg-primary/20 rounded-2xl flex items-center justify-center mb-2 border border-primary/30 shadow-[0_0_40px_rgba(var(--primary-rgb),0.3)] group">
             <CheckCircle2 className="w-14 h-14 text-primary neon-text group-hover:scale-110 transition-transform duration-500" />
           </div>
-          <h2 className="text-4xl font-extrabold neon-text text-primary uppercase tracking-tighter">Genesis Complete</h2>
+          <h2 className="text-4xl font-extrabold neon-text text-primary uppercase tracking-tighter">World Created</h2>
           <p className="text-primary-foreground/90 max-w-md text-lg leading-relaxed">
-            The world of <span className="text-primary font-bold">"{createdWorld.name}"</span> has been successfully instantiated in the global registry.
+            The world of <span className="text-primary font-bold">"{createdWorld.name}"</span> has been successfully added to your project.
           </p>
           <div className="flex items-center gap-2 text-primary/60 font-mono text-xs uppercase tracking-widest bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
-            <Zap className="h-3 w-3" /> System Synchronized
+            <Zap className="h-3 w-3" /> Ready to Build
           </div>
         </div>
 

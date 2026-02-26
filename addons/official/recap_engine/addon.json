@@ -1,0 +1,50 @@
+{
+  "name": "recap_engine",
+  "display_name": "Recap Engine",
+  "version": "1.0.0",
+  "type": "workflow_addon",
+  "author": "StoryCore Team",
+  "description": "Transforme une BD StoryCore en vidéo narrative longue style 'Manga Recap YouTube' : voix off synthétique, panels légèrement animés (zoom lent, pan, surbrillance), cohérence visuelle par personnage. Pipeline : BD → Script → TTS → Timeline → Animation → Export MP4 (ffmpeg).",
+  "category": "official",
+  "compatibility": {
+    "engine_version": ">=2.0.0",
+    "python_version": ">=3.9"
+  },
+  "permissions": [
+    "file_system_read",
+    "file_system_write",
+    "network_access",
+    "ui_access",
+    "config_access",
+    "model_access"
+  ],
+  "entry_points": {
+    "main": "src/main.py",
+    "cli": "src/cli.py"
+  },
+  "dependencies": {
+    "aiohttp": ">=3.8.0",
+    "pillow": ">=9.0.0",
+    "pydub": ">=0.25.0",
+    "gtts": ">=2.3.0"
+  },
+  "metadata": {
+    "category": "video_generation",
+    "icon": "🎬",
+    "tags": ["recap", "manga", "anime", "video", "tts", "narration", "youtube", "bd", "comic"],
+    "supported_features": [
+      "bd_to_recap_video",
+      "tts_narration",
+      "panel_animation",
+      "zoom_pan_effects",
+      "character_color_coding",
+      "scene_transitions",
+      "mp4_export",
+      "subtitle_generation",
+      "timeline_editor"
+    ],
+    "supported_sources": ["storycore_bd", "comic_json", "script_text"],
+    "homepage": "https://github.com/storycore-engine",
+    "documentation": "docs/recap-engine.md"
+  }
+}

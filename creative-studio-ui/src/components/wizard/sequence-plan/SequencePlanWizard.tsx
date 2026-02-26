@@ -181,7 +181,7 @@ export function SequencePlanWizard({
       setAvailableTemplates(templates);
 
       // Initialize state based on props
-      let initialState: SequencePlanWizardState = {
+      const initialState: SequencePlanWizardState = {
         currentStep: 0,
         formData: {},
         selectedTemplate: undefined,
@@ -299,7 +299,7 @@ export function SequencePlanWizard({
   // Completion Handler
   // ============================================================================
 
-  const handleComplete = useCallback(async () => {
+  const handleComplete = useCallback(async (engine?: string) => {
     try {
       setIsLoading(true);
 
@@ -319,6 +319,7 @@ export function SequencePlanWizard({
         createdAt: wizardState.formData.createdAt || Date.now(),
         modifiedAt: Date.now(),
         status: 'completed',
+        preferredEngine: engine,
         tags: wizardState.formData.tags || [],
       };
 
@@ -446,35 +447,59 @@ export function SequencePlanWizard({
   // Render
   // ============================================================================
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleCancel}>
-      <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col cyber-card border-primary/30 bg-card/95 backdrop-blur-sm">
-        <DialogHeader className="border-b border-primary/30 bg-card/95 backdrop-blur-sm">
-          <DialogTitle className="neon-text text-primary text-xl font-bold">Sequence Editor Wizard</DialogTitle>
-        </DialogHeader>
+  // Handle Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
-        <div className="flex-1 overflow-y-auto min-h-0">
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, handleKeyDown]);
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div className="wizard-modal-overlay" onClick={onClose}>
+        <div className="wizard-modal-container max-w-6xl h-[92vh]" onClick={(e) => e.stopPropagation()}>
           <ProductionWizardContainer
-            title="Multishot Sequence Editor"
+            title="Sequence Plan Architect"
             steps={SEQUENCE_PLAN_STEPS}
             currentStep={wizardState.currentStep}
             onNextStep={nextStep}
             onPreviousStep={previousStep}
             onGoToStep={goToStep}
-            onCancel={handleCancel}
-            onComplete={wizardState.currentStep === SEQUENCE_PLAN_STEPS.length - 1 ? handleComplete : nextStep}
-            allowJumpToStep={false} // Can be enabled later if needed
-            showAutoSaveIndicator={!existingSequencePlan}
+            onCancel={onClose}
+            onComplete={handleComplete}
             canProceed={true} // Can add validation logic here
             isDirty={wizardState.isDirty}
             lastSaved={wizardState.lastSaved}
             className="h-full"
           >
             {isLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-muted-foreground neon-text-blue">Loading...</p>
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-4">
+                  <div className="relative">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border-primary/20 mx-auto"></div>
+                  </div>
+                  <p className="text-muted-foreground font-medium animate-pulse">Initialisation du protocole...</p>
                 </div>
               </div>
             ) : error ? (
@@ -494,75 +519,89 @@ export function SequencePlanWizard({
             )}
           </ProductionWizardContainer>
         </div>
+      </div>
 
-        {/* Corruption Recovery Dialog */}
-        {validationResult && (
-          <StateRecoveryDialog
-            wizardType="sequence-plan"
-            validationResult={validationResult}
-            isOpen={showRecoveryDialog}
-            onDismiss={dismissWarning}
-            onReset={() => {
-              resetState();
-              initializeWizard(); // Restart initialization after reset
-            }}
-            onRecover={async () => {
-              const success = await attemptRecovery();
-              if (success && loadResult?.state?.formData) {
-                setWizardState(prev => ({
-                  ...prev,
-                  formData: loadResult.state!.formData as any,
-                  isDirty: true
-                }));
-              }
-            }}
-          />
-        )}
+      {/* Corruption Recovery Dialog */}
+      {validationResult && (
+        <StateRecoveryDialog
+          wizardType="sequence-plan"
+          validationResult={validationResult}
+          isOpen={showRecoveryDialog}
+          onDismiss={dismissWarning}
+          onReset={() => {
+            resetState();
+            initializeWizard();
+          }}
+          onRecover={async () => {
+            const success = await attemptRecovery();
+            if (success && loadResult?.state?.formData) {
+              setWizardState(prev => ({
+                ...prev,
+                formData: loadResult.state!.formData as any,
+                isDirty: true
+              }));
+            }
+          }}
+        />
+      )}
 
-        {/* Valid Draft Recovery Dialog */}
-        <Dialog open={showDraftDialog} onOpenChange={setShowDraftDialog}>
-          <DialogContent className="sm:max-w-md bg-card border-primary/20">
+      {/* Valid Draft Recovery Dialog */}
+      <Dialog open={showDraftDialog} onOpenChange={setShowDraftDialog}>
+        <DialogContent className="sm:max-w-md bg-[#0a0a0f] border-primary/20 rounded-2xl shadow-2xl p-0 overflow-hidden">
+          <div className="h-1.5 w-full bg-primary/40 shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
+          <div className="p-8">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-primary neon-text">
-                <FileText className="w-5 h-5" />
-                Recover Previous Session?
+              <DialogTitle className="flex items-center gap-3 text-white text-xl font-black uppercase tracking-tight">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <FileText className="w-6 h-6 text-primary" />
+                </div>
+                Restore Work?
               </DialogTitle>
-              <DialogDescription className="text-muted-foreground pt-2">
-                We found an unsaved draft from a previous session. Would you like to restore it and continue where you left off?
-              </DialogDescription>
+              <div className="pt-4 space-y-4">
+                <DialogDescription className="text-slate-400 text-sm leading-relaxed">
+                  An unsaved draft was detected from your previous session. Would you like to restore it or start clean?
+                </DialogDescription>
+
+                {recoveryDraft?.formData && (
+                  <div className="bg-black/40 p-4 rounded-xl border border-white/5 shadow-inner">
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-black text-primary/70 mb-2">Draft Metadata:</p>
+                    <p className="text-sm font-bold text-white uppercase">{(recoveryDraft.formData as any).name || "Unnamed Sequence"}</p>
+                    <p className="text-[10px] text-slate-500 mt-1 uppercase">Lost on: {new Date((recoveryDraft.formData as any).modifiedAt || Date.now()).toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
             </DialogHeader>
-            <DialogFooter className="flex gap-2 sm:justify-end mt-4">
+            <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">
               <Button
-                variant="outline"
+                variant="ghost"
+                className="flex-1 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all text-[10px] font-black uppercase tracking-widest h-12"
                 onClick={() => {
                   setShowDraftDialog(false);
                   setRecoveryDraft(null);
                   clearWizardState('sequence-plan');
                 }}
               >
-                Start Fresh
+                Wipe Recovery
               </Button>
               <Button
+                className="flex-1 bg-primary text-primary-foreground hover:opacity-90 rounded-xl font-black uppercase tracking-widest text-[10px] h-12 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                 onClick={() => {
                   if (recoveryDraft) {
                     setWizardState(prev => ({
                       ...prev,
                       ...recoveryDraft,
-                      // Ensure currentStep is valid
                       currentStep: Math.min(recoveryDraft.currentStep || 0, SEQUENCE_PLAN_STEPS.length - 1)
                     }));
                   }
                   setShowDraftDialog(false);
                 }}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                Recover Session
+                Restore Session
               </Button>
             </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
-

@@ -1,0 +1,49 @@
+# TODO - Top 5 Tâches Prioritaires StoryCore-Engine
+
+## Top 5 des Tâches les Plus Importantes
+
+### 🥇 Tâche #1 : Connecter AsyncTaskQueue → task_queue_api.py
+**Priorité : 🔴 CRITIQUE** | **Statut : ✅ TERMINÉ** (2026-02-24)
+- Imports AsyncTaskQueue ajoutés avec fallback ASYNC_QUEUE_AVAILABLE
+- Circuit breaker, rate limiting, gestion de priorité avancée
+
+---
+
+### 🥈 Tâche #2 : Intégrer un vrai LLM pour génération de sequences
+**Priorité : 🔴 CRITIQUE** | **Statut : ✅ TERMINÉ** (2026-02-24)
+- Import LLMClient ajouté dans sequence_api.py
+- generate_sequence() utilise maintenant Ollama quand disponible
+- Fallback automatique si LLM non disponible
+- Génère des descriptions de shots intelligentes avec camera_movement
+
+---
+
+### 🥉 Tâche #3 : Corriger cache.pop() dans storage.py
+**Priorité : 🔴 CRITIQUE** | **Statut : ✅ TERMINÉ** (2026-02-24)
+- Le code utilise déjà `cache.popitem()` - CORRECT
+
+---
+
+### 4️⃣ Tâche #4 : Corriger tests cassés
+**Priorité : 🟡 HAUTE** | **Statut : ✅ TERMINÉ** (2026-02-24)
+- test_audio_remix_api.py: **11 tests PASSED**
+
+---
+
+### 5️⃣ Tâche #5 : Finaliser Types/Fixes TypeScript
+**Priorité : 🟡 HAUTE** | **Statut : ✅ TERMINÉ** (2026-02-24)
+- Build TypeScript réussi (34.14s, 14598 modules)
+
+---
+
+## Résumé
+
+| Tâche | Statut |
+|-------|--------|
+| #1 AsyncTaskQueue | ✅ TERMINÉ |
+| #2 Intégration LLM | ✅ TERMINÉ |
+| #3 Cache fix | ✅ TERMINÉ |
+| #4 Tests | ✅ TERMINÉ |
+| #5 TypeScript | ✅ TERMINÉ |
+
+*Mis à jour le: 2026-02-24*

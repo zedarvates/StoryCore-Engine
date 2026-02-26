@@ -90,7 +90,7 @@ class QwenTTSService:
     
     def __init__(
         self,
-        comfyui_url: str = "http://127.0.0.1:8188",
+        comfyui_url: str = "http://127.0.0.1:8000",
         model_choice: str = "1.7B",
         device: str = "cuda",
         precision: str = "bf16",
@@ -418,7 +418,7 @@ class QwenTTSService:
 
 # Factory function
 def create_qwen_tts_service(
-    comfyui_url: str = "http://127.0.0.1:8188",
+    comfyui_url: str = "http://127.0.0.1:8000",
     model_choice: str = "1.7B",
     device: str = "cuda",
     precision: str = "bf16",

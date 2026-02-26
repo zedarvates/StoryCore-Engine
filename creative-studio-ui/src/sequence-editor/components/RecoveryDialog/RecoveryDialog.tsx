@@ -8,53 +8,55 @@
  */
 
 import React from 'react';
-import { useProjectRecovery } from '../../hooks/useProjectRecovery';
+import { type RecoverySnapshot } from '../../services/projectRecovery';
 import './recoveryDialog.css';
 
 export interface RecoveryDialogProps {
-  onClose?: () => void;
+  onClose: () => void;
+  hasCrashedSession: boolean;
+  recoverySnapshots: RecoverySnapshot[];
+  recoverFromSnapshot: (snapshotId: string) => Promise<void>;
+  dismissCrashRecovery: () => void;
+  deleteSnapshot: (snapshotId: string) => void;
+  formatTimestamp: (timestamp: string) => string;
+  isRecovering: boolean;
+  error: string | null;
 }
 
 /**
  * Recovery Dialog Component
  */
-export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
-  const {
-    hasCrashedSession,
-    recoverySnapshots,
-    recoverFromSnapshot,
-    dismissCrashRecovery,
-    deleteSnapshot,
-    formatTimestamp,
-    isRecovering,
-    error,
-  } = useProjectRecovery();
-
+export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({
+  onClose,
+  hasCrashedSession,
+  recoverySnapshots,
+  recoverFromSnapshot,
+  dismissCrashRecovery,
+  deleteSnapshot,
+  formatTimestamp,
+  isRecovering,
+  error
+}) => {
   const [selectedSnapshotId, setSelectedSnapshotId] = React.useState<string | null>(null);
 
-  // Don't show dialog if no crashed session and no snapshots
-  if (!hasCrashedSession && recoverySnapshots.length === 0) {
-    return null;
-  }
-
-  const handleRecover = async () => {
+  const handleRecover = React.useCallback(async () => {
     if (!selectedSnapshotId) {
       return;
     }
 
     try {
       await recoverFromSnapshot(selectedSnapshotId);
-      onClose?.();
+      onClose();
     } catch (err) {
       // Error is handled by the hook
       console.error('Recovery failed:', err);
     }
-  };
+  }, [selectedSnapshotId, recoverFromSnapshot, onClose]);
 
-  const handleDismiss = () => {
+  const handleDismiss = React.useCallback(() => {
     dismissCrashRecovery();
-    onClose?.();
-  };
+    onClose();
+  }, [dismissCrashRecovery, onClose]);
 
   // Handle escape key to close dialog
   React.useEffect(() => {
@@ -70,7 +72,7 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
     };
   }, [handleDismiss]);
 
-  const handleDelete = (snapshotId: string, e: React.MouseEvent) => {
+  const handleDelete = React.useCallback((snapshotId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this recovery snapshot?')) {
       deleteSnapshot(snapshotId);
@@ -78,7 +80,7 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({ onClose }) => {
         setSelectedSnapshotId(null);
       }
     }
-  };
+  }, [deleteSnapshot, selectedSnapshotId]);
 
   return (
     <div className="recovery-dialog-overlay" onClick={handleDismiss}>

@@ -14,7 +14,6 @@ import type {
   Location,
   CubeFace,
   LocationType,
-  CubeTextureMapping,
   CubeFaceTexture,
   PlacedAsset,
   Transform3D,
@@ -22,6 +21,22 @@ import type {
 } from '@/types/location';
 import { listLocationsInProject, loadLocationFromProject } from '@/utils/locationStorage';
 import { API_BASE_URL } from '../config/apiConfig';
+
+// ============================================================================
+// Internal Types
+// ============================================================================
+
+/**
+ * Interface for location data coming from the backend API
+ */
+interface BackendLocation extends Partial<Location> {
+  id?: string;
+  location_id?: string;
+  cube_faces?: Record<string, unknown>;
+  description?: string;
+  atmosphere?: string;
+  genre_tags?: string[];
+}
 
 // ============================================================================
 // API Configuration
@@ -49,11 +64,11 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
     }
 
     return response.json();
-  } catch (error) {
-    // Don't log error in offline mode (Electron without backend)
-    // This is expected behavior
-    throw error;
-  }
+    } catch {
+      // Don't log error in offline mode (Electron without backend)
+      // This is expected behavior
+      throw new Error('API request failed');
+    }
 }
 
 // ============================================================================
@@ -170,8 +185,32 @@ export const useLocationStore = create<LocationState>()(
           set({ isLoading: true, error: null });
           try {
             // Try to fetch from API, but don't fail if offline (Electron mode)
-            const response = await fetchApi<{ locations: Location[] }>('/api/locations');
-            set({ locations: response.locations });
+            const response = await fetchApi<unknown>('/api/locations');
+            
+            // Handle both object { locations: [] } and raw array [] responses
+            let locationsArray: BackendLocation[] = [];
+            if (Array.isArray(response)) {
+              locationsArray = response as BackendLocation[];
+            } else if (response && typeof response === 'object' && 'locations' in response) {
+              const respObj = response as { locations: BackendLocation[] };
+              if (Array.isArray(respObj.locations)) {
+                locationsArray = respObj.locations;
+              }
+            }
+            
+            // Map backend fields to frontend fields if necessary
+            const mappedLocations: Location[] = locationsArray.map((loc: BackendLocation) => ({
+              ...loc,
+              location_id: loc.location_id || loc.id || '',
+              cube_textures: (loc.cube_textures || loc.cube_faces || {}) as Location['cube_textures'],
+              metadata: loc.metadata || {
+                description: loc.description || '',
+                atmosphere: loc.atmosphere || '',
+                genre_tags: loc.genre_tags || [],
+              }
+            } as Location));
+
+            set({ locations: mappedLocations });
           } catch (error) {
             // Handle 404 Not Found gracefully - it just means no locations exist yet
             if (error instanceof Error && error.message.includes('404')) {
@@ -234,7 +273,7 @@ export const useLocationStore = create<LocationState>()(
           try {
             // Try API first, fallback to local storage in offline mode
             try {
-              const response = await fetchApi<{ location: Location }>('/api/locations', {
+              const response = await fetchApi<unknown>('/api/locations', {
                 method: 'POST',
                 body: JSON.stringify({
                   name: location.name,
@@ -247,10 +286,19 @@ export const useLocationStore = create<LocationState>()(
                   prompts: location.prompts,
                 }),
               });
+              
+              const resData = response as { location?: BackendLocation } & BackendLocation;
+              const newLoc = resData?.location || resData;
+              const mappedLoc: Location = {
+                ...newLoc,
+                location_id: newLoc.location_id || newLoc.id || '',
+                cube_textures: (newLoc.cube_textures || newLoc.cube_faces || {}) as Location['cube_textures'],
+              } as Location;
+
               set((state) => ({
-                locations: [...state.locations, response.location],
+                locations: [...state.locations, mappedLoc],
               }));
-            } catch (apiError) {
+            } catch {
               // Offline mode - add locally
               console.warn('API not available, adding location locally');
               set((state) => ({
@@ -271,16 +319,25 @@ export const useLocationStore = create<LocationState>()(
           try {
             // Try API first, fallback to local update in offline mode
             try {
-              const response = await fetchApi<{ location: Location }>(`/api/locations/${id}`, {
+              const response = await fetchApi<unknown>(`/api/locations/${id}`, {
                 method: 'PUT',
                 body: JSON.stringify(updates),
               });
+              
+              const resData = response as { location?: BackendLocation } & BackendLocation;
+              const updatedLoc = resData?.location || resData;
+              const mappedLoc: Location = {
+                ...updatedLoc,
+                location_id: updatedLoc.location_id || updatedLoc.id || '',
+                cube_textures: (updatedLoc.cube_textures || updatedLoc.cube_faces || {}) as Location['cube_textures'],
+              } as Location;
+
               set((state) => ({
                 locations: state.locations.map((loc) =>
-                  loc.location_id === id ? response.location : loc
+                  loc.location_id === id ? mappedLoc : loc
                 ),
               }));
-            } catch (apiError) {
+            } catch {
               // Offline mode - update locally
               console.warn('API not available, updating location locally');
               set((state) => ({
@@ -306,7 +363,7 @@ export const useLocationStore = create<LocationState>()(
               await fetchApi(`/api/locations/${id}`, {
                 method: 'DELETE',
               });
-            } catch (apiError) {
+            } catch {
               // Offline mode - delete locally
               console.warn('API not available, deleting location locally');
             }
@@ -338,7 +395,7 @@ export const useLocationStore = create<LocationState>()(
         updateCubeTexture: async (locationId, face, texture) => {
           set({ isSaving: true, error: null });
           try {
-            const response = await fetchApi<{ location: Location }>(`/api/locations/${locationId}/cube-textures`, {
+            const response = await fetchApi<{ location?: BackendLocation } & BackendLocation>(`/api/locations/${locationId}/cube-textures`, {
               method: 'POST',
               body: JSON.stringify({
                 face,
@@ -351,9 +408,17 @@ export const useLocationStore = create<LocationState>()(
                 seed: texture.generation_params?.seed,
               }),
             });
+            
+            const updatedLoc = response.location || response;
+            const mappedLoc: Location = {
+              ...updatedLoc,
+              location_id: updatedLoc.location_id || updatedLoc.id || '',
+              cube_textures: (updatedLoc.cube_textures || updatedLoc.cube_faces || {}) as Location['cube_textures'],
+            } as Location;
+
             set((state) => ({
               locations: state.locations.map((loc) =>
-                loc.location_id === locationId ? response.location : loc
+                loc.location_id === locationId ? mappedLoc : loc
               ),
             }));
           } catch (error) {
@@ -370,7 +435,8 @@ export const useLocationStore = create<LocationState>()(
           try {
             const location = get().locations.find((loc) => loc.location_id === locationId);
             if (location) {
-              const { [face]: _, ...remainingTextures } = location.cube_textures;
+              const remainingTextures = { ...location.cube_textures };
+              delete (remainingTextures as Record<string, unknown>)[face];
               await get().updateLocation(locationId, { cube_textures: remainingTextures });
             }
           } catch (error) {
@@ -459,6 +525,7 @@ export const useLocationStore = create<LocationState>()(
       }),
       {
         name: 'location-store',
+        // cspell:ignore partialize
         partialize: (state) => ({
           filterType: state.filterType,
           filterWorld: state.filterWorld,
@@ -478,7 +545,9 @@ export const useLocationStore = create<LocationState>()(
  * Get filtered locations based on current filters
  */
 export function getFilteredLocations(state: LocationState): Location[] {
-  let filtered = [...state.locations];
+  // Defensive check: ensure locations is an array
+  const locations = Array.isArray(state.locations) ? state.locations : [];
+  let filtered = [...locations];
 
   // Filter by type
   if (state.filterType !== 'all') {

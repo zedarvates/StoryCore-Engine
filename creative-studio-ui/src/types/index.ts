@@ -21,28 +21,12 @@ import type { AssetMetadata } from './asset';
 import type { StoryObject } from './object';
 // Import Shot and Production types
 import type { ShotType, TransitionType, ComfyUIParameters } from './shot';
-import type { SequencePlan, Act, Scene } from './sequencePlan';
-// Import Location Logic Loop types
-import type {
-  LocationFunctionType,
-  LocationSubFunction,
-  ConstraintType,
-  ConstraintSeverity,
-  LocationConstraint,
-  LocationConstraints,
-  LocationCulture,
-  LocationReputation,
-  EmergentDetails,
-  LocationLogicLoop,
-  LogicLoopGenerationRequest,
-  LogicLoopLocationResponse,
-  FunctionOption,
-  FrameworkInfo,
-  ExampleLocation,
-  getFunctionOptions,
-  getConstraintTypes,
-  createEmptyLogicLoop
-} from './locationLogicLoop';
+import type { SequencePlan } from './sequencePlan';
+import type { DialoguePhrase, GenerationRecord } from './projectDashboard';
+import type { ProjectSetupData, ProjectConstraint } from './project';
+
+
+// Project Setup Types are now in project.ts
 
 // ============================================================================
 // Shot and Related Types
@@ -191,7 +175,7 @@ export interface SurroundConfig {
     frontLeft?: number;
     frontRight?: number;
     center?: number;
-    lfe?: number; // Low Frequency Effects (subwoofer)
+    lfe?: number; // Low Frequency Effects (surroundwoofer)
     surroundLeft?: number;
     surroundRight?: number;
 
@@ -404,14 +388,16 @@ export interface Project {
   stories?: Story[];
   storyVersions?: StoryVersion[];
   objects?: StoryObject[];
+  sequencePlans?: SequencePlan[];
+  projectSetup?: ProjectSetupData;
 
   // Dashboard / Generation metadata
-  audio_phrases?: any[]; // For DialoguePhrase
+  audio_phrases?: DialoguePhrase[]; // For DialoguePhrase
   master_coherence_sheet?: {
     url: string;
     generated_at: number;
   };
-  generation_history?: any[];
+  generation_history?: GenerationRecord[];
 
   capabilities: {
     grid_generation: boolean;
@@ -430,8 +416,8 @@ export interface Project {
   // CamelCase Aliases (for dashboard compatibility)
   name?: string; // alias for project_name
   schemaVersion?: string; // alias for schema_version
-  audioPhrases?: any[]; // alias for audio_phrases
-  generationHistory?: any[]; // alias for generation_history
+  audioPhrases?: DialoguePhrase[]; // alias for audio_phrases
+  generationHistory?: GenerationRecord[]; // alias for generation_history
 
   storyboard?: Shot[]; // Data Contract v1 alias for shots
   casting?: {
@@ -473,7 +459,8 @@ export type {
 } from './story';
 
 // Import Production Wizards types
-export type { SequencePlan, Act, Scene } from './sequencePlan';
+export type { SequencePlan } from './sequencePlan';
+export type { StoryObject } from './object';
 export type {
   ProductionShot,
   ShotType,
@@ -673,6 +660,8 @@ export {
 // Import Project types from project.ts
 export type {
   ProjectData,
+  ProjectSetupData,
+  ProjectConstraint,
   ProjectCapabilities,
   GenerationStatus as ProjectGenerationStatus,
   SceneReference,
@@ -847,6 +836,12 @@ export interface QueueStatsResponse {
   cancelled_jobs: number;
   average_wait_time: number;
   estimated_completion_time?: number;
+  /** Tasks per second from AsyncTaskQueue engine (may be null when engine is idle) */
+  throughput_per_second?: number | null;
+  /** Average execution time in seconds from AsyncTaskQueue engine */
+  avg_execution_time?: number | null;
+  /** Circuit-breaker state: 'closed' | 'open' | 'half-open' */
+  circuit_breaker_status?: string | null;
 }
 
 // ============================================================================
@@ -870,6 +865,7 @@ export interface AppState {
   stories: Story[]; // Stories for the project
   storyVersions: StoryVersion[]; // Version history for stories
   objects: StoryObject[]; // Story objects, props, and artifacts
+  sequencePlans: SequencePlan[]; // Structured sequence plans
 
   // UI state
   selectedShotId: string | null;

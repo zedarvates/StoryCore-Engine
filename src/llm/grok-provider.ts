@@ -62,9 +62,10 @@ export class GrokProvider implements LLMProvider {
 
   async generateText(prompt: string, config?: Partial<LLMConfig>): Promise<string> {
     const mergedConfig = { ...this.getDefaultConfig(), ...config };
+    const model = mergedConfig.model ?? 'grok-2-1212';
     const request: GrokChatCompletionRequest = {
       messages: [{ role: 'user', content: prompt }],
-      model: mergedConfig.model,
+      model,
       temperature: mergedConfig.temperature,
       max_tokens: mergedConfig.maxTokens,
     };
@@ -80,9 +81,10 @@ export class GrokProvider implements LLMProvider {
       content: msg.content,
     }));
 
+    const model = mergedConfig.model ?? 'grok-2-1212';
     const request: GrokChatCompletionRequest = {
       messages: grokMessages,
-      model: mergedConfig.model,
+      model,
       temperature: mergedConfig.temperature,
       max_tokens: mergedConfig.maxTokens,
     };

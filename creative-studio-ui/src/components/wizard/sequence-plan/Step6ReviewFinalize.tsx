@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ChevronDownIcon, ChevronUpIcon, EditIcon, DownloadIcon, CheckCircleIcon, AlertTriangleIcon, EyeIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, EditIcon, DownloadIcon, CheckCircleIcon, AlertTriangleIcon, EyeIcon, Film } from 'lucide-react';
 import { SequencePlan, Act, Scene } from '@/types/sequencePlan';
 import { ProductionShot } from '@/types/shot';
 import { SequenceTemplate } from '@/types/template';
@@ -13,7 +13,7 @@ interface Step6ReviewFinalizeProps {
   sequencePlan: Partial<SequencePlan>;
   selectedTemplate?: SequenceTemplate;
   onEditStep: (stepIndex: number) => void;
-  onComplete: () => void;
+  onComplete: (engine: string) => void;
 }
 
 interface ValidationIssue {
@@ -31,6 +31,13 @@ export function Step6ReviewFinalize({
 }: Step6ReviewFinalizeProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['overview']));
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [selectedEngine, setSelectedEngine] = useState('comfyui');
+
+  const AVAILABLE_ENGINES = [
+    { id: 'comfyui', name: 'Standard (ComfyUI)', description: 'Local generation using stable diffusion / Wan', icon: '⚡' },
+    { id: 'Grok Imagine', name: 'Grok Imagine (xAI)', description: 'Advanced AI image & video generation', icon: '👁️', premium: true },
+    { id: 'Seedance 2.0', name: 'Seedance 2.0', description: 'Turbo cinematic video & 3D export', icon: '🌱', suggested: true, premium: true }
+  ];
 
   // Validation logic
   const validationIssues = useMemo((): ValidationIssue[] => {
@@ -343,6 +350,78 @@ export function Step6ReviewFinalize({
     </Card>
   );
 
+  const renderEngineSelection = () => (
+    <div className="space-y-6 py-6 bg-gradient-to-b from-transparent to-primary/5 rounded-2xl p-6 border border-primary/10">
+      <div className="flex flex-col gap-1">
+        <h4 className="font-bold text-xl flex items-center gap-3 neon-text">
+          <Film className="w-6 h-6 text-primary animate-pulse" />
+          Production Engine Selection
+        </h4>
+        <p className="text-sm text-muted-foreground ml-9">
+          Choose the hardware and AI pipeline for high-fidelity rendering
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {AVAILABLE_ENGINES.map((engine) => (
+          <div
+            key={engine.id}
+            onClick={() => setSelectedEngine(engine.id)}
+            className={`cursor-pointer group relative p-6 rounded-2xl border-2 transition-all duration-500 transform hover:scale-[1.02] ${selectedEngine === engine.id
+              ? 'border-primary bg-primary/20 shadow-[0_0_30px_rgba(var(--primary),0.4)] backdrop-blur-md'
+              : 'border-white/5 bg-white/5 hover:border-white/20 hover:bg-white/10'
+              }`}
+          >
+            <div className="flex flex-col h-full gap-4">
+              <div className="flex items-center justify-between">
+                <div className={`p-3 rounded-xl ${selectedEngine === engine.id ? 'bg-primary/20' : 'bg-white/5'} transition-colors duration-500`}>
+                  <span className="text-3xl">{engine.icon}</span>
+                </div>
+                {selectedEngine === engine.id && (
+                  <div className="bg-primary p-1 rounded-full shadow-[0_0_10px_rgba(var(--primary),0.8)]">
+                    <CheckCircleIcon className="w-5 h-5 text-white" />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h5 className={`font-bold text-lg mb-1 transition-colors duration-500 ${selectedEngine === engine.id ? 'text-primary neon-text' : 'text-foreground'}`}>
+                  {engine.name}
+                </h5>
+                <p className="text-sm text-muted-foreground leading-relaxed group-hover:text-muted-foreground/80 transition-colors">
+                  {engine.description}
+                </p>
+              </div>
+
+              <div className="mt-auto pt-2 flex flex-wrap gap-2">
+                {selectedEngine === engine.id && (
+                  <Badge className="bg-primary/30 text-primary border-primary/50 text-[10px] uppercase tracking-widest font-bold">
+                    Optimized
+                  </Badge>
+                )}
+                {(engine as any).premium && (
+                  <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30 text-[10px] uppercase tracking-widest font-bold">
+                    Premium
+                  </Badge>
+                )}
+                {(engine as any).suggested && (
+                  <Badge className="bg-emerald-500/20 text-emerald-500 border-emerald-500/30 text-[10px] uppercase tracking-widest font-bold">
+                    Recommended
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Glossy overlay effect */}
+            {selectedEngine === engine.id && (
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary/10 via-transparent to-white/5 pointer-events-none" />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderShotsSection = () => (
     <Card className="cursor-pointer">
       <CardHeader
@@ -403,7 +482,7 @@ export function Step6ReviewFinalize({
             </Button>
             <Button onClick={() => {
               setShowConfirmDialog(false);
-              onComplete();
+              onComplete(selectedEngine);
             }} className="bg-primary text-primary-foreground">
               Finalize Sequence
             </Button>
@@ -435,6 +514,9 @@ export function Step6ReviewFinalize({
 
       <div className="space-y-4">
         {renderOverviewSection()}
+        <Separator className="bg-white/5" />
+        {renderEngineSelection()}
+        <Separator className="bg-white/5" />
         {renderActsSection()}
         {renderScenesSection()}
         {renderShotsSection()}

@@ -77,7 +77,10 @@ class GrokImagineAddon:
             "quality_preset": "high",
             "seed": -1,
             "output_format": "mp4",
-            "image_format": "png"
+            "image_format": "png",
+            "concatenation_enabled": False,
+            "batch_mode": False,
+            "output_count_per_prompt": 1
         }
         
         if config_path.exists():
@@ -338,7 +341,10 @@ class GrokImagineAddon:
             "quality_preset": self.config.quality_preset,
             "seed": self.config.seed,
             "output_format": self.config.output_format,
-            "image_format": self.config.image_format
+            "image_format": self.config.image_format,
+            "concatenation_enabled": self.config.concatenation_enabled,
+            "batch_mode": self.config.batch_mode,
+            "output_count_per_prompt": self.config.output_count_per_prompt
         }
         
         config_dict.update(overrides)

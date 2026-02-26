@@ -4,8 +4,6 @@
  * A reusable modal component that can display any wizard form dynamically
  * based on the wizard type. Provides consistent modal UI, keyboard navigation,
  * and accessibility features.
- * 
- * Requirements: 2.1, 2.2, 2.4
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -20,13 +18,12 @@ import { SceneGeneratorForm } from './forms/SceneGeneratorForm';
 import { StoryboardCreatorForm } from './forms/StoryboardCreatorForm';
 import { StyleTransferForm } from './forms/StyleTransferForm';
 import type { Character } from '@/types/character';
-import type { Shot } from '@/types';
+import type { DashboardShot } from '@/types';
 import { WizardChainOptions } from './WizardChainOptions';
 import type { WizardChainOption } from './WizardChainOptions';
 import './WizardModal.css';
 
-// Supported wizard types for GenericWizardModal (matching useAppStore WizardType)
-// Note: 'world', 'character', and 'storyteller' wizards are multi-step and use separate modals
+// Supported wizard types for GenericWizardModal
 const SUPPORTED_WIZARD_TYPES: AppWizardType[] = [
   'dialogue-writer',
   'scene-generator',
@@ -34,79 +31,72 @@ const SUPPORTED_WIZARD_TYPES: AppWizardType[] = [
   'style-transfer',
   'sequence-plan',
   'shot',
+  'audio-production-wizard',
 ];
 
-/**
- * Check if a wizard type is supported by GenericWizardModal
- */
 function isWizardTypeSupported(type: AppWizardType | null | undefined): type is AppWizardType {
   return type !== null && type !== undefined && SUPPORTED_WIZARD_TYPES.includes(type);
 }
 
-// Wizard configuration interface
 interface WizardConfig {
   title: string;
   description: string;
-  component: React.ComponentType<any>;
   submitLabel: string;
   requiresCharacters?: boolean;
   requiresShots?: boolean;
 }
 
-// Wizard configuration mapping (using AppWizardType for consistency)
+const PLACEHOLDER_CONFIG: WizardConfig = {
+  title: 'Wizard',
+  description: 'This wizard is handled by a specialized modal.',
+  submitLabel: 'Submit',
+};
+
 const WIZARD_CONFIG: Record<AppWizardType, WizardConfig> = {
   'dialogue-writer': {
     title: 'Dialogue Writer',
     description: 'Generate natural dialogue for your scenes. Requires at least one character.',
-    component: DialogueWriterForm,
     submitLabel: 'Generate Dialogue',
     requiresCharacters: true,
   },
   'scene-generator': {
     title: 'Scene Generator',
     description: 'Create complete scenes with AI assistance',
-    component: SceneGeneratorForm,
     submitLabel: 'Generate Scene',
-    requiresCharacters: false, // Scenes can exist without characters (documentaries, voiceover, etc.)
+    requiresCharacters: false,
   },
   'storyboard-creator': {
     title: 'Storyboard Creator',
     description: 'Transform scripts into visual storyboards',
-    component: StoryboardCreatorForm,
     submitLabel: 'Create Storyboard',
   },
   'style-transfer': {
     title: 'Style Transfer',
     description: 'Apply artistic styles to your shots',
-    component: StyleTransferForm,
     submitLabel: 'Apply Style',
     requiresShots: true,
   },
-  // Note: 'sequence-plan' and 'shot' wizards are handled by separate modals
-  // 'world' and 'character' wizards are multi-step and use WorldWizardModal/CharacterWizardModal
-  // 'storyteller' wizard uses StorytellerWizardModal
   'sequence-plan': {
     title: 'Sequence Plan',
     description: 'Plan your video sequence',
-    component: () => null, // Handled by SequencePlanWizardModal
     submitLabel: 'Create Plan',
   },
   'shot': {
     title: 'Shot',
     description: 'Create a new shot',
-    component: () => null, // Handled by ShotWizardModal
     submitLabel: 'Create Shot',
   },
+  'roger-wizard': PLACEHOLDER_CONFIG,
+  'ghost-tracker-wizard': PLACEHOLDER_CONFIG,
+  'lip-sync': PLACEHOLDER_CONFIG,
+  'scenario-builder': PLACEHOLDER_CONFIG,
+  'dialogue-builder': PLACEHOLDER_CONFIG,
+  'audio-production-wizard': PLACEHOLDER_CONFIG,
+  'video-editor-wizard': PLACEHOLDER_CONFIG,
+  'comic-to-sequence-wizard': PLACEHOLDER_CONFIG,
+  'marketing-wizard': PLACEHOLDER_CONFIG,
 };
 
-/**
- * WizardFormRenderer Component
- * 
- * Internal component that renders the appropriate wizard form with proper data injection.
- * Handles data fetching, loading states, and error handling.
- * 
- * Requirements: 2.2, 8.1, 8.2, 8.3, 8.4
- */
 interface WizardFormRendererProps {
   wizardType: AppWizardType;
   onSubmit: (data: unknown) => void;
@@ -130,26 +120,14 @@ function WizardFormRenderer({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
-  const [projectShots, setProjectShots] = useState<Shot[]>([]);
+  const [projectShots, setProjectShots] = useState<DashboardShot[]>([]);
   const [isFormValid, setIsFormValid] = useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
 
-  // Handler for validation state changes - MUST be defined before any conditional returns
-  const handleValidationChange = useCallback((isValid: boolean) => {
-    setIsFormValid(isValid);
-  }, []);
-
-  // Wrapper to add ref to form elements
-  const wrapFormWithRef = useCallback((formElement: React.ReactElement) => {
-    return React.cloneElement(formElement, { ref: formRef } as any);
-  }, []);
-
-  // Notify parent of validation state changes
   useEffect(() => {
     onValidationChange?.(isFormValid);
   }, [isFormValid, onValidationChange]);
 
-  // Notify parent when form is ready
   useEffect(() => {
     if (!isLoading && !error && formRef.current) {
       const submitFn = () => {
@@ -161,7 +139,6 @@ function WizardFormRenderer({
     }
   }, [isLoading, error, onFormReady]);
 
-  // Fetch project data
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -170,7 +147,6 @@ function WizardFormRenderer({
       try {
         const config = WIZARD_CONFIG[wizardType];
 
-        // Fetch characters if required
         if (config.requiresCharacters) {
           if (!project?.characters || project.characters.length === 0) {
             setError('⚠️ No characters available. Please create at least one character using the Character Wizard before using this tool.');
@@ -180,7 +156,6 @@ function WizardFormRenderer({
           setCharacters(project.characters);
         }
 
-        // Fetch shots if required
         if (config.requiresShots) {
           if (!shots || shots.length === 0) {
             setError('No shots available. Create shots first using other wizards or manually.');
@@ -201,7 +176,6 @@ function WizardFormRenderer({
     fetchData();
   }, [wizardType, project, shots]);
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -211,31 +185,20 @@ function WizardFormRenderer({
     );
   }
 
-  // Show error state
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 px-4" style={{
-        backgroundColor: '#fef3c7',
-        border: '2px solid #f59e0b',
-        borderRadius: '0.75rem',
-        padding: '2rem',
-        margin: '1rem 0'
-      }}>
-        <AlertCircle className="h-16 w-16 mb-4" style={{ color: '#f59e0b' }} />
-        <p className="text-base font-semibold text-center mb-2" style={{ color: '#92400e' }}>
+      <div className="flex flex-col items-center justify-center py-8 px-4 bg-amber-500/10 border border-amber-500/30 rounded-xl p-8 my-4">
+        <AlertCircle className="h-16 w-16 mb-4 text-amber-500" />
+        <p className="text-base font-semibold text-center mb-2 text-amber-200">
           {error.includes('⚠️') ? error : `⚠️ ${error}`}
         </p>
-        <p className="text-sm text-center mb-4" style={{ color: '#78350f' }}>
+        <p className="text-sm text-center mb-4 text-amber-200/70">
           This wizard requires characters to function properly.
         </p>
         <Button
           variant="outline"
           onClick={onCancel}
-          style={{
-            borderColor: '#f59e0b',
-            color: '#92400e',
-            fontWeight: '600'
-          }}
+          className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
         >
           Close and Create Characters
         </Button>
@@ -243,64 +206,59 @@ function WizardFormRenderer({
     );
   }
 
-  // Render the appropriate wizard form
-  const config = WIZARD_CONFIG[wizardType];
-
-  // Map wizard type to form props
   switch (wizardType) {
     case 'dialogue-writer':
-      return wrapFormWithRef(
+      return (
         <DialogueWriterForm
+          ref={formRef}
           characters={characters.map(c => ({ id: c.character_id, name: c.name }))}
           onSubmit={onSubmit}
           onCancel={onCancel}
           onChange={onChange}
-          onValidationChange={handleValidationChange}
+          onValidationChange={setIsFormValid}
           showFooter={false}
         />
       );
 
     case 'scene-generator':
-      return wrapFormWithRef(
+      return (
         <SceneGeneratorForm
+          ref={formRef}
           characters={characters.map(c => ({ id: c.character_id, name: c.name }))}
           onSubmit={onSubmit}
           onCancel={onCancel}
           onChange={onChange}
-          onValidationChange={handleValidationChange}
+          onValidationChange={setIsFormValid}
         />
       );
 
     case 'storyboard-creator':
-      return wrapFormWithRef(
+      return (
         <StoryboardCreatorForm
+          ref={formRef}
           onSubmit={onSubmit}
           onCancel={onCancel}
           onChange={onChange}
-          onValidationChange={handleValidationChange}
+          onValidationChange={setIsFormValid}
         />
       );
 
     case 'style-transfer':
-      return wrapFormWithRef(
+      return (
         <StyleTransferForm
+          ref={formRef}
           shots={projectShots.map(s => ({ id: s.id, title: s.title, frame_path: s.image }))}
           onSubmit={onSubmit}
           onChange={onChange}
-          onValidationChange={handleValidationChange}
+          onValidationChange={setIsFormValid}
         />
       );
 
     default:
-      return (
-        <div className="text-center py-8">
-          <p className="text-sm text-muted-foreground">Unknown wizard type</p>
-        </div>
-      );
+      return <div className="p-4 text-center text-muted-foreground">Specialized wizard - form handled externally.</div>;
   }
 }
 
-// Generic wizard modal props
 export interface GenericWizardModalProps {
   isOpen: boolean;
   wizardType: AppWizardType | null;
@@ -308,12 +266,6 @@ export interface GenericWizardModalProps {
   onComplete?: (data: unknown) => void;
 }
 
-/**
- * GenericWizardModal Component
- * 
- * Displays wizard forms in a modal dialog with consistent UI and behavior.
- * Handles form submission, validation, and lifecycle management.
- */
 export function GenericWizardModal({
   isOpen,
   wizardType,
@@ -324,45 +276,56 @@ export function GenericWizardModal({
   const [submitFormFn, setSubmitFormFn] = useState<(() => void) | null>(null);
   const [isFormValid, setIsFormValid] = useState(false);
   const [showChainOptions, setShowChainOptions] = useState(false);
-  const [chainOptions, setChainOptions] = useState<{
-    isChained: boolean;
-    triggeredWizards: WizardChainOption[];
-    currentChainIndex: number;
-  }>({
+  const [chainOptions, setChainOptions] = useState({
     isChained: false,
-    triggeredWizards: [],
+    triggeredWizards: [] as WizardChainOption[],
     currentChainIndex: 0,
   });
   const [isChainLoading, setIsChainLoading] = useState(false);
   const { toast } = useToast();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
-  // Sync wizardType with wizardStore if provided via store
   const wizardTypeFromStore = useWizardStore((state) => state.wizardType) as AppWizardType | null;
   const effectiveWizardType = wizardType || wizardTypeFromStore;
 
-  // Reset state when modal closes
+  // Handle Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+      
       setIsSubmitting(false);
       setSubmitFormFn(null);
       setIsFormValid(false);
       setShowChainOptions(false);
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
     }
-  }, [isOpen]);
 
-  // Handle launch next wizard in chain
-  const handleLaunchNextWizard = useCallback((wizard: WizardChainOption) => {
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, handleKeyDown]);
+
+  const handleLaunchNextWizard = useCallback(() => {
     setIsChainLoading(true);
     try {
-      // Close current modal first
       onClose();
-      // Update chain index for next wizard
       setChainOptions(prev => ({
         ...prev,
         currentChainIndex: prev.currentChainIndex + 1,
       }));
-      // The parent component should handle launching the next wizard based on wizardType
       setShowChainOptions(false);
     } catch (error) {
       console.error('[GenericWizardModal] Error launching next wizard:', error);
@@ -371,7 +334,6 @@ export function GenericWizardModal({
     }
   }, [onClose]);
 
-  // Handle skip chain
   const handleSkipChain = useCallback(() => {
     setChainOptions({
       isChained: false,
@@ -382,7 +344,6 @@ export function GenericWizardModal({
     onClose();
   }, [onClose]);
 
-  // Handle finish/continue
   const handleContinue = useCallback(() => {
     setChainOptions({
       isChained: false,
@@ -393,15 +354,12 @@ export function GenericWizardModal({
     onClose();
   }, [onClose]);
 
-  // Handle form submission from wizard forms
   const handleFormSubmit = useCallback(async (formData: unknown) => {
     setIsSubmitting(true);
     try {
-      // Call completion handler with form data
       await onComplete?.(formData);
 
-      // Show success toast
-      const wizardConfig = wizardType ? WIZARD_CONFIG[wizardType] : null;
+      const wizardConfig = effectiveWizardType ? WIZARD_CONFIG[effectiveWizardType] : null;
       if (wizardConfig) {
         toast({
           title: 'Success',
@@ -410,21 +368,16 @@ export function GenericWizardModal({
         });
       }
 
-      // Check if there are chained wizards to show
       if (chainOptions.isChained && chainOptions.triggeredWizards.length > 0 &&
         chainOptions.currentChainIndex < chainOptions.triggeredWizards.length) {
-        // Show chain options instead of closing
         setShowChainOptions(true);
         setIsSubmitting(false);
         return;
       }
 
-      // Close modal on success if no chain
       onClose();
     } catch (error) {
       console.error('[GenericWizardModal] Submission error:', error);
-
-      // Display error toast with specific message
       const errorMessage = error instanceof Error
         ? error.message
         : 'An unexpected error occurred. Please try again.';
@@ -437,43 +390,31 @@ export function GenericWizardModal({
     } finally {
       setIsSubmitting(false);
     }
-  }, [onComplete, onClose, wizardType, toast, chainOptions]);
+  }, [onComplete, onClose, effectiveWizardType, toast, chainOptions]);
 
-  // Handle submit button click
   const handleSubmitClick = useCallback(() => {
-    // Trigger form submission using the submit function provided by the form
     if (submitFormFn) {
       submitFormFn();
     }
   }, [submitFormFn]);
 
-  // Handle form ready callback
   const handleFormReady = useCallback((submitFn: () => void) => {
     setSubmitFormFn(() => submitFn);
   }, []);
 
-  // Handle form data changes (for auto-save in later tasks)
-  const handleFormChange = useCallback((data: unknown) => {
-    // This will be used for draft auto-save in task 10
-  }, []);
-
-  // Handle validation state changes from form
   const handleValidationChange = useCallback((isValid: boolean) => {
     setIsFormValid(isValid);
   }, []);
 
-  // Return null if modal is closed and no wizard type
   if (!isOpen || !effectiveWizardType) {
     return null;
   }
 
-  // Validate wizard type
   if (!isWizardTypeSupported(effectiveWizardType)) {
-    // Show info about unsupported wizard type
     const unsupportedMessage = effectiveWizardType === 'world' ||
       effectiveWizardType === 'character' ||
       effectiveWizardType === 'storyteller' ? (
-      <div className="flex flex-col items-center justify-center py-8 px-4">
+      <div className="flex flex-col items-center justify-center py-8 px-4 text-white">
         <Info className="h-12 w-12 mb-4 text-blue-500" />
         <p className="text-base font-semibold text-center mb-2">
           This wizard type uses a dedicated modal
@@ -481,12 +422,12 @@ export function GenericWizardModal({
         <p className="text-sm text-center text-muted-foreground mb-4">
           The "{effectiveWizardType}" wizard is handled by a specialized modal with multi-step support.
         </p>
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" onClick={onClose} className="border-white/10">
           Close
         </Button>
       </div>
     ) : (
-      <div className="flex flex-col items-center justify-center py-8 px-4">
+      <div className="flex flex-col items-center justify-center py-8 px-4 text-white">
         <AlertCircle className="h-12 w-12 mb-4 text-destructive" />
         <p className="text-base font-semibold text-center mb-2">
           Unsupported wizard type: {effectiveWizardType}
@@ -494,7 +435,7 @@ export function GenericWizardModal({
         <p className="text-sm text-center text-muted-foreground mb-4">
           Please use a valid wizard type from the supported list.
         </p>
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" onClick={onClose} className="border-white/10">
           Close
         </Button>
       </div>
@@ -502,7 +443,7 @@ export function GenericWizardModal({
 
     return (
       <div className="wizard-modal-overlay" onClick={onClose}>
-        <div className="wizard-modal-container max-w-md h-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="wizard-modal-container max-w-md" onClick={(e) => e.stopPropagation()}>
           <div className="wizard-modal-header">
             <h2 className="wizard-modal-title">Wizard Not Available</h2>
             <button
@@ -513,7 +454,7 @@ export function GenericWizardModal({
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="wizard-modal-content p-0">
+          <div className="wizard-modal-content">
             {unsupportedMessage}
           </div>
         </div>
@@ -521,8 +462,7 @@ export function GenericWizardModal({
     );
   }
 
-  // Get wizard configuration (type is now guaranteed to be AppWizardType)
-  const wizardConfig = WIZARD_CONFIG[effectiveWizardType as AppWizardType];
+  const wizardConfig = WIZARD_CONFIG[effectiveWizardType];
 
   return (
     <div className="wizard-modal-overlay" onClick={onClose}>
@@ -530,7 +470,7 @@ export function GenericWizardModal({
         <div className="wizard-modal-header">
           <div className="flex flex-col">
             <h2 className="wizard-modal-title">{wizardConfig.title}</h2>
-            <p className="text-sm text-gray-400 mt-1 font-normal">{wizardConfig.description}</p>
+            <p className="text-xs text-muted-foreground mt-1 font-normal tracking-wide uppercase">{wizardConfig.description}</p>
           </div>
           <button
             className="wizard-modal-close"
@@ -538,22 +478,19 @@ export function GenericWizardModal({
             aria-label="Close wizard"
             disabled={isSubmitting}
           >
-            <X className="w-5 h-5" />
+            <X size={20} />
           </button>
         </div>
 
-        <div className="wizard-modal-content flex flex-col h-full">
-          {/* LLM Status Banner */}
+        <div className="wizard-modal-content flex flex-col h-full overflow-hidden">
           <LLMStatusBanner onConfigure={() => setShowLLMSettings(true)} />
 
-          {/* Render wizard form */}
-          <div className="py-4 relative flex-1 px-6">
-            {/* Loading overlay during submission */}
+          <div className="relative flex-1 overflow-y-auto px-6 py-4">
             {isSubmitting && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-md">
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Processing...</span>
+                  <span className="text-sm text-primary font-bold tracking-widest uppercase">Processing...</span>
                 </div>
               </div>
             )}
@@ -562,19 +499,32 @@ export function GenericWizardModal({
               wizardType={effectiveWizardType}
               onSubmit={handleFormSubmit}
               onCancel={onClose}
-              onChange={handleFormChange}
               onFormReady={handleFormReady}
               onValidationChange={handleValidationChange}
             />
           </div>
 
-          <div className="p-6 border-t border-white/10 flex justify-between bg-black/20 mt-auto">
+          {showChainOptions && chainOptions.isChained && chainOptions.triggeredWizards.length > 0 && (
+            <div className="px-6 pb-4 border-t border-primary/10 pt-4 bg-black/40">
+              <WizardChainOptions
+                isChained={chainOptions.isChained}
+                triggeredWizards={chainOptions.triggeredWizards}
+                currentChainIndex={chainOptions.currentChainIndex}
+                onLaunchNext={handleLaunchNextWizard}
+                onSkipChain={handleSkipChain}
+                onContinue={handleContinue}
+                isLoading={isChainLoading}
+              />
+            </div>
+          )}
+
+          <div className="p-6 border-t border-primary/20 flex justify-between bg-black/60 mt-auto">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={isSubmitting}
-              className="border-white/10 hover:bg-white/5 hover:text-white"
+              className="border-white/10 hover:bg-white/5 text-slate-400"
             >
               Cancel
             </Button>
@@ -582,10 +532,10 @@ export function GenericWizardModal({
               type="button"
               onClick={handleSubmitClick}
               disabled={isSubmitting || !submitFormFn || !isFormValid}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="bg-primary text-primary-foreground font-bold px-8 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSubmitting ? 'Processing...' : wizardConfig.submitLabel}
+              {isSubmitting ? 'Synchronizing...' : wizardConfig.submitLabel}
             </Button>
           </div>
         </div>
@@ -593,4 +543,3 @@ export function GenericWizardModal({
     </div>
   );
 }
-

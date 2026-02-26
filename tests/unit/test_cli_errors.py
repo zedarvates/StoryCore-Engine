@@ -131,7 +131,7 @@ class TestErrorHandler:
         
         formatted = self.handler.format_error_message(error)
         
-        assert "✗" in formatted
+        assert "[ERROR]" in formatted
         assert "Test message" in formatted
     
     def test_format_error_message_with_suggestion(self):
@@ -140,9 +140,9 @@ class TestErrorHandler:
         
         formatted = self.handler.format_error_message(error)
         
-        assert "✗" in formatted
+        assert "[ERROR]" in formatted
         assert "Test message" in formatted
-        assert "💡" in formatted
+        assert "[INFO]" in formatted
         assert "Test suggestion" in formatted
     
     def test_log_error_user_error(self, caplog):
@@ -217,10 +217,10 @@ class TestErrorHandlerIntegration:
             output = mock_stderr.getvalue()
             
             # All errors should have consistent formatting
-            assert "✗" in output
+            assert "[ERROR]" in output
             assert error.message in output
             if error.suggestion:
-                assert "💡" in output
+                assert "[INFO]" in output
                 assert error.suggestion in output
     
     def test_error_logging_levels(self, caplog):

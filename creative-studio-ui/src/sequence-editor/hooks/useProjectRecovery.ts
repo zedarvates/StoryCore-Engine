@@ -32,6 +32,7 @@ export interface UseProjectRecoveryResult {
   hasRecovery: boolean;
   recoverySnapshots: RecoverySnapshot[];
   showRecoveryDialog: boolean;
+  setShowRecoveryDialog: (show: boolean) => void;
   recoverFromSnapshot: (snapshotId: string) => Promise<void>;
   handleRecover: (snapshotId: string) => Promise<void>;
   dismissCrashRecovery: () => void;
@@ -53,7 +54,14 @@ export function useProjectRecovery(): UseProjectRecoveryResult {
   const [recoverySnapshots, setRecoverySnapshots] = useState<RecoverySnapshot[]>([]);
   const [isRecovering, setIsRecovering] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const recoveryManagerRef = useRef<RecoveryManager | null>(null);
+  const stateRef = useRef(state);
+  
+  // Keep state ref updated
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
   
   /**
    * Initialize recovery system
@@ -67,9 +75,14 @@ export function useProjectRecovery(): UseProjectRecoveryResult {
     // Load available snapshots
     const snapshots = getRecoverySnapshots();
     setRecoverySnapshots(snapshots);
+
+    // Auto-open only if there was a crash
+    if (crashed) {
+      setShowRecoveryDialog(true);
+    }
     
     // Create recovery manager
-    recoveryManagerRef.current = new RecoveryManager(() => state);
+    recoveryManagerRef.current = new RecoveryManager(() => stateRef.current);
     
     // Start automatic snapshots
     recoveryManagerRef.current.start();
@@ -181,6 +194,7 @@ export function useProjectRecovery(): UseProjectRecoveryResult {
   const dismissCrashRecovery = useCallback(() => {
     clearCrashedSessionFlag();
     setHasCrashedSession(false);
+    setShowRecoveryDialog(false);
   }, []);
   
   /**
@@ -208,13 +222,13 @@ export function useProjectRecovery(): UseProjectRecoveryResult {
   
   // Derived state for compatibility
   const hasRecovery = hasCrashedSession || recoverySnapshots.length > 0;
-  const showRecoveryDialog = hasRecovery;
   
   return {
     hasCrashedSession,
     hasRecovery,
     recoverySnapshots,
     showRecoveryDialog,
+    setShowRecoveryDialog,
     recoverFromSnapshot,
     handleRecover: recoverFromSnapshot,
     dismissCrashRecovery,

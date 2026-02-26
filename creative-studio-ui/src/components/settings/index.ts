@@ -10,6 +10,9 @@ export type { LLMSettingsPanelProps } from './LLMSettingsPanel';
 export { ComfyUISettingsPanel } from './ComfyUISettingsPanel';
 export type { ComfyUISettingsPanelProps } from './ComfyUISettingsPanel';
 
+export { ComfyUIServersPanel } from './ComfyUIServersPanel';
+export type { ComfyUIServersPanelProps } from './ComfyUIServersPanel';
+
 export { LocalModelSelector } from './LocalModelSelector';
 export type { LocalModelSelectorProps } from './LocalModelSelector';
 
@@ -21,3 +24,5 @@ export type { AddonsModalProps } from './AddonsModal';
 
 export { AddonSettingsModal } from './AddonSettingsModal';
 export type { AddonSettingsModalProps } from './AddonSettingsModal';
+
+export { VoiceSettingsPanel } from './VoiceSettingsPanel';

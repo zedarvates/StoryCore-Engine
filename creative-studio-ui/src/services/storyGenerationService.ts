@@ -22,11 +22,12 @@ import {
 // ============================================================================
 
 export const STORY_GENERATION_PROMPT = `
-You are a creative storytelling assistant. Generate a coherent narrative based on the following parameters:
+[ROLE] You are a master cinematic storyteller and world-class novelist.
+[TASK] Generate a highly detailed, immersive, and VERBOSE narrative based on these parameters:
 
 Genre: {genre}
 Tone: {tone}
-Length: {length} words
+Target Length: {length} words
 
 Characters:
 {characterDescriptions}
@@ -37,15 +38,16 @@ Locations:
 World Context:
 {worldContext}
 
-Create a complete story with:
-- Clear beginning, middle, and end
-- Character development and interactions
-- Vivid scene descriptions
-- Consistent tone and atmosphere
-- Respect for world rules and cultural elements
+[STORYTELLING RULES]
+1. Show, Don't Tell: Use rich sensory details (smell, sound, texture) to bring scenes to life.
+2. Dialogue Mastery: Write meaningful, character-driven dialogue with subtext and distinct voices.
+3. Cinematic Depth: Describe camera-like movements, lighting changes, and atmosphere with poetic precision.
+4. Emotional Resonance: Explore the internal monologues and emotional states of characters deeply.
+5. Narrative Arc: Ensure a complex structure with rising tension, meaningful stakes, and a profound resolution.
 
-Output only the story content, no meta-commentary.
+[FORMAT] Output the complete story in a beautiful Markdown format. Be extremely verbose, descriptive, and expansive. No meta-commentary.
 `;
+
 
 export const SUMMARY_GENERATION_PROMPT = `
 You are a story analysis assistant. Generate a concise summary of the following story:
@@ -240,19 +242,6 @@ function buildWorldContextDescription(worldContext: WorldContext | undefined): s
     if (cultural.socialStructure) {
       worldContextDescription.push(`Social Structure: ${cultural.socialStructure}`);
     }
-  }
-
-  if (worldContext.keyObjects && worldContext.keyObjects.length > 0) {
-    worldContextDescription.push('\nKey Objects & Artifacts:');
-    worldContext.keyObjects.forEach((object) => {
-      worldContextDescription.push(`- ${object.name} (${object.type}): ${object.description}`);
-      if (object.influence) {
-        worldContextDescription.push(`  Influence: ${object.influence}`);
-      }
-      if (object.rules) {
-        worldContextDescription.push(`  Rules: ${object.rules}`);
-      }
-    });
   }
 
   if (worldContext.keyObjects && worldContext.keyObjects.length > 0) {

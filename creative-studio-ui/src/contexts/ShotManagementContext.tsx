@@ -27,7 +27,7 @@ export type PromptStatus =
 
 interface ShotManagementContextType {
   selectedShot: Shot | null;
-  updateShot: (shotId: string, updates: Partial<Shot>) => void;
+  updateShot: (shotId: string, updates: Partial<DashboardShot>) => void;
   deleteShot: (shotId: string) => void;
   validateAllShots: () => { valid: boolean; errors: string[] };
   getPromptCompletionStatus: () => Record<string, PromptStatus>;
@@ -63,7 +63,7 @@ export const ShotManagementProvider: React.FC<{
   // Use external shots or internal state
   const shots = externalShots !== undefined ? externalShots : internalShots;
   
-  const updateShot = useCallback((shotId: string, updates: Partial<Shot>) => {
+  const updateShot = useCallback((shotId: string, updates: Partial<DashboardShot>) => {
     setInternalShots(prev => {
       const updatedShots = prev.map(shot => 
         shot.id === shotId 

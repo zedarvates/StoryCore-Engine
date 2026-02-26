@@ -194,7 +194,7 @@ export const PromptValidationSchema = z.object({
 
 export const ShotSchema = z.object({
   id: z.string(),
-  sequenceId: z.string(),
+  sequenceId: z.string().optional(), // Optionnel pour compatibilité avec types/index.ts
   startTime: z.number().nonnegative(),
   duration: z.number().positive(),
   prompt: z.string(),
@@ -289,16 +289,22 @@ export const GenerationRecordSchema = z.object({
 
 export const ProjectSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  schemaVersion: z.string(),
+  project_name: z.string(), // snake_case pour compatibilité Data Contract v1
+  schema_version: z.string(), // snake_case pour compatibilité
   sequences: z.array(SequenceSchema),
   shots: z.array(ShotSchema),
+  assets: z.array(z.any()).optional(), // Ajouté pour compatibilité avec types/index.ts
   audioPhrases: z.array(DialoguePhraseSchema),
   masterCoherenceSheet: z.object({
     url: z.string(),
     generatedAt: z.number(),
   }).optional(),
   generationHistory: z.array(GenerationRecordSchema),
+  generation_status: z.object({
+    grid: z.enum(['pending', 'done', 'failed', 'passed']),
+    promotion: z.enum(['pending', 'done', 'failed', 'passed']),
+    wizard: z.enum(['pending', 'done', 'failed', 'passed']).optional(),
+  }).optional(), // Ajouté pour compatibilité
   capabilities: z.object({
     gridGeneration: z.boolean(),
     promotionEngine: z.boolean(),

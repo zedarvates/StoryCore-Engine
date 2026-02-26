@@ -219,77 +219,32 @@ class PromptParser:
     
     def _build_extraction_prompt(self, prompt: str, language: str) -> str:
         """
-        Build the extraction prompt for the LLM.
-        
-        Args:
-            prompt: The user's creative prompt
-            language: Language code
-            
-        Returns:
-            Formatted extraction prompt
+        Build a high-speed extraction prompt for the LLM.
         """
-        language_instructions = {
-            "en": "English",
-            "fr": "French",
-            "es": "Spanish",
-            "de": "German",
-            "it": "Italian",
-            "pt": "Portuguese",
-            "ja": "Japanese",
-            "zh": "Chinese",
-            "ko": "Korean"
+        languages = {
+            "en": "English", "fr": "French", "es": "Spanish", "de": "German",
+            "it": "Italian", "pt": "Portuguese", "ja": "Japanese", "zh": "Chinese", "ko": "Korean"
         }
+        lang_name = languages.get(language, "English")
         
-        lang_name = language_instructions.get(language, "English")
-        
-        return f"""Analyze this creative prompt (written in {lang_name}) and extract structured information for a video project.
-
-Prompt: {prompt}
-
-Extract and return the following information as a JSON object:
-
-1. **genre**: The genre/category (e.g., "science fiction", "fantasy", "thriller", "drama", "comedy", "horror", "western", "romance")
-2. **tone**: The overall tone/mood (e.g., "dark", "lighthearted", "suspenseful", "epic", "intimate", "comedic")
-3. **characters**: Array of character objects with:
-   - name: Character name
-   - role: Their role (protagonist, antagonist, supporting, etc.)
-   - description: Brief character description
-4. **setting**: The world/location/environment description
-5. **scenes**: Array of scene objects with:
-   - title: Scene title
-   - description: What happens in the scene
-   - location: Where the scene takes place
-   - time_of_day: Time of day (morning, afternoon, evening, night, dawn, dusk)
-   - duration: Estimated duration in seconds (typically 2-5 seconds per scene)
-   - characters: Array of character names in this scene
-   - actions: Array of key actions/events in the scene
-6. **visual_style**: Description of the visual aesthetic and style
-7. **duration**: Total estimated duration in seconds (optional)
-
-Return ONLY valid JSON, no additional text or explanation.
-
-Example format:
+        return f"""[TASK] Extract video project data from this {lang_name} prompt: "{prompt}"
+[FORMAT] Return ONLY JSON. No talk.
+[SCHEMA]
 {{
-  "genre": "science fiction",
-  "tone": "thriller",
-  "characters": [
-    {{"name": "Alex", "role": "protagonist", "description": "A scientist"}}
-  ],
-  "setting": "Future city",
-  "scenes": [
-    {{
-      "title": "Opening",
-      "description": "Scene description",
-      "location": "Lab",
-      "time_of_day": "night",
-      "duration": 3.0,
-      "characters": ["Alex"],
-      "actions": ["action1", "action2"]
-    }}
-  ],
-  "visual_style": "Cyberpunk aesthetic",
-  "duration": 12.0
-}}"""
+  "genre": "one word",
+  "tone": "one word",
+  "setting": "brief string",
+  "visual": "brief aesthetic",
+  "chars": [["name", "role", "desc"]],
+  "scenes": [["title", "desc", "loc", "tod", "dur", ["chars"], ["actions"]]],
+  "duration": 0.0
+}}
+[RULES] 
+- Role: protagonist, antagonist, supporting
+- TOD: morning, afternoon, evening, night, dawn, dusk
+- Min 3 scenes, max 8.
+- Use {lang_name} for text values."""
+
     
     def _parse_llm_response(self, response: str) -> Dict[str, Any]:
         """
@@ -325,46 +280,61 @@ Example format:
     
     def _construct_parsed_prompt(self, data: Dict[str, Any], raw_prompt: str, language: str) -> ParsedPrompt:
         """
-        Construct a ParsedPrompt from parsed data.
-        
-        Args:
-            data: Parsed JSON data
-            raw_prompt: Original prompt text
-            language: Language code
-            
-        Returns:
-            ParsedPrompt object
-            
-        Raises:
-            ValidationError: If required fields are missing
+        Construct a ParsedPrompt from parsed data (handles both old and new formats).
         """
         # Validate required fields
-        required_fields = ["genre", "tone", "characters", "setting", "scenes", "visual_style"]
+        required_fields = ["genre", "tone", "chars", "setting", "scenes"]
         missing_fields = [field for field in required_fields if field not in data]
         
         if missing_fields:
-            raise ValidationError(f"Missing required fields in parsed data: {', '.join(missing_fields)}")
+            # Check for legacy names
+            if "characters" in data: data["chars"] = data.pop("characters")
+            if "visual_style" in data: data["visual"] = data.pop("visual_style")
+            
+            # Re-check
+            missing_fields = [field for field in required_fields if field not in data]
+            if missing_fields:
+                raise ValidationError(f"Missing required fields: {', '.join(missing_fields)}")
         
-        # Validate characters
-        if not isinstance(data["characters"], list) or len(data["characters"]) == 0:
-            raise ValidationError("At least one character is required")
+        # Convert chars table to objects if needed
+        chars = []
+        for char in data["chars"]:
+            if isinstance(char, list) and len(char) >= 3:
+                chars.append({"name": char[0], "role": char[1], "description": char[2]})
+            elif isinstance(char, dict):
+                chars.append(char)
         
-        # Validate scenes
-        if not isinstance(data["scenes"], list) or len(data["scenes"]) == 0:
-            raise ValidationError("At least one scene is required")
+        # Convert scenes table to objects if needed
+        scenes = []
+        for scene in data["scenes"]:
+            if isinstance(scene, list) and len(scene) >= 7:
+                scenes.append({
+                    "title": scene[0],
+                    "description": scene[1],
+                    "location": scene[2],
+                    "time_of_day": scene[3],
+                    "duration": float(scene[4]),
+                    "characters": scene[5],
+                    "actions": scene[6]
+                })
+            elif isinstance(scene, dict):
+                scenes.append(scene)
         
-        # Construct ParsedPrompt
+        if not chars: raise ValidationError("At least one character is required")
+        if not scenes: raise ValidationError("At least one scene is required")
+        
         return ParsedPrompt(
             genre=data["genre"],
             tone=data["tone"],
-            characters=data["characters"],
+            characters=chars,
             setting=data["setting"],
-            scenes=data["scenes"],
-            visual_style=data["visual_style"],
+            scenes=scenes,
+            visual_style=data.get("visual", data.get("visual_style", "cinematic")),
             duration=data.get("duration"),
             language=language,
             raw_prompt=raw_prompt
         )
+
     
     @staticmethod
     def create_client(provider: str = "mock", **kwargs) -> LLMClient:

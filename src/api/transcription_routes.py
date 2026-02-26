@@ -4,7 +4,7 @@ Transcription API Routes - FastAPI endpoints for audio transcription
 
 import sys
 from pathlib import Path
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import time
@@ -36,6 +36,7 @@ try:
         Transcript,
         MontageRequest,
         MontageResult,
+        MontageStyle,
         SegmentType
     )
 except ImportError:
@@ -44,6 +45,7 @@ except ImportError:
         Transcript,
         MontageRequest,
         MontageResult,
+        MontageStyle,
         SegmentType
     )
 
@@ -165,7 +167,13 @@ async def transcribe_audio(request: TranscribeRequest):
     
     try:
         engine = get_engine()
+        
+        # Ensure audio_id has no slashes to avoid Path parsing issues
+        clean_audio_id = request.audio_url.split('/')[-1] if '/' in request.audio_url else request.audio_url
+        clean_audio_id = clean_audio_id.replace('.', '_')
+        
         transcript = await engine.transcribe(
+            audio_id=clean_audio_id,
             audio_url=request.audio_url,
             language=request.language,
             enable_speaker_diarization=request.enable_speaker_diarization
@@ -212,7 +220,7 @@ async def get_transcript(transcript_id: str):
     """
     try:
         engine = get_engine()
-        transcript = engine.get_transcript(transcript_id)
+        transcript = await engine.get_transcript(transcript_id)
         
         if not transcript:
             raise HTTPException(
@@ -262,7 +270,7 @@ async def export_srt(transcript_id: str):
     """
     try:
         engine = get_engine()
-        transcript = engine.get_transcript(transcript_id)
+        transcript = await engine.get_transcript(transcript_id)
         
         if not transcript:
             raise HTTPException(
@@ -270,7 +278,7 @@ async def export_srt(transcript_id: str):
                 detail=f"Transcript not found: {transcript_id}"
             )
         
-        srt_content = engine.export_srt(transcript_id)
+        srt_content = engine.export_srt(transcript)
         
         return Response(
             content=srt_content,
@@ -301,7 +309,7 @@ async def export_vtt(transcript_id: str):
     """
     try:
         engine = get_engine()
-        transcript = engine.get_transcript(transcript_id)
+        transcript = await engine.get_transcript(transcript_id)
         
         if not transcript:
             raise HTTPException(
@@ -309,7 +317,7 @@ async def export_vtt(transcript_id: str):
                 detail=f"Transcript not found: {transcript_id}"
             )
         
-        vtt_content = engine.export_vtt(transcript_id)
+        vtt_content = engine.export_vtt(transcript)
         
         return Response(
             content=vtt_content,
@@ -343,14 +351,20 @@ async def generate_montage(request: MontageRequestModel):
     ```
     """
     try:
+        try:
+            style = MontageStyle(request.style)
+        except ValueError:
+            style = MontageStyle.CHRONOLOGICAL
+
         engine = get_engine()
-        result = await engine.generate_montage(
+        montage_req = MontageRequest(
             transcript_id=request.transcript_id,
-            style=request.style,
+            style=style,
             include_speakers=request.include_speakers,
             exclude_speakers=request.exclude_speakers,
             max_duration=request.max_duration
         )
+        result = await engine.generate_montage(montage_req)
         
         return MontageResponse(
             transcript_id=request.transcript_id,
@@ -373,5 +387,3 @@ async def generate_montage(request: MontageRequestModel):
         )
 
 
-# Import Response for export endpoints
-from fastapi.responses import Response

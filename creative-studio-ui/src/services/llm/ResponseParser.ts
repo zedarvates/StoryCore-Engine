@@ -51,7 +51,7 @@ export class ResponseParser {
    */
   private extractFallbackSummary(response: string): string {
     // Remove any partial or complete thinking blocks
-    let cleaned = response
+    const cleaned = response
       .replace(/<thinking>[\s\S]*?<\/thinking>/g, '')
       .replace(/<summary>[\s\S]*?<\/summary>/g, '')
       .replace(/<\/?thinking>/g, '')

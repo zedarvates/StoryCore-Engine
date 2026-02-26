@@ -1,0 +1,708 @@
+/**
+ * Surround Mixer Component Styles
+ * 
+ * Professional surround sound mixer UI with:
+ * - Speaker diagram visualization
+ * - Subwoofer controls
+ * - Room acoustics panel
+ * - Calibration interface
+ */
+
+/* =============================================================================
+   Main Container
+   ============================================================================= */
+
+.surround-mixer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg-panel, #1e1e1e);
+  color: var(--text-primary, #ffffff);
+}
+
+/* =============================================================================
+   Header
+   ============================================================================= */
+
+.surround-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, #3a3a3a);
+}
+
+.surround-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.advanced-toggle {
+  padding: 4px 12px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-secondary, #888);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.advanced-toggle:hover {
+  background: var(--bg-hover, #3a3a3a);
+  color: var(--text-primary, #e0e0e0);
+}
+
+/* =============================================================================
+   Configuration Selector
+   ============================================================================= */
+
+.config-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-selector > label {
+  font-size: 11px;
+  color: var(--text-secondary, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.config-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.config-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.config-btn:hover {
+  background: var(--bg-hover, #3a3a3a);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.config-btn.active {
+  background: var(--accent-color, #4A90E2);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.config-btn.active .config-name,
+.config-btn.active .config-channels {
+  color: white;
+}
+
+.config-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.config-channels {
+  font-size: 10px;
+  color: var(--text-secondary, #888);
+  margin-top: 2px;
+}
+
+/* =============================================================================
+   Speaker Diagram
+   ============================================================================= */
+
+.speaker-diagram {
+  background: var(--bg-primary, #1a1a1a);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-color, #3a3a3a);
+}
+
+.diagram-container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.room-outline {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 2px dashed var(--border-color, #4a4a4a);
+  border-radius: 4px;
+}
+
+.room-label-front,
+.room-label-back {
+  position: absolute;
+  font-size: 9px;
+  color: var(--text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.room-label-front {
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.room-label-back {
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* =============================================================================
+   Speaker Nodes
+   ============================================================================= */
+
+.speaker-node {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  background: var(--bg-secondary, #2a2a2a);
+  border: 2px solid var(--accent-color, #4A90E2);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.speaker-node:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 0 12px rgba(74, 144, 226, 0.4);
+}
+
+.speaker-node.selected {
+  border-color: #50C878;
+  background: rgba(80, 200, 120, 0.2);
+  box-shadow: 0 0 16px rgba(80, 200, 120, 0.5);
+}
+
+.speaker-node.muted {
+  opacity: 0.4;
+  border-style: dashed;
+}
+
+.speaker-node.solo {
+  border-color: #F39C12;
+  box-shadow: 0 0 8px rgba(243, 156, 18, 0.5);
+}
+
+.speaker-node.lfe {
+  border-color: #E74C3C;
+  background: rgba(231, 76, 60, 0.15);
+}
+
+.speaker-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.speaker-level {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 16px;
+  background: var(--bg-primary, #1a1a1a);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.level-fill {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: var(--accent-color, #4A90E2);
+  border-radius: 2px;
+  transition: height 0.1s ease;
+}
+
+/* =============================================================================
+   Listener Position
+   ============================================================================= */
+
+.listener-position {
+  position: absolute;
+  font-size: 20px;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+  z-index: 5;
+}
+
+/* =============================================================================
+   Speaker Controls
+   ============================================================================= */
+
+.speaker-controls {
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-color, #3a3a3a);
+}
+
+.speaker-control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.speaker-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #ffffff);
+}
+
+.speaker-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.speaker-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary, #1a1a1a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-secondary, #888);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speaker-btn:hover {
+  background: var(--bg-hover, #3a3a3a);
+}
+
+.speaker-btn.mute.active {
+  background: #E74C3C;
+  border-color: #E74C3C;
+  color: white;
+}
+
+.speaker-btn.solo.active {
+  background: #F39C12;
+  border-color: #F39C12;
+  color: white;
+}
+
+.speaker-volume,
+.speaker-delay {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.speaker-volume label,
+.speaker-delay label {
+  font-size: 11px;
+  color: var(--text-secondary, #888);
+}
+
+.volume-slider,
+.delay-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg-primary, #1a1a1a);
+  border-radius: 3px;
+  outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb,
+.delay-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--accent-color, #4A90E2);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.delay-hint {
+  font-size: 10px;
+  color: var(--text-secondary, #666);
+  font-style: italic;
+}
+
+/* =============================================================================
+   Subwoofer Section
+   ============================================================================= */
+
+.subwoofer-section {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(231, 76, 60, 0.05) 100%);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #ffffff);
+}
+
+.status {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.status.active {
+  background: rgba(80, 200, 120, 0.2);
+  color: #50C878;
+}
+
+.status.inactive {
+  background: rgba(136, 136, 136, 0.2);
+  color: #888;
+}
+
+.subwoofer-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.control-group > label {
+  font-size: 11px;
+  color: var(--text-secondary, #888);
+}
+
+.control-group > span {
+  font-size: 11px;
+  color: var(--text-primary, #e0e0e0);
+  text-align: right;
+}
+
+.sub-volume-slider,
+.crossover-slider,
+.phase-slider,
+.gain-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg-primary, #1a1a1a);
+  border-radius: 3px;
+  outline: none;
+}
+
+.sub-volume-slider::-webkit-slider-thumb,
+.crossover-slider::-webkit-slider-thumb,
+.phase-slider::-webkit-slider-thumb,
+.gain-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #E74C3C;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Low-Pass Filter */
+.lowpass-section {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.lowpass-section h5 {
+  margin: 0 0 8px 0;
+  font-size: 11px;
+  color: var(--text-secondary, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lowpass-section .control-row {
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+}
+
+.lowpass-section select {
+  padding: 4px 8px;
+  background: var(--bg-primary, #1a1a1a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-primary, #ffffff);
+  font-size: 11px;
+}
+
+.lowpass-section select:disabled {
+  opacity: 0.5;
+}
+
+/* =============================================================================
+   Room Acoustics
+   ============================================================================= */
+
+.room-acoustics {
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-color, #3a3a3a);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary, #888);
+  cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent-color, #4A90E2);
+}
+
+.acoustics-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.room-size-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.room-btn {
+  padding: 6px 10px;
+  background: var(--bg-primary, #1a1a1a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-secondary, #888);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.room-btn:hover:not(:disabled) {
+  background: var(--bg-hover, #3a3a3a);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.room-btn.active {
+  background: var(--accent-color, #4A90E2);
+  border-color: var(--accent-color, #4A90E2);
+  color: white;
+}
+
+.room-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* =============================================================================
+   Calibration
+   ============================================================================= */
+
+.calibration-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(74, 144, 226, 0.05) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.calibrate-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--accent-color, #4A90E2);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calibrate-btn:hover:not(:disabled) {
+  background: #3A80D2;
+  transform: translateY(-1px);
+}
+
+.calibrate-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.calibration-hint {
+  margin: 0;
+  font-size: 10px;
+  color: var(--text-secondary, #888);
+  text-align: center;
+}
+
+/* =============================================================================
+   Channel Summary
+   ============================================================================= */
+
+.channel-summary {
+  background: var(--bg-secondary, #2a2a2a);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-color, #3a3a3a);
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: var(--text-secondary, #888);
+}
+
+.channel-meters {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.channel-meter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meter-label {
+  width: 30px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary, #888);
+}
+
+.meter-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-primary, #1a1a1a);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #50C878 0%, #F39C12 70%, #E74C3C 100%);
+  border-radius: 3px;
+  transition: width 0.1s ease;
+}
+
+/* =============================================================================
+   Checkbox Label
+   ============================================================================= */
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-primary, #e0e0e0);
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent-color, #4A90E2);
+}
+
+/* =============================================================================
+   Responsive Adjustments
+   ============================================================================= */
+
+@media (max-width: 400px) {
+  .config-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .control-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .lowpass-section .control-row {
+    grid-template-columns: 1fr;
+  }
+}

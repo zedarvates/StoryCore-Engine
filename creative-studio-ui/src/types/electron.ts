@@ -247,6 +247,24 @@ export interface StoryCoreElectronAPI {
 
   // Terminal/Command execution
   executeCommand: (options: { command: string; cwd?: string; shell?: boolean }) => Promise<{ success: boolean; output: string; error?: string }>;
+
+  // Chat window management
+  chatWindow: {
+    open: () => Promise<void>;
+    close: () => Promise<void>;
+    toggle: () => Promise<void>;
+    isOpen: () => Promise<boolean>;
+    onStateChanged: (callback: (state: { isOpen: boolean }) => void) => () => void;
+    sendMessage: (message: unknown) => void;
+    onMessage: (callback: (message: unknown) => void) => () => void;
+    syncState: (state: unknown) => void;
+    onStateUpdate: (callback: (state: unknown) => void) => () => void;
+  };
+
+  // Event listening
+  on: (channel: string, func: (...args: unknown[]) => void) => () => void;
+  once: (channel: string, func: (...args: unknown[]) => void) => void;
+  off: (channel: string, func: (...args: unknown[]) => void) => void;
 }
 
 export { };

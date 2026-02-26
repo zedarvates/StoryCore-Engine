@@ -1,10 +1,13 @@
-/**
- * Status Bar Component
- * Timeline status and playback information
- */
-
-import React from 'react';
-import { useVideoEditor } from '../../contexts/VideoEditorContext';
+import { 
+  Clock, 
+  Maximize, 
+  Layers, 
+  Clapperboard, 
+  Keyboard, 
+  Search,
+  CheckCircle2
+} from 'lucide-react';
+import { useVideoEditor } from '@/contexts/VideoEditorContext';
 import './StatusBar.css';
 
 export const StatusBar: React.FC = () => {
@@ -32,6 +35,7 @@ export const StatusBar: React.FC = () => {
   return (
     <div className="status-bar">
       <div className="status-bar-left">
+        <Clock className="w-3 h-3" />
         <span className="status-item time-current">
           {formatTime(currentTime)}
         </span>
@@ -42,30 +46,38 @@ export const StatusBar: React.FC = () => {
       </div>
 
       <div className="status-bar-center">
-        <span className="status-item" title="Resolution">
-          {resolution}
-        </span>
+        <div className="status-item" title="Résolution">
+          <Maximize className="w-3 h-3" />
+          <span>{resolution}</span>
+        </div>
         <span className="status-separator">|</span>
-        <span className="status-item" title="Frame Rate">
-          {project?.frameRate || 30} fps
-        </span>
+        <div className="status-item" title="Images par seconde">
+          <Clapperboard className="w-3 h-3" />
+          <span>{project?.frameRate || 30} fps</span>
+        </div>
         <span className="status-separator">|</span>
-        <span className="status-item" title="Tracks">
-          {trackCount} tracks
-        </span>
+        <div className="status-item" title="Pistes">
+          <Layers className="w-3 h-3" />
+          <span>{trackCount} pistes</span>
+        </div>
         <span className="status-separator">|</span>
-        <span className="status-item" title="Clips">
-          {clipCount} clips
-        </span>
+        <div className="status-item" title="Clips">
+          <Clapperboard className="w-3 h-3" />
+          <span>{clipCount} clips</span>
+        </div>
       </div>
 
       <div className="status-bar-right">
-        <span className="status-item shortcut" title="Keyboard Shortcuts">
-          ⌨️
-        </span>
-        <span className="status-item" title="Zoom">
-          100%
-        </span>
+        <div className="status-item shortcut" title="Raccourcis clavier">
+          <Keyboard className="w-3 h-3" />
+        </div>
+        <div className="status-item" title="Zoom">
+          <Search className="w-3 h-3" />
+          <span>100%</span>
+        </div>
+        <div className="status-item text-green-500" title="Système prêt">
+          <CheckCircle2 className="w-3 h-3" />
+        </div>
       </div>
     </div>
   );

@@ -39,12 +39,12 @@ interface FormErrors {
   locations?: string;
 }
 
-export function WorldBuildingForm({
+export const WorldBuildingForm = React.forwardRef<HTMLFormElement, WorldBuildingFormProps>(({
   initialData,
   onSubmit,
   onChange,
   onValidationChange,
-}: WorldBuildingFormProps) {
+}, ref) => {
   const [formData, setFormData] = useState<WorldBuildingInput>({
     worldName: initialData?.worldName || '',
     setting: initialData?.setting || '',
@@ -54,14 +54,6 @@ export function WorldBuildingForm({
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [newLocation, setNewLocation] = useState<Location>({ name: '', description: '' });
-
-  // Validate form whenever data changes
-  useEffect(() => {
-    // Skip validation on initial mount
-    if (formData.worldName || formData.setting || formData.timePeriod || formData.locations.length > 0) {
-      validateForm();
-    }
-  }, [formData]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -91,6 +83,18 @@ export function WorldBuildingForm({
     onValidationChange?.(isValid);
     return isValid;
   }, [formData, onValidationChange]);
+
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.worldName || formData.setting || formData.timePeriod || formData.locations.length > 0) {
+      // Use setTimeout to defer setState to next event loop tick
+      const timeoutId = setTimeout(() => {
+        validateForm();
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, validateForm]);
 
   const handleFieldChange = useCallback((field: keyof WorldBuildingInput, value: unknown) => {
     setFormData(prev => {
@@ -123,7 +127,7 @@ export function WorldBuildingForm({
   }, [formData, validateForm, onSubmit]);
 
   return (
-    <form className="world-building-form" onSubmit={handleSubmit}>
+    <form ref={ref} className="world-building-form" onSubmit={handleSubmit}>
       <FormSection title="World Overview">
         <FormField
           name="worldName"
@@ -240,5 +244,5 @@ export function WorldBuildingForm({
       </FormSection>
     </form>
   );
-}
+});
 

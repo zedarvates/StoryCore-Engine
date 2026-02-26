@@ -83,6 +83,8 @@ export interface CameraAngleRequest {
   seed?: number | null;
   /** Additional custom prompt to append to angle prompts */
   customPrompt?: string | null;
+  /** Dynamic ComfyUI URL to use for this generation */
+  comfyuiUrl?: string;
 }
 
 // ============================================================================

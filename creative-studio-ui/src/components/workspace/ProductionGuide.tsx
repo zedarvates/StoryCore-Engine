@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Clapperboard,
     Mic2,
     Image as ImageIcon,
     Film,
     Edit3,
-    ChevronDown,
-    ChevronUp,
     User,
     Layers,
     Sparkles,
@@ -35,6 +33,68 @@ import { cn } from '@/lib/utils';
 import './ProductionGuide.css';
 
 /**
+ * Shot type for ProductionGuide with runtime properties
+ * This is a simplified view of shot data used in the production guide UI
+ */
+interface ProductionGuideShot {
+    id: string;
+    number?: number;
+    notes?: string;
+    description?: string;
+    timing?: {
+        duration: number;
+        inPoint: number;
+        outPoint: number;
+    };
+    camera?: {
+        framing?: string;
+        angle?: string;
+        movement?: {
+            type?: string;
+            speed?: string;
+            prompt?: string;
+        };
+    };
+    composition?: {
+        characterIds?: string[];
+        props?: string[];
+        environmentId?: string;
+        lightingMood?: string;
+        timeOfDay?: string;
+    };
+    generation?: {
+        prompt?: string;
+    };
+    metadata?: {
+        lens?: string;
+        sensor?: string;
+        emotion?: string;
+        emotionIntensity?: number;
+        [key: string]: unknown;
+    };
+    dialogues?: Array<{
+        id?: string;
+        characterId: string;
+        text: string;
+    }>;
+}
+
+/** Updates for composition fields */
+interface CompositionUpdates {
+    lightingMood?: string;
+    timeOfDay?: string;
+    [key: string]: unknown;
+}
+
+/** Updates for directing/metadata fields */
+interface DirectingUpdates {
+    lens?: string;
+    sensor?: string;
+    emotion?: string;
+    [key: string]: unknown;
+}
+
+/**
  * ProductionGuide Component
  * 
  * A comprehensive recap of the project's production shots, 
@@ -46,17 +106,33 @@ interface ProductionGuideProps {
 
 export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
     const currentPlan = useSequencePlanStore((state) => state.currentPlanData);
+    const updateShotInPlan = useSequencePlanStore((state) => state.updateShotInPlan);
     const characters = useStore((state) => state.characters);
     const project = useAppStore((state) => state.project);
     const worlds = useStore((state) => state.worlds);
-    const updateShot = useAppStore((state) => state.updateShot);
     const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
     const [isSyncing, setIsSyncing] = useState(false);
     const [previewAsset, setPreviewAsset] = useState<ManifestedAsset | null>(null);
     const manifestedAssets = useProductionStore((state) => state.manifestedAssets);
 
-    // Get all objects from all worlds for lookup
-    const allObjects = worlds.flatMap(w => w.keyObjects || []);
+    // Listen for LLM-driven shot updates
+    useEffect(() => {
+        const handleLLMShotUpdate = (event: CustomEvent<{
+            shotId: string;
+            updates: Record<string, unknown>;
+        }>) => {
+            const { shotId, updates } = event.detail;
+            if (shotId && updates) {
+                updateShotInPlan(shotId, updates as Partial<import('@/types').Shot>);
+            }
+        };
+
+        window.addEventListener('storycore:llm-update-shot', handleLLMShotUpdate as EventListener);
+        
+        return () => {
+            window.removeEventListener('storycore:llm-update-shot', handleLLMShotUpdate as EventListener);
+        };
+    }, [updateShotInPlan]);
 
     const toggleRow = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -74,33 +150,33 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
     };
 
     const handlePromptChange = (shotId: string, newPrompt: string) => {
-        const shot = (currentPlan?.shots as any[]).find(s => s.id === shotId);
+        const shot = currentPlan?.shots.find(s => s.id === shotId);
         if (shot) {
-            updateShot(shotId, {
+            updateShotInPlan(shotId, {
                 generation: {
                     ...(shot.generation || {}),
                     prompt: newPrompt
                 }
-            } as any);
+            } as Partial<import('@/types').Shot>);
         }
     };
 
-    const handleCompositionChange = (shotId: string, updates: any) => {
-        const shot = (currentPlan?.shots as any[]).find(s => s.id === shotId);
+    const handleCompositionChange = (shotId: string, updates: CompositionUpdates) => {
+        const shot = currentPlan?.shots.find(s => s.id === shotId) as ProductionGuideShot | undefined;
         if (shot) {
-            updateShot(shotId, {
+            updateShotInPlan(shotId, {
                 composition: {
                     ...(shot.composition || {}),
                     ...updates
                 }
-            } as any);
+            } as Record<string, unknown>);
         }
     };
 
     const handleMotionPromptChange = (shotId: string, newPrompt: string) => {
-        const shot = (currentPlan?.shots as any[]).find(s => s.id === shotId);
+        const shot = currentPlan?.shots.find(s => s.id === shotId) as ProductionGuideShot | undefined;
         if (shot) {
-            updateShot(shotId, {
+            updateShotInPlan(shotId, {
                 camera: {
                     ...(shot.camera || {}),
                     movement: {
@@ -108,24 +184,24 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                         prompt: newPrompt
                     }
                 }
-            } as any);
+            } as Record<string, unknown>);
         }
     };
 
-    const handleDirectingChange = (shotId: string, updates: any) => {
-        const shot = (currentPlan?.shots as any[]).find(s => s.id === shotId);
+    const handleDirectingChange = (shotId: string, updates: DirectingUpdates) => {
+        const shot = currentPlan?.shots.find(s => s.id === shotId) as ProductionGuideShot | undefined;
         if (shot) {
-            updateShot(shotId, {
+            updateShotInPlan(shotId, {
                 metadata: {
                     ...(shot.metadata || {}),
                     ...updates
                 }
-            } as any);
+            } as Record<string, unknown>);
         }
     };
 
     const handleNoteChange = (shotId: string, note: string) => {
-        updateShot(shotId, { notes: note } as any);
+        updateShotInPlan(shotId, { notes: note } as Record<string, unknown>);
 
         // Analyze for memory (Write Gate) - Only for significant notes
         if (note.length > 20) {
@@ -182,7 +258,7 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                         <div className="flex-1 min-w-0">
                             <span className="stat-label">Living Protocol</span>
                             <span className="stat-value text-[9px] leading-tight opacity-70 line-clamp-1">
-                                {useMemoryStore.getState().workingContext}
+                                {String(useMemoryStore.getState().workingContext || '')}
                             </span>
                         </div>
                     </div>
@@ -214,7 +290,7 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
 
                 <div className="production-guide__rows">
                     {currentPlan.shots.map((s, index) => {
-                        const shot = s as any;
+                        const shot = s as ProductionGuideShot;
                         const isExpanded = !!expandedRows[shot.id];
 
                         return (
@@ -484,7 +560,7 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                                 <div className="space-y-2">
                                     <p className="text-[9px] text-white/40 uppercase font-black">Synthesized Prompt:</p>
                                     <p className="text-[10px] text-white/60 leading-relaxed italic pr-4">
-                                        {previewAsset.metadata?.prompt || 'Original manifest prompt unavailable'}
+                                        {String(previewAsset.metadata?.prompt || 'Original manifest prompt unavailable')}
                                     </p>
                                 </div>
                             </div>

@@ -24,6 +24,7 @@ import { consistencyEngine } from '../../../services/consistencyEngine';
 import type { ConsistencyIssue, ConsistencyScore } from '../../../services/consistencyEngine';
 import type { CharacterAppearanceSheet, LocationAppearanceSheet } from '../../../types/reference';
 import { Image as ImageIcon, Video as VideoIcon, Volume2 as AudioIcon } from 'lucide-react';
+import { GenerateButton } from '../GenerateButton/GenerateButton';
 import './shotConfigPanel.css';
 
 // ============================================================================
@@ -647,6 +648,11 @@ export const ShotConfigPanel: React.FC = () => {
             placeholder="Describe the shot in detail..."
             rows={6}
           />
+          
+          {/* Generate Button - positioned under the prompt editor */}
+          <div className="prompt-generate-button">
+            <GenerateButton />
+          </div>
         </div>
 
         {/* Visual Style Controls */}

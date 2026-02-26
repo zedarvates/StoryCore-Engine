@@ -66,7 +66,8 @@ export class GeminiProvider implements LLMProvider {
       },
     };
 
-    const response = await this.callApi(mergedConfig.model, request);
+    const model = mergedConfig.model ?? 'gemini-1.5-flash';
+    const response = await this.callApi(model, request);
     return response.candidates[0]?.content?.parts[0]?.text ?? '';
   }
 
@@ -87,7 +88,8 @@ export class GeminiProvider implements LLMProvider {
       },
     };
 
-    const response = await this.callApi(mergedConfig.model, request);
+    const model = mergedConfig.model ?? 'gemini-1.5-flash';
+    const response = await this.callApi(model, request);
     return response.candidates[0]?.content?.parts[0]?.text ?? '';
   }
 
@@ -144,7 +146,7 @@ export class GeminiProvider implements LLMProvider {
         throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
-      const result: GeminiGenerateContentResponse = await response.json();
+      const result = await response.json() as GeminiGenerateContentResponse;
       if (result.promptFeedback?.blockReason) {
         throw new Error('Prompt blocked by safety filters.');
       }

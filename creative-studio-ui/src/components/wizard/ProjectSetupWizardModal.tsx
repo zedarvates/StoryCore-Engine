@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { ProjectSetupWizard, type ProjectSetupData } from './project-setup';
 import { useAppStore } from '@/stores/useAppStore';
@@ -15,6 +15,31 @@ export function ProjectSetupWizardModal() {
   const saveProject = useEditorStore((state) => state.saveProject);
   const projectPath = useEditorStore((state) => state.projectPath);
 
+  // Handle Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowProjectSetupWizard(false);
+      }
+    },
+    [setShowProjectSetupWizard]
+  );
+
+  useEffect(() => {
+    if (showProjectSetupWizard) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showProjectSetupWizard, handleKeyDown]);
+
   if (!showProjectSetupWizard) {
     return null;
   }
@@ -26,9 +51,10 @@ export function ProjectSetupWizardModal() {
     if (project) {
       const updatedProject = {
         ...project,
+        project_name: data.projectName || project.project_name,
         metadata: {
           ...project.metadata,
-          name: data.projectName || project.metadata?.name,
+          name: data.projectName || (project.metadata?.name as string),
           description: data.projectDescription,
         },
         // Store additional setup data in project
@@ -37,6 +63,9 @@ export function ProjectSetupWizardModal() {
           tone: data.tone,
           targetAudience: data.targetAudience,
           estimatedDuration: data.estimatedDuration,
+          visualStyle: data.visualStyle,
+          audioStyle: data.audioStyle,
+          constraints: data.constraints,
         },
       };
       
@@ -46,7 +75,7 @@ export function ProjectSetupWizardModal() {
       if (projectPath) {
         try {
           // Update the current project in editor store first
-          useEditorStore.setState({ currentProject: updatedProject });
+          useEditorStore.setState({ currentProject: updatedProject as unknown as import('@/types/project').ProjectData });
           await saveProject();
           console.log('[ProjectSetupWizardModal] Project saved successfully');
         } catch (error) {
@@ -81,13 +110,16 @@ export function ProjectSetupWizardModal() {
             onComplete={handleComplete}
             onCancel={handleCancel}
             initialData={{
-              projectName: project?.metadata?.name as string | undefined,
-              projectDescription: project?.metadata?.description as string | undefined,
+              projectName: project?.project_name || (project?.metadata?.name as string | undefined),
+              projectDescription: project?.global_resume || (project?.metadata?.description as string | undefined),
               // Pre-fill genre and tone from saved project setup
-              genre: (project as any)?.projectSetup?.genre,
-              tone: (project as any)?.projectSetup?.tone,
-              targetAudience: (project as any)?.projectSetup?.targetAudience,
-              estimatedDuration: (project as any)?.projectSetup?.estimatedDuration,
+              genre: project?.projectSetup?.genre,
+              tone: project?.projectSetup?.tone,
+              targetAudience: project?.projectSetup?.targetAudience,
+              estimatedDuration: project?.projectSetup?.estimatedDuration,
+              visualStyle: project?.projectSetup?.visualStyle,
+              audioStyle: project?.projectSetup?.audioStyle,
+              constraints: project?.projectSetup?.constraints,
             }}
           />
         </div>

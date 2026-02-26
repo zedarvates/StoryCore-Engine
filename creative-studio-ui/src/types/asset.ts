@@ -5,12 +5,13 @@
 export type AssetType = 'image' | 'audio' | 'video';
 
 export interface AssetMetadata {
-  id: string;
-  filename: string;
-  type: AssetType;
-  path: string;
-  size: number;
-  imported_at: string;
+  // Core properties (optional for placeholder/generated assets)
+  id?: string;
+  filename?: string;
+  type?: AssetType;
+  path?: string;
+  size?: number;
+  imported_at?: string;
   thumbnail?: string;
   // Extended properties for asset library
   description?: string;
@@ -18,6 +19,7 @@ export interface AssetMetadata {
   license?: string;
   tags?: string[]; // Array of tags for categorization and search
   category?: string;
+  source?: 'builtin' | 'user' | 'ai-generated' | 'library';
   characterMetadata?: Record<string, unknown>;
   environmentMetadata?: Record<string, unknown>;
   styleMetadata?: Record<string, unknown>;

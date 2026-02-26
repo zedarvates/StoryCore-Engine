@@ -115,11 +115,12 @@ class MediaIntelligenceEngine:
         
         # Circuit breaker pour fault tolerance
         circuit_config = CircuitBreakerConfig(
-            failure_rate_threshold=50,
-            wait_time_in_open_state=60,
-            half_open_requests=3
+            failure_threshold=5,
+            recovery_timeout=60.0,
+            success_threshold=3,
+            timeout=30.0
         )
-        self.circuit_breaker = CircuitBreaker(circuit_config)
+        self.circuit_breaker = CircuitBreaker("media_intelligence", circuit_config)
         
         # Stockage local des assets
         self.assets_index: Dict[str, AssetMetadata] = {}

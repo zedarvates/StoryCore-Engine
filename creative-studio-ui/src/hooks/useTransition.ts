@@ -36,8 +36,8 @@ const easingFunctions: Record<string, (t: number) => number> = {
     return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
   },
   bounce: (t) => {
-    let n1 = 7.5625;
-    let d1 = 2.75;
+    const n1 = 7.5625;
+    const d1 = 2.75;
     if (t < 1 / d1) return n1 * t * t;
     if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
     if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;

@@ -35,14 +35,16 @@ try:
         AudioRemixEngine,
         RemixStyle,
         RemixResult,
-        MusicStructure
+        MusicStructure,
+        RemixRequest as EngineRemixRequest,
     )
 except ImportError:
     from ..audio_remix_engine import (
         AudioRemixEngine,
         RemixStyle,
         RemixResult,
-        MusicStructure
+        MusicStructure,
+        RemixRequest as EngineRemixRequest,
     )
 
 # Create router
@@ -193,7 +195,7 @@ async def analyze_music_structure(request: AnalyzeStructureRequest):
                 "has_outro": structure.has_outro
             },
             sections=[{
-                "name": s.name,
+                "name": s.section_type.value,
                 "start_time": s.start_time,
                 "end_time": s.end_time,
                 "confidence": s.confidence
@@ -256,9 +258,9 @@ async def remix_audio(request: RemixRequest):
                 "reason": c.reason
             } for c in result.cuts],
             crossfades=[{
-                "start_time": cf.start_time,
-                "end_time": cf.end_time,
-                "duration": cf.duration
+                "start_time": cf["start"],
+                "end_time": cf["end"],
+                "duration": cf["duration"]
             } for cf in result.crossfades],
             processing_time=time.time() - start_time
         )
@@ -271,7 +273,7 @@ async def remix_audio(request: RemixRequest):
 
 
 @audio_router.post("/preview", response_model=PreviewResponse)
-async def preview_remix(request: PreviewRequest):
+async def preview_remix_endpoint(request: PreviewRequest):
     """
     Generate a short preview of the remix.
     
@@ -290,19 +292,32 @@ async def preview_remix(request: PreviewRequest):
     start_time = time.time()
     
     try:
+        style = RemixStyle(request.style)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid style. Supported: smooth, beat-cut, structural, dynamic"
+        )
+    
+    try:
         engine = get_engine()
-        preview_url = await engine.generate_preview(
-            music_url=request.music_url,
+        engine_request = EngineRemixRequest(
+            audio_id=request.music_url,
+            audio_url=request.music_url,
             target_duration=request.target_duration,
-            style=request.style,
-            start_time=request.preview_start,
-            duration=request.preview_duration
+            style=style,
+        )
+        preview_data = await engine.preview_remix(engine_request)
+        
+        preview_url = (
+            f"/api/audio/preview/{engine_request.audio_id}"
+            f"?start={request.preview_start}&duration={request.preview_duration}"
         )
         
         return PreviewResponse(
             preview_url=preview_url,
             duration=request.preview_duration,
-            processing_time=time.time() - start_time
+            processing_time=time.time() - start_time,
         )
         
     except Exception as e:

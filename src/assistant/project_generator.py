@@ -222,31 +222,29 @@ class ProjectGenerator:
     
     def _generate_characters(self, parsed: ParsedPrompt) -> List[Character]:
         """
-        Generate character profiles from parsed prompt.
-        
-        Args:
-            parsed: Parsed prompt data
-            
-        Returns:
-            List of Character objects
+        Generate character profiles from parsed prompt (batched for speed).
         """
-        characters = []
+        if not parsed.characters:
+            return []
+            
+        # Collect descriptions for all characters in one go
+        appearances = self._generate_appearances_batched(parsed.characters, parsed)
         
+        characters = []
         for i, char_data in enumerate(parsed.characters):
-            # Generate detailed appearance description
-            appearance = self._generate_appearance_description(char_data, parsed)
+            name = char_data.get("name", f"Character {i+1}")
+            appearance = appearances.get(name, appearances.get(str(i), "Detailed appearance description."))
             
             # Ensure personality is not empty
             personality = char_data.get("personality", "")
             if not personality:
-                # Generate a default personality based on role and description
                 role = char_data.get("role", "supporting")
                 description = char_data.get("description", "")
                 personality = f"A {role} character with {description if description else 'a mysterious presence'}"
             
             character = Character(
                 id=f"char_{i+1:02d}",
-                name=char_data.get("name", f"Character {i+1}"),
+                name=name,
                 role=char_data.get("role", "supporting"),
                 description=char_data.get("description", ""),
                 appearance=appearance,
@@ -256,47 +254,27 @@ class ProjectGenerator:
             characters.append(character)
         
         return characters
-    
-    def _generate_appearance_description(
-        self,
-        char_data: Dict,
-        parsed: ParsedPrompt
-    ) -> str:
+
+    def _generate_appearances_batched(self, characters: List[Dict], parsed: ParsedPrompt) -> Dict[str, str]:
         """
-        Generate detailed appearance description for visual generation.
-        
-        Args:
-            char_data: Character data from parsed prompt
-            parsed: Parsed prompt data
-            
-        Returns:
-            Detailed appearance description
+        Generate multiple character appearances in one high-speed call.
         """
-        # Build a prompt for appearance generation
-        prompt = f"""Generate a detailed visual appearance description for this character suitable for AI image generation:
-
-Character: {char_data.get('name', 'Character')}
-Role: {char_data.get('role', 'character')}
-Basic Description: {char_data.get('description', 'A character')}
-
-Project Style: {parsed.visual_style}
-Genre: {parsed.genre}
-Tone: {parsed.tone}
-
-Include: physical features, clothing, distinctive characteristics, color palette, and style notes.
-Keep it concise (2-3 sentences) but visually descriptive.
-
-Return only the description, no additional text."""
+        char_list_str = "\n".join([f"- {c.get('name')}: {c.get('description')}" for c in characters])
         
+        prompt = f"""[TASK] Generate visual descriptions for these characters:
+{char_list_str}
+
+[STYLE] {parsed.visual_style} ({parsed.genre}, {parsed.tone})
+[FORMAT] Return JSON: {{"Name": "2-sentence visual description"}}
+[RULES] Focus on physical features, clothing, and colors. No extra text."""
+
         try:
-            description = self.llm.complete(prompt, temperature=0.7, max_tokens=200)
-            # Clean up the description
-            description = description.strip()
-            return description
+            response = self.llm.complete(prompt, temperature=0.5, max_tokens=1000)
+            return self.parser._parse_llm_response(response)
         except Exception as e:
-            logger.warning(f"Failed to generate appearance description: {e}")
-            # Fallback to basic description
-            return f"{char_data.get('description', 'A character')} in {parsed.visual_style} style."
+            logger.warning(f"Batched appearance generation failed: {e}")
+            return {{c.get("name"): "Visual description" for c in characters}}
+
     
     def _generate_sequences(
         self,

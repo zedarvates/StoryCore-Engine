@@ -6,11 +6,13 @@
  */
 
 import { BACKEND_URL } from '../config/apiConfig';
+import { getComfyUIServersService } from './comfyuiServersService';
 
 export type CineChainType = 'generate_scene' | 'music_pro' | 'one_character' | 'storyboard_only' | 'audio_remix';
 
 export interface CineProductionRequest {
     projectId: string;
+    sceneId?: string;
     chainType: CineChainType;
     sceneDescription: string;
     imagePrompt?: string;
@@ -19,6 +21,8 @@ export interface CineProductionRequest {
     genre?: string;
     style?: string;
     tone?: string;
+    preferredEngine?: string;
+    comfyuiUrl?: string;
     overrides?: Record<string, any>;
 }
 
@@ -71,6 +75,18 @@ class CineProductionAPI {
      * Start a new production job
      */
     async startProduction(request: CineProductionRequest): Promise<{ jobId: string }> {
+        // Automatically inject active ComfyUI server URL if not provided
+        if (!request.comfyuiUrl) {
+            try {
+                const activeUrl = getComfyUIServersService().getActiveServerUrl();
+                if (activeUrl) {
+                    request.comfyuiUrl = activeUrl;
+                }
+            } catch (error) {
+                console.warn('[CineProductionAPI] Failed to get active ComfyUI server:', error);
+            }
+        }
+
         return this.request<{ jobId: string }>('/start', {
             method: 'POST',
             body: JSON.stringify(request),

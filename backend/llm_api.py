@@ -116,6 +116,7 @@ class PromptTemplateType(str, Enum):
     CHARACTER_DIALOGUE = "character_dialogue"
     WORLD_BUILDING = "world_building"
     GENERAL = "general"
+    MUSIC_VIDEO = "music_video"
 
 
 @dataclass
@@ -993,6 +994,67 @@ async def render_template(
         rendered_prompt=rendered_prompt,
         template_name=request.template_name
     )
+
+
+# =============================================================================
+# MUSIC VIDEO LYRICS TEMPLATES
+# =============================================================================
+
+DEFAULT_TEMPLATES.append(
+    PromptTemplate(
+        name="music_lyrics_generation",
+        template_type=PromptTemplateType.MUSIC_VIDEO,
+        template="""You are a professional songwriter and music producer. Create song lyrics based on the following:
+
+Theme: {theme}
+Style: {style}
+Mood: {mood}
+Length: {length}
+
+Provide the lyrics with clear structure (Verse, Chorus, Bridge) and meta-information for the producer (BPM, Energy level, Key).
+
+Respond in JSON format:
+{{
+  "lyrics": "Full song lyrics here...",
+  "structure": {{
+    "bpm_guess": 120,
+    "energy_level": "high|medium|low",
+    "key": "C Major"
+  }}
+}}""",
+        variables=["theme", "style", "mood", "length"]
+    )
+)
+
+DEFAULT_TEMPLATES.append(
+    PromptTemplate(
+        name="music_video_segmentation",
+        template_type=PromptTemplateType.MUSIC_VIDEO,
+        template="""You are a professional music video director. Analyze the following lyrics and BPM to create a structural visual plan.
+
+Lyrics: {lyrics}
+BPM: {bpm}
+
+Break the video into logical segments of 8-15 seconds. For each segment, provide:
+- Timestamp (approximate start)
+- Shot Type (Close-up, Wide, Tracking, etc.)
+- Description (Visual action)
+- Duration (in seconds)
+
+Respond in JSON format:
+{{
+  "segments": [
+    {{
+      "timestamp": 0,
+      "shot_type": "name",
+      "description": "action",
+      "duration": 10
+    }}
+  ]
+}}""",
+        variables=["lyrics", "bpm"]
+    )
+)
 
 
 @router.get("/llm/templates")

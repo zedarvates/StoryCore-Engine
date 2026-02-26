@@ -41,7 +41,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 import { useStore, useSelectedWorld, useStories } from '../../store';
-import type { Character } from '@/types/character';
+
 import { TimelineTracks, AmbianceProfile } from './TimelineTracks';
 import {
   DropdownMenu,
@@ -72,7 +72,7 @@ import { EffectPreviewRenderer } from './effects/EffectPreviewRenderer';
 import { EffectsLibrary } from './effects/EffectsLibrary';
 import { EffectStack } from './effects/EffectStack';
 import { EffectControls } from './effects/EffectControls';
-import { CharacterCreatorWizard } from './sequence-planning/CharacterCreatorWizard';
+import { CharacterWizardModal } from '../wizard/CharacterWizardModal';
 import { StorytellerWizard } from './sequence-planning/StorytellerWizard';
 import { useCharacterPersistence } from '../../hooks/useCharacterPersistence';
 import { FloatingAIAssistant } from '../FloatingAIAssistant';
@@ -204,7 +204,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
   const [isStorytellerWizardOpen, setIsStorytellerWizardOpen] = useState(false);
 
   // Character persistence hook
-  const { saveCharacter } = useCharacterPersistence();
+  useCharacterPersistence();
   const characters = useStore((state) => state.characters);
   const world = useSelectedWorld();
 
@@ -419,64 +419,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
     // 3. Add it to the appropriate track
   };
 
-  const handleSaveCharacter = async (character: any) => {
-    try {
-      // Map wizard data to Character type
-      const characterData: Partial<Character> = {
-        name: character.name,
-        visual_identity: {
-          age_range: `${character.age} ans`,
-          gender: character.gender || 'neutral',
-          build: character.appearance,
-          hair_color: '',
-          hair_style: '',
-          hair_length: '',
-          eye_color: '',
-          eye_shape: '',
-          skin_tone: '',
-          facial_structure: '',
-          distinctive_features: [],
-          height: '',
-          posture: '',
-          clothing_style: '',
-          color_palette: [],
-          reference_images: [],
-          reference_sheet_images: [],
-        },
-        personality: {
-          traits: character.personality,
-          temperament: character.personality?.join(', ') || '',
-          values: [],
-          fears: [],
-          desires: [],
-          flaws: [],
-          strengths: [],
-          communication_style: '',
-        },
-        background: {
-          origin: character.backstory,
-          current_situation: character.worldRelation,
-          occupation: '',
-          education: '',
-          family: '',
-          significant_events: [],
-        },
-        role: {
-          archetype: character.abilities?.join(', ') || '',
-          narrative_function: '',
-          character_arc: '',
-        },
-        creation_method: 'wizard',
-        creation_timestamp: new Date().toISOString(),
-        version: '1.0',
-      };
 
-      await saveCharacter(characterData);
-      console.log('Character saved successfully:', character.name);
-    } catch (error) {
-      console.error('Error saving character:', error);
-    }
-  };
 
   const handleSaveStory = async (storySummary: any) => {
     try {
@@ -665,7 +608,7 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
           const response = await videoEditorAPI.smartCrop(shot.id.toString(), newRatio, 'face');
 
           let status = response.status;
-          let job_id = response.job_id;
+          const job_id = response.job_id;
           let cropRegions = response.crop_regions;
 
           // 2. Polling si nécessaire (limité pour l'UI)
@@ -1311,11 +1254,10 @@ const VideoEditorPage: React.FC<VideoEditorPageProps> = ({
       )}
 
       {/* Character Creator Wizard */}
-      <CharacterCreatorWizard
+      <CharacterWizardModal
         isOpen={isCharacterWizardOpen}
         onClose={() => setIsCharacterWizardOpen(false)}
-        onSave={handleSaveCharacter}
-        worldContext={{ genre: 'fantasy', description: 'Monde médiéval avec magie' }} // Mock world context
+        worldContext={world as any}
       />
 
       {/* Storyteller Wizard */}

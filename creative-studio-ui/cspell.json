@@ -12,7 +12,14 @@
     "lieux",
     "comfyui",
     "safetensors",
-    "multistep"
+    "multistep",
+    "Ollama",
+    "ollama",
+    "storycore",
+    "postprod",
+    "surroundwoofer",
+    "logline",
+    "Subcomponents"
   ],
   "ignorePaths": [
     "node_modules",

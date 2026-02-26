@@ -37,13 +37,13 @@ interface FormErrors {
   styleReferenceImage?: string;
 }
 
-export function StyleTransferForm({
+export const StyleTransferForm = React.forwardRef<HTMLFormElement, StyleTransferFormProps>(({
   initialData,
   shots,
   onSubmit,
   onChange,
   onValidationChange,
-}: StyleTransferFormProps) {
+}, ref) => {
   const [formData, setFormData] = useState<StyleTransferInput>({
     shotId: initialData?.shotId || '',
     styleReferenceImage: initialData?.styleReferenceImage || null,
@@ -52,14 +52,6 @@ export function StyleTransferForm({
   const [errors, setErrors] = useState<FormErrors>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Validate form whenever data changes
-  useEffect(() => {
-    // Skip validation on initial mount
-    if (formData.shotId || formData.styleReferenceImage) {
-      validateForm();
-    }
-  }, [formData]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -77,6 +69,18 @@ export function StyleTransferForm({
     onValidationChange?.(isValid);
     return isValid;
   }, [formData, onValidationChange]);
+
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.shotId || formData.styleReferenceImage) {
+      // Use setTimeout to defer setState to next event loop tick
+      const timeoutId = setTimeout(() => {
+        validateForm();
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, validateForm]);
 
   const handleFieldChange = useCallback((field: keyof StyleTransferInput, value: unknown) => {
     setFormData(prev => {
@@ -150,7 +154,7 @@ export function StyleTransferForm({
   const selectedShot = shots.find(shot => shot.id === formData.shotId);
 
   return (
-    <form className="style-transfer-form" onSubmit={handleSubmit}>
+    <form ref={ref} className="style-transfer-form" onSubmit={handleSubmit}>
       <FormSection title="Select Shot">
         <FormField
           name="shotId"
@@ -245,5 +249,5 @@ export function StyleTransferForm({
       </FormSection>
     </form>
   );
-}
+});
 

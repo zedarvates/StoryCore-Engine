@@ -1,5 +1,22 @@
 /* New Project Dashboard Styles */
 
+:root {
+  --primary-color: hsl(var(--primary));
+  --primary-hover: hsl(var(--primary) / 0.9);
+  --primary-color-light: hsl(var(--primary) / 0.1);
+  --primary-rgb: var(--primary);
+  /* Approximation for rgba use */
+  --surface-color: hsl(var(--background));
+  --surface-elevated: hsl(var(--card));
+  --surface-elevated-hover: hsl(var(--card) / 0.8);
+  --card-background: hsl(var(--card));
+  --border-color: hsl(var(--border));
+  --text-primary: hsl(var(--foreground));
+  --text-secondary: hsl(var(--muted-foreground));
+  --text-tertiary: hsl(var(--muted-foreground) / 0.7);
+  --error-color: hsl(var(--destructive));
+}
+
 .project-dashboard-new {
   display: flex;
   flex-direction: column;
@@ -45,16 +62,16 @@
 }
 
 .quick-btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  border-color: #2563eb;
   font-weight: 600;
 }
 
 .quick-btn-primary:hover {
-  background: linear-gradient(135deg, #5568d3 0%, #63408a 100%);
-  border-color: #5568d3;
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+  border-color: #1d4ed8;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
 .pipeline-status-compact {
@@ -112,7 +129,6 @@
 
 /* Pulse animation for connected status */
 @keyframes pulse-connected {
-
   0%,
   100% {
     opacity: 1;
@@ -144,6 +160,272 @@
   width: 300px;
   flex-shrink: 0;
   overflow-y: auto;
+}
+
+/* ============================================================================
+   Plasma Plex Neon Theme for Dashboard Right
+   Harmonizes with user appearance preference via CSS variables
+   ============================================================================ */
+
+/* Plasma Plex Neon styling - activated when theme is set */
+.theme-plasma-plex-neon .dashboard-right,
+.dark .dashboard-right.plasma-plex-style {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--background)) 0%,
+    hsl(260 30% 8%) 50%,
+    hsl(var(--background)) 100%
+  );
+  border-left: 1px solid transparent;
+  border-image: linear-gradient(
+    180deg,
+    hsl(var(--plasma-purple) / 0.3) 0%,
+    hsl(var(--plasma-cyan) / 0.5) 50%,
+    hsl(var(--plasma-magenta) / 0.3) 100%
+  ) 1;
+  position: relative;
+}
+
+/* Ambient glow effect */
+.theme-plasma-plex-neon .dashboard-right::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 50% 0%, hsl(var(--plasma-purple) / 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, hsl(var(--plasma-cyan) / 0.06) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure content is above glow effect */
+.theme-plasma-plex-neon .dashboard-right > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Plasma Plex Neon - Recent Activity Section */
+.theme-plasma-plex-neon .dashboard-right .recent-activity-section {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--card)) 0%,
+    hsl(260 25% 12%) 100%
+  );
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 hsl(var(--plasma-purple) / 0.1);
+  transition: all 0.3s ease;
+}
+
+.theme-plasma-plex-neon .dashboard-right .recent-activity-section:hover {
+  border-color: hsl(var(--plasma-purple) / 0.6);
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.4),
+    0 0 20px hsl(var(--plasma-purple) / 0.15),
+    inset 0 1px 0 hsl(var(--plasma-purple) / 0.2);
+}
+
+.theme-plasma-plex-neon .dashboard-right .recent-activity-section h3 {
+  color: hsl(var(--foreground));
+  text-shadow: 0 0 20px hsl(var(--plasma-purple) / 0.3);
+}
+
+/* Activity items with neon hover */
+.theme-plasma-plex-neon .dashboard-right .activity-item {
+  background: hsl(var(--secondary) / 0.5);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.theme-plasma-plex-neon .dashboard-right .activity-item:hover {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--plasma-cyan) / 0.4);
+  transform: translateX(4px);
+  box-shadow: 
+    -4px 0 12px hsl(var(--plasma-cyan) / 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.theme-plasma-plex-neon .dashboard-right .activity-icon {
+  color: hsl(var(--plasma-cyan));
+  filter: drop-shadow(0 0 4px hsl(var(--plasma-cyan) / 0.6));
+}
+
+/* Plasma Plex Neon - Recent Assets Section */
+.theme-plasma-plex-neon .dashboard-right .recent-assets-section {
+  background: transparent;
+}
+
+.theme-plasma-plex-neon .dashboard-right .recent-assets-section h3 {
+  color: hsl(var(--foreground));
+  text-shadow: 0 0 20px hsl(var(--plasma-magenta) / 0.3);
+}
+
+.theme-plasma-plex-neon .dashboard-right .recent-asset-card {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--card)) 0%,
+    hsl(260 25% 12%) 100%
+  );
+  border: 1px solid hsl(var(--border) / 0.4);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.theme-plasma-plex-neon .dashboard-right .recent-asset-card:hover {
+  border-color: hsl(var(--plasma-magenta) / 0.6);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    0 0 15px hsl(var(--plasma-magenta) / 0.2);
+}
+
+.theme-plasma-plex-neon .dashboard-right .recent-asset-card .aspect-video {
+  border-bottom: 1px solid hsl(var(--border) / 0.3);
+}
+
+/* Neural Production Assistant in Plasma Plex Neon */
+.theme-plasma-plex-neon .dashboard-right .neural-production-assistant,
+.theme-plasma-plex-neon .dashboard-right > div:first-child > div {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--card)) 0%,
+    hsl(260 30% 14%) 100%
+  );
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    0 0 30px hsl(var(--plasma-purple) / 0.1);
+  transition: all 0.3s ease;
+}
+
+.theme-plasma-plex-neon .dashboard-right .neural-production-assistant:hover,
+.theme-plasma-plex-neon .dashboard-right > div:first-child > div:hover {
+  border-color: hsl(var(--plasma-purple) / 0.5);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 40px hsl(var(--plasma-purple) / 0.15);
+}
+
+/* Scrollbar for Plasma Plex Neon */
+.theme-plasma-plex-neon .dashboard-right::-webkit-scrollbar {
+  width: 8px;
+}
+
+.theme-plasma-plex-neon .dashboard-right::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+  border-radius: 4px;
+}
+
+.theme-plasma-plex-neon .dashboard-right::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--plasma-purple)) 0%,
+    hsl(var(--plasma-cyan)) 100%
+  );
+  border-radius: 4px;
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 0 8px hsl(var(--plasma-purple) / 0.4);
+}
+
+.theme-plasma-plex-neon .dashboard-right::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--plasma-magenta)) 0%,
+    hsl(var(--plasma-purple)) 100%
+  );
+  box-shadow: 
+    0 0 12px hsl(var(--plasma-magenta) / 0.6),
+    0 0 20px hsl(var(--plasma-purple) / 0.3);
+}
+
+/* Plasma Plex Neon Animation */
+@keyframes plasma-glow-pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.theme-plasma-plex-neon .dashboard-right {
+  animation: plasma-glow-pulse 4s ease-in-out infinite;
+}
+
+/* Plasma Plex Neon - Empty States */
+.theme-plasma-plex-neon .dashboard-right .no-stories-message,
+.theme-plasma-plex-neon .dashboard-right .bg-gray-800\/50 {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--secondary) / 0.3) 0%,
+    hsl(260 25% 10%) 100%
+  );
+  border: 1px dashed hsl(var(--plasma-cyan) / 0.4);
+  border-radius: 12px;
+}
+
+/* Plasma Plex Neon - Buttons and Interactive Elements */
+.theme-plasma-plex-neon .dashboard-right button {
+  transition: all 0.2s ease;
+}
+
+.theme-plasma-plex-neon .dashboard-right button:hover {
+  text-shadow: 0 0 8px hsl(var(--plasma-purple) / 0.6);
+}
+
+.theme-plasma-plex-neon .dashboard-right .text-primary {
+  color: hsl(var(--plasma-cyan));
+  text-shadow: 0 0 10px hsl(var(--plasma-cyan) / 0.4);
+}
+
+/* ============================================================================
+   Harmonization with other dark themes
+   Apply plasma-like styling to dashboard-right for all dark themes
+   ============================================================================ */
+
+.dark .dashboard-right {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--background)) 0%,
+    hsl(var(--card) / 0.5) 50%,
+    hsl(var(--background)) 100%
+  );
+  border-left: 1px solid hsl(var(--border) / 0.5);
+}
+
+.dark .dashboard-right .recent-activity-section {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+
+.dark .dashboard-right .activity-item {
+  background: hsl(var(--secondary) / 0.5);
+  transition: all 0.2s ease;
+}
+
+.dark .dashboard-right .activity-item:hover {
+  background: hsl(var(--secondary));
+  border-left: 2px solid hsl(var(--primary));
+}
+
+.dark .dashboard-right .recent-asset-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  transition: all 0.2s ease;
+}
+
+.dark .dashboard-right .recent-asset-card:hover {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Collapsible Section Styles */
@@ -198,11 +480,31 @@
 
 /* Tips Section */
 .tips-section {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-  border: 1px solid rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(30, 64, 175, 0.1));
+  border: 1px solid rgba(37, 99, 235, 0.3);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+}
+
+.tips-section.compact-tips {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(168, 85, 247, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.25rem;
+}
+
+.tips-section.compact-tips h3 {
+  font-size: 1rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 900;
+}
+
+.tips-section.compact-tips .tips-intro {
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+  color: #888;
 }
 
 .tips-section h3 {
@@ -238,7 +540,7 @@
 
 .tips-section ol li br {
   display: block;
-  content: "";
+  content: '';
   margin-top: 0.25rem;
 }
 
@@ -250,7 +552,7 @@
   transform: translateX(30px) translateY(-50%);
   width: 24px;
   height: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -258,16 +560,16 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
-.tips-list li>svg {
+.tips-list li > svg {
   flex-shrink: 0;
   margin-top: 0.125rem;
-  color: #667eea;
+  color: #2563eb;
 }
 
-.tips-list li>div {
+.tips-list li > div {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -406,7 +708,6 @@
   transition: height 0.1s ease-out;
 }
 
-
 .chatterbox-resize-handle {
   position: absolute;
   bottom: 0;
@@ -498,15 +799,15 @@
 
 /* Sync button */
 .btn-sequence-control.sync {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: #fff;
-  border: 1px solid #8b5cf6;
+  border: 1px solid #3b82f6;
 }
 
 .btn-sequence-control.sync:hover:not(:disabled) {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  border-color: #7c3aed;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .btn-sequence-control.sync:disabled {
@@ -575,6 +876,16 @@
   border-color: #4a9eff;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sequence-card.formal-plan {
+  border-left: 3px solid #2563eb;
+  background: linear-gradient(135deg, #2a2a2a 0%, #172554 100%);
+}
+
+.sequence-card.formal-plan:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
 }
 
 .sequence-header {
@@ -744,7 +1055,6 @@
 .chat-messages::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
-
 
 /* ============================================================================
    Stories Section Styles
@@ -959,7 +1269,6 @@
   }
 }
 
-
 /* ============================================================================
    Story Detail View Styles
    ============================================================================ */
@@ -1155,7 +1464,7 @@
   margin-top: 2px;
 }
 
-.metadata-item>div {
+.metadata-item > div {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1347,7 +1656,6 @@
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15));
   }
 }
-
 
 /* ============================================================================
    Story Content Rendering Styles
@@ -1674,7 +1982,7 @@
 }
 
 /* Character card wrapper in dashboard grid */
-.dashboard-left .character-list__grid>* {
+.dashboard-left .character-list__grid > * {
   height: 100%;
 }
 

@@ -1,0 +1,2 @@
+# This file ensures the identities directory is tracked by git
+# Identity profiles are stored as JSON files in this directory

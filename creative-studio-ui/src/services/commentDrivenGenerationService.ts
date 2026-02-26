@@ -338,7 +338,7 @@ export class CommentDrivenGenerationService {
     const parameters = parsedIntent.parameters;
 
     // Build prompt based on parsed intent
-    let prompt = this.buildPromptFromIntent(comment, parsedIntent);
+    const prompt = this.buildPromptFromIntent(comment, parsedIntent);
 
     // Set up reference IDs
     const referenceIds: string[] = [];

@@ -7,7 +7,7 @@
  * Compatible with browser and Node.js environments
  */
 
-import { AddonConfig } from './AddonManager';
+import { AddonConfig } from './addonTypes';
 import { logger } from '@/utils/logger';
 
 /**
@@ -55,13 +55,20 @@ let path: NodePath | null = null;
 
 if (isNodeEnvironment) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const nodeFs = require('node:fs');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const nodePath = require('node:path');
-    fs = nodeFs.promises;
-    path = nodePath;
-  } catch (error) {
+    // Use dynamic import for ES module compatibility
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    import('node:fs/promises').then((nodeFsPromises) => {
+      fs = nodeFsPromises as unknown as NodeFsPromises;
+    }).catch((error: unknown) => {
+      logger.warn('[FileSystemService] Unable to load node:fs/promises:', error);
+    });
+    
+    import('node:path').then((nodePath) => {
+      path = nodePath as unknown as NodePath;
+    }).catch((error: unknown) => {
+      logger.warn('[FileSystemService] Unable to load node:path:', error);
+    });
+  } catch (error: unknown) {
     logger.warn('[FileSystemService] Unable to load Node.js modules:', error);
   }
 }

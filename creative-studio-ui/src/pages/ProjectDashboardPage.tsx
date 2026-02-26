@@ -7,9 +7,10 @@
 
 import { ProjectDashboardNew } from '@/components/workspace/ProjectDashboardNew';
 import { useAppStore } from '@/stores/useAppStore';
+import { ProjectProvider } from '@/contexts/ProjectContext';
 
 interface ProjectDashboardPageProps {
-  onOpenEditor: (sequenceId?: string) => void;
+  onOpenEditor?: (sequenceId?: string) => void;
 }
 
 export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps) {
@@ -28,36 +29,27 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
-      {/* Top Navigation Bar */}
-      <div className="h-14 border-b border-border bg-card flex items-center justify-between px-4">
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-semibold">{project.project_name}</h1>
-          <span className="text-sm text-muted-foreground">Project Dashboard</span>
+    <ProjectProvider projectId={(project.metadata?.id as string) || project.project_name}>
+      <div className="flex flex-col h-screen bg-background text-foreground">
+        {/* Top Navigation Bar */}
+        <div className="h-14 border-b border-border bg-card flex items-center justify-between px-4">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-semibold">{project.project_name}</h1>
+            <span className="text-sm text-muted-foreground">Project Dashboard</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {/* Nouveau Plan button moved to Plan Sequences section in ProjectDashboardNew */}
+          </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          {/* Nouveau Plan button moved to Plan Sequences section in ProjectDashboardNew */}
-          {/* Open Editor button commented out - sequences now open editor directly
-          <button
-            onClick={() => onOpenEditor()}
-            className="px-4 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 flex items-center gap-2"
-          >
-            🎬 Open Editor
-          </button>
-          */}
 
+        {/* Main Content - New Dashboard */}
+        <div className="flex-1 overflow-hidden">
+          <ProjectDashboardNew
+            onOpenEditor={onOpenEditor}
+          />
         </div>
       </div>
-
-      {/* Main Content - New Dashboard */}
-      <div className="flex-1 overflow-hidden">
-        <ProjectDashboardNew
-          projectId={project.metadata?.id || project.project_name}
-          projectName={project.project_name}
-          onOpenEditor={onOpenEditor}
-        />
-      </div>
-    </div>
+    </ProjectProvider>
   );
 }

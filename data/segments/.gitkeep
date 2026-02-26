@@ -1,0 +1,2 @@
+# This file ensures the segments directory is tracked by git
+# Script segmentations are stored here as JSON files

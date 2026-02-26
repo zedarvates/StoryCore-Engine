@@ -4,6 +4,7 @@ API Package for StoryCore-Engine
 
 from .addon_routes import router as addon_router, init_addon_api
 from .seedance_routes import router as seedance_router, init_seedance_api
+from .external_addon_routes import router as external_addon_router, init_external_addon_api
 from .config import APIConfig
 from .models import (
     APIResponse,
@@ -46,8 +47,10 @@ from .categories import (
 __all__ = [
     'addon_router',
     'seedance_router',
+    'external_addon_router',
     'init_addon_api',
     'init_seedance_api',
+    'init_external_addon_api',
     'APIConfig',
     'APIResponse',
     'ErrorDetails',

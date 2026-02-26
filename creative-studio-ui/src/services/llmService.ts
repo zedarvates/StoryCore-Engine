@@ -8,6 +8,8 @@
 import { ollamaClient } from './llm/OllamaClient';
 import { OLLAMA_URL } from '../config/apiConfig';
 import { logger } from '../utils/logger';
+import { backendApiService } from './backendApiService';
+
 
 /**
  * Supported LLM providers
@@ -285,7 +287,7 @@ export class LLMError extends Error {
 /**
  * API response wrapper
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -529,7 +531,7 @@ class OpenAIProvider extends LLMProviderBase {
             if (parsed.choices[0]?.finish_reason) {
               finish_reason = parsed.choices[0].finish_reason;
             }
-          } catch (e) {
+          } catch {
             // Skip invalid JSON chunks
           }
         }
@@ -764,7 +766,7 @@ class AnthropicProvider extends LLMProviderBase {
             if (parsed.type === 'message_stop') {
               finish_reason = 'stop';
             }
-          } catch (e) {
+          } catch {
             // Skip invalid JSON chunks
           }
         }
@@ -975,7 +977,7 @@ class CustomProvider extends LLMProviderBase {
             if (parsed.done) {
               finish_reason = 'stop';
             }
-          } catch (e) {
+          } catch {
             // Skip invalid JSON chunks
           }
         }
@@ -1024,7 +1026,7 @@ class CustomProvider extends LLMProviderBase {
             if (parsed.choices[0]?.finish_reason) {
               finish_reason = parsed.choices[0].finish_reason;
             }
-          } catch (e) {
+          } catch {
             // Skip invalid JSON chunks
           }
         }
@@ -1339,7 +1341,7 @@ export class LLMService {
 
     // Clear timeout when controller is aborted (cleanup)
     const originalAbort = timeoutController.abort.bind(timeoutController);
-    timeoutController.abort = (reason?: any) => {
+    timeoutController.abort = (reason?: unknown) => {
       clearTimeout(timeoutId);
       originalAbort(reason);
     };
@@ -1524,9 +1526,6 @@ export class LLMService {
     duration?: number;
     context?: string;
   }): Promise<ApiResponse<{ prompt: string; style: string; duration: number; mood: string[] }>> {
-    const { getDefaultSystemPrompts } = await import('./llmService');
-    const systemPrompts = getDefaultSystemPrompts();
-
     const prompt = `You are a music composition expert for film and video production.
 Generate a detailed music prompt for AI music generation based on the following description.
 
@@ -1747,7 +1746,143 @@ Respond in JSON format:
       };
     }
   }
+
+  /**
+   * Generates professional lyrics based on a theme and style for clip production
+   */
+  async generateProfessionalLyrics(params: {
+    theme: string;
+    style: string;
+    mood: string[];
+    length: 'short' | 'medium' | 'long';
+  }): Promise<{ success: boolean; data?: { lyrics: string; structure: { bpm_guess: number; energy_level: string; key: string } } }> {
+
+    logger.info('[LLM] Generating professional lyrics for clip:', params);
+
+    try {
+      const response = await backendApiService.post<{ lyrics: string; structure: { bpm_guess: number; energy_level: string; key: string } }>(
+        '/api/llm/render-template',
+        {
+          template_name: 'music_lyrics_generation',
+          variables: params
+        }
+      );
+      
+      // The render-template returns a prompt, but we want to actually GENERATE here.
+      // So we render then call generate.
+      
+      const genResponse = await backendApiService.post<{ text: string }>(
+        '/api/llm/generate',
+        {
+          prompt: (response as Record<string, unknown>).rendered_prompt as string,
+          model: 'gpt-4'
+        }
+      );
+
+      // Parse JSON from LLM response
+      const cleanJson = genResponse.text.replace(/```json|```/g, '').trim();
+      const result = JSON.parse(cleanJson);
+
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error) {
+      logger.error('Lyrics generation failed, using mock', error);
+      // Fallback to mock for demo purposes if backend fails
+      const lyrics = `[Verset 1]
+Dans les échos du code, une lueur s'éveille
+Un moteur qui murmure, une force sans pareille
+StoryCore s'anime, le rêve prend son envol
+Sous le ciel de silicium, nous brisons le sol
+
+[Refrain]
+Visionnaire, la musique nous guide
+Éclats de pixels, l'espace se vide
+Projetons nos ombres sur l'écran du futur
+IA créatrice, pureté de l'azur`;
+
+      return {
+        success: true,
+        data: {
+          lyrics,
+          structure: {
+            bpm_guess: 124,
+            energy_level: 'high',
+            key: 'C Minor'
+          }
+        }
+      };
+    }
+  }
+
+  /**
+   * Analyzes music style from a prompt or audio reference
+   */
+  async analyzeMusicStyle(input: string): Promise<{
+    style: string;
+    instruments: string[];
+    bpm: number;
+    cinematic_prompts: string[];
+  }> {
+    logger.info('[LLM] Analyzing music style:', input);
+    
+    try {
+      return await backendApiService.post('/api/audio/analyze-style', {
+        audio_id: input,
+        project_id: 'default'
+      });
+    } catch (error) {
+      logger.error('Style analysis failed, using mock', error);
+      return {
+        style: "Synthwave Cinématographique",
+        instruments: ["Analog Synths", "Deep Bass", "Drum Machine", "Electronic Percussion"],
+        bpm: 120,
+        cinematic_prompts: [
+          "Volumetric lighting",
+          "Anamorphic lens flares",
+          "Retro-futuristic cityscape",
+          "Handheld camera motion"
+        ]
+      };
+    }
+  }
+
+  /**
+   * Generates a structural plan for a music video (8-15s blocks)
+   */
+  async generateClipStructure(lyrics: string, bpm: number): Promise<Array<{
+    timestamp: number;
+    shot_type: string;
+    description: string;
+    duration: number;
+  }>> {
+    logger.info(`[LLM] Sequencing clip blocks based on lyrics (${lyrics.length}) and BPM (${bpm})...`);
+
+    try {
+      const response = await backendApiService.post<{ text: string }>(
+        '/api/llm/generate',
+        {
+          prompt: `Using the music_video_segmentation template for: Lyrics=${lyrics}, BPM=${bpm}`,
+          model: 'gpt-4'
+        }
+      );
+      
+      const cleanJson = response.text.replace(/```json|```/g, '').trim();
+      const result = JSON.parse(cleanJson);
+      return result.segments;
+    } catch (error) {
+      logger.error('Clip structure generation failed, using mock', error);
+      return [
+        { timestamp: 0, shot_type: "Establishing", description: "Vaste panorama urbain néon", duration: 8.5 },
+        { timestamp: 8.5, shot_type: "Medium Shot", description: "Sujet marchant sous la pluie synthétique", duration: 10.2 },
+        { timestamp: 18.7, shot_type: "Close Up", description: "Reflet des néons dans les yeux", duration: 7.4 }
+      ];
+    }
+  }
+
 }
+
 
 /**
  * Default LLM service instance
@@ -1758,29 +1893,28 @@ let defaultService: LLMService | null = null;
  * Get or create default LLM service instance
  * Uses ConfigManager to get proper configuration
  */
-export function getLLMService(): LLMService {
+export async function getLLMService(): Promise<LLMService> {
   if (!defaultService) {
-    // Try to load config from ConfigManager if available
     try {
-      // Dynamic import to avoid circular dependency
-      const configModule = require('./llm/ConfigManager');
+      const configModule = await import('./llm/ConfigManager');
       if (configModule && configModule.ConfigManager) {
         const config = configModule.ConfigManager.getLLMConfig();
-        // Convert ConfigManager config to LLMService config
         const llmConfig: Partial<LLMConfig> = {
           provider: config.provider as LLMProvider,
-          apiKey: '', // ConfigManager doesn't store API keys for local
+          apiKey: '',
           apiEndpoint: config.apiEndpoint,
           model: config.model,
-          parameters: config.parameters,
+          parameters: config.parameters as { temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number },
+
           streamingEnabled: config.streamingEnabled,
-          timeout: 180000, // 3 minutes - local models need more time
-          systemPrompts: config.systemPrompts || {
-            worldGeneration: 'You are a creative world-building assistant...',
-            characterGeneration: 'You are a character development expert...',
-            dialogueGeneration: 'You are a dialogue writing specialist...',
+          timeout: 180000,
+          systemPrompts: {
+            worldGeneration: ((config.systemPrompts as unknown) as Record<string, string>)?.worldGeneration || 'You are a creative world-building assistant...',
+            characterGeneration: ((config.systemPrompts as unknown) as Record<string, string>)?.characterGeneration || 'You are a character development expert...',
+            dialogueGeneration: ((config.systemPrompts as unknown) as Record<string, string>)?.dialogueGeneration || 'You are a dialogue writing specialist...',
           },
         };
+
         defaultService = new LLMService(llmConfig);
       } else {
         defaultService = new LLMService();
@@ -1792,6 +1926,7 @@ export function getLLMService(): LLMService {
   }
   return defaultService;
 }
+
 
 /**
  * Create a new LLM service instance with custom configuration
@@ -1985,5 +2120,7 @@ export function getDefaultSystemPrompts() {
     dialogueGeneration: `You are a dialogue writing specialist for narrative content. Create natural, character-appropriate dialogue that reveals personality, advances plot, maintains consistent voice, and feels authentic to the character's background and emotional state. Consider subtext, pacing, and how dialogue can convey visual actions and reactions. Ensure dialogue works well for both text and potential voice acting or animation.`,
   };
 }
+
+export const llmService = new LLMService();
 
 

@@ -36,8 +36,8 @@ export function ProductionWizardNavigation({
   isSubmitting = false,
   nextLabel = 'Continue',
   previousLabel = 'Back',
-  submitLabel = 'Finalize Node',
-  cancelLabel = 'Abort',
+  submitLabel = 'Save & Finalize',
+  cancelLabel = 'Cancel',
   className,
 }: ProductionWizardNavigationProps) {
   const isLastStep = currentStep === totalSteps - 1;
@@ -76,9 +76,7 @@ export function ProductionWizardNavigation({
       <div className="flex-1 flex justify-center">
         <div className="flex items-center gap-3">
           <div className="h-px w-8 bg-primary/20" />
-          <div className="text-[10px] uppercase font-black tracking-[0.2em] text-primary/60">
-            Nexus Node <span className="text-primary">{currentStep + 1}</span> // <span className="opacity-40">{totalSteps}</span>
-          </div>
+            Step <span className="text-primary">{currentStep + 1}</span> / <span className="opacity-40">{totalSteps}</span>
           <div className="h-px w-8 bg-primary/20" />
         </div>
       </div>

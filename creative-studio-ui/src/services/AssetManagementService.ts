@@ -572,6 +572,37 @@ export class AssetManagementService {
   private joinPath(...parts: string[]): string {
     return parts.join('/').replace(/\/+/g, '/');
   }
+
+  // ============================================================================
+  // Public File System Methods
+  // ============================================================================
+
+  /**
+   * Create a directory
+   * 
+   * Creates a new directory at the specified path. Uses Electron API for file system access.
+   * Supports recursive creation of parent directories.
+   * 
+   * @param path - The directory path to create
+   * @param options - Optional options (recursive: creates parent directories if true)
+   * @returns Promise<void> - Resolves when directory is created
+   * @throws Error if directory creation fails
+   */
+  public async mkdir(path: string, options?: { recursive?: boolean }): Promise<void> {
+    if (window.electronAPI?.fs) {
+      try {
+        await window.electronAPI.fs.mkdir(path, options);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[AssetManagementService] Failed to create directory:', { path, error });
+        throw new Error(`Failed to create directory: ${errorMessage}`);
+      }
+    } else {
+      // Non-Electron environment
+      console.warn('[AssetManagementService] Cannot create directory in non-Electron environment:', path);
+      throw new Error('Directory creation is not supported in browser environment');
+    }
+  }
 }
 
 // Export singleton instance

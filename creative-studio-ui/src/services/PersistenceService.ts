@@ -583,6 +583,9 @@ export class PersistenceService {
 
   /**
    * Validation des données du monde
+   * 
+   * Note: Automatically filters out locations and objects without names
+   * to prevent validation errors from empty placeholder entries
    */
   private validateWorld(world: World): ValidationResult {
     const errors: string[] = [];
@@ -605,13 +608,33 @@ export class PersistenceService {
       warnings.push('Time period is recommended for better world consistency');
     }
 
-    // Validation des données complexes
+    // Auto-filter locations without names (empty placeholder entries)
+    // Instead of throwing an error, we silently filter them out
     if (world.locations && Array.isArray(world.locations)) {
-      world.locations.forEach((location, index) => {
-        if (!location.name || location.name.trim().length === 0) {
-          errors.push(`Location ${index + 1} must have a name`);
-        }
-      });
+      const emptyLocations = world.locations.filter(
+        (location) => !location.name || location.name.trim().length === 0
+      );
+      if (emptyLocations.length > 0) {
+        warnings.push(`${emptyLocations.length} empty location(s) were automatically removed`);
+        // Filter out empty locations
+        world.locations = world.locations.filter(
+          (location) => location.name && location.name.trim().length > 0
+        );
+      }
+    }
+
+    // Auto-filter keyObjects without names (empty placeholder entries)
+    if (world.keyObjects && Array.isArray(world.keyObjects)) {
+      const emptyObjects = world.keyObjects.filter(
+        (object) => !object.name || object.name.trim().length === 0
+      );
+      if (emptyObjects.length > 0) {
+        warnings.push(`${emptyObjects.length} empty object(s) were automatically removed`);
+        // Filter out empty objects
+        world.keyObjects = world.keyObjects.filter(
+          (object) => object.name && object.name.trim().length > 0
+        );
+      }
     }
 
     return {

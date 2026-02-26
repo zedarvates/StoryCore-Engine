@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import type { GeneratedAsset } from '../../types/generation';
 import { getOptimizedImage, formatFileSize } from '../../utils/assetOptimization';
+import { OCRButton } from '../ocr';
 
 export interface ImagePreviewPanelProps {
   /**
@@ -306,6 +307,14 @@ export const ImagePreviewPanel: React.FC<ImagePreviewPanelProps> = ({
             Regenerate
           </Button>
         )}
+        
+        {/* OCR Text Scanner Button */}
+        <OCRButton
+          imageSource={optimizedImageUrl}
+          label="Scan Text"
+          variant="outline"
+          size="sm"
+        />
         
         {/* Generate Video Button */}
         {onGenerateVideo && (

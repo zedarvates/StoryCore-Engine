@@ -1,0 +1,443 @@
+/* ============================================================================
+   WizardVoiceAssistant — CSS
+   ============================================================================ */
+
+/* ── Root inline ──────────────────────────────────────────────────────────── */
+.wva-root {
+  width: 100%;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  margin-bottom: 12px;
+}
+
+/* ── Header (toggle) ─────────────────────────────────────────────────────── */
+.wva-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(139, 92, 246, 0.06);
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  font-family: inherit;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.wva-header:hover {
+  background: rgba(139, 92, 246, 0.12);
+}
+
+.wva-header-icon { font-size: 14px; }
+.wva-header-label { flex: 1; font-weight: 600; letter-spacing: 0.02em; }
+.wva-header-chevron { font-size: 9px; opacity: 0.5; }
+
+/* ── Panneau ─────────────────────────────────────────────────────────────── */
+.wva-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.wva-panel--inline {
+  padding: 10px;
+  background: rgba(10, 8, 20, 0.6);
+}
+
+.wva-panel--floating {
+  padding: 12px;
+  background: #1a1428;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  min-width: 320px;
+  max-width: 400px;
+  animation: wva-panel-in 0.15s ease;
+}
+
+@keyframes wva-panel-in {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Barre de commande ───────────────────────────────────────────────────── */
+.wva-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 5px 8px;
+  transition: border-color 0.2s;
+}
+
+.wva-bar:focus-within {
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.wva-bar--listening {
+  border-color: rgba(239, 68, 68, 0.5);
+  animation: wva-border-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes wva-border-pulse {
+  0%, 100% { border-color: rgba(239, 68, 68, 0.5); }
+  50%       { border-color: rgba(239, 68, 68, 0.9); }
+}
+
+/* ── Bouton micro ────────────────────────────────────────────────────────── */
+.wva-mic {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+
+.wva-mic:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.25);
+  color: #a78bfa;
+  transform: scale(1.08);
+}
+
+.wva-mic--active {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #f87171 !important;
+}
+
+.wva-mic--disabled { opacity: 0.3; cursor: not-allowed; }
+
+.wva-ripple {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  animation: wva-ripple 1.2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes wva-ripple {
+  0%   { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* ── Input ───────────────────────────────────────────────────────────────── */
+.wva-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 12.5px;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.wva-input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+  font-style: italic;
+}
+
+/* ── Action buttons ──────────────────────────────────────────────────────── */
+.wva-action-btn, .wva-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s;
+}
+
+.wva-action-btn:hover { background: rgba(251, 191, 36, 0.15); }
+.wva-send-btn:hover:not(:disabled) { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+.wva-send-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ── Écoute active ───────────────────────────────────────────────────────── */
+.wva-listening {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: rgba(239, 68, 68, 0.07);
+  border-radius: 6px;
+  font-size: 11px;
+  color: #f87171;
+}
+
+.wva-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
+  animation: wva-pulse-dot 1s ease-in-out infinite;
+}
+
+@keyframes wva-pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.wva-transcript {
+  margin-left: auto;
+  font-style: italic;
+  opacity: 0.7;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Feedback ────────────────────────────────────────────────────────────── */
+.wva-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  animation: wva-slide-in 0.18s ease;
+}
+
+@keyframes wva-slide-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.wva-feedback--success {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.wva-feedback--warning {
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.wva-feedback--error {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.wva-feedback--info {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+}
+
+.wva-feedback-text { flex: 1; }
+
+.wva-feedback-close {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.5;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: -1px;
+}
+
+.wva-feedback-close:hover { opacity: 1; }
+
+/* ── Quick actions ───────────────────────────────────────────────────────── */
+.wva-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.wva-quick-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.wva-quick-btn:hover {
+  background: rgba(139, 92, 246, 0.18);
+  color: #a78bfa;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+/* ── Suggestions ─────────────────────────────────────────────────────────── */
+.wva-suggestions {
+  background: #16112a;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wva-suggestions-title {
+  padding: 7px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.wva-suggestion-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s, color 0.1s;
+}
+
+.wva-suggestion-item:hover {
+  background: rgba(139, 92, 246, 0.1);
+  color: #a78bfa;
+}
+
+.wva-suggestion-arrow {
+  color: rgba(139, 92, 246, 0.5);
+  font-size: 10px;
+}
+
+.wva-suggestions-footer {
+  padding: 6px 12px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ── Historique ──────────────────────────────────────────────────────────── */
+.wva-history {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 72px;
+  overflow: hidden;
+}
+
+.wva-history-item {
+  font-size: 10.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wva-history-item--success { color: #4ade80; }
+.wva-history-item--warning { color: #fbbf24; }
+.wva-history-item--error   { color: #f87171; }
+.wva-history-item--info    { color: #a78bfa; }
+
+/* ── Mode flottant ───────────────────────────────────────────────────────── */
+.wva-floating {
+  position: fixed;
+  z-index: 200;
+}
+
+.wva-floating--bottom-right {
+  bottom: 24px;
+  right: 24px;
+}
+
+.wva-floating--bottom-left {
+  bottom: 24px;
+  left: 24px;
+}
+
+.wva-float-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 0 0;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 24px;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  background: rgba(20, 14, 40, 0.95);
+  color: #a78bfa;
+  font-size: 20px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  transition: background 0.15s, transform 0.15s;
+}
+
+.wva-float-btn:hover {
+  background: rgba(30, 20, 60, 0.95);
+  transform: scale(1.04);
+}
+
+.wva-float-btn:first-child { padding-left: 14px; }
+
+.wva-float-btn--active {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+}
+
+.wva-float-label {
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+.wva-float-ripple {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid rgba(239, 68, 68, 0.4);
+  animation: wva-ripple 1.2s ease-out infinite;
+  pointer-events: none;
+}
+
+.wva-panel--bottom-right {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+}
+
+.wva-panel--bottom-left {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+}

@@ -62,7 +62,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--secondary-color, #764ba2) 100%);
+  background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--secondary-color, #1e40af) 100%);
   border-radius: 12px;
   color: white;
 }
@@ -126,12 +126,12 @@
 }
 
 .file-upload-area:hover {
-  border-color: var(--primary-color, #667eea);
-  background: rgba(102, 126, 234, 0.02);
+  border-color: var(--primary-color, #2563eb);
+  background: rgba(37, 99, 235, 0.02);
 }
 
 .file-select-button {
-  background: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--secondary-color, #764ba2) 100%);
+  background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--secondary-color, #1e40af) 100%);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -145,7 +145,7 @@
 
 .file-select-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .file-info {
@@ -247,7 +247,7 @@
 
 .estimate-value {
   font-weight: 600;
-  color: var(--primary-color, #667eea);
+  color: var(--primary-color, #2563eb);
 }
 
 .text-preview {
@@ -306,14 +306,14 @@
 }
 
 .focus-checkbox:hover {
-  border-color: var(--primary-color, #667eea);
-  background: rgba(102, 126, 234, 0.02);
+  border-color: var(--primary-color, #2563eb);
+  background: rgba(37, 99, 235, 0.02);
 }
 
 .focus-checkbox input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: var(--primary-color, #667eea);
+  accent-color: var(--primary-color, #2563eb);
 }
 
 .checkbox-icon {
@@ -329,7 +329,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid var(--border-color, #e1e5e9);
-  border-top: 4px solid var(--primary-color, #667eea);
+  border-top: 4px solid var(--primary-color, #2563eb);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
@@ -382,7 +382,7 @@
 .result-stat .stat-value {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--primary-color, #667eea);
+  color: var(--primary-color, #2563eb);
 }
 
 .result-files {
@@ -433,7 +433,7 @@
 .result-message summary {
   cursor: pointer;
   font-weight: 500;
-  color: var(--primary-color, #667eea);
+  color: var(--primary-color, #2563eb);
 }
 
 .result-message pre {
@@ -475,7 +475,7 @@
 .extract-button,
 .finish-button {
   padding: 10px 20px;
-  background: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--secondary-color, #764ba2) 100%);
+  background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--secondary-color, #1e40af) 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -487,7 +487,7 @@
 .extract-button:hover,
 .finish-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .extract-button:disabled {
@@ -508,7 +508,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid var(--border-color, #e1e5e9);
-  border-top: 2px solid var(--primary-color, #667eea);
+  border-top: 2px solid var(--primary-color, #2563eb);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

@@ -31,6 +31,7 @@ from backend.shot_api import router as shot_router
 from backend.sequence_api import router as sequence_router
 from backend.audio_api import router as audio_router
 from backend.llm_api import router as llm_router
+from backend.mvp_endpoints import router as mvp_router
 from backend.scenario_api import router as scenario_router
 from backend.lip_sync_api import router as lip_sync_router
 
@@ -48,6 +49,17 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting StoryCore-Engine API Server")
     
+    # Start AsyncTaskQueue for advanced task management
+    try:
+        from src.async_task_queue import get_async_task_queue
+        queue = get_async_task_queue()
+        queue.start()
+        logger.info("AsyncTaskQueue started successfully")
+    except ImportError:
+        logger.warning("AsyncTaskQueue not available, using basic background tasks")
+    except Exception as e:
+        logger.error(f"Failed to start AsyncTaskQueue: {e}")
+    
     # Create required directories
     directories = [
         "./data",
@@ -55,6 +67,11 @@ async def lifespan(app: FastAPI):
         "./data/jobs",
         "./data/audio",
         "./data/camera_angle_jobs",
+        "./data/identities",  # Identity Lock storage
+        "./data/segments",  # Script Segmentation storage
+        "./data/assets/comics",  # Comic Generator output
+        "./data/assets/recaps",   # Recap Engine output
+        "./data/prompt_templates",  # Prompt Templates storage
         "./projects",
         "./output",
         "./output/lip_sync",
@@ -163,8 +180,14 @@ async def api_info():
             "sequences": "/api/sequences",
             "audio": "/api/audio",
             "llm": "/api/llm",
+            "locations": "/api/locations",
             "camera-angle": "/api/camera-angle",
-            "video-editor": "/api/video-editor"
+            "video-editor": "/api/video-editor",
+            "identity": "/api/identity",
+            "segment": "/api/segment",
+            "prompt-templates": "/api/prompt-templates",
+            "comic-generator": "/api/addons/comic_generator",
+            "recap-engine": "/api/addons/recap_engine"
         },
         "documentation": {
             "swagger": "/docs",
@@ -179,6 +202,7 @@ app.include_router(shot_router, prefix="/api")
 app.include_router(sequence_router, prefix="/api")
 app.include_router(audio_router, prefix="/api")
 app.include_router(llm_router, prefix="/api")
+app.include_router(mvp_router, prefix="/api/mvp")
 app.include_router(scenario_router, prefix="/api")
 app.include_router(lip_sync_router, prefix="/api")
 # Include rigging API router
@@ -194,6 +218,10 @@ app.include_router(location_logic_loop_router, prefix="/api")
 from backend.camera_angle_api import router as camera_angle_router
 app.include_router(camera_angle_router, prefix="/api")
 
+# Include location API router (already has prefix="/api/locations" in the router)
+from backend.location_api import router as location_router
+app.include_router(location_router)
+
 # Include cine production API router
 from backend.cine_production_api import router as cine_production_router
 app.include_router(cine_production_router, prefix="/api")
@@ -205,6 +233,39 @@ app.include_router(post_production_router, prefix="/api")
 # Include video editor API router
 from backend.video_editor_api import VIDEO_EDITOR_ROUTER
 app.include_router(VIDEO_EDITOR_ROUTER)
+
+# Include Identity Lock API router (for character visual consistency)
+from backend.identity_lock_api import router as identity_lock_router
+app.include_router(identity_lock_router, prefix="/api")
+
+# Include Script Segmenter API router (for intelligent script segmentation)
+from backend.script_segmenter_api import router as script_segmenter_router
+app.include_router(script_segmenter_router, prefix="/api")
+
+# Include Prompt Template API router (for optimized prompt management)
+from backend.prompt_template_api import router as prompt_template_router
+app.include_router(prompt_template_router)
+
+# Include Comic Generator addon router
+try:
+    from addons.official.comic_generator.src.main import router as comic_generator_router
+    app.include_router(comic_generator_router, prefix="/api/addons/comic_generator")
+    logger.info("[Comic Generator] Router registered at /api/addons/comic_generator")
+except ImportError as e:
+    logger.warning(f"[Comic Generator] Could not load router (dependencies may be missing): {e}")
+except Exception as e:
+    logger.warning(f"[Comic Generator] Router registration skipped: {e}")
+
+# Include Recap Engine addon router
+try:
+    from addons.official.recap_engine.src.main import router as recap_engine_router
+    if recap_engine_router is not None:
+        app.include_router(recap_engine_router, prefix="/api/addons/recap_engine")
+        logger.info("[Recap Engine] Router registered at /api/addons/recap_engine")
+except ImportError as e:
+    logger.warning(f"[Recap Engine] Could not load router (dependencies may be missing): {e}")
+except Exception as e:
+    logger.warning(f"[Recap Engine] Router registration skipped: {e}")
 
 # Mount static files for output
 app.mount("/output", StaticFiles(directory="output"), name="output")
@@ -257,7 +318,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "backend.main_api:app",
         host="0.0.0.0",
-        port=8000,
+        port=8001,
         reload=True,
         log_level="info"
     )

@@ -411,7 +411,7 @@ class TestUserFriendlyMessages:
         message = get_user_friendly_message(error)
 
         assert "Name is required" in message
-        assert "💡 Suggestion:" in message
+        assert "[INFO] Suggestion:" in message
         assert "Enter a name for your character" in message
 
     def test_get_user_friendly_message_without_fix(self):

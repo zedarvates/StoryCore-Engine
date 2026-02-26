@@ -3,17 +3,19 @@ Addon API Routes for StoryCore-Engine
 Routes FastAPI pour la gestion des add-ons via l'interface web.
 """
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Body, File, UploadFile
 from fastapi.responses import JSONResponse
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 import logging
 import tempfile
 import shutil
+import os # Added for os.unlink
 
 from src.addon_manager import AddonManager, AddonType, AddonState
 from src.addon_validator import AddonValidator
 from src.addon_permissions import PermissionManager
+from pydantic import BaseModel
 
 # Configuration du logger
 logger = logging.getLogger(__name__)
@@ -40,6 +42,11 @@ def init_addon_api(manager: AddonManager, validator: AddonValidator, perm_manage
     addon_manager = manager
     addon_validator = validator
     permission_manager = perm_manager
+
+
+class BulkAddonOperation(BaseModel):
+    """Modèle pour les opérations en masse sur les add-ons"""
+    addon_names: List[str]
 
 
 @router.get("")
@@ -261,49 +268,66 @@ async def disable_addon(addon_name: str):
 
 @router.post("/install")
 async def install_addon(
-    file: UploadFile = File(...),
-    category: str = Query("community", description="Category (official, community)")
+    addon_url: Optional[str] = Query(None),
+    file: Optional[UploadFile] = File(None),
+    category: str = Query("community")
 ):
     """
-    Installe un nouvel add-on depuis un fichier ZIP
+    Installe un nouvel add-on depuis une URL ou un fichier ZIP
     
-    Form Data:
-        - file: Fichier ZIP de l'add-on
-        - category: Catégorie d'installation
+    Query Parameters:
+        - addon_url: URL du dépôt ou du package (optionnel)
+        - category: Catégorie de destination (default: community)
+        
+    Multipart Body:
+        - file: Fichier ZIP de l'add-on (optionnel)
     
     Returns:
-        Statut de l'installation
+        Détails de l'add-on installé
     """
     if not addon_manager:
         raise HTTPException(status_code=500, detail="Addon manager not initialized")
     
-    if not file.filename.endswith('.zip'):
-        raise HTTPException(status_code=400, detail="File must be a ZIP archive")
-    
     try:
-        # Créer un fichier temporaire
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_file:
-            # Copier le contenu uploadé
-            content = await file.read()
-            temp_file.write(content)
-            temp_path = Path(temp_file.name)
+        addon_info = None
         
-        # Installer l'add-on
-        success = await addon_manager.install_addon(temp_path, category)
-        
-        # Nettoyer le fichier temporaire
-        temp_path.unlink()
-        
-        if success:
+        if file:
+            # Installation depuis un fichier téléchargé
+            import tempfile
+            from pathlib import Path
+            
+            # Créer un fichier temporaire pour stocker l'upload
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp:
+                content = await file.read()
+                tmp.write(content)
+                tmp_path = Path(tmp.name)
+            
+            try:
+                addon_info = await addon_manager.install_addon_from_file(tmp_path, category)
+            finally:
+                if tmp_path.exists():
+                    os.unlink(tmp_path)
+                    
+        elif addon_url:
+            # Installation depuis une URL
+            addon_info = await addon_manager.install_addon(addon_url)
+        else:
+            raise HTTPException(status_code=400, detail="Must provide either addon_url or file")
+            
+        if addon_info:
             return {
                 "success": True,
-                "message": "Addon installed successfully"
+                "addon": {
+                    "name": addon_info.manifest.name,
+                    "version": addon_info.manifest.version,
+                    "status": addon_info.state.value
+                }
             }
         else:
-            raise HTTPException(status_code=400, detail="Failed to install addon")
-    
+            raise HTTPException(status_code=400, detail="Installation failed or invalid addon")
+            
     except Exception as e:
-        logger.error(f"Error installing addon: {e}")
+        logger.error(f"Error during addon installation: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -613,7 +637,7 @@ async def search_addons(
 # ============================================
 
 @router.post("/bulk/enable")
-async def bulk_enable_addons(addon_names: List[str]):
+async def bulk_enable_addons(operation: BulkAddonOperation):
     """
     Active plusieurs add-ons en une seule requête
     
@@ -627,7 +651,7 @@ async def bulk_enable_addons(addon_names: List[str]):
         raise HTTPException(status_code=500, detail="Addon manager not initialized")
     
     results = []
-    for addon_name in addon_names:
+    for addon_name in operation.addon_names:
         try:
             success = await addon_manager.enable_addon(addon_name)
             results.append({
@@ -645,15 +669,15 @@ async def bulk_enable_addons(addon_names: List[str]):
     success_count = sum(1 for r in results if r["success"])
     return {
         "success": True,
-        "total": len(addon_names),
+        "total": len(operation.addon_names),
         "enabled": success_count,
-        "failed": len(addon_names) - success_count,
+        "failed": len(operation.addon_names) - success_count,
         "results": results
     }
 
 
 @router.post("/bulk/disable")
-async def bulk_disable_addons(addon_names: List[str]):
+async def bulk_disable_addons(operation: BulkAddonOperation):
     """
     Désactive plusieurs add-ons en une seule requête
     
@@ -667,7 +691,7 @@ async def bulk_disable_addons(addon_names: List[str]):
         raise HTTPException(status_code=500, detail="Addon manager not initialized")
     
     results = []
-    for addon_name in addon_names:
+    for addon_name in operation.addon_names:
         try:
             success = await addon_manager.disable_addon(addon_name)
             results.append({
@@ -685,9 +709,9 @@ async def bulk_disable_addons(addon_names: List[str]):
     success_count = sum(1 for r in results if r["success"])
     return {
         "success": True,
-        "total": len(addon_names),
+        "total": len(operation.addon_names),
         "disabled": success_count,
-        "failed": len(addon_names) - success_count,
+        "failed": len(operation.addon_names) - success_count,
         "results": results
     }
 
@@ -707,10 +731,8 @@ async def reload_addon(addon_name: str):
         raise HTTPException(status_code=500, detail="Addon manager not initialized")
     
     try:
-        # Disable first
-        await addon_manager.disable_addon(addon_name)
-        # Then re-enable
-        success = await addon_manager.enable_addon(addon_name)
+        # Utiliser la méthode reload_addon de AddonManager qui gère le rechargement du module
+        success = await addon_manager.reload_addon(addon_name)
         
         if success:
             return {

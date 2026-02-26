@@ -88,4 +88,5 @@ openai-whisper>=2023110
 
 # Progress Bars
 tqdm>=4.66.0
+sse-starlette>=2.1.0
 

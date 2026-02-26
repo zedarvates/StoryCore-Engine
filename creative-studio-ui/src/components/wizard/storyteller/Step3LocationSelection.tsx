@@ -8,21 +8,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, MapPin, Sparkles } from 'lucide-react';
+import { Plus, MapPin, Sparkles, Bookmark } from 'lucide-react';
 import { useStore } from '@/store';
 import { useAppStore } from '@/stores/useAppStore';
-import type { LocationSelectionData, LocationCreationRequest, WorldContext, LocationReference } from '@/types/story';
-import type { AppState } from '@/types';
+import type { LocationReference, LocationSelectionData, LocationCreationRequest, WorldContext } from '@/types/story';
 import type { World, WorldRule } from '@/types/world';
 import { createLocation } from '@/services/storyGenerationService';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
-// Removed unused import
 import { LLMErrorCategory, type ErrorRecoveryOptions } from '@/services/llmService';
 import { saveLocationToProject, createLocationFromWizardData } from '@/utils/locationStorage';
 import { useLocationStore } from '@/stores/locationStore';
 import { useEditorStore } from '@/stores/editorStore';
-// Removed unused import of RootState
+import {
+  getLocationTemplatesByGenre,
+  locationTemplateToReference,
+  type LocationTemplate
+} from '@/services/globalTemplatesService';
 
 // ============================================================================
 // Location Card Component
@@ -100,7 +102,8 @@ function LocationCard({ location, isSelected, onToggle }: LocationCardProps) {
 
 export function Step3LocationSelection(): React.ReactElement {
   const { formData, updateFormData, validationErrors } = useWizard<LocationSelectionData>();
-  const currentWorld = useStore((state: AppState) => state.worlds?.find((w: World) => w.id === state.selectedWorldId));
+  const { worlds, selectedWorldId, selectWorld, updateWorld } = useStore();
+  const currentWorld = worlds?.find((w: World) => w.id === selectedWorldId) || worlds?.[0];
   const locations = currentWorld?.locations || [];
 
   // Get project path for saving locations
@@ -120,6 +123,37 @@ export function Step3LocationSelection(): React.ReactElement {
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
   const selectedLocations = formData.selectedLocations || [];
+
+  // Get location templates based on selected genre (from global templates)
+  const genreFromWizard = (formData as Record<string, unknown>).genre as string[] || [];
+  const locationTemplates = getLocationTemplatesByGenre(genreFromWizard);
+
+  // Get selected location IDs for template checking
+  const selectedLocationIds = selectedLocations.map(l => l.id);
+
+  /**
+   * Handle selecting/deselecting a location template
+   * Click toggles selection: if selected, deselect; if not selected, select
+   */
+  const handleSelectLocationTemplate = (template: LocationTemplate) => {
+    const isSelected = selectedLocationIds.includes(template.id);
+
+    if (isSelected) {
+      // Deselect: remove from selected locations
+      updateFormData({
+        selectedLocations: selectedLocations.filter(l => l.id !== template.id)
+      });
+    } else {
+      // Select: add to selected locations
+      const templateRef = locationTemplateToReference(template);
+      updateFormData({
+        selectedLocations: [
+          ...selectedLocations,
+          templateRef
+        ]
+      });
+    }
+  };
 
   const handleToggleLocation = (location: LocationReference) => {
     const isSelected = selectedLocations.some(l => l.id === location.id);
@@ -203,10 +237,18 @@ export function Step3LocationSelection(): React.ReactElement {
 
       // Add to world locations (update world in store)
       if (currentWorld) {
-        const updateWorld = useStore.getState().updateWorld;
+        // If we picked the first world but it wasn't selected, select it now for consistency
+        if (!selectedWorldId) {
+          selectWorld(currentWorld.id);
+        }
+        
         updateWorld(currentWorld.id, {
           locations: [...locations, createdLocation],
         });
+      } else {
+        // Fallback: This shouldn't happen if we create a default world, 
+        // but let's be safe and check if we should create a default world here
+        console.warn('[Step3LocationSelection] No world available to add location to');
       }
 
       // Add to selected locations
@@ -269,9 +311,9 @@ export function Step3LocationSelection(): React.ReactElement {
           {locations.map((location) => (
             <LocationCard
               key={location.id}
-              location={location}
+              location={location as unknown as LocationReference}
               isSelected={selectedLocations.some(l => l.id === location.id)}
-              onToggle={() => handleToggleLocation(location)}
+              onToggle={() => handleToggleLocation(location as unknown as LocationReference)}
             />
           ))}
         </div>
@@ -284,15 +326,60 @@ export function Step3LocationSelection(): React.ReactElement {
         </div>
       )}
 
+      {/* Global Templates Section */}
+      {locationTemplates.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Bookmark className="w-4 h-4 text-teal-500" />
+            <Label className="text-sm font-semibold">Quick Start Templates</Label>
+            <span className="text-xs text-muted-foreground">(Click to select/deselect)</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {locationTemplates.map((template) => {
+              const isSelected = selectedLocationIds.includes(template.id);
+              return (
+                <button
+                  key={template.id}
+                  onClick={() => handleSelectLocationTemplate(template)}
+                  className={`p-3 rounded-lg border text-left transition-all ${isSelected
+                      ? 'border-green-500 bg-green-50 dark:bg-green-950/20 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-950/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/20'
+                    }`}
+                  title={isSelected ? 'Click to deselect' : 'Click to select'}
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-green-500' : 'text-teal-500'}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{template.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{template.type}</p>
+                    </div>
+                    {isSelected && (
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        ✓
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Create New Location Button */}
       <Button
-        onClick={() => setShowCreateDialog(true)}
+        onClick={() => {
+          if (!llmConfigured) {
+            setShowLLMSettings(true);
+            return;
+          }
+          setShowCreateDialog(true);
+        }}
         variant="outline"
         className="w-full gap-2"
-        disabled={!llmConfigured}
       >
         <Plus className="w-4 h-4" />
-        Create New Location
+        Create New Location {!llmConfigured && <Sparkles className="w-3 h-3 text-amber-500 ml-1" />}
       </Button>
 
       {/* Info Box */}

@@ -273,7 +273,7 @@ describe('ResizablePanel - Animations and Visual Feedback (Task 3.3)', () => {
       
       if (panel) {
         // Initially no reset button visible
-        let resetButton = container.querySelector('.reset-layout-button');
+        const resetButton = container.querySelector('.reset-layout-button');
         expect(resetButton).not.toBeInTheDocument();
         
         // Hover over panel
@@ -297,7 +297,7 @@ describe('ResizablePanel - Animations and Visual Feedback (Task 3.3)', () => {
       if (panel) {
         // Hover over panel
         fireEvent.mouseEnter(panel);
-        let resetButton = screen.getByTitle('Reset Layout');
+        const resetButton = screen.getByTitle('Reset Layout');
         expect(resetButton).toBeInTheDocument();
         
         // Mouse leaves panel

@@ -11,12 +11,14 @@ import { useAppStore } from '../../stores/useAppStore';
 import { projectExportService } from '../../services/projectExportService';
 
 // Type declaration for Electron API dialog
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface ElectronDialogAPI {
   showOpenDialog: (options: { title: string; buttonLabel: string; properties: string[] }) => Promise<{
     canceled: boolean;
     filePaths: string[];
   }>;
-  showSaveDialog: (options: unknown) => Promise<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  showSaveDialog: (options: any) => Promise<unknown>;
 }
 
 // Type declaration for File System Access API
@@ -42,6 +44,7 @@ interface ActionErrorHandlerOptions {
 /**
  * Wraps an async action with comprehensive error handling
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function withErrorHandling<T>(
   action: (ctx: ActionContext) => Promise<T>,
   ctx: ActionContext,
@@ -52,6 +55,7 @@ async function withErrorHandling<T>(
   try {
     console.log(`[MenuAction] Starting: ${actionName}`, {
       timestamp: new Date().toISOString(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       project: (ctx.state.project as any)?.project_name,
       hasUnsavedChanges: ctx.state.hasUnsavedChanges,
     });
@@ -77,6 +81,7 @@ async function withErrorHandling<T>(
       timestamp: new Date().toISOString(),
       error,
       stack: error instanceof Error ? error.stack : undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       project: (ctx.state.project as any)?.project_name,
     });
 
@@ -110,7 +115,8 @@ async function withErrorHandling<T>(
 /**
  * Get user-friendly error message from error object
  */
-function getErrorMessage(error: unknown, prefix?: string): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getErrorMessage(error: any, prefix?: string): string {
   const basePrefix = prefix || 'Operation failed';
 
   if (error instanceof Error) {
@@ -187,6 +193,7 @@ export const fileActions = {
             startIn: 'documents',
           });
           // Get the path from the handle (may not be available in all browsers)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
           projectPath = (dirHandle as any).name || null;
         } catch (dirPickerError) {
           console.warn('[MenuAction] Directory picker canceled or not supported:', dirPickerError);
@@ -218,7 +225,9 @@ export const fileActions = {
         schema_version: '1.0',
         path: projectPath,
         project_name: projectData.project_name,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         shots: (projectData.storyboard || []).flatMap((seq: any) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (seq.shots || []).map((shot: any) => ({
             id: shot.shot_id,
             sequenceId: seq.sequence_id,
@@ -227,14 +236,17 @@ export const fileActions = {
             status: shot.status || 'pending',
           }))
         ),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         assets: (projectData.assets || []).map((asset: any) => ({
           id: asset.id || `asset_${Date.now()}_${Math.random()}`,
           name: asset.filename || asset.name || 'Unnamed Asset',
           type: asset.type || 'image',
           url: asset.path || asset.url || '',
           thumbnail: asset.thumbnail,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
           metadata: asset as any,
         })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         characters: (projectData.characters || []).map((char: any) => ({
           character_id: char.character_id || char.id || `char_${Date.now()}_${Math.random()}`,
           name: char.name || 'Unnamed Character',
@@ -326,6 +338,7 @@ export const fileActions = {
     console.log('[MenuAction] Save Project');
     ctx.services.notification.show({
       type: 'success',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       message: `Project "${(ctx.state.project as any).project_name}" saved successfully`,
       duration: 3000,
     });
@@ -352,6 +365,7 @@ export const fileActions = {
   async exitProject(ctx: ActionContext): Promise<void> {
     console.log('[MenuAction] Exit Project');
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const projectName = (ctx.state.project as any)?.project_name || 'Current project';
 
     // Show confirmation notification
@@ -453,6 +467,7 @@ export const fileActions = {
     }
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   preferences(ctx: ActionContext): void {
     console.log('[MenuAction] Preferences');
     const store = useAppStore.getState();
@@ -515,24 +530,28 @@ export const editActions = {
     });
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   openLLMSettings(ctx: ActionContext): void {
     console.log('[MenuAction] LLM Settings');
     const store = useAppStore.getState();
     store.setShowLLMSettings(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   openComfyUISettings(ctx: ActionContext): void {
     console.log('[MenuAction] ComfyUI Settings');
     const store = useAppStore.getState();
     store.setShowComfyUISettings(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   openAddonsSettings(ctx: ActionContext): void {
     console.log('[MenuAction] Addons Settings');
     const store = useAppStore.getState();
     store.setShowAddonsModal(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   openGeneralSettings(ctx: ActionContext): void {
     console.log('[MenuAction] General Settings');
     const store = useAppStore.getState();
@@ -722,12 +741,14 @@ export const projectActions = {
     });
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   settings(ctx: ActionContext): void {
     console.log('[MenuAction] Project Settings');
     const store = useAppStore.getState();
     store.setShowProjectSetupWizard(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   characters(ctx: ActionContext): void {
     console.log('[MenuAction] Character Wizard');
     const store = useAppStore.getState();
@@ -736,6 +757,7 @@ export const projectActions = {
     store.setShowCharacterWizard(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   world(ctx: ActionContext): void {
     console.log('[MenuAction] World Builder');
     const store = useAppStore.getState();
@@ -744,6 +766,7 @@ export const projectActions = {
     store.setShowWorldWizard(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   sequences(ctx: ActionContext): void {
     console.log('[MenuAction] Story Generator');
     const store = useAppStore.getState();
@@ -752,6 +775,7 @@ export const projectActions = {
     store.setShowStorytellerWizard(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   assets(ctx: ActionContext): void {
     console.log('[MenuAction] Manage Assets');
     const store = useAppStore.getState();
@@ -763,24 +787,28 @@ export const projectActions = {
  * Tools Menu Actions
  */
 export const toolsActions = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   llmAssistant(ctx: ActionContext): void {
     console.log('[MenuAction] LLM Assistant');
     const store = useAppStore.getState();
     store.setShowChat(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   comfyuiServer(ctx: ActionContext): void {
     console.log('[MenuAction] ComfyUI Server');
     const store = useAppStore.getState();
     store.setShowComfyUISettings(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   llmConfiguration(ctx: ActionContext): void {
     console.log('[MenuAction] LLM Configuration');
     const store = useAppStore.getState();
     store.setShowLLMSettings(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   scriptWizard(ctx: ActionContext): void {
     console.log('[MenuAction] Script Wizard');
     const store = useAppStore.getState();
@@ -806,6 +834,7 @@ export const toolsActions = {
     });
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   factCheck(ctx: ActionContext): void {
     console.log('[MenuAction] Fact Check');
     const store = useAppStore.getState();
@@ -818,6 +847,7 @@ export const toolsActions = {
  * All wizard launchers in one menu
  */
 export const wizardsActions = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   projectSetup(ctx: ActionContext): void {
     console.log('[MenuAction] Project Setup Wizard');
     const store = useAppStore.getState();
@@ -825,6 +855,7 @@ export const wizardsActions = {
     store.setShowProjectSetupWizard(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   characters(ctx: ActionContext): void {
     console.log('[MenuAction] Character Wizard');
     const store = useAppStore.getState();
@@ -832,6 +863,7 @@ export const wizardsActions = {
     store.setShowCharacterWizard(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   world(ctx: ActionContext): void {
     console.log('[MenuAction] World Builder');
     const store = useAppStore.getState();
@@ -839,6 +871,7 @@ export const wizardsActions = {
     store.setShowWorldWizard(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   sequences(ctx: ActionContext): void {
     console.log('[MenuAction] Story Generator');
     const store = useAppStore.getState();
@@ -880,6 +913,7 @@ export const wizardsActions = {
     }
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   scriptWizard(ctx: ActionContext): void {
     console.log('[MenuAction] Script Wizard');
     const store = useAppStore.getState();
@@ -888,6 +922,7 @@ export const wizardsActions = {
 
   audioProduction(ctx: ActionContext): void {
     console.log('[MenuAction] Audio Production Wizard');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const store = useAppStore.getState() as any;
     store.closeActiveWizard();
     // Open audio production wizard
@@ -905,6 +940,7 @@ export const wizardsActions = {
 
   videoProduction(ctx: ActionContext): void {
     console.log('[MenuAction] Video Production Wizard');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const store = useAppStore.getState() as any;
     store.closeActiveWizard();
     // Open video production wizard
@@ -925,68 +961,32 @@ export const wizardsActions = {
  * Help Menu Actions
  */
 export const helpActions = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   documentation(ctx: ActionContext): void {
     console.log('[MenuAction] Open Documentation');
     
-    // Get user language preference (default: English)
-    // Check if French is preferred
-    const userLang = navigator.language || 'en';
-    const isFrench = userLang.startsWith('fr');
-    
-    // Use English by default, French if explicitly set
-    const docsFile = isFrench ? 'USER_GUIDE_fr.md' : 'USER_GUIDE.md';
-    
-    // Try to open local documentation first, fallback to online
-    const isElectron = typeof window !== 'undefined' && (window as any).electronAPI;
-    
-    if (isElectron) {
-      // In Electron: use app.openFolder to open documentation directory
-      if ((window.electronAPI as any).app?.openFolder) {
-        (window.electronAPI as any).app.openFolder('documentation')
-          .catch(() => {
-            // Fallback to online docs
-            window.open('https://docs.storycore.dev', '_blank');
-          });
-      } else {
-        window.open('https://docs.storycore.dev', '_blank');
-      }
-    } else {
-      // Web mode: try relative path or fallback
-      const relativePath = window.location.pathname + '/documentation/' + docsFile;
-      window.open(relativePath, '_blank') || window.open('https://docs.storycore.dev', '_blank');
-    }
+    // Open the documentation modal instead of external URL
+    const store = useAppStore.getState();
+    store.setShowDocumentationModal(true);
   },
   
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   documentationFrench(ctx: ActionContext): void {
     console.log('[MenuAction] Open Documentation (French)');
     
-    // Open French documentation
-    const isElectron = typeof window !== 'undefined' && (window as any).electronAPI;
-    
-    if (isElectron) {
-      if ((window.electronAPI as any).app?.openFolder) {
-        (window.electronAPI as any).app.openFolder('documentation')
-          .catch(() => {
-            window.open('https://docs.storycore.dev/fr', '_blank');
-          });
-      } else {
-        window.open('https://docs.storycore.dev/fr', '_blank');
-      }
-    } else {
-      const relativePath = window.location.pathname + '/documentation/USER_GUIDE_fr.md';
-      window.open(relativePath, '_blank') || window.open('https://docs.storycore.dev/fr', '_blank');
-    }
+    // Open the documentation modal instead of external URL
+    const store = useAppStore.getState();
+    store.setShowDocumentationModal(true);
   },
 
-  keyboardShortcuts(ctx: ActionContext): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  keyboardShortcuts(_ctx: ActionContext): void {
     console.log('[MenuAction] Keyboard Shortcuts');
-    ctx.services.notification.show({
-      type: 'info',
-      message: 'Keyboard shortcuts feature coming soon',
-      duration: 3000,
-    });
+    const store = useAppStore.getState();
+    store.setShowKeyboardShortcutsDialog(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   about(ctx: ActionContext): void {
     console.log('[MenuAction] About');
     const store = useAppStore.getState();
@@ -1002,6 +1002,7 @@ export const helpActions = {
     });
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   reportIssue(ctx: ActionContext): void {
     console.log('[MenuAction] Report Issue');
     const store = useAppStore.getState();
@@ -1014,30 +1015,35 @@ export const helpActions = {
  * Three-Level Reference System, Video Replication, Style Transfer, Project Branching
  */
 export const continuousCreationActions = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   referenceSheetManager(ctx: ActionContext): void {
     console.log('[MenuAction] Reference Sheet Manager');
     const store = useAppStore.getState();
     store.setShowReferenceSheetManager(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   videoReplication(ctx: ActionContext): void {
     console.log('[MenuAction] Video Replication');
     const store = useAppStore.getState();
     store.setShowVideoReplicationDialog(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   crossShotReference(ctx: ActionContext): void {
     console.log('[MenuAction] Cross-Shot Reference Picker');
     const store = useAppStore.getState();
     store.setShowCrossShotReferencePicker(true);
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   styleTransfer(ctx: ActionContext): void {
     console.log('[MenuAction] Style Transfer');
     const store = useAppStore.getState();
     store.openWizard('style-transfer');
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   projectBranching(ctx: ActionContext): void {
     console.log('[MenuAction] Project Branching');
     const store = useAppStore.getState();
@@ -1053,9 +1059,11 @@ export const continuousCreationActions = {
     });
     // This will trigger the consistency engine via the store
     const store = useAppStore.getState();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (store as any).runConsistencyCheck?.();
   },
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   episodeReferences(ctx: ActionContext): void {
     console.log('[MenuAction] Episode References');
     const store = useAppStore.getState();

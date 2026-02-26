@@ -29,6 +29,12 @@ import { ImageGalleryModal } from '@/components/modals/ImageGalleryModal';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { PendingReportsList } from '@/components/feedback/PendingReportsList';
 import type { FeedbackInitialContext } from '@/components/feedback/types';
+import { DocumentationModal } from '@/components/modals/menuBar/DocumentationModal';
+import { AboutModal } from '@/components/modals/menuBar/AboutModal';
+import type { World } from '@/types/world';
+import type { SequencePlan } from '@/types/sequencePlan';
+import type { Shot } from '@/types';
+import type { WizardType } from '@/stores/useAppStore';
 
 interface ModalsContainerProps {
   // Installation
@@ -41,7 +47,7 @@ interface ModalsContainerProps {
   onCloseWorldWizard: () => void;
   onCompleteWorld: (world: unknown, nextAction?: string) => void;
 
-  characterWizardWorldContext?: unknown; // Should match World type
+  characterWizardWorldContext?: World;
   showCharacterWizard: boolean;
   onCloseCharacterWizard: () => void;
   onCompleteCharacter: (character: unknown) => void;
@@ -97,18 +103,26 @@ interface ModalsContainerProps {
   showSequencePlanWizard: boolean;
   onCloseSequencePlanWizard: () => void;
   onCompleteSequencePlan: (plan: unknown) => void;
-  sequencePlanWizardContext?: unknown;
+  sequencePlanWizardContext?: SequencePlan;
 
   // Shot Wizard
   showShotWizard: boolean;
   onCloseShotWizard: () => void;
   onCompleteShot: (shot: unknown) => void;
-  shotWizardContext?: unknown;
+  shotWizardContext?: Partial<Shot>;
 
   // Generic Wizard
-  activeWizardType: string | null;
+  activeWizardType: WizardType | null;
   onCloseActiveWizard: () => void;
   onCompleteWizard: (output: unknown) => void;
+
+  // Documentation Modal
+  showDocumentationModal: boolean;
+  onCloseDocumentationModal: () => void;
+
+  // About Modal
+  showAboutModal: boolean;
+  onCloseAboutModal: () => void;
 }
 
 /**
@@ -194,6 +208,14 @@ export function ModalsContainer({
   activeWizardType,
   onCloseActiveWizard,
   onCompleteWizard,
+
+  // Documentation Modal
+  showDocumentationModal,
+  onCloseDocumentationModal,
+
+  // About Modal
+  showAboutModal,
+  onCloseAboutModal,
 }: ModalsContainerProps) {
   return (
     <>
@@ -214,7 +236,7 @@ export function ModalsContainer({
         isOpen={showCharacterWizard}
         onClose={onCloseCharacterWizard}
         onComplete={onCompleteCharacter}
-        worldContext={characterWizardWorldContext as any}
+        worldContext={characterWizardWorldContext}
       />
       <ObjectWizardModal
         isOpen={showObjectWizard}
@@ -234,14 +256,14 @@ export function ModalsContainer({
         isOpen={showSequencePlanWizard}
         onClose={onCloseSequencePlanWizard}
         onComplete={onCompleteSequencePlan}
-        initialPlan={sequencePlanWizardContext as any}
+        initialPlan={sequencePlanWizardContext}
         mode="create" // Assuming default mode
       />
       <ShotWizardModal
         isOpen={showShotWizard}
         onClose={onCloseShotWizard}
         onComplete={onCompleteShot}
-        initialShot={shotWizardContext as any}
+        initialShot={shotWizardContext}
         mode="create" // Assuming default mode
       />
       <DialogueWriterWizardModal />
@@ -249,7 +271,7 @@ export function ModalsContainer({
       {/* Generic Wizard Modal */}
       <GenericWizardModal
         isOpen={activeWizardType !== null}
-        wizardType={activeWizardType as any}
+        wizardType={activeWizardType}
         onClose={onCloseActiveWizard}
         onComplete={onCompleteWizard}
       />
@@ -307,8 +329,16 @@ export function ModalsContainer({
         isOpen={showPendingReportsList}
         onClose={onClosePendingReportsList}
       />
+
+      {/* Help Modals */}
+      <DocumentationModal
+        isOpen={showDocumentationModal}
+        onClose={onCloseDocumentationModal}
+      />
+      <AboutModal
+        isOpen={showAboutModal}
+        onClose={onCloseAboutModal}
+      />
     </>
   );
 }
-
-

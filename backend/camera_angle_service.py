@@ -126,22 +126,26 @@ class CameraAngleService:
         
         logger.info(f"CameraAngleService initialized with ComfyUI at {self.comfyui_url}")
     
-    async def check_comfyui_connection(self) -> bool:
+    async def check_comfyui_connection(self, comfyui_url: Optional[str] = None) -> bool:
         """
         Check if ComfyUI server is accessible.
         
+        Args:
+            comfyui_url: URL to check (defaults to self.comfyui_url)
+            
         Returns:
             True if connection successful, False otherwise
         """
+        target_url = comfyui_url or self.comfyui_url
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    f"{self.comfyui_url}/system_stats",
+                    f"{target_url}/system_stats",
                     timeout=aiohttp.ClientTimeout(total=5)
                 ) as response:
                     return response.status == 200
         except Exception as e:
-            logger.warning(f"ComfyUI connection check failed: {e}")
+            logger.warning(f"ComfyUI connection check failed at {target_url}: {e}")
             return False
     
     def generate_angle_variation(
@@ -304,6 +308,7 @@ class CameraAngleService:
             quality=request.quality,
             seed=request.seed,
             custom_prompt=request.custom_prompt,
+            comfyui_url=request.comfyui_url or self.comfyui_url,
             status=CameraAngleJobStatus.PENDING,
             remaining_angles=[a.value for a in (request.angle_ids or [])] + 
                              [f"granular_{i}" for i in range(len(request.granular_angles or []))],
@@ -449,7 +454,7 @@ class CameraAngleService:
             self._notify_progress(job_id, 0, "Initializing generation")
             
             # Check ComfyUI connection
-            if not await self.check_comfyui_connection():
+            if not await self.check_comfyui_connection(job.comfyui_url):
                 # Use mock generation if ComfyUI not available
                 logger.warning(f"ComfyUI not available for job {job_id}, using mock generation")
                 await self._mock_process_job(job_id)
@@ -502,7 +507,8 @@ class CameraAngleService:
                     angle_id=angle_label, # Pass the label for tracking
                     prompt=prompt,
                     quality=job.quality,
-                    seed=job.seed
+                    seed=job.seed,
+                    comfyui_url=job.comfyui_url
                 )
                 
                 if result:
@@ -642,26 +648,18 @@ class CameraAngleService:
         self,
         job_id: str,
         image_base64: str,
-        angle_id: str, # Changed from CameraAnglePreset to str
+        angle_id: str,
         prompt: str,
         quality: str,
-        seed: Optional[int]
+        seed: Optional[int],
+        comfyui_url: Optional[str] = None
     ) -> Optional[CameraAngleResult]:
         """
         Generate a single camera angle variation via ComfyUI.
-        
-        Args:
-            job_id: Job identifier
-            image_base64: Source image (base64)
-            angle_id: Camera angle preset
-            prompt: Generation prompt
-            quality: Quality settings
-            seed: Random seed
-            
-        Returns:
-            CameraAngleResult if successful, None otherwise
         """
+        from src.comfyui_executor import comfyui_executor
         start_time = datetime.utcnow()
+        active_url = comfyui_url or self.comfyui_url
         
         try:
             # Get quality settings
@@ -678,33 +676,30 @@ class CameraAngleService:
                 seed=seed or -1
             )
             
-            # Submit workflow to ComfyUI
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.comfyui_url}/prompt",
-                    json={"prompt": workflow},
-                    timeout=aiohttp.ClientTimeout(total=30)
-                ) as response:
-                    if response.status != 200:
-                        raise Exception(f"ComfyUI returned status {response.status}")
-                    
-                    result = await response.json()
-                    prompt_id = result.get("prompt_id")
-                    
-                    if not prompt_id:
-                        raise Exception("ComfyUI did not return prompt_id")
+            # Execute via shared executor
+            result = await comfyui_executor.execute_workflow(
+                workflow=workflow,
+                comfyui_url=active_url
+            )
             
-            # Wait for completion
-            generated_image = await self._wait_for_comfyui_completion(prompt_id)
+            if not result["success"]:
+                raise Exception(f"ComfyUI Execution Failed: {result.get('error')}")
+            
+            # Extract generated image (expect base64 or URL)
+            generated_image = None
+            if result.get("outputs"):
+                # Use the first output's viewing URL as the "image" if it's external, 
+                # or download it if needed. For simplicity here, we assume the UI will handle the URL.
+                generated_image = result["outputs"][0].get("url")
             
             end_time = datetime.utcnow()
             generation_time = (end_time - start_time).total_seconds()
             
             return CameraAngleResult(
                 id=str(uuid.uuid4()),
-                angle_id=angle_id if isinstance(angle_id, CameraAnglePreset) else CameraAnglePreset.FRONT, # Fallback
-                original_image_base64=image_base64[:100] + "...",  # Truncated for storage
-                generated_image_base64=generated_image,
+                angle_id=angle_id if isinstance(angle_id, CameraAnglePreset) else CameraAnglePreset.FRONT,
+                original_image_base64=image_base64[:100] + "...",
+                generated_image_base64=generated_image or "error_no_output",
                 prompt_used=prompt,
                 generation_time_seconds=generation_time,
                 metadata={
@@ -713,12 +708,13 @@ class CameraAngleService:
                     "cfg_scale": quality_settings["cfg_scale"],
                     "width": quality_settings["width"],
                     "height": quality_settings["height"],
-                    "seed": seed
+                    "seed": seed,
+                    "server_used": active_url
                 }
             )
             
         except Exception as e:
-            logger.error(f"Failed to generate angle {angle_id.value} for job {job_id}: {e}")
+            logger.error(f"Failed to generate angle {angle_id} for job {job_id}: {e}")
             return None
     
     def _build_comfyui_workflow(
@@ -818,7 +814,8 @@ class CameraAngleService:
     async def _wait_for_comfyui_completion(
         self,
         prompt_id: str,
-        timeout: int = 300
+        timeout: int = 300,
+        comfyui_url: Optional[str] = None
     ) -> str:
         """
         Wait for ComfyUI workflow completion and return the generated image.
@@ -826,17 +823,19 @@ class CameraAngleService:
         Args:
             prompt_id: ComfyUI prompt ID
             timeout: Timeout in seconds
+            comfyui_url: ComfyUI server URL
             
         Returns:
             Base64 encoded generated image
         """
+        active_url = comfyui_url or self.comfyui_url
         start_time = datetime.utcnow()
         
         while (datetime.utcnow() - start_time).total_seconds() < timeout:
             try:
                 async with aiohttp.ClientSession() as session:
                     async with session.get(
-                        f"{self.comfyui_url}/history/{prompt_id}",
+                        f"{active_url}/history/{prompt_id}",
                         timeout=aiohttp.ClientTimeout(total=10)
                     ) as response:
                         if response.status == 200:
@@ -849,7 +848,7 @@ class CameraAngleService:
                                     if "images" in node_output:
                                         image = node_output["images"][0]
                                         image_url = (
-                                            f"{self.comfyui_url}/view?"
+                                            f"{active_url}/view?"
                                             f"filename={image['filename']}&"
                                             f"subfolder={image.get('subfolder', '')}&"
                                             f"type={image.get('type', 'output')}"
@@ -864,7 +863,7 @@ class CameraAngleService:
                                     elif "video" in node_output:
                                         video = node_output["video"]
                                         video_url = (
-                                            f"{self.comfyui_url}/view?"
+                                            f"{active_url}/view?"
                                             f"filename={video['filename']}&"
                                             f"subfolder={video.get('subfolder', '')}&"
                                             f"type={video.get('type', 'output')}"

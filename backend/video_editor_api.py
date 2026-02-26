@@ -254,6 +254,52 @@ class SmartCropResponse(BaseModel):
     status: str
     crop_regions: Optional[List[Dict]]
 
+class BeatDetectionRequest(BaseModel):
+    """Beat detection request."""
+    media_id: str
+
+class BeatDetectionResponse(BaseModel):
+    """Beat detection response."""
+    job_id: str
+    status: str
+    beats: Optional[List[float]]
+
+class AutoTrimRequest(BaseModel):
+    """Auto trim silence request."""
+    media_id: str
+    threshold: float = -30.0
+    min_duration: float = 0.5
+
+class AutoTrimResponse(BaseModel):
+    """Auto trim silence response."""
+    job_id: str
+    status: str
+    output_path: Optional[str]
+
+class VideoEnhanceRequest(BaseModel):
+    """Video enhancement request."""
+    media_id: str
+    enhancements: List[Dict[str, Any]] # e.g. [{"type": "halation", "strength": 0.5}]
+
+class SearchRequest(BaseModel):
+    """General AI search request."""
+    query: str
+    project_id: Optional[str] = None
+
+class VideoOCRRequest(BaseModel):
+    """Video OCR indexing request."""
+    media_id: str
+
+class MagicMaskRequest(BaseModel):
+    """Magic mask request."""
+    media_id: str
+    strength: float = 0.5
+
+class DialogueAutomationRequest(BaseModel):
+    """Dialogue automation request."""
+    clips: List[Dict[str, Any]]
+    type: str # "j-cut", "l-cut", "balanced"
+    overlap: float = 1.5
 
 # =============================================================================
 # In-Memory Storage (Replace with database in production)
@@ -1104,6 +1150,174 @@ async def smart_crop_media(request: SmartCropRequest, background_tasks: Backgrou
     )
 
 
+@VIDEO_EDITOR_ROUTER.post("/ai/detect-beats", response_model=BeatDetectionResponse)
+async def detect_beats(request: BeatDetectionRequest, background_tasks: BackgroundTasks):
+    """Detect beats in audio media."""
+    media = media_db.get(request.media_id)
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "type": "beat_detection",
+        "media_id": request.media_id,
+        "status": "pending",
+        "beats": None,
+        "created_at": datetime.utcnow()
+    }
+    jobs_db[job_id] = job
+    background_tasks.add_task(process_beat_detection, job_id)
+    
+    return BeatDetectionResponse(job_id=job_id, status="pending", beats=None)
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/auto-trim", response_model=AutoTrimResponse)
+async def auto_trim_silence(request: AutoTrimRequest, background_tasks: BackgroundTasks):
+    """Automatically trim silence from media."""
+    media = media_db.get(request.media_id)
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "type": "auto_trim",
+        "media_id": request.media_id,
+        "threshold": request.threshold,
+        "min_duration": request.min_duration,
+        "status": "pending",
+        "output_path": None,
+        "created_at": datetime.utcnow()
+    }
+    jobs_db[job_id] = job
+    background_tasks.add_task(process_auto_trim, job_id)
+    
+    return AutoTrimResponse(job_id=job_id, status="pending", output_path=None)
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/enhance")
+async def enhance_video(request: VideoEnhanceRequest, background_tasks: BackgroundTasks):
+    """Apply AI enhancements (Hellation, Super-res, etc.) to video."""
+    media = media_db.get(request.media_id)
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "type": "enhancement",
+        "media_id": request.media_id,
+        "enhancements": request.enhancements,
+        "status": "pending",
+        "output_path": None,
+        "created_at": datetime.utcnow()
+    }
+    jobs_db[job_id] = job
+    background_tasks.add_task(process_video_enhance, job_id)
+    
+    return {"job_id": job_id, "status": "pending"}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/search")
+async def search_ai_content(request: SearchRequest):
+    """Search across transcriptions and OCR results."""
+    query = request.query.lower()
+    results = []
+    
+    for job_id, job in jobs_db.items():
+        # Search in transcriptions
+        if job.get("type") == "transcription" and job.get("status") == "completed":
+            text = job.get("text", "")
+            if query in text.lower():
+                results.append({
+                    "id": job_id,
+                    "media_id": job.get("media_id"),
+                    "type": "transcription",
+                    "preview": text[:100] + "...",
+                    "matches": [s for s in job.get("segments", []) if query in s.get("text", "").lower()]
+                })
+        
+        # Search in OCR
+        elif job.get("type") == "video_ocr" and job.get("status") == "completed":
+            ocr_data = job.get("ocr_results", [])
+            matches = [item for item in ocr_data if query in item.get("text", "").lower()]
+            if matches:
+                results.append({
+                    "id": job_id,
+                    "media_id": job.get("media_id"),
+                    "type": "video_ocr",
+                    "preview": f"{len(matches)} occurrences trouvées",
+                    "matches": matches
+                })
+    
+    return {"query": query, "results": results}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/index-ocr")
+async def index_video_ocr(request: VideoOCRRequest, background_tasks: BackgroundTasks):
+    """Start OCR indexing for a video."""
+    media = media_db.get(request.media_id)
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "type": "video_ocr",
+        "media_id": request.media_id,
+        "status": "pending",
+        "ocr_results": None,
+        "created_at": datetime.utcnow()
+    }
+    jobs_db[job_id] = job
+    background_tasks.add_task(process_video_ocr, job_id)
+    
+    return {"job_id": job_id, "status": "pending"}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/magic-mask")
+async def apply_magic_mask(request: MagicMaskRequest, background_tasks: BackgroundTasks):
+    """Start Magic Mask background removal."""
+    media = media_db.get(request.media_id)
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    # On réutilise VideoEnhanceRequest structure pour le background task
+    enhancement = [{"type": "magic_mask", "strength": request.strength}]
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "type": "video_enhance",
+        "media_id": request.media_id,
+        "status": "pending",
+        "output_path": None,
+        "created_at": datetime.utcnow()
+    }
+    jobs_db[job_id] = job
+    background_tasks.add_task(process_video_enhance, job_id, enhancement)
+    
+    return {"job_id": job_id, "status": "pending"}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/dialogue-automation")
+async def automate_dialogue(request: DialogueAutomationRequest):
+    """Automate dialogue cuts (J-cut, L-cut)."""
+    from video_editor_ai_service import create_ai_service
+    service = create_ai_service()
+    
+    results = []
+    if request.type == "j-cut":
+        # On suppose clips[0] est vidéo, clips[1] est audio
+        res = service.dialogue_automation.apply_j_cut(request.clips[0], request.clips[1], request.overlap)
+        results.append(res)
+    elif request.type == "l-cut":
+        res = service.dialogue_automation.apply_l_cut(request.clips[0], request.clips[1], request.overlap)
+        results.append(res)
+    
+    return {"status": "success", "results": results}
+
+
 # =============================================================================
 # Timeline & Track Operations
 # =============================================================================
@@ -1445,6 +1659,108 @@ def process_smart_crop(job_id: str):
         job["status"] = "failed"
         job["error"] = f"System error: {e}"
         logger.error(f"Smart crop system error: {e}")
+
+
+async def process_beat_detection(job_id: str):
+    """Background task for beat detection."""
+    from video_editor_ai_service import create_ai_service
+    job = jobs_db[job_id]
+    job["status"] = "processing"
+    
+    try:
+        media = media_db[job["media_id"]]
+        service = create_ai_service()
+        beats = await service.detect_beats(media["path"])
+        
+        job["status"] = "completed"
+        job["beats"] = beats
+    except Exception as e:
+        job["status"] = "failed"
+        job["error"] = str(e)
+        logger.error(f"Beat detection failed: {e}")
+
+
+async def process_auto_trim(job_id: str):
+    """Background task for auto trim silence."""
+    from video_editor_ai_service import create_ai_service
+    job = jobs_db[job_id]
+    job["status"] = "processing"
+    
+    try:
+        media = media_db[job["media_id"]]
+        service = create_ai_service()
+        
+        input_path = media["path"]
+        output_path = input_path.replace(".", "_trimmed.")
+        
+        success = await service.auto_trim_silence(input_path, output_path)
+        
+        if success:
+            job["status"] = "completed"
+            job["output_path"] = output_path
+        else:
+            job["status"] = "failed"
+            job["error"] = "FFmpeg silence removal failed"
+    except Exception as e:
+        job["status"] = "failed"
+        job["error"] = str(e)
+        logger.error(f"Auto trim failed: {e}")
+
+
+async def process_video_enhance(job_id: str):
+    """Background task for video enhancement."""
+    from video_enhancement_service import VideoEnhancementService, EnhancementConfig, EnhancementType
+    job = jobs_db[job_id]
+    job["status"] = "processing"
+    
+    try:
+        media = media_db[job["media_id"]]
+        service = VideoEnhancementService()
+        
+        input_path = media["path"]
+        output_path = input_path.replace(".", "_enhanced.")
+        
+        enhancements = []
+        for enc in job["enhancements"]:
+            enhancements.append(EnhancementConfig(
+                type=EnhancementType(enc["type"]),
+                strength=enc.get("strength", 0.5),
+                model=enc.get("model", "default"),
+                preset=enc.get("preset", "natural")
+            ))
+            
+        result = service.enhance_video(input_path, output_path, enhancements)
+        
+        if result.get("success"):
+            job["status"] = "completed"
+            job["output_path"] = output_path
+        else:
+            job["status"] = "failed"
+            job["error"] = result.get("error", "Enhancement failed")
+    except Exception as e:
+        job["status"] = "failed"
+        job["error"] = str(e)
+        logger.error(f"Video enhancement failed: {e}")
+
+
+async def process_video_ocr(job_id: str):
+    """Background task for video OCR indexing."""
+    from video_editor_ai_service import create_ai_service
+    job = jobs_db[job_id]
+    job["status"] = "processing"
+    
+    try:
+        media = media_db[job["media_id"]]
+        service = create_ai_service()
+        
+        results = await service.video_ocr.index_video_text(media["path"])
+        
+        job["status"] = "completed"
+        job["ocr_results"] = results
+    except Exception as e:
+        job["status"] = "failed"
+        job["error"] = str(e)
+        logger.error(f"Video OCR failed: {e}")
 
 
 # =============================================================================

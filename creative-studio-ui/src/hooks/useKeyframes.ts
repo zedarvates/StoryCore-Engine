@@ -178,7 +178,7 @@ export function useKeyframes(
 
     // Calculate progress
     let prog: number;
-    let currentLoop = Math.floor(totalElapsed / totalDuration);
+    const currentLoop = Math.floor(totalElapsed / totalDuration);
     const loopProgress = (totalElapsed % totalDuration) / totalDuration;
 
     if (config.loop && typeof config.loop === 'number' && currentLoop >= config.loop) {

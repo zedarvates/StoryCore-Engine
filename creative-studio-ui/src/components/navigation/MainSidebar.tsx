@@ -50,7 +50,7 @@ export function MainSidebar({
   onToggleCollapse,
   className,
 }: MainSidebarProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, effectiveTheme, toggleTheme } = useTheme();
   const [notifications] = useState(3); // Mock notifications count
 
   // Get service status from store
@@ -146,14 +146,14 @@ export function MainSidebar({
 
   const ThemeToggle = () => (
     <button
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      onClick={() => toggleTheme()}
       className={cn(
         'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
         'hover:bg-accent text-muted-foreground hover:text-foreground'
       )}
-      title={`Theme actuel: ${theme === 'dark' ? 'Sombre' : 'Clair'}`}
+      title={`Theme actuel: ${theme}`}
     >
-      {theme === 'dark' ? (
+      {effectiveTheme === 'dark' ? (
         <Moon className="w-5 h-5" />
       ) : (
         <Sun className="w-5 h-5" />

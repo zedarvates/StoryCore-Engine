@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cine-production", tags=["cine-production"])
 cine_service = CineProductionService()
 
-@router.post("/start", response_model=str)
+@router.post("/start")
 async def start_production(
     request: CineProductionRequest,
     user_id: str = Depends(verify_jwt_token)
@@ -20,12 +20,13 @@ async def start_production(
     """
     try:
         job_id = await cine_service.start_production_job(request)
-        return job_id
+        return {"jobId": job_id}
     except Exception as e:
         logger.error(f"Failed to start production: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/status/{job_id}", response_model=CineProductionJob)
+@router.get("/job/{job_id}", response_model=CineProductionJob)
 async def get_job_status(
     job_id: str,
     user_id: str = Depends(verify_jwt_token)

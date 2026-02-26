@@ -56,9 +56,9 @@ class CircuitBreakerState(Enum):
 class Task:
     """Async task with priority and metadata."""
     priority: TaskPriority = field(compare=True)
-    created_at: float = field(compare=False, default_factory=time.time)
     task_id: str = field(compare=False)
     coroutine: Callable[[], Awaitable[Any]] = field(compare=False)
+    created_at: float = field(compare=False, default_factory=time.time)
     args: Tuple = field(compare=False, default_factory=tuple)
     kwargs: Dict[str, Any] = field(compare=False, default_factory=dict)
 
@@ -77,9 +77,18 @@ class Task:
     completed_at: Optional[float] = field(compare=False, default=None)
 
     def __post_init__(self):
-        # Ensure priority is comparable
+        # Ensure priority is comparable and normalized to int
         if isinstance(self.priority, TaskPriority):
             self.priority = self.priority.value
+        elif isinstance(self.priority, int):
+            # Clamp to valid priority range
+            if self.priority < 0:
+                self.priority = TaskPriority.CRITICAL.value
+            elif self.priority > TaskPriority.BACKGROUND.value:
+                self.priority = TaskPriority.BACKGROUND.value
+        else:
+            # Default to NORMAL for any other type
+            self.priority = TaskPriority.NORMAL.value
 
     def is_ready(self, completed_tasks: Set[str]) -> bool:
         """Check if task is ready to execute (dependencies satisfied)."""
@@ -266,6 +275,58 @@ class AsyncTaskQueue:
 
         self.logger.info("AsyncTaskQueue initialized")
 
+        # Track progress for deadlock detection
+        self.last_progress_timestamp: float = time.time()
+
+    def _record_progress(self):
+        """Update last progress timestamp for deadlock detection."""
+        self.last_progress_timestamp = time.time()
+
+    def _resolve_deadlock(self):
+        """Detect and resolve deadlocks caused by unsatisfiable dependencies."""
+        with self.lock:
+            # If there is no running task and there are waiting tasks, but dependencies cannot be satisfied
+            if not self.running_tasks and (self.waiting_for_dependencies or self.pending_queue):
+                # Mark all waiting tasks as CANCELLED to break deadlock
+                cancelled_ids = []
+                # Resolve waiting tasks first
+                for task_id, task in list(self.waiting_for_dependencies.items()):
+                    task.state = TaskState.CANCELLED
+                    self.completed_tasks[task_id] = task
+                    self.completed_task_ids.add(task_id)
+                    cancelled_ids.append(task_id)
+                    del self.waiting_for_dependencies[task_id]
+                # Also clear any pending tasks that depend on unsatisfied deps (best effort)
+                while self.pending_queue:
+                    t = heapq.heappop(self.pending_queue)
+                    t.state = TaskState.CANCELLED
+                    self.completed_tasks[t.task_id] = t
+                    self.completed_task_ids.add(t.task_id)
+                    cancelled_ids.append(t.task_id)
+                if cancelled_ids:
+                    self.logger.warning(f"Deadlock detected. Cancelled tasks: {cancelled_ids}")
+
+    def _find_task_by_id(self, task_id: str) -> Optional[Task]:
+        """Return an existing Task object by its id from any internal store, if present."""
+        # Pending heap (iterate safely)
+        for t in list(self.pending_queue):
+            if t.task_id == task_id:
+                return t
+
+        # Running
+        if task_id in self.running_tasks:
+            return self.running_tasks[task_id]
+
+        # Waiting for dependencies
+        if task_id in self.waiting_for_dependencies:
+            return self.waiting_for_dependencies[task_id]
+
+        # Completed
+        if task_id in self.completed_tasks:
+            return self.completed_tasks[task_id]
+
+        return None
+
     def start(self):
         """Start the task queue processing."""
         if self.workers:
@@ -436,7 +497,7 @@ class AsyncTaskQueue:
                     'tasks_completed': self.stats.tasks_completed,
                     'tasks_failed': self.stats.tasks_failed,
                     'tasks_cancelled': self.stats.tasks_cancelled,
-                    'tasks_timeout': self.stats.tasks.timeout,
+                    'tasks_timeout': self.stats.tasks_timeout,
                     'current_queue_size': self.stats.current_queue_size,
                     'max_queue_size': self.stats.max_queue_size,
                     'average_execution_time': self.stats.average_execution_time,
@@ -592,6 +653,13 @@ class AsyncTaskQueue:
                 self.logger.debug(f"Queue status: {stats['queue_size']} pending, "
                                 f"{stats['running_tasks']} running, "
                                 f"{stats['completed_tasks']} completed")
+
+                # Deadlock detection: if no running tasks and there are pending/waiting tasks,
+                # and no progress has been made recently, attempt to resolve.
+                if (not self.running_tasks and (self.pending_queue or self.waiting_for_dependencies)
+                        and (time.time() - self.last_progress_timestamp > 30)):
+                    self.logger.warning("Potential deadlock detected. Attempting automatic resolution...")
+                    self._resolve_deadlock()
 
             except Exception as e:
                 self.logger.error(f"Monitoring error: {e}")

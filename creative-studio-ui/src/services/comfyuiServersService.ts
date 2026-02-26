@@ -26,9 +26,20 @@ function generateServerId(): string {
  * Get default configuration
  */
 function getDefaultConfig(): ComfyUIServersConfig {
+  const defaultServer: ComfyUIServer = {
+    id: 'server-default',
+    name: 'Local ComfyUI (8000)',
+    serverUrl: 'http://127.0.0.1:8000',
+    authentication: {
+      type: 'none',
+    },
+    isActive: true,
+    status: 'disconnected',
+  };
+
   return {
-    servers: [],
-    activeServerId: null,
+    servers: [defaultServer],
+    activeServerId: 'server-default',
     autoSwitchOnFailure: false,
     version: CONFIG_VERSION,
   };
@@ -167,6 +178,14 @@ export class ComfyUIServersService {
     return this.config.activeServerId;
   }
 
+  /**
+   * Get active server URL
+   */
+  getActiveServerUrl(): string | null {
+    const server = this.getActiveServer();
+    return server ? server.serverUrl : null;
+  }
+
   // ============================================================================
   // Connection Testing
   // ============================================================================
@@ -205,7 +224,7 @@ export class ComfyUIServersService {
         });
         return false;
       }
-    } catch (error) {
+    } catch {
       this.updateServer(id, {
         status: 'error',
       });
@@ -288,8 +307,8 @@ export class ComfyUIServersService {
   private saveToStorage(): void {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.config));
-    } catch (error) {
-      console.error('Failed to save ComfyUI servers config:', error);
+    } catch (_error) {
+      console.error('Failed to save ComfyUI servers config:', _error);
     }
   }
 

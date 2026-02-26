@@ -5,7 +5,6 @@
   "allowCompoundWords": true,
   "ignoreRegExpList": [],
   "words": [
-    // Technical terms
     "COMFYUI",
     "comfyui", 
     "inpainting",
@@ -21,6 +20,8 @@
     "unet",
     "dtype",
     "karras",
+    "klein",
+    "dpmpp",
     "qwen",
     "Qwen",
     "cuda",
@@ -32,10 +33,15 @@
     "dall",
     "Tweaker",
     "storycore",
-    "ESRGAN",
     "crossfade",
-    
-    // French words used in the codebase
+    "upscaling",
+    "Upscaling",
+    "vram",
+    "lora",
+    "LoRA",
+    "euler",
+    "pytorch",
+    "firered",
     "générer",
     "Génère",
     "génération",
@@ -88,8 +94,6 @@
     "Améliorer",
     "corrige",
     "erreurs",
-    
-    // French system messages
     "Obtient",
     "Vérifie",
     "système",
@@ -117,7 +121,6 @@
     "depuis",
     "différentes",
     "d'abord",
-    "fichiers",
     "Puis",
     "dynamiquement",
     "éviter",
@@ -141,8 +144,6 @@
     "avec",
     "prêt",
     "complet",
-    
-    // Offline service
     "gestion",
     "ligne",
     "Initialise",
@@ -151,7 +152,6 @@
     "générées",
     "localement",
     "statut",
-    "synchronisation",
     "mises",
     "Démarre",
     "vérification",
@@ -165,7 +165,6 @@
     "Vous",
     "êtes",
     "cours",
-    "Démarrer",
     "automatique",
     "Utilisation",
     "Effectue",
@@ -188,32 +187,9 @@
     "S'abonne",
     "changements",
     "Notifie",
-    
-    // Persistence service
-    "persistance",
-    "unifié",
-    "Démarrer",
     "Fichier",
-    "Sauvegarde",
-    "Utiliser",
-    "existe",
-    "déclencher",
-    "téléchargement",
-    "Traite",
-    "arrière",
-    "Vérifier",
-    "Synchronise",
-    "Synchroniser",
-    "Synchronisation",
-    "mondes",
-    
-    // Validation
     "partialize",
-    
-    // Misc
     "WIZARD",
-    
-    // Additional French words from PlanEditor
     "sauvegardé",
     "lors",
     "vouloir",
@@ -229,7 +205,18 @@
     "Panoramique",
     "Aucune",
     "Cliquez",
-    "commencer"
+    "commencer",
+    "seeddance",
+    "SeedDance",
+    "Webtoon",
+    "webtoon",
+    "Astérix",
+    "asterix",
+    "Shonen",
+    "shonen",
+    "Shojo",
+    "shojo",
+    "spanish",
+    "ella"
   ]
 }
-

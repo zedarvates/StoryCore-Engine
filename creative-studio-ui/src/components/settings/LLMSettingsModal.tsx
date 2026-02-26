@@ -1,13 +1,15 @@
 /**
  * LLM Settings Modal Component
  * 
- * Modal wrapper for the LLM Settings Panel
+ * Modal wrapper for the LLM Settings Panel with Voice settings tab
  * Integrates with app state and provides modal UI
  */
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LLMSettingsPanel } from './LLMSettingsPanel';
+import { VoiceSettingsPanel } from './VoiceSettingsPanel';
 import type { LLMConfig } from '@/services/llmService';
 import { saveLLMSettings, loadLLMSettings } from '@/utils/secureStorage';
 import { triggerLLMPropagation } from '@/services/settingsPropagation';
@@ -62,13 +64,26 @@ export function LLMSettingsModal({ isOpen, onClose }: LLMSettingsModalProps) {
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>LLM Configuration</DialogTitle>
+          <DialogTitle>Configuration</DialogTitle>
         </DialogHeader>
-        <LLMSettingsPanel
-          currentConfig={currentConfig}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
+        <Tabs defaultValue="llm" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="llm">LLM Settings</TabsTrigger>
+            <TabsTrigger value="voice">Voice Settings</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="llm" className="mt-4">
+            <LLMSettingsPanel
+              currentConfig={currentConfig}
+              onSave={handleSave}
+              onCancel={handleCancel}
+            />
+          </TabsContent>
+          
+          <TabsContent value="voice" className="mt-4">
+            <VoiceSettingsPanel />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

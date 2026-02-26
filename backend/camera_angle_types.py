@@ -182,6 +182,10 @@ class CameraAngleRequest(BaseModel):
         default=None,
         description="Additional custom prompt to append to angle prompts"
     )
+    comfyui_url: Optional[str] = Field(
+        default=None,
+        description="Optional ComfyUI server URL to use for this request"
+    )
 
     class Config:
         json_schema_extra = {
@@ -211,6 +215,7 @@ class CameraAngleJob(BaseModel):
     quality: str = Field(default="standard", description="Generation quality")
     seed: Optional[int] = Field(default=None, description="Random seed")
     custom_prompt: Optional[str] = Field(default=None, description="Custom prompt")
+    comfyui_url: Optional[str] = Field(default=None, description="ComfyUI server URL used for this job")
     status: CameraAngleJobStatus = Field(
         default=CameraAngleJobStatus.PENDING,
         description="Current job status"

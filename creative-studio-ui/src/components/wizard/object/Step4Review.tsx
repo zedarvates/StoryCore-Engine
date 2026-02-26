@@ -11,7 +11,7 @@ import { OBJECT_TYPE_LABELS, OBJECT_RARITY_LABELS, OBJECT_CONDITION_LABELS } fro
 import './ObjectWizardSteps.css';
 
 export function Step4Review() {
-  const { data } = useWizard<StoryObject>();
+  const { formData: data } = useWizard<StoryObject>();
 
   return (
     <div className="object-wizard-step">

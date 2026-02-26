@@ -494,25 +494,26 @@ export class StructuredDraftRefineMethodology extends BaseStoryMethodology {
     onProgress?: (progress: GenerationProgress) => void
   ): Promise<PhaseGenerationResult> {
     const prompt = `
-Generate a detailed intro summary for a ${params.genre.join(', ')} story with ${params.tone.join(', ')} tone.
+[ROLE] Master Storyteller & Cinematic Director.
+[TASK] Generate a highly detailed, immersive, and VERBOSE introduction summary for a ${params.genre.join(', ')} movie/story.
 
-World Context:
-${JSON.stringify(params.worldContext)}
+Genre: ${params.genre.join(', ')}
+Tone: ${params.tone.join(', ')}
+World: ${JSON.stringify(params.worldContext)}
 
 Characters:
 ${params.characters?.map((c) => `- ${c.name}: ${c.description || c.role}`).join('\n') || 'No characters specified'}
 
-Locations:
-${params.locations?.map((l) => `- ${l.name}: ${l.description || l.type}`).join('\n') || 'No locations specified'}
+[INSTRUCTIONS]
+Write an extremely rich and atmospheric introduction (400-800 words) that establishes:
+1. The opening scene with vivid sensory details and "show, don't tell" descriptions.
+2. Deep character introductions with distinct voices and internal motivations.
+3. A compelling inciting incident that feels inevitable yet surprising.
+4. The thematic premise of the story with cinematic depth.
 
-Write a comprehensive introduction summary (200-400 words) that establishes:
-1. The opening scene and setting
-2. Main character introductions
-3. Initial conflict or inciting incident
-4. The story's premise
-
-Output only the summary content.
+[FORMAT] Output only the verbose narrative prose. No meta-commentary.
 `;
+
     
     return this.generatePhaseContent(StoryPhase.INTRO_SUMMARY, params, prompt, onProgress);
   }
@@ -527,25 +528,24 @@ Output only the summary content.
     const chapterCount = this.getChapterCount(params.length);
     
     const prompt = `
-Generate chapter outlines for a ${params.genre.join(', ')} story with ${params.tone.join(', ')} tone.
+[ROLE] Literary Architect & Screenwriter.
+[TASK] Generate complex, detailed chapter outlines for a ${params.genre.join(', ')} story.
 
-Previous Summary:
+Previous Context:
 ${previousContext}
 
-World Context:
-${JSON.stringify(params.worldContext)}
+Target: ${chapterCount} Chapters.
 
-Characters:
-${params.characters?.map((c) => `- ${c.name}: ${c.description || c.role}`).join('\n') || 'No characters specified'}
+[OUTLINE RULES]
+For each chapter, provide:
+1. A cinematic Title.
+2. Detailed sequence of events (expansive descriptions).
+3. Subtextual character development.
+4. Progressive tension and sensory anchors for the reader.
 
-Generate ${chapterCount} chapter outlines, each including:
-1. Chapter title
-2. Key events (3-5 bullet points)
-3. Character development notes
-4. Plot progression
-
-Output as a structured outline with clear chapter separations.
+[FORMAT] Be extremely verbose and descriptive for each chapter. No meta-commentary.
 `;
+
     
     return this.generatePhaseContent(StoryPhase.CHAPTER_OUTLINE, params, prompt, onProgress);
   }
@@ -558,19 +558,22 @@ Output as a structured outline with clear chapter separations.
     const previousContext = chapterPhase?.summary || '';
     
     const prompt = `
-Generate an ending summary for a ${params.genre.join(', ')} story with ${params.tone.join(', ')} tone.
+[ROLE] Master Storyteller.
+[TASK] Generate an expansive and emotional ending summary.
 
-Previous Story Development:
+Context:
 ${previousContext}
 
-Write a comprehensive ending summary (200-400 words) covering:
-1. Climax and turning point
-2. Resolution of main conflicts
-3. Character conclusions
-4. Thematic closure
+[INSTRUCTIONS]
+Write a comprehensive ending summary (400-800 words) covering:
+1. A high-stakes climax with intense emotional payoff.
+2. Resolution of all complex story threads.
+3. Poignant character conclusions and thematic resonance.
+4. A final "closing shot" description that lingers.
 
-Output only the ending summary content.
+[FORMAT] Be estremamente verbose and evocative. No meta-commentary.
 `;
+
     
     return this.generatePhaseContent(StoryPhase.ENDING_SUMMARY, params, prompt, onProgress);
   }
@@ -584,27 +587,24 @@ Output only the ending summary content.
     const endingPhase = this.state.phases.find(p => p.phase === StoryPhase.ENDING_SUMMARY);
     
     const prompt = `
-Expand the following story structure into full narrative content for a ${params.genre.join(', ')} story.
+[ROLE] Pulitzer-winning Novelist.
+[TASK] Expand this structure into a massive, detailed narrative masterpiece.
 
-INTRO SUMMARY:
-${introPhase?.content || ''}
+Structure:
+INTRO: ${introPhase?.content || ''}
+CHAPTERS: ${chapterPhase?.content || ''}
+ENDING: ${endingPhase?.content || ''}
 
-CHAPTER OUTLINES:
-${chapterPhase?.content || ''}
+Style: ${this.state.settings.writingStyle} (VERBOSE MODE)
 
-ENDING SUMMARY:
-${endingPhase?.content || ''}
+[EXPANSION RULES]
+- Aim for high-density prose: enrich every sentence with subtext and sensory detail.
+- Full dialogue scenes: write out conversations with action beats and internal thoughts.
+- World-building: weave setting details into the action.
 
-Writing Style: ${this.state.settings.writingStyle}
-
-Expand each section into full narrative prose (approximately 1000-2000 words total), maintaining:
-- Consistent tone throughout
-- Character voice consistency
-- Engaging narrative flow
-- Proper pacing
-
-Output the complete expanded story.
+[FORMAT] Output the complete, voluminous story.
 `;
+
     
     return this.generatePhaseContent(StoryPhase.FULL_CONTENT, params, prompt, onProgress);
   }

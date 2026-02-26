@@ -8,6 +8,7 @@
  * Requirements: 7.5, 5.4, 12.1, 12.2, 12.3, 12.4, 12.5
  */
 
+import React from 'react';
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
 
@@ -39,6 +40,10 @@ export const WizardEventType = {
   WIZARD_STEP_CHANGED: 'wizard:step:changed',
   WIZARD_COMPLETED: 'wizard:completed',
   WIZARD_CANCELLED: 'wizard:cancelled',
+  
+  // Generation queue events
+  QUEUE_UPDATED: 'queue:updated',
+  GENERATION_COMPLETED: 'generation:completed',
 } as const;
 
 // ============================================================================
@@ -163,9 +168,95 @@ export interface WizardCompletedPayload extends BaseEventPayload {
  * Wizard cancelled event payload
  */
 export interface WizardCancelledPayload extends BaseEventPayload {
-  wizardType: string;
   currentStep: number;
   reason?: string;
+}
+
+/**
+ * System action (undo/redo/save) event payload
+ */
+export interface SystemActionPayload extends BaseEventPayload {
+  action: 'undo' | 'redo' | 'save' | 'play' | 'pause';
+}
+
+/**
+ * System navigation event payload
+ */
+export interface SystemNavigatePayload extends BaseEventPayload {
+  target: string;
+}
+
+/**
+ * Voice transcript event payload
+ */
+export interface TranscriptPayload extends BaseEventPayload {
+  transcript: string;
+  confidence: number;
+}
+
+/**
+ * Generic Addon action event payload
+ */
+export interface AddonActionPayload extends BaseEventPayload {
+  addonId: string;
+  verb: string;
+  subject?: string;
+  prompt?: string;
+  style?: string;
+  projectId?: string;
+  characterId?: string;
+  locationId?: string;
+  sceneId?: string;
+  timelineId?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * UI Confirmation event payload
+ */
+export interface UIConfirmationPayload extends BaseEventPayload {
+  message: string;
+  intent: string;
+  entities: Record<string, unknown>;
+}
+
+/**
+ * UI Suggestions event payload
+ */
+export interface UISuggestionsPayload extends BaseEventPayload {
+  suggestions: string[];
+}
+
+/**
+ * Generation Queue event payload
+ */
+export interface QueueUpdatedPayload extends BaseEventPayload {
+  queue: unknown[]; // Using unknown[] for safer queuing updates
+}
+
+/**
+ * Generation status change event payload (for toasts)
+ */
+export interface GenerationCompletedPayload extends BaseEventPayload {
+  taskId: string;
+  status: 'completed' | 'failed';
+  type: 'image' | 'video';
+  prompt: string;
+  error?: string;
+  assetUrl?: string;
+}
+
+/**
+ * Cinematic Editor specific payload
+ */
+export interface CinematicActionPayload extends BaseEventPayload {
+  addonId: 'cinematic-editor';
+  verb: string;
+  tab?: string;
+  shotIndex?: number;
+  mood?: string;
+  camera?: string;
+  action?: 'play' | 'pause';
 }
 
 /**
@@ -184,7 +275,16 @@ export type EventPayload =
   | WizardStartedPayload
   | WizardStepChangedPayload
   | WizardCompletedPayload
-  | WizardCancelledPayload;
+  | WizardCancelledPayload
+  | SystemActionPayload
+  | SystemNavigatePayload
+  | TranscriptPayload
+  | AddonActionPayload
+  | CinematicActionPayload
+  | UIConfirmationPayload
+  | UISuggestionsPayload
+  | QueueUpdatedPayload
+  | GenerationCompletedPayload;
 
 // ============================================================================
 // Event Listener Types
@@ -319,6 +419,7 @@ class EventEmitter {
 
     // Log event in development
     if (import.meta.env.DEV) {
+      // console.debug(`[EventEmitter] ${eventType}`, payload);
     }
   }
 
@@ -420,11 +521,10 @@ export function useEventListener<T extends EventPayload>(
   React.useEffect(() => {
     const subscription = eventEmitter.on(eventType, listener);
     return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, ...deps]);
 }
 
-// Import React for the hook
-import React from 'react';
 
 // ============================================================================
 // Re-export Character Event System
@@ -463,5 +563,3 @@ export {
   createValidationFailedPayload,
   createDependenciesCheckedPayload,
 } from './characterEvents';
-
-

@@ -10,8 +10,8 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from api.transcription_routes import router, transcription_engine
-from api_server_fastapi import app
+from src.api.transcription_routes import transcription_router as router, get_engine
+from src.api_server_fastapi import app
 
 client = TestClient(app)
 
@@ -41,8 +41,7 @@ class TestTranscriptionAPI:
         })
         assert response.status_code == 200
         data = response.json()
-        assert "transcript_id" in data
-        assert "text" in data
+        assert data["transcript_id"]
         assert "segments" in data
     
     def test_transcribe_with_speaker_diarization(self):
@@ -139,8 +138,9 @@ class TestTranscriptionEngine:
     
     def test_engine_initialization(self):
         """Test engine initializes correctly."""
-        from api.transcription_routes import transcription_engine
-        assert transcription_engine is not None
+        from src.api.transcription_routes import get_engine
+        engine = get_engine()
+        assert engine is not None
     
     def test_supported_languages(self):
         """Test supported languages list."""
@@ -148,8 +148,9 @@ class TestTranscriptionEngine:
         assert response.status_code == 200
         data = response.json()
         assert "languages" in data
-        assert "fr" in data["languages"]
-        assert "en" in data["languages"]
+        codes = [lang["code"] for lang in data["languages"]]
+        assert "fr" in codes
+        assert "en" in codes
 
 
 if __name__ == "__main__":

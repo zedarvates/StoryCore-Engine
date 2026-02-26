@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
 import { WizardProvider, useWizard } from '@/contexts/WizardContext';
 import { ProjectSetupWizardContainer } from './ProjectSetupWizardContainer';
-import { Step1ProjectInfo, type ProjectSetupData } from './Step1ProjectInfo';
+import { Step1ProjectInfo } from './Step1ProjectInfo';
+import { ProjectSetupData } from '@/types/project';
 import { Step2ProjectSettings } from './Step2ProjectSettings';
 
 // ============================================================================
@@ -42,8 +43,7 @@ function ProjectSetupWizardContent({
   steps,
   onCancel,
   renderStepContent,
-  onComplete,
-}: ProjectSetupWizardContentProps) {
+}: Omit<ProjectSetupWizardContentProps, 'onComplete'>) {
   const { currentStep } = useWizard<ProjectSetupData>();
 
   return (
@@ -51,9 +51,6 @@ function ProjectSetupWizardContent({
       title="Project Setup"
       steps={steps}
       onCancel={onCancel}
-      onComplete={onComplete}
-      allowJumpToStep={false}
-      showAutoSaveIndicator={true}
     >
       {renderStepContent(currentStep)}
     </ProjectSetupWizardContainer>
@@ -147,15 +144,16 @@ export function ProjectSetupWizard({
       totalSteps={2}
       initialData={initialData}
       onSubmit={handleSubmit}
+      onComplete={onCancel}
       onValidateStep={validateStep}
       autoSave={true}
       autoSaveDelay={2000}
+      autoLoad={true}
     >
       <ProjectSetupWizardContent
         steps={WIZARD_STEPS}
         onCancel={onCancel}
         renderStepContent={renderStepContent}
-        onComplete={onCancel}
       />
     </WizardProvider>
   );

@@ -16,6 +16,7 @@ import type {
   Animation,
   Transition,
   World,
+  SequencePlan,
 } from '../types';
 import type { Character } from '../types/character';
 import type { Story, StoryVersion } from '../types/story';
@@ -208,17 +209,28 @@ export const useStore = create<Store>()(
         selectedEffectId: null,
         selectedTextLayerId: null,
         selectedKeyframeId: null,
+        sequencePlans: [],
 
         // ====================================================================
         // Project Actions
         // ====================================================================
         setProject: (project) => set((state) => {
-          // When setting a project, also sync its characters to the store's characters state
+          // Sync all arrays from project to store states 
           const characters = project?.characters || [];
-          Logger.info(`📦 [Store] Setting project with ${characters.length} characters`);
+          const stories = project?.stories || [];
+          const worlds = project?.worlds || [];
+          const objects = project?.objects || [];
+          const sequencePlans = project?.sequencePlans || (project?.metadata?.sequences as any) || [];
+
+          Logger.info(`📦 [Store] Setting project with ${characters.length} chars, ${stories.length} stories, ${worlds.length} worlds, ${objects.length} objects, ${sequencePlans.length} plans`);
+
           return {
             project,
-            characters: characters as Character[]
+            characters: characters as Character[],
+            stories: stories as Story[],
+            worlds: worlds as World[],
+            objects: objects as StoryObject[],
+            sequencePlans: sequencePlans as SequencePlan[]
           };
         }),
 
@@ -243,14 +255,21 @@ export const useStore = create<Store>()(
               newState.worlds = updates.worlds as World[];
             }
 
-            // Si les histoires ont changé dans le projet
+            // Si les histoires ont changé
             if (updates.stories) {
               newState.stories = updates.stories as Story[];
             }
 
-            // Si les shots ont changé dans le projet
-            if (updates.shots) {
-              newState.shots = updates.shots as Shot[];
+            // Si les plans ont changé
+            if (updates.sequencePlans) {
+              newState.sequencePlans = updates.sequencePlans as SequencePlan[];
+            } else if (updates.metadata && (updates.metadata as any).sequences) {
+              newState.sequencePlans = (updates.metadata as any).sequences as SequencePlan[];
+            }
+
+            // Sync objects
+            if (updates.objects) {
+              newState.objects = updates.objects as any[];
             }
 
             return newState;
@@ -350,7 +369,7 @@ export const useStore = create<Store>()(
             const previousWorld = state.worlds.find((w) => w.id === id);
             const updatedWorlds = state.worlds.map((world) =>
               world.id === id
-                ? { ...world, ...updates, updatedAt: new Date() }
+                ? { ...world, ...updates, updatedAt: Date.now() }
                 : world
             );
 
@@ -814,7 +833,7 @@ export const useStore = create<Store>()(
                 versionNumber: originalStory.version,
                 content: originalStory.content,
                 summary: originalStory.summary,
-                createdAt: new Date(),
+                createdAt: Date.now(),
                 changes: 'Content modified',
               };
               newVersions = [...state.storyVersions, versionSnapshot];
@@ -838,7 +857,7 @@ export const useStore = create<Store>()(
                 ? {
                   ...story,
                   ...updates,
-                  updatedAt: new Date(),
+                  updatedAt: Date.now(),
                   version: isContentModified ? story.version + 1 : story.version,
                 }
                 : story
@@ -912,7 +931,7 @@ export const useStore = create<Store>()(
               versionNumber: story.version,
               content: story.content,
               summary: story.summary,
-              createdAt: new Date(),
+              createdAt: Date.now(),
               changes,
             };
 
@@ -956,7 +975,7 @@ export const useStore = create<Store>()(
                   ...story,
                   content: version.content,
                   summary: version.summary,
-                  updatedAt: new Date(),
+                  updatedAt: Date.now(),
                 }
                 : story
             );
@@ -1253,10 +1272,11 @@ export const useStore = create<Store>()(
                   technology: worldData.technology || '',
                   magic: worldData.magic || '',
                   conflicts: worldData.conflicts || [],
+                  keyObjects: worldData.key_objects || [],
                   technologyMagic: worldData.technology_magic || '',
                   threats: worldData.threats || [],
-                  createdAt: new Date(worldData.created_at || Date.now()),
-                  updatedAt: new Date(worldData.created_at || Date.now()),
+                  createdAt: typeof worldData.created_at === 'number' ? worldData.created_at : Date.now(),
+                  updatedAt: typeof worldData.updated_at === 'number' ? worldData.updated_at : Date.now(),
                 };
 
                 state.addWorld(world);

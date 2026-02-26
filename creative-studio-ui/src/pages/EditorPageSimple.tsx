@@ -8,7 +8,7 @@ import { SequenceEditor } from '@/sequence-editor/SequenceEditor';
 
 interface EditorPageSimpleProps {
   sequenceId?: string;
-  onBackToDashboard: () => void;
+  onBackToDashboard?: () => void;
 }
 
 export function EditorPageSimple({ sequenceId, onBackToDashboard }: EditorPageSimpleProps) {

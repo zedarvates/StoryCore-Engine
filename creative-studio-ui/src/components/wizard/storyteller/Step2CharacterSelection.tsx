@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Sparkles, Users, Bookmark } from 'lucide-react';
 import { useStore } from '@/store';
 import type { CharacterSelectionData, CharacterCreationRequest, WorldContext } from '@/types/story';
-import type { Character } from '@/types/character';
 import { createCharacter } from '@/services/storyGenerationService';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
@@ -45,31 +44,36 @@ export function Step2CharacterSelection() {
   const { llmConfigured } = useServiceStatus();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
-  // Get character templates based on selected genre (from global templates)
-  const genreFromWizard = (formData as any).genre || [];
-  const characterTemplates = getCharacterTemplatesByGenre(genreFromWizard);
+  // Get character templates based on selected genre and tone (from global templates)
+  const genreFromWizard = (formData as Record<string, unknown>).genre as string[] || [];
+  const toneFromWizard = (formData as Record<string, unknown>).tone as string[] || [];
+  const characterTemplates = getCharacterTemplatesByGenre(genreFromWizard, toneFromWizard);
 
   // Get selected character IDs from form data
   const selectedCharacterIds = (formData.selectedCharacters || []).map(c => c.id);
 
   /**
-   * Handle selecting a template character
+   * Handle selecting/deselecting a template character
+   * Click toggles selection: if selected, deselect; if not selected, select
    */
   const handleSelectTemplate = useCallback((template: CharacterTemplate) => {
-    const templateRef = characterTemplateToReference(template);
+    const isSelected = selectedCharacterIds.includes(template.id);
 
-    // Check if already selected
-    if (selectedCharacterIds.includes(template.id)) {
-      return;
+    if (isSelected) {
+      // Deselect: remove from selected characters
+      updateFormData({
+        selectedCharacters: (formData.selectedCharacters || []).filter(c => c.id !== template.id)
+      });
+    } else {
+      // Select: add to selected characters
+      const templateRef = characterTemplateToReference(template);
+      updateFormData({
+        selectedCharacters: [
+          ...(formData.selectedCharacters || []),
+          templateRef
+        ]
+      });
     }
-
-    // Add to selected characters
-    updateFormData({
-      selectedCharacters: [
-        ...(formData.selectedCharacters || []),
-        templateRef
-      ]
-    });
   }, [selectedCharacterIds, formData.selectedCharacters, updateFormData]);
 
   /**
@@ -211,7 +215,7 @@ export function Step2CharacterSelection() {
           <div className="flex items-center gap-2 mb-3">
             <Bookmark className="w-4 h-4 text-purple-500" />
             <Label className="text-sm font-semibold">Quick Start Templates</Label>
-            <span className="text-xs text-muted-foreground">(Outside project - click to add)</span>
+            <span className="text-xs text-muted-foreground">(Click to select/deselect)</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {characterTemplates.map((template) => {
@@ -220,18 +224,23 @@ export function Step2CharacterSelection() {
                 <button
                   key={template.id}
                   onClick={() => handleSelectTemplate(template)}
-                  disabled={isSelected}
                   className={`p-3 rounded-lg border text-left transition-all ${isSelected
-                      ? 'border-green-500 bg-green-50 dark:bg-green-950/20 cursor-default'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 cursor-pointer'
+                      ? 'border-green-500 bg-green-50 dark:bg-green-950/20 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-950/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20'
                     }`}
+                  title={isSelected ? 'Click to deselect' : 'Click to select'}
                 >
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-purple-500 flex-shrink-0" />
-                    <div className="min-w-0">
+                    <Users className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-green-500' : 'text-purple-500'}`} />
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{template.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{template.role}</p>
                     </div>
+                    {isSelected && (
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        ✓
+                      </span>
+                    )}
                   </div>
                 </button>
               );

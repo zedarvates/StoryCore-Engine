@@ -15,7 +15,6 @@ import {
   CheckCircle,
   Loader,
   Search,
-  Filter,
   RefreshCw,
   Info,
   Save,
@@ -134,13 +133,13 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
       case 'active':
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'inactive':
-        return <ToggleLeft className="w-4 h-4 text-gray-400" />;
+        return <ToggleLeft className="w-4 h-4 text-muted-foreground" />;
       case 'error':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
+        return <AlertCircle className="w-4 h-4 text-destructive" />;
       case 'loading':
-        return <Loader className="w-4 h-4 text-blue-500 animate-spin" />;
+        return <Loader className="w-4 h-4 text-primary animate-spin" />;
       default:
-        return <ToggleLeft className="w-4 h-4 text-gray-400" />;
+        return <ToggleLeft className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -159,20 +158,21 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
     }
   };
 
+  // Couleurs de catégorie adaptées au thème
   const getCategoryColor = (category: AddonInfo['category']) => {
     switch (category) {
       case 'ui':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-500/20 text-blue-400 dark:text-blue-300';
       case 'processing':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-500/20 text-green-400 dark:text-green-300';
       case 'export':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-500/20 text-purple-400 dark:text-purple-300';
       case 'integration':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-orange-500/20 text-orange-400 dark:text-orange-300';
       case 'utility':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -190,8 +190,8 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
       <div className={`p-6 ${className}`}>
         <div className="flex items-center justify-center h-64">
           <div className="flex items-center gap-2">
-            <Loader className="w-6 h-6 animate-spin text-blue-500" />
-            <span className="text-gray-600">Chargement des add-ons...</span>
+            <Loader className="w-6 h-6 animate-spin text-primary" />
+            <span className="text-muted-foreground">Chargement des add-ons...</span>
           </div>
         </div>
       </div>
@@ -200,40 +200,41 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
 
   return (
     <div className={`flex flex-col h-full overflow-hidden ${className}`}>
-      <div className="p-6 flex flex-col h-full overflow-hidden">
+      <div className="p-4 flex flex-col h-full overflow-hidden">
         {/* Header - Fixed at top */}
-        <div className="mb-6 flex-shrink-0">
-          <div className="flex items-center gap-3 mb-4">
-            <Puzzle className="w-6 h-6 text-purple-600" />
-            <h2 className="text-xl font-semibold text-gray-900">Gestion des Add-ons</h2>
+        <div className="mb-4 flex-shrink-0">
+          <div className="flex items-center gap-3 mb-3">
+            <Puzzle className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Gestion des Add-ons</h2>
           </div>
 
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground text-sm mb-4">
             Activez ou désactivez les extensions pour personnaliser votre expérience StoryCore.
           </p>
 
           {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Rechercher des add-ons..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap items-center">
               {categories.map(category => (
                 <button
                   key={category.value}
                   onClick={() => setSelectedCategory(category.value)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === category.value
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                    selectedCategory === category.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
                 >
                   {category.label}
                 </button>
@@ -277,64 +278,64 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
         </div>
 
         {/* Stats - Fixed height */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 flex-shrink-0">
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 flex-shrink-0">
+          <div className="bg-card p-3 rounded-lg border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{addons.length}</p>
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-xl font-bold text-foreground">{addons.length}</p>
               </div>
-              <Puzzle className="w-8 h-8 text-gray-400" />
+              <Puzzle className="w-6 h-6 text-muted-foreground" />
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <div className="bg-card p-3 rounded-lg border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Activés</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-xs text-muted-foreground">Activés</p>
+                <p className="text-xl font-bold text-green-500">
                   {addons.filter(a => a.enabled && a.status === 'active').length}
                 </p>
               </div>
-              <CheckCircle className="w-8 h-8 text-green-500" />
+              <CheckCircle className="w-6 h-6 text-green-500" />
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <div className="bg-card p-3 rounded-lg border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Désactivés</p>
-                <p className="text-2xl font-bold text-gray-600">
+                <p className="text-xs text-muted-foreground">Désactivés</p>
+                <p className="text-xl font-bold text-muted-foreground">
                   {addons.filter(a => !a.enabled).length}
                 </p>
               </div>
-              <ToggleLeft className="w-8 h-8 text-gray-400" />
+              <ToggleLeft className="w-6 h-6 text-muted-foreground" />
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <div className="bg-card p-3 rounded-lg border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Erreurs</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-xs text-muted-foreground">Erreurs</p>
+                <p className="text-xl font-bold text-destructive">
                   {addons.filter(a => a.status === 'error').length}
                 </p>
               </div>
-              <AlertCircle className="w-8 h-8 text-red-500" />
+              <AlertCircle className="w-6 h-6 text-destructive" />
             </div>
           </div>
         </div>
 
         {/* Add-ons List - Scrollable content */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="space-y-4 pb-4">
+        <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+          <div className="space-y-3 pb-4">
             {filteredAddons.length === 0 ? (
               <div className="text-center py-12">
-                <Puzzle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <Puzzle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   Aucun add-on trouvé
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   {searchQuery || selectedCategory !== 'all'
                     ? 'Essayez de modifier vos critères de recherche.'
                     : 'Aucun add-on n\'est disponible pour le moment.'}
@@ -344,33 +345,33 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
               filteredAddons.map(addon => (
                 <div
                   key={addon.id}
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                  className="bg-card border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <h3 className="text-base font-semibold text-foreground truncate">
                           {addon.name}
                         </h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(addon.category)}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(addon.category)}`}>
                           {addon.category}
                         </span>
                         {addon.builtin && (
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 dark:text-green-300">
                             Intégré
                           </span>
                         )}
                       </div>
 
-                      <p className="text-gray-600 mb-3">{addon.description}</p>
+                      <p className="text-muted-foreground text-sm mb-2 line-clamp-2">{addon.description}</p>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2 flex-wrap">
                         <span>Version {addon.version}</span>
                         <span>Par {addon.author}</span>
                         {addon.tags && addon.tags.length > 0 && (
                           <div className="flex gap-1">
                             {addon.tags.slice(0, 3).map(tag => (
-                              <span key={tag} className="bg-gray-100 px-2 py-1 rounded text-xs">
+                              <span key={tag} className="bg-muted px-1.5 py-0.5 rounded text-xs">
                                 {tag}
                               </span>
                             ))}
@@ -379,30 +380,30 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
                       </div>
 
                       {addon.errorMessage && (
-                        <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
+                        <div className="bg-destructive/10 border border-destructive/30 rounded p-2 mb-2">
                           <div className="flex items-center gap-2">
-                            <AlertCircle className="w-4 h-4 text-red-500" />
-                            <span className="text-red-700 text-sm">{addon.errorMessage}</span>
+                            <AlertCircle className="w-4 h-4 text-destructive" />
+                            <span className="text-destructive text-sm">{addon.errorMessage}</span>
                           </div>
                         </div>
                       )}
 
                       <div className="flex items-center gap-2">
                         {getStatusIcon(addon)}
-                        <span className="text-sm font-medium">{getStatusText(addon)}</span>
+                        <span className="text-sm font-medium text-foreground">{getStatusText(addon)}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 ml-6 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => onOpenSettings?.(addon.id, addon.name)}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-1.5"
                         title="Paramètres de l'add-on"
                       >
                         <Settings className="w-4 h-4" />
-                        Paramètres
+                        <span className="hidden sm:inline">Paramètres</span>
                       </Button>
 
                       <Button
@@ -410,10 +411,11 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
                         size="sm"
                         onClick={() => handleToggleAddon(addon.id)}
                         disabled={togglingAddon === addon.id || addon.status === 'loading'}
-                        className={`flex items-center gap-2 ${addon.enabled
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : 'bg-gray-600 hover:bg-gray-700'
-                          }`}
+                        className={`flex items-center gap-1.5 ${
+                          addon.enabled
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : ''
+                        }`}
                       >
                         {togglingAddon === addon.id ? (
                           <Loader className="w-4 h-4 animate-spin" />
@@ -422,7 +424,7 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
                         ) : (
                           <ToggleLeft className="w-4 h-4" />
                         )}
-                        {addon.enabled ? 'Désactiver' : 'Activer'}
+                        <span className="hidden sm:inline">{addon.enabled ? 'Désactiver' : 'Activer'}</span>
                       </Button>
                     </div>
                   </div>
@@ -433,18 +435,13 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
         </div>
 
         {/* Help Text - Fixed at bottom */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex-shrink-0">
+        <div className="mt-4 bg-primary/10 border border-primary/30 rounded-lg p-3 flex-shrink-0">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-blue-900 mb-1">À propos des add-ons</h4>
-              <p className="text-sm text-blue-700 mb-2">
-                Les add-ons étendent les fonctionnalités de StoryCore. Les add-ons intégrés sont
-                développés par l'équipe StoryCore et sont entièrement sécurisés.
-              </p>
-              <p className="text-sm text-blue-700">
-                <strong>Note :</strong> Certains add-ons peuvent nécessiter un redémarrage de l'application
-                pour être pleinement opérationnels.
+              <h4 className="font-medium text-foreground mb-1 text-sm">À propos des add-ons</h4>
+              <p className="text-xs text-muted-foreground">
+                Les add-ons étendent les fonctionnalités de StoryCore. Certains add-ons peuvent nécessiter un redémarrage de l'application pour être pleinement opérationnels.
               </p>
             </div>
           </div>

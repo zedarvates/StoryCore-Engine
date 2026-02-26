@@ -189,6 +189,16 @@ curl -X POST http://localhost:8000/api/v1/report \
 - [x] Request/response models
 - [x] Error handling
 
+### AsyncTaskQueue Integration ✅ Complete
+- [x] Task queue API endpoints (`backend/task_queue_api.py`)
+- [x] Integration with `src/async_task_queue.py`
+- [x] Priority-based task scheduling (1-10, 1 = highest)
+- [x] Circuit breaker pattern for fault tolerance
+- [x] Rate limiting support
+- [x] Task cancellation and retry
+- [x] Queue statistics and monitoring
+- [x] Unit and integration tests (8/8 passing)
+
 ### Upcoming Tasks
 - [ ] Task 13.2: Complete /report endpoint implementation
 - [ ] Task 14.1: JSON schema validation
@@ -196,6 +206,94 @@ curl -X POST http://localhost:8000/api/v1/report \
 - [ ] Task 15.1: GitHub API integration
 - [ ] Task 15.3: Label generation
 - [ ] Task 16.1: Rate limiting
+
+## Task Queue Management API
+
+The backend includes a comprehensive Task Queue Management API for handling asynchronous generation jobs.
+
+### Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/tasks/queue/status` | Get AsyncTaskQueue status snapshot |
+| POST | `/api/tasks/api` | Submit a generic API task to AsyncTaskQueue |
+| GET | `/api/tasks/api/{job_id}` | Get status of an API-driven task |
+| GET | `/api/tasks/queue` | Get all jobs in queue sorted by priority |
+| PUT | `/api/tasks/{job_id}/priority` | Update job priority (1=highest, 10=lowest) |
+| POST | `/api/tasks/{job_id}/move-up` | Move job up in queue |
+| POST | `/api/tasks/{job_id}/move-down` | Move job down in queue |
+| POST | `/api/tasks/{job_id}/retry` | Retry a failed or cancelled job |
+| GET | `/api/tasks/stats` | Get queue statistics |
+| DELETE | `/api/tasks/{job_id}` | Delete a job from the queue |
+
+### Priority System
+
+Tasks use a priority scale from 1 to 10:
+- **1-2**: Critical priority (immediate processing)
+- **3-4**: High priority
+- **5-7**: Normal priority (default)
+- **8-10**: Low priority (background tasks)
+
+### AsyncTaskQueue Features
+
+The `AsyncTaskQueue` (`src/async_task_queue.py`) provides:
+
+1. **Priority-Based Scheduling**: Tasks are processed based on priority and submission time
+2. **Circuit Breaker**: Prevents cascade failures when downstream services are unavailable
+3. **Rate Limiting**: Controls throughput to prevent resource exhaustion
+4. **Task Cancellation**: Allows cancelling pending or running tasks
+5. **Timeout Handling**: Tasks can have custom timeout limits
+6. **Statistics & Monitoring**: Real-time queue metrics
+
+### Usage Example
+
+```python
+# Submit a task to the queue
+response = requests.post(
+    "http://localhost:8000/api/tasks/api",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "job_id": "unique-job-id",
+        "payload": {"task": "data"},
+        "priority": 3,  # High priority
+        "timeout_seconds": 300
+    }
+)
+
+# Check task status
+status = requests.get(
+    f"http://localhost:8000/api/tasks/api/{job_id}",
+    headers={"Authorization": f"Bearer {token}"}
+)
+
+# Get queue statistics
+stats = requests.get(
+    "http://localhost:8000/api/tasks/stats",
+    headers={"Authorization": f"Bearer {token}"}
+)
+```
+
+### Integration with Main API
+
+The task queue router is integrated into `main_api.py`:
+
+```python
+from backend.task_queue_api import router as task_queue_router
+app.include_router(task_queue_router, prefix="/api")
+```
+
+The AsyncTaskQueue lifecycle is managed in the FastAPI lifespan:
+
+```python
+from src.async_task_queue import get_async_task_queue
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize the queue
+    queue = get_async_task_queue()
+    yield
+    # Shutdown: Cleanup
+```
 
 ## Troubleshooting
 

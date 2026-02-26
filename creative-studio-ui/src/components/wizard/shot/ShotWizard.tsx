@@ -14,10 +14,22 @@ import {
   TimeOfDaySelector,
   TransitionSelector,
 } from '@/components/assets/AssetSelector';
+import {
+  Camera,
+  Layers,
+  Video,
+  Clock,
+  Settings,
+  Eye,
+  CheckCircle,
+} from 'lucide-react';
 
 // Services
 import { templateManager } from '@/services/templateManager';
 import { draftStorage } from '@/services/draftStorage';
+import { aiShotCompositionService } from '@/services/aiShotCompositionService';
+import { Button } from '@/components/ui/button';
+import { Wand2, Loader2 } from 'lucide-react';
 
 // ============================================================================
 // Helper Functions
@@ -44,43 +56,43 @@ const SHOT_STEPS: WizardStep[] = [
     number: 1,
     title: 'Type Selection',
     description: 'Choose shot type and apply template',
-    icon: '🎬',
+    icon: Camera,
   },
   {
     number: 2,
     title: 'Composition',
     description: 'Set up characters, environment, and framing',
-    icon: '🎭',
+    icon: Layers,
   },
   {
     number: 3,
     title: 'Camera Setup',
     description: 'Configure camera angle, movement, and framing',
-    icon: '📹',
+    icon: Video,
   },
   {
     number: 4,
     title: 'Timing',
     description: 'Set duration, transitions, and timing',
-    icon: '⏱️',
+    icon: Clock,
   },
   {
     number: 5,
     title: 'Generation Settings',
     description: 'Configure AI model, prompts, and parameters',
-    icon: '⚙️',
+    icon: Settings,
   },
   {
     number: 6,
     title: 'Preview',
     description: 'Review configuration and generation estimates',
-    icon: '👁️',
+    icon: Eye,
   },
   {
     number: 7,
     title: 'Finalize',
     description: 'Save shot or generate immediately',
-    icon: '✅',
+    icon: CheckCircle,
   },
 ];
 
@@ -117,7 +129,7 @@ export function ShotWizard({
 
   const [wizardState, setWizardState] = useState<ShotWizardState>(() => ({
     currentStep: 0,
-    formData: existingShot ? { ...existingShot } : {},
+    formData: existingShot ? { dialogues: [], ...existingShot } : { dialogues: [] },
     selectedTemplate: undefined,
     generatedPrompt: '',
     validationErrors: {},
@@ -133,20 +145,85 @@ export function ShotWizard({
   }));
 
   const [availableTemplates, setAvailableTemplates] = useState<ShotTemplate[]>([]);
+  void availableTemplates; // Used in ShotTypeSelector step
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ============================================================================
+  // AI Suggestion Handler
+  // ============================================================================
+
+  const handleAISuggest = async () => {
+    const sceneDescription = wizardState.formData.notes || wizardState.formData.title || "Cinematic scene";
+    
+    try {
+      setIsGeneratingAI(true);
+      const suggestion = await aiShotCompositionService.generateConfigWithAI(sceneDescription);
+      
+      // Mapping AI suggestion to Wizard's ProductionShot format
+      const framingMap: Record<string, string> = {
+        'extreme_close_up': 'extreme-close-up',
+        'close_up': 'close-up',
+        'medium_close_up': 'close-up',
+        'medium_shot': 'medium',
+        'wide_shot': 'wide',
+        'establishing': 'extreme-wide'
+      };
+
+      const angleMap: Record<string, string> = {
+        'low_angle': 'low',
+        'eye_level': 'eye-level',
+        'high_angle': 'high',
+        'dutch_angle': 'dutch'
+      };
+
+      const movementMap: Record<string, string> = {
+        'static': 'static',
+        'pan': 'pan',
+        'tilt': 'tilt',
+        'dolly': 'dolly',
+        'tracking': 'tracking',
+        'steadicam': 'handheld'
+      };
+
+      const updatedFormData = {
+        ...wizardState.formData,
+        type: framingMap[suggestion.shotType] as any || wizardState.formData.type,
+        camera: {
+          ...wizardState.formData.camera,
+          framing: framingMap[suggestion.shotType] as any || wizardState.formData.camera?.framing,
+          angle: angleMap[suggestion.cameraAngle] as any || wizardState.formData.camera?.angle,
+          movement: {
+            ...wizardState.formData.camera?.movement,
+            type: movementMap[suggestion.cameraMovement] as any || 'static'
+          }
+        },
+        composition: {
+          ...wizardState.formData.composition,
+          lightingMood: suggestion.lightingStyle,
+        },
+        notes: (wizardState.formData.notes || '') + (suggestion.reasoning ? `\n\nAI Reasoning: ${suggestion.reasoning}` : '')
+      };
+
+      setWizardState(prev => ({
+        ...prev,
+        formData: updatedFormData as any,
+        isDirty: true
+      }));
+
+    } catch (err) {
+      console.error('AI suggestion failed:', err);
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
 
   // ============================================================================
   // Initialization Effects
   // ============================================================================
 
-  useEffect(() => {
-    if (isOpen) {
-      initializeWizard();
-    }
-  }, [isOpen, initialTemplateId, existingShot]);
-
-  const initializeWizard = async () => {
+  const initializeWizard = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -156,9 +233,11 @@ export function ShotWizard({
       setAvailableTemplates(templates);
 
       // Initialize state based on props
-      let initialState: ShotWizardState = {
+      const initialState: ShotWizardState = {
         currentStep: 0,
-        formData: {},
+        formData: {
+          dialogues: [],
+        },
         selectedTemplate: undefined,
         generatedPrompt: '',
         validationErrors: {},
@@ -175,14 +254,20 @@ export function ShotWizard({
 
       if (existingShot) {
         // Editing existing shot
-        initialState.formData = { ...existingShot };
+        initialState.formData = { 
+          dialogues: [],
+          ...existingShot 
+        };
         initialState.currentStep = 0; // Start at first step for review
       } else if (initialTemplateId) {
         // Starting with a template
         const template = templates.find(t => t.id === initialTemplateId);
         if (template) {
           initialState.selectedTemplate = template;
-          initialState.formData = templateToBaseProductionShot(template);
+          initialState.formData = {
+            dialogues: [],
+            ...templateToBaseProductionShot(template)
+          };
         }
       }
 
@@ -193,43 +278,35 @@ export function ShotWizard({
 
       // Try to load draft if no existing shot
       if (!existingShot) {
-        const drafts = await draftStorage.listDrafts('shot');
-        if (drafts.length > 0) {
+        const draftMetas = await draftStorage.listDrafts('shot');
+        if (draftMetas.length > 0) {
           // Load the most recent draft
-          const mostRecentDraft = drafts[0];
-          const draft = await draftStorage.loadDraft('shot', mostRecentDraft.id);
-          if (draft) {
-            initialState = { ...initialState, ...draft };
+          const mostRecentDraft = draftMetas[0];
+          const draftData = await draftStorage.loadDraft<ProductionShot>('shot', mostRecentDraft.id);
+          if (draftData) {
+            initialState.formData = { 
+              ...initialState.formData, 
+              ...draftData 
+            };
+            // Note: DraftStorage doesn't currently store stepIndex, so we default to 0
           }
         }
       }
 
       setWizardState(initialState);
     } catch (err) {
-     console.error('Failed to initialize wizard:', err);
-     
-     // Create a detailed error message based on the error type
-     let errorMessage = 'Failed to initialize wizard: ';
-     if (err instanceof Error) {
-       errorMessage += err.message;
-       
-       // Add specific guidance for common error types
-       if (err.message.includes('template') || err.message.includes('Template')) {
-         errorMessage += '\nPlease verify your shot templates are properly configured.';
-       } else if (err.message.includes('network') || err.message.includes('connection')) {
-         errorMessage += '\nPlease check your network connection.';
-       } else if (err.message.includes('permission') || err.message.includes('access')) {
-         errorMessage += '\nPlease check your file system permissions.';
-       }
-     } else {
-       errorMessage += 'Unknown error occurred.';
-     }
-     
-     setError(errorMessage);
-   } finally {
-     setIsLoading(false);
-   }
-  };
+      console.error('Failed to initialize shot wizard:', err);
+      setError('Failed to initialize. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [existingShot, initialTemplateId, sequenceId, sceneId, shotNumber, quickMode]);
+
+  useEffect(() => {
+    if (isOpen) {
+      initializeWizard();
+    }
+  }, [isOpen, initializeWizard]);
 
   // ============================================================================
   // Auto-save Effect
@@ -289,6 +366,7 @@ export function ShotWizard({
             notes: '',
             tags: wizardState.formData.tags || [],
             templates: wizardState.formData.templates || [],
+            dialogues: wizardState.formData.dialogues || [],
           };
 
           await draftStorage.saveDraft('shot', draftShot);
@@ -324,7 +402,7 @@ export function ShotWizard({
       const timer = setTimeout(saveDraft, 30000); // Auto-save every 30 seconds
       return () => clearTimeout(timer);
     }
-  }, [wizardState.isDirty, wizardState.formData, existingShot]);
+  }, [wizardState.isDirty, wizardState.formData, wizardState.generatedPrompt, existingShot]);
 
   // ============================================================================
   // Navigation Handlers
@@ -346,12 +424,13 @@ export function ShotWizard({
     }));
   }, []);
 
-  const updatePreviewData = useCallback((previewData: Partial<ShotWizardState['previewData']>) => {
+  const updatePreviewData = useCallback((data: Partial<ShotWizardState['previewData']>) => {
     setWizardState(prev => ({
       ...prev,
-      previewData: { ...prev.previewData, ...previewData },
+      previewData: { ...prev.previewData, ...data },
     }));
   }, []);
+  void updatePreviewData; // Available for preview step
 
   const goToStep = useCallback((stepIndex: number) => {
     if (stepIndex >= 0 && stepIndex < SHOT_STEPS.length) {
@@ -389,6 +468,7 @@ export function ShotWizard({
     const effectiveSteps = getEffectiveSteps();
     return effectiveSteps.findIndex(step => step.number === displayStep);
   }, [getEffectiveSteps]);
+  void getActualStepIndex; // Used in quick mode navigation
 
   // ============================================================================
   // Completion Handler
@@ -429,7 +509,8 @@ export function ShotWizard({
         generation: {
           ...wizardState.formData.generation,
           prompt: wizardState.generatedPrompt || wizardState.formData.generation?.prompt || '',
-        } as any, // Temporary fix for type issues
+        } as any,
+        dialogues: wizardState.formData.dialogues || [],
         status: 'planned',
         thumbnailUrl: undefined,
         generatedAssetUrl: undefined,
@@ -580,9 +661,21 @@ export function ShotWizard({
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold mb-4">Composition Setup</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Configure the visual composition and atmosphere of your shot
-            </p>
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-sm text-gray-600">
+                Configure the visual composition and atmosphere of your shot
+              </p>
+              <Button 
+                onClick={handleAISuggest} 
+                disabled={isGeneratingAI}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                AI Suggest
+              </Button>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <LightingSelector

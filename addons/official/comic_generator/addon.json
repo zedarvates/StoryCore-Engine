@@ -1,0 +1,49 @@
+{
+  "name": "comic_generator",
+  "display_name": "Comic Generator",
+  "version": "1.0.0",
+  "type": "workflow_addon",
+  "author": "StoryCore Team",
+  "description": "Génère des planches BD / Comics / Webtoon / Manga cohérentes, planche par planche, en exploitant les données narratives du projet StoryCore (personnages, lieux, objets, arcs narratifs).",
+  "category": "official",
+  "compatibility": {
+    "engine_version": ">=2.0.0",
+    "python_version": ">=3.9"
+  },
+  "permissions": [
+    "file_system_read",
+    "file_system_write",
+    "network_access",
+    "ui_access",
+    "config_access",
+    "model_access"
+  ],
+  "entry_points": {
+    "main": "src/main.py",
+    "cli": "src/cli.py"
+  },
+  "dependencies": {
+    "aiohttp": ">=3.8.0",
+    "pillow": ">=9.0.0",
+    "fpdf2": ">=2.7.0"
+  },
+  "metadata": {
+    "category": "comic_generation",
+    "icon": "🎨",
+    "tags": ["comic", "manga", "webtoon", "bd", "narrative", "visual-storytelling"],
+    "supported_features": [
+      "comic_page_generation",
+      "panel_script_generation",
+      "narrative_continuity",
+      "multi_style_support",
+      "motion_effects",
+      "tts_integration",
+      "pdf_export",
+      "json_export",
+      "narrative_memory"
+    ],
+    "supported_styles": ["franco-belge", "comics-us", "manga", "webtoon"],
+    "homepage": "https://github.com/storycore-engine",
+    "documentation": "docs/comic-generator.md"
+  }
+}

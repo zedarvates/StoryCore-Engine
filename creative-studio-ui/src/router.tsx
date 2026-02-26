@@ -3,6 +3,7 @@ import App from '@/App';
 import { LandingPageWithHooks } from '@/pages/LandingPageWithHooks';
 import { ProjectDashboardPage } from '@/pages/ProjectDashboardPage';
 import { EditorPageSimple } from '@/pages/EditorPageSimple';
+import { DetachedChatPage } from '@/pages/DetachedChatPage';
 
 /**
  * Application Router Configuration
@@ -36,6 +37,11 @@ const routes: RouteObject[] = [
         </div>,
       },
     ],
+  },
+  {
+    // Detached chat window - standalone route without App wrapper
+    path: '/detached-chat',
+    element: <DetachedChatPage />,
   },
 ];
 

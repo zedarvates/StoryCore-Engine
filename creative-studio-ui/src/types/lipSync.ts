@@ -43,6 +43,7 @@ export interface LipSyncRequest {
   nosmooth?: boolean;
   referencePose?: string;
   style?: string;
+  comfyuiUrl?: string;
 }
 
 export interface LipSyncResponse {
@@ -115,43 +116,17 @@ export interface LipSyncPreview {
   duration: number;
 }
 
-export interface LipSyncWizardStep {
+export interface LipSyncWizardStepData {
   id: string;
   title: string;
   description: string;
   completed: boolean;
 }
 
-export const LIP_SYNC_WIZARD_STEPS: LipSyncWizardStep[] = [
-  {
-    id: 'select-face',
-    title: 'Select Face Image',
-    description: 'Choose the character face image to animate',
-    completed: false
-  },
-  {
-    id: 'select-audio',
-    title: 'Select Audio',
-    description: 'Choose the dialogue audio file',
-    completed: false
-  },
-  {
-    id: 'configure',
-    title: 'Configure Options',
-    description: 'Set lip sync model and enhancement options',
-    completed: false
-  },
-  {
-    id: 'generate',
-    title: 'Generate',
-    description: 'Generate the lip-synced video',
-    completed: false
-  },
-  {
-    id: 'preview',
-    title: 'Preview & Export',
-    description: 'Preview and export the result',
-    completed: false
-  }
-];
+export enum LipSyncWizardStep {
+  SELECT_ASSETS = 'select_assets',
+  CONFIGURE = 'configure',
+  GENERATE = 'generate',
+  COMPLETE = 'complete'
+}
 

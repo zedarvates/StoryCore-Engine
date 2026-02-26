@@ -166,6 +166,79 @@ bpy.ops.render.render(write_still=True)
 print("STORYCORE_RENDER_COMPLETE:" + scene.render.filepath)
 '''
 
+_RENDER_CONTROLNET_TEMPLATE = '''\
+# Lancer le rendu (incluant les passes ControlNet via Compositor)
+bpy.ops.render.render(write_still=True)
+print("STORYCORE_RENDER_COMPLETE:" + scene.render.filepath)
+print("STORYCORE_CONTROLNET_EXPORT_COMPLETE")
+'''
+
+_CONTROLNET_COMPOSITOR_TEMPLATE = '''\
+
+# ═══════════════════════════════════════════════════════════════
+#  COMPOSITION CONTROLNET (Depth & Canny)
+# ═══════════════════════════════════════════════════════════════
+scene.use_nodes = True
+tree = scene.node_tree
+nodes = tree.nodes
+links = tree.links
+
+# Nettoyer les nœuds existants
+for n in nodes:
+    nodes.remove(n)
+
+# Nœud d'entrée (Render Layers)
+rl_node = nodes.new(type='CompositorNodeRLayers')
+rl_node.location = (0, 0)
+
+# Activer les passes nécessaires
+scene.view_layers["ViewLayer"].use_pass_z = True
+
+# --- DEPTH PASS ---
+# Normalisation de la profondeur (Map Value)
+# On mappe de [0, 20] mètres vers [1, 0] (blanc proche, noir loin)
+map_depth = nodes.new(type='CompositorNodeMapValue')
+map_depth.location = (300, 100)
+map_depth.offset = [0.0]
+map_depth.size = [0.05] # 1/20
+map_depth.use_min = True
+map_depth.use_max = True
+map_depth.min = [0.0]
+map_depth.max = [1.0]
+
+# Inverser pour avoir blanc = proche
+invert_depth = nodes.new(type='CompositorNodeInvert')
+invert_depth.location = (500, 100)
+
+links.new(rl_node.outputs["Depth"], map_depth.inputs[0])
+links.new(map_depth.outputs[0], invert_depth.inputs[1])
+
+# --- CANNY (EDGE) PASS ---
+# Utilisation du filtre Sobel comme approximation de Canny dans Blender
+filter_canny = nodes.new(type='CompositorNodeFilter')
+filter_canny.filter_type = 'SOBEL'
+filter_canny.location = (300, -100)
+
+links.new(rl_node.outputs["Image"], filter_canny.inputs[2])
+
+# --- OUTPUT FILE ---
+output_node = nodes.new(type='CompositorNodeOutputFile')
+output_node.base_path = r"{base_path}"
+output_node.location = (800, 0)
+
+# Configuration des slots
+output_node.file_slots.clear()
+slot_depth = output_node.file_slots.new("depth")
+slot_depth.path = "depth_"
+slot_canny = output_node.file_slots.new("canny")
+slot_canny.path = "canny_"
+
+links.new(invert_depth.outputs[0], output_node.inputs["depth"])
+links.new(filter_canny.outputs[0], output_node.inputs["canny"])
+
+print("STORYCORE_CONTROLNET_NODES_CONFIGURED")
+'''
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  GÉNÉRATEUR PRINCIPAL
@@ -607,7 +680,10 @@ class BlenderScriptGenerator:
 
     def _generate_render(self, scene: SceneJSON) -> str:
         r = scene.render
-        return _RENDER_TEMPLATE.format(
+        blocks = []
+
+        # Bloc de configuration de base
+        blocks.append(_RENDER_TEMPLATE.split("# Lancer le rendu")[0].format(
             engine=r.engine,
             resolution_x=r.resolution_x,
             resolution_y=r.resolution_y,
@@ -618,4 +694,18 @@ class BlenderScriptGenerator:
             frame_start=r.frame_start,
             frame_end=r.frame_end,
             fps=r.fps,
-        )
+        ))
+
+        # Bloc ControlNet si activé
+        if r.export_controlnet:
+            # On utilise le dossier parent du rendu pour les passes ControlNet
+            base_path = str(Path(r.output_path).parent).replace("\\", "/")
+            blocks.append(_CONTROLNET_COMPOSITOR_TEMPLATE.format(
+                base_path=base_path
+            ))
+            blocks.append(_RENDER_CONTROLNET_TEMPLATE)
+        else:
+            # Rendu standard
+            blocks.append("# Lancer le rendu\nbpy.ops.render.render(write_still=True)\nprint('STORYCORE_RENDER_COMPLETE:' + scene.render.filepath)")
+
+        return "\n".join(blocks)

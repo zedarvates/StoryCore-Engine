@@ -19,23 +19,25 @@ import hashlib
 try:
     # Try relative imports first (for package usage)
     from .comfyui_manager import ComfyUIManager
-    from .comfyui_config import ComfyUIConfig, ConfigManager
+    from .comfyui_config import ComfyUIConfig, ConfigManager, ControlNetConfig, IPAdapterConfig
     from .health_monitor import HealthMonitor
     from .api_orchestrator import APIOrchestrator
     from .workflow_executor import WorkflowExecutor, StoryCorePanelConfig
     from .asset_retriever import AssetRetriever
     from .platform_manager import PlatformManager
     from .comfyui_models import ServiceState, HealthState
+    from .character_registry import CharacterRegistry
 except ImportError:
     # Fall back to absolute imports (for CLI usage)
     from comfyui_manager import ComfyUIManager
-    from comfyui_config import ComfyUIConfig, ConfigManager
+    from comfyui_config import ComfyUIConfig, ConfigManager, ControlNetConfig, IPAdapterConfig
     from health_monitor import HealthMonitor
     from api_orchestrator import APIOrchestrator
     from workflow_executor import WorkflowExecutor, StoryCorePanelConfig
     from asset_retriever import AssetRetriever
     from platform_manager import PlatformManager
     from comfyui_models import ServiceState, HealthState
+    from character_registry import CharacterRegistry
 
 
 class ComfyUIImageEngine:
@@ -72,6 +74,9 @@ class ComfyUIImageEngine:
         
         # Initialize Asset Retriever for downloads
         self.asset_retriever = AssetRetriever(self.config)
+        
+        # Initialize Character Registry
+        self.character_registry = CharacterRegistry()
         
         # Service state tracking
         self.mock_mode = True  # Default to mock mode for hackathon demo
@@ -159,7 +164,8 @@ class ComfyUIImageEngine:
                 frame_generation, 
                 puppet_layer_data, 
                 storyboard_data,
-                scene_breakdown
+                scene_breakdown,
+                project_path
             )
             
             generation_results.append(frame_result)
@@ -247,13 +253,14 @@ class ComfyUIImageEngine:
             return False
     
     def _generate_frame_images(self, frame_generation: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                              storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any]) -> Dict[str, Any]:
+                               storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
+                               project_path: Path) -> Dict[str, Any]:
         """Generate all images for a single frame using ComfyUI Manager orchestration."""
         frame_id = frame_generation["frame_id"]
         generation_sequence = frame_generation["generation_sequence"]
         
         if self.mock_mode:
-            return self._generate_frame_images_mock(frame_generation, puppet_layer_data, storyboard_data, scene_breakdown)
+            return self._generate_frame_images_mock(frame_generation, puppet_layer_data, storyboard_data, scene_breakdown, project_path)
         
         # Real ComfyUI generation using new orchestration system
         generated_images = []
@@ -263,12 +270,12 @@ class ComfyUIImageEngine:
             # Process generation sequence using Workflow Executor
             for seq_item in generation_sequence:
                 if seq_item["type"] == "layer":
-                    layer_result = self._generate_layer_real(seq_item, puppet_layer_data, storyboard_data, scene_breakdown)
+                    layer_result = self._generate_layer_real(seq_item, puppet_layer_data, storyboard_data, scene_breakdown, project_path, frame_id)
                     generated_images.append(layer_result)
                     generation_logs.append(f"Generated layer: {seq_item['id']} using ComfyUI workflow")
                     
                 elif seq_item["type"] == "puppet":
-                    puppet_result = self._generate_puppet_real(seq_item, puppet_layer_data, storyboard_data, scene_breakdown)
+                    puppet_result = self._generate_puppet_real(seq_item, puppet_layer_data, storyboard_data, scene_breakdown, project_path, frame_id)
                     generated_images.append(puppet_result)
                     generation_logs.append(f"Generated puppet: {seq_item['id']} using ComfyUI workflow")
             
@@ -278,7 +285,7 @@ class ComfyUIImageEngine:
         except Exception as e:
             print(f"⚠️  Real generation failed for frame {frame_id}: {e}")
             print("🔄 Falling back to mock mode for this frame")
-            return self._generate_frame_images_mock(frame_generation, puppet_layer_data, storyboard_data, scene_breakdown)
+            return self._generate_frame_images_mock(frame_generation, puppet_layer_data, storyboard_data, scene_breakdown, project_path)
         
         frame_result = {
             "frame_id": frame_id,
@@ -302,7 +309,8 @@ class ComfyUIImageEngine:
         return frame_result
     
     def _generate_frame_images_mock(self, frame_generation: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                                   storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any]) -> Dict[str, Any]:
+                                   storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
+                                   project_path: Path) -> Dict[str, Any]:
         """Generate mock images for demonstration (original implementation)."""
         frame_id = frame_generation["frame_id"]
         generation_sequence = frame_generation["generation_sequence"]
@@ -478,14 +486,16 @@ class ComfyUIImageEngine:
         # Save updated project data
         with open(project_file, 'w') as f:
             json.dump(project_data, f, indent=2)
+            
     def _generate_layer_real(self, seq_item: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                            storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any]) -> Dict[str, Any]:
+                            storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
+                            project_path: Path, frame_id: str) -> Dict[str, Any]:
         """Generate a layer using real ComfyUI workflow execution."""
         start_time = time.time()
         
         try:
             # Create StoryCore panel configuration for layer
-            panel_config = self._create_layer_panel_config(seq_item, puppet_layer_data, storyboard_data, scene_breakdown)
+            panel_config = self._create_layer_panel_config(seq_item, puppet_layer_data, storyboard_data, scene_breakdown, project_path, frame_id)
             
             # Convert to ComfyUI workflow
             workflow = self.workflow_executor.convert_storycore_panel(panel_config)
@@ -552,13 +562,14 @@ class ComfyUIImageEngine:
             }
     
     def _generate_puppet_real(self, seq_item: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                             storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any]) -> Dict[str, Any]:
+                             storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
+                             project_path: Path, frame_id: str) -> Dict[str, Any]:
         """Generate a puppet using real ComfyUI workflow execution."""
         start_time = time.time()
         
         try:
             # Create StoryCore panel configuration for puppet
-            panel_config = self._create_puppet_panel_config(seq_item, puppet_layer_data, storyboard_data, scene_breakdown)
+            panel_config = self._create_puppet_panel_config(seq_item, puppet_layer_data, storyboard_data, scene_breakdown, project_path, frame_id)
             
             # Convert to ComfyUI workflow
             workflow = self.workflow_executor.convert_storycore_panel(panel_config)
@@ -654,7 +665,8 @@ class ComfyUIImageEngine:
             }
     
     def _create_layer_panel_config(self, seq_item: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                                  storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any]) -> StoryCorePanelConfig:
+                                  storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
+                                  project_path: Path, frame_id: str) -> StoryCorePanelConfig:
         """Create panel configuration for layer generation."""
         # Extract relevant information from metadata
         layer_prompt = f"cinematic layer, {seq_item.get('description', 'background element')}"
@@ -666,6 +678,9 @@ class ComfyUIImageEngine:
                 env = scene_info['environment']
                 layer_prompt += f", {env.get('type', 'indoor')} environment, {env.get('time_of_day', 'day')} lighting"
         
+        # Prepare ControlNet from Blender passes
+        controlnet_configs = self._prepare_controlnet_from_blender(project_path, frame_id)
+        
         return StoryCorePanelConfig(
             prompt=layer_prompt,
             negative_prompt="blurry, low quality, distorted",
@@ -674,23 +689,51 @@ class ComfyUIImageEngine:
             steps=25,
             cfg_scale=7.5,
             seed=-1,
-            checkpoint_name="sd_xl_base_1.0.safetensors"
+            checkpoint_name="sd_xl_base_1.0.safetensors",
+            controlnet_configs=controlnet_configs
         )
     
-    def _create_puppet_panel_config(self, seq_item: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                                   storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any]) -> StoryCorePanelConfig:
+    def _create_puppet_panel_config(self, seq_item: Dict[str, Any], puppet_layer_data: Dict[str, Any],
+                                   storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
+                                   project_path: Path, frame_id: str) -> StoryCorePanelConfig:
         """Create panel configuration for puppet/character generation."""
         # Extract character information
+        character_id = seq_item.get("character_id") or f"char_{seq_item.get('id')}"
         character_prompt = f"character portrait, {seq_item.get('description', 'person')}"
         
-        # Add character context if available
-        if puppet_layer_data and 'pose_metadata' in puppet_layer_data:
-            pose_meta = puppet_layer_data['pose_metadata']
-            if 'character_definitions' in pose_meta:
-                char_defs = pose_meta['character_definitions']
-                if char_defs:
-                    char_def = char_defs[0]  # Use first character definition
-                    character_prompt += f", {char_def.get('description', '')}"
+        # Try to get character identity from registry
+        identity = self.character_registry.get_by_id(character_id)
+        ipadapter_config = None
+        
+        if identity:
+            # 3. Intègre la description physique détaillée dans le prompt positif
+            if identity.physical_description:
+                character_prompt += f", {identity.physical_description}"
+            
+            # 2. Support IP-Adapter
+            if identity.reference_image_path:
+                ref_path = Path(identity.reference_image_path)
+                if ref_path.exists():
+                    ipadapter_config = IPAdapterConfig(
+                        model_name="ip-adapter-plus_sdxl_vit-h.safetensors", # Default SDXL IP-Adapter
+                        reference_image_path=ref_path,
+                        weight=0.7,
+                        noise=0.0
+                    )
+                else:
+                    print(f"WARNING: Reference image not found for character {character_id}: {ref_path}")
+        else:
+            # Fallback on puppet_layer_data if registry doesn't have it
+            if puppet_layer_data and 'pose_metadata' in puppet_layer_data:
+                pose_meta = puppet_layer_data['pose_metadata']
+                if 'character_definitions' in pose_meta:
+                    char_defs = pose_meta['character_definitions']
+                    if char_defs:
+                        char_def = char_defs[0]  # Use first character definition
+                        character_prompt += f", {char_def.get('description', '')}"
+        
+        # Prepare ControlNet from Blender passes
+        controlnet_configs = self._prepare_controlnet_from_blender(project_path, frame_id)
         
         return StoryCorePanelConfig(
             prompt=character_prompt,
@@ -700,7 +743,9 @@ class ComfyUIImageEngine:
             steps=30,
             cfg_scale=8.0,
             seed=-1,
-            checkpoint_name="sd_xl_base_1.0.safetensors"
+            checkpoint_name="sd_xl_base_1.0.safetensors",
+            controlnet_configs=controlnet_configs,
+            ipadapter_config=ipadapter_config
         )
 
     def start_comfyui_service(self) -> bool:
@@ -775,3 +820,49 @@ class ComfyUIImageEngine:
                 "service_available": False,
                 "error_message": str(e)
             }
+
+    def _prepare_controlnet_from_blender(self, project_path: Path, frame_id: str) -> List[ControlNetConfig]:
+        """
+        Detect and prepare ControlNet configurations from Blender render passes.
+        
+        Args:
+            project_path: Path to the project directory.
+            frame_id: ID of the frame being processed.
+            
+        Returns:
+            List of ControlNetConfig objects.
+        """
+        # According to SPEC: exports/blender/controlnet/<scene_id>/<frame_id>/
+        # We use project_path.name as scene_id
+        scene_id = project_path.name
+        export_dir = Path("exports") / "blender" / "controlnet" / scene_id / frame_id
+        
+        configs = []
+        
+        # Check for Depth pass
+        depth_path = export_dir / "depth.png"
+        if depth_path.exists():
+            if depth_path.stat().st_size < 1024: # Basic corruption check (1KB)
+                print(f"⚠️  Depth pass file at {depth_path} seems corrupted (too small)")
+            else:
+                configs.append(ControlNetConfig(
+                    model_name="control_depth_xl.safetensors",
+                    control_image_path=depth_path,
+                    strength=0.8,
+                    preprocessing=False # Already preprocessed by Blender
+                ))
+        
+        # Check for Canny pass
+        canny_path = export_dir / "canny.png"
+        if canny_path.exists():
+            if canny_path.stat().st_size < 1024:
+                print(f"⚠️  Canny pass file at {canny_path} seems corrupted (too small)")
+            else:
+                configs.append(ControlNetConfig(
+                    model_name="control_canny_xl.safetensors",
+                    control_image_path=canny_path,
+                    strength=0.6,
+                    preprocessing=False # Already preprocessed by Blender
+                ))
+                
+        return configs

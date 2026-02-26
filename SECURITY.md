@@ -1,102 +1,28 @@
-# Security Policy
+# Security
 
-## Supported Versions
+## Overview
 
-The following versions of StoryCore-Engine are currently supported with security updates:
+StoryCore Engine follows best practices for security to protect user data and prevent unauthorized access. This document outlines the key security measures in place.
 
-| Version | Supported |
-|---------|-----------|
-| 1.0.x   | ✅ Yes    |
-| < 1.0   | ❌ No     |
+## Key Security Measures
 
-## Reporting a Vulnerability
+1. **Input Validation**: All user inputs are validated to ensure they meet expected formats and values.
+2. **Authentication and Authorization**: Users must authenticate using valid credentials before accessing protected resources.
+3. **Data Encryption**: Sensitive data is encrypted both at rest and in transit using industry-standard encryption protocols.
+4. **Access Control**: Access to critical system components is restricted based on user roles and permissions.
 
-### Responsible Disclosure
+## Vulnerability Management
 
-We take the security of StoryCore-Engine seriously. If you believe you have found a security vulnerability, please report it to us responsibly.
+StoryCore Engine follows a robust vulnerability management process:
 
-**Please do NOT report security vulnerabilities through public GitHub issues or discussions.**
+1. **Regular Security Audits**: The project undergoes regular security audits by third-party experts.
+2. **Patch Management**: All known vulnerabilities are patched as soon as possible.
+3. **Security Updates**: Regular updates are released to address any new security issues.
 
-### How to Report
+## Reporting Security Issues
 
-1. **Email**: Send an email to the maintainers with a detailed description of the vulnerability
-2. **GitHub Security Advisories**: Use [GitHub's Security Advisory](https://github.com/zedarvates/StoryCore-Engine/security/advisories) feature
+If you discover a security issue, please report it immediately using the following email:
 
-### What to Include
+[security@storycore.com](mailto:security@storycore.com)
 
-When reporting a vulnerability, please include:
-
-- Description of the vulnerability
-- Steps to reproduce (if applicable)
-- Potential impact
-- Any known mitigations
-- Your contact information (optional)
-
-### Response Timeline
-
-- **Acknowledgment**: Within 48 hours of receiving your report
-- **Initial Assessment**: Within 5 business days
-- **Resolution Timeline**: Depending on severity (see below)
-
-### Severity Classification
-
-| Severity | Response Time | Resolution Target |
-|----------|---------------|-------------------|
-| Critical (RCE, data breach) | 24 hours | 7 days |
-| High | 48 hours | 14 days |
-| Medium | 5 business days | 30 days |
-| Low | 10 business days | 60 days |
-
-## Security Best Practices
-
-### For Users
-
-1. **Keep Updated**: Always use the latest version of StoryCore-Engine
-2. **Local Execution**: StoryCore runs locally - keep your machine secure
-3. **API Keys**: Never commit API keys or secrets to version control
-4. **Environment Variables**: Use `.env` files and add them to `.gitignore`
-
-### For Contributors
-
-1. **No Secrets in Code**: Use environment variables or configuration files
-2. **Validate Inputs**: All user inputs must be validated and sanitized
-3. **Use HTTPS**: All network requests should use secure connections
-4. **Dependencies**: Keep dependencies updated and monitor for CVEs
-
-## Dependencies Security
-
-We use the following tools to monitor dependencies:
-
-- **Python**: `pip-audit`, Dependabot
-- **Node.js**: npm audit, Dependabot
-- **GitHub**: Dependabot for automated security updates
-
-## Architecture Security Considerations
-
-### Data Privacy
-
-- All processing happens locally on your machine
-- No data is sent to external servers (except user-configured API services)
-- Your scripts, images, and projects stay on your device
-
-### Network Security
-
-- ComfyUI and Ollama run locally
-- WebSocket connections are local-only by default
-- CORS should only be enabled when necessary
-
-### Authentication
-
-- JWT-based authentication for API endpoints
-- Support for API keys
-- Session management with secure cookies
-
-## Related Resources
-
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [GitHub Security Advisories](https://docs.github.com/en/security/dependabot/working-with-dependabot/configuring-dependabot-security-updates)
-- [Python Security Best Practices](https://python-security.readthedocs.io/)
-
----
-
-**Thank you for helping keep StoryCore-Engine and its users safe!**
+We appreciate your help in maintaining the security of StoryCore Engine.

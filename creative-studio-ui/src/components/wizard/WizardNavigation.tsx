@@ -28,7 +28,6 @@ export const WizardNavigation: React.FC<WizardNavigationProps> = ({
   onSkip,
   onSaveDraft,
   onSubmit,
-  onCancel,
   lastSaved,
 }) => {
   // Format last saved timestamp
@@ -148,8 +147,10 @@ export const WizardNavigation: React.FC<WizardNavigationProps> = ({
             onClick={() => {
               if (currentStep < totalSteps) {
                 onNext?.();
+              } else if (onSubmit) {
+                onSubmit();
               } else {
-                // Call onSubmit at the last step
+                // Fallback for legacy components
                 const submitEvent = new CustomEvent('wizard-submit');
                 window.dispatchEvent(submitEvent);
               }

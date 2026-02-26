@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, Trash2, Sparkles } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
-import type { ProjectSetupData } from './Step1ProjectInfo';
+import { ProjectSetupData, ProjectConstraint } from '@/types/project';
 import { WizardFormLayout, FormField, FormSection } from '../WizardFormLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,22 +15,8 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { parseLLMArray, validateLLMResponse } from '@/utils/llmResponseParser';
 
-// ============================================================================
-// Extended Project Setup Data with Settings
-// ============================================================================
-
-export interface ProjectConstraint {
-  id: string;
-  category: 'technical' | 'creative' | 'budget' | 'timeline';
-  constraint: string;
-  impact: string;
-}
-
-export interface ExtendedProjectSetupData extends ProjectSetupData {
-  visualStyle?: string;
-  audioStyle?: string;
-  constraints?: ProjectConstraint[];
-}
+// Step 2 uses the same ProjectSetupData which now includes settings
+export type ExtendedProjectSetupData = ProjectSetupData;
 
 const CONSTRAINT_CATEGORIES = [
   { value: 'technical', label: 'Technical' },
@@ -170,7 +156,7 @@ Example format:
       const items = parseLLMArray<unknown>(response, 'parseLLMConstraints');
       
       if (items.length > 0) {
-        const constraints = items.map((item: unknown) => ({
+        const constraints = items.map((item: any) => ({
           id: crypto.randomUUID(),
           category: (item.category?.toLowerCase() as ProjectConstraint['category']) || 'technical',
           constraint: item.constraint || item.name || '',
@@ -215,17 +201,6 @@ Example format:
     return [];
   };
 
-  // ============================================================================
-  // Style Fields
-  // ============================================================================
-
-  const handleVisualStyleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateFormData({ visualStyle: e.target.value });
-  };
-
-  const handleAudioStyleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateFormData({ audioStyle: e.target.value });
-  };
 
   return (
     <WizardFormLayout
@@ -301,40 +276,6 @@ Example format:
           </div>
         )}
       </div>
-
-      {/* Visual Style */}
-      <FormSection title="Visual Style">
-        <FormField
-          label="Visual Direction"
-          name="visualStyle"
-          helpText="Describe the visual style and aesthetic for your project"
-        >
-          <Textarea
-            id="visualStyle"
-            value={formData.visualStyle || ''}
-            onChange={handleVisualStyleChange}
-            placeholder="e.g., Cinematic realism with warm color grading, inspired by Blade Runner..."
-            rows={4}
-          />
-        </FormField>
-      </FormSection>
-
-      {/* Audio Style */}
-      <FormSection title="Audio Style">
-        <FormField
-          label="Audio Direction"
-          name="audioStyle"
-          helpText="Describe the audio style and music direction for your project"
-        >
-          <Textarea
-            id="audioStyle"
-            value={formData.audioStyle || ''}
-            onChange={handleAudioStyleChange}
-            placeholder="e.g., Orchestral score with electronic elements, atmospheric sound design..."
-            rows={4}
-          />
-        </FormField>
-      </FormSection>
 
       {/* Project Constraints */}
       <FormSection

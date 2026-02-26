@@ -38,184 +38,124 @@ class WorkflowResult:
     metrics: Dict[str, Any] = None
 
 
+from backend.config import settings
+
+from src.comfyui_executor import comfyui_executor, ComfyUIExecutionError
+from backend.config import settings
+
 class ComfyUIWorkflowExecutor:
     """
-    Executor for ComfyUI workflows from StoryCore
-    
-    Handles:
-    - Lip Sync (Wav2Lip)
-    - Video-to-Video transformation
-    - Physics simulation
-    - Style transfer
+    Executor for StoryCore ComfyUI workflows.
+    Orchestrates specialized tasks like Lip Sync using the shared ComfyUIExecutor.
     """
     
-    def __init__(self, comfyui_url: str = "http://127.0.0.1:8188"):
-        self.comfyui_url = comfyui_url
-        self.workflows_dir = Path(__file__).parent / "workflows" / "comfyui"
-        self.output_dir = Path(__file__).parent.parent / "output" / "comfyui_results"
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+    def __init__(self):
+        self.executor = comfyui_executor
+        self.workflows_dir = Path(settings.COMFYUI_WORKFLOW_FOLDER)
         
-    def _load_workflow(self, workflow_type: WorkflowType) -> Dict[str, Any]:
-        """Load workflow JSON from file"""
-        workflow_files = {
-            WorkflowType.LIP_SYNC: "lip_sync_workflow.json",
-            WorkflowType.VIDEO_TO_VIDEO: "video_to_video_workflow.json",
-        }
+    def _get_workflow_path(self, workflow_type: WorkflowType) -> Path:
+        """Get the path to a workflow file based on type."""
+        # Check standard locations
+        if workflow_type == WorkflowType.LIP_SYNC:
+            paths = [
+                self.workflows_dir / "lipsync" / "wav2lip_basic.json",
+                Path("backend/workflows/lipsync/wav2lip_basic.json"),
+                Path("workflows/comfyui/lip_sync_workflow.json")
+            ]
+        elif workflow_type == WorkflowType.VIDEO_TO_VIDEO:
+            paths = [
+                self.workflows_dir / "v2v" / "v2v_standard.json",
+                Path("workflows/comfyui/video_to_video_workflow.json")
+            ]
+        else:
+            paths = []
+            
+        for p in paths:
+            if p.exists():
+                return p
         
-        workflow_path = self.workflows_dir / workflow_files.get(workflow_type)
-        
-        if not workflow_path.exists():
-            raise FileNotFoundError(f"Workflow not found: {workflow_path}")
-        
-        with open(workflow_path, 'r') as f:
-            return json.load(f)
-    
+        raise FileNotFoundError(f"Could not find workflow for {workflow_type}")
+
     async def execute_lip_sync(
         self,
         character_image: str,
         dialogue_audio: str,
-        output_filename: str = "lip_sync_result"
+        server_name: Optional[str] = "local",
+        comfyui_url: Optional[str] = None,
+        output_filename: str = "lipsync_result",
+        project_id: Optional[str] = None
     ) -> WorkflowResult:
         """
-        Execute Lip Sync workflow using Wav2Lip
-        
-        Args:
-            character_image: Path to character face image
-            dialogue_audio: Path to dialogue audio file
-            output_filename: Output filename (without extension)
-            
-        Returns:
-            WorkflowResult with output path
+        Execute real Lip Sync workflow on a ComfyUI server.
         """
-        logger.info(f"Executing Lip Sync workflow: {character_image} + {dialogue_audio}")
+        target = server_name if not comfyui_url else comfyui_url
+        logger.info(f"Triggering Lip Sync on {target}: {character_image} + {dialogue_audio}")
         
         try:
-            # Load workflow
-            workflow = self._load_workflow(WorkflowType.LIP_SYNC)
+            # 1. Load workflow template
+            workflow_path = self._get_workflow_path(WorkflowType.LIP_SYNC)
+            with open(workflow_path, 'r') as f:
+                workflow = json.load(f)
             
-            # TODO: Replace placeholders with actual paths
-            # In real implementation, this would call ComfyUI API
-            workflow["nodes"][0]["inputs"]["image"] = character_image
-            workflow["nodes"][1]["inputs"]["audio"] = dialogue_audio
+            # 2. Inject parameters (standard mapping)
+            # Node 1: LoadImage
+            if "1" in workflow:
+                workflow["1"]["inputs"]["image"] = character_image
+            # Node 2: LoadAudio
+            if "2" in workflow:
+                workflow["2"]["inputs"]["audio"] = dialogue_audio
+            # Node 5: SaveImage
+            if "5" in workflow:
+                workflow["5"]["inputs"]["filename_prefix"] = f"{output_filename}_{int(time.time())}"
             
-            # Mock execution for demo
-            output_path = str(self.output_dir / f"{output_filename}.mp4")
-            
-            logger.info(f"Lip Sync would generate: {output_path}")
-            
-            return WorkflowResult(
-                success=True,
-                output_path=output_path,
-                metrics={
-                    "frames_processed": 100,
-                    "audio_duration": 5.2,
-                    "lip_sync_quality": 0.85
-                }
+            # 3. Execute via Cluster Executor
+            result = await self.executor.execute_workflow(
+                workflow=workflow,
+                server_name=server_name,
+                comfyui_url=comfyui_url,
+                project_id=project_id
             )
             
+            if result["success"]:
+                # Extract output URL
+                output_url = None
+                if result.get("outputs"):
+                    output_url = result["outputs"][0].get("url")
+                
+                return WorkflowResult(
+                    success=True,
+                    output_path=output_url,
+                    metrics={"server": server_name, "prompt_id": result.get("prompt_id")}
+                )
+            else:
+                return WorkflowResult(
+                    success=False, 
+                    error_message=result.get("error", "Unknown execution error")
+                )
+                
         except Exception as e:
-            logger.error(f"Lip Sync failed: {e}")
-            return WorkflowResult(
-                success=False,
-                error_message=str(e)
-            )
-    
-    async def execute_video_to_video(
-        self,
-        source_video: str,
-        mask_image: Optional[str],
-        positive_prompt: str,
-        negative_prompt: str = "low quality, blurry, distorted",
-        output_filename: str = "v2v_result"
-    ) -> WorkflowResult:
-        """
-        Execute Video-to-Video transformation workflow
-        
-        Args:
-            source_video: Path to source video
-            mask_image: Path to mask image (optional)
-            positive_prompt: Positive prompt for transformation
-            negative_prompt: Negative prompt
-            output_filename: Output filename
-            
-        Returns:
-            WorkflowResult with output path
-        """
-        logger.info(f"Executing V2V workflow: {source_video}")
-        
-        try:
-            # Load workflow
-            workflow = self._load_workflow(WorkflowType.VIDEO_TO_VIDEO)
-            
-            # Replace placeholders
-            workflow["nodes"][0]["inputs"]["video"] = source_video
-            if mask_image:
-                workflow["nodes"][1]["inputs"]["image"] = mask_image
-            
-            # Update prompts
-            for node in workflow["nodes"]:
-                if node.get("inputs", {}).get("text"):
-                    if "positive" in str(node.get("inputs", {}).get("text", "")).lower():
-                        node["inputs"]["text"] = positive_prompt
-                    else:
-                        node["inputs"]["text"] = negative_prompt
-            
-            # Mock execution
-            output_path = str(self.output_dir / f"{output_filename}.mp4")
-            
-            logger.info(f"V2V would generate: {output_path}")
-            
-            return WorkflowResult(
-                success=True,
-                output_path=output_path,
-                metrics={
-                    "frames_processed": 60,
-                    "transformation_strength": 0.75,
-                    "controlnet_type": "openpose"
-                }
-            )
-            
-        except Exception as e:
-            logger.error(f"V2V failed: {e}")
-            return WorkflowResult(
-                success=False,
-                error_message=str(e)
-            )
-    
+            logger.error(f"Lip Sync execution failed: {e}")
+            return WorkflowResult(success=False, error_message=str(e))
+
     async def execute_workflow(
         self,
         workflow_type: WorkflowType,
-        parameters: Dict[str, Any]
+        parameters: Dict[str, Any],
+        server_name: str = "local"
     ) -> WorkflowResult:
         """
-        Execute any workflow with parameters
-        
-        Args:
-            workflow_type: Type of workflow to execute
-            parameters: Workflow parameters
-            
-        Returns:
-            WorkflowResult
+        Hub for executing specialized workflows.
         """
         if workflow_type == WorkflowType.LIP_SYNC:
             return await self.execute_lip_sync(
                 character_image=parameters["character_image"],
                 dialogue_audio=parameters["dialogue_audio"],
-                output_filename=parameters.get("output_filename", "lip_sync_result")
+                server_name=server_name,
+                output_filename=parameters.get("output_filename", "lip_sync_result"),
+                project_id=parameters.get("project_id")
             )
-        elif workflow_type == WorkflowType.VIDEO_TO_VIDEO:
-            return await self.execute_video_to_video(
-                source_video=parameters["source_video"],
-                mask_image=parameters.get("mask_image"),
-                positive_prompt=parameters["positive_prompt"],
-                negative_prompt=parameters.get("negative_prompt", ""),
-                output_filename=parameters.get("output_filename", "v2v_result")
-            )
-        else:
-            return WorkflowResult(
-                success=False,
-                error_message=f"Workflow type not implemented: {workflow_type}"
-            )
+        # TODO: Implement other types
+        return WorkflowResult(success=False, error_message=f"Workflow {workflow_type} not fully implemented")
 
 
 async def main():

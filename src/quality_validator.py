@@ -39,6 +39,88 @@ class QualityMetric(Enum):
 
 
 @dataclass
+class QualityMetrics:
+    """Quality metrics for a single assessment."""
+    
+    sharpness: float
+    noise_level: float
+    contrast: float
+    brightness: float
+    overall_score: float
+    
+    def to_dict(self) -> dict:
+        """Serializes metrics to dictionary."""
+        return {
+            "sharpness": self.sharpness,
+            "noise_level": self.noise_level,
+            "contrast": self.contrast,
+            "brightness": self.brightness,
+            "overall_score": self.overall_score
+        }
+
+
+@dataclass
+class QualityThresholds:
+    """Quality thresholds for validation."""
+    
+    min_sharpness: float = 50.0
+    max_noise_level: float = 0.5
+    min_contrast: float = 0.5
+    min_brightness: float = 0.5
+    
+    def to_dict(self) -> dict:
+        """Serializes thresholds to dictionary."""
+        return {
+            "min_sharpness": self.min_sharpness,
+            "max_noise_level": self.max_noise_level,
+            "min_contrast": self.min_contrast,
+            "min_brightness": self.min_brightness
+        }
+
+
+@dataclass
+class QualityThresholdResult:
+    """Result of quality threshold validation."""
+    
+    passes_thresholds: bool
+    sharpness_pass: bool
+    noise_pass: bool
+    contrast_pass: bool
+    brightness_pass: bool
+    details: Dict[str, Any]
+    
+    def to_dict(self) -> dict:
+        """Serializes result to dictionary."""
+        return {
+            "passes_thresholds": self.passes_thresholds,
+            "sharpness_pass": self.sharpness_pass,
+            "noise_pass": self.noise_pass,
+            "contrast_pass": self.contrast_pass,
+            "brightness_pass": self.brightness_pass,
+            "details": self.details
+        }
+
+
+@dataclass
+class BatchQualityResult:
+    """Result of batch quality validation."""
+    
+    all_pass: bool
+    individual_results: List['QualityThresholdResult']
+    pass_count: int
+    fail_count: int
+    
+    def to_dict(self) -> dict:
+        """Serializes result to dictionary."""
+        return {
+            "all_pass": self.all_pass,
+            "individual_results": [r.to_dict() for r in self.individual_results],
+            "pass_count": self.pass_count,
+            "fail_count": self.fail_count
+        }
+
+
+@dataclass
 class QualityIssue:
     """Specific quality issue detected."""
     
@@ -1169,3 +1251,109 @@ class QualityValidator:
         """
         # Placeholder implementation
         return []
+    
+    def validate_quality_thresholds(
+        self,
+        metrics: QualityMetrics,
+        thresholds: QualityThresholds
+    ) -> QualityThresholdResult:
+        """
+        Validate quality metrics against thresholds.
+
+        Args:
+            metrics: Quality metrics to validate
+            thresholds: Thresholds to validate against
+
+        Returns:
+            QualityThresholdResult with pass/fail status
+        """
+        sharpness_pass = metrics.sharpness >= thresholds.min_sharpness
+        noise_pass = metrics.noise_level <= thresholds.max_noise_level
+        contrast_pass = metrics.contrast >= thresholds.min_contrast
+        brightness_pass = metrics.brightness >= thresholds.min_brightness
+        
+        all_pass = sharpness_pass and noise_pass and contrast_pass and brightness_pass
+        
+        return QualityThresholdResult(
+            passes_thresholds=all_pass,
+            sharpness_pass=sharpness_pass,
+            noise_pass=noise_pass,
+            contrast_pass=contrast_pass,
+            brightness_pass=brightness_pass,
+            details={
+                "sharpness": {"value": metrics.sharpness, "threshold": thresholds.min_sharpness, "pass": sharpness_pass},
+                "noise_level": {"value": metrics.noise_level, "threshold": thresholds.max_noise_level, "pass": noise_pass},
+                "contrast": {"value": metrics.contrast, "threshold": thresholds.min_contrast, "pass": contrast_pass},
+                "brightness": {"value": metrics.brightness, "threshold": thresholds.min_brightness, "pass": brightness_pass}
+            }
+        )
+    
+    def validate_batch_quality_thresholds(
+        self,
+        metrics_list: List[QualityMetrics],
+        thresholds: QualityThresholds
+    ) -> BatchQualityResult:
+        """
+        Validate a batch of quality metrics against thresholds.
+
+        Args:
+            metrics_list: List of quality metrics to validate
+            thresholds: Thresholds to validate against
+
+        Returns:
+            BatchQualityResult with overall and individual results
+        """
+        individual_results = []
+        for metrics in metrics_list:
+            result = self.validate_quality_thresholds(metrics, thresholds)
+            individual_results.append(result)
+        
+        pass_count = sum(1 for r in individual_results if r.passes_thresholds)
+        fail_count = len(individual_results) - pass_count
+        all_pass = fail_count == 0
+        
+        return BatchQualityResult(
+            all_pass=all_pass,
+            individual_results=individual_results,
+            pass_count=pass_count,
+            fail_count=fail_count
+        )
+    
+    def get_quality_thresholds_for_level(self, quality_level: str) -> QualityThresholds:
+        """
+        Get quality thresholds for a specific quality level.
+
+        Args:
+            quality_level: Quality level ('low', 'medium', 'high', 'ultra')
+
+        Returns:
+            QualityThresholds for the specified level
+        """
+        thresholds_by_level = {
+            'low': QualityThresholds(
+                min_sharpness=30.0,
+                max_noise_level=0.7,
+                min_contrast=0.3,
+                min_brightness=0.3
+            ),
+            'medium': QualityThresholds(
+                min_sharpness=50.0,
+                max_noise_level=0.5,
+                min_contrast=0.5,
+                min_brightness=0.5
+            ),
+            'high': QualityThresholds(
+                min_sharpness=80.0,
+                max_noise_level=0.3,
+                min_contrast=0.7,
+                min_brightness=0.7
+            ),
+            'ultra': QualityThresholds(
+                min_sharpness=100.0,
+                max_noise_level=0.2,
+                min_contrast=0.9,
+                min_brightness=0.9
+            )
+        }
+        
+        return thresholds_by_level.get(quality_level, thresholds_by_level['medium'])

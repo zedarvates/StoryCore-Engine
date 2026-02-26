@@ -51,8 +51,14 @@ export function ProductionWizardContainer({
 
   // Fallback to wizard context if navigation props aren't provided
   const wizardContext = useWizard();
-  const { submitWizard, isSubmitting: contextIsSubmitting, validationErrors } = wizardContext;
+  const { 
+    submitWizard, 
+    isSubmitting: contextIsSubmitting, 
+    validationErrors,
+    lastSaved: contextLastSaved 
+  } = wizardContext;
   const isSubmitting = contextIsSubmitting || false;
+  const currentLastSaved = lastSaved || contextLastSaved || 0;
 
   // Local state for tracking validation
   const [localValidationErrors, setLocalValidationErrors] = useState<Record<string, string[]>>({});
@@ -86,8 +92,8 @@ export function ProductionWizardContainer({
   const wizard = {
     currentStep,
     totalSteps: steps.length,
-    isDirty,
-    lastSaved,
+    isDirty: isDirty || wizardContext?.isDirty,
+    lastSaved: currentLastSaved,
     canProceed: canGoNext,
     validationErrors,
     submit: async () => {
@@ -135,42 +141,42 @@ export function ProductionWizardContainer({
   return (
     <div
       ref={containerRef}
-      className={cn('flex flex-col h-full bg-[#07070a] text-foreground', className)}
+      className={cn('flex flex-col h-full bg-background text-foreground transition-colors duration-300', className)}
       role="main"
       aria-label={title}
     >
-      {/* Scanning effect overlay */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-5 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+      {/* Subtle Scanning effect overlay - themed */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.03] z-0">
+        <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(var(--primary-rgb),0.1),transparent,rgba(var(--primary-rgb),0.1))] bg-[length:100%_4px,10%_100%]" />
       </div>
 
       {/* Header */}
-      <div className="border-b border-primary/20 bg-black/40 px-8 py-6 backdrop-blur-md relative z-10">
+      <div className="border-b border-primary/10 bg-card/30 px-8 py-6 backdrop-blur-md relative z-10 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2 mb-1">
               <Activity className="w-4 h-4 text-primary animate-pulse" />
-              <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-primary/60">System Wizard Alpha</span>
+              <span className="text-[10px] uppercase font-bold tracking-[0.35em] text-primary/70">Project Creation</span>
             </div>
-            <h1 className="text-2xl font-black uppercase tracking-tight text-white drop-shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]">
+            <h1 className="text-2xl font-black uppercase tracking-tight text-foreground drop-shadow-sm">
               {title}
             </h1>
           </div>
 
           {/* Auto-save Indicator */}
           {showAutoSaveIndicator && wizard.lastSaved > 0 && (
-            <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-full" role="status" aria-live="polite">
+            <div className="flex items-center gap-3 bg-primary/5 border border-primary/10 px-4 py-2 rounded-2xl shadow-inner transition-all hover:bg-primary/10" role="status" aria-live="polite">
               <div className="flex items-center gap-2">
-                <Clock className="h-3.5 w-3.5 text-primary/60" />
-                <span className="text-[10px] uppercase font-black tracking-widest text-primary/80">{formatLastSaved(wizard.lastSaved)}</span>
+                <Clock className="h-3.5 w-3.5 text-primary/70" />
+                <span className="text-[10px] uppercase font-black tracking-widest text-primary/90">{formatLastSaved(wizard.lastSaved)}</span>
               </div>
               <div className="w-px h-3 bg-primary/20" />
               <button
                 onClick={handleManualSave}
-                className="text-[10px] uppercase font-black tracking-widest text-primary hover:neon-text transition-all"
+                className="text-[10px] uppercase font-black tracking-widest text-primary hover:text-foreground transition-all"
                 aria-label="Commit changes now"
               >
-                Commit
+                Sync
               </button>
             </div>
           )}
@@ -193,7 +199,7 @@ export function ProductionWizardContainer({
       </div>
 
       {/* Footer Navigation */}
-      <div className="border-t border-primary/20 bg-black/60 px-8 py-6 backdrop-blur-xl relative z-20">
+      <div className="border-t border-primary/10 bg-card/60 px-8 py-6 backdrop-blur-xl relative z-20 shadow-lg">
         <div className="max-w-5xl mx-auto">
           {/* Validation Errors Warning */}
           {localValidationErrors && Object.keys(localValidationErrors).length > 0 && (

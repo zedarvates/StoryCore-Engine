@@ -40,12 +40,13 @@ export class ProjectMemoryService {
         If no insight found, output exactly: []`;
 
         try {
-            const response = await ollamaClient.generate('llama3', `${systemPrompt}\n\nText to analyze: ${text}`, { temperature: 0.1 });
+            const model = await ollamaClient.getBestAvailableModel('general');
+            const response = await ollamaClient.generate(model, `${systemPrompt}\n\nText to analyze: ${text}`, { temperature: 0.1 });
             const jsonStr = response.match(/\[.*\]/s)?.[0];
 
             if (jsonStr) {
                 const results = JSON.parse(jsonStr);
-                results.forEach((res: any) => {
+                results.forEach((res: { text: string; category: MemoryInsight['category']; confidence: number }) => {
                     store.addInsight({
                         text: res.text,
                         category: res.category,
@@ -78,7 +79,8 @@ export class ProjectMemoryService {
         const inputs = importantInsights.map(i => `[${i.category}] ${i.text}`).join('\n');
 
         try {
-            const summary = await ollamaClient.generate('llama3', `${systemPrompt}\n\nInsights:\n${inputs}`, { temperature: 0.3 });
+            const model = await ollamaClient.getBestAvailableModel('storytelling');
+            const summary = await ollamaClient.generate(model, `${systemPrompt}\n\nInsights:\n${inputs}`, { temperature: 0.3 });
             store.updateWorkingContext(summary);
         } catch (e) {
             console.error('[MemoryService] Failed to refresh working context:', e);
@@ -105,7 +107,8 @@ export class ProjectMemoryService {
         const inputs = allInsights.map(i => i.text).join('\n---\n');
 
         try {
-            const response = await ollamaClient.generate('llama3', `${systemPrompt}\n\nInsights:\n${inputs}`, { temperature: 0.1 });
+            const model = await ollamaClient.getBestAvailableModel('general');
+            const response = await ollamaClient.generate(model, `${systemPrompt}\n\nInsights:\n${inputs}`, { temperature: 0.1 });
             const jsonStr = response.match(/\[.*\]/s)?.[0];
 
             if (jsonStr) {

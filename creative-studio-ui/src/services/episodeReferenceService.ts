@@ -234,7 +234,7 @@ export class EpisodeReferenceService {
   async validateContinuity(currentSequenceId: string, episodeId: string): Promise<ContinuityValidationResult> {
     const characterIssues: ContinuityIssue[] = [];
     const locationIssues: ContinuityIssue[] = [];
-    let styleScore = 100;
+    const styleScore = 100;
 
     // Validate character continuity
     const characterStatus = await this.getCharacterContinuityStatus(currentSequenceId, episodeId);

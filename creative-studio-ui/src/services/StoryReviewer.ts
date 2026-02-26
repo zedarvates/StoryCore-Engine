@@ -13,7 +13,7 @@ export class StoryReviewer {
      */
     async reviewPart(content: string, context: { genre: string[]; tone: string[] }): Promise<NonNullable<StoryPart['reviewScore']>> {
         const { getLLMService } = await import('./llmService');
-        const llmService = getLLMService();
+        const llmService = await getLLMService();
 
         const prompt = `
 You are a professional literary critic and editor. Review the following story excerpt and provide scores (0-10) for the following criteria:

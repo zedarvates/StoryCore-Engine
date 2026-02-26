@@ -235,7 +235,7 @@ export function useWorldPersistence() {
 
     let localStorageSuccess = false;
     let projectDirectorySuccess = false;
-    let errorMessages: string[] = [];
+    const errorMessages: string[] = [];
 
     // Save to localStorage
     if (project) {
@@ -464,7 +464,7 @@ export function useWorldPersistence() {
     } catch (error) {
       console.error('Failed to load worlds from localStorage:', error);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // Only re-run when project name changes - worlds/addWorld should not trigger reload
   }, [project?.project_name]);
 
@@ -474,7 +474,7 @@ export function useWorldPersistence() {
       console.log('[useWorldPersistence] Project path changed, syncing worlds...');
       syncWorldsFromProject();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // syncWorldsFromProject is a callback - only run when project path/name changes
   }, [projectPath, project?.project_name]);
 

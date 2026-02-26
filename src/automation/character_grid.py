@@ -670,9 +670,54 @@ class CharacterGridAutomation:
         else:
             return None
     
+    async def generate_config_with_ai(
+        self,
+        character_name: str,
+        character_description: str,
+        llm_client: Any,
+        grid_size: GridSize = GridSize.GRID_3X3
+    ) -> CharacterGridConfig:
+        """
+        Use AI to suggest the best configuration for a character grid.
+        High-speed implementation with tabular response.
+        """
+        count = self.GRID_LAYOUTS[grid_size]["total"]
+        
+        prompt = f"""[TASK] Plan a {grid_size.value} image grid for character: {character_name} ({character_description})
+[AVAILABLE]
+- Poses: {", ".join(self.get_available_poses())}
+- Expr: {", ".join(self.get_available_expressions())}
+- Outfits: {", ".join(self.get_available_outfits())}
+[FORMAT] Return JSON: {{"poses": ["best_{count}"], "expr": ["best_{count}"], "outfits": ["best_{count}"], "style": "one word"}}"""
+
+        try:
+            # Note: Expects llm_client to have a complete() method
+            response = llm_client.complete(prompt, temperature=0.3, max_tokens=500)
+            data = json.loads(response)
+            
+            # Map back to enums
+            def map_enum(vals, enum_class):
+                return [enum_class(v) for v in vals if any(v == e.value for e in enum_class)]
+
+            return CharacterGridConfig(
+                character_id=f"ai_{uuid.uuid4().hex[:8]}",
+                character_name=character_name,
+                grid_size=grid_size,
+                poses=map_enum(data.get("poses", []), CharacterPose),
+                expressions=map_enum(data.get("expr", []), Expression),
+                outfits=map_enum(data.get("outfits", []), CharacterOutfit),
+                style=data.get("style", "realistic"),
+                character_description=character_description
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"AI Grid Config failed: {e}")
+            return CharacterGridConfig(character_id="default", character_name=character_name)
+
     def clear_history(self):
         """Efface l'historique des générations."""
         self.generation_history.clear()
+
 
 
 # Factory function

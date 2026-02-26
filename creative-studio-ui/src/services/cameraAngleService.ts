@@ -6,6 +6,7 @@
  */
 
 import { API_BASE_URL } from '@/config/apiConfig';
+import { getComfyUIServersService } from './comfyuiServersService';
 import type {
   CameraAngleRequest,
   CameraAngleJobResponse,
@@ -180,12 +181,32 @@ class CameraAngleService {
    * @returns Job ID for tracking
    */
   async generate(request: CameraAngleRequest): Promise<CameraAngleJobResponse> {
+    // Automatically inject active ComfyUI server URL if not provided
+    if (!request.comfyuiUrl) {
+      try {
+        const activeUrl = getComfyUIServersService().getActiveServerUrl();
+        if (activeUrl) {
+          request.comfyuiUrl = activeUrl;
+        }
+      } catch (error) {
+        console.warn('[CameraAngleService] Failed to get active ComfyUI server:', error);
+      }
+    }
+
     try {
       const response = await this.request<CameraAngleJobResponse>(
         '/api/camera-angle/generate',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify({
+            image_base64: request.imageBase64,
+            angle_ids: request.angleIds,
+            preserve_style: request.preserveStyle,
+            quality: request.quality,
+            seed: request.seed,
+            custom_prompt: request.customPrompt,
+            comfyui_url: request.comfyuiUrl,
+          }),
         },
         'generate'
       );

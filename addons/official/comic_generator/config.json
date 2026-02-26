@@ -1,0 +1,19 @@
+{
+  "comic_style": "manga",
+  "panels_per_page": 4,
+  "image_width": 768,
+  "image_height": 1024,
+  "panel_width": 512,
+  "panel_height": 512,
+  "narrative_memory_depth": 5,
+  "auto_generate_images": false,
+  "comfyui_endpoint": "http://localhost:8188",
+  "llm_model": "auto",
+  "motion_effects_enabled": false,
+  "tts_enabled": false,
+  "export_format": "json",
+  "output_dir": "data/assets/comics",
+  "seed_base": 42,
+  "bubble_style": "round",
+  "layout_dynamic_level": 0.7
+}

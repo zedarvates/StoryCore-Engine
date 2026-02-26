@@ -1,8 +1,23 @@
+/* cspell:ignore ollama trage intitulé nommé nommée consommée métrage court-métrage construi Kling REQUETE atmos */
 import type { ChatMessage, Shot, Project, Asset } from '@/types';
 import type { LanguageCode } from '@/utils/llmConfigStorage';
 import { useMemoryStore } from '@/stores/memoryStore';
 import { projectMemory } from '@/services/ProjectMemoryService';
 import { ollamaClient } from '@/services/llm/OllamaClient';
+
+interface ChatLLMService {
+  generateCompletion(request: {
+    prompt: string;
+    maxTokens?: number;
+    temperature?: number;
+    images?: string[];
+  }): Promise<{
+    success: boolean;
+    data?: {
+      content: string;
+    };
+  }>;
+}
 
 export interface ChatContext {
   project: Project | null;
@@ -12,7 +27,7 @@ export interface ChatContext {
 }
 
 export interface ChatAction {
-  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject' | 'createCharacter' | 'createLocation' | 'createObject' | 'createDialogue' | 'createStory' | 'createWorld' | 'createScenario' | 'generateImage' | 'generateAudio' | 'generateVideo' | 'analyzeImage';
+  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject' | 'createCharacter' | 'createLocation' | 'createObject' | 'createDialogue' | 'createStory' | 'createWorld' | 'createScenario' | 'generateImage' | 'generateAudio' | 'generateVideo' | 'analyzeImage' | 'changeTheme';
   payload: unknown;
 }
 
@@ -80,7 +95,7 @@ export class ChatService {
   /**
    * Process user input and generate AI response with context awareness
    */
-  async processMessage(userInput: string, attachments?: ChatAttachment[], llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  async processMessage(userInput: string, attachments?: ChatAttachment[], llmService?: ChatLLMService, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const input = userInput.toLowerCase();
 
     // Handle vision requests if attachments are present
@@ -144,11 +159,15 @@ export class ChatService {
       case 'generate_video':
         return await this.handleGenerateVideo(userInput, llmService, language);
 
-      default:
+      case 'change_theme':
+        return this.handleThemeChange(intent, userInput, language);
+
+      default: {
         const response = await this.handleGeneral(userInput, llmService, language);
         // Total Recall: Analyze for new insights
         projectMemory.analyzeForMemory(response.message, 'Chat Assistant');
         return response;
+      }
     }
   }
 
@@ -309,6 +328,64 @@ export class ChatService {
     }
 
     return undefined;
+  }
+
+  /**
+   * Handle theme change requests
+   */
+  private handleThemeChange(
+    intent: { type: string; confidence: number; params: Record<string, unknown> },
+    userInput: string,
+    language: LanguageCode = 'fr'
+  ): ChatResponse {
+    const input = userInput.toLowerCase();
+    let themeToSet: string = 'system';
+    let themeName = language === 'fr' ? 'système' : 'system';
+
+    if (input.match(/sombre|dark|nuit|night|noir/i)) {
+      if (input.match(/neon|néon/i)) {
+        themeToSet = 'dark-neon';
+        themeName = language === 'fr' ? 'Néon Noir' : 'Dark Neon';
+      } else if (input.match(/onyx/i)) {
+        themeToSet = 'dark-onyx';
+        themeName = language === 'fr' ? 'Onyx Pur' : 'Dark Onyx';
+      } else if (input.match(/plasma|plex/i)) {
+        themeToSet = 'plasma-plex-neon';
+        themeName = language === 'fr' ? 'Plasma Plex Néon' : 'Plasma Plex Neon';
+      } else {
+        themeToSet = 'dark-neon'; // Default dark
+        themeName = language === 'fr' ? 'Sombre' : 'Dark';
+      }
+    } else if (input.match(/clair|light|blanc|white|jour/i)) {
+      if (input.match(/sepia|sépia/i)) {
+        themeToSet = 'light-sepia';
+        themeName = language === 'fr' ? 'Sépia' : 'Sepia';
+      } else {
+        themeToSet = 'light-snow';
+        themeName = language === 'fr' ? 'Clair (Neige)' : 'Light (Snow)';
+      }
+    } else if (input.match(/retro|rétro|terminal/i)) {
+      themeToSet = 'classic-retro';
+      themeName = language === 'fr' ? 'Rétro' : 'Retro';
+    } else if (input.match(/slate|ardoise|pro/i)) {
+      themeToSet = 'classic-slate';
+      themeName = language === 'fr' ? 'Ardoise' : 'Slate';
+    } else if (input.match(/d[ée]faut|appareil|system/i)) {
+      themeToSet = 'system';
+      themeName = language === 'fr' ? 'Système (Appareil)' : 'System (Device)';
+    }
+
+    return {
+      message: language === 'fr'
+        ? `Bien sûr ! Je change l'interface pour le thème "${themeName}".`
+        : `Sure! I'm switching the interface to the "${themeName}" theme.`,
+      actions: [
+        {
+          type: 'changeTheme',
+          payload: { theme: themeToSet },
+        },
+      ],
+    };
   }
 
   /**
@@ -669,13 +746,35 @@ export class ChatService {
       };
     }
 
+    // Change theme (FR + EN)
+    if (
+      input.match(/change|switch|use|set|mets|active|utilise|passe|bascule/i) &&
+      input.match(/th[èe]me|style|interface|apparence|mode|couleur/i)
+    ) {
+      return {
+        type: 'change_theme',
+        confidence: 0.95,
+        params: { rawInput: input },
+      };
+    }
+
+    // Mode Sombre/Clair direct (FR + EN)
+    if (input.match(/mode sombre|dark mode|mode clair|light mode|mode nuit|night mode/i)) {
+      return {
+        type: 'change_theme',
+        confidence: 0.95,
+        params: { rawInput: input },
+      };
+    }
+
     return { type: 'general', confidence: 0.5, params: {} };
   }
 
   /**
    * Handle shot creation requests
    */
-  private handleCreateShots(intent: { type: string; confidence: number; params: Record<string, unknown> }, input: string): ChatResponse {
+  private handleCreateShots(intent: { type: string; confidence: number; params: Record<string, unknown> }, _input: string): ChatResponse {
+    void _input;
     const { count, theme } = intent.params as { count: number; theme: string };
     const actions: ChatAction[] = [];
 
@@ -715,7 +814,8 @@ export class ChatService {
   /**
    * Handle shot modification requests
    */
-  private handleModifyShot(intent: { type: string; confidence: number; params: Record<string, unknown> }, input: string): ChatResponse {
+  private handleModifyShot(intent: { type: string; confidence: number; params: Record<string, unknown> }, _input: string): ChatResponse {
+    void _input;
     const { shotId } = intent.params as { shotId: string | null };
 
     if (!shotId) {
@@ -745,7 +845,8 @@ export class ChatService {
   /**
    * Handle transition addition requests
    */
-  private handleAddTransition(intent: { type: string; confidence: number; params: Record<string, unknown> }, input: string): ChatResponse {
+  private handleAddTransition(intent: { type: string; confidence: number; params: Record<string, unknown> }, _input: string): ChatResponse {
+    void _input;
     const { transitionType } = intent.params as { transitionType: string };
 
     if (this.context.shots.length < 2) {
@@ -773,7 +874,8 @@ export class ChatService {
   /**
    * Handle audio addition requests
    */
-  private handleAddAudio(intent: { type: string; confidence: number; params: Record<string, unknown> }, input: string): ChatResponse {
+  private handleAddAudio(intent: { type: string; confidence: number; params: Record<string, unknown> }, _input: string): ChatResponse {
+    void _input;
     const { audioType } = intent.params as { audioType: string };
 
     const recommendations: Record<string, string> = {
@@ -800,6 +902,8 @@ export class ChatService {
    * Handle text addition requests
    */
   private handleAddText(_intent: { type: string; confidence: number; params: Record<string, unknown> }, _input: string): ChatResponse {
+    void _intent;
+    void _input;
     if (!this.context.selectedShotId) {
       return {
         message: 'Please select a shot first, then I can help you add text overlays.',
@@ -822,6 +926,8 @@ export class ChatService {
    * Handle asset suggestion requests
    */
   private handleSuggestAssets(_intent: { type: string; confidence: number; params: Record<string, unknown> }, _input: string): ChatResponse {
+    void _intent;
+    void _input;
     const assetCount = this.context.assets.length;
 
     if (assetCount === 0) {
@@ -872,7 +978,7 @@ export class ChatService {
   /**
    * Handle general queries using LLM with Project Memory
    */
-  private async handleGeneral(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleGeneral(input: string, llmService?: ChatLLMService, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const workingContext = useMemoryStore.getState().workingContext;
     const projectInfo = this.context.project ?
       `Project: ${this.context.project.project_name}. ${this.context.project.metadata?.description || ''}` :
@@ -905,7 +1011,8 @@ export class ChatService {
         message = res.data?.content || "I'm listening. How can I assist with your production today?";
       } else {
         // Fallback to direct ollama if llmService is missing but ollama might be there
-        message = await ollamaClient.generate('llama3', prompt, { temperature: 0.7 });
+        const model = await ollamaClient.getBestAvailableModel('storytelling');
+        message = await ollamaClient.generate(model, prompt, { temperature: 0.7 });
       }
 
       return {
@@ -941,7 +1048,8 @@ export class ChatService {
   /**
    * Handle character creation request
    */
-  private async handleCreateCharacter(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleCreateCharacter(input: string, llmService?: ChatLLMService, _language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    void _language;
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     let name = nameMatch ? nameMatch[1].trim() : undefined;
@@ -1030,7 +1138,8 @@ export class ChatService {
   /**
    * Handle location creation request
    */
-  private async handleCreateLocation(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleCreateLocation(input: string, llmService?: ChatLLMService, _language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    void _language;
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     let name = nameMatch ? nameMatch[1].trim() : undefined;
@@ -1117,7 +1226,8 @@ export class ChatService {
   /**
    * Handle object creation request
    */
-  private async handleCreateObject(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleCreateObject(input: string, llmService?: ChatLLMService, _language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    void _language;
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     let name = nameMatch ? nameMatch[1].trim() : undefined;
@@ -1204,7 +1314,8 @@ export class ChatService {
   /**
    * Handle dialogue creation request
    */
-  private async handleCreateDialogue(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleCreateDialogue(input: string, llmService?: ChatLLMService, _language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    void _language;
     let topic = '';
     let tone = 'neutral';
     let characters: string[] = [];
@@ -1279,7 +1390,8 @@ export class ChatService {
   /**
    * Handle story creation request
    */
-  private async handleCreateStory(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleCreateStory(input: string, llmService?: ChatLLMService, _language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    void _language;
     // Regex extraction as fallback/priority for explicit quotes
     const nameMatch = input.match(/(?:appelée?|nommée?|intitulée?|named|called|titled)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
@@ -1371,7 +1483,8 @@ export class ChatService {
   /**
    * Handle world creation request
    */
-  private async handleCreateWorld(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleCreateWorld(input: string, llmService?: ChatLLMService, _language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    void _language;
     const nameMatch = input.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     let name = nameMatch ? nameMatch[1].trim() : undefined;
@@ -1462,7 +1575,8 @@ export class ChatService {
   /**
    * Handle scenario creation request
    */
-  private async handleCreateScenario(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleCreateScenario(input: string, llmService?: ChatLLMService, _language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    void _language;
     const nameMatch = input.match(/(?:appelé|nommé|intitulé|named|called|titled)\s+["']?([^"',;.]+)["']?/i)
       || input.match(/["']([^"']+)["']/);
     let title = nameMatch ? nameMatch[1].trim() : undefined;
@@ -1557,7 +1671,8 @@ export class ChatService {
   /**
    * Handle image generation request
    */
-  private async handleGenerateImage(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleGenerateImage(input: string, llmService?: ChatLLMService, _language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    void _language;
     // Extract the description/prompt from the user input
     const descMatch = input.match(/(?:image|illustration|dessin|drawing|photo|picture|portrait|visuel|visual|artwork)\s+(?:de|of|d'|du|d’|pour|for)?\s*(.+)/i)
       || input.match(/(?:génère|generate|crée|create|dessine|draw)\s+(?:une?|an?)?\s*(.+)/i);
@@ -1607,7 +1722,8 @@ export class ChatService {
   /**
    * Handle audio/voice generation request
    */
-  private async handleGenerateAudio(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleGenerateAudio(input: string, llmService?: ChatLLMService, _language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    void _language;
     // Extract the text to convert to speech
     const textMatch = input.match(/(?:lis?|read|parle|speak|dis?|say)\s+["'«]([^"'»]+)["'»]/i)
       || input.match(/(?:voix|voice|audio|narration)\s+(?:pour|for|de|of)?\s*["'«]([^"'»]+)["'»]/i)
@@ -1642,7 +1758,7 @@ export class ChatService {
               emotion = data.emotion || 'neutral';
               voiceType = data.voiceType || 'neutral';
             }
-          } catch (e) {
+          } catch {
             // ignore parse error
           }
         }
@@ -1698,7 +1814,7 @@ export class ChatService {
   /**
    * Handle video generation request
    */
-  private async handleGenerateVideo(input: string, llmService?: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleGenerateVideo(input: string, llmService?: ChatLLMService, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     // Extract the description/prompt
     const descMatch = input.match(/(?:vidéo|video|animation|clip)\s+(?:de|of|d'|d’|du|pour|for)?\s*(.+)/i)
       || input.match(/(?:anime|animate|génère|generate|crée|create)\s+(?:une?|an?)?\s*(?:vidéo|video|animation)?\s*(.+)/i);
@@ -1756,7 +1872,7 @@ export class ChatService {
   /**
    * Handle requests involving images/vision
    */
-  private async handleVisionRequest(input: string, attachments: ChatAttachment[], llmService: any, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+  private async handleVisionRequest(input: string, attachments: ChatAttachment[], llmService: ChatLLMService, language: LanguageCode = 'fr'): Promise<ChatResponse> {
     const image = attachments[0]; // Process first image for now
     const lowerInput = input.toLowerCase();
 
@@ -1777,10 +1893,10 @@ export class ChatService {
     // Project context for style adaptation
     let projectContext = '';
     if (this.context.project) {
-      const p = this.context.project as any;
-      const genre = p.genre || p.metadata?.genre || '';
-      const tone = p.tone || p.metadata?.tone || '';
-      const style = p.style || p.metadata?.style || '';
+      const p = this.context.project;
+      const genre = p.projectSetup?.genre?.join(', ') || p.metadata?.genre || '';
+      const tone = p.projectSetup?.tone?.join(', ') || p.metadata?.tone || '';
+      const style = p.metadata?.style || '';
 
       if (genre || tone || style) {
         projectContext = language === 'fr'
@@ -1912,8 +2028,8 @@ export class ChatService {
 
     // Generate specific prompts for the entity based on analysis and project context
     const generatedPrompts: string[] = [];
-    const p = this.context.project as any;
-    const style = p?.style || p?.metadata?.style || parsedData.style || 'Cinematic';
+    const p = this.context.project;
+    const style = p?.metadata?.style || parsedData.style || 'Cinematic';
 
     if (entityType === 'character') {
       const appearance = (parsedData.appearance as string) || (parsedData.Appearance as string) || analysis.substring(0, 300);

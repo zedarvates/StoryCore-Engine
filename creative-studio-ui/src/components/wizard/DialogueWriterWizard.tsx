@@ -5,14 +5,14 @@
  * Provides a modal interface for dialogue generation
  */
 
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import React, { useState, useEffect, useCallback } from 'react';
+import { X, Copy, RefreshCw, Check, ArrowLeft, Loader2, Video } from 'lucide-react';
 import { DialogueWriterForm, DialogueWriterFormProps, DialogueInput } from './forms/DialogueWriterForm';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Copy, RefreshCw, Check, ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAppStore } from '@/stores/useAppStore';
+import './WizardModal.css';
 
 export interface DialogueWriterWizardProps {
   isOpen: boolean;
@@ -34,6 +34,34 @@ export function DialogueWriterWizard({
   const [formData, setFormData] = useState<DialogueInput | null>(null);
   const [generatedDialogue, setGeneratedDialogue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const setShowLipSyncWizard = useAppStore(state => state.setShowLipSyncWizard);
+
+  // Handle Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+      setStep('input');
+      setGeneratedDialogue('');
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, handleKeyDown]);
 
   const generateDialogue = async (data: DialogueInput) => {
     setIsGenerating(true);
@@ -82,24 +110,45 @@ export function DialogueWriterWizard({
     }
   };
 
+  const handleLipSync = () => {
+    if (formData) {
+      onComplete(formData, generatedDialogue);
+      setShowLipSyncWizard(true, {
+        characterImage: undefined, // Will be selected in wizard
+      });
+      onClose();
+    }
+  };
+
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedDialogue);
     toast({ title: "Copié !", description: "Le dialogue a été copié dans le presse-papier." });
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Dialogue Writer</DialogTitle>
-          <DialogDescription>
-            {step === 'input'
-              ? "Define the context and characters for your scene."
-              : "Review and edit the generated dialogue."}
-          </DialogDescription>
-        </DialogHeader>
+  if (!isOpen) return null;
 
-        <div className="flex-1 overflow-hidden mt-4">
+  return (
+    <div className="wizard-modal-overlay" onClick={onClose}>
+      <div className="wizard-modal-container max-w-3xl" onClick={(e) => e.stopPropagation()}>
+        <div className="wizard-modal-header">
+          <div className="flex flex-col">
+            <h2 className="wizard-modal-title">Dialogue Writer</h2>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
+              {step === 'input'
+                ? "Define the context and characters for your scene."
+                : "Review and edit the generated dialogue."}
+            </p>
+          </div>
+          <button
+            className="wizard-modal-close"
+            onClick={onClose}
+            aria-label="Fermer"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="wizard-modal-content p-6">
           {step === 'input' ? (
             <DialogueWriterForm
               initialData={initialData}
@@ -110,41 +159,45 @@ export function DialogueWriterWizard({
             />
           ) : (
             <div className="flex flex-col h-full space-y-4">
-              <ScrollArea className="flex-1 border rounded-md p-4 bg-muted/30">
-                <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
+              <ScrollArea className="flex-1 border border-primary/20 rounded-md p-4 bg-black/40">
+                <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-300">
                   {generatedDialogue}
                 </div>
               </ScrollArea>
 
               <div className="flex justify-between items-center pt-2">
-                <Button variant="outline" onClick={() => setStep('input')} className="gap-2">
+                <Button variant="outline" onClick={() => setStep('input')} className="gap-2 border-primary/20 text-slate-400 hover:text-white">
                   <ArrowLeft className="w-4 h-4" />
                   Back to Edit
                 </Button>
 
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleCopy} title="Copy to clipboard">
+                  <Button variant="outline" onClick={handleCopy} title="Copy to clipboard" className="border-primary/20">
                     <Copy className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => formData && generateDialogue(formData)}
                     disabled={isGenerating}
-                    className="gap-2"
+                    className="gap-2 border-primary/20"
                   >
                     {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                     Regenerate
                   </Button>
-                  <Button onClick={handleUse} className="gap-2">
+                  <Button variant="secondary" onClick={handleLipSync} className="gap-2 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600/30">
+                    <Video className="w-4 h-4" />
+                    Lip Sync
+                  </Button>
+                  <Button onClick={handleUse} className="gap-2 bg-primary text-primary-foreground font-bold">
                     <Check className="w-4 h-4" />
-                    Use This Dialogue
+                    Use Dialogue
                   </Button>
                 </div>
               </div>
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

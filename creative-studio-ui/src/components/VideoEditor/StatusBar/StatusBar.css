@@ -2,11 +2,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 16px;
-  background: #1a1a1a;
-  border-top: 1px solid #333;
-  font-size: 12px;
-  color: #888;
+  padding: 0 16px;
+  background: #111111;
+  border-top: 1px solid #222;
+  font-size: 11px;
+  color: #777;
+  height: 28px;
+  user-select: none;
 }
 
 .status-bar-left,
@@ -14,31 +16,47 @@
 .status-bar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .time-current {
-  color: #fff;
-  font-family: 'SF Mono', Monaco, monospace;
-  min-width: 80px;
+  color: #3b82f6; /* Blue for active time */
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-weight: 600;
+  min-width: 85px;
+  letter-spacing: 0.5px;
 }
 
 .time-duration {
-  color: #666;
-  font-family: 'SF Mono', Monaco, monospace;
+  color: #555;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 .status-separator {
-  color: #444;
+  color: #333;
 }
 
 .status-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  transition: color 0.15s;
+}
+
+.status-item:hover {
+  color: #aaa;
 }
 
 .status-item.shortcut {
   cursor: help;
+  opacity: 0.6;
 }
 
+.status-item.shortcut:hover {
+  opacity: 1;
+}
+
+.status-label {
+  color: #444;
+  margin-right: 2px;
+}

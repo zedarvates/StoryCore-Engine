@@ -47,13 +47,14 @@ const VISUAL_STYLE_OPTIONS = [
   'Vintage',
 ];
 
-export function StoryboardCreatorForm({
+export const StoryboardCreatorForm = React.forwardRef<HTMLFormElement, StoryboardCreatorFormProps>(({
   initialData,
   onSubmit,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onCancel,
   onChange,
   onValidationChange,
-}: StoryboardCreatorFormProps) {
+}, ref) => {
   const [formData, setFormData] = useState<StoryboardInput>({
     scriptText: initialData?.scriptText || '',
     visualStyle: initialData?.visualStyle || '',
@@ -62,14 +63,6 @@ export function StoryboardCreatorForm({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-
-  // Validate form whenever data changes
-  useEffect(() => {
-    // Skip validation on initial mount
-    if (formData.scriptText || formData.visualStyle) {
-      validateForm();
-    }
-  }, [formData]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -98,6 +91,18 @@ export function StoryboardCreatorForm({
     return isValid;
   }, [formData, onValidationChange]);
 
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount
+    if (formData.scriptText || formData.visualStyle) {
+      // Use setTimeout to defer setState to next event loop tick
+      const timeoutId = setTimeout(() => {
+        validateForm();
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, validateForm]);
+
   const handleFieldChange = useCallback((field: keyof StoryboardInput, value: unknown) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
@@ -118,7 +123,7 @@ export function StoryboardCreatorForm({
   }, [formData, validateForm, onSubmit]);
 
   return (
-    <form className="storyboard-creator-form" onSubmit={handleSubmit}>
+    <form ref={ref} className="storyboard-creator-form" onSubmit={handleSubmit}>
       <FormSection title="Script">
         <FormField
           name="scriptText"
@@ -223,5 +228,5 @@ export function StoryboardCreatorForm({
       </FormSection>
     </form>
   );
-}
+});
 

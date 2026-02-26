@@ -74,7 +74,7 @@ export class SearchService {
     const notGroups: SearchCriteria[] = [];
 
     let currentAndGroup: SearchCriteria[] = [];
-    let currentOrGroup: SearchCriteria[] = [];
+    const currentOrGroup: SearchCriteria[] = [];
 
     for (let i = 0; i < criteria.length; i++) {
       const criterion = criteria[i];

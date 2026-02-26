@@ -19,6 +19,7 @@ export interface CharacterTemplate {
     personality: string[];
     appearance: string[];
     typicalGenre: string[];
+    typicalTone?: string[];
     isDefault?: boolean;
 }
 
@@ -62,6 +63,7 @@ const DEFAULT_CHARACTER_TEMPLATES: CharacterTemplate[] = [
         personality: ['brave', 'determined', 'compassionate'],
         appearance: ['athletic build', 'determined eyes', 'practical clothing'],
         typicalGenre: ['fantasy', 'adventure'],
+        typicalTone: ['epic', 'hopeful', 'serious'],
         isDefault: true,
     },
     {
@@ -72,6 +74,7 @@ const DEFAULT_CHARACTER_TEMPLATES: CharacterTemplate[] = [
         personality: ['wise', 'patient', 'mysterious'],
         appearance: ['aged features', 'knowing eyes', 'distinguished attire'],
         typicalGenre: ['fantasy', 'scifi', 'adventure'],
+        typicalTone: ['mysterious', 'serious', 'hopeful'],
         isDefault: true,
     },
     {
@@ -82,6 +85,7 @@ const DEFAULT_CHARACTER_TEMPLATES: CharacterTemplate[] = [
         personality: ['cunning', 'ambitious', 'ruthless'],
         appearance: ['imposing presence', 'sharp features', 'dark attire'],
         typicalGenre: ['fantasy', 'thriller', 'drama'],
+        typicalTone: ['dark', 'serious', 'suspenseful'],
         isDefault: true,
     },
     {
@@ -92,6 +96,7 @@ const DEFAULT_CHARACTER_TEMPLATES: CharacterTemplate[] = [
         personality: ['loyal', 'humorous', 'resourceful'],
         appearance: ['friendly demeanor', 'practical attire', 'expressive face'],
         typicalGenre: ['fantasy', 'adventure', 'comedy'],
+        typicalTone: ['light', 'humorous', 'hopeful'],
         isDefault: true,
     },
     // Sci-Fi Characters
@@ -103,6 +108,7 @@ const DEFAULT_CHARACTER_TEMPLATES: CharacterTemplate[] = [
         personality: ['intelligent', 'curious', 'ethical'],
         appearance: ['professional attire', 'thoughtful expression', 'practical glasses'],
         typicalGenre: ['scifi', 'thriller'],
+        typicalTone: ['serious', 'suspenseful', 'mysterious'],
         isDefault: true,
     },
     {
@@ -113,6 +119,7 @@ const DEFAULT_CHARACTER_TEMPLATES: CharacterTemplate[] = [
         personality: ['decisive', 'experienced', 'protective'],
         appearance: ['military bearing', 'weathered features', 'command uniform'],
         typicalGenre: ['scifi', 'adventure'],
+        typicalTone: ['epic', 'serious', 'suspenseful'],
         isDefault: true,
     },
     // Drama Characters
@@ -124,6 +131,7 @@ const DEFAULT_CHARACTER_TEMPLATES: CharacterTemplate[] = [
         personality: ['observant', 'persistent', 'troubled'],
         appearance: ['tired eyes', 'practical clothes', 'disheveled appearance'],
         typicalGenre: ['thriller', 'mystery', 'drama'],
+        typicalTone: ['dark', 'gritty', 'suspenseful', 'serious'],
         isDefault: true,
     },
     {
@@ -134,6 +142,7 @@ const DEFAULT_CHARACTER_TEMPLATES: CharacterTemplate[] = [
         personality: ['charismatic', 'independent', 'complex'],
         appearance: ['attractive', 'unique style', 'warm expression'],
         typicalGenre: ['romance', 'drama'],
+        typicalTone: ['intimate', 'hopeful', 'light'],
         isDefault: true,
     },
 ];
@@ -306,17 +315,45 @@ export function loadGlobalTemplates(): GlobalTemplates {
 }
 
 /**
- * Get character templates filtered by genre
+ * Get character templates filtered by genre and optionally by tone
+ * Templates are prioritized by:
+ * 1. Matching both genre AND tone (highest priority)
+ * 2. Matching genre only
+ * 3. Default templates (fallback)
  */
-export function getCharacterTemplatesByGenre(genre: string[]): CharacterTemplate[] {
+export function getCharacterTemplatesByGenre(genre: string[], tone?: string[]): CharacterTemplate[] {
     const templates = loadGlobalTemplates();
-    if (!genre || genre.length === 0) {
+    
+    // If no filters, return defaults
+    if ((!genre || genre.length === 0) && (!tone || tone.length === 0)) {
         return templates.characters.filter(t => t.isDefault);
     }
 
-    return templates.characters.filter(t =>
-        t.typicalGenre.some(g => genre.includes(g)) || t.isDefault
-    );
+    // Score each template based on matching criteria
+    const scoredTemplates = templates.characters.map(template => {
+        let score = 0;
+        
+        // Check genre match
+        const genreMatch = template.typicalGenre.some(g => genre?.includes(g) || false);
+        if (genreMatch) score += 2;
+        
+        // Check tone match (if tone is provided)
+        if (tone && tone.length > 0 && template.typicalTone) {
+            const toneMatch = template.typicalTone.some(t => tone.includes(t));
+            if (toneMatch) score += 1;
+        }
+        
+        // Default templates get a base score to always be included
+        if (template.isDefault) score = Math.max(score, 1);
+        
+        return { template, score };
+    });
+
+    // Filter templates with score > 0 and sort by score (highest first)
+    return scoredTemplates
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(item => item.template);
 }
 
 /**

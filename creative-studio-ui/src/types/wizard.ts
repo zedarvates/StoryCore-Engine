@@ -664,3 +664,21 @@ export interface SequencePlanWizardState {
   lastSaved: number;
 }
 
+export interface ShotWizardState {
+  currentStep: number;
+  formData: Partial<import('./shot').ProductionShot>;
+  selectedTemplate?: import('./template').ShotTemplate;
+  generatedPrompt: string;
+  validationErrors: Record<string, string>;
+  previewData: {
+    thumbnailUrl?: string;
+    estimatedDuration: number;
+    estimatedCost: number;
+    qualityScore: number;
+  };
+  isDirty: boolean;
+  lastSaved: number;
+  quickMode: boolean;
+}
+
+

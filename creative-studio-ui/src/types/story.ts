@@ -107,6 +107,8 @@ export interface Story {
   updatedAt: number; // timestamp in ms
   version: number;
   worldId?: string;
+  acts?: StoryAct[]; // Add acts for structured plot design
+  logline?: string; // Add logline for high-concept storage
   parts?: StoryPart[]; // For iterative, multi-part generation
   fileFormat?: StoryFileFormat; // Always 'md' in new system
   methodologyState?: MethodologyState; // State of the generation methodology
@@ -187,8 +189,8 @@ export interface StoryGenerationParams {
   genre: string[];
   tone: string[];
   length: 'short' | 'medium' | 'long' | 'scene' | 'short_story' | 'novella' | 'novel' | 'epic_novel';
-  characters: { name: string; description?: string; role?: string;[key: string]: any }[]; // Character objects from world data
-  locations: { name: string; description?: string; type?: string;[key: string]: any }[]; // Location objects from world data
+  characters: { name: string; description?: string; role?: string; [key: string]: unknown }[]; // Character objects from world data
+  locations: { name: string; description?: string; type?: string; [key: string]: unknown }[]; // Location objects from world data
   worldContext: WorldContext;
   totalTitle?: string;
 }

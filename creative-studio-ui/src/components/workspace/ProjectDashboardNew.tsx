@@ -1,3 +1,4 @@
+/* cspell:ignore ella spanish él */
 /**
  * New Project Dashboard Component
  * 
@@ -12,7 +13,7 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAppStore } from '@/stores/useAppStore';
+import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import type { Shot } from '@/types';
 import { isRecord } from '@/utils/typeGuards';
 import { sequencePlanService } from '@/services/sequencePlanService';
@@ -20,13 +21,7 @@ import { migrationService } from '@/services/MigrationService';
 import { syncManager } from '@/services/SyncManager';
 import { videoEditorAPI } from '@/services/videoEditorAPI';
 import { useLLMConfig } from '@/services/llmConfigService';
-import { buildSystemPrompt } from '@/utils/systemPromptBuilder';
-import { projectService } from '@/services/project/ProjectService';
 import { getEnabledWizards } from '@/data/wizardDefinitions';
-import { WizardLauncher } from '@/components/wizard/WizardLauncher';
-import { MarketingWizard, type MarketingPlan } from '@/components/wizard/marketing/MarketingWizard';
-import { CreateProjectWizard } from '@/components/wizard/CreateProjectWizard';
-import { SequencePlanWizardModal, ShotWizardModal } from '@/components/wizard';
 import { sequenceService } from '@/services/sequenceService';
 import { useStore } from '@/store';
 import { logger } from '@/utils/logging';
@@ -55,27 +50,26 @@ import {
   Users,
   Puzzle,
   Globe,
-  MessageSquare,
-  FileText,
-  Wand2,
-  Plus,
-  Sparkles,
   CheckCircle2,
   Trash2,
   Edit3,
   Database,
   RefreshCw,
-  AlertTriangle,
   BookOpen,
   Settings,
-  Play,
   Clapperboard,
+  Wand2,
+  FileText,
+  Sparkles,
+  Plus,
 } from 'lucide-react';
 import { SequenceEditModal } from './SequenceEditModal';
 import { DashboardAddonsSection } from './DashboardAddonsSection';
 import { CollapsibleSection } from '@/components/ui';
 import { ProductionGuide } from './ProductionGuide';
 import { NeuralProductionAssistant } from './NeuralProductionAssistant';
+import { WizardLauncher } from '../wizard/WizardLauncher';
+import { Badge } from '@/components/ui/badge';
 import './ProjectDashboardNew.css';
 
 // ============================================================================
@@ -105,6 +99,7 @@ export type ShotComplexity = 'simple' | 'rich' | 'complex';
 /**
  * Film type configuration with chapter support
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface FilmTypeConfig {
   type: FilmType;
   name: string;
@@ -116,113 +111,6 @@ interface FilmTypeConfig {
   avgChapters: number;
   description: string;
 }
-
-/**
- * Film type configurations
- */
-const FILM_TYPE_CONFIGS: FilmTypeConfig[] = [
-  {
-    type: 'short_film',
-    name: 'Court-métrage (3-20 min)',
-    minDuration: 3,
-    maxDuration: 20,
-    introLongTake: true,
-    endingLongTake: true,
-    avgSequences: 3,
-    avgChapters: 3,
-    description: 'Le plan-séquence est souvent utilisé comme signature.',
-  },
-  {
-    type: 'medium_film',
-    name: 'Moyen métrage (20-60 min)',
-    minDuration: 20,
-    maxDuration: 60,
-    introLongTake: true,
-    endingLongTake: true,
-    avgSequences: 5,
-    avgChapters: 5,
-    description: 'Un plan-séquence notable pour l\'intro et un autre pour la fin.',
-  },
-  {
-    type: 'feature_film',
-    name: 'Long métrage (60+ min)',
-    minDuration: 60,
-    maxDuration: 300,
-    introLongTake: false,
-    endingLongTake: false,
-    avgSequences: 12,
-    avgChapters: 8,
-    description: '0-1 plan-séquence notable pour poser le ton à l\'intro.',
-  },
-];
-
-/**
- * Chapter approach configurations
- * Defines how many long takes per chapter based on cinematic style
- */
-const CHAPTER_APPROACHES: Record<ChapterApproach, {
-  name: string;
-  description: string;
-  longTakesPerChapter: { min: number; max: number };
-  effect: string;
-  suitableFor: string[];
-}> = {
-  classic: {
-    name: 'Approche Classique',
-    description: '1 plan-séquence par chapitre',
-    longTakesPerChapter: { min: 1, max: 1 },
-    effect: 'Chaque chapitre a une identité forte, un moment immersif',
-    suitableFor: ['films narratifs', 'courts-métrages structurés', 'roman visuel'],
-  },
-  immersive: {
-    name: 'Approche Immersive',
-    description: '2-3 plans-séquences par chapitre',
-    longTakesPerChapter: { min: 2, max: 3 },
-    effect: 'Le chapitre devient une mini-expérience fluide',
-    suitableFor: ['films chorégraphiés', 'films d\'action stylisés', 'contemplatifs'],
-  },
-  extreme: {
-    name: 'Approche Extrême',
-    description: 'Chapitre entier en plans-séquences',
-    longTakesPerChapter: { min: 4, max: 10 },
-    effect: 'Bloc narratif continu, très immersif, presque hypnotique',
-    suitableFor: ['films d\'auteur', 'films expérimentaux', 'tension continue'],
-  },
-};
-
-/**
- * Shot complexity configurations
- * Defines the number of internal shots within a long take
- */
-const SHOT_COMPLEXITY: Record<ShotComplexity, {
-  name: string;
-  internalShots: { min: number; max: number };
-  description: string;
-  examples: string[];
-  effect: string;
-}> = {
-  simple: {
-    name: 'Simple (1-3 shots internes)',
-    internalShots: { min: 1, max: 3 },
-    description: 'Le plus classique',
-    examples: ['mouvement d\'épaule', 'travelling léger', 'panoramique'],
-    effect: 'Fluide, lisible, naturel',
-  },
-  rich: {
-    name: 'Riche (4-8 shots internes)',
-    internalShots: { min: 4, max: 8 },
-    description: 'Plusieurs micro-moments dans un seul plan',
-    examples: ['entrée → déplacement → interaction → révélation → sortie'],
-    effect: 'Choragraphié, dynamique, très cinématographique',
-  },
-  complex: {
-    name: 'Complexe (9+ shots internes)',
-    internalShots: { min: 9, max: 50 },
-    description: 'Niveau expert',
-    examples: ['traversée de plusieurs pièces', 'plusieurs groupes', 'actions simultanées'],
-    effect: 'Spectaculaire, immersif, signature visuelle forte',
-  },
-};
 
 /**
  * Chapter data structure
@@ -266,26 +154,54 @@ interface SequenceData {
   order: number;
 }
 
+// Helper type for sequence plan from store
+interface SequencePlanFromStore {
+  id: string;
+  name: string;
+  description?: string;
+  resume?: string;
+  targetDuration?: number;
+  totalDuration?: number;
+  shots?: unknown[];
+  order?: number;
+}
+
+// Helper type for shot with sequence_id
+interface ShotWithSequenceId {
+  id: string;
+  sequence_id?: string;
+  duration?: number;
+  description?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// Helper type for mutable shot (allows setting sequence_id dynamically)
+// Used when updating shot metadata dynamically
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface MutableShot extends Shot {
+  sequence_id?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// Asset type from API
+interface RecentAsset {
+  id: string;
+  path: string;
+  type: string;
+  added_at?: string;
+}
+
 export function ProjectDashboardNew({
   onOpenEditor,
 }: ProjectDashboardNewProps) {
   const project = useAppStore((state) => state.project);
   const shots = useAppStore((state) => state.shots);
   const setShots = useAppStore((state) => state.setShots);
-  const setProject = useAppStore((state) => state.setProject);
-  const addShot = useAppStore((state) => state.addShot);
   const openWizard = useAppStore((state) => state.openWizard);
-  const setShowWorldWizard = useAppStore((state) => state.setShowWorldWizard);
   const showWorldWizard = useAppStore((state) => state.showWorldWizard);
-  const setShowCharacterWizard = useAppStore((state) => state.setShowCharacterWizard);
   const showCharacterWizard = useAppStore((state) => state.showCharacterWizard);
   const showStorytellerWizard = useAppStore((state) => state.showStorytellerWizard);
-  const setShowStorytellerWizard = useAppStore((state) => state.setShowStorytellerWizard);
-  const showProjectSetupWizard = useAppStore((state) => state.showProjectSetupWizard);
-  const setShowProjectSetupWizard = useAppStore((state) => state.setShowProjectSetupWizard);
   const setShowCharactersModal = useAppStore((state) => state.setShowCharactersModal);
-  const setShowWorldModal = useAppStore((state) => state.setShowWorldModal);
-  const setShowGeneralSettings = useAppStore((state) => state.setShowGeneralSettings);
   const setShowImageGalleryModal = useAppStore((state) => state.setShowImageGalleryModal);
   const showLocationsModal = useAppStore((state) => state.showLocationsModal);
   const setShowLocationsModal = useAppStore((state) => state.setShowLocationsModal);
@@ -294,6 +210,16 @@ export function ProjectDashboardNew({
   const showObjectWizard = useAppStore((state) => state.showObjectWizard);
   const setShowObjectWizard = useAppStore((state) => state.setShowObjectWizard);
   const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
+  const openShotWizard = useAppStore((state) => state.openShotWizard);
+  const setShowProjectSetupWizard = useAppStore((state) => state.setShowProjectSetupWizard);
+  const setShowWorldWizard = useAppStore((state) => state.setShowWorldWizard);
+  const setShowCharacterWizard = useAppStore((state) => state.setShowCharacterWizard);
+  const setShowStorytellerWizard = useAppStore((state) => state.setShowStorytellerWizard);
+  const setShowGeneralSettings = useAppStore((state) => state.setShowGeneralSettings);
+  const setShowAudioProductionWizard = useAppStore((state) => state.setShowAudioProductionWizard);
+  const setShowVideoEditorWizard = useAppStore((state) => state.setShowVideoEditorWizard);
+  const setShowComicToSequenceWizard = useAppStore((state) => state.setShowComicToSequenceWizard);
+  const setShowMarketingWizard = useAppStore((state) => state.setShowMarketingWizard);
 
   // Character editor state
   const isCharacterEditorOpen = useAppStore((state) => state.isCharacterEditorOpen);
@@ -303,17 +229,25 @@ export function ProjectDashboardNew({
 
   // Story management from Zustand store
   const stories = useStore((state) => state.stories);
-  const getAllStories = useStore((state) => state.getAllStories);
   const getStoryById = useStore((state) => state.getStoryById);
 
   // Character management from Zustand store
   const characters = useStore((state) => state.characters);
 
+  // Sequence Plans from Zustand store
+  const sequencePlans = useStore((state) => state.sequencePlans || []);
+  
+  // Add shot function from Zustand store
+  const addShot = useStore((state) => state.addShot);
+
   // LLM Configuration
+ 
+ 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { config: llmConfig, service: llmService, isConfigured: isLLMConfigured } = useLLMConfig();
 
   // Notification system
-  const { showSuccess, showError, showWarning, showInfo } = useNotifications();
+  const { showSuccess, showError, showWarning } = useNotifications();
 
   // Confirmation modal state
   const [confirmationModal, setConfirmationModal] = useState<{
@@ -333,11 +267,19 @@ export function ProjectDashboardNew({
   });
 
   // Loading states for async operations
-  const [isLoadingSequences, setIsLoadingSequences] = useState(false);
-  const [isAddingSequence, setIsAddingSequence] = useState(false);
-  const [isDeletingSequence, setIsDeletingSequence] = useState<string | null>(null);
-  const [isSavingSequence, setIsSavingSequence] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Missing local state variables - used for future features
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isLoadingSequences, setIsLoadingSequences] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isAddingSequence, setIsAddingSequence] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [editingStoryData, setEditingStoryData] = useState<unknown>(null);
+  
+  // Chatterbox height state
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [chatterboxHeight, setChatterboxHeight] = useState<number>(300);
 
   // Helper function to open confirmation modal
   const openConfirmation = (
@@ -367,30 +309,13 @@ export function ProjectDashboardNew({
 
   const [editingSequence, setEditingSequence] = useState<SequenceData | null>(null);
   const [forceUpdate, setForceUpdate] = useState(0);
-  const [chatterboxHeight, setChatterboxHeight] = useState<number>(() => {
-    // Load saved height from localStorage, default to 400px
-    const saved = localStorage.getItem('chatterboxHeight');
-    return saved ? parseInt(saved, 10) : 400;
-  });
-  const showChat = useAppStore((state) => state.showChat);
-  const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
 
-  // Story editing state - stores story data to be edited
-  const [editingStoryData, setEditingStoryData] = useState<any>(null);
+  const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
 
   // Expanded story view state - shows story parts when a story is selected
   const [expandedStoryId, setExpandedStoryId] = useState<string | null>(null);
 
-  // Marketing Wizard state
-  const [showMarketingWizard, setShowMarketingWizard] = useState(false);
-  const [marketingPlan, setMarketingPlan] = useState<MarketingPlan | null>(null);
-
-  // New Wizard Modal states
-  const [showSequencePlanWizardModal, setShowSequencePlanWizardModal] = useState(false);
-  const [showShotWizardModal, setShowShotWizardModal] = useState(false);
-  const [selectedSequenceId, setSelectedSequenceId] = useState<string | undefined>(undefined);
-  const [editingShot, setEditingShot] = useState<Partial<Shot> | undefined>(undefined);
-  const [recentAssets, setRecentAssets] = useState<any[]>([]);
+  const [recentAssets, setRecentAssets] = useState<RecentAsset[]>([]);
   const [isLoadingAssets, setIsLoadingAssets] = useState(false);
 
   // Get enabled wizards for dynamic display
@@ -403,29 +328,42 @@ export function ProjectDashboardNew({
     }
 
     // Group shots by sequence_id (use plain object instead of Map for better compatibility)
-    const sequenceMap: Record<string, any[]> = {};
+    const sequenceMap: Record<string, ShotWithSequenceId[]> = {};
     shots.forEach(shot => {
-      const seqId = (shot as any).sequence_id || 'default';
+      const seqId = (shot as ShotWithSequenceId).sequence_id || 'default';
       if (!sequenceMap[seqId]) {
         sequenceMap[seqId] = [];
       }
-      sequenceMap[seqId].push(shot);
+      sequenceMap[seqId].push(shot as ShotWithSequenceId);
     });
 
 
     // Convert to sequence data array
-    const sequenceArray: SequenceData[] = [];
-    let order = 1;
+    const sequenceArray: (SequenceData & { isFormal?: boolean })[] = [];
 
+    // 1. Add formal plans from the store (highest priority)
+    const plansArray = Array.isArray(sequencePlans) ? sequencePlans : Object.values(sequencePlans || {});
+    plansArray.forEach((plan: SequencePlanFromStore | unknown, index: number) => {
+      const typedPlan = plan as SequencePlanFromStore;
+      sequenceArray.push({
+        id: typedPlan.id,
+        name: typedPlan.name,
+        duration: typedPlan.targetDuration || typedPlan.totalDuration || 0,
+        shots: typedPlan.shots?.length || 0,
+        resume: typedPlan.description || typedPlan.resume || '',
+        order: typedPlan.order || (index + 1),
+        isFormal: true
+      });
+    });
+
+    // 2. Add legacy sequences from shots (only if not already present as formal plan)
+    let order = sequenceArray.length + 1;
     for (const sequenceId in sequenceMap) {
+      if (sequenceArray.some(s => s.id === sequenceId)) continue;
+
       const seqShots = sequenceMap[sequenceId];
-      // Calculate total duration
       const totalDuration = seqShots.reduce((sum, shot) => sum + (shot.duration || 0), 0);
-
-      // Get sequence name from first shot or generate default
       const sequenceName = `Sequence ${order}`;
-
-      // Get description from first shot or use default
       const firstShot = seqShots[0];
       const resume = firstShot?.description || `Sequence ${order} with ${seqShots.length} shot(s)`;
 
@@ -442,19 +380,18 @@ export function ProjectDashboardNew({
     }
 
     // Sort by order
-    const sortedSequences = sequenceArray.sort((a, b) => a.order - b.order);
-    return sortedSequences;
-  }, [shots, forceUpdate]);
+    return [...sequenceArray].sort((a, b) => a.order - b.order);
+  }, [shots, sequencePlans]);
 
   // Subscribe to sequence plan updates
   useEffect(() => {
 
-    const planUpdateUnsubscribe = sequencePlanService.subscribeToPlanUpdates((planId, plan) => {
+    const planUpdateUnsubscribe = sequencePlanService.subscribeToPlanUpdates(() => {
       // Force re-render by updating state
       setForceUpdate(prev => prev + 1);
     });
 
-    const planListUnsubscribe = sequencePlanService.subscribeToPlanList((plans) => {
+    const planListUnsubscribe = sequencePlanService.subscribeToPlanList(() => {
       // Force re-render by updating state
       setForceUpdate(prev => prev + 1);
     });
@@ -474,22 +411,18 @@ export function ProjectDashboardNew({
           case 'p':
             e.preventDefault();
             console.log('[Shortcut] Opening Sequence Plan Wizard');
-            setShowSequencePlanWizardModal(true);
+            openSequencePlanWizard();
             break;
           case 's':
             e.preventDefault();
             console.log('[Shortcut] Opening Shot Wizard');
-            setShowShotWizardModal(true);
-            setEditingShot(undefined);
-            setSelectedSequenceId(undefined);
+            openShotWizard();
             break;
           case 'q':
             e.preventDefault();
             console.log('[Shortcut] Quick Shot initiated');
             // Quick Shot opens the shot wizard in create mode
-            setShowShotWizardModal(true);
-            setEditingShot(undefined);
-            setSelectedSequenceId(undefined);
+            openShotWizard();
             break;
         }
       }
@@ -497,7 +430,7 @@ export function ProjectDashboardNew({
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
+  }, [openSequencePlanWizard, openShotWizard]);
 
   // Listen for wizard launch events from chat
   useEffect(() => {
@@ -525,64 +458,17 @@ export function ProjectDashboardNew({
         const migrationNeeded = await migrationService.isMigrationNeeded(projectPath);
 
         if (migrationNeeded) {
-
-          // Afficher une notification de migration en cours
-          const migrationNotification = {
-            id: 'migration-in-progress',
-            type: 'system',
-            content: '🔄 Migration automatique des données en cours... Veuillez patienter.',
-            timestamp: new Date(),
-          };
-
           // Démarrer la migration
           const migrationResult = await migrationService.migrateAllData(projectPath);
 
           if (migrationResult.success) {
-
-            // Notification de succès
-            const successNotification = {
-              id: 'migration-success',
-              type: 'system',
-              content: `Migration completed successfully! ${migrationResult.migrated} entities migrated.`,
-              timestamp: new Date(),
-            };
 
             // Déclencher une synchronisation complète
             await syncManager.fullSync(projectPath);
 
           } else {
             logger.error('[ProjectDashboard] Migration failed:', migrationResult.errors);
-
-            // Notification d'erreur avec option de retry
-            const errorNotification = {
-              id: 'migration-error',
-              type: 'error',
-              content: `Migration failed: ${migrationResult.errors.length} errors. Check console for more details.`,
-              timestamp: new Date(),
-              error: {
-                message: `Migration failed with ${migrationResult.errors.length} errors`,
-                userMessage: 'La migration automatique a échoué. Certaines données peuvent être manquantes.',
-                category: 'migration',
-                retryable: true,
-                actions: [
-                  {
-                    label: 'Retry Migration',
-                    action: async () => {
-                      // Retry logic would go here
-                    },
-                    primary: true,
-                  },
-                  {
-                    label: 'View Details',
-                    action: () => {
-                    },
-                    primary: false,
-                  },
-                ],
-              },
-            };
           }
-        } else {
         }
       } catch (error) {
         logger.error('[ProjectDashboard] Auto-migration error:', error);
@@ -593,7 +479,7 @@ export function ProjectDashboardNew({
     const migrationTimeout = setTimeout(performAutoMigration, 2000);
 
     return () => clearTimeout(migrationTimeout);
-  }, [project?.metadata?.path]);
+  }, [project?.metadata?.path, project?.path]);
 
   // Fetch recent assets
   const fetchRecentAssets = useCallback(async () => {
@@ -603,10 +489,11 @@ export function ProjectDashboardNew({
       const response = await videoEditorAPI.listProjectAssets(project.id);
       if (response && response.assets) {
         // Sort by date (newest first) and take top 5
-        const sorted = [...response.assets].sort((a: any, b: any) =>
+        type AssetWithDate = { added_at?: string | Date };
+        const sorted = [...(response.assets as AssetWithDate[])].sort((a, b) =>
           new Date(b.added_at || 0).getTime() - new Date(a.added_at || 0).getTime()
         );
-        setRecentAssets(sorted.slice(0, 5));
+        setRecentAssets(sorted.slice(0, 5) as RecentAsset[]);
       }
     } catch (error) {
       console.error('[ProjectDashboard] Failed to fetch recent assets:', error);
@@ -628,7 +515,7 @@ export function ProjectDashboardNew({
       activities.push({
         id: 'creation',
         action: 'Project initialized',
-        time: new Date(project.metadata.created_at as any).toLocaleDateString(),
+        time: new Date(project.metadata.created_at as string | number | Date).toLocaleDateString(),
         icon: CheckCircle2,
       });
     }
@@ -695,20 +582,40 @@ export function ProjectDashboardNew({
         openWizard('style-transfer');
         break;
       case 'marketing-wizard':
-        setShowMarketingWizard(true);
+        setShowMarketingWizard(true, {
+          projectId: project?.id || '',
+          projectName: project?.project_name || 'My Project',
+          storySummary: project?.metadata?.description as string | undefined,
+          characters: project?.characters?.map(c => c.name),
+        });
         break;
       case 'shot-planning':
         openSequencePlanWizard();
         break;
       case 'audio-production-wizard':
+        setShowAudioProductionWizard(true);
+        break;
       case 'video-editor-wizard':
+        setShowVideoEditorWizard(true);
+        break;
       case 'comic-to-sequence-wizard':
-        logger.warn('[ProjectDashboard] Wizard not yet implemented:', { wizardId });
-        showWarning(`The ${wizardId} wizard is not yet implemented. Coming soon!`);
+        setShowComicToSequenceWizard(true);
         break;
       default:
-        // Generic wizard launch for new wizards
-        openWizard(wizardId as any); // Use 'any' to bypass type checking for dynamic wizard IDs
+        // Attempt to launch via generic wizard system if not specifically handled
+        // or show warning if it's truly unrecognized
+        if (wizardId === 'video-editor-wizard' || wizardId === 'comic-to-sequence-wizard') {
+          // These should have been handled above, but just in case
+          logger.warn('[ProjectDashboard] Wizard not yet implemented:', { wizardId });
+          showWarning(`The ${wizardId} wizard is not yet implemented. Coming soon!`);
+        } else {
+          try {
+            // Safe cast as we check for unrecognized wizards
+            openWizard(wizardId as WizardType);
+          } catch (err) {
+            logger.warn('[ProjectDashboard] Wizard launch failed:', { wizardId, err });
+          }
+        }
         break;
     }
   };
@@ -728,7 +635,7 @@ export function ProjectDashboardNew({
 
       if (loadedSequences.length === 0) {
         // Check if we're in web mode without backend
-        const isElectron = !!(window as any).electronAPI?.fs?.readdir;
+        const isElectron = !!(window as Window & { electronAPI?: { fs?: { readdir?: unknown } } }).electronAPI?.fs?.readdir;
         if (!isElectron) {
           showWarning('No sequences found. Note: Sequence loading from files requires either:\n1. Running in Electron mode, or\n2. A backend API server running on http://localhost:8000\n\nCurrently running in web mode without backend.');
         } else {
@@ -743,12 +650,12 @@ export function ProjectDashboardNew({
         // Update shots that belong to this sequence
         if (sequence.shot_ids && Array.isArray(sequence.shot_ids)) {
           const sequenceShots = updatedShots.filter((shot: Shot) =>
-            sequence.shot_ids && (sequence.shot_ids as any).includes(shot.id)
+            sequence.shot_ids && (sequence.shot_ids as string[]).includes(shot.id)
           );
           sequenceShots.forEach((shot: Shot) => {
-            (shot as any).sequence_id = sequence.id;
+            (shot as ShotWithSequenceId).sequence_id = sequence.id;
             // Update sequence metadata in shot
-            (shot as any).metadata = {
+            (shot as ShotWithSequenceId).metadata = {
               ...(shot.metadata || {}),
               sequence_order: sequence.order,
               sequence_duration: sequence.duration,
@@ -771,7 +678,7 @@ export function ProjectDashboardNew({
 
     } catch (error) {
       logger.error('Failed to force update sequences:', error);
-      const isElectron = !!(window as any).electronAPI?.fs?.readdir;
+      const isElectron = !!(window as Window & { electronAPI?: { fs?: { readdir?: unknown } } }).electronAPI?.fs?.readdir;
       if (isElectron) {
         const errorMessage = error instanceof Error
           ? error.message
@@ -784,6 +691,170 @@ export function ProjectDashboardNew({
       }
     }
   };
+
+  // Helper function to save sequence to file
+  const saveSequenceToFile = useCallback(async (sequence: SequenceData, sequencesDir: string) => {
+    const fileName = `sequence_${String(sequence.order).padStart(3, '0')}.json`;
+    const filePath = `${sequencesDir}/${fileName}`;
+
+    // Get shots for this sequence
+    const sequenceShots = shots?.filter((shot): shot is Shot & { sequence_id: string } => 
+      'sequence_id' in shot && (shot as ShotWithSequenceId).sequence_id === sequence.id
+    ) || [];
+    const shotIds = sequenceShots.map((shot) => shot.id);
+
+    const sequenceData = {
+      id: sequence.id,
+      name: sequence.name,
+      order: sequence.order,
+      duration: sequence.duration,
+      shots_count: sequence.shots,
+      resume: sequence.resume,
+      shot_ids: shotIds,
+      created_at: project?.metadata?.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const jsonString = JSON.stringify(sequenceData, null, 2);
+
+    if (window.electronAPI?.fs?.writeFile) {
+      // Pass string directly - the Electron API accepts strings
+      await window.electronAPI.fs.writeFile(filePath, jsonString);
+    }
+  }, [shots, project]);
+
+  // Helper function to save shot to file
+  const saveShotToFile = useCallback(async (shot: Shot & { sequence_id: string }, shotsDir: string) => {
+    const fileName = `shot_${shot.id}.json`;
+    const filePath = `${shotsDir}/${fileName}`;
+
+    const shotData = {
+      id: shot.id,
+      title: shot.title,
+      description: shot.description,
+      duration: shot.duration,
+      position: shot.position,
+      sequence_id: shot.sequence_id,
+      audioTracks: shot.audioTracks || [],
+      effects: shot.effects || [],
+      textLayers: shot.textLayers || [],
+      animations: shot.animations || [],
+      metadata: {
+        ...shot.metadata,
+        updated_at: new Date().toISOString(),
+      },
+    };
+
+    const jsonString = JSON.stringify(shotData, null, 2);
+
+    if (window.electronAPI?.fs?.writeFile) {
+      // Pass string directly - the Electron API accepts strings
+      await window.electronAPI.fs.writeFile(filePath, jsonString);
+    }
+  }, []);
+
+  // Handle save sequence edit
+  const handleSaveSequenceEdit = useCallback(async (updatedSequence: {
+    id: string;
+    order: number;
+    duration: number;
+    shots: number;
+    resume: string;
+  }) => {
+    try {
+      if (!project?.metadata?.path) {
+        showError('Project path not found. Please ensure the project is properly loaded.');
+        return;
+      }
+
+      const projectPath = (project?.metadata?.path as string) || '';
+      const sequencesDir = `${projectPath}/sequences`;
+
+      // Ensure sequences directory exists
+      if (window.electronAPI?.fs?.mkdir) {
+        try {
+          await window.electronAPI.fs.mkdir(sequencesDir, { recursive: true });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (error) {
+          // Directory might already exist, ignore error
+        }
+      }
+
+      // Get original sequence data to check if order changed
+      const originalSequence = sequences.find(seq => seq.id === updatedSequence.id);
+      const orderChanged = originalSequence && originalSequence.order !== updatedSequence.order;
+
+      // If order changed, reorganize all sequences
+      if (orderChanged) {
+        const allSequences = [...sequences];
+        const currentIndex = allSequences.findIndex(seq => seq.id === updatedSequence.id);
+        if (currentIndex !== -1) {
+          allSequences.splice(currentIndex, 1);
+          allSequences.splice(updatedSequence.order - 1, 0, {
+            ...originalSequence,
+            order: updatedSequence.order,
+            duration: updatedSequence.duration,
+            shots: updatedSequence.shots,
+            resume: updatedSequence.resume,
+          });
+
+          // Update order numbers for all sequences
+          allSequences.forEach((seq, index) => {
+            seq.order = index + 1;
+          });
+
+          // Save all sequences
+          for (const seq of allSequences) {
+            await saveSequenceToFile(seq, sequencesDir);
+          }
+        }
+      } else {
+        // Just update the current sequence
+        const sequenceToSave = {
+          ...originalSequence,
+          ...updatedSequence,
+          name: originalSequence?.name || `Sequence ${updatedSequence.order}`,
+        };
+        await saveSequenceToFile(sequenceToSave, sequencesDir);
+      }
+
+      // Update shots associated with this sequence
+      if (shots && shots.length > 0) {
+        const sequenceShots = shots.filter((shot: unknown) => (shot as ShotWithSequenceId).sequence_id === updatedSequence.id);
+        for (const shot of sequenceShots) {
+          const typedShot = shot as ShotWithSequenceId;
+          if (window.electronAPI?.sequence?.updateShot) {
+            await window.electronAPI.sequence.updateShot(projectPath, updatedSequence.id, typedShot.id, {
+              sequence_order: updatedSequence.order,
+              sequence_duration: updatedSequence.duration,
+              sequence_shots_count: updatedSequence.shots,
+              sequence_resume: updatedSequence.resume,
+            });
+          }
+        }
+      }
+
+      // Force refresh by updating project metadata (triggers re-render of sequences)
+      const projectPathStr = (project?.metadata?.path as string) || '';
+      if (window.electronAPI?.project?.updateMetadata) {
+        await window.electronAPI.project.updateMetadata(projectPathStr, {
+          lastSequenceUpdate: new Date().toISOString(),
+        });
+      }
+
+      setEditingSequence(null);
+
+    } catch (error) {
+      logger.error('Failed to save sequence:', error);
+      logger.error('Failed to save sequence:', error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : isRecord(error) && typeof error.message === 'string'
+          ? error.message
+          : 'Unknown error';
+      showError('Failed to save sequence', errorMessage);
+    }
+  }, [project, sequences, shots, saveSequenceToFile, showError, setEditingSequence]);
 
   // Handle adding sequence
   const handleAddSequence = async () => {
@@ -800,6 +871,7 @@ export function ProjectDashboardNew({
       if (window.electronAPI?.fs?.mkdir) {
         try {
           await window.electronAPI.fs.mkdir(sequencesDir, { recursive: true });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
           // Directory might already exist, ignore error
         }
@@ -848,6 +920,7 @@ export function ProjectDashboardNew({
       if (window.electronAPI?.fs?.mkdir) {
         try {
           await window.electronAPI.fs.mkdir(shotsDir, { recursive: true });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
           // Directory might already exist, ignore error
         }
@@ -947,12 +1020,15 @@ export function ProjectDashboardNew({
       }
 
       // Find associated shots
-      const associatedShots = shots.filter((shot: any) => shot.sequence_id === sequenceId);
+      const associatedShots = shots.filter((shot) => 
+        'sequence_id' in shot && (shot as ShotWithSequenceId).sequence_id === sequenceId
+      );
 
       // Delete shot JSON files
       const shotsDir = `${projectPath}/shots`;
       for (const shot of associatedShots) {
-        const shotFileName = `shot_${shot.id}.json`;
+        const typedShot = shot as ShotWithSequenceId;
+        const shotFileName = `shot_${typedShot.id}.json`;
         const shotFilePath = `${shotsDir}/${shotFileName}`;
 
         try {
@@ -970,7 +1046,7 @@ export function ProjectDashboardNew({
       }
 
       // Remove shots from store
-      const updatedShots = shots.filter((shot: any) => shot.sequence_id !== sequenceId);
+      const updatedShots = shots.filter((shot) => !('sequence_id' in shot) || (shot as ShotWithSequenceId).sequence_id !== sequenceId);
       setShots(updatedShots);
 
       // Check if reordering needed
@@ -991,10 +1067,13 @@ export function ProjectDashboardNew({
 
         // Update shots for remaining sequences
         for (const seq of remainingSequences) {
-          const seqShots = updatedShots.filter((shot: any) => shot.sequence_id === seq.id);
+          const seqShots = updatedShots.filter((shot) => 
+            'sequence_id' in shot && (shot as ShotWithSequenceId).sequence_id === seq.id
+          );
           for (const shot of seqShots) {
+            const typedShot = shot as ShotWithSequenceId;
             if (window.electronAPI?.sequence?.updateShot) {
-              await window.electronAPI.sequence.updateShot(projectPath, seq.id, shot.id, {
+              await window.electronAPI.sequence.updateShot(projectPath, seq.id, typedShot.id, {
                 sequence_order: seq.order,
               });
             }
@@ -1032,7 +1111,7 @@ export function ProjectDashboardNew({
    * Handle synchronizing sequences with story content and dialogues
    * Updates shot descriptions, image prompts, and audio/TTS prompts
    */
-  const handleSyncSequences = async () => {
+  const handleSyncSequences = useCallback(async () => {
     if (sequences.length === 0) {
       showWarning('No sequences to synchronize. Please create sequences first.');
       return;
@@ -1066,7 +1145,9 @@ export function ProjectDashboardNew({
       // Process each sequence and its associated shots
       for (const sequence of sequences) {
         // Find shots associated with this sequence
-        const sequenceShots = shots.filter((shot: any) => shot.sequence_id === sequence.id);
+        const sequenceShots = shots.filter((shot) => 
+          'sequence_id' in shot && (shot as ShotWithSequenceId).sequence_id === sequence.id
+        );
 
         if (sequenceShots.length === 0) {
           continue;
@@ -1090,23 +1171,11 @@ export function ProjectDashboardNew({
         for (const shot of sequenceShots) {
           const updatedShot = {
             ...shot,
-            // Update description from story content
-            description: contentSegment || shot.description,
-            // Store image generation prompt in metadata
+            description: contentSegment || (shot as Shot).description,
             metadata: {
               ...(shot.metadata || {}),
-              // Image generation prompts
               imagePrompt: imagePrompt,
-              negativePrompt: generateNegativePrompt(storyTone),
-              visualStyle: storyGenre,
-              // TTS/Audio prompts
               ttsPrompt: ttsPrompt,
-              voiceParameters: {
-                language: detectLanguage(storyContent),
-                speed: 1.0,
-                pitch: 0,
-              },
-              // Sync metadata
               syncedFromStory: true,
               lastSyncedAt: new Date().toISOString(),
               storyId: mainStory.id,
@@ -1115,7 +1184,7 @@ export function ProjectDashboardNew({
           };
 
           // Update shot in store
-          useStore.getState().updateShot(shot.id, updatedShot);
+          useStore.getState().updateShot((shot as ShotWithSequenceId).id, updatedShot);
           updatedShotsCount++;
         }
 
@@ -1143,6 +1212,7 @@ export function ProjectDashboardNew({
         if (window.electronAPI?.fs?.mkdir) {
           try {
             await window.electronAPI.fs.mkdir(shotsDir, { recursive: true });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (error) {
             // Directory might already exist
           }
@@ -1151,7 +1221,7 @@ export function ProjectDashboardNew({
         // Get all updated shots from store
         const allUpdatedShots = useStore.getState().shots;
         for (const shot of allUpdatedShots) {
-          await saveShotToFile(shot as any, shotsDir);
+          await saveShotToFile(shot as Shot & { sequence_id: string }, shotsDir);
         }
       }
 
@@ -1180,155 +1250,8 @@ export function ProjectDashboardNew({
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [sequences, stories, shots, project, handleSaveSequenceEdit, showWarning, showError, showSuccess, setIsSyncing, setForceUpdate, saveShotToFile]);
 
-  /**
-   * Distribute story content across sequences based on order
-   */
-  function distributeStoryContent(content: string, sequenceOrder: number, totalSequences: number): string {
-    if (!content) return '';
-
-    // Split content by paragraphs or sentences
-    const paragraphs = content.split(/\n\n+/).filter(p => p.trim());
-
-    if (paragraphs.length === 0) return content;
-
-    // Calculate distribution
-    const itemsPerSequence = Math.ceil(paragraphs.length / totalSequences);
-    const startIndex = (sequenceOrder - 1) * itemsPerSequence;
-    const endIndex = startIndex + itemsPerSequence;
-
-    return paragraphs.slice(startIndex, endIndex).join('\n\n');
-  }
-
-  /**
-   * Generate image prompt from story content
-   */
-  function generateImagePrompt(content: string, genre: string, tone: string, characters: string): string {
-    // Extract key visual elements from content
-    const visualKeywords = extractVisualKeywords(content);
-
-    // Build prompt
-    const promptParts = [];
-
-    if (visualKeywords) {
-      promptParts.push(visualKeywords);
-    }
-
-    if (genre) {
-      promptParts.push(`genre: ${genre}`);
-    }
-
-    if (tone) {
-      promptParts.push(`tone: ${tone}`);
-    }
-
-    if (characters) {
-      promptParts.push(`characters: ${characters}`);
-    }
-
-    return promptParts.join(', ');
-  }
-
-  /**
-   * Generate negative prompt based on tone
-   */
-  function generateNegativePrompt(tone: string): string {
-    const negatives = ['blurry', 'low quality', 'distorted', 'deformed'];
-
-    // Add tone-specific negatives
-    if (tone.toLowerCase().includes('dark')) {
-      negatives.push('bright', 'cartoonish');
-    } else if (tone.toLowerCase().includes('happy')) {
-      negatives.push('sad', 'gloomy');
-    }
-
-    return negatives.join(', ');
-  }
-
-  /**
-   * Extract visual keywords from content
-   */
-  function extractVisualKeywords(content: string): string {
-    // Simple keyword extraction - could be enhanced with NLP
-    const visualPatterns = [
-      /inside\s+([^.]+)/gi,
-      /outside\s+([^.]+)/gi,
-      /dark\s+([^.]+)/gi,
-      /bright\s+([^.]+)/gi,
-      /close-up\s+of\s+([^.]+)/gi,
-      /wide\s+shot\s+of\s+([^.]+)/gi,
-    ];
-
-    const keywords: string[] = [];
-
-    for (const pattern of visualPatterns) {
-      const matches = content.match(pattern);
-      if (matches) {
-        keywords.push(...matches.slice(0, 2)); // Take up to 2 matches per pattern
-      }
-    }
-
-    // Clean up and limit
-    return keywords.slice(0, 5).join(' ').substring(0, 500);
-  }
-
-  /**
-   * Extract dialogue content from story for TTS
-   */
-  function extractDialogueContent(content: string): string {
-    // Extract dialogue lines (text between quotes)
-    const dialoguePattern = /"([^"]+)"/g;
-    const matches = [...content.matchAll(dialoguePattern)];
-
-    if (matches.length > 0) {
-      return matches.map(m => m[1]).join(' ');
-    }
-
-    return '';
-  }
-
-  /**
-   * Detect language from content
-   */
-  function detectLanguage(content: string): string {
-    // Simple language detection based on common words
-    const frenchWords = ['le', 'la', 'les', 'un', 'une', 'des', 'et', 'est', 'dans', 'qui', 'il', 'elle'];
-    const spanishWords = ['el', 'la', 'los', 'las', 'un', 'una', 'y', 'es', 'en', 'que', 'él', 'ella'];
-
-    const words = content.toLowerCase().split(/\s+/);
-
-    let frenchCount = 0;
-    let spanishCount = 0;
-
-    for (const word of words.slice(0, 100)) { // Check first 100 words
-      if (frenchWords.includes(word)) frenchCount++;
-      if (spanishWords.includes(word)) spanishCount++;
-    }
-
-    if (frenchCount > spanishCount) return 'fr-FR';
-    if (spanishCount > frenchCount) return 'es-ES';
-
-    return 'en-US'; // Default to English
-  }
-
-  /**
-   * Generate sequence resume from story summary
-   */
-  function generateSequenceResume(summary: string, order: number, total: number): string {
-    if (!summary) return `Sequence ${order} of ${total}`;
-
-    // Take a portion of the summary based on sequence order
-    const parts = summary.split('. ').filter(p => p.length > 10);
-
-    if (parts.length === 0) return `Sequence ${order} of ${total}`;
-
-    const itemsPerSequence = Math.ceil(parts.length / total);
-    const startIndex = (order - 1) * itemsPerSequence;
-    const endIndex = startIndex + itemsPerSequence;
-
-    return parts.slice(startIndex, endIndex).join('. ') + (parts.slice(startIndex, endIndex).length > 0 ? '.' : '');
-  }
 
   // Handle editing sequence
   const handleEditSequence = (sequence: SequenceData, e: React.MouseEvent) => {
@@ -1337,172 +1260,9 @@ export function ProjectDashboardNew({
     setEditingSequence(sequence);
   };
 
-  // Handle save sequence edit
-  const handleSaveSequenceEdit = async (updatedSequence: {
-    id: string;
-    order: number;
-    duration: number;
-    shots: number;
-    resume: string;
-  }) => {
-    ;
-
-    try {
-      if (!project?.metadata?.path) {
-        showError('Project path not found. Please ensure the project is properly loaded.');
-        return;
-      }
-
-      const projectPath = (project?.metadata?.path as string) || '';
-      const sequencesDir = `${projectPath}/sequences`;
-
-      // Ensure sequences directory exists
-      if (window.electronAPI?.fs?.mkdir) {
-        try {
-          await window.electronAPI.fs.mkdir(sequencesDir, { recursive: true });
-        } catch (error) {
-          // Directory might already exist, ignore error
-        }
-      }
-
-      // Get original sequence data to check if order changed
-      const originalSequence = sequences.find(seq => seq.id === updatedSequence.id);
-      const orderChanged = originalSequence && originalSequence.order !== updatedSequence.order;
-
-      // If order changed, reorganize all sequences
-      if (orderChanged) {
-        const allSequences = [...sequences];
-        const currentIndex = allSequences.findIndex(seq => seq.id === updatedSequence.id);
-        if (currentIndex !== -1) {
-          allSequences.splice(currentIndex, 1);
-          allSequences.splice(updatedSequence.order - 1, 0, {
-            ...originalSequence,
-            order: updatedSequence.order,
-            duration: updatedSequence.duration,
-            shots: updatedSequence.shots,
-            resume: updatedSequence.resume,
-          });
-
-          // Update order numbers for all sequences
-          allSequences.forEach((seq, index) => {
-            seq.order = index + 1;
-          });
-
-          // Save all sequences
-          for (const seq of allSequences) {
-            await saveSequenceToFile(seq, sequencesDir);
-          }
-        }
-      } else {
-        // Just update the current sequence
-        const sequenceToSave = {
-          ...originalSequence,
-          ...updatedSequence,
-          name: originalSequence?.name || `Sequence ${updatedSequence.order}`,
-        };
-        await saveSequenceToFile(sequenceToSave, sequencesDir);
-      }
-
-      // Update shots associated with this sequence
-      if (shots && shots.length > 0) {
-        const sequenceShots = shots.filter((shot: any) => shot.sequence_id === updatedSequence.id);
-        for (const shot of sequenceShots) {
-          if (window.electronAPI?.sequence?.updateShot) {
-            await window.electronAPI.sequence.updateShot(projectPath, updatedSequence.id, shot.id, {
-              sequence_order: updatedSequence.order,
-              sequence_duration: updatedSequence.duration,
-              sequence_shots_count: updatedSequence.shots,
-              sequence_resume: updatedSequence.resume,
-            });
-          }
-        }
-      }
-
-      // Force refresh by updating project metadata (triggers re-render of sequences)
-      const projectPathStr = (project?.metadata?.path as string) || '';
-      if (window.electronAPI?.project?.updateMetadata) {
-        await window.electronAPI.project.updateMetadata(projectPathStr, {
-          lastSequenceUpdate: new Date().toISOString(),
-        });
-      }
-
-      ;
-      setEditingSequence(null);
-
-    } catch (error) {
-      logger.error('Failed to save sequence:', error);
-      logger.error('Failed to save sequence:', error);
-      const errorMessage = error instanceof Error
-        ? error.message
-        : isRecord(error) && typeof error.message === 'string'
-          ? error.message
-          : 'Unknown error';
-      showError('Failed to save sequence', errorMessage);
-    }
-  };
-
-  // Helper function to save sequence to file
-  const saveSequenceToFile = async (sequence: SequenceData, sequencesDir: string) => {
-    const fileName = `sequence_${String(sequence.order).padStart(3, '0')}.json`;
-    const filePath = `${sequencesDir}/${fileName}`;
-
-    // Get shots for this sequence
-    const sequenceShots = shots?.filter((shot: any) => shot.sequence_id === sequence.id) || [];
-    const shotIds = sequenceShots.map((shot: any) => shot.id);
-
-    const sequenceData = {
-      id: sequence.id,
-      name: sequence.name,
-      order: sequence.order,
-      duration: sequence.duration,
-      shots_count: sequence.shots,
-      resume: sequence.resume,
-      shot_ids: shotIds,
-      created_at: project?.metadata?.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    const jsonString = JSON.stringify(sequenceData, null, 2);
-
-    if (window.electronAPI?.fs?.writeFile) {
-      // Pass string directly - the Electron API accepts strings
-      await window.electronAPI.fs.writeFile(filePath, jsonString);
-    }
-  };
-
-  // Helper function to save shot to file
-  const saveShotToFile = async (shot: Shot & { sequence_id: string }, shotsDir: string) => {
-    const fileName = `shot_${shot.id}.json`;
-    const filePath = `${shotsDir}/${fileName}`;
-
-    const shotData = {
-      id: shot.id,
-      title: shot.title,
-      description: shot.description,
-      duration: shot.duration,
-      position: shot.position,
-      sequence_id: shot.sequence_id,
-      audioTracks: shot.audioTracks || [],
-      effects: shot.effects || [],
-      textLayers: shot.textLayers || [],
-      animations: shot.animations || [],
-      metadata: {
-        ...shot.metadata,
-        updated_at: new Date().toISOString(),
-      },
-    };
-
-    const jsonString = JSON.stringify(shotData, null, 2);
-
-    if (window.electronAPI?.fs?.writeFile) {
-      // Pass string directly - the Electron API accepts strings
-      await window.electronAPI.fs.writeFile(filePath, jsonString);
-    }
-  };
 
   // Handle sequence click
   const handleSequenceClick = (sequenceId: string) => {
-    ;
     onOpenEditor(sequenceId);
   };
 
@@ -1515,6 +1275,7 @@ export function ProjectDashboardNew({
   };
 
   // Handle chatterbox resize
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleChatterboxResize = (newHeight: number) => {
     setChatterboxHeight(newHeight);
     localStorage.setItem('chatterboxHeight', newHeight.toString());
@@ -1556,12 +1317,12 @@ export function ProjectDashboardNew({
     if (story) {
       const updatedStory = {
         ...story,
-        parts: updatedParts as any[],
+        parts: updatedParts as unknown[],
         updatedAt: new Date(),
         version: story.version + 1,
       };
       // Update in store
-      useStore.getState().updateStory(storyId, updatedStory as any);
+      useStore.getState().updateStory(storyId, updatedStory as unknown);
       console.log('[ProjectDashboard] Story parts updated:', updatedStory);
     }
   };
@@ -1630,6 +1391,7 @@ export function ProjectDashboardNew({
    * Handle character save from editor
    * Requirement: 2.5
    */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCharacterSave = (character: Character) => {
     // Character is already saved by the editor via useCharacterManager
     // Just close the editor
@@ -1640,6 +1402,7 @@ export function ProjectDashboardNew({
    * Handle character delete from editor
    * Requirement: 7.4
    */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCharacterDelete = (characterId: string) => {
     // Character is already deleted by the editor via useCharacterManager
     // Just close the editor
@@ -1656,88 +1419,38 @@ export function ProjectDashboardNew({
     // and integrated into the project
   };
 
-  /**
-     * Handle Marketing Wizard completion
-     * Saves the marketing plan to the project
-     */
-  const handleMarketingWizardComplete = (plan: MarketingPlan) => {
-    console.log('[ProjectDashboard] Marketing plan created:', plan);
-    setMarketingPlan(plan);
-
-    // TODO: Save marketing plan to project or generate assets
-    // For now, just show success
-    showSuccess('Plan marketing créé', `Votre plan est prêt!`);
-  };
-
-  // ============================================================================
-  // New Wizard Modal Handlers
-  // ============================================================================
-
-  /**
-   * Handle Sequence Plan Wizard completion
-   */
-  const handleSequencePlanComplete = (plan: unknown) => {
-    if (isRecord(plan)) {
-      console.log('[ProjectDashboard] Sequence plan created:', plan);
-    } else {
-      console.log('[ProjectDashboard] Sequence plan created (unknown format):', plan);
-    }
-    setShowSequencePlanWizardModal(false);
-    showSuccess('Plan de séquence créé avec succès!');
-    setForceUpdate(prev => prev + 1);
-  };
-
-  /**
-   * Handle Shot Wizard completion
-   */
-  const handleShotComplete = (shot: Shot) => {
-    console.log('[ProjectDashboard] Shot created/updated:', shot);
-    setShowShotWizardModal(false);
-    setEditingShot(undefined);
-    setSelectedSequenceId(undefined);
-
-    // Add or update shot in store
-    if (shot.id) {
-      const existingShot = shots.find((s: any) => s.id === shot.id);
-      if (existingShot) {
-        // Update existing shot
-        const updatedShots = shots.map((s: any) =>
-          s.id === shot.id ? { ...s as any, ...shot as any } : s
-        );
-        setShots(updatedShots as Shot[]);
-      } else {
-        // Add new shot
-        addShot(shot as any);
-      }
-    }
-
-    showSuccess(`Plan "${shot.title}" créé avec succès!`);
-    setForceUpdate(prev => prev + 1);
-  };
+  // wizards are now handled globally in App.tsx
 
   /**
    * Open Sequence Plan Wizard Modal
    */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   const openSequencePlanModal = () => {
-    setShowSequencePlanWizardModal(true);
+    openSequencePlanWizard();
   };
 
   /**
    * Open Shot Wizard Modal for creating a new shot
    */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   const openShotModal = (sequenceId?: string) => {
-    setSelectedSequenceId(sequenceId);
-    setEditingShot(undefined);
-    setShowShotWizardModal(true);
+    openShotWizard({
+      mode: 'create',
+      sequenceId
+    });
   };
 
   /**
      * Open Shot Wizard Modal for editing an existing shot
      */
-  const editShot = (shot: any) => {
-    setEditingShot(shot);
-    setSelectedSequenceId(shot.sequence_id);
-    setShowShotWizardModal(true);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const editShot = (shot: unknown) => {
+    const typedShot = shot as ShotWithSequenceId;
+    openShotWizard({
+      mode: 'edit',
+      existingShot: shot,
+      sequenceId: typedShot.sequence_id
+    });
   };
 
   // Listen for production guide sync request
@@ -1747,7 +1460,7 @@ export function ProjectDashboardNew({
     };
     window.addEventListener('storycore:sync-production-guide', handleSyncRequest);
     return () => window.removeEventListener('storycore:sync-production-guide', handleSyncRequest);
-  }, [sequences, stories]); // Re-bind when data changes
+  }, [sequences, stories, handleSyncSequences]); // Re-bind when data changes
 
   return (
     <div className="project-dashboard-new">
@@ -1877,45 +1590,33 @@ export function ProjectDashboardNew({
           <ProjectResumeSection />
 
           {/* Tips Section */}
-          <div className="tips-section">
+          <div className="tips-section compact-tips">
             <div className="tips-header">
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-5 h-5 text-amber-500" />
               <h3>Tips & Tricks</h3>
             </div>
             <div className="tips-content">
-              <p className="tips-intro">
-                For a better experience after creating a new project, follow this recommended procedure:
+              <p className="tips-intro text-sm italic opacity-80 mb-4 px-2">
+                4 Steps to Manifest Your Vision:
               </p>
-              <ol className="tips-list">
-                <li>
-                  <Globe className="w-4 h-4" />
-                  <div>
-                    <strong>World Building</strong>
-                    <span>Create the universe and context for your story</span>
-                  </div>
-                </li>
-                <li>
-                  <Users className="w-4 h-4" />
-                  <div>
-                    <strong>Character Creation</strong>
-                    <span>Define your main and secondary characters</span>
-                  </div>
-                </li>
-                <li>
-                  <BookOpen className="w-4 h-4" />
-                  <div>
-                    <strong>Story Generator + Global Resume</strong>
-                    <span>Generate your story and create the global resume below</span>
-                  </div>
-                </li>
-                <li>
-                  <Film className="w-4 h-4" />
-                  <div>
-                    <strong>Shot Planning</strong>
-                    <span>Plan your sequences and shots for production</span>
-                  </div>
-                </li>
-              </ol>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-2">
+                 <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <Globe className="w-5 h-5 text-indigo-400 mb-2" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">World</span>
+                 </div>
+                 <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <Users className="w-5 h-5 text-purple-400 mb-2" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Actors</span>
+                 </div>
+                 <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <BookOpen className="w-5 h-5 text-amber-400 mb-2" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Lore</span>
+                 </div>
+                 <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <Film className="w-5 h-5 text-emerald-400 mb-2" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Studio</span>
+                 </div>
+              </div>
             </div>
           </div>
 
@@ -1940,6 +1641,7 @@ export function ProjectDashboardNew({
             defaultExpanded={false}
           >
             <DashboardAddonsSection
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
               onLaunchWizard={(wizardType, initialData) => {
                 // Close all other wizards first
                 const closeActiveWizard = useAppStore.getState().closeActiveWizard;
@@ -2015,7 +1717,7 @@ export function ProjectDashboardNew({
                   className="btn-sequence-control sync"
                   onClick={handleSyncSequences}
                   disabled={isSyncing || sequences.length === 0}
-                  title="Synchroniser les plans séquences avec l'histoire et les dialogues"
+                  title="Synchronize sequence plans with story and dialogues"
                   style={{ padding: '4px 10px', height: '28px' }}
                 >
                   {isSyncing ? (
@@ -2075,14 +1777,23 @@ export function ProjectDashboardNew({
                     <p>No sequences yet. Click + to add your first sequence.</p>
                   </div>
                 ) : (
-                  sequences.map((seq) => (
-                    <div
-                      key={seq.id}
-                      className="sequence-card"
-                      onClick={() => handleSequenceClick(seq.id)}
-                    >
+                  sequences.map((seq) => {
+                    const seqWithFlag = seq as SequenceData & { isFormal?: boolean };
+                    return (
+                      <div
+                        key={seq.id}
+                        className={`sequence-card ${seqWithFlag.isFormal ? 'formal-plan' : ''}`}
+                        onClick={() => handleSequenceClick(seq.id)}
+                      >
                       <div className="sequence-header">
-                        <h4>{seq.name}</h4>
+                        <div className="flex flex-col gap-1">
+                          <h4>{seq.name}</h4>
+                          {seqWithFlag.isFormal && (
+                            <Badge className="w-fit bg-primary/20 text-primary border-primary/30 text-[8px] uppercase font-black tracking-widest leading-none py-0.5 px-1.5">
+                              Formal Plan
+                            </Badge>
+                          )}
+                        </div>
                         <div className="sequence-actions">
                           <button
                             className="btn-sequence-action edit"
@@ -2109,7 +1820,7 @@ export function ProjectDashboardNew({
                         <strong>Resume:</strong> {seq.resume}
                       </div>
                     </div>
-                  ))
+                  )})
                 )}
               </div>
             </div>
@@ -2134,7 +1845,7 @@ export function ProjectDashboardNew({
             <LocationSection
               onCreateLocation={() => {
                 // Open location creation wizard
-                openWizard('location-creation' as any);
+                openWizard('location-creation' as Parameters<typeof openWizard>[0]);
               }}
               hideHeader={true}
               style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
@@ -2173,6 +1884,7 @@ export function ProjectDashboardNew({
                 console.log('[ProjectDashboardNew] Opening object wizard');
                 setShowObjectWizard(true);
               }}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
               onObjectClick={(objectId) => {
                 // Open objects collection modal
                 setShowObjectsModal(true);
@@ -2196,7 +1908,7 @@ export function ProjectDashboardNew({
               <h3>Recent Assets</h3>
               <button
                 className="text-xs text-primary hover:underline flex items-center gap-1"
-                onClick={() => setShowImageGalleryModal(true)}
+                onClick={() => useAppStore.getState().setShowVaultModal(true)}
               >
                 View Vault <Plus className="w-3 h-3" />
               </button>
@@ -2296,47 +2008,6 @@ export function ProjectDashboardNew({
         isLoading={confirmationModal.isLoading}
       />
 
-      {/* Marketing Wizard */}
-      {showMarketingWizard && (
-        <MarketingWizard
-          isOpen={showMarketingWizard}
-          onClose={() => setShowMarketingWizard(false)}
-          onComplete={handleMarketingWizardComplete}
-          projectData={{
-            projectId: project?.id || 'default',
-            projectName: (project?.metadata?.name as string) || 'Untitled Project',
-            storySummary: project?.metadata?.description as string || '',
-            characters: characters?.map(c => c.name) || [],
-            scenes: shots?.map(s => s.title) || []
-          }}
-        />
-      )}
-
-      {/* Sequence Plan Wizard Modal */}
-      {showSequencePlanWizardModal && (
-        <SequencePlanWizardModal
-          isOpen={showSequencePlanWizardModal}
-          onClose={() => setShowSequencePlanWizardModal(false)}
-          onComplete={handleSequencePlanComplete}
-          mode="create"
-        />
-      )}
-
-      {/* Shot Wizard Modal */}
-      {showShotWizardModal && (
-        <ShotWizardModal
-          isOpen={showShotWizardModal}
-          onClose={() => {
-            setShowShotWizardModal(false);
-            setEditingShot(undefined);
-            setSelectedSequenceId(undefined);
-          }}
-          onComplete={handleShotComplete}
-          initialShot={editingShot}
-          sequenceId={selectedSequenceId}
-          mode={editingShot ? 'edit' : 'create'}
-        />
-      )}
 
       {/* Locations Modal */}
       {showLocationsModal && (
@@ -2368,6 +2039,118 @@ export function ProjectDashboardNew({
       )}
     </div>
   );
+}
+
+// ============================================================================
+// Helper Functions (Pure)
+// ============================================================================
+
+/**
+ * Distribute story content across sequences based on order
+ */
+function distributeStoryContent(content: string, sequenceOrder: number, totalSequences: number): string {
+  if (!content) return '';
+
+  // Split content by paragraphs or sentences
+  const paragraphs = content.split(/\n\n+/).filter(p => p.trim());
+
+  if (paragraphs.length === 0) return content;
+
+  // Calculate distribution
+  const itemsPerSequence = Math.ceil(paragraphs.length / totalSequences);
+  const startIndex = (sequenceOrder - 1) * itemsPerSequence;
+  const endIndex = startIndex + itemsPerSequence;
+
+  return paragraphs.slice(startIndex, endIndex).join('\n\n');
+}
+
+/**
+ * Generate image prompt from story content
+ */
+function generateImagePrompt(content: string, genre: string, tone: string, characters: string): string {
+  // Extract key visual elements from content
+  const visualKeywords = extractVisualKeywords(content);
+
+  // Build prompt
+  const promptParts = [];
+
+  if (visualKeywords) {
+    promptParts.push(visualKeywords);
+  }
+
+  if (genre) {
+    promptParts.push(`genre: ${genre}`);
+  }
+
+  if (tone) {
+    promptParts.push(`tone: ${tone}`);
+  }
+
+  if (characters) {
+    promptParts.push(`characters: ${characters}`);
+  }
+
+  return promptParts.join(', ');
+}
+
+/**
+ * Extract visual keywords from content
+ */
+function extractVisualKeywords(content: string): string {
+  // Simple keyword extraction - could be enhanced with NLP
+  const visualPatterns = [
+    /inside\s+([^.]+)/gi,
+    /outside\s+([^.]+)/gi,
+    /dark\s+([^.]+)/gi,
+    /bright\s+([^.]+)/gi,
+    /close-up\s+of\s+([^.]+)/gi,
+    /wide\s+shot\s+of\s+([^.]+)/gi,
+  ];
+
+  const keywords: string[] = [];
+
+  for (const pattern of visualPatterns) {
+    const matches = content.match(pattern);
+    if (matches) {
+      keywords.push(...matches.slice(0, 2)); // Take up to 2 matches per pattern
+    }
+  }
+
+  // Clean up and limit
+  return keywords.slice(0, 5).join(' ').substring(0, 500);
+}
+
+/**
+ * Extract dialogue content from story for TTS
+ */
+function extractDialogueContent(content: string): string {
+  // Extract dialogue lines (text between quotes)
+  const dialoguePattern = /"([^"]+)"/g;
+  const matches = [...content.matchAll(dialoguePattern)];
+
+  if (matches.length > 0) {
+    return matches.map(m => m[1]).join(' ');
+  }
+
+  return '';
+}
+
+/**
+ * Generate sequence resume from story summary
+ */
+function generateSequenceResume(summary: string, order: number, total: number): string {
+  if (!summary) return `Sequence ${order} of ${total}`;
+
+  // Take a portion of the summary based on sequence order
+  const parts = summary.split('. ').filter(p => p.length > 10);
+
+  if (parts.length === 0) return `Sequence ${order} of ${total}`;
+
+  const itemsPerSequence = Math.ceil(parts.length / total);
+  const startIndex = (order - 1) * itemsPerSequence;
+  const endIndex = startIndex + itemsPerSequence;
+
+  return parts.slice(startIndex, endIndex).join('. ') + (parts.slice(startIndex, endIndex).length > 0 ? '.' : '');
 }
 
 

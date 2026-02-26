@@ -84,6 +84,10 @@ class GenerateRequest(BaseModel):
         default=None,
         description="Additional custom prompt"
     )
+    comfyui_url: Optional[str] = Field(
+        default=None,
+        description="Optional ComfyUI server URL to use"
+    )
 
 
 class GenerateResponse(BaseModel):
@@ -211,7 +215,8 @@ async def generate_camera_angles(
             preserve_style=request.preserve_style,
             quality=request.quality,
             seed=request.seed,
-            custom_prompt=request.custom_prompt
+            custom_prompt=request.custom_prompt,
+            comfyui_url=request.comfyui_url
         )
         
         # Start generation job

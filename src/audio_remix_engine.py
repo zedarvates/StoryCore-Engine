@@ -74,7 +74,46 @@ class MusicStructure:
     sections: List[SectionMarker]
     intro_duration: float
     outro_duration: float
-    
+
+    # ── Computed aliases used by the route layer ──────────────────────────────
+    @property
+    def key(self) -> str:
+        """Alias for key_signature (used by AnalyzeStructureResponse)."""
+        return self.key_signature
+
+    @property
+    def verse_duration(self) -> float:
+        total = sum(
+            s.end_time - s.start_time
+            for s in self.sections if s.section_type == MusicSection.VERSE
+        )
+        return total
+
+    @property
+    def chorus_duration(self) -> float:
+        total = sum(
+            s.end_time - s.start_time
+            for s in self.sections if s.section_type == MusicSection.CHORUS
+        )
+        return total
+
+    @property
+    def bridge_duration(self) -> float:
+        total = sum(
+            s.end_time - s.start_time
+            for s in self.sections if s.section_type == MusicSection.BRIDGE
+        )
+        return total
+
+    @property
+    def has_intro(self) -> bool:
+        return self.intro_duration > 0
+
+    @property
+    def has_outro(self) -> bool:
+        return self.outro_duration > 0
+
+    # ─────────────────────────────────────────────────────────────────────────
     def to_dict(self) -> Dict[str, Any]:
         return {
             "duration": self.duration,
@@ -152,6 +191,11 @@ class RemixResult:
     processing_time: float
     quality_score: float
     timestamp: datetime
+
+    @property
+    def remix_url(self) -> str:
+        """Alias for output_url (used by RemixResponse route)."""
+        return self.output_url
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -211,11 +255,12 @@ class AudioRemixEngine:
         
         # Circuit breaker
         circuit_config = CircuitBreakerConfig(
-            failure_rate_threshold=30,
-            wait_time_in_open_state=60,
-            half_open_requests=3
+            failure_threshold=5,
+            recovery_timeout=60.0,
+            success_threshold=3,
+            timeout=30.0
         )
-        self.circuit_breaker = CircuitBreaker(circuit_config)
+        self.circuit_breaker = CircuitBreaker("audio_remix", circuit_config)
         
         # Cache
         self.structure_cache: Dict[str, MusicStructure] = {}
@@ -234,6 +279,7 @@ class AudioRemixEngine:
         self.logger.warning("librosa not available, using mock implementation")
         
         self.logger.info("Audio Remix Engine initialized")
+        self.is_initialized = False  # set True after full initialize()
     
     async def initialize(self) -> bool:
         """Initialiser le moteur."""
@@ -245,6 +291,7 @@ class AudioRemixEngine:
                 self.logger.warning("librosa not available, using mock implementation")
             
             self.logger.info("Audio Remix Engine initialization complete")
+            self.is_initialized = True
             return True
             
         except Exception as e:
@@ -366,20 +413,55 @@ class AudioRemixEngine:
             outro_duration=0.0
         )
     
-    async def remix(self, request: RemixRequest) -> RemixResult:
-        """Effectuer le remixage d'un fichier audio."""
-        
+    async def remix(
+        self,
+        request: Optional[RemixRequest] = None,
+        *,
+        music_url: Optional[str] = None,
+        target_duration: Optional[float] = None,
+        style: Optional[Any] = None,
+        fade_duration: float = 2.0,
+        preserve_sections: Optional[List[str]] = None,
+    ) -> RemixResult:
+        """Effectuer le remixage d'un fichier audio.
+
+        Accepts either a RemixRequest object *or* keyword arguments so the
+        route layer can call it directly without constructing a RemixRequest.
+        """
+        if request is None:
+            if music_url is None or target_duration is None:
+                raise ValueError("music_url and target_duration are required when request is not provided")
+            resolved_style: RemixStyle
+            if isinstance(style, RemixStyle):
+                resolved_style = style
+            elif isinstance(style, str):
+                try:
+                    resolved_style = RemixStyle(style)
+                except ValueError:
+                    resolved_style = RemixStyle.SMOOTH
+            else:
+                resolved_style = RemixStyle.SMOOTH
+            request = RemixRequest(
+                audio_id=music_url,
+                audio_url=music_url,
+                target_duration=target_duration,
+                style=resolved_style,
+                crossfade_duration=fade_duration,
+                preserve_outro=False if preserve_sections is None else ("outro" in preserve_sections),
+                preserve_intro=False if preserve_sections is None else ("intro" in preserve_sections),
+            )
+
         # Analyser la structure
         structure = await self.analyze_structure(request.audio_url)
-        
+
         async def _remix_operation():
             return await self._perform_remix(request, structure)
-        
+
         try:
             result = await self.circuit_breaker.call(_remix_operation)
             self.remix_cache[result.remix_id] = result
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Remixing failed: {e}")
             raise AudioRemixError(f"Remixing failed: {str(e)}")

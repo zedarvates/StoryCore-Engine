@@ -122,7 +122,7 @@ export function StoryCoreAssistant() {
     };
 
     setMessages([welcomeMessage]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // Intentionally run only on mount - welcome message should be set once
   }, []);
 
@@ -135,7 +135,7 @@ export function StoryCoreAssistant() {
       }, 2000);
       return () => clearTimeout(timeoutId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // Only trigger when project/projectPath changes; messages.length check prevents re-triggering
   }, [project, projectPath]);
 

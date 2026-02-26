@@ -393,7 +393,7 @@ export class CompositionTemplateService {
         if (!template) throw new Error(`Template not found: ${templateId}`);
 
         return template.layers.map((tl, idx) => {
-            let data = { ...tl.data };
+            const data = { ...tl.data };
 
             // Apply text overrides if provided
             if (tl.isEditable && tl.type === 'text' && overrides?.[tl.label]) {

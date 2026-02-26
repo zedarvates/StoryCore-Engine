@@ -37,3 +37,5 @@ export { GenerationProvider, useGeneration, GenerationStatus, GenerationPhase } 
 export type { GenerationContextType } from './GenerationContext';
 
 export { CameraAngleEditorProvider, useCameraAngleEditorModal, useLocalCameraAngleEditorModal } from './CameraAngleEditorContext';
+
+export { VideoEditorProvider, useVideoEditor, VideoEditorContext } from './VideoEditorContext';

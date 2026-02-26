@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { RLMTrajectoryStep } from '@/services/RecursiveLLMService';
 
 export interface ManifestedAsset {
     id: string;
@@ -10,7 +11,7 @@ export interface ManifestedAsset {
     generatedAt: string;
     type: 'CHARACTER_REFERENCE_SHEET' | 'LOCATION_REFERENCE_SHEET' | 'OBJECT_REFERENCE_SHEET' | 'GLOBAL_STYLE_GUIDE';
     url: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 export interface DirectorialAdvice {
@@ -23,14 +24,14 @@ export interface DirectorialAdvice {
 interface ProductionState {
     manifestedAssets: ManifestedAsset[];
     adviceHistory: DirectorialAdvice[];
-    lastTrajectory: any[]; // RLM Trajectory
+    lastTrajectory: RLMTrajectoryStep[]; // RLM Trajectory
     lastSyncTimestamp: number | null;
 
     // Actions
     addManifestedAsset: (asset: ManifestedAsset) => void;
     removeManifestedAsset: (id: string) => void;
     addAdvice: (text: string, context: string) => void;
-    setLastTrajectory: (trajectory: any[]) => void;
+    setLastTrajectory: (trajectory: RLMTrajectoryStep[]) => void;
     clearSession: () => void;
 }
 

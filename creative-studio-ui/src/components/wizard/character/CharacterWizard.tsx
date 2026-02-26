@@ -1,464 +1,222 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { WizardProvider, useWizard } from '@/contexts/WizardContext';
-import { ProductionWizardContainer } from '../production-wizards/ProductionWizardContainer';
-import type { WizardStep } from '../WizardStepIndicator';
+/**
+ * Character Wizard Component
+ * 
+ * Refined 3-step character creator with:
+ * - Premium visuals (rounded corners, clean elevations)
+ * - Modular architecture (separate step components)
+ * - Integrated AI assistants
+ * - Character presets
+ */
+
+import React, { useState, useCallback, useMemo } from 'react';
+import { WizardErrorBoundary } from '../WizardErrorBoundary';
+import { WizardStepIndicator, WizardStep } from '../WizardStepIndicator';
+import { WizardNavigation } from '../WizardNavigation';
+import { useCharacterPersistence } from '@/hooks/useCharacterPersistence';
+import { useAppStore } from '@/stores/useAppStore';
+import { eventEmitter, CharacterEventType, createCharacterCreatedPayload } from '@/services/eventEmitter';
+import { saveWizardState } from '@/utils/wizardStorage';
 import type { Character } from '@/types/character';
 import { createEmptyCharacter } from '@/types/character';
 import type { World } from '@/types/world';
-import type { Story } from '@/types/story';
-import { useCharacterPersistence } from '@/hooks/useCharacterPersistence';
-import { useServiceStatus } from '@/components/ui/service-warning';
-import { eventEmitter, CharacterEventType, createCharacterCreatedPayload } from '@/services/eventEmitter';
-import { Step1BasicIdentity } from './Step1BasicIdentity';
-import { Step2PhysicalAppearance } from './Step2PhysicalAppearance';
-import { Step3Personality } from './Step3Personality';
-import { Step4Background } from './Step4Background';
-import { Step5Relationships } from './Step5Relationships';
-import { Step6ReviewFinalize } from './Step6ReviewFinalize';
-import { WizardChainOptions, WizardChainOption } from '../WizardChainOptions';
-import { Loader2, AlertCircle, CheckCircle2, UserPlus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
-// ============================================================================
-// Character Wizard Component
-// ============================================================================
-
-/**
- * Story context for character creation
- * Used when creating a character from within the Story Generator
- */
-export interface StoryContext {
-  storyId?: string;
-  storyName?: string;
-  storyData?: Partial<Story>;
-}
+// Subcomponents
+import { IdentityStep } from './steps/IdentityStep';
+import { EssenceStep } from './steps/EssenceStep';
+import { ChroniclesStep } from './steps/ChroniclesStep';
+import { CharacterPreset } from './presets';
 
 export interface CharacterWizardProps {
-  onComplete: (character: Character, context?: StoryContext) => void;
+  onComplete: (character: Character) => void;
   onCancel: () => void;
   worldContext?: World;
-  storyContext?: StoryContext;
   initialData?: Partial<Character>;
-}
-
-const WIZARD_STEPS: WizardStep[] = [
-  {
-    number: 1,
-    title: 'Neural Signature',
-    description: 'Establish core identity parameters',
-  },
-  {
-    number: 2,
-    title: 'Morphological Profile',
-    description: 'Synthesize visual appearance data',
-  },
-  {
-    number: 3,
-    title: 'Cognitive Matrix',
-    description: 'Map heuristic traits and values',
-  },
-  {
-    number: 4,
-    title: 'Chronological Data',
-    description: 'Access background and history',
-  },
-  {
-    number: 5,
-    title: 'SocialGrid Nexus',
-    description: 'Map interpersonal connections',
-  },
-  {
-    number: 6,
-    title: 'Final Materialization',
-    description: 'Validate and commit consciousness',
-  },
-];
-
-// ============================================================================
-// Character Wizard Content (uses wizard context)
-// ============================================================================
-
-interface CharacterWizardContentProps {
-  steps: WizardStep[];
-  onCancel: () => void;
-  worldContext?: World;
-  storyContext?: StoryContext;
-  renderStepContent: (step: number) => React.ReactNode;
-  onComplete?: () => void;
-}
-
-function CharacterWizardContent({
-  steps,
-  onCancel,
-  renderStepContent,
-  onComplete,
-}: CharacterWizardContentProps) {
-  const { currentStep, nextStep, previousStep, goToStep, isDirty, submitWizard } = useWizard<Character>();
-
-  const handleComplete = async () => {
-    await submitWizard();
-    onComplete?.();
-  };
-
-  return (
-    <ProductionWizardContainer
-      title="Neural Character Synthesis"
-      steps={steps}
-      onCancel={onCancel}
-      onComplete={handleComplete}
-      allowJumpToStep={false}
-      showAutoSaveIndicator={true}
-      currentStep={currentStep}
-      onNextStep={nextStep}
-      onPreviousStep={previousStep}
-      onGoToStep={goToStep}
-      isDirty={isDirty}
-    >
-      {renderStepContent(currentStep)}
-    </ProductionWizardContainer>
-  );
 }
 
 export function CharacterWizard({
   onComplete,
   onCancel,
   worldContext,
-  storyContext,
   initialData,
 }: CharacterWizardProps) {
-  // ============================================================================
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
-  // ============================================================================
+  // State
+  const [currentStep, setCurrentStep] = useState(1);
+  const [data, setData] = useState<Partial<Character>>(initialData || createEmptyCharacter());
+  const [lastSaved, setLastSaved] = useState<Date | undefined>();
 
-  // Check LLM service status
-  const { llmConfigured, llmChecking } = useServiceStatus();
-
-  // Character Persistence hook
   const { saveCharacter } = useCharacterPersistence();
+  const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
-  // Local state for success view
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [createdCharacter, setCreatedCharacter] = useState<Character | null>(null);
+  // Steps definition
+  const steps: WizardStep[] = [
+    { number: 1, title: 'Foundations', description: 'Template & Identity' },
+    { number: 2, title: 'Essence', description: 'Psychology & Form' },
+    { number: 3, title: 'Chronicles', description: 'Nexus & History' },
+  ];
 
-  // ============================================================================
-  // Validation
-  // ============================================================================
-
-  const validateStep = useCallback(
-    async (step: number, data: Partial<Character>): Promise<Record<string, string[]>> => {
-      const errors: Record<string, string[]> = {};
-
-      switch (step) {
-        case 1: // Basic Identity
-          if (!data.name || data.name.trim() === '') {
-            errors.name = ['Character name is required'];
-          }
-          if (!data.role?.archetype || data.role.archetype.trim() === '') {
-            errors.archetype = ['Character archetype is required'];
-          }
-          if (!data.visual_identity?.gender || data.visual_identity.gender.trim() === '') {
-            errors.gender = ['Gender is required'];
-          }
-          if (!data.visual_identity?.age_range || data.visual_identity.age_range.trim() === '') {
-            errors.age_range = ['Age Range is required'];
-          }
-          break;
-
-        case 2: // Physical Appearance
-          // Optional validation - appearance fields can be empty
-          // LLM will help fill these in
-          break;
-
-        case 3: // Personality
-          // Optional validation - personality can be built gradually
-          if (data.personality?.traits && data.personality.traits.length > 10) {
-            errors.traits = ['Maximum 10 personality traits allowed'];
-          }
-          break;
-
-        case 4: // Background
-          // Optional validation - background can be empty
-          break;
-
-        case 5: // Relationships
-          // Validate that referenced characters exist
-          if (data.relationships && data.relationships.length > 0) {
-            data.relationships.forEach((rel, index) => {
-              if (!rel.character_name || rel.character_name.trim() === '') {
-                errors[`relationship-${index}-name`] = ['Character name is required'];
-              }
-              if (!rel.relationship_type || rel.relationship_type.trim() === '') {
-                errors[`relationship-${index}-type`] = ['Relationship type is required'];
-              }
-            });
-          }
-          break;
-
-        case 6: // Review
-          // Final validation - ensure all required fields are present
-          if (!data.name || data.name.trim() === '') {
-            errors.name = ['Character name is required'];
-          }
-          if (!data.role?.archetype || data.role.archetype.trim() === '') {
-            errors.archetype = ['Character archetype is required'];
-          }
-          if (!data.visual_identity?.gender || data.visual_identity.gender.trim() === '') {
-            errors.gender = ['Gender is required'];
-          }
-          if (!data.visual_identity?.age_range || data.visual_identity.age_range.trim() === '') {
-            errors.age_range = ['Age Range is required'];
-          }
-          break;
-      }
-
-      return errors;
-    },
-    []
-  );
-
-  // ============================================================================
-  // Submission
-  // ============================================================================
-
-  const handleSubmit = useCallback(
-    async (data: Partial<Character>) => {
-      try {
-        // Save character to JSON file and update store
-        const savedCharacter = await saveCharacter(data);
-
-        // Emit character-created event with proper payload structure
-        // Requirements: 3.4, 12.1
-        eventEmitter.emit(
-          CharacterEventType.CHARACTER_CREATED,
-          createCharacterCreatedPayload(
-            savedCharacter,
-            'wizard',
-            storyContext?.storyName
-          )
-        );
-
-        // Call the onComplete callback with saved character and story context
-        // Requirements: 3.2, 3.5
-        onComplete(savedCharacter, storyContext);
-      } catch (error) {
-        console.error('Failed to save character:', error);
-
-        // Create a detailed error message based on the error type
-        let errorMessage = 'Failed to save character: ';
-        if (error instanceof Error) {
-          errorMessage += error.message;
-
-          // Add specific guidance for common error types
-          if (error.message.includes('permission') || error.message.includes('access')) {
-            errorMessage += '\nPlease check your file system permissions.';
-          } else if (error.message.includes('network') || error.message.includes('connection')) {
-            errorMessage += '\nPlease check your network connection.';
-          } else if (error.message.includes('invalid')) {
-            errorMessage += '\nPlease verify all character data is valid.';
-          }
-        } else {
-          errorMessage += 'Unknown error occurred.';
-        }
-
-        // Show error to user
-        alert(errorMessage);
-
-        // Still create the character object for the callback
-        // even if persistence failed
-        // Generate UUID with fallback
-        let characterId = data.character_id;
-        if (!characterId) {
-          if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-            characterId = crypto.randomUUID();
-          } else {
-            characterId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-              const r = (Math.random() * 16) | 0;
-              const v = c === 'x' ? r : (r & 0x3) | 0x8;
-              return v.toString(16);
-            });
-          }
-        }
-
-        const character: Character = {
-          character_id: characterId,
-          name: data.name || '',
-          creation_method: 'wizard',
-          creation_timestamp: Date.now(),
-          version: '1.0',
-          visual_identity: {
-            hair_color: data.visual_identity?.hair_color || '',
-            hair_style: data.visual_identity?.hair_style || '',
-            hair_length: data.visual_identity?.hair_length || '',
-            eye_color: data.visual_identity?.eye_color || '',
-            eye_shape: data.visual_identity?.eye_shape || '',
-            skin_tone: data.visual_identity?.skin_tone || '',
-            facial_structure: data.visual_identity?.facial_structure || '',
-            distinctive_features: data.visual_identity?.distinctive_features || [],
-            age_range: data.visual_identity?.age_range || '',
-            gender: data.visual_identity?.gender || '',
-            height: data.visual_identity?.height || '',
-            build: data.visual_identity?.build || '',
-            posture: data.visual_identity?.posture || '',
-            clothing_style: data.visual_identity?.clothing_style || '',
-            color_palette: data.visual_identity?.color_palette || [],
-            reference_images: data.visual_identity?.reference_images || [],
-            reference_sheet_images: data.visual_identity?.reference_sheet_images || [],
-          },
-          personality: {
-            traits: data.personality?.traits || [],
-            values: data.personality?.values || [],
-            fears: data.personality?.fears || [],
-            desires: data.personality?.desires || [],
-            flaws: data.personality?.flaws || [],
-            strengths: data.personality?.strengths || [],
-            temperament: data.personality?.temperament || '',
-            communication_style: data.personality?.communication_style || '',
-          },
-          background: {
-            origin: data.background?.origin || '',
-            occupation: data.background?.occupation || '',
-            education: data.background?.education || '',
-            family: data.background?.family || '',
-            significant_events: data.background?.significant_events || [],
-            current_situation: data.background?.current_situation || '',
-          },
-          relationships: data.relationships || [],
-          role: {
-            archetype: data.role?.archetype || '',
-            narrative_function: data.role?.narrative_function || '',
-            character_arc: data.role?.character_arc || '',
-          },
-          prompts: data.prompts || [],
-        };
-
-        // Emit event even on persistence failure
-        eventEmitter.emit(
-          CharacterEventType.CHARACTER_CREATED,
-          createCharacterCreatedPayload(
-            character,
-            'wizard',
-            storyContext?.storyName
-          )
-        );
-
-        // onComplete(character, storyContext); // Removed to show success screen first
-
-        // Store for success view
-        setCreatedCharacter(character);
-        setIsSuccess(true);
-        // Note: We do NOT call onComplete here immediately anymore, 
-        // to allow the user to see the success screen.
-      }
-    },
-    [onComplete, saveCharacter, storyContext]
-  );
-
-  const handleCreateAnother = useCallback(() => {
-    setIsSuccess(false);
-    setCreatedCharacter(null);
-    // WizardProvider will remount and reset
+  // Data update
+  const updateData = useCallback((newData: Partial<Character>) => {
+    setData((prev) => ({ ...prev, ...newData }));
   }, []);
 
-  const handleFinish = useCallback(() => {
-    if (createdCharacter) {
-      onComplete(createdCharacter, storyContext);
+  // Apply preset
+  const applyPreset = useCallback((preset: CharacterPreset) => {
+    if (preset.id === 'fresh') {
+      setData(createEmptyCharacter());
+      return;
     }
-  }, [createdCharacter, onComplete, storyContext]);
 
-  // Create a callback for WizardContainer that triggers completion
-  // The actual character data is handled by handleSubmit (passed to WizardProvider.onSubmit)
-  // This callback is called after submitWizard() completes successfully
-  const handleWizardComplete = useCallback(() => {
-    // This callback is called by WizardNavigation when user clicks "Complete"
-    // The character has already been created and onComplete(character) was called by handleSubmit
-    // This is just a notification that the wizard finished successfully
-    console.log('[CharacterWizard] Wizard completion confirmed');
+    setData((prev) => ({
+      ...prev,
+      role: {
+        ...prev.role,
+        archetype: preset.archetype,
+      } as Character['role'],
+      personality: {
+        ...prev.personality,
+        traits: preset.traits,
+      } as Character['personality'],
+      visual_identity: {
+        ...prev.visual_identity,
+        appearance: preset.appearance || '',
+        clothing_style: preset.clothing || '',
+      } as Character['visual_identity'],
+    }));
   }, []);
 
-  // ============================================================================
-  // Render Step Content
-  // ============================================================================
+  const handleFinish = useCallback(async () => {
+    try {
+      // Ensure we have a valid character object
+      const characterToSave: Partial<Character> = {
+        ...data,
+        character_id: data.character_id || crypto.randomUUID(),
+        name: data.name || 'Unnamed Character',
+        creation_method: 'wizard',
+        creation_timestamp: Date.now(),
+        version: '1.0',
+      };
 
-  const renderStepContent = (currentStep: number) => {
+      // Persist via hook
+      const savedCharacter = await saveCharacter(characterToSave);
+
+      // Emit event
+      eventEmitter.emit(
+        CharacterEventType.CHARACTER_CREATED,
+        createCharacterCreatedPayload(savedCharacter, 'wizard')
+      );
+
+      onComplete(savedCharacter);
+    } catch (error) {
+      console.error('[CharacterWizard] Failed to save character:', error);
+      alert('An error occurred while saving the character. Please try again.');
+    }
+  }, [data, saveCharacter, onComplete]);
+
+  // Render current step content
+  const stepContent = useMemo(() => {
     switch (currentStep) {
       case 1:
-        return <Step1BasicIdentity worldContext={worldContext} storyContext={storyContext} />;
+        return (
+          <IdentityStep 
+            data={data} 
+            onUpdate={updateData} 
+            onApplyPreset={applyPreset} 
+          />
+        );
       case 2:
-        return <Step2PhysicalAppearance worldContext={worldContext} storyContext={storyContext} />;
+        return (
+          <EssenceStep 
+            data={data} 
+            onUpdate={updateData}
+            worldContext={worldContext}
+          />
+        );
       case 3:
-        return <Step3Personality storyContext={storyContext} />;
-      case 4:
-        return <Step4Background worldContext={worldContext} storyContext={storyContext} />;
-      case 5:
-        return <Step5Relationships storyContext={storyContext} />;
-      case 6:
-        return <Step6ReviewFinalize storyContext={storyContext} />;
+        return (
+          <ChroniclesStep 
+            data={data} 
+            onUpdate={updateData} 
+            worldContext={worldContext}
+          />
+        );
       default:
         return null;
     }
-  };
+  }, [currentStep, data, updateData, applyPreset, worldContext]);
 
-
-  // ============================================================================
-  // CONDITIONAL RENDERING (after all hooks)
-  // ============================================================================
-
-  if (isSuccess && createdCharacter) {
-    const chainOptions: WizardChainOption[] = [
-      {
-        wizardType: 'create-another',
-        label: 'Create Another Character',
-        description: 'Create another character for this world',
-        icon: 'UserPlus'
-      }
-    ];
-
-    return (
-      <div className="flex flex-col items-center justify-center p-8 space-y-6 h-full">
-        <div className="flex flex-col items-center text-center space-y-2">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle2 className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold">Character Created!</h2>
-          <p className="text-gray-600 max-w-md">
-            "{createdCharacter.name}" has been saved successfully.
-          </p>
-        </div>
-
-        <div className="w-full max-w-md border-t pt-6">
-          <WizardChainOptions
-            isChained={true}
-            triggeredWizards={chainOptions}
-            currentChainIndex={0}
-            onLaunchNext={handleCreateAnother}
-            onSkipChain={handleFinish}
-            onContinue={handleFinish}
-          />
-        </div>
-      </div>
-    );
-  }
-
+  const isStepValid = useMemo(() => {
+    if (currentStep === 1) return !!data.name?.trim() && !!data.role?.archetype;
+    return true;
+  }, [currentStep, data]);
 
   return (
-    <WizardProvider<Character>
-      wizardType="character"
-      totalSteps={6}
-      initialData={initialData || createEmptyCharacter()}
-      onSubmit={handleSubmit}
-      onValidateStep={validateStep}
-      autoSave={true}
-      autoSaveDelay={2000}
-    >
-      <CharacterWizardContent
-        steps={WIZARD_STEPS}
-        onCancel={onCancel}
-        worldContext={worldContext}
-        storyContext={storyContext}
-        onComplete={handleWizardComplete}
-        renderStepContent={renderStepContent}
-      />
-    </WizardProvider>
+    <WizardErrorBoundary wizardType="character">
+      <div className="flex flex-col h-full max-w-6xl mx-auto bg-gray-50/30 dark:bg-gray-950/30">
+        {/* Header Area */}
+        <div className="px-8 pt-8 pb-4">
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
+                Character Synthesis
+                <span className="text-xs font-bold uppercase py-1 px-2 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 rounded-md tracking-widest">v2.0</span>
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">
+                Establish the fundamental signatures of a new consciousness.
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <button 
+                onClick={onCancel}
+                className="text-sm font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-widest"
+              >
+                Abort Synthesis
+              </button>
+              <button 
+                onClick={() => setShowLLMSettings(true)}
+                className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 underline decoration-blue-500/30 underline-offset-4"
+              >
+                LLM Configuration
+              </button>
+            </div>
+          </div>
+
+          <WizardStepIndicator 
+            steps={steps} 
+            currentStep={currentStep} 
+          />
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto px-8 py-4 custom-scrollbar">
+          <div className="max-w-4xl mx-auto pb-12">
+            {stepContent}
+          </div>
+        </div>
+
+        {/* Navigation Area */}
+        <div className="px-8 py-6 border-t border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
+          <div className="max-w-4xl mx-auto">
+            <WizardNavigation
+              currentStep={currentStep}
+              totalSteps={steps.length}
+              onNext={() => setCurrentStep((s) => s + 1)}
+              onBack={() => setCurrentStep((s) => s - 1)}
+              canGoNext={isStepValid}
+              canGoBack={currentStep > 1}
+              canSkip={false}
+              onSkip={() => {}}
+              onSaveDraft={() => {
+                const success = saveWizardState('character', currentStep, data);
+                if (success) setLastSaved(new Date());
+              }}
+              onSubmit={handleFinish}
+              lastSaved={lastSaved}
+            />
+          </div>
+        </div>
+      </div>
+    </WizardErrorBoundary>
   );
 }
+
 

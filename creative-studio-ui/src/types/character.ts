@@ -50,6 +50,9 @@ export interface Character {
 
   // Associated prompts
   prompts?: string[];
+
+  // 3D/Visualization settings
+  material_color?: [number, number, number]; // RGB 0.0-1.0
 }
 
 export interface VisualIdentity {

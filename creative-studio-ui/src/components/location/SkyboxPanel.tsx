@@ -6,11 +6,12 @@
  * 
  * File: creative-studio-ui/src/components/location/SkyboxPanel.tsx
  */
-
 import React, { useState, useCallback } from 'react';
-import { Sun, Moon, Cloud, Sparkles, Clock, Sliders, Video } from 'lucide-react';
+import { Sun, Moon, Cloud, Sparkles, Clock, Sliders, Video, Wand2, RefreshCw } from 'lucide-react';
 import type { Location, SkyboxType, ShotType, WeatherCondition, SkyBoxConfig } from '@/types/location';
 import { getDefaultSkyboxConfig } from '@/types/location';
+import { assetCreatorService } from '@/services/assetCreatorService';
+import { notificationService } from '@/services/NotificationService';
 import './SkyboxPanel.css';
 
 // ============================================================================
@@ -45,6 +46,8 @@ export function SkyboxPanel({
       weather: 'clear',
     }
   );
+  
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const skyboxTypes: { id: SkyboxType; label: string; icon: React.ReactNode }[] = [
     { id: 'clear_day', label: 'Clear Day', icon: <Sun size={20} /> },
@@ -86,6 +89,30 @@ export function SkyboxPanel({
   const handleIntensityChange = useCallback((value: number) => {
     handleConfigUpdate({ intensity: value });
   }, [handleConfigUpdate]);
+
+  const handleGenerateHD = useCallback(async () => {
+    const defaultPrompt = location.metadata?.genre_tags?.join(', ') || location.name || 'beautiful landscape';
+    const userPrompt = window.prompt('Enter a prompt for the HD Skybox:', defaultPrompt);
+    if (!userPrompt) return;
+
+    setIsGenerating(true);
+    try {
+      const result = await assetCreatorService.generateSkybox(userPrompt, localConfig.skybox_type);
+      if (result.success && result.filePath) {
+        handleConfigUpdate({
+          type: 'image_based', // 'hdri' is not a valid type in SkyBoxConfig, use 'image_based'
+          texture_path: result.filePath
+        });
+        notificationService.success('Skybox Generated', 'HD Skybox has been added to your location.');
+      } else {
+        notificationService.error('Generation Failed', result.error || 'Unknown error');
+      }
+    } catch {
+      notificationService.error('Generation Failed', 'An error occurred during skybox generation.');
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [location, localConfig.skybox_type, handleConfigUpdate]);
   
   if (location.location_type === 'interior') {
     return (
@@ -118,6 +145,32 @@ export function SkyboxPanel({
               <span>{type.label}</span>
             </button>
           ))}
+        </div>
+
+        <div style={{ marginTop: '12px' }}>
+          <button
+            onClick={handleGenerateHD}
+            disabled={isGenerating}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              backgroundColor: '#533483',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: isGenerating ? 'not-allowed' : 'pointer',
+              width: '100%',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              transition: 'all 0.2s',
+              opacity: isGenerating ? 0.7 : 1
+            }}
+          >
+            {isGenerating ? <RefreshCw size={16} className="spin" /> : <Wand2 size={16} />}
+            {isGenerating ? 'Generating HD Skybox...' : 'Generate HD Skybox (AI)'}
+          </button>
         </div>
       </div>
       
@@ -262,6 +315,10 @@ export function SkyboxPanel({
           </div>
         </div>
       </div>
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .spin { animation: spin 1s linear infinite; }
+      `}</style>
     </div>
   );
 }

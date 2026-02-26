@@ -1,19 +1,13 @@
 import React, { useState } from 'react';
 import { Wand2, Loader2 } from 'lucide-react';
 import { useEnhancedLLM } from '../../../hooks/useEnhancedLLM';
+import type { Character } from '@/types/character';
+import type { World, WorldRule } from '@/types/world';
 import { ModelSelector, ReasoningDisplay } from '../../llm';
 
 interface EnhancedCharacterAssistantProps {
-  worldContext?: unknown;
-  characterData: {
-    name?: string;
-    gender?: string;
-    age?: number;
-    personality?: string[];
-    appearance?: string;
-    backstory?: string;
-    abilities?: string[];
-  };
+  worldContext?: Partial<World>;
+  characterData: Partial<Character>;
   onSuggestion: (field: string, value: unknown) => void;
   suggestionType: 'name' | 'personality' | 'appearance' | 'backstory' | 'abilities';
 }
@@ -50,9 +44,9 @@ export const EnhancedCharacterAssistant: React.FC<EnhancedCharacterAssistantProp
     let systemPrompt = '';
 
     const genreString = getGenreString(worldContext?.genre);
-    const worldDesc = worldContext?.description || 'monde fantastique';
+    const worldDesc = worldContext?.atmosphere || 'monde fantastique';
     const rulesString = worldContext?.rules && Array.isArray(worldContext.rules)
-      ? worldContext.rules.map((r: unknown) => r.rule).join(', ')
+      ? worldContext.rules.map((r: WorldRule) => r.rule).join(', ')
       : 'magie et technologie';
 
     switch (suggestionType) {
@@ -81,29 +75,26 @@ Format de réponse: trait1, trait2, trait3, trait4`;
         break;
 
       case 'appearance':
-        userQuery = `Décris l'apparence physique d'un personnage ${characterData.gender || 'sans genre défini'} nommé ${characterData.name || 'sans nom'} dans un monde ${genreString}.`;
+        userQuery = `Décris l'apparence physique d'un personnage ${characterData.visual_identity?.gender || 'sans genre défini'} nommé ${characterData.name || 'sans nom'} dans un monde ${genreString}.`;
         systemPrompt = `Tu es un expert en description visuelle pour des histoires ${genreString}.
 Crée une description qui:
 - Est visuelle et détaillée
-- Reflète la personnalité: ${characterData.personality?.join(', ') || 'à définir'}
+- Reflète la personnalité: ${characterData.personality?.traits?.join(', ') || 'à définir'}
 - Est cohérente avec le monde: ${worldDesc}
 - Inclut des détails mémorables
-
-Format de réponse: Description en 2-3 phrases`;
+Génère une description en 2-3 phrases.`;
         break;
 
       case 'backstory':
-        userQuery = `Écris une histoire personnelle cohérente pour un personnage nommé ${characterData.name || 'sans nom'}, ${characterData.gender || 'genre non défini'}, âge ${characterData.age || 25}, avec les traits ${characterData.personality?.join(', ') || 'à définir'}.`;
+        userQuery = `Écris une histoire personnelle cohérente pour un personnage nommé ${characterData.name || 'sans nom'}, ${characterData.visual_identity?.gender || 'genre non défini'}, âge ${characterData.visual_identity?.age_range || 25}, avec les traits ${characterData.personality?.traits?.join(', ') || 'à définir'}.`;
         systemPrompt = `Tu es un expert en création de backstories pour des histoires ${genreString}.
 Crée une histoire qui:
 - Est cohérente avec le monde: ${worldDesc}
 - Explique les traits de personnalité
 - Crée des motivations claires
 - Laisse des mystères à explorer
-
 Contexte du monde: ${worldDesc}
-
-Format de réponse: Histoire en 3-4 paragraphes`;
+Génère une histoire en 3-4 paragraphes.`;
         break;
 
       case 'abilities':
@@ -112,9 +103,8 @@ Format de réponse: Histoire en 3-4 paragraphes`;
 Génère des capacités qui:
 - Sont cohérentes avec les règles du monde: ${rulesString}
 - Sont équilibrées (ni trop faibles ni trop puissantes)
-- Reflètent la personnalité: ${characterData.personality?.join(', ') || 'à définir'}
+- Reflètent la personnalité: ${characterData.personality?.traits?.join(', ') || 'à définir'}
 - Créent des opportunités narratives intéressantes
-
 Format de réponse: capacité1, capacité2, capacité3, capacité4`;
         break;
     }
@@ -141,9 +131,11 @@ Format de réponse: capacité1, capacité2, capacité3, capacité4`;
   };
 
   const handleApplySuggestion = (suggestion: string) => {
-    if (suggestionType === 'personality' || suggestionType === 'abilities') {
-      // For arrays, add to existing
-      const currentArray = characterData[suggestionType] || [];
+    if (suggestionType === 'personality') {
+      const currentArray = characterData.personality?.traits || [];
+      onSuggestion(suggestionType, [...currentArray, suggestion]);
+    } else if (suggestionType === 'abilities') {
+      const currentArray = characterData.background?.significant_events || [];
       onSuggestion(suggestionType, [...currentArray, suggestion]);
     } else {
       // For strings, replace

@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from backend.config import settings
 from backend.ffmpeg_service import FFmpegService
+from src.addon_manager import AddonManager, AddonType, AddonState
 
 logger = logging.getLogger(__name__)
 
@@ -35,23 +36,23 @@ class CineChainType(Enum):
     TTS_SPEAKING_CHARACTER = "tts_speaking"     # Text -> Qwen TTS -> LipSync Video
 
 class CineProductionRequest(BaseModel):
-    chain_type: CineChainType
-    project_id: str
-    scene_id: str
+    chain_type: CineChainType = Field(alias="chainType")
+    project_id: str = Field(alias="projectId")
+    scene_id: Optional[str] = Field(default=None, alias="sceneId")
     
     # Inputs
-    image_prompt: Optional[str] = None
-    video_prompt: Optional[str] = None
-    audio_prompt: Optional[str] = None
-    sound_prompt: Optional[str] = None
+    image_prompt: Optional[str] = Field(default=None, alias="imagePrompt")
+    video_prompt: Optional[str] = Field(default=None, alias="videoPrompt")
+    audio_prompt: Optional[str] = Field(default=None, alias="audioPrompt")
+    sound_prompt: Optional[str] = Field(default=None, alias="soundPrompt")
     
     # Visual Director
-    scene_description: Optional[str] = None
-    use_visual_director: bool = False
+    scene_description: Optional[str] = Field(default=None, alias="sceneDescription")
+    use_visual_director: bool = Field(default=False, alias="useVisualDirector")
     
     # Character data if applicable
-    character_id: Optional[str] = None
-    character_image_path: Optional[str] = None
+    character_id: Optional[str] = Field(default=None, alias="characterId")
+    character_image_path: Optional[str] = Field(default=None, alias="characterImagePath")
     
     # Project context overrides
     genre: Optional[str] = None
@@ -63,6 +64,19 @@ class CineProductionRequest(BaseModel):
     width: int = 1280
     height: int = 720
     seed: int = -1
+    
+    # Engine selection (e.g. "Grok Imagine", "SeedDance")
+    preferred_engine: Optional[str] = Field(default=None, alias="preferredEngine")
+    
+    # Preferred ComfyUI URL
+    comfyui_url: Optional[str] = Field(default=None, alias="comfyuiUrl")
+    
+    # Generic overrides
+    overrides: Optional[Dict[str, Any]] = None
+
+    class Config:
+        populate_by_name = True
+        use_enum_values = True
 
 class CineJobStatus(Enum):
     PENDING = "pending"
@@ -72,15 +86,20 @@ class CineJobStatus(Enum):
     CANCELLED = "cancelled"
 
 class CineProductionJob(BaseModel):
-    id: str
+    id: str = Field(alias="jobId")
     request: CineProductionRequest
     status: CineJobStatus = CineJobStatus.PENDING
     progress: float = 0.0
-    current_step: str = ""
+    current_step: str = Field(default="", alias="currentStep")
     results: List[Dict[str, Any]] = Field(default_factory=list)
+    comfyui_url: Optional[str] = None
     error: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    completed_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow, alias="startTime")
+    completed_at: Optional[datetime] = Field(default=None, alias="endTime")
+
+    class Config:
+        populate_by_name = True
+        use_enum_values = True
 
 # =============================================================================
 # CINE PRODUCTION SERVICE
@@ -122,12 +141,28 @@ class CineProductionService:
         self.ffmpeg = FFmpegService()
         self.output_dir = "./output"
         os.makedirs(self.output_dir, exist_ok=True)
+        
+        # Addon System Integration
+        self.addon_manager = AddonManager()
+        # Store task reference to prevent garbage collection before completion
+        self._addon_init_task: Optional[asyncio.Task] = None
+        try:
+            loop = asyncio.get_running_loop()
+            self._addon_init_task = asyncio.create_task(self.addon_manager.initialize_all_addons())
+        except RuntimeError:
+            # No running loop, will initialize lazily on first use
+            pass
+        
         logger.info(f"CineProductionService initialized with ComfyUI at {self.comfyui_url}")
 
     async def start_production_job(self, request: CineProductionRequest) -> str:
         """Starts a background production job."""
         job_id = str(uuid.uuid4())
-        job = CineProductionJob(id=job_id, request=request)
+        job = CineProductionJob(
+            id=job_id, 
+            request=request,
+            comfyui_url=request.comfyui_url or self.comfyui_url
+        )
         self._jobs[job_id] = job
         
         # Launch async task
@@ -158,18 +193,39 @@ class CineProductionService:
                 await self._run_visual_director_phase(job, project_context)
                 
             # Phase 1: Workflow Chaining
-            if job.request.chain_type == CineChainType.GENERATE_SCENE:
-                await self._run_scene_generation_chain(job)
-            elif job.request.chain_type == CineChainType.SPEAKING_CHARACTER:
-                await self._run_speaking_character_chain(job)
-            elif job.request.chain_type == CineChainType.MUSIC_PRO:
-                await self._run_music_pro_chain(job)
-            elif job.request.chain_type == CineChainType.STORYBOARD_ONLY:
-                await self._run_storyboard_only_chain(job)
-            elif job.request.chain_type == CineChainType.AUDIO_REMIX:
-                await self._run_audio_remix_chain(job)
-            elif job.request.chain_type == CineChainType.TTS_SPEAKING_CHARACTER:
-                await self._run_tts_speaking_character_chain(job)
+            # If a preferred engine (addon) is selected, we may skip the standard internal chains
+            # unless the preferred engine is explicitly "comfyui".
+            use_addon = False
+            if job.request.preferred_engine and job.request.preferred_engine.lower() != "comfyui":
+                addon_info = self.addon_manager.get_addon_info(job.request.preferred_engine)
+                # Fallback check
+                if not addon_info:
+                    for name in self.addon_manager.addons:
+                        if name.lower() == job.request.preferred_engine.lower():
+                            addon_info = self.addon_manager.get_addon_info(name)
+                            break
+                
+                if addon_info and addon_info.state == AddonState.ENABLED:
+                    use_addon = True
+                    logger.info(f"Using addon engine {job.request.preferred_engine} - skipping standard chains")
+
+            if not use_addon:
+                if job.request.chain_type == CineChainType.GENERATE_SCENE:
+                    await self._run_scene_generation_chain(job)
+                elif job.request.chain_type == CineChainType.SPEAKING_CHARACTER:
+                    await self._run_speaking_character_chain(job)
+                elif job.request.chain_type == CineChainType.MUSIC_PRO:
+                    await self._run_music_pro_chain(job)
+                elif job.request.chain_type == CineChainType.STORYBOARD_ONLY:
+                    await self._run_storyboard_only_chain(job)
+                elif job.request.chain_type == CineChainType.AUDIO_REMIX:
+                    await self._run_audio_remix_chain(job)
+                elif job.request.chain_type == CineChainType.TTS_SPEAKING_CHARACTER:
+                    await self._run_tts_speaking_character_chain(job)
+            else:
+                # Still run visual director if requested (already handled above)
+                # Then run addon generation
+                await self._run_addon_generation(job)
             
             # Phase 2: Persist results to Shot storage
             await self._update_shot_metadata(job, job.results)
@@ -352,7 +408,8 @@ class CineProductionService:
             {
                 "image_prompt": job.request.image_prompt,
                 "seed": job.request.seed
-            }
+            },
+            comfyui_url=job.comfyui_url
         )
         job.results.append({"step": "storyboard", "output": storyboard_result})
         
@@ -370,7 +427,8 @@ class CineProductionService:
                 "positive": job.request.video_prompt or job.request.image_prompt,
                 "width": job.request.width,
                 "height": job.request.height
-            }
+            },
+            comfyui_url=job.comfyui_url
         )
         job.results.append({"step": "video", "output": video_result})
         
@@ -388,7 +446,8 @@ class CineProductionService:
             {
                 "audio_input": audio_context,
                 "image": storyboard_image # Vibe-check influence
-            }
+            },
+            comfyui_url=job.comfyui_url
         )
         job.results.append({"step": "audio", "output": audio_result})
 
@@ -403,7 +462,7 @@ class CineProductionService:
         job.progress = 10.0
         
         from backend.qwen_tts_service import QwenTTSService
-        tts_service = QwenTTSService(comfyui_url=self.comfyui_url)
+        tts_service = QwenTTSService(comfyui_url=job.comfyui_url)
         
         # Load project context
         project_context = await self._get_project_context(job.request.project_id)
@@ -435,17 +494,7 @@ class CineProductionService:
             # Create a quick storyboard if missing? No, assume user provided it or we use default
             ref_image = "default_character.png"
             
-        # Call LipSync API (Internal call)
-        from backend.lipsync_api import LipSyncRequest, run_lipsync_generation
-        ls_job_id = str(uuid.uuid4())
-        ls_request = LipSyncRequest(
-            project_id=job.request.project_id,
-            character_face_image=ref_image,
-            audio_file=audio_file,
-            model="wav2lip",
-            enhancer=True
-        )
-        
+        # Lip sync is now handled via the unified workflow executor
         # In a real system, we'd use a shared task queue. 
         # Here we'll call the internal helper or _execute_workflow with a lipsync json
         video_result = await self._execute_workflow(
@@ -455,7 +504,8 @@ class CineProductionService:
                 "positive": job.request.video_prompt or "cinematic character speaking",
                 "image": ref_image,
                 "audio": audio_file
-            }
+            },
+            comfyui_url=job.comfyui_url
         )
         
         job.results.append({"step": "speaking_video", "output": video_result})
@@ -488,7 +538,8 @@ class CineProductionService:
                 "positive": job.request.video_prompt or "character speaking directly to camera, cinematic",
                 "image": ref_image,
                 "audio": audio_input
-            }
+            },
+            comfyui_url=job.comfyui_url
         )
         job.results.append({"step": "speaking_video", "output": video_result})
 
@@ -508,7 +559,8 @@ class CineProductionService:
             {
                 "audio_input": audio_context,
                 "image": job.request.character_image_path # Optional influence
-            }
+            },
+            comfyui_url=job.comfyui_url
         )
         job.results.append({"step": "music_pro", "output": audio_result})
 
@@ -571,7 +623,8 @@ class CineProductionService:
             {
                 "image_prompt": job.request.image_prompt,
                 "seed": job.request.seed
-            }
+            },
+            comfyui_url=job.comfyui_url
         )
         job.results.append({"step": "storyboard", "output": storyboard_result})
 
@@ -602,7 +655,8 @@ class CineProductionService:
             {
                 "audio_input": audio_context,
                 "image": ref_image
-            }
+            },
+            comfyui_url=job.comfyui_url
         )
         job.results.append({"step": "audio", "output": audio_result})
         
@@ -622,8 +676,10 @@ class CineProductionService:
         if existing_video:
             await self._mux_results(job, {"filename": existing_video}, audio_result)
 
-    async def _execute_workflow(self, workflow_name: str, workflow_path: str, overrides: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_workflow(self, workflow_name: str, workflow_path: str, overrides: Dict[str, Any], comfyui_url: str = None) -> Dict[str, Any]:
         """Loads, modifies, and submits a workflow to ComfyUI."""
+        from src.comfyui_executor import comfyui_executor
+        
         # Load workflow JSON
         abs_path = os.path.join(os.getcwd(), workflow_path)
         with open(abs_path, 'r', encoding='utf-8') as f:
@@ -638,23 +694,21 @@ class CineProductionService:
         # Apply overrides
         self._apply_overrides(workflow_name, workflow_api, overrides)
         
-        # Submit to ComfyUI
-        async with aiohttp.ClientSession() as session:
-            # 1. Clean memory before high-fidelity tasks
-            await self._free_memory(session)
+        # 1. Clean memory before high-fidelity tasks
+        await comfyui_executor.free_memory(comfyui_url=comfyui_url or self.comfyui_url)
+        
+        # 2. Execute via shared executor
+        result = await comfyui_executor.execute_workflow(
+            workflow=workflow_api,
+            comfyui_url=comfyui_url or self.comfyui_url
+        )
+        
+        if not result["success"]:
+            raise Exception(f"ComfyUI Execution Failed: {result.get('error')}")
             
-            # 2. Start prompt
-            timeout = aiohttp.ClientTimeout(total=settings.COMFYUI_TIMEOUT)
-            async with session.post(f"{self.comfyui_url}/prompt", json={"prompt": workflow_api}, timeout=timeout) as resp:
-                if resp.status != 200:
-                    error_text = await resp.text()
-                    raise Exception(f"ComfyUI Error: {error_text}")
-                
-                result = await resp.json()
-                prompt_id = result.get("prompt_id")
-                
-            # 3. Wait for result
-            return await self._wait_for_completion(session, prompt_id)
+        # Format result for CineProductionService expectation
+        # CineProductionService expects a dictionary with "outputs"
+        return {"outputs": {out["node_id"]: {"images": [{"filename": out["filename"], "type": "output"}]} for out in result["outputs"] if out["type"] == "image"}}
 
     def _convert_ui_to_api(self, workflow_ui: Dict[str, Any]) -> Dict[str, Any]:
         """Converts ComfyUI UI JSON format to API JSON format with link resolution."""
@@ -766,20 +820,22 @@ class CineProductionService:
             if "seed" in node["inputs"] and overrides.get("seed", -1) != -1:
                 node["inputs"]["seed"] = overrides["seed"]
 
-    async def _free_memory(self, session: aiohttp.ClientSession):
+    async def _free_memory(self, session: aiohttp.ClientSession, comfyui_url: str = None):
         """Calls ComfyUI's /free endpoint to release GPU memory."""
+        url = comfyui_url or self.comfyui_url
         try:
-            async with session.post(f"{self.comfyui_url}/free", json={"unload_models": True, "free_memory": True}) as resp:
+            async with session.post(f"{url}/free", json={"unload_models": True, "free_memory": True}) as resp:
                 if resp.status == 200:
                     logger.info("ComfyUI memory cleared")
         except Exception as e:
             logger.warning(f"Failed to clear ComfyUI memory: {e}")
 
-    async def _wait_for_completion(self, session: aiohttp.ClientSession, prompt_id: str, timeout: int = 600) -> Dict[str, Any]:
+    async def _wait_for_completion(self, session: aiohttp.ClientSession, prompt_id: str, timeout: int = 600, comfyui_url: str = None) -> Dict[str, Any]:
         """Polls for workflow completion and gathers all outputs."""
+        url = comfyui_url or self.comfyui_url
         start_time = datetime.utcnow()
         while (datetime.utcnow() - start_time).total_seconds() < timeout:
-            async with session.get(f"{self.comfyui_url}/history/{prompt_id}") as resp:
+            async with session.get(f"{url}/history/{prompt_id}") as resp:
                 if resp.status == 200:
                     history = await resp.json()
                     if prompt_id in history:
@@ -815,8 +871,9 @@ class CineProductionService:
         
         raise Exception(f"Job timed out after {timeout} seconds")
 
-    async def _download_from_comfyui(self, filename: str, file_type: str = "output"):
+    async def _download_from_comfyui(self, filename: str, file_type: str = "output", comfyui_url: str = None):
         """Downloads a file from ComfyUI output directory to local storage."""
+        url_base = comfyui_url or self.comfyui_url
         local_path = os.path.join(self.output_dir, filename)
         
         # Skip if already exists locally
@@ -824,7 +881,7 @@ class CineProductionService:
             return local_path
             
         async with aiohttp.ClientSession() as session:
-            url = f"{self.comfyui_url}/view?filename={filename}&type={file_type}"
+            url = f"{url_base}/view?filename={filename}&type={file_type}"
             try:
                 async with session.get(url) as resp:
                     if resp.status == 200:
@@ -852,8 +909,8 @@ class CineProductionService:
         job.progress = 90.0
         
         # 1. Download both files
-        video_local = await self._download_from_comfyui(video_filename)
-        audio_local = await self._download_from_comfyui(audio_filename)
+        video_local = await self._download_from_comfyui(video_filename, comfyui_url=job.comfyui_url)
+        audio_local = await self._download_from_comfyui(audio_filename, comfyui_url=job.comfyui_url)
         
         if not video_local or not audio_local:
             logger.error("Muxing failed: Could not download source files")
@@ -878,3 +935,83 @@ class CineProductionService:
         else:
             logger.error(f"FFmpeg Muxing failed: {error}")
             return None
+
+    async def _run_addon_generation(self, job: CineProductionJob):
+        """Runs generation through an external addon engine."""
+        engine_name = job.request.preferred_engine
+        addon_info = self.addon_manager.get_addon_info(engine_name)
+        
+        if not addon_info:
+            # Try lowercase matching if not found
+            for name in self.addon_manager.addons:
+                if name.lower() == engine_name.lower():
+                    addon_info = self.addon_manager.get_addon_info(name)
+                    engine_name = name
+                    break
+        
+        if not addon_info or addon_info.state != AddonState.ENABLED:
+            logger.warning(f"Addon engine {engine_name} not found or not enabled. Falling back.")
+            return
+
+        job.current_step = f"Generating via {engine_name}"
+        job.progress = 50.0
+        
+        try:
+            # Addons from official collection have a 'generate' method on the 'addon' instance
+            if hasattr(addon_info.module, 'addon') and addon_info.module.addon:
+                addon_instance = addon_info.module.addon
+                
+                # Prep scene data
+                scene_data = {
+                    "name": f"Job {job.id[:8]}",
+                    "description": job.request.scene_description,
+                    "image_prompt": job.request.image_prompt,
+                    "video_prompt": job.request.video_prompt,
+                    "audio_prompt": job.request.audio_prompt
+                }
+                
+                # Prep overrides
+                overrides = job.request.overrides or {}
+                overrides.update({
+                    "width": job.request.width,
+                    "height": job.request.height,
+                    "seed": job.request.seed,
+                    "style": job.request.style,
+                    "genre": job.request.genre
+                })
+                
+                # Execution
+                logger.info(f"Invoking {engine_name}.generate()...")
+                result = await addon_instance.generate(scene_data, config_overrides=overrides)
+                
+                if result and result.get("status") == "success":
+                    # Handle video or image results
+                    res_path = result.get("video") or (result.get("images")[0] if result.get("images") else None)
+                    if res_path:
+                        filename = os.path.basename(res_path)
+                        target_path = os.path.join(self.output_dir, filename)
+                        
+                        # Copy to output dir if it's elsewhere
+                        if os.path.abspath(res_path) != os.path.abspath(target_path) and os.path.exists(res_path):
+                            import shutil
+                            shutil.copy2(res_path, target_path)
+                        
+                        res_type = "video" if result.get("video") else "image"
+                        job.results.append({
+                            "step": f"{engine_name}_generation",
+                            "output": {"filename": filename, "type": res_type}
+                        })
+                        job.progress = 100.0
+                        logger.info(f"Addon {engine_name} successfully generated {res_type}")
+                    else:
+                        logger.error(f"Addon {engine_name} success but no file path returned")
+                else:
+                    error_msg = result.get("error", "Unknown error")
+                    logger.error(f"Addon {engine_name} failed: {error_msg}")
+                    job.results.append({"step": "error", "output": f"Addon {engine_name} error: {error_msg}"})
+            else:
+                logger.error(f"Addon {engine_name} module does not have 'addon' instance")
+                
+        except Exception as e:
+            logger.error(f"Exception in addon {engine_name} generation: {e}")
+            job.results.append({"step": "error", "output": f"Addon exception: {str(e)}"})

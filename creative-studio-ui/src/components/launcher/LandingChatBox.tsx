@@ -1,17 +1,18 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings, Lightbulb, Globe, Users, Film, MessageSquare as MessageIcon, FileText, Wand2, Music, Zap, List, RotateCcw, Trash2, Plus, Loader2 } from 'lucide-react';
+import { Send, Paperclip, MessageSquare, AlertCircle, Download, Settings, Lightbulb, Zap, Plus, Loader2, Trash2, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
 import { StatusIndicator, ConnectionStatus } from './StatusIndicator';
 import { LanguageSelector } from './LanguageSelector';
-import { TypingIndicator } from './TypingIndicator';
-import { type LLMConfig, type LLMRequest, type ErrorRecoveryOptions, LLMError } from '@/services/llmService';
+import { type LLMRequest, type ErrorRecoveryOptions, LLMError } from '@/services/llmService';
 import { useLLMConfig } from '@/services/llmConfigService';
 import { buildSystemPrompt } from '@/utils/systemPromptBuilder';
 import { getWelcomeMessage } from '@/utils/chatboxTranslations';
 import { InlineLLMError } from '@/components/wizard/LLMErrorDisplay';
 import { getInitialLanguagePreference } from '@/utils/languageDetection';
+import { useTheme } from '@/hooks/useTheme';
+import { type ThemeType } from '@/stores/themeStore';
 import { type World } from '@/types/world';
 import { type Story } from '@/types/story';
 import { useAppStore } from '@/stores/useAppStore'; // NEW: Use global store for LLM settings
@@ -28,14 +29,17 @@ import {
 } from '@/utils/ollamaMigration';
 import { formAutoFill } from '@/services/FormAutoFill';
 import { promptSuggestionService, type PromptSuggestion } from '@/services/PromptSuggestionService';
-import { contentCreationService, type ContentType, type ContentDetectionResult, type CreationResult } from '@/services/ContentCreationService';
-import { createChatService, ChatService, type ChatAction, type ProjectCreationRequest } from '@/services/chatService';
+import { contentCreationService, type ContentType, type CreationResult } from '@/services/ContentCreationService';
+import { createChatService, ChatService, type ProjectCreationRequest } from '@/services/chatService';
 import { useStore } from '@/store';
 import { createEmptyCharacter, type Character } from '@/types/character';
 import { eventEmitter, WizardEventType, createCharacterCreatedPayload } from '@/services/eventEmitter';
 import { createEmptyLocation, type Location } from '@/types/location';
 import { useLocationStore } from '@/stores/locationStore';
 import { createEmptyObject, type StoryObject } from '@/types/object';
+import { SpeechBubble } from '@/components/ui/SpeechBubble';
+import { VoiceButton } from '@/components/ui/VoiceButton';
+import { soundService } from '@/services/SoundService';
 
 
 // ============================================================================
@@ -43,7 +47,6 @@ import { createEmptyObject, type StoryObject } from '@/types/object';
 // ============================================================================
 
 const MESSAGE_HISTORY_LIMIT = 100; // Maximum number of messages to keep in history
-const CONFIG_DEBOUNCE_DELAY = 500; // Debounce delay for configuration changes in milliseconds
 
 // ============================================================================
 // Types
@@ -76,6 +79,7 @@ interface LandingChatBoxProps {
   height?: number;
   onLaunchWizard?: (wizardType: string) => void;
   context?: 'landing' | 'project'; // NEW: Context to adapt suggestions
+  isDetached?: boolean; // NEW: Whether this instance is in the detached window
 }
 
 // ============================================================================
@@ -87,13 +91,15 @@ export function LandingChatBox({
   placeholder = "Décrivez votre projet ou posez une question...",
   height,
   context, // Will be undefined if not provided
+  isDetached = false,
 }: LandingChatBoxProps) {
   // Use unified LLM configuration service
-  const { config: llmConfig, service: llmService, isConfigured } = useLLMConfig();
+  const { config: llmConfig, service: llmService } = useLLMConfig();
 
   // Use global store to open LLM settings modal and check if project is loaded
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
   const project = useAppStore((state) => state.project);
+  const { setTheme } = useTheme();
 
   // Auto-detect context if not provided: 'landing' if no project, 'project' if project loaded
   const effectiveContext = context || (project ? 'project' : 'landing');
@@ -120,12 +126,17 @@ export function LandingChatBox({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const handleRetryMessageRef = useRef<(userInput: string) => Promise<void> | null>(null);
   const chatServiceRef = useRef(createChatService({
     project: null,
     shots: [],
     assets: [],
     selectedShotId: null
   }));
+
+  // NEW: State to track if chat window is open (Electron only)
+  const [isChatWindowOpen, setIsChatWindowOpen] = useState(false);
+  const isSyncingRef = useRef(false);
 
   // Update chat service context when store data changes
   useEffect(() => {
@@ -135,6 +146,64 @@ export function LandingChatBox({
       assets: [], // Would get from assets store if available
     });
   }, [project]);
+
+  // NEW: Electron Synchronization (Requirement: Detached Chat)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.electronAPI?.chatWindow) return;
+
+    // Listen for state changes (window open/close)
+    const unsubscribeState = window.electronAPI.chatWindow.onStateChanged((state) => {
+      setIsChatWindowOpen(state.isOpen);
+    });
+
+    // Listen for message state updates (sync across windows)
+    const unsubscribeSync = window.electronAPI.chatWindow.onStateUpdate((state) => {
+      const syncData = state as { 
+        messages?: Array<Omit<Message, 'timestamp'> & { timestamp: string | Date }>; 
+        language?: LanguageCode; 
+        connectionStatus?: ConnectionStatus 
+      };
+
+      if (syncData && syncData.messages && !isSyncingRef.current) {
+        isSyncingRef.current = true;
+        // Map timestamps back to Date objects if they were serialized
+        const syncedMessages: Message[] = syncData.messages.map((msg) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        } as Message));
+        setMessages(syncedMessages);
+        
+        if (syncData.language) setCurrentLanguage(syncData.language);
+        if (syncData.connectionStatus) setConnectionStatus(syncData.connectionStatus);
+        
+        // Brief delay to prevent sync loops
+        setTimeout(() => { isSyncingRef.current = false; }, 100);
+      }
+    });
+
+    // Initial check
+    window.electronAPI.chatWindow.isOpen().then(open => {
+      setIsChatWindowOpen(open);
+    });
+
+    return () => {
+      unsubscribeState();
+      unsubscribeSync();
+    };
+  }, []);
+
+  // Sync state OUT to other windows
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.electronAPI?.chatWindow || isSyncingRef.current) return;
+
+    const syncState = {
+      messages,
+      language: currentLanguage,
+      connectionStatus
+    };
+    
+    window.electronAPI.chatWindow.syncState(syncState);
+  }, [messages, currentLanguage, connectionStatus]);
 
   // Helper function to add messages with history limit
   const addMessage = useCallback((newMessage: Message | Message[]) => {
@@ -168,13 +237,10 @@ export function LandingChatBox({
       };
       setMessages([welcomeMessage]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // Intentionally run only on mount - welcome message should be set once
-  }, []);
+  }, [messages.length, currentLanguage]);
 
-  // Check for Ollama migration on mount (for backward compatibility)
   useEffect(() => {
-    async function checkOllamaMigration() {
+    const checkOllamaMigration = async () => {
       // Perform automatic Ollama migration if needed
       const migrationResult = await autoMigrate();
 
@@ -477,7 +543,7 @@ export function LandingChatBox({
   };
 
   // Helper function to create error message with recovery options (Requirements 7.1-7.8)
-  const createErrorMessage = (error: Error | LLMError, userInput: string): Message => {
+  const createErrorMessage = useCallback((error: Error | LLMError, userInput: string): Message => {
     const llmError = error instanceof LLMError ? error : new LLMError(
       error.message,
       'unknown',
@@ -507,7 +573,9 @@ export function LandingChatBox({
           label: 'Retry',
           action: async () => {
             // Resend the last message (Requirement 7.6)
-            await handleRetryMessage(userInput);
+            if (handleRetryMessageRef.current) {
+              await handleRetryMessageRef.current(userInput);
+            }
           },
           primary: true,
         }] : []),
@@ -538,7 +606,7 @@ export function LandingChatBox({
       timestamp: new Date(),
       error: recoveryOptions,
     };
-  };
+  }, [setShowLLMSettings]);
 
   // Helper function to retry a failed message (Requirement 7.6)
   const handleRetryMessage = useCallback(async (userInput: string) => {
@@ -636,6 +704,9 @@ export function LandingChatBox({
             streamComplete: true,
           };
           addMessage(assistantMessage);
+          
+          // Play response-ready sound (AI finished responding)
+          soundService.play('response-ready');
         } else {
           throw new LLMError(response.error || 'Request failed', response.code || 'request_error', true);
         }
@@ -645,7 +716,10 @@ export function LandingChatBox({
       const errorMessage = createErrorMessage(error as Error, userInput);
       addMessage(errorMessage);
     }
-  }, [llmService, llmConfig, currentLanguage, addMessage]);
+  }, [llmService, llmConfig, currentLanguage, addMessage, createErrorMessage]);
+
+  // Update ref to break circular dependency
+  handleRetryMessageRef.current = handleRetryMessage;
 
   // Handle send message
   const handleSend = async () => {
@@ -878,6 +952,9 @@ export function LandingChatBox({
           handleCreation('audio', payload, chatServiceResponse.message);
         } else if (actionType === 'generateVideo') {
           handleCreation('video', payload, chatServiceResponse.message);
+        } else if (actionType === 'changeTheme') {
+          const theme = payload.theme as ThemeType;
+          if (theme) setTheme(theme);
         } else if (actionType.startsWith('create')) {
           // Map action types like 'createCharacter' to 'character' ContentType
           const rawType = actionType.replace('create', '');
@@ -922,6 +999,9 @@ export function LandingChatBox({
         if (llmConfig?.streamingEnabled ?? true) {
           // Streaming mode (Requirements 8.1, 8.3)
           setIsStreaming(true);
+          
+          // Play prompt-received sound (AI starts processing)
+          soundService.play('prompt-received');
 
           // Create placeholder message for streaming
           const streamingMessageId = (Date.now() + 1).toString();
@@ -969,6 +1049,9 @@ export function LandingChatBox({
                   }
                   : msg
               ));
+              
+              // Play response-ready sound (AI finished responding)
+              soundService.play('response-ready');
             } else {
               // Handle streaming error - display error with recovery options (Requirement 8.7)
               setMessages(prev => prev.filter(msg => msg.id !== streamingMessageId));
@@ -1172,7 +1255,7 @@ export function LandingChatBox({
               // Add character to store
               const baseCharacter = createEmptyCharacter();
 
-              const entity = result.entity as any;
+              const entity = result.entity as Record<string, unknown>;
               const newCharacter: Character = {
                 ...baseCharacter,
                 character_id: (entity.id as string) || crypto.randomUUID(),
@@ -1186,7 +1269,8 @@ export function LandingChatBox({
                   ...baseCharacter.visual_identity,
                   gender: (entity.gender as string) || baseCharacter.visual_identity?.gender || '',
                   age_range: (entity.age as string) || baseCharacter.visual_identity?.age_range || '',
-                  generated_portrait: entity.visual_identity?.generated_portrait || entity.imageUrl || '',
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  generated_portrait: (entity as any).visual_identity?.generated_portrait || (entity as any).imageUrl || '',
                   // Map description to distinctive_features if it exists
                   distinctive_features: entity.description
                     ? [...(baseCharacter.visual_identity?.distinctive_features || []), entity.description as string]
@@ -1232,6 +1316,7 @@ export function LandingChatBox({
           }
           case 'location': {
             const baseLocation = createEmptyLocation();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const entity = result.entity as any;
             const loadedMetadata = entity.metadata || {};
 
@@ -1257,6 +1342,7 @@ export function LandingChatBox({
           }
           case 'object': {
             const baseObject = createEmptyObject();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const entity = result.entity as any;
             const newObject: StoryObject = {
               ...baseObject,
@@ -1474,10 +1560,6 @@ export function LandingChatBox({
       return prev;
     });
 
-    // Build language-aware system prompt for LLM
-    const systemPrompt = buildSystemPrompt(language);
-    ;
-
     // Add system message about language change (Requirement 2.7)
     const languageNames: Record<LanguageCode, string> = {
       fr: 'French (Français)',
@@ -1532,6 +1614,29 @@ export function LandingChatBox({
           <span className="sr-only">Configure LLM settings</span>
         </Button>
 
+        {/* Pop-out Chat Button (Electron only) */}
+        {typeof window !== 'undefined' && window.electronAPI?.chatWindow && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={async () => {
+              try {
+                await window.electronAPI.chatWindow.toggle();
+              } catch (error) {
+                console.error('Failed to toggle chat window:', error);
+              }
+            }}
+            className="text-gray-400 hover:text-white hover:bg-gray-700 ml-1"
+            title={currentLanguage === 'fr' ? 'Ouvrir le chat dans une fenêtre séparée' : 'Open chat in separate window'}
+            aria-label={currentLanguage === 'fr' ? 'Détacher le chat' : 'Detach chat'}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+            <span className="sr-only">{currentLanguage === 'fr' ? 'Détacher le chat' : 'Detach chat'}</span>
+          </Button>
+        )}
+
         {/* Language Selector Button */}
         <LanguageSelector
           currentLanguage={currentLanguage}
@@ -1585,15 +1690,36 @@ export function LandingChatBox({
         </Button>
       </div>
 
-      {/* Messages Area */}
-      <div
-        className="flex-1 overflow-y-auto p-4 space-y-4"
-        role="log"
-        aria-live="polite"
-        aria-atomic="false"
-        aria-label="Chat messages"
-        aria-describedby="chatbox-title"
-      >
+      {/* NEW: Popped-out mode placeholder */}
+      {!isDetached && isChatWindowOpen ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-900/50 backdrop-blur-sm">
+          <div className="w-16 h-16 bg-purple-900/30 rounded-full flex items-center justify-center mb-4 border border-purple-500/30 animate-pulse">
+            <MessageSquare className="w-8 h-8 text-purple-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-2">Chat détaché</h3>
+          <p className="text-gray-400 max-w-xs mb-6">
+            Le StoryCore Assistant est actuellement ouvert dans une fenêtre séparée pour plus de confort.
+          </p>
+          <Button 
+            onClick={() => window.electronAPI?.chatWindow.close()}
+            variant="outline"
+            className="border-gray-700 hover:bg-gray-800 text-gray-300"
+          >
+            Réattacher ici
+          </Button>
+        </div>
+      ) : (
+        <>
+          {/* Messages Area */}
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+            role="log"
+            aria-live="polite"
+            aria-atomic="false"
+            aria-label="Chat messages"
+            aria-describedby="chatbox-title"
+          >
+            {/* ... existing messages area content ... */}
         {/* Ollama Warning Banner */}
         {isOllamaAvailable === false && (
           <div
@@ -1686,15 +1812,23 @@ export function LandingChatBox({
         )}
 
         {messages.map((message) => (
-          <div
+          <SpeechBubble
             key={message.id}
-            className={`flex ${message.type === 'user' ? 'justify-end' : message.type === 'system' ? 'justify-center' : 'justify-start'}`}
-            role="article"
-            aria-label={`${message.type === 'user' ? 'User' : message.type === 'assistant' ? 'Assistant' : message.type === 'system' ? 'System' : 'Error'} message`}
+            role={message.type === 'user' ? 'user' : message.type === 'system' ? 'system' : 'assistant'}
+            content={message.content}
+            isStreaming={message.isStreaming}
+            streamComplete={message.streamComplete}
+            timestamp={message.timestamp}
+            attachments={message.attachments}
+            creationButtons={message.creationButtons}
+            creationResult={message.creationResult}
+            isCreating={isCreating}
+            creatingType={creatingType}
+            onCreation={handleCreation}
+            error={message.type === 'error' ? message.error : null}
           >
-            {message.type === 'error' && message.error ? (
-              // Error message with recovery options (Requirements 7.1-7.7)
-              <div className="w-full">
+            {message.type === 'error' && message.error && (
+              <div className="w-full mt-2">
                 <InlineLLMError
                   error={message.error}
                   onRetry={message.error.retryable ? async () => {
@@ -1706,131 +1840,38 @@ export function LandingChatBox({
                   }}
                 />
               </div>
-            ) : message.type === 'system' ? (
-              // System message styling (Requirement 2.7, 4.6)
-              <div
-                className="max-w-[90%] rounded-lg px-4 py-2 bg-blue-900/20 border border-blue-500/30"
-                role="status"
-                aria-live="polite"
-              >
-                <p className="text-sm text-blue-300 text-center whitespace-pre-wrap">{message.content}</p>
-                <span className="text-xs text-blue-400/60 mt-1 block text-center">
-                  <time dateTime={message.timestamp.toISOString()}>
-                    {message.timestamp.toLocaleTimeString('fr-FR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </time>
-                </span>
-              </div>
-            ) : (
-              <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${message.type === 'user'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-800 text-gray-200'
-                  }`}
-              >
-                {message.type === 'assistant' && (
-                  <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="w-3 h-3 text-purple-400" aria-hidden="true" />
-                    <span className="text-xs text-purple-400 font-medium">Assistant</span>
-                    {/* Typing indicator during streaming (Requirement 8.3) */}
-                    {message.isStreaming && (
-                      <TypingIndicator className="text-gray-400 text-xs ml-1" />
-                    )}
+            )}
+            {/* Media Playback / Display */}
+            {message.creationResult && message.creationResult.success && (
+              <div className="mt-3 overflow-hidden rounded-md border border-gray-700">
+                {message.creationResult.type === 'image' && message.creationResult.entity?.url && (
+                  <img
+                    src={message.creationResult.entity.url as string}
+                    alt="Generated content"
+                    className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                )}
+                {message.creationResult.type === 'audio' && message.creationResult.entity?.url && (
+                  <div className="p-2 bg-gray-900/50">
+                    <audio
+                      controls
+                      src={message.creationResult.entity.url as string}
+                      className="w-full h-8"
+                    />
                   </div>
                 )}
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                {message.attachments && message.attachments.length > 0 && (
-                  <div className="mt-2 space-y-1" role="list" aria-label="Attachments">
-                    {message.attachments.map((attachment, idx) => (
-                      <div key={idx} className="text-xs text-gray-400 flex items-center gap-1" role="listitem">
-                        <Paperclip className="w-3 h-3" aria-hidden="true" />
-                        <span>{attachment}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* Display timestamp after streaming completes (Requirement 8.4) */}
-                {!message.isStreaming && (
-                  <span className="text-xs text-gray-400 mt-1 block">
-                    <time dateTime={message.timestamp.toISOString()}>
-                      {message.timestamp.toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </time>
-                  </span>
-                )}
-                {/* Content Creation Action Buttons */}
-                {message.type === 'assistant' && message.creationButtons && message.creationButtons.length > 0 && !message.creationResult && (
-                  <div className="mt-3 pt-2 border-t border-gray-700/50">
-                    <div className="flex items-center gap-1 mb-2">
-                      <Wand2 className="w-3 h-3 text-amber-400" aria-hidden="true" />
-                      <span className="text-xs text-amber-400 font-medium">
-                        {currentLanguage === 'fr' ? 'Actions de création détectées' : 'Creation actions detected'}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {message.creationButtons.map((btn) => (
-                        <button
-                          key={btn.id}
-                          onClick={() => handleCreation(btn.type, btn.data)}
-                          disabled={isCreating}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600/80 to-indigo-600/80 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                          title={btn.label}
-                        >
-                          {isCreating && creatingType === btn.type ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : (
-                            <span className="text-sm">{btn.icon}</span>
-                          )}
-                          {btn.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {/* Creation Result Badge */}
-                {message.creationResult && message.creationResult.success && (
-                  <div className="mt-2 flex items-center gap-1.5">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-900/40 border border-emerald-500/30 rounded-full text-xs text-emerald-300">
-                      <Sparkles className="w-3 h-3" />
-                      {currentLanguage === 'fr' ? 'Créé avec succès' : 'Created successfully'}
-                    </span>
-                  </div>
-                )}
-                {/* Media Playback / Display */}
-                {message.creationResult && message.creationResult.success && (
-                  <div className="mt-3 overflow-hidden rounded-md border border-gray-700">
-                    {message.creationResult.type === 'image' && message.creationResult.entity.url && (
-                      <img
-                        src={message.creationResult.entity.url as string}
-                        alt="Generated content"
-                        className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"
-                      />
-                    )}
-                    {message.creationResult.type === 'audio' && message.creationResult.entity.url && (
-                      <div className="p-2 bg-gray-900/50">
-                        <audio
-                          controls
-                          src={message.creationResult.entity.url as string}
-                          className="w-full h-8"
-                        />
-                      </div>
-                    )}
-                    {message.creationResult.type === 'video' && message.creationResult.entity.url && (
-                      <video
-                        controls
-                        src={message.creationResult.entity.url as string}
-                        className="w-full h-auto"
-                      />
-                    )}
+                {message.creationResult.type === 'video' && message.creationResult.entity?.url && (
+                  <div className="p-2 bg-gray-900/50">
+                    <video
+                      controls
+                      src={message.creationResult.entity.url as string}
+                      className="w-full h-auto"
+                    />
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </SpeechBubble>
         ))}
         <div ref={messagesEndRef} />
       </div>
@@ -2127,6 +2168,15 @@ export function LandingChatBox({
             <span className="sr-only">Attach file</span>
           </Button>
 
+          {/* Voice Input Button */}
+          <VoiceButton
+            size="sm"
+            onVoiceResult={(transcript) => {
+              setInputValue(transcript);
+              textareaRef.current?.focus();
+            }}
+          />
+
           {/* Text Input */}
           <Textarea
             ref={textareaRef}
@@ -2157,8 +2207,10 @@ export function LandingChatBox({
           Appuyez sur Entrée pour envoyer, Shift+Entrée pour une nouvelle ligne
         </p>
       </div>
-    </div>
-  );
+    </>
+  )}
+</div>
+);
 }
 
 // ============================================================================
@@ -2293,8 +2345,8 @@ function generateAssistantResponse(input: string): string {
   if (
     input.includes('export') || input.includes('render') ||
     input.includes('générer') || input.includes('generate') ||
-    input.includes('vidéo') || input.includes('video')
-  ) {
+    input.includes('vidéo') || input.includes('video'))
+   {
     return "L'export et le rendu de vidéos sont disponibles depuis l'éditeur de projet. Une fois votre storyboard terminé, vous pourrez exporter votre projet dans différents formats avec les paramètres de qualité de votre choix.";
   }
 

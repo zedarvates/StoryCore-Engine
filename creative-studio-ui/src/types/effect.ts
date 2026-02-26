@@ -12,6 +12,7 @@ export interface EffectParameter {
   name: string;
   type: 'range' | 'color' | 'select' | 'boolean' | 'number';
   value: any;
+  defaultValue?: any;
   min?: number;
   max?: number;
   step?: number;

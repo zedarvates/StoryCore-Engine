@@ -123,15 +123,34 @@ def save_location(location_id: str, data: Dict[str, Any]) -> bool:
         logger.error(f"Error saving location {location_id}: {e}")
         return False
 
-@router.get("", response_model=List[LocationResponse])
+@router.get("/", response_model=List[LocationResponse])
 async def list_locations() -> List[LocationResponse]:
+    """
+    List all globally available locations.
+    Scans the LOCATIONS_DIR and returns all valid location records.
+    """
+    if not LOCATIONS_DIR.exists():
+        LOCATIONS_DIR.mkdir(parents=True, exist_ok=True)
+        return []
+        
     locations = []
-    for loc in locations_db.values():
-        try:
-            locations.append(LocationResponse(**loc))
-        except (ValueError, TypeError) as e:
-            logger.warning(f"Error validating location: {e}")
-            continue
+    for filename in LOCATIONS_DIR.iterdir():
+        if filename.suffix == '.json':
+            try:
+                # Use load_location which handles caching
+                loc = load_location(filename.stem)
+                if loc:
+                    # Clean up data mapping if needed (id vs location_id)
+                    if 'id' not in loc and 'location_id' in loc:
+                        loc['id'] = loc['location_id']
+                    elif 'location_id' not in loc and 'id' in loc:
+                        loc['location_id'] = loc['id']
+                        
+                    locations.append(LocationResponse(**loc))
+            except Exception as e:
+                logger.error(f"Error loading location {filename}: {e}")
+                continue
+                
     return locations
 
 @router.get("/{location_id}", response_model=LocationResponse)

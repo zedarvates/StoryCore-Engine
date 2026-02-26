@@ -6,13 +6,12 @@
  */
 
 import type {
-  TaskQueueItem,
   TaskQueueResponse,
   PriorityUpdateResponse,
   RetryResponse,
   QueueStatsResponse,
-} from '../types';
-import { API_BASE_URL } from '../config/apiConfig';
+} from '@/types';
+import { API_BASE_URL } from '@/config/apiConfig';
 
 /**
  * Fetch with authentication header

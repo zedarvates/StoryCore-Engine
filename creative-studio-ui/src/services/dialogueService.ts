@@ -8,7 +8,7 @@
  * - Prompt generation for images/videos
  */
 
-import { getLLMService } from '../services/llmService';
+import { llmService } from '../services/llmService';
 import { logger } from '@/utils/logger';
 
 export interface Character {
@@ -75,7 +75,7 @@ interface ParsedDialogueLine {
 
 export class DialogueService {
   private static instance: DialogueService;
-  private llmService = getLLMService();
+  private llmService = llmService;
 
   private constructor() {}
 

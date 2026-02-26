@@ -199,11 +199,12 @@ class TranscriptionEngine:
         
         # Circuit breaker
         circuit_config = CircuitBreakerConfig(
-            failure_rate_threshold=30,
-            wait_time_in_open_state=60,
-            half_open_requests=3
+            failure_threshold=5,
+            recovery_timeout=60.0,
+            success_threshold=3,
+            timeout=30.0
         )
-        self.circuit_breaker = CircuitBreaker(circuit_config)
+        self.circuit_breaker = CircuitBreaker("transcription", circuit_config)
         
         # Cache
         self.transcript_cache: Dict[str, Transcript] = {}
@@ -222,6 +223,7 @@ class TranscriptionEngine:
         self.silence_threshold = 0.5  # secondes de silence pour分割
         
         self.logger.info("Transcription Engine initialized")
+        self.is_initialized = False
     
     async def initialize(self) -> bool:
         """Initialiser le moteur."""
@@ -232,6 +234,7 @@ class TranscriptionEngine:
                 self.logger.warning("Using mock transcription implementation")
             
             self.logger.info("Transcription Engine initialization complete")
+            self.is_initialized = True
             return True
             
         except Exception as e:
@@ -455,9 +458,9 @@ class TranscriptionEngine:
         # Récupérer la transcription
         transcript = self.transcript_cache.get(request.transcript_id)
         if not transcript:
-            # Essayer de charger depuis le cache par audio_id
+            # Essayer de charger depuis le cache par valeurs
             for t in self.transcript_cache.values():
-                if t.audio_id == request.transcript_id:
+                if t.transcript_id == request.transcript_id:
                     transcript = t
                     break
         
@@ -892,6 +895,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     
     async def get_transcript(self, transcript_id: str) -> Optional[Transcript]:
         """Récupérer une transcription."""
+        for t in self.transcript_cache.values():
+            if t.transcript_id == transcript_id:
+                return t
         return self.transcript_cache.get(transcript_id)
     
     async def get_montage(self, result_id: str) -> Optional[MontageResult]:

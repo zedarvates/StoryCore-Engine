@@ -81,13 +81,13 @@ export class PromptParser {
   /**
    * Parse a creative prompt into structured data
    */
-  async parse(prompt: string): Promise<ParsedPrompt> {
-    console.log(`[PromptParser] Parsing prompt: "${prompt.substring(0, 100)}..."`);
+  async parse(prompt: string, language: string = 'en'): Promise<ParsedPrompt> {
+    console.log(`[PromptParser] Parsing prompt: "${prompt.substring(0, 100)}..." (lang: ${language})`);
 
     // Try LLM-based parsing first if available
     if (this.providerManager && this.config.useLLM) {
       try {
-        const result = await this.parseWithLLM(prompt);
+        const result = await this.parseWithLLM(prompt, language);
         if (result) {
           return result;
         }
@@ -105,50 +105,55 @@ export class PromptParser {
   }
 
   /**
-   * Parse using LLM for intelligent extraction
+   * Parse using LLM for high-speed intelligent extraction
    */
-  private async parseWithLLM(prompt: string): Promise<ParsedPrompt | null> {
+  private async parseWithLLM(prompt: string, language: string): Promise<ParsedPrompt | null> {
     if (!this.providerManager) return null;
 
-    const systemMessage = `You are a creative assistant that parses video/project prompts.
-Extract the following information from the user's prompt:
-1. Project title (suggest one if not explicit)
-2. Genre (fantasy, sci-fi, cyberpunk, horror, romance, action, etc.)
-3. Setting/Time period/Location
-4. Characters (name, role, description)
-5. Mood (dark, tense, peaceful, exciting, etc.)
-6. Style references (cinematic, anime, documentary, etc.)
-7. Tone (intense, humorous, dramatic, etc.)
-8. Video type (trailer, teaser, short film, music video, etc.)
-9. Key visual elements mentioned
-10. Any excluded elements
+    const languages: Record<string, string> = {
+      'en': 'English', 'fr': 'French', 'es': 'Spanish', 'de': 'German',
+      'it': 'Italian', 'pt': 'Portuguese', 'ja': 'Japanese', 'zh': 'Chinese', 'ko': 'Korean'
+    };
+    const langName = languages[language] || 'English';
 
-Respond in JSON format with this structure:
+    const systemMessage = `[TASK] Extract video project data from this ${langName} prompt.
+[FORMAT] Return ONLY JSON.
+[SCHEMA]
 {
   "projectTitle": "string",
-  "genre": "string",
-  "subGenre": "string or null",
-  "setting": "string",
-  "timePeriod": "string",
-  "location": "string",
-  "characters": [{"name": "string", "role": "protagonist|antagonist|supporting|minor", "description": "string", "attributes": ["string"]}],
+  "genre": "one word",
+  "setting": "brief string",
+  "chars": [["name", "role", "desc"]],
   "mood": ["string"],
   "style": ["string"],
   "tone": "string",
   "videoType": "trailer|teaser|short_film|music_video|documentary|commercial|unknown",
-  "keyElements": ["string"],
-  "visualReferences": ["string"],
-  "excludedElements": ["string"]
-}`;
+  "keyElements": ["string"]
+}
+[RULES] Role: protagonist, antagonist, supporting. Use ${langName} for strings. No talk.`;
+
 
     const messages: Message[] = [
       { role: 'system', content: systemMessage },
-      { role: 'user', content: `Parse this prompt:\n\n${prompt}` },
+      { role: 'user', content: `Parse: "${prompt}"` },
     ];
 
     try {
-      const response = await this.providerManager.generateCompletion(messages);
-      const parsed = JSON.parse(response);
+      const response = await this.providerManager.generateCompletion(messages, { maxTokens: 1000, temperature: 0.3 });
+      
+      // Clean potential markdown code blocks
+      const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      
+      // Map new compact format to internal model
+      if (parsed.chars && Array.isArray(parsed.chars)) {
+        parsed.characters = parsed.chars.map((c: any[]) => ({
+          name: c[0],
+          role: c[1],
+          description: c[2],
+          attributes: []
+        }));
+      }
       
       return this.enhanceWithDefaults(parsed, prompt);
     } catch (error) {
@@ -156,6 +161,7 @@ Respond in JSON format with this structure:
       return null;
     }
   }
+
 
   /**
    * Rule-based parsing for simple prompts

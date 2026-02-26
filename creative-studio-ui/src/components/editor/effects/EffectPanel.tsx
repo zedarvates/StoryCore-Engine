@@ -1,20 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { Settings, Eye, EyeOff, Trash2, Plus, Sliders, Palette, Move, RotateCw, Zap } from 'lucide-react';
+import { Settings, Eye, EyeOff, Trash2, Plus, Sliders, Palette, Move, Zap, Sun } from 'lucide-react';
 import './EffectPanel.css';
 
-interface Effect {
-  id: string;
-  name: string;
-  type: 'color' | 'transform' | 'temporal' | 'filter';
-  enabled: boolean;
-  parameters: Record<string, number | string | boolean>;
-  category: string;
-}
+import { Effect, AppliedEffect, EffectParameter } from '@/types/effect';
 
 interface EffectPanelProps {
-  effects: Effect[];
-  onEffectAdd: (effect: Omit<Effect, 'id'>) => void;
-  onEffectUpdate: (effectId: string, updates: Partial<Effect>) => void;
+  effects: AppliedEffect[];
+  onEffectAdd: (effect: Omit<AppliedEffect, 'id'>) => void;
+  onEffectUpdate: (effectId: string, updates: Partial<AppliedEffect>) => void;
   onEffectRemove: (effectId: string) => void;
   onEffectReorder: (effectId: string, newIndex: number) => void;
 }
@@ -31,12 +24,13 @@ export function EffectPanel({
 
   // Group effects by category
   const effectsByCategory = effects.reduce((acc, effect) => {
-    if (!acc[effect.category]) {
-      acc[effect.category] = [];
+    const category = effect.category || 'other';
+    if (!acc[category]) {
+      acc[category] = [];
     }
-    acc[effect.category].push(effect);
+    acc[category].push(effect);
     return acc;
-  }, {} as Record<string, Effect[]>);
+  }, {} as Record<string, AppliedEffect[]>);
 
   const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => {
@@ -50,193 +44,80 @@ export function EffectPanel({
     });
   }, []);
 
-  const handleParameterChange = useCallback((effectId: string, param: string, value: unknown) => {
+  const handleParameterChange = useCallback((effectId: string, paramId: string, value: unknown) => {
     const effect = effects.find(e => e.id === effectId);
     if (!effect) return;
 
+    const updatedParameters = effect.parameters.map(p =>
+      p.id === paramId ? { ...p, value } : p
+    );
+
     onEffectUpdate(effectId, {
-      parameters: {
-        ...effect.parameters,
-        [param]: value
-      }
+      parameters: updatedParameters
     });
   }, [effects, onEffectUpdate]);
 
-  const getEffectIcon = (type: Effect['type']) => {
-    switch (type) {
+  const getEffectIcon = (category: string) => {
+    switch (category) {
       case 'color': return <Palette size={16} />;
       case 'transform': return <Move size={16} />;
       case 'temporal': return <Zap size={16} />;
-      case 'filter': return <Sliders size={16} />;
       default: return <Settings size={16} />;
     }
   };
 
-  const renderEffectControls = (effect: Effect) => {
-    switch (effect.type) {
-      case 'color':
-        return (
-          <div className="effect-controls color-controls">
-            <div className="control-group">
-              <label>Brightness</label>
-              <input
-                type="range"
-                min="-100"
-                max="100"
-                value={effect.parameters.brightness || 0}
-                onChange={(e) => handleParameterChange(effect.id, 'brightness', parseInt(e.target.value))}
-              />
-              <span>{effect.parameters.brightness || 0}</span>
-            </div>
-            <div className="control-group">
-              <label>Contrast</label>
-              <input
-                type="range"
-                min="-100"
-                max="100"
-                value={effect.parameters.contrast || 0}
-                onChange={(e) => handleParameterChange(effect.id, 'contrast', parseInt(e.target.value))}
-              />
-              <span>{effect.parameters.contrast || 0}</span>
-            </div>
-            <div className="control-group">
-              <label>Saturation</label>
-              <input
-                type="range"
-                min="-100"
-                max="100"
-                value={effect.parameters.saturation || 0}
-                onChange={(e) => handleParameterChange(effect.id, 'saturation', parseInt(e.target.value))}
-              />
-              <span>{effect.parameters.saturation || 0}</span>
-            </div>
-            <div className="control-group">
-              <label>Hue</label>
-              <input
-                type="range"
-                min="0"
-                max="360"
-                value={effect.parameters.hue || 0}
-                onChange={(e) => handleParameterChange(effect.id, 'hue', parseInt(e.target.value))}
-              />
-              <span>{effect.parameters.hue || 0}°</span>
-            </div>
-          </div>
-        );
-
-      case 'transform':
-        return (
-          <div className="effect-controls transform-controls">
-            <div className="control-group">
-              <label>Position X</label>
-              <input
-                type="range"
-                min="-500"
-                max="500"
-                value={effect.parameters.positionX || 0}
-                onChange={(e) => handleParameterChange(effect.id, 'positionX', parseInt(e.target.value))}
-              />
-              <span>{effect.parameters.positionX || 0}px</span>
-            </div>
-            <div className="control-group">
-              <label>Position Y</label>
-              <input
-                type="range"
-                min="-500"
-                max="500"
-                value={effect.parameters.positionY || 0}
-                onChange={(e) => handleParameterChange(effect.id, 'positionY', parseInt(e.target.value))}
-              />
-              <span>{effect.parameters.positionY || 0}px</span>
-            </div>
-            <div className="control-group">
-              <label>Scale</label>
-              <input
-                type="range"
-                min="0.1"
-                max="3.0"
-                step="0.1"
-                value={effect.parameters.scale || 1}
-                onChange={(e) => handleParameterChange(effect.id, 'scale', parseFloat(e.target.value))}
-              />
-              <span>{effect.parameters.scale || 1}x</span>
-            </div>
-            <div className="control-group">
-              <label>Rotation</label>
-              <input
-                type="range"
-                min="-180"
-                max="180"
-                value={effect.parameters.rotation || 0}
-                onChange={(e) => handleParameterChange(effect.id, 'rotation', parseInt(e.target.value))}
-              />
-              <span>{effect.parameters.rotation || 0}°</span>
-            </div>
-          </div>
-        );
-
-      case 'temporal':
-        return (
-          <div className="effect-controls temporal-controls">
-            <div className="control-group">
-              <label>Speed</label>
-              <input
-                type="range"
-                min="0.1"
-                max="4.0"
-                step="0.1"
-                value={effect.parameters.speed || 1}
-                onChange={(e) => handleParameterChange(effect.id, 'speed', parseFloat(e.target.value))}
-              />
-              <span>{effect.parameters.speed || 1}x</span>
-            </div>
-            <div className="control-group">
-              <label>Reverse</label>
-              <input
-                type="checkbox"
-                checked={effect.parameters.reverse || false}
-                onChange={(e) => handleParameterChange(effect.id, 'reverse', e.target.checked)}
-              />
-            </div>
-          </div>
-        );
-
-      case 'filter':
-        return (
-          <div className="effect-controls filter-controls">
-            <div className="control-group">
-              <label>Intensity</label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={effect.parameters.intensity || 50}
-                onChange={(e) => handleParameterChange(effect.id, 'intensity', parseInt(e.target.value))}
-              />
-              <span>{effect.parameters.intensity || 50}%</span>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
+  const renderParameterControl = (effectId: string, param: EffectParameter) => {
+    if (param.type === 'range' || param.type === 'number') {
+      return (
+        <div key={param.id} className="control-group">
+          <label>{param.name}</label>
+          <input
+            type="range"
+            min={param.min ?? 0}
+            max={param.max ?? 100}
+            step={param.step ?? 1}
+            value={param.value || 0}
+            onChange={(e) => handleParameterChange(effectId, param.id, parseFloat(e.target.value))}
+          />
+          <span>{param.value || 0}{param.unit || ''}</span>
+        </div>
+      );
     }
+
+    if (param.type === 'boolean') {
+      return (
+        <div key={param.id} className="control-group">
+          <label>{param.name}</label>
+          <input
+            type="checkbox"
+            checked={!!param.value}
+            onChange={(e) => handleParameterChange(effectId, param.id, e.target.checked)}
+          />
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
     <div className="effect-panel">
       <div className="panel-header">
-        <h3>Effects</h3>
+        <h3>Effets Appliqués</h3>
         <button
           className="add-effect-btn"
           onClick={() => {
-            // This would typically open a menu to select effect type
             onEffectAdd({
-              name: 'New Effect',
-              type: 'color',
+              name: 'Nouveau Filtre',
+              type: 'filter',
               enabled: true,
-              parameters: {},
-              category: 'adjustment'
+              parameters: [
+                { id: 'intensity', name: 'Intensité', type: 'range', value: 50, min: 0, max: 100 }
+              ],
+              category: 'color',
+              order: effects.length,
+              icon: <Zap size={16} />,
+              description: 'Nouveau filtre d\'effet'
             });
           }}
         >
@@ -251,13 +132,13 @@ export function EffectPanel({
               className="category-header"
               onClick={() => toggleCategory(category)}
             >
-              <span className="category-name">{category}</span>
+              <span className="category-name">{category.charAt(0).toUpperCase() + category.slice(1)}</span>
               <span className="category-count">({categoryEffects.length})</span>
             </div>
 
             {expandedCategories.has(category) && (
               <div className="category-effects">
-                {categoryEffects.map((effect, index) => (
+                {categoryEffects.map((effect) => (
                   <div
                     key={effect.id}
                     className={`effect-item ${selectedEffectId === effect.id ? 'selected' : ''}`}
@@ -265,7 +146,7 @@ export function EffectPanel({
                   >
                     <div className="effect-header">
                       <div className="effect-info">
-                        {getEffectIcon(effect.type)}
+                        {getEffectIcon(effect.category)}
                         <span className="effect-name">{effect.name}</span>
                       </div>
 
@@ -294,7 +175,7 @@ export function EffectPanel({
 
                     {selectedEffectId === effect.id && (
                       <div className="effect-details">
-                        {renderEffectControls(effect)}
+                        {effect.parameters.map(param => renderParameterControl(effect.id, param))}
                       </div>
                     )}
                   </div>
@@ -306,21 +187,27 @@ export function EffectPanel({
 
         {effects.length === 0 && (
           <div className="no-effects">
-            <p>No effects applied</p>
+            <p>Aucun effet appliqué</p>
             <button
               className="add-first-effect-btn"
               onClick={() => {
                 onEffectAdd({
-                  name: 'Brightness/Contrast',
-                  type: 'color',
+                  name: 'Luminosité/Contraste',
+                  type: 'color-correction',
                   enabled: true,
-                  parameters: { brightness: 0, contrast: 0 },
-                  category: 'adjustment'
+                  parameters: [
+                    { id: 'brightness', name: 'Luminosité', type: 'range', value: 0, min: -100, max: 100 },
+                    { id: 'contrast', name: 'Contraste', type: 'range', value: 0, min: -100, max: 100 }
+                  ],
+                  category: 'color',
+                  order: 0,
+                  icon: <Sun size={16} />,
+                  description: 'Ajuste la luminosité et le contraste'
                 });
               }}
             >
               <Plus size={16} />
-              Add Effect
+              Ajouter un effet
             </button>
           </div>
         )}

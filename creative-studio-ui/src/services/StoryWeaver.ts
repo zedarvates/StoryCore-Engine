@@ -3,7 +3,7 @@ import type { Story, StoryPart, StoryGenerationParams, GenerationProgress } from
 import type { StoryMethodologyType, MethodologyState } from '../types/storyMethodology';
 import { useMemoryStore } from '../stores/memoryStore';
 import { storyReviewer } from './StoryReviewer';
-import { generateStoryContent, generateStorySummary, retryWithBackoff } from './storyGenerationService';
+import { generateStorySummary, retryWithBackoff } from './storyGenerationService';
 import { methodologyFactory } from './MethodologyFactory';
 
 /**
@@ -176,7 +176,7 @@ export class StoryWeaver {
         let finalSummary = '';
         try {
             finalSummary = await generateStorySummary(fullContent);
-        } catch (error) {
+        } catch {
             console.warn('[StoryWeaver] Summary generation failed, using basic summary');
             finalSummary = this.createBasicSummary(parts, params);
         }
@@ -213,8 +213,8 @@ export class StoryWeaver {
         order: number,
         partIndex?: number
     ): StoryPart {
-        const charNames = params.characters?.map((c: any) => c.name).join(', ') || 'the characters';
-        const locationNames = params.locations?.map((l: any) => l.name).join(', ') || 'the world';
+        const charNames = params.characters?.map((c) => c.name).join(', ') || 'the characters';
+        const locationNames = params.locations?.map((l) => l.name).join(', ') || 'the world';
 
         let content = '';
         let summary = '';
@@ -269,7 +269,7 @@ export class StoryWeaver {
         try {
             content = await retryWithBackoff(async () => {
                 const { getLLMService } = await import('./llmService');
-                const llmService = getLLMService();
+                const llmService = await getLLMService();
 
                 const response = await llmService.generateText(basePrompt, {
                     temperature: 0.8,
@@ -340,10 +340,10 @@ World Context:
 ${JSON.stringify(params.worldContext)}
 
 Character Context:
-${params.characters?.map((c: any) => `- ${c.name}: ${c.description || c.role}`).join('\n') || ''}
+${params.characters?.map((c) => `- ${c.name}: ${c.description || c.role}`).join('\n') || ''}
 
 Location Context:
-${params.locations?.map((l: any) => `- ${l.name}: ${l.description || l.type}`).join('\n') || ''}
+${params.locations?.map((l) => `- ${l.name}: ${l.description || l.type}`).join('\n') || ''}
 
 Write the next part of the story. Output only the story content, no meta-commentary.
 `;

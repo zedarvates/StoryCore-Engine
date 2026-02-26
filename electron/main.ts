@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, dialog } from 'electron';
+import { app, BrowserWindow, Menu, dialog, globalShortcut, ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ViteServerManager, LauncherConfig } from './ViteServerManager';
@@ -12,6 +12,7 @@ import { IPCHandlers } from './ipcChannels';
 // import { UpdateManager } from './UpdateManager';
 
 let mainWindow: BrowserWindow | null = null;
+let chatWindow: BrowserWindow | null = null;
 let serverManager: ViteServerManager | null = null;
 let ipcHandlers: IPCHandlers | null = null;
 // let updateManager: UpdateManager | null = null;
@@ -133,6 +134,130 @@ function createWindow(url: string): void {
 }
 
 /**
+ * Get the URL for loading pages (handles both dev and production)
+ */
+function getAppUrl(): string | null {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  if (isDevelopment) {
+    // In development, use localhost
+    return 'http://localhost:5173';
+  } else {
+    // In production, use file protocol
+    const distPath = path.join(__dirname, '..', '..', 'creative-studio-ui', 'dist');
+    if (fs.existsSync(distPath)) {
+      return `file://${distPath.replace(/\\/g, '/')}`;
+    }
+  }
+  return null;
+}
+
+/**
+ * Create the detached chat window
+ * This window can be moved outside the main application window
+ */
+function createChatWindow(): BrowserWindow | null {
+  // If chat window already exists, focus it
+  if (chatWindow && !chatWindow.isDestroyed()) {
+    chatWindow.focus();
+    return chatWindow;
+  }
+
+  const iconPath = getIconPath();
+  const appUrl = getAppUrl();
+
+  if (!appUrl) {
+    console.error('Could not determine app URL for chat window');
+    return null;
+  }
+
+  chatWindow = new BrowserWindow({
+    width: 450,
+    height: 700,
+    minWidth: 350,
+    minHeight: 500,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+    },
+    title: 'StoryCore Assistant',
+    show: false,
+    backgroundColor: '#1a1a2e',
+    icon: iconPath,
+    frame: true,
+    alwaysOnTop: false,
+    skipTaskbar: false,
+  });
+
+  // Load the chat route
+  const chatUrl = appUrl.includes('localhost') 
+    ? `${appUrl}/detached-chat` 
+    : `${appUrl}/detached-chat.html`;
+  
+  console.log('Loading chat window URL:', chatUrl);
+  chatWindow.loadURL(chatUrl);
+
+  // Show window when ready
+  chatWindow.once('ready-to-show', () => {
+    chatWindow?.show();
+    console.log('Chat window ready');
+    
+    // Notify main window that chat window is open
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('chat-window:state-changed', { isOpen: true });
+    }
+  });
+
+  // Handle window close
+  chatWindow.on('closed', () => {
+    chatWindow = null;
+    console.log('Chat window closed');
+    
+    // Notify main window that chat window is closed
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('chat-window:state-changed', { isOpen: false });
+    }
+  });
+
+  // Open DevTools in development mode
+  if (process.env.NODE_ENV === 'development') {
+    chatWindow.webContents.openDevTools({ mode: 'detach' });
+  }
+
+  return chatWindow;
+}
+
+/**
+ * Toggle the chat window (open/close)
+ */
+function toggleChatWindow(): void {
+  if (chatWindow && !chatWindow.isDestroyed()) {
+    chatWindow.close();
+  } else {
+    createChatWindow();
+  }
+}
+
+/**
+ * Close the chat window if it exists
+ */
+function closeChatWindow(): void {
+  if (chatWindow && !chatWindow.isDestroyed()) {
+    chatWindow.close();
+    chatWindow = null;
+  }
+}
+
+/**
+ * Check if chat window is open
+ */
+function isChatWindowOpen(): boolean {
+  return chatWindow !== null && !chatWindow.isDestroyed();
+}
+
+/**
  * Check if a server is already running on a port
  */
 async function checkServerRunning(port: number): Promise<boolean> {
@@ -245,6 +370,44 @@ function initializeServices(): void {
   // Register IPC handlers
   ipcHandlers.registerHandlers();
   console.log('IPC handlers registered');
+
+  // Register chat window IPC listeners
+  ipcMain.on('chat-window:create-request', () => {
+    createChatWindow();
+  });
+
+  ipcMain.on('chat-window:close-request', () => {
+    closeChatWindow();
+  });
+
+  ipcMain.on('chat-window:toggle-request', () => {
+    toggleChatWindow();
+  });
+
+  ipcMain.handle('chat-window:is-open', () => {
+    return isChatWindowOpen();
+  });
+
+  ipcMain.on('chat-window:send-message', (_event, message) => {
+    // Send to whichever window is NOT the sender
+    if (chatWindow && !chatWindow.isDestroyed()) {
+      chatWindow.webContents.send('chat-window:message', message);
+    }
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('chat-window:message', message);
+    }
+  });
+
+  ipcMain.on('chat-window:sync-state', (_event, state) => {
+    if (chatWindow && !chatWindow.isDestroyed()) {
+      chatWindow.webContents.send('chat-window:state-update', state);
+    }
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('chat-window:state-update', state);
+    }
+  });
+
+  console.log('Chat window IPC listeners registered');
 }
 
 /**
@@ -304,6 +467,17 @@ async function initialize(): Promise<void> {
     // Initialize services and IPC handlers
     initializeServices();
 
+    // Register global shortcut for voice activation (Alt+Space)
+    try {
+      globalShortcut.register('Alt+Space', () => {
+        if (mainWindow) {
+          mainWindow.webContents.send('voice:toggle');
+        }
+      });
+    } catch (e) {
+      console.error('Error registering global shortcut:', e);
+    }
+
     await startServer();
 
     // Initialize update system
@@ -357,6 +531,10 @@ initialize().then(() => {
         console.error('Error stopping Vite server:', error);
       }
     }
+
+    // Unregister all global shortcuts
+    globalShortcut.unregisterAll();
+    console.log('Global shortcuts unregistered');
   });
 
   // Prevent multiple instances

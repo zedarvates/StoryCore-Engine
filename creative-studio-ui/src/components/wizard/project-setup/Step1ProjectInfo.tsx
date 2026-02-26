@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Rocket, Loader2 } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
 import { GENRE_OPTIONS, TONE_OPTIONS } from '@/types/world';
 import { WizardFormLayout, FormField } from '../WizardFormLayout';
@@ -13,19 +13,9 @@ import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
+import { cn } from '@/lib/utils';
 
-// ============================================================================
-// Project Setup Data Interface
-// ============================================================================
-
-export interface ProjectSetupData {
-  projectName?: string;
-  projectDescription?: string;
-  genre?: string[];
-  tone?: string[];
-  targetAudience?: string;
-  estimatedDuration?: string;
-}
+import { ProjectSetupData, ProjectConstraint } from '@/types/project';
 
 // ============================================================================
 // Step 1: Project Information
@@ -45,28 +35,26 @@ export function Step1ProjectInfo() {
   } = useLLMGeneration({
     onSuccess: (response) => {
       console.log('✅ [Step1ProjectInfo] LLM Response received:', response);
-      console.log('📝 [Step1ProjectInfo] Response content:', response.content);
       
       const suggestions = parseLLMSuggestions(response.content);
-      console.log('🎯 [Step1ProjectInfo] Parsed suggestions:', suggestions);
       
       if (suggestions.projectName) {
-        console.log('✨ [Step1ProjectInfo] Updating form with:', suggestions);
-        updateFormData({ 
+        const updates: Partial<ProjectSetupData> = {
           projectName: suggestions.projectName,
           projectDescription: suggestions.description || formData.projectDescription
-        });
+        };
+
+        updateFormData(updates);
         if (suggestions.description) {
           setShowDescription(true);
         }
-      } else {
-        console.warn('⚠️ [Step1ProjectInfo] No project name found in suggestions');
       }
     },
   });
 
   const handleProjectNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateFormData({ projectName: e.target.value });
+    const name = e.target.value;
+    updateFormData({ projectName: name });
   };
 
   const handleTargetAudienceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +63,14 @@ export function Step1ProjectInfo() {
 
   const handleEstimatedDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateFormData({ estimatedDuration: e.target.value });
+  };
+
+  const handleVisualStyleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    updateFormData({ visualStyle: e.target.value });
+  };
+
+  const handleAudioStyleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    updateFormData({ audioStyle: e.target.value });
   };
 
   const handleGenreToggle = (genre: string) => {
@@ -289,27 +285,42 @@ RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
       {/* Project Name */}
       <FormField
         label={
-          <>
+          <span className="flex items-center gap-2">
+            <Rocket className="w-4 h-4 text-primary" />
             Project Name <span className="text-red-600">*</span>
-          </>
+          </span>
         }
         name="projectName"
         required
         error={validationErrors.projectName?.[0]}
         helpText="Give your project a memorable name"
       >
-        <Input
-          id="projectName"
-          value={formData.projectName || ''}
-          onChange={handleProjectNameChange}
-          placeholder="e.g., The Last Guardian, Neon Dreams, Shadows of the Past"
-          aria-required="true"
-          aria-invalid={!!validationErrors.projectName}
-          className={validationErrors.projectName ? 'border-red-500 focus:ring-red-500' : ''}
-        />
+        <div className="relative">
+          <Input
+            id="projectName"
+            value={formData.projectName || ''}
+            onChange={handleProjectNameChange}
+            placeholder="e.g., The Last Guardian, Neon Dreams, Shadows of the Past"
+            aria-required="true"
+            aria-invalid={!!validationErrors.projectName}
+            className={cn("pr-12", validationErrors.projectName ? 'border-red-500 focus:ring-red-500' : '')}
+          />
+          {llmConfigured && (
+            <button
+              onClick={handleGenerateSuggestions}
+              disabled={isLoading}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-50"
+              title="Generate name suggestions"
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+            </button>
+          )}
+        </div>
       </FormField>
-
-      {/* Genre Selection */}
       <FormField
         label={
           <>
@@ -423,6 +434,37 @@ RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
           />
         </FormField>
       )}
+
+      {/* Visual & Audio Style - Moved to Step 1 as requested for visibility */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <FormField
+          label="Visual Style"
+          name="visualStyle"
+          helpText="Describe the visual direction and aesthetic"
+        >
+          <Textarea
+            id="visualStyle"
+            value={formData.visualStyle || ''}
+            onChange={handleVisualStyleChange}
+            placeholder="e.g., Cyberpunk, Noir, Watercolor..."
+            rows={3}
+          />
+        </FormField>
+
+        <FormField
+          label="Audio Style"
+          name="audioStyle"
+          helpText="Describe the soundscape and music"
+        >
+          <Textarea
+            id="audioStyle"
+            value={formData.audioStyle || ''}
+            onChange={handleAudioStyleChange}
+            placeholder="e.g., Synthwave, Orchestral, Minimalist..."
+            rows={3}
+          />
+        </FormField>
+      </div>
     </WizardFormLayout>
   );
 }

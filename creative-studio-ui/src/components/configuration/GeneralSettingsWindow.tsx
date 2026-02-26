@@ -13,20 +13,25 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from '@/hooks/useTheme';
+import { cn } from '@/lib/utils';
 import {
   Settings,
   Monitor,
   Palette,
-  Globe,
   Bell,
-  HardDrive,
   Cpu,
   Zap,
   Volume2,
   Eye,
   Moon,
   Sun,
+  Mic,
+  Keyboard,
 } from 'lucide-react';
+import { voiceTextService, type VoiceSettings } from '@/services/VoiceTextService';
+import type { LanguageCode } from '@/utils/llmConfigStorage';
+import type { ThemeType } from '@/stores/themeStore';
 
 interface GeneralSettingsWindowProps {
   isOpen: boolean;
@@ -100,11 +105,10 @@ const DEFAULT_SETTINGS: GeneralSettings = {
   notificationDuration: 5000,
   errorAlerts: true,
 };
-
 export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindowProps) {
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState<GeneralSettings>(DEFAULT_SETTINGS);
-  const [hasChanges, setHasChanges] = useState(false);
 
   // Load settings on open
   useEffect(() => {
@@ -113,20 +117,30 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
       if (savedSettings) {
         try {
           const parsed = JSON.parse(savedSettings);
-          setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+          const newSettings = { ...DEFAULT_SETTINGS, ...parsed };
+          if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
+            setSettings(newSettings);
+          }
         } catch (error) {
           console.error('Failed to load general settings:', error);
           setSettings(DEFAULT_SETTINGS);
         }
       }
-      setHasChanges(false);
     }
   }, [isOpen]);
 
-  // Mark as changed when settings change
-  useEffect(() => {
-    setHasChanges(true);
-  }, [settings]);
+  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(voiceTextService.getSettings());
+
+  const updateVoiceSetting = <K extends keyof VoiceSettings>(
+    key: K,
+    value: VoiceSettings[K]
+  ) => {
+    setVoiceSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Derive hasChanges to avoid setState in effect
+  const hasChanges = JSON.stringify(settings) !== JSON.stringify(DEFAULT_SETTINGS) || 
+                     JSON.stringify(voiceSettings) !== JSON.stringify(voiceTextService.getSettings());
 
   const updateSetting = <K extends keyof GeneralSettings>(
     key: K,
@@ -138,9 +152,9 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
   const handleSave = () => {
     try {
       localStorage.setItem('general-settings', JSON.stringify(settings));
-
-      // Apply theme changes immediately
-      document.documentElement.classList.toggle('dark', settings.theme === 'dark');
+      voiceTextService.saveSettings(voiceSettings);
+      // NOTE: Theme is now handled directly by setTheme calls in the UI
+      // which persist via themeStore
 
       // Apply neon effects
       document.documentElement.classList.toggle('neon-disabled', !settings.neonEffects);
@@ -150,7 +164,6 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
         description: 'General settings have been saved successfully.',
       });
 
-      setHasChanges(false);
     } catch (error) {
       console.error('Failed to save settings:', error);
       toast({
@@ -163,6 +176,7 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
 
   const handleReset = () => {
     setSettings(DEFAULT_SETTINGS);
+    setVoiceSettings(voiceTextService.getSettings()); // Resetting to current service state as simple reset
     toast({
       title: 'Settings Reset',
       description: 'Settings have been reset to defaults.',
@@ -170,10 +184,6 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
   };
 
   const handleCancel = () => {
-    if (hasChanges) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to cancel?');
-      if (!confirmed) return;
-    }
     onClose();
   };
 
@@ -199,33 +209,35 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-7">
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">Theme</Label>
-                <Select value={settings.theme} onValueChange={(value: unknown) => updateSetting('theme', value)}>
-                  <SelectTrigger className="bg-background/50 border-primary/30">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dark">
-                      <div className="flex items-center gap-2">
-                        <Moon className="w-4 h-4" />
-                        Dark
+              <div className="space-y-4 col-span-1 md:col-span-2">
+                <Label className="text-muted-foreground">Thèmes Visuels</Label>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    { id: 'system', name: 'Appareil', icon: <Monitor className="w-4 h-4" />, colors: 'bg-slate-500' },
+                    { id: 'dark-neon', name: 'Néon Noir', icon: <Moon className="w-4 h-4" />, colors: 'bg-purple-600' },
+                    { id: 'dark-onyx', name: 'Onyx Pur', icon: <Zap className="w-4 h-4" />, colors: 'bg-amber-500' },
+                    { id: 'light-snow', name: 'Neige', icon: <Sun className="w-4 h-4" />, colors: 'bg-blue-400' },
+                    { id: 'light-sepia', name: 'Sépia', icon: <Eye className="w-4 h-4" />, colors: 'bg-orange-300' },
+                    { id: 'classic-slate', name: 'Ardoise', icon: <Palette className="w-4 h-4" />, colors: 'bg-slate-600' },
+                    { id: 'classic-retro', name: 'Rétro', icon: <Cpu className="w-4 h-4" />, colors: 'bg-yellow-600' },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setTheme(t.id as ThemeType)}
+                      className={cn(
+                        'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all',
+                        theme === t.id
+                          ? 'border-primary bg-primary/10 shadow-[0_0_20px_rgba(var(--primary),0.2)]'
+                          : 'border-primary/5 bg-background/20 hover:border-primary/30'
+                      )}
+                    >
+                      <div className={cn('w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-white', t.colors)}>
+                        {t.icon}
                       </div>
-                    </SelectItem>
-                    <SelectItem value="light">
-                      <div className="flex items-center gap-2">
-                        <Sun className="w-4 h-4" />
-                        Light
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="auto">
-                      <div className="flex items-center gap-2">
-                        <Monitor className="w-4 h-4" />
-                        Auto
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                      <span className="text-xs font-semibold">{t.name}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -245,7 +257,7 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Font Size</Label>
-                <Select value={settings.fontSize} onValueChange={(value: unknown) => updateSetting('fontSize', value)}>
+                <Select value={settings.fontSize} onValueChange={(value) => updateSetting('fontSize', value as 'small' | 'medium' | 'large')}>
                   <SelectTrigger className="bg-background/50 border-primary/30">
                     <SelectValue />
                   </SelectTrigger>
@@ -325,7 +337,7 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Sidebar Position</Label>
-                <Select value={settings.sidebarPosition} onValueChange={(value: unknown) => updateSetting('sidebarPosition', value)}>
+                <Select value={settings.sidebarPosition} onValueChange={(value) => updateSetting('sidebarPosition', value as 'left' | 'right')}>
                   <SelectTrigger className="bg-background/50 border-primary/30">
                     <SelectValue />
                   </SelectTrigger>
@@ -434,7 +446,7 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Preview Quality</Label>
-                <Select value={settings.previewQuality} onValueChange={(value: unknown) => updateSetting('previewQuality', value)}>
+                <Select value={settings.previewQuality} onValueChange={(value) => updateSetting('previewQuality', value as 'low' | 'medium' | 'high')}>
                   <SelectTrigger className="bg-background/50 border-primary/30">
                     <SelectValue />
                   </SelectTrigger>
@@ -452,6 +464,101 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
                   checked={settings.audioNormalization}
                   onCheckedChange={(checked) => updateSetting('audioNormalization', checked)}
                 />
+              </div>
+            </div>
+          </div>
+
+          <Separator className="bg-primary/30" />
+
+          {/* Voice & Transcription Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Mic className="w-5 h-5 text-accent" />
+              <h3 className="text-lg font-semibold neon-text">Voice & Transcription</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-7">
+              <div className="flex items-center justify-between">
+                <Label className="text-muted-foreground">Enable Voice Features</Label>
+                <Switch
+                  checked={voiceSettings.enabled}
+                  onCheckedChange={(checked) => updateVoiceSetting('enabled', checked)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className="text-muted-foreground">Continuous Listening</Label>
+                <Switch
+                  checked={voiceSettings.continuousListening}
+                  onCheckedChange={(checked) => updateVoiceSetting('continuousListening', checked)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Input Language</Label>
+                <Select value={voiceSettings.inputLanguage} onValueChange={(value) => updateVoiceSetting('inputLanguage', value as LanguageCode)}>
+                  <SelectTrigger className="bg-background/50 border-primary/30">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="fr">Français</SelectItem>
+                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="de">Deutsch</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Voice Activation Keyword</Label>
+                <Input
+                  value={voiceSettings.voiceActivationKeyword}
+                  onChange={(e) => updateVoiceSetting('voiceActivationKeyword', e.target.value)}
+                  placeholder="e.g. hé ros"
+                  className="bg-background/50 border-primary/30"
+                />
+              </div>
+
+              <div className="col-span-1 md:col-span-2 space-y-4 pt-2">
+                <div className="flex items-center gap-2">
+                  <Keyboard className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Activation Hotkey</span>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-xs">Modifier</Label>
+                    <Select 
+                      value={voiceSettings.activationHotkey.modifier} 
+                      onValueChange={(value) => updateVoiceSetting('activationHotkey', { ...voiceSettings.activationHotkey, modifier: value as 'alt' | 'ctrl' | 'shift' | 'meta' | 'none' })}
+                    >
+                      <SelectTrigger className="bg-background/50 border-primary/30 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="alt">Alt</SelectItem>
+                        <SelectItem value="ctrl">Ctrl</SelectItem>
+                        <SelectItem value="shift">Shift</SelectItem>
+                        <SelectItem value="meta">Cmd/Win</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-xs">Key</Label>
+                    <Input
+                      value={voiceSettings.activationHotkey.key}
+                      onChange={(e) => updateVoiceSetting('activationHotkey', { ...voiceSettings.activationHotkey, key: e.target.value })}
+                      placeholder="e.g. Space"
+                      className="bg-background/50 border-primary/30 h-8"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Global shortcut: {voiceSettings.activationHotkey.modifier !== 'none' ? voiceSettings.activationHotkey.modifier + ' + ' : ''}{voiceSettings.activationHotkey.key}. 
+                  Works even when the application is in the background.
+                </p>
               </div>
             </div>
           </div>

@@ -433,6 +433,9 @@ class CLIAdapterRegistry:
             from cli.handlers.scene_breakdown import SceneBreakdownHandler
             from cli.handlers.world_generate import WorldGenerateHandler
             from cli.handlers.character_wizard import CharacterWizardHandler
+            from cli.handlers.generate_pantin import GeneratePantinHandler
+            from cli.handlers.generate_box_scene import GenerateBoxSceneHandler
+            from cli.handlers.generate_skybox import GenerateSkyboxHandler
             
             # Register handlers
             self.register("init", InitHandler)
@@ -445,6 +448,9 @@ class CLIAdapterRegistry:
             self.register("scene_breakdown", SceneBreakdownHandler)
             self.register("world_generate", WorldGenerateHandler)
             self.register("character_wizard", CharacterWizardHandler)
+            self.register("generate_pantin", GeneratePantinHandler)
+            self.register("generate_box_scene", GenerateBoxSceneHandler)
+            self.register("generate_skybox", GenerateSkyboxHandler)
             
             self.logger.info(f"Registered {len(self.adapters)} CLI handler adapters")
             

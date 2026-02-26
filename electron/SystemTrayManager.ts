@@ -6,9 +6,10 @@ import { ServerStatus, ServerState } from './ViteServerManager';
  * 
  * Responsibilities:
  * - Create and manage system tray icon
- * - Update icon based on server status
+ * - Update icon based on server status and voice state
  * - Provide context menu with server status and controls
  * - Handle tray icon interactions
+ * - Support voice activation with microphone icon and glow effect
  */
 export class SystemTrayManager {
   private tray: Tray | null = null;
@@ -16,6 +17,8 @@ export class SystemTrayManager {
   private onQuitCallback?: () => void;
   private onShowCallback?: () => void;
   private onRestartCallback?: () => void;
+  private isListening: boolean = false; // Voice listening state
+  private currentToolTip: string = 'StoryCore Creative Studio';
 
   /**
    * Create the system tray icon
@@ -31,6 +34,7 @@ export class SystemTrayManager {
     this.tray = new Tray(icon);
     
     this.tray.setToolTip('StoryCore Creative Studio');
+    this.currentToolTip = 'StoryCore Creative Studio';
     
     // Set initial menu
     this.updateMenu();
@@ -67,10 +71,33 @@ export class SystemTrayManager {
       // Update tooltip
       const tooltip = this.getTooltipForStatus(status);
       this.tray.setToolTip(tooltip);
+      this.currentToolTip = tooltip;
     }
 
     // Always update menu to reflect current status
     this.updateMenu(status);
+  }
+
+  /**
+   * Update voice listening state for glow effect
+   * @param isListening Whether voice recognition is active
+   */
+  updateVoiceState(isListening: boolean): void {
+    this.isListening = isListening;
+    
+    if (!this.tray) {
+      return;
+    }
+
+    // Update icon with glow effect
+    const icon = this.createIcon(this.currentStatus || 'stopped');
+    this.tray.setImage(icon);
+
+    // Update tooltip to show voice state
+    const currentTooltip = this.currentToolTip;
+    if (isListening) {
+      this.tray.setToolTip(currentTooltip + '\n🎤 Voice listening active (Alt+Space)');
+    }
   }
 
   /**
@@ -126,85 +153,88 @@ export class SystemTrayManager {
 
   /**
    * Create an icon for the given server state
+   * Includes microphone icon with glow effect when voice is listening
    * @param state The server state
    * @returns A NativeImage for the tray icon
    */
   private createIcon(state: ServerState): Electron.NativeImage {
-    // Create a simple colored circle icon based on state
-    // In production, you would use actual icon files
-    const size = 16;
-    const canvas = this.createCanvas(size);
-    const ctx = canvas.getContext('2d');
-
-    if (ctx) {
-      // Draw circle with color based on state
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, size / 2 - 2, 0, 2 * Math.PI);
-      
-      switch (state) {
-        case 'running':
-          ctx.fillStyle = '#4ade80'; // Green
-          break;
-        case 'starting':
-          ctx.fillStyle = '#fbbf24'; // Yellow
-          break;
-        case 'error':
-          ctx.fillStyle = '#ef4444'; // Red
-          break;
-        case 'stopped':
-        default:
-          ctx.fillStyle = '#9ca3af'; // Gray
-          break;
-      }
-      
-      ctx.fill();
-      
-      // Add border
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    // Convert canvas to native image
-    const dataUrl = canvas.toDataURL();
+    // Icon size is 16px
+    
+    // Create SVG for microphone icon with glow
+    const svg = this.createMicrophoneSVG(state, this.isListening);
+    const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+    
     return nativeImage.createFromDataURL(dataUrl);
   }
 
   /**
-   * Create a canvas element for icon generation
-   * @param size Size of the canvas
-   * @returns Canvas-like object
+   * Create SVG for microphone icon
+   * @param state Server state
+   * @param isListening Whether voice is listening
+   * @returns SVG string
    */
-  private createCanvas(size: number): any {
-    // In Node.js environment, we need to use a different approach
-    // For now, we'll create a simple data URL directly
-    // In production, you would use the 'canvas' npm package or actual icon files
+  private createMicrophoneSVG(state: ServerState, isListening: boolean): string {
+    // Determine base color based on state
+    let baseColor = '#9ca3af'; // Gray (stopped)
+    if (isListening) {
+      baseColor = '#a855f7'; // Purple (listening)
+    } else {
+      switch (state) {
+        case 'running':
+          baseColor = '#4ade80'; // Green
+          break;
+        case 'starting':
+          baseColor = '#fbbf24'; // Yellow
+          break;
+        case 'error':
+          baseColor = '#ef4444'; // Red
+          break;
+      }
+    }
+
+    // Glow filter SVG
+    const glowFilter = isListening 
+      ? `<defs>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>`
+      : '';
+
+    // Animated glow circles when listening
+    const glowCircles = isListening
+      ? `<circle cx="8" cy="8" r="12" fill="none" stroke="${baseColor}" stroke-width="1" opacity="0.3">
+           <animate attributeName="r" values="10;14;10" dur="1.5s" repeatCount="indefinite"/>
+           <animate attributeName="opacity" values="0.4;0.1;0.4" dur="1.5s" repeatCount="indefinite"/>
+         </circle>
+         <circle cx="8" cy="8" r="16" fill="none" stroke="${baseColor}" stroke-width="0.5" opacity="0.2">
+           <animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite"/>
+           <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" repeatCount="indefinite"/>
+         </circle>`
+      : '';
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${isListening ? 32 : 16}" height="${isListening ? 32 : 16}" viewBox="0 0 16 16">
+        ${glowFilter}
+        ${glowCircles}
+        <g filter="${isListening ? 'url(#glow)' : ''}">
+          <!-- Microphone body -->
+          <rect x="6" y="3" width="4" height="6" rx="2" fill="${baseColor}"/>
+          <!-- Microphone stand arc -->
+          <path d="M3 8 Q3 12 8 12 Q13 12 13 8" fill="none" stroke="${baseColor}" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- Microphone stand -->
+          <line x1="8" y1="12" x2="8" y2="14" stroke="${baseColor}" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- Base -->
+          <line x1="5" y1="14" x2="11" y2="14" stroke="${baseColor}" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    `;
     
-    // Fallback: create a minimal canvas-like object
-    const canvas = {
-      width: size,
-      height: size,
-      getContext: (type: string) => {
-        if (type === '2d') {
-          return {
-            beginPath: () => {},
-            arc: () => {},
-            fill: () => {},
-            stroke: () => {},
-            fillStyle: '',
-            strokeStyle: '',
-            lineWidth: 0,
-          };
-        }
-        return null;
-      },
-      toDataURL: () => {
-        // Return a simple 1x1 transparent PNG as fallback
-        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-      },
-    };
-    
-    return canvas;
+    return svg;
   }
 
   /**

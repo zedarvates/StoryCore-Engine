@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- C:\storycore-engine\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: C:\storycore-engine
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.12.1, hypothesis-6.150.0, asyncio-1.3.0, cov-7.0.0, mock-3.15.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 4 items
+
+tests/unit/test_color_grading_system.py::test_color_service_primary PASSED [ 25%]
+tests/unit/test_color_grading_system.py::test_lut_service_identity PASSED [ 50%]
+tests/unit/test_color_grading_system.py::test_scopes_service PASSED      [ 75%]
+tests/unit/test_color_grading_system.py::test_qualifier_service PASSED   [100%]
+
+======================== 4 passed, 1 warning in 0.92s =========================

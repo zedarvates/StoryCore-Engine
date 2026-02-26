@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Play, Pause, ZoomIn, ZoomOut, Camera, Clock, AlertTriangle, Download, Eye, SkipBack, SkipForward } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Play, Pause, ZoomIn, ZoomOut, Camera, Clock, AlertTriangle, Download, Eye, SkipBack, SkipForward, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { SequencePlan, Scene } from '@/types/sequencePlan';
 import { ProductionShot, ShotType } from '@/types/shot';
+import type { Character } from '@/types/character';
+import { useStore } from '@/store';
+import { ImageGenerationModal } from '@/components/modals/ImageGenerationModal';
 
 interface Step5ShotPreviewProps {
   sequencePlan: Partial<SequencePlan>;
@@ -40,7 +43,7 @@ const CAMERA_PRESETS: {
     { type: 'pov', framing: 'medium', angle: 'eye-level', azimuth: 0, elevation: 0, distance: 'medium', description: 'Subjective POV' },
   ];
 
-function generateShotsFromScenes(scenes: Scene[], sequencePlanId: string, characters: any[] = []): PreviewShot[] {
+function generateShotsFromScenes(scenes: Scene[], sequencePlanId: string, characters: Character[] = []): PreviewShot[] {
   const shots: PreviewShot[] = [];
   let shotCounter = 1;
 
@@ -80,8 +83,8 @@ function generateShotsFromScenes(scenes: Scene[], sequencePlanId: string, charac
           timeOfDay: 'dramatic',
         },
         camera: {
-          framing: preset.framing as any,
-          angle: preset.angle as any,
+          framing: preset.framing as 'extreme-wide' | 'wide' | 'medium' | 'close-up' | 'extreme-close-up',
+          angle: preset.angle as 'eye-level' | 'high' | 'low' | 'dutch' | 'birds-eye' | 'worms-eye',
           azimuth: preset.azimuth,
           elevation: preset.elevation,
           distance: preset.distance,
@@ -110,6 +113,7 @@ function generateShotsFromScenes(scenes: Scene[], sequencePlanId: string, charac
           },
           styleReferences: [],
         },
+        dialogues: [], // No dialogues by default - can be added in shot editor
         status: 'planned',
         notes: preset.description,
         tags: [`scene-${scene.number}`, preset.type, 'coherent'],
@@ -127,25 +131,68 @@ export function Step5ShotPreview({
   sequencePlan,
   onShotsChange,
 }: Step5ShotPreviewProps) {
-  const [generatedShots, setGeneratedShots] = useState<PreviewShot[]>([]);
+  const [localShots, setLocalShots] = useState<PreviewShot[] | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [selectedShot, setSelectedShot] = useState<PreviewShot | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [viewerZoom, setViewerZoom] = useState(1);
+  const [isImageGenModalOpen, setIsImageGenModalOpen] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const prevShotsKeyRef = useRef<string>('');
 
   const allCharacters = useStore(state => state.characters);
 
-  // Generate shots when scenes change
-  useEffect(() => {
-    if (sequencePlan.scenes && sequencePlan.scenes.length > 0 && sequencePlan.id) {
-      const shots = generateShotsFromScenes(sequencePlan.scenes, sequencePlan.id, allCharacters);
-      setGeneratedShots(shots);
-      onShotsChange(shots);
+  // Generate shots when scenes change - using useMemo to derive state
+  const generatedShotsFromScenes = useMemo(() => {
+    if (!sequencePlan.scenes || sequencePlan.scenes.length === 0 || !sequencePlan.id) {
+      return [];
     }
-  }, [sequencePlan.scenes, sequencePlan.id, onShotsChange, allCharacters]);
+    return generateShotsFromScenes(sequencePlan.scenes, sequencePlan.id, allCharacters);
+  }, [sequencePlan.scenes, sequencePlan.id, allCharacters]);
+
+  // Use derived state directly, with local overrides for user edits
+  const generatedShots = useMemo(() => {
+    // If we have local edits, preserve them; otherwise use derived shots
+    return localShots ?? generatedShotsFromScenes;
+  }, [localShots, generatedShotsFromScenes]);
+
+  // Notify parent of changes using a ref to prevent infinite loops
+  const notifyParent = useCallback((shots: PreviewShot[]) => {
+    const shotsKey = JSON.stringify(shots.map(s => s.id));
+    if (prevShotsKeyRef.current !== shotsKey && shots.length > 0) {
+      prevShotsKeyRef.current = shotsKey;
+      // Defer parent notification to next tick to avoid synchronous state updates
+      const timeoutId = setTimeout(() => {
+        onShotsChange(shots);
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [onShotsChange]);
+
+  // Only notify parent when shots actually change
+  useEffect(() => {
+    if (generatedShots.length > 0) {
+      const cleanup = notifyParent(generatedShots);
+      return cleanup;
+    }
+  }, [generatedShots, notifyParent]);
+
+  // Handle image generation for selected shot
+  const handleImageGenerated = (result: { imageUrl: string; params: unknown }) => {
+    if (selectedShot) {
+      const updatedShots = generatedShots.map(shot => 
+        shot.id === selectedShot.id 
+          ? { ...shot, videoUrl: result.imageUrl, generatedAssetUrl: result.imageUrl }
+          : shot
+      );
+      setLocalShots(updatedShots);
+      setSelectedShot({ ...selectedShot, videoUrl: result.imageUrl, generatedAssetUrl: result.imageUrl });
+      onShotsChange(updatedShots);
+    }
+    setIsImageGenModalOpen(false);
+  };
 
   // Calculate total duration
   const totalDuration = useMemo(() => {
@@ -484,8 +531,29 @@ export function Step5ShotPreview({
             <label className="text-sm font-medium text-gray-600">Description</label>
             <div className="text-sm text-gray-700">{selectedShot.description}</div>
           </div>
+          
+          {/* Generate Image Button */}
+          <div className="flex gap-2 pt-4 border-t">
+            <Button
+              onClick={() => setIsImageGenModalOpen(true)}
+              className="flex-1 gap-2"
+              variant="default"
+            >
+              <Sparkles className="h-4 w-4" />
+              Generate Preview Image
+            </Button>
+          </div>
         </div>
       )}
+      
+      {/* Image Generation Modal */}
+      <ImageGenerationModal
+        isOpen={isImageGenModalOpen}
+        onClose={() => setIsImageGenModalOpen(false)}
+        onGenerate={handleImageGenerated}
+        initialPrompt={selectedShot?.generation?.prompt || selectedShot?.description || ''}
+        title={`Generate Image for Shot ${selectedShot?.number || ''}`}
+      />
     </div>
   );
 }

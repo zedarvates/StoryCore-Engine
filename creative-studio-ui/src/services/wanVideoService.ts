@@ -10,6 +10,8 @@ export interface WanGenerationParams {
     style?: string;
     width?: number;
     height?: number;
+    engine?: string;
+    overrides?: Record<string, any>;
 }
 
 class WanVideoService {
@@ -19,15 +21,18 @@ class WanVideoService {
     async generateSequence(params: WanGenerationParams, onProgress?: (progress: number, step?: string) => void): Promise<CineProductionJob> {
         const request: CineProductionRequest = {
             projectId: params.projectId,
+            sceneId: params.sceneId,
             chainType: 'generate_scene', // This triggers the Storyboard -> Wan -> Audio chain
             sceneDescription: params.sceneDescription,
             imagePrompt: params.imagePrompt,
             videoPrompt: params.videoPrompt,
             audioPrompt: params.audioPrompt,
             style: params.style || 'Photorealistic Cinematic',
+            preferredEngine: params.engine,
             overrides: {
                 width: params.width || 1280,
-                height: params.height || 720
+                height: params.height || 720,
+                ...(params.overrides || {})
             }
         };
 

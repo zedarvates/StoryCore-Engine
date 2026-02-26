@@ -3,8 +3,8 @@
  * Main container component that orchestrates the installation wizard
  */
 
-import React, { useEffect, useState } from 'react';
-import { X, ChevronRight, Check } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { X, ChevronRight, Check, Settings, ShieldCheck, Cpu } from 'lucide-react';
 import { InstallationWizardModalProps } from '../../types/installation';
 import { useInstallationWizard } from '../../contexts/InstallationWizardContext';
 import { useFileDetection } from '../../hooks/useFileDetection';
@@ -14,6 +14,7 @@ import { DownloadStep } from './DownloadStep';
 import { PlacementStep } from './PlacementStep';
 import { InstallationStep } from './InstallationStep';
 import { CompletionStep } from './CompletionStep';
+import '../wizard/WizardModal.css';
 
 export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = ({
   isOpen,
@@ -44,12 +45,33 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
     enabled: isOpen && wizardState.currentStep === 'placement'
   });
 
-  // Initialize wizard
+  // Handle Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !(wizardState.installationProgress > 0 && wizardState.installationProgress < 100)) {
+        handleClose();
+      }
+    },
+    [onClose, wizardState.installationProgress]
+  );
+
   useEffect(() => {
-    if (isOpen && !isInitialized) {
-      initializeWizard();
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+      if (!isInitialized) {
+        initializeWizard();
+      }
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
     }
-  }, [isOpen, isInitialized]);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, handleKeyDown, isInitialized]);
 
   // Update file detection state
   useEffect(() => {
@@ -59,9 +81,10 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
   // Auto-advance to installation step when file is valid
   useEffect(() => {
     if (wizardState.currentStep === 'placement' && fileDetected && fileValid) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setCurrentStep('installation');
       }, 1000);
+      return () => clearTimeout(timer);
     }
   }, [wizardState.currentStep, fileDetected, fileValid, setCurrentStep]);
 
@@ -82,7 +105,6 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
   };
 
   const handleDownloadClick = () => {
-    // Move to placement step after download link is clicked
     setTimeout(() => {
       setCurrentStep('placement');
     }, 500);
@@ -90,25 +112,18 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
 
   const handleOpenFolder = async () => {
     try {
-      // Check if we're in Electron environment
-      if (window.electronAPI?.openFolder) {
-        // Use Electron API to open folder
-        await window.electronAPI.openFolder(downloadZonePath);
+      if ((window as any).electronAPI?.openFolder) {
+        await (window as any).electronAPI.openFolder(downloadZonePath);
       } else {
-        // Fallback: Show path in alert for web environment
         alert(`Please navigate to this folder:\n\n${downloadZonePath}\n\nCopy the ComfyUI Portable ZIP file into this folder.`);
-        
-        // Try to copy path to clipboard
         try {
           await navigator.clipboard.writeText(downloadZonePath);
-          ;
         } catch (clipboardError) {
           console.warn('Could not copy to clipboard:', clipboardError);
         }
       }
     } catch (error) {
       console.error('Failed to open folder:', error);
-      // Show error to user
       alert(`Could not open folder. Please manually navigate to:\n\n${downloadZonePath}`);
     }
   };
@@ -121,7 +136,6 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
         ? `${downloadZonePath}/${validationResult.fileName}`
         : '';
 
-      // Use the installation API service with WebSocket support
       const cleanup = await installationApi.install(
         {
           zipFilePath,
@@ -130,7 +144,6 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
           installWorkflows: INSTALLATION_CONFIG.requiredWorkflows.map(w => w.id)
         },
         (update) => {
-          // Progress update callback
           setInstallationProgress(update.progress, update.message);
 
           if (update.error) {
@@ -139,7 +152,6 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
           }
 
           if (update.progress >= 100) {
-            // Installation complete, perform post-installation verification
             performPostInstallationVerification({
               comfyui_path: '',
               comfyui_url: 'http://127.0.0.1:8188',
@@ -149,13 +161,11 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
           }
         },
         (error) => {
-          // Error callback
           console.error('Installation error:', error);
           setInstallationError(error.message);
         }
       );
 
-      // Store cleanup function for later use
       (window as any).__installationCleanup = cleanup;
 
     } catch (error) {
@@ -164,11 +174,9 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
     }
   };
 
-  const performPostInstallationVerification = async (installResult: unknown) => {
+  const performPostInstallationVerification = async (installResult: any) => {
     try {
       setInstallationProgress(95, 'Verifying installation...');
-
-      // Step 1: Verify installation using API service
       const verifyResponse = await installationApi.verify();
       
       if (!verifyResponse.success || !verifyResponse.data) {
@@ -176,8 +184,6 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
       }
 
       const verifyData = verifyResponse.data;
-
-      // Step 2: Update application configuration
       setInstallationProgress(99, 'Updating configuration...');
       
       try {
@@ -189,10 +195,8 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
         });
       } catch (configError) {
         console.warn('Could not update configuration:', configError);
-        // Continue anyway - configuration can be updated later
       }
 
-      // Step 3: Complete installation
       setInstallationProgress(100, 'Installation complete!');
       
       setInstallationComplete(
@@ -211,15 +215,9 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
     }
   };
 
-  const updateApplicationConfiguration = async (config: unknown) => {
+  const updateApplicationConfiguration = async (config: any) => {
     try {
-      // Update local storage
       localStorage.setItem('comfyui_config', JSON.stringify(config));
-      
-      // Optionally update backend configuration
-      // This would depend on your application's configuration system
-      ;
-      
       return true;
     } catch (error) {
       console.error('Failed to update configuration:', error);
@@ -240,13 +238,11 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
   };
 
   const handleClose = () => {
-    // Clean up WebSocket connection if exists
     if ((window as any).__installationCleanup) {
       (window as any).__installationCleanup();
       delete (window as any).__installationCleanup;
     }
     
-    // Disconnect API service
     installationApi.disconnect();
     
     if (wizardState.currentStep === 'completion') {
@@ -269,140 +265,129 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
   const currentStepIndex = steps.findIndex(s => s.id === wizardState.currentStep);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              ComfyUI Installation Wizard
-            </h1>
-            <button
-              onClick={handleClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-            </button>
-          </div>
-
-          {/* Progress Indicator */}
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <React.Fragment key={step.id}>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
-                      index < currentStepIndex
-                        ? 'bg-green-600 text-white'
-                        : index === currentStepIndex
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                    }`}
-                  >
-                    {index < currentStepIndex ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      step.number
-                    )}
-                  </div>
-                  <span
-                    className={`text-sm font-medium ${
-                      index <= currentStepIndex
-                        ? 'text-gray-900 dark:text-white'
-                        : 'text-gray-500 dark:text-gray-400'
-                    }`}
-                  >
-                    {step.label}
-                  </span>
-                </div>
-                {index < steps.length - 1 && (
-                  <ChevronRight className={`w-5 h-5 ${
-                    index < currentStepIndex
-                      ? 'text-green-500'
-                      : 'text-gray-400'
-                  }`} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-200px)] px-6 py-6">
-          {wizardState.currentStep === 'download' && (
-            <DownloadStep
-              downloadUrl={INSTALLATION_CONFIG.downloadUrl}
-              expectedFileName={INSTALLATION_CONFIG.expectedFileName}
-              expectedFileSize="2.5 GB"
-              onDownloadClick={handleDownloadClick}
-            />
-          )}
-
-          {wizardState.currentStep === 'placement' && (
-            <PlacementStep
-              downloadZonePath={downloadZonePath}
-              fileDetected={fileDetected}
-              fileValid={fileValid}
-              validationError={validationResult?.errors[0] || null}
-              onOpenFolder={handleOpenFolder}
-              onRefresh={refreshFileDetection}
-            />
-          )}
-
-          {wizardState.currentStep === 'installation' && (
-            <InstallationStep
-              canInstall={fileDetected && fileValid}
-              isInstalling={wizardState.installationProgress > 0 && wizardState.installationProgress < 100}
-              progress={wizardState.installationProgress}
-              statusMessage={wizardState.installationStatus}
-              error={wizardState.installationError}
-              onInstall={handleInstall}
-              onRetry={handleRetry}
-            />
-          )}
-
-          {wizardState.currentStep === 'completion' && (
-            <CompletionStep
-              success={wizardState.installationProgress === 100 && !wizardState.installationError}
-              comfyUIUrl={wizardState.comfyUIUrl}
-              installedModels={wizardState.installedModels}
-              installedWorkflows={wizardState.installedWorkflows}
-              onOpenComfyUI={handleOpenComfyUI}
-              onClose={handleClose}
-            />
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="sticky bottom-0 z-10 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {wizardState.currentStep === 'download' && 'Step 1 of 4: Download ComfyUI'}
-              {wizardState.currentStep === 'placement' && 'Step 2 of 4: Place File'}
-              {wizardState.currentStep === 'installation' && 'Step 3 of 4: Installation'}
-              {wizardState.currentStep === 'completion' && 'Step 4 of 4: Complete'}
+    <div className="wizard-modal-overlay" onClick={() => !(wizardState.installationProgress > 0 && wizardState.installationProgress < 100) && handleClose()}>
+      <div className="wizard-modal-container max-w-4xl" onClick={(e) => e.stopPropagation()}>
+        <div className="wizard-modal-header">
+           <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400">
+              <Settings size={20} className={wizardState.installationProgress > 0 && wizardState.installationProgress < 100 ? "animate-spin" : ""} />
             </div>
-            <button
-              onClick={handleClose}
-              disabled={wizardState.installationProgress > 0 && wizardState.installationProgress < 100}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                wizardState.installationProgress > 0 && wizardState.installationProgress < 100
-                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
-              title={
-                wizardState.installationProgress > 0 && wizardState.installationProgress < 100
-                  ? 'Cannot cancel during installation'
-                  : 'Cancel and close wizard'
-              }
-            >
-              Cancel
-            </button>
+            <div className="flex flex-col">
+              <h2 className="wizard-modal-title">System Setup Wizard</h2>
+              <span className="text-[10px] text-blue-400/70 uppercase tracking-widest font-black">Environment Provisioning Engine</span>
+            </div>
           </div>
+          <button
+            className="wizard-modal-close"
+            onClick={handleClose}
+            aria-label="Fermer"
+            disabled={wizardState.installationProgress > 0 && wizardState.installationProgress < 100}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="wizard-modal-content p-8">
+           {/* Progress Line */}
+           <div className="flex items-center justify-between mb-12 bg-black/40 p-6 rounded-2xl border border-white/5 shadow-inner">
+             {steps.map((step, index) => (
+               <React.Fragment key={step.id}>
+                 <div className="flex flex-col items-center gap-2 relative z-10">
+                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm transition-all duration-500 ${
+                     index < currentStepIndex 
+                       ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' 
+                       : index === currentStepIndex 
+                       ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] ring-4 ring-blue-500/20' 
+                       : 'bg-black/40 border border-white/10 text-slate-500'
+                   }`}>
+                     {index < currentStepIndex ? <Check size={20} /> : step.number}
+                   </div>
+                   <span className={`text-[10px] uppercase font-black tracking-widest transition-colors ${
+                     index <= currentStepIndex ? 'text-white' : 'text-slate-500'
+                   }`}>{step.label}</span>
+                 </div>
+                 {index < steps.length - 1 && (
+                   <div className={`flex-1 h-[2px] mx-4 transition-colors duration-1000 ${
+                     index < currentStepIndex ? 'bg-emerald-500' : 'bg-white/10'
+                   }`} />
+                 )}
+               </React.Fragment>
+             ))}
+           </div>
+
+           <div className="installation-step-content min-h-[400px]">
+              {wizardState.currentStep === 'download' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4">
+                  <DownloadStep
+                    downloadUrl={INSTALLATION_CONFIG.downloadUrl}
+                    expectedFileName={INSTALLATION_CONFIG.expectedFileName}
+                    expectedFileSize="2.5 GB"
+                    onDownloadClick={handleDownloadClick}
+                  />
+                </div>
+              )}
+
+              {wizardState.currentStep === 'placement' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4">
+                  <PlacementStep
+                    downloadZonePath={downloadZonePath}
+                    fileDetected={fileDetected}
+                    fileValid={fileValid}
+                    validationError={validationResult?.errors[0] || null}
+                    onOpenFolder={handleOpenFolder}
+                    onRefresh={refreshFileDetection}
+                  />
+                </div>
+              )}
+
+              {wizardState.currentStep === 'installation' && (
+                <div className="animate-in fade-in zoom-in-95">
+                  <InstallationStep
+                    canInstall={fileDetected && fileValid}
+                    isInstalling={wizardState.installationProgress > 0 && wizardState.installationProgress < 100}
+                    progress={wizardState.installationProgress}
+                    statusMessage={wizardState.installationStatus}
+                    error={wizardState.installationError}
+                    onInstall={handleInstall}
+                    onRetry={handleRetry}
+                  />
+                </div>
+              )}
+
+              {wizardState.currentStep === 'completion' && (
+                <div className="animate-in scale-in duration-500">
+                  <CompletionStep
+                    success={wizardState.installationProgress === 100 && !wizardState.installationError}
+                    comfyUIUrl={wizardState.comfyUIUrl}
+                    installedModels={wizardState.installedModels}
+                    installedWorkflows={wizardState.installedWorkflows}
+                    onOpenComfyUI={handleOpenComfyUI}
+                    onClose={handleClose}
+                  />
+                </div>
+              )}
+           </div>
+        </div>
+
+        <div className="p-8 border-t border-white/5 bg-black/60 flex justify-between items-center">
+           <div className="flex items-center gap-4 text-slate-500">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-lg">
+                <ShieldCheck size={12} className="text-emerald-400" /> Integrity Secured
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-lg">
+                <Cpu size={12} className="text-blue-400" /> x64 Optimized
+              </div>
+           </div>
+           
+           <button 
+             onClick={handleClose}
+             disabled={wizardState.installationProgress > 0 && wizardState.installationProgress < 100}
+             className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+           >
+             {wizardState.installationProgress > 0 && wizardState.installationProgress < 100 ? "Crucial Task in Progress" : "Quit Wizard"}
+           </button>
         </div>
       </div>
     </div>
   );
 };
-

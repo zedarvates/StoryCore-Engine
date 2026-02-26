@@ -114,11 +114,11 @@ export function ComfyUIServerCard({
                 {server.serverInfo.version && (
                   <span>v{server.serverInfo.version}</span>
                 )}
-                {server.serverInfo.system?.vram && (
-                  <span>VRAM: {Math.round(server.serverInfo.system.vram / 1024)}GB</span>
+                {server.serverInfo.systemInfo?.vramTotal && (
+                  <span>VRAM: {Math.round(server.serverInfo.systemInfo.vramTotal / 1024)}GB</span>
                 )}
-                {server.serverInfo.models && (
-                  <span>{server.serverInfo.models.length} models</span>
+                {server.serverInfo.availableModels && (
+                  <span>{server.serverInfo.availableModels.length} models</span>
                 )}
               </div>
             )}

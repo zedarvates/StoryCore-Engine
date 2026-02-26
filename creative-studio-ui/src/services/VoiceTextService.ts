@@ -9,6 +9,15 @@
 import { notificationService } from './NotificationService';
 import { LanguageCode } from '@/utils/llmConfigStorage';
 
+// Use any type for browser Web Speech APIs to avoid type conflicts
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+export interface VoiceHotkeyConfig {
+  key: string;
+  modifier: 'alt' | 'ctrl' | 'shift' | 'meta' | 'none';
+  enabled: boolean;
+}
+
 export interface VoiceSettings {
   enabled: boolean;
   inputLanguage: LanguageCode;
@@ -19,6 +28,7 @@ export interface VoiceSettings {
   autoSpeakResponses: boolean;
   voiceActivationKeyword: string;
   continuousListening: boolean;
+  activationHotkey: VoiceHotkeyConfig;
 }
 
 export interface SpeechRecognitionResult {
@@ -41,9 +51,9 @@ export interface VoiceCommand {
 export class VoiceTextService {
   private static instance: VoiceTextService;
 
-  // APIs du navigateur
-  private speechRecognition: SpeechRecognition | null = null;
-  private speechSynthesis: SpeechSynthesis | null = null;
+  // APIs du navigateur - using any to avoid type conflicts
+  private speechRecognition: any = null;
+  private speechSynthesis: any = null;
 
   // État du service
   private settings: VoiceSettings;
@@ -53,11 +63,19 @@ export class VoiceTextService {
     onResult: (result: SpeechRecognitionResult) => void;
     onError: (error: string) => void;
     onStart: () => void;
-    onEnd: () => void;
+    onEnd?: () => void;
   } | null = null;
 
   // Commandes vocales
   private voiceCommands: VoiceCommand[] = [];
+
+  // Retry logic for network errors
+  private retryCount = 0;
+  private maxRetries = 3;
+  private retryDelay = 1000; // Start with 1 second
+  private retryTimeout: ReturnType<typeof setTimeout> | null = null;
+  private lastNetworkErrorTime = 0;
+  private isRetrying = false;
 
   private constructor() {
     this.settings = this.loadSettings();
@@ -76,8 +94,8 @@ export class VoiceTextService {
    * Initialise les APIs du navigateur
    */
   private initializeAPIs(): void {
-    // Reconnaissance vocale
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    // Reconnaissance vocale - use any to access browser API
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       this.speechRecognition = new SpeechRecognition();
       this.configureSpeechRecognition();
@@ -85,7 +103,7 @@ export class VoiceTextService {
 
     // Synthèse vocale
     if ('speechSynthesis' in window) {
-      this.speechSynthesis = window.speechSynthesis;
+      this.speechSynthesis = (window as any).speechSynthesis;
     }
 
     // Vérifier la compatibilité
@@ -119,7 +137,7 @@ export class VoiceTextService {
       this.recognitionCallbacks?.onStart();
     };
 
-    this.speechRecognition.onresult = (event) => {
+    this.speechRecognition.onresult = (event: any) => {
       const result = event.results[event.results.length - 1];
       const transcript = result[0].transcript;
       const confidence = result[0].confidence;
@@ -137,23 +155,53 @@ export class VoiceTextService {
       }
     };
 
-    this.speechRecognition.onerror = (event) => {
-      this.isListening = false;
+    this.speechRecognition.onerror = (event: any) => {
       let errorMessage = 'Erreur de reconnaissance vocale';
+      const isNetworkError = event.error === 'network';
 
       switch (event.error) {
         case 'network':
           errorMessage = 'Erreur réseau lors de la reconnaissance vocale';
+          console.warn('[VoiceTextService] Network error detected, will retry if possible');
           break;
         case 'not-allowed':
           errorMessage = 'Permission micro refusée';
           break;
         case 'no-speech':
           errorMessage = 'Aucune parole détectée';
-          break;
+          // Don't count no-speech as a real error for retry purposes
+          this.isListening = false;
+          this.recognitionCallbacks?.onError(errorMessage);
+          return;
         case 'aborted':
           errorMessage = 'Reconnaissance vocale interrompue';
-          break;
+          this.isListening = false;
+          this.recognitionCallbacks?.onError(errorMessage);
+          return;
+        case 'audio-capture':
+          errorMessage = 'Aucun microphone détecté';
+          this.isListening = false;
+          this.recognitionCallbacks?.onError(errorMessage);
+          return;
+        case 'service-not-allowed':
+          errorMessage = 'Service de reconnaissance non autorisé';
+          this.isListening = false;
+          this.recognitionCallbacks?.onError(errorMessage);
+          return;
+      }
+
+      // Handle network errors with retry logic
+      if (isNetworkError && this.retryCount < this.maxRetries) {
+        this.handleNetworkErrorRetry();
+        return;
+      }
+
+      this.isListening = false;
+      
+      // Reset retry state after max retries reached
+      if (isNetworkError && this.retryCount >= this.maxRetries) {
+        errorMessage = `Erreur réseau: impossible de se connecter après ${this.maxRetries} tentatives. Vérifiez votre connexion internet.`;
+        this.resetRetryState();
       }
 
       this.recognitionCallbacks?.onError(errorMessage);
@@ -161,7 +209,7 @@ export class VoiceTextService {
 
     this.speechRecognition.onend = () => {
       this.isListening = false;
-      this.recognitionCallbacks?.onEnd();
+      this.recognitionCallbacks?.onEnd?.();
     };
   }
 
@@ -178,12 +226,18 @@ export class VoiceTextService {
       voiceVolume: 0.8,
       autoSpeakResponses: false,
       voiceActivationKeyword: 'hé ros',
-      continuousListening: false
+      continuousListening: false,
+      activationHotkey: {
+        key: 'Space',
+        modifier: 'alt',
+        enabled: true
+      }
     };
 
     try {
       const stored = localStorage.getItem('voice-settings');
-      return stored ? { ...defaultSettings, ...JSON.parse(stored) } : defaultSettings;
+      const parsed = stored ? JSON.parse(stored) : {};
+      return { ...defaultSettings, ...parsed };
     } catch {
       return defaultSettings;
     }
@@ -273,10 +327,16 @@ export class VoiceTextService {
     onResult: (result: SpeechRecognitionResult) => void;
     onError: (error: string) => void;
     onStart: () => void;
-    onEnd: () => void;
+    onEnd?: () => void;
   }): boolean {
     if (!this.settings.enabled || !this.speechRecognition) {
       callbacks.onError('Reconnaissance vocale non disponible');
+      return false;
+    }
+
+    // Check if we're online before attempting to start
+    if (!navigator.onLine) {
+      callbacks.onError('Pas de connexion internet. La reconnaissance vocale nécessite une connexion.');
       return false;
     }
 
@@ -284,12 +344,15 @@ export class VoiceTextService {
       this.stopListening();
     }
 
+    // Reset retry state on new listening request
+    this.resetRetryState();
+
     this.recognitionCallbacks = callbacks;
 
     try {
       this.speechRecognition.start();
       return true;
-    } catch (error) {
+    } catch {
       callbacks.onError('Impossible de démarrer la reconnaissance vocale');
       return false;
     }
@@ -311,7 +374,7 @@ export class VoiceTextService {
     speed?: number;
     pitch?: number;
     volume?: number;
-    voice?: SpeechSynthesisVoice;
+    voice?: any;
   }): boolean {
     if (!this.settings.enabled || !this.speechSynthesis) {
       return false;
@@ -322,7 +385,7 @@ export class VoiceTextService {
       this.speechSynthesis.cancel();
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new (window as any).SpeechSynthesisUtterance(text);
 
     // Configuration
     utterance.rate = options?.speed || this.settings.voiceSpeed;
@@ -335,7 +398,7 @@ export class VoiceTextService {
     } else {
       // Sélectionner une voix appropriée
       const voices = this.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(voice =>
+      const preferredVoice = voices.find((voice: any) =>
         voice.lang.startsWith(this.settings.outputLanguage) && voice.localService
       );
       if (preferredVoice) {
@@ -351,7 +414,7 @@ export class VoiceTextService {
       this.isSpeaking = false;
     };
 
-    utterance.onerror = (event) => {
+    utterance.onerror = (event: any) => {
       this.isSpeaking = false;
       console.error('Speech synthesis error:', event.error);
     };
@@ -368,6 +431,79 @@ export class VoiceTextService {
       this.speechSynthesis.cancel();
       this.isSpeaking = false;
     }
+  }
+
+  /**
+   * Gère les erreurs réseau avec tentative de reconnexion
+   */
+  private handleNetworkErrorRetry(): void {
+    this.isRetrying = true;
+    this.retryCount++;
+    const currentRetry = this.retryCount;
+    
+    // Calculate exponential backoff delay
+    const delay = this.retryDelay * Math.pow(2, currentRetry - 1);
+    
+    // Only log to debug level to reduce console noise
+    console.debug(`[VoiceTextService] Retrying connection (attempt ${currentRetry}/${this.maxRetries}) in ${delay}ms`);
+    
+    // DON'T show notification during retries - only show final error
+    // This reduces notification spam when network is temporarily unavailable
+
+    // Clear any existing retry timeout
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
+    }
+
+    // Attempt to restart recognition after delay
+    this.retryTimeout = setTimeout(() => {
+      if (this.recognitionCallbacks && this.retryCount === currentRetry) {
+        try {
+          // Try to restart speech recognition
+          if (this.speechRecognition) {
+            this.speechRecognition.start();
+            console.debug('[VoiceTextService] Retry attempt started');
+          }
+        } catch (err) {
+          console.debug('[VoiceTextService] Retry failed:', err);
+          // If restart fails, try again if we haven't exceeded max retries
+          if (this.retryCount < this.maxRetries) {
+            this.handleNetworkErrorRetry();
+          } else {
+            this.recognitionCallbacks.onError(
+              `Erreur réseau: impossible de se connecter après ${this.maxRetries} tentatives. Vérifiez votre connexion internet.`
+            );
+            this.resetRetryState();
+          }
+        }
+      }
+    }, delay);
+  }
+
+  /**
+   * Réinitialise l'état de retry
+   */
+  private resetRetryState(): void {
+    this.retryCount = 0;
+    this.isRetrying = false;
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
+      this.retryTimeout = null;
+    }
+  }
+
+  /**
+   * Vérifie si le service est en cours de reconnexion
+   */
+  isCurrentlyRetrying(): boolean {
+    return this.isRetrying;
+  }
+
+  /**
+   * Obtient le nombre de tentatives restantes
+   */
+  getRemainingRetries(): number {
+    return Math.max(0, this.maxRetries - this.retryCount);
   }
 
   /**
@@ -416,7 +552,7 @@ export class VoiceTextService {
   /**
    * Obtient la liste des voix disponibles
    */
-  getAvailableVoices(): SpeechSynthesisVoice[] {
+  getAvailableVoices(): any[] {
     return this.speechSynthesis ? this.speechSynthesis.getVoices() : [];
   }
 
@@ -560,3 +696,4 @@ export class VoiceTextService {
 
 // Export de l'instance singleton
 export const voiceTextService = VoiceTextService.getInstance();
+

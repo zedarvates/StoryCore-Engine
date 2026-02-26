@@ -493,7 +493,7 @@ class TestConnectionEndpoint:
     async def test_connection_success(self, mock_get_service, client):
         """Test successful connection check"""
         mock_service = Mock()
-        mock_service.comfyui_url = "http://localhost:8188"
+        mock_service.comfyui_url = "http://localhost:8000"
         mock_service.check_comfyui_connection = AsyncMock(return_value=True)
         mock_get_service.return_value = mock_service
         
@@ -509,7 +509,7 @@ class TestConnectionEndpoint:
     async def test_connection_failure(self, mock_get_service, client):
         """Test failed connection check"""
         mock_service = Mock()
-        mock_service.comfyui_url = "http://localhost:8188"
+        mock_service.comfyui_url = "http://localhost:8000"
         mock_service.check_comfyui_connection = AsyncMock(return_value=False)
         mock_get_service.return_value = mock_service
         
@@ -525,7 +525,7 @@ class TestConnectionEndpoint:
     async def test_connection_error(self, mock_get_service, client):
         """Test connection check with error"""
         mock_service = Mock()
-        mock_service.comfyui_url = "http://localhost:8188"
+        mock_service.comfyui_url = "http://localhost:8000"
         mock_service.check_comfyui_connection = AsyncMock(
             side_effect=Exception("Connection error")
         )

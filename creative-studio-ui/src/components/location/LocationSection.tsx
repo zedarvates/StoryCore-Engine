@@ -14,6 +14,7 @@ import { LocationList } from './LocationList';
 import { LocationEditor } from './LocationEditor';
 import type { Location } from '@/types/location';
 import { useLocationStore } from '@/stores/locationStore';
+import { useAppStore } from '@/stores/useAppStore';
 import { v4 as uuidv4 } from 'uuid';
 import './LocationSection.css';
 
@@ -101,16 +102,14 @@ export function LocationSection({
     error,
   } = useLocationStore();
 
-  // Get project ID for fetching project-local locations
-  const projectId = typeof window !== 'undefined'
-    ? window.location.pathname.split(/[/\\]/).pop() || 'unknown'
-    : 'unknown';
+  // Get project ID from app store for fetching project-local locations
+  const project = useAppStore((state) => state.project);
+  const projectId = project?.id || project?.project_name || 'unknown';
 
   const [showEditor, setShowEditor] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showWorldSelector, setShowWorldSelector] = useState(false);
-  const [selectedWorldLocation, setSelectedWorldLocation] = useState<WorldLocationData | null>(null);
 
   // Fetch locations on mount (both central and project-local)
   useEffect(() => {
@@ -129,7 +128,6 @@ export function LocationSection({
   }, [onCreateLocation]);
 
   const handleCreateFromWorld = useCallback((worldLocation: WorldLocationData) => {
-    setSelectedWorldLocation(worldLocation);
     setShowWorldSelector(false);
 
     // Pre-populate editor with world data
@@ -186,12 +184,13 @@ export function LocationSection({
       } else {
         // Create new location
         const newLocation: Location = {
+          ...locationData, // Spread first, then override with required defaults
           location_id: uuidv4(),
           name: locationData.name || 'New Location',
           location_type: locationData.location_type || 'exterior',
           texture_direction: locationData.location_type === 'interior' ? 'inward' : 'outward',
           creation_method: 'manual',
-          creation_timestamp: new Date().toISOString(),
+          creation_timestamp: Date.now(),
           version: '1.0',
           metadata: {
             description: locationData.metadata?.description || '',
@@ -204,8 +203,7 @@ export function LocationSection({
           is_world_derived: false,
           world_id: locationData.world_id,
           world_location_id: locationData.world_location_id,
-          ...locationData,
-        };
+        } as Location;
         await addLocation(newLocation);
       }
       setShowCreateModal(false);
@@ -299,7 +297,7 @@ export function LocationSection({
         onDeleteLocation={handleDeleteLocation}
         showFilters={true}
         showCreateButton={true}
-        showActions={true}
+        showActions={showActions}
       />
 
       {/* Create/Edit Modal */}

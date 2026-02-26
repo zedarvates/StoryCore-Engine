@@ -1,431 +1,311 @@
-/**
- * GhostTracker Wizard Modal
- * 
- * A dedicated modal for the Ghost Tracker wizard with integrated tips section.
- */
-
-import React, { useState, useEffect } from 'react';
-import { GhostTrackerTips, GhostTrackerTip } from './GhostTrackerTips';
-import { WizardNavigation } from './WizardNavigation';
-import { WizardStepIndicator } from './WizardStepIndicator';
-import { useAppStore } from '@/stores/useAppStore';
-import { WizardService } from '@/services/wizard/WizardService';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import {
-  Ghost,
-  Search,
-  AlertTriangle,
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  X,
   Activity,
-  Eye,
-  CheckCircle,
-  RefreshCw,
-  ChevronRight,
-  Sparkles,
-  Target,
-  TrendingUp,
-  Shield,
-  X
+  Zap,
+  Target, 
+  Layers, 
+  Database,
+  Layout, 
+  Settings, 
+  ChevronRight, 
+  CheckCircle2, 
+  AlertCircle,
+  FileSearch,
+  Cpu
 } from 'lucide-react';
 import './GhostTrackerWizard.css';
+import './WizardModal.css';
 
 interface GhostTrackerWizardProps {
   isOpen: boolean;
   onClose: () => void;
-  projectPath?: string;
 }
 
-type TrackingMode = 'continuity' | 'anomaly_detection' | 'motion_analysis' | 'visual_consistency' | 'quality_assurance';
+type TrackingMode = 'full' | 'incremental' | 'selective' | 'diagnostic';
 
-interface TrackingResult {
-  mode: TrackingMode;
-  status: 'idle' | 'running' | 'completed' | 'error';
-  progress: number;
-  elementsTracked: number;
-  issuesFound: number;
-  confidence: number;
-  summary: string;
-  recommendations: string[];
-}
+export function GhostTrackerWizard({ isOpen, onClose }: GhostTrackerWizardProps) {
+  const [currentStep, setCurrentStep] = useState<'mode' | 'analyzing' | 'results'>('mode');
+  const [selectedMode, setSelectedMode] = useState<TrackingMode>('full');
+  const [progress, setProgress] = useState(0);
+  const [analysisStatus, setAnalysisStatus] = useState<string>('Initializing tracking engine...');
 
-const TRACKING_MODES: { id: TrackingMode; name: string; description: string; icon: React.ReactNode }[] = [
-  {
-    id: 'continuity',
-    name: 'Continuity',
-    description: 'Track characters, props, and elements across shots',
-    icon: <RefreshCw size={18} />
-  },
-  {
-    id: 'anomaly_detection',
-    name: 'Anomaly Detection',
-    description: 'Find unusual elements or unexpected changes',
-    icon: <AlertTriangle size={18} />
-  },
-  {
-    id: 'motion_analysis',
-    name: 'Motion Analysis',
-    description: 'Analyze movement patterns and camera work',
-    icon: <Activity size={18} />
-  },
-  {
-    id: 'visual_consistency',
-    name: 'Visual Consistency',
-    description: 'Check lighting, colors, and visual style',
-    icon: <Eye size={18} />
-  },
-  {
-    id: 'quality_assurance',
-    name: 'Quality Assurance',
-    description: 'Comprehensive quality check of your project',
-    icon: <Shield size={18} />
-  }
-];
+  const initializeWizard = useCallback(() => {
+    setCurrentStep('mode');
+    setProgress(0);
+    setAnalysisStatus('Initializing tracking engine...');
+    setSelectedMode('full');
+  }, []);
 
-export function GhostTrackerWizard({
-  isOpen,
-  onClose,
-  projectPath
-}: GhostTrackerWizardProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selectedMode, setSelectedMode] = useState<TrackingMode>('continuity');
-  const [trackingResult, setTrackingResult] = useState<TrackingResult | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
-  const [selectedTip, setSelectedTip] = useState<GhostTrackerTip | null>(null);
-  
-  const project = useAppStore((state) => state.project);
-  const wizardService = new WizardService();
-  const title = '👻 Ghost Tracker';
+  // Handle Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
-  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setCurrentStep(0);
-      setTrackingResult(null);
-      setIsRunning(false);
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+      // Reset state when opening (async to avoid render cascade)
+      const timer = setTimeout(() => {
+        initializeWizard();
+      }, 0);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = 'unset';
+      };
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
     }
-  }, [isOpen]);
 
-  const handleRunAnalysis = async () => {
-    setIsRunning(true);
-    setTrackingResult({
-      mode: selectedMode,
-      status: 'running',
-      progress: 0,
-      elementsTracked: 0,
-      issuesFound: 0,
-      confidence: 0,
-      summary: '',
-      recommendations: []
-    });
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, handleKeyDown, initializeWizard]);
 
-    try {
-      // Simulate analysis progress
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-        setTrackingResult(prev => prev ? {
-          ...prev,
-          progress: i,
-          elementsTracked: Math.floor(i * 0.5),
-          issuesFound: Math.floor(i * 0.2)
-        } : null);
-      }
-
-      // Complete analysis
-      setTrackingResult(prev => prev ? {
-        ...prev,
-        status: 'completed',
-        progress: 100,
-        elementsTracked: Math.floor(Math.random() * 20) + 10,
-        issuesFound: Math.floor(Math.random() * 8) + 1,
-        confidence: Math.random() * 3 + 7,
-        summary: `Analysis completed in ${selectedMode.replace('_', ' ')} mode. Tracked ${Math.floor(Math.random() * 20) + 10} elements across ${project?.shots?.length || 0} shots.`,
-        recommendations: [
-          'Review flagged continuity issues before final export',
-          'Consider adding more detailed shot descriptions for better tracking',
-          'Run Quality Assurance mode for comprehensive analysis'
-        ]
-      } : null);
-    } catch (error) {
-      setTrackingResult(prev => prev ? {
-        ...prev,
-        status: 'error',
-        summary: `Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      } : null);
-    } finally {
-      setIsRunning(false);
-    }
-  };
-
-  const handleTipClick = (tip: GhostTrackerTip) => {
-    setSelectedTip(tip);
-  };
-
-  const handleNext = () => {
-    if (currentStep < 2) {
-      setCurrentStep(prev => prev + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    }
+  const handleStartAnalysis = () => {
+    setCurrentStep('analyzing');
+    // Simulated progress
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => setCurrentStep('results'), 500);
+          return 100;
+        }
+        
+        // Update status text based on progress
+        if (prev < 20) setAnalysisStatus('Scanning project file signatures...');
+        else if (prev < 40) setAnalysisStatus('Analyzing ghost assets and dependencies...');
+        else if (prev < 60) setAnalysisStatus('Mapping data points to creative timeline...');
+        else if (prev < 80) setAnalysisStatus('Validating integrity of extracted objects...');
+        else setAnalysisStatus('Finalizing Ghost Tracking report...');
+        
+        return prev + Math.random() * 8;
+      });
+    }, 200);
   };
 
   const handleClose = () => {
-    setCurrentStep(0);
-    setTrackingResult(null);
-    setIsRunning(false);
     onClose();
   };
 
-  const steps = [
-    { id: 'select', title: 'Select Mode', icon: <Target size={16} /> },
-    { id: 'analyze', title: 'Analyze', icon: <Search size={16} /> },
-    { id: 'results', title: 'Results', icon: <CheckCircle size={16} /> }
-  ];
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <div className="ghost-tracker-step">
-            <div className="mode-selection">
-              <h3 className="section-title">Select Tracking Mode</h3>
-              <p className="section-description">
-                Choose how you want Ghost Tracker to analyze your project
-              </p>
-              
-              <div className="mode-grid">
-                {TRACKING_MODES.map(mode => (
-                  <button
-                    key={mode.id}
-                    className={`mode-card ${selectedMode === mode.id ? 'selected' : ''}`}
-                    onClick={() => setSelectedMode(mode.id)}
-                    disabled={isRunning}
-                  >
-                    <div className="mode-icon">{mode.icon}</div>
-                    <h4 className="mode-name">{mode.name}</h4>
-                    <p className="mode-description">{mode.description}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tips Section */}
-            <div className="tips-integration">
-              <GhostTrackerTips
-                onTipClick={handleTipClick}
-                maxTips={2}
-                autoRotate={true}
-                autoRotateInterval={10000}
-              />
-            </div>
-          </div>
-        );
-
-      case 1:
-        return (
-          <div className="ghost-tracker-step">
-            <div className="analysis-preview">
-              <h3 className="section-title">Analysis Preview</h3>
-              
-              <div className="preview-stats">
-                <div className="stat-card">
-                  <div className="stat-icon">
-                    <Target size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <span className="stat-value">{project?.shots?.length || 0}</span>
-                    <span className="stat-label">Shots to Analyze</span>
-                  </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon">
-                    <TrendingUp size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <span className="stat-value">{project?.characters?.length || 0}</span>
-                    <span className="stat-label">Characters</span>
-                  </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon">
-                    <Sparkles size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <span className="stat-value">{selectedMode.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                    <span className="stat-label">Mode</span>
-                  </div>
-                </div>
-              </div>
-
-              {isRunning ? (
-                <div className="analysis-progress">
-                  <div className="progress-header">
-                    <span>Analyzing project...</span>
-                    <span className="progress-percent">{trackingResult?.progress || 0}%</span>
-                  </div>
-                  <Progress value={trackingResult?.progress || 0} className="progress-bar" />
-                  <div className="progress-details">
-                    <span>Elements tracked: {trackingResult?.elementsTracked || 0}</span>
-                    <span>Issues found: {trackingResult?.issuesFound || 0}</span>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  className="run-analysis-btn"
-                  onClick={handleRunAnalysis}
-                >
-                  <Ghost size={20} />
-                  Run Ghost Tracker Analysis
-                  <ChevronRight size={20} />
-                </button>
-              )}
-            </div>
-
-            {/* Tips Section */}
-            <div className="tips-integration">
-              <GhostTrackerTips
-                onTipClick={handleTipClick}
-                maxTips={2}
-                autoRotate={true}
-                autoRotateInterval={10000}
-              />
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="ghost-tracker-step">
-            <div className="analysis-results">
-              <h3 className="section-title">Analysis Results</h3>
-              
-              {trackingResult?.status === 'completed' ? (
-                <>
-                  <div className="results-summary">
-                    <div className="confidence-score">
-                      <div className="score-circle">
-                        <span className="score-value">
-                          {trackingResult.confidence.toFixed(1)}
-                        </span>
-                        <span className="score-max">/10</span>
-                      </div>
-                      <span className="score-label">Confidence Score</span>
-                    </div>
-                    
-                    <div className="results-stats">
-                      <div className="result-stat">
-                        <CheckCircle size={20} className="stat-success" />
-                        <div>
-                          <span className="stat-number">{trackingResult.elementsTracked}</span>
-                          <span className="stat-desc">Elements Tracked</span>
-                        </div>
-                      </div>
-                      <div className="result-stat">
-                        <AlertTriangle size={20} className="stat-warning" />
-                        <div>
-                          <span className="stat-number">{trackingResult.issuesFound}</span>
-                          <span className="stat-desc">Issues Found</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="results-summary-text">
-                    <p>{trackingResult.summary}</p>
-                  </div>
-
-                  <div className="recommendations">
-                    <h4>Recommendations</h4>
-                    <ul>
-                      {trackingResult.recommendations.map((rec, index) => (
-                        <li key={index}>{rec}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </>
-              ) : trackingResult?.status === 'error' ? (
-                <div className="results-error">
-                  <AlertTriangle size={48} />
-                  <p>{trackingResult.summary}</p>
-                  <Button onClick={() => setCurrentStep(0)}>
-                    Try Again
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-
-            {/* Tips Section */}
-            <div className="tips-integration">
-              <GhostTrackerTips
-                onTipClick={handleTipClick}
-                maxTips={3}
-                autoRotate={false}
-              />
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="wizard-dialog-overlay" onClick={handleClose}>
-      <div className="wizard-dialog" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="wizard-dialog-header">
-          <h2 className="wizard-dialog-title">{title}</h2>
+    <div className="wizard-modal-overlay" onClick={handleClose}>
+      <div className="wizard-modal-container max-w-4xl" onClick={(e) => e.stopPropagation()}>
+        <div className="wizard-modal-header">
+           <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400">
+              <Activity size={20} className="animate-pulse" />
+            </div>
+            <div className="flex flex-col">
+              <h2 className="wizard-modal-title">Ghost Tracker</h2>
+              <span className="text-[10px] text-purple-400/70 uppercase tracking-widest font-black">Project Integrity Engine</span>
+            </div>
+          </div>
           <button
-            className="wizard-dialog-close"
             onClick={handleClose}
-            aria-label="Close dialog"
+            className="p-1 hover:bg-white/10 rounded-full transition-colors"
           >
-            <X size={20} />
+            <X size={20} className="text-white/50" />
           </button>
         </div>
 
-        {/* Step Indicator */}
-        <div className="wizard-dialog-steps">
-          <WizardStepIndicator
-            steps={steps.map((s, i) => ({ ...s, number: i + 1 }))}
-            currentStep={currentStep}
-            allowJumpToStep={currentStep > 0}
-          />
-        </div>
+        <div className="wizard-modal-content p-6 min-h-[400px]">
+          {currentStep === 'mode' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="mb-8 text-center">
+                <h3 className="text-2xl font-bold text-white mb-2">Select Analysis Mode</h3>
+                <p className="text-white/60">Choose how deep the Ghost Tracker should scan your project.</p>
+              </div>
 
-        {/* Content */}
-        <div className="wizard-dialog-content">
-          <div className="wizard-form-content">
-            {renderStepContent()}
-          </div>
-        </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div 
+                  className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedMode === 'full' ? 'bg-purple-500/20 border-purple-500' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                  onClick={() => setSelectedMode('full')}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Zap className={selectedMode === 'full' ? 'text-purple-400' : 'text-white/40'} size={24} />
+                    <span className="font-bold">Full Scrutiny</span>
+                  </div>
+                  <p className="text-sm text-white/50">Comprehensive scan of all assets, references, and nested dependencies. (Recommended)</p>
+                </div>
 
-        {/* Footer Navigation */}
-        <div className="wizard-dialog-footer">
-          <WizardNavigation
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            onBack={handlePrevious}
-            onNext={handleNext}
-            onCancel={handleClose}
-            onSubmit={currentStep === 2 ? handleClose : undefined}
-            onSkip={() => {}}
-            onSaveDraft={() => {}}
-            canGoNext={currentStep < steps.length - 1}
-            canGoBack={currentStep > 0}
-            canSkip={false}
-          />
+                <div 
+                  className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedMode === 'incremental' ? 'bg-indigo-500/20 border-indigo-500' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                  onClick={() => setSelectedMode('incremental')}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Target className={selectedMode === 'incremental' ? 'text-indigo-400' : 'text-white/40'} size={24} />
+                    <span className="font-bold">Incremental Link</span>
+                  </div>
+                  <p className="text-sm text-white/50">Verify only recently added or modified objects and their immediate relations.</p>
+                </div>
+
+                <div 
+                  className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedMode === 'selective' ? 'bg-blue-500/20 border-blue-500' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                  onClick={() => setSelectedMode('selective')}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Layers className={selectedMode === 'selective' ? 'text-blue-400' : 'text-white/40'} size={24} />
+                    <span className="font-bold">Selective Probe</span>
+                  </div>
+                  <p className="text-sm text-white/50">Target specific folders or asset categories for integrity validation.</p>
+                </div>
+
+                <div 
+                  className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedMode === 'diagnostic' ? 'bg-amber-500/20 border-amber-500' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                  onClick={() => setSelectedMode('diagnostic')}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <FileSearch className={selectedMode === 'diagnostic' ? 'text-amber-400' : 'text-white/40'} size={24} />
+                    <span className="font-bold">Diagnostic Fix</span>
+                  </div>
+                  <p className="text-sm text-white/50">Identify and attempt to repair broken references or corrupted manifest files.</p>
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-center">
+                <button 
+                  onClick={handleStartAnalysis}
+                  className="px-10 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-3 shadow-lg shadow-purple-500/20"
+                >
+                  <Activity size={20} />
+                  Initiate Ghost Tracking
+                </button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'analyzing' && (
+            <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-500">
+              <div className="relative w-48 h-48 mb-8">
+                <svg className="w-full h-full" viewBox="0 0 100 100">
+                  <circle 
+                    cx="50" cy="50" r="45" 
+                    fill="none" 
+                    stroke="rgba(255,255,255,0.05)" 
+                    strokeWidth="2" 
+                  />
+                  <circle 
+                    cx="50" cy="50" r="45" 
+                    fill="none" 
+                    stroke="url(#gradient)" 
+                    strokeWidth="4" 
+                    strokeDasharray={`${progress * 2.82} 282`}
+                    strokeLinecap="round"
+                    transform="rotate(-90 50 50)"
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#a855f7" />
+                      <stop offset="100%" stopColor="#6366f1" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-4xl font-black text-white">{Math.floor(progress)}%</span>
+                  <span className="text-[10px] text-white/40 uppercase tracking-widest">Analysis</span>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-lg text-white mb-2 font-medium">{analysisStatus}</p>
+                <div className="flex gap-1 justify-center">
+                  {[...Array(3)].map((_, i) => (
+                    <div 
+                      key={i} 
+                      className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" 
+                      style={{ animationDelay: `${i * 0.1}s` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'results' && (
+            <div className="animate-in fade-in zoom-in-95 duration-500">
+              <div className="flex items-center gap-4 mb-8 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                <div className="p-3 bg-emerald-500 rounded-full text-white">
+                  <CheckCircle2 size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Integrity Verified</h3>
+                  <p className="text-emerald-400/70 text-sm">All assets and references are correctly mapped and functional.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2 text-white/60">
+                    <Database size={16} />
+                    <span className="text-xs uppercase font-bold tracking-wider">Objects</span>
+                  </div>
+                  <span className="text-2xl font-bold text-white">124</span>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2 text-white/60">
+                    <Layout size={16} />
+                    <span className="text-xs uppercase font-bold tracking-wider">Scenes</span>
+                  </div>
+                  <span className="text-2xl font-bold text-white">12</span>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2 text-white/60">
+                    <Cpu size={16} />
+                    <span className="text-xs uppercase font-bold tracking-wider">Signals</span>
+                  </div>
+                  <span className="text-2xl font-bold text-white">Clean</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertCircle size={18} className="text-amber-400" />
+                  <span className="font-bold">Minor Improvements Suggested</span>
+                </div>
+                <ul className="space-y-3 text-sm text-white/60">
+                  <li className="flex gap-3">
+                    <div className="flex-shrink-0 w-1.5 h-1.5 bg-amber-400 rounded-full mt-1.5" />
+                    <span>3 assets in "characters/hero" are using unoptimized textures ({'>'} 4k).</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <div className="flex-shrink-0 w-1.5 h-1.5 bg-amber-400 rounded-full mt-1.5" />
+                    <span>Orphaned metadata detected for "scene_04_v2". Safe to remove?</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={onClose}
+                  className="px-6 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors font-bold"
+                >
+                  Dismiss
+                </button>
+                <button 
+                  className="px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 transition-colors font-bold flex items-center gap-2"
+                >
+                  <Settings size={18} />
+                  Optimize Project
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-
-export default GhostTrackerWizard;
-

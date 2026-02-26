@@ -143,109 +143,31 @@ api_router.include_router(media_router)
 logger.info("Media Intelligence routes registered")
 
 # ============================================
-# AUDIO REMIX ROUTES  
+# AUDIO REMIX ROUTES
 # ============================================
 
-audio_router = APIRouter(prefix="/audio")
+from src.api.audio_remix_routes import audio_router as _audio_remix_router
 
-@audio_router.get("/health")
-async def audio_health():
-    return {"status": "audio_service_healthy"}
-
-@audio_router.get("/styles")
-async def audio_styles():
-    return {
-        "styles": [
-            {"id": "smooth", "name": "Smooth", "description": "Crossfade fluide"},
-            {"id": "beat-cut", "name": "Beat Cut", "description": "Coupures sur beats"},
-            {"id": "structural", "name": "Structural", "description": "Structure préservée"},
-            {"id": "dynamic", "name": "Dynamic", "description": "Adaptation dynamique"}
-        ]
-    }
-
-@audio_router.post("/analyze-structure")
-async def analyze_structure(body: dict):
-    """Analyze music structure"""
-    music_url = body.get("music_url", "")
-    return {
-        "music_url": music_url,
-        "duration": 180.0,
-        "tempo": 120.0,
-        "key": "C major",
-        "structure": {"intro": 15.0, "verse": 60.0, "chorus": 30.0, "bridge": 20.0, "outro": 15.0}
-    }
-
-@audio_router.post("/remix")
-async def audio_remix(body: dict):
-    """Remix audio to target duration"""
-    return {
-        "music_url": body.get("music_url"),
-        "target_duration": body.get("target_duration", 30.0),
-        "style": body.get("style", "smooth"),
-        "remix_url": "/output/remixed_audio.mp3",
-        "message": "Audio remixed successfully"
-    }
-
-api_router.include_router(audio_router)
+api_router.include_router(_audio_remix_router, prefix="/audio")
 logger.info("Audio Remix routes registered")
 
 # ============================================
 # TRANSCRIPTION ROUTES
 # ============================================
 
-transcription_router = APIRouter(prefix="/transcription")
+from src.api.transcription_routes import transcription_router as _transcription_router
 
-@transcription_router.get("/health")
-async def transcription_health():
-    return {"status": "transcription_service_healthy"}
-
-@transcription_router.get("/languages")
-async def transcription_languages():
-    return {
-        "languages": [
-            {"code": "fr", "name": "Français"},
-            {"code": "en", "name": "English"},
-            {"code": "es", "name": "Español"},
-            {"code": "de", "name": "Deutsch"}
-        ]
-    }
-
-@transcription_router.post("/transcribe")
-async def transcribe_audio(body: dict):
-    """Transcribe audio to text"""
-    audio_url = body.get("audio_url", "")
-    language = body.get("language", "fr")
-    return {
-        "transcript_id": f"transcript_{int(time.time())}",
-        "audio_url": audio_url,
-        "language": language,
-        "duration": 120.0,
-        "word_count": 250,
-        "speaker_count": 2,
-        "segments": []
-    }
-
-@transcription_router.post("/generate-montage")
-async def generate_montage(body: dict):
-    """Generate montage from transcript"""
-    return {
-        "transcript_id": body.get("transcript_id"),
-        "style": body.get("style", "chronological"),
-        "shots": [],
-        "summary": "Montage generated successfully"
-    }
-
-api_router.include_router(transcription_router)
+api_router.include_router(_transcription_router, prefix="/transcription")
 logger.info("Transcription routes registered")
 
 # ============================================
 # VIDEO EDITOR & AI ROUTES
 # ============================================
 
-from api.categories.export_integration import ExportIntegrationCategoryHandler
-from api.config import APIConfig
-from api.router import APIRouter as CustomRouter
-from api.models import RequestContext
+from src.api.categories.export_integration import ExportIntegrationCategoryHandler
+from src.api.config import APIConfig
+from src.api.router import APIRouter as CustomRouter
+from src.api.models import RequestContext
 
 # Initialize custom handler system
 api_config = APIConfig(version="2.0.0")
@@ -314,8 +236,10 @@ logger.info("Video Editor AI routes registered")
 # ============================================
 
 from src.api.addon_routes import router as addon_router
+from src.api.external_addon_routes import router as external_addon_router
 
 app.include_router(addon_router)
+app.include_router(external_addon_router)
 logger.info("Addon routes registered")
 
 # ============================================
@@ -326,6 +250,58 @@ from src.api.seedance_routes import router as seedance_router
 
 app.include_router(seedance_router)
 logger.info("Seedance routes registered")
+
+# ============================================
+# STARTUP & INITIALIZATION
+# ============================================
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize systems on startup"""
+    logger.info("Starting up StoryCore API v2.0...")
+    
+    try:
+        from src.addon_manager import AddonManager
+        from src.addon_validator import AddonValidator
+        from src.addon_permissions import PermissionManager
+        from src.api.addon_routes import init_addon_api
+        from src.api.seedance_routes import init_seedance_api
+        
+        # Initialize Core Addon Systems
+        manager = AddonManager()
+        validator = AddonValidator()
+        perm_manager = PermissionManager()
+        
+        # Load and discover all addons
+        await manager.initialize_all_addons()
+        
+        # Initialize Addon API with managers
+        init_addon_api(manager, validator, perm_manager)
+        
+        # Initialize External Addon API
+        from src.addon_api import ExternalAddonLoader, AddonRegistryClient, DependencyManager
+        from pathlib import Path
+        
+        engine_path = Path(__file__).parent.parent
+        external_loader = ExternalAddonLoader(engine_path / "addons")
+        await external_loader.initialize()
+        
+        registry_client = AddonRegistryClient()
+        deps_manager = DependencyManager()
+        await deps_manager.initialize()
+        
+        init_external_addon_api(manager, external_loader, registry_client, deps_manager)
+        
+        # Initialize Seedance API with manager
+        # It will try to find the "Seedance 2.0" addon from the manager
+        init_seedance_api(manager)
+        
+        logger.info(f"Addon system initialized: {len(manager.addons)} addons discovered")
+        
+    except Exception as e:
+        logger.error(f"Failed to initialize addon system during startup: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
 
 # ============================================
 # INCLUDE API ROUTER

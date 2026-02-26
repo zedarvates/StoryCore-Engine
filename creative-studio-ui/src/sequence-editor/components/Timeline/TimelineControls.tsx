@@ -1,3 +1,5 @@
+/* cSpell:ignore Playhead Timecode denoising euler */
+/* cSpell:ignore Playhead playhead Timecode timecode denoising euler */
 /**
  * Timeline Controls Component
  * 
@@ -13,6 +15,7 @@ import { play, pause, stop } from '../../store/slices/previewSlice';
 import { setPlayheadPosition } from '../../store/slices/timelineSlice';
 import type { LayerType, PlaybackState } from '../../types';
 import { GoToTimeDialog } from './GoToTimeDialog';
+import { GenerateButton } from '../GenerateButton/GenerateButton';
 
 interface TimelineControlsProps {
   zoomLevel: number;
@@ -59,7 +62,6 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   // Get playback state from Redux
   const playbackState: PlaybackState = useAppSelector((state) => state.preview.playbackState);
   const isPlaying = playbackState === 'playing';
-  const isPaused = playbackState === 'paused';
 
   // Track type options
   const trackTypes: { type: LayerType; label: string; icon: string }[] = [
@@ -401,7 +403,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
 
       {/* Virtual mode toggle (for large timelines) */}
       {onToggleVirtualMode && (
-        <div className="timeline-controls-group">
+        <div className="timeline-controls-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             className={`timeline-control-btn toggle-btn ${useVirtualMode ? 'active' : ''}`}
             onClick={onToggleVirtualMode}
@@ -410,6 +412,7 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
             <span className="toggle-icon">{useVirtualMode ? '⚡' : '🐌'}</span>
             <span className="toggle-label">{useVirtualMode ? 'Virtual' : 'DOM'}</span>
           </button>
+          <GenerateButton />
         </div>
       )}
 

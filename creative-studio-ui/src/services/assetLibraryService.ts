@@ -109,7 +109,7 @@ const getAssetBasePath = (): string => {
 /**
  * StoryCore base library assets
  * These are available to all projects
- * Using actual existing assets from the project
+ * Using actual assets from the project
  */
 const BASE_LIBRARY_ASSETS: Asset[] = [
   // Demo Images - Using actual assets from /assets/resources/jpg-files/
@@ -211,6 +211,177 @@ const BASE_LIBRARY_ASSETS: Asset[] = [
       source: 'library',
       category: 'branding',
       tags: ['logo', 'branding', 'storycore', 'horizontal'],
+    },
+  },
+
+  // Character placeholders
+  {
+    id: 'char-1',
+    name: 'Character Placeholder 1',
+    type: 'image',
+    url: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#4A90E2" width="200" height="200"/><circle cx="100" cy="70" r="40" fill="#FFF"/><ellipse cx="100" cy="160" rx="50" ry="40" fill="#FFF"/><text x="100" y="195" text-anchor="middle" fill="#333" font-size="12">Character 1</text></svg>'),
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#4A90E2" width="200" height="200"/><circle cx="100" cy="70" r="40" fill="#FFF"/><ellipse cx="100" cy="160" rx="50" ry="40" fill="#FFF"/></svg>'),
+    metadata: {
+      id: 'char-1-meta',
+      filename: 'character-1.svg',
+      type: 'image' as const,
+      path: '',
+      size: 0,
+      imported_at: new Date().toISOString(),
+      category: 'character',
+      tags: ['character', 'placeholder', 'person'],
+    },
+  },
+  {
+    id: 'char-2',
+    name: 'Character Placeholder 2',
+    type: 'image',
+    url: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#E24A8F" width="200" height="200"/><circle cx="100" cy="70" r="40" fill="#FFF"/><ellipse cx="100" cy="160" rx="50" ry="40" fill="#FFF"/><text x="100" y="195" text-anchor="middle" fill="#333" font-size="12">Character 2</text></svg>'),
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#E24A8F" width="200" height="200"/><circle cx="100" cy="70" r="40" fill="#FFF"/><ellipse cx="100" cy="160" rx="50" ry="40" fill="#FFF"/></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'character',
+      tags: ['character', 'placeholder', 'person'],
+    },
+  },
+  {
+    id: 'char-3',
+    name: 'Character Placeholder 3',
+    type: 'image',
+    url: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#4AE290" width="200" height="200"/><circle cx="100" cy="70" r="40" fill="#FFF"/><ellipse cx="100" cy="160" rx="50" ry="40" fill="#FFF"/><text x="100" y="195" text-anchor="middle" fill="#333" font-size="12">Character 3</text></svg>'),
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#4AE290" width="200" height="200"/><circle cx="100" cy="70" r="40" fill="#FFF"/><ellipse cx="100" cy="160" rx="50" ry="40" fill="#FFF"/></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'character',
+      tags: ['character', 'placeholder', 'person'],
+    },
+  },
+
+  // Environment backgrounds
+  {
+    id: 'env-1',
+    name: 'Forest Scene',
+    type: 'image',
+    url: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect fill="#228B22" width="320" height="180"/><polygon points="40,180 80,80 120,180" fill="#006400"/><polygon points="100,180 150,50 200,180" fill="#006400"/><polygon points="180,180 220,70 260,180" fill="#006400"/><polygon points="240,180 280,90 320,180" fill="#006400"/><rect y="150" width="320" height="30" fill="#654321"/><text x="160" y="170" text-anchor="middle" fill="#FFF" font-size="12">Forest</text></svg>'),
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect fill="#228B22" width="320" height="180"/><polygon points="40,180 80,80 120,180" fill="#006400"/><polygon points="100,180 150,50 200,180" fill="#006400"/><polygon points="180,180 220,70 260,180" fill="#006400"/><polygon points="240,180 280,90 320,180" fill="#006400"/><rect y="150" width="320" height="30" fill="#654321"/></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'environment',
+      tags: ['environment', 'forest', 'nature', 'scene'],
+    },
+  },
+  {
+    id: 'env-2',
+    name: 'City Skyline',
+    type: 'image',
+    url: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect fill="#1a1a2e" width="320" height="180"/><rect x="20" y="80" width="40" height="100" fill="#4a4a6a"/><rect x="70" y="50" width="50" height="130" fill="#3a3a5a"/><rect x="130" y="70" width="35" height="110" fill="#4a4a6a"/><rect x="175" y="40" width="60" height="140" fill="#3a3a5a"/><rect x="245" y="60" width="45" height="120" fill="#4a4a6a"/><circle cx="280" cy="30" r="15" fill="#FFD700"/><text x="160" y="170" text-anchor="middle" fill="#FFF" font-size="12">City</text></svg>'),
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect fill="#1a1a2e" width="320" height="180"/><rect x="20" y="80" width="40" height="100" fill="#4a4a6a"/><rect x="70" y="50" width="50" height="130" fill="#3a3a5a"/><rect x="130" y="70" width="35" height="110" fill="#4a4a6a"/><rect x="175" y="40" width="60" height="140" fill="#3a3a5a"/><rect x="245" y="60" width="45" height="120" fill="#4a4a6a"/><circle cx="280" cy="30" r="15" fill="#FFD700"/></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'environment',
+      tags: ['environment', 'city', 'urban', 'night'],
+    },
+  },
+  {
+    id: 'env-3',
+    name: 'Beach Sunset',
+    type: 'image',
+    url: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><defs><linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FF6B6B"/><stop offset="50%" stop-color="#FFA500"/><stop offset="100%" stop-color="#FFD700"/></linearGradient></defs><rect fill="url(#sky)" width="320" height="180"/><circle cx="160" cy="100" r="40" fill="#FFD700" opacity="0.8"/><ellipse cx="160" cy="140" rx="160" ry="40" fill="#FFA07A"/><path d="M0,160 Q80,130 160,160 T320,160 L320,180 L0,180 Z" fill="#C2B280"/><text x="160" y="170" text-anchor="middle" fill="#333" font-size="12">Beach</text></svg>'),
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><defs><linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FF6B6B"/><stop offset="50%" stop-color="#FFA500"/><stop offset="100%" stop-color="#FFD700"/></linearGradient></defs><rect fill="url(#sky)" width="320" height="180"/><circle cx="160" cy="100" r="40" fill="#FFD700" opacity="0.8"/><ellipse cx="160" cy="140" rx="160" ry="40" fill="#FFA07A"/><path d="M0,160 Q80,130 160,160 T320,160 L320,180 L0,180 Z" fill="#C2B280"/></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'environment',
+      tags: ['environment', 'beach', 'sunset', 'ocean'],
+    },
+  },
+
+  // Props
+  {
+    id: 'prop-1',
+    name: 'Prop - Book',
+    type: 'image',
+    url: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="10" y="20" width="80" height="60" fill="#8B4513" rx="5"/><rect x="15" y="25" width="70" height="50" fill="#F5DEB3"/><line x1="50" y1="25" x2="50" y2="75" stroke="#8B4513" stroke-width="2"/><text x="50" y="55" text-anchor="middle" fill="#333" font-size="10">Book</text></svg>'),
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="10" y="20" width="80" height="60" fill="#8B4513" rx="5"/><rect x="15" y="25" width="70" height="50" fill="#F5DEB3"/><line x1="50" y1="25" x2="50" y2="75" stroke="#8B4513" stroke-width="2"/></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'props',
+      tags: ['prop', 'book', 'object'],
+    },
+  },
+  {
+    id: 'prop-2',
+    name: 'Prop - Sword',
+    type: 'image',
+    url: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="45" y="10" width="10" height="60" fill="#C0C0C0"/><rect x="35" y="65" width="30" height="10" fill="#8B4513"/><rect x="43" y="72" width="14" height="20" fill="#4a3520"/><text x="50" y="95" text-anchor="middle" fill="#333" font-size="8">Sword</text></svg>'),
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="45" y="10" width="10" height="60" fill="#C0C0C0"/><rect x="35" y="65" width="30" height="10" fill="#8B4513"/><rect x="43" y="72" width="14" height="20" fill="#4a3520"/></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'props',
+      tags: ['prop', 'sword', 'weapon', 'object'],
+    },
+  },
+
+  // Visual Styles
+  {
+    id: 'style-1',
+    name: 'Cinematic Style',
+    type: 'template',
+    url: '',
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#1a1a2e" width="100" height="100"/><rect x="10" y="10" width="80" height="80" fill="#16213e" rx="5"/><line x1="10" y1="50" x2="90" y2="50" stroke="#e94560" stroke-width="2"/><text x="50" y="55" text-anchor="middle" fill="#FFF" font-size="10">Cinematic</text></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'style',
+      tags: ['style', 'cinematic', 'color', 'grading'],
+    },
+  },
+  {
+    id: 'style-2',
+    name: 'Vintage Style',
+    type: 'template',
+    url: '',
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#d4a574" width="100" height="100"/><rect x="10" y="10" width="80" height="80" fill="#c4956a" rx="5"/><text x="50" y="55" text-anchor="middle" fill="#4a3520" font-size="10">Vintage</text></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'style',
+      tags: ['style', 'vintage', 'color', 'retro'],
+    },
+  },
+
+  // Camera Presets
+  {
+    id: 'camera-1',
+    name: 'Wide Shot',
+    type: 'template',
+    url: '',
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#333" width="100" height="100"/><rect x="5" y="20" width="90" height="60" fill="#666" rx="3"/><text x="50" y="55" text-anchor="middle" fill="#FFF" font-size="10">Wide</text></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'camera',
+      tags: ['camera', 'shot', 'wide', 'preset'],
+    },
+  },
+  {
+    id: 'camera-2',
+    name: 'Close Up',
+    type: 'template',
+    url: '',
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#333" width="100" height="100"/><rect x="25" y="10" width="50" height="80" fill="#666" rx="3"/><text x="50" y="95" text-anchor="middle" fill="#FFF" font-size="8">Close-up</text></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'camera',
+      tags: ['camera', 'shot', 'close-up', 'preset'],
+    },
+  },
+  {
+    id: 'camera-3',
+    name: 'Over the Shoulder',
+    type: 'template',
+    url: '',
+    thumbnail: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#333" width="100" height="100"/><rect x="0" y="10" width="30" height="80" fill="#444"/><rect x="30" y="20" width="65" height="60" fill="#666" rx="3"/><text x="60" y="55" text-anchor="middle" fill="#FFF" font-size="7">OTS</text></svg>'),
+    metadata: {
+      source: 'library',
+      category: 'camera',
+      tags: ['camera', 'shot', 'ots', 'preset'],
     },
   },
 ];

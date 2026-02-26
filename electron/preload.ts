@@ -412,6 +412,56 @@ const electronAPI: ElectronAPI = {
       return result.result;
     },
   },
+
+  // Event listening
+  on: (channel: string, func: (...args: any[]) => void) => {
+    const subscription = (_event: any, ...args: any[]) => func(...args);
+    ipcRenderer.on(channel, subscription);
+    return () => ipcRenderer.removeListener(channel, subscription);
+  },
+  once: (channel: string, func: (...args: any[]) => void) => {
+    ipcRenderer.once(channel, (_event, ...args) => func(...args));
+  },
+  off: (channel: string, func: (...args: any[]) => void) => {
+    ipcRenderer.removeListener(channel, (_event, ...args) => func(...args));
+  },
+
+  // Chat window management
+  chatWindow: {
+    open: async () => {
+      ipcRenderer.send('chat-window:create-request');
+    },
+    close: async () => {
+      ipcRenderer.send('chat-window:close-request');
+    },
+    toggle: async () => {
+      ipcRenderer.send('chat-window:toggle-request');
+    },
+    isOpen: async () => {
+      return await ipcRenderer.invoke('chat-window:is-open');
+    },
+    onStateChanged: (callback: (state: { isOpen: boolean }) => void) => {
+      const subscription = (_event: any, state: { isOpen: boolean }) => callback(state);
+      ipcRenderer.on('chat-window:state-changed', subscription);
+      return () => ipcRenderer.removeListener('chat-window:state-changed', subscription);
+    },
+    sendMessage: (message: any) => {
+      ipcRenderer.send('chat-window:send-message', message);
+    },
+    onMessage: (callback: (message: any) => void) => {
+      const subscription = (_event: any, message: any) => callback(message);
+      ipcRenderer.on('chat-window:message', subscription);
+      return () => ipcRenderer.removeListener('chat-window:message', subscription);
+    },
+    syncState: (state: any) => {
+      ipcRenderer.send('chat-window:sync-state', state);
+    },
+    onStateUpdate: (callback: (state: any) => void) => {
+      const subscription = (_event: any, state: any) => callback(state);
+      ipcRenderer.on('chat-window:state-update', subscription);
+      return () => ipcRenderer.removeListener('chat-window:state-update', subscription);
+    },
+  },
 };
 
 // Expose the API to the renderer process

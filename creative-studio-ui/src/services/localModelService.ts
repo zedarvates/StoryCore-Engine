@@ -45,49 +45,6 @@ export interface SystemCapabilities {
  * Available local models catalog
  */
 export const LOCAL_MODELS: LocalModel[] = [
-  // Gemma 2 Family (not Gemma 3!)
-  {
-    id: 'gemma2:2b',
-    name: 'gemma2:2b',
-    displayName: 'Gemma 2 2B',
-    size: '1.6GB',
-    sizeBytes: 1.6 * 1024 * 1024 * 1024,
-    description: 'Lightweight model, fast inference, good for basic tasks',
-    capabilities: ['text-generation', 'chat', 'basic-reasoning'],
-    minRAM: 2,
-    recommendedRAM: 4,
-    requiresGPU: false,
-    contextWindow: 8192,
-    family: 'gemma',
-  },
-  {
-    id: 'gemma2:9b',
-    name: 'gemma2:9b',
-    displayName: 'Gemma 2 9B',
-    size: '5.5GB',
-    sizeBytes: 5.5 * 1024 * 1024 * 1024,
-    description: 'Balanced model, excellent performance for most tasks',
-    capabilities: ['text-generation', 'chat', 'reasoning', 'creative-writing', 'code-generation'],
-    minRAM: 8,
-    recommendedRAM: 16,
-    requiresGPU: false,
-    contextWindow: 8192,
-    family: 'gemma',
-  },
-  {
-    id: 'gemma2:27b',
-    name: 'gemma2:27b',
-    displayName: 'Gemma 2 27B',
-    size: '16GB',
-    sizeBytes: 16 * 1024 * 1024 * 1024,
-    description: 'High-quality model, state-of-the-art performance',
-    capabilities: ['text-generation', 'chat', 'advanced-reasoning', 'creative-writing', 'code-generation'],
-    minRAM: 24,
-    recommendedRAM: 32,
-    requiresGPU: false,
-    contextWindow: 8192,
-    family: 'gemma',
-  },
   // Gemma 3 Family (latest)
   {
     id: 'gemma3:1b',
@@ -575,7 +532,7 @@ export class LocalModelService {
   async getSystemCapabilities(): Promise<SystemCapabilities> {
     // Try to detect system capabilities
     // Note: This is limited in browser environment
-    const memory = (navigator as any).deviceMemory || 8; // GB, fallback to 8GB
+    const memory = ((navigator as unknown) as { deviceMemory?: number }).deviceMemory || 8; // GB, fallback to 8GB
     
     return {
       totalRAM: memory,

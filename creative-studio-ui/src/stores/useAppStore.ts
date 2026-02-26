@@ -14,7 +14,16 @@ export type WizardType =
   | 'storyboard-creator'
   | 'style-transfer'
   | 'sequence-plan'
-  | 'shot';
+  | 'shot'
+  | 'roger-wizard'
+  | 'ghost-tracker-wizard'
+  | 'lip-sync'
+  | 'scenario-builder'
+  | 'dialogue-builder'
+  | 'audio-production-wizard'
+  | 'video-editor-wizard'
+  | 'comic-to-sequence-wizard'
+  | 'marketing-wizard';
 
 // Character filter types for character integration system
 // Requirements: 9.3
@@ -80,11 +89,34 @@ interface AppState {
   showObjectsModal: boolean;
   showObjectWizard: boolean;
   showImageGalleryModal: boolean;
+  showVaultModal: boolean;
   showDialogueEditor: boolean;
   showFeedbackPanel: boolean;
   showPendingReportsList: boolean;
   showFactCheckModal: boolean;
   settingsAddonId: string | null; // ID of the addon to show settings for
+  showRogerWizard: boolean;
+  showGhostTrackerWizard: boolean;
+  showLipSyncWizard: boolean;
+  lipSyncContext: {
+    audioFile?: string;
+    characterImage?: string;
+    shotId?: string;
+  } | null;
+  showScenarioBuilder: boolean;
+  showDialogueBuilder: boolean;
+  showAudioProductionWizard: boolean;
+  audioProductionWizardContext: { audioId?: string; audioUrl?: string } | null;
+  showVideoEditorWizard: boolean;
+  showComicToSequenceWizard: boolean;
+  showMarketingWizard: boolean;
+  marketingWizardContext: {
+    projectId: string;
+    projectName: string;
+    storySummary?: string;
+    characters?: string[];
+    scenes?: string[];
+  } | null;
 
   // Production wizards state
   showSequencePlanWizard: boolean;
@@ -99,6 +131,8 @@ interface AppState {
   showStoryboardCreator: boolean;
   showStyleTransfer: boolean;
   showAboutModal: boolean;
+  showDocumentationModal: boolean;
+  showKeyboardShortcutsDialog: boolean;
   activeWizardType: WizardType | null;
 
   // Character integration system UI state
@@ -165,11 +199,27 @@ interface AppState {
   setShowObjectsModal: (show: boolean) => void;
   setShowObjectWizard: (show: boolean) => void;
   setShowImageGalleryModal: (show: boolean) => void;
+  setShowVaultModal: (show: boolean) => void;
   setShowDialogueEditor: (show: boolean) => void;
   setShowFeedbackPanel: (show: boolean) => void;
+  setShowPendingReportsList: (show: boolean) => void;
   setShowFactCheckModal: (show: boolean) => void;
   setShowAboutModal: (show: boolean) => void;
-  setShowPendingReportsList: (show: boolean) => void;
+  setShowDocumentationModal: (show: boolean) => void;
+  setShowKeyboardShortcutsDialog: (show: boolean) => void;
+  setShowRogerWizard: (show: boolean) => void;
+  setShowGhostTrackerWizard: (show: boolean) => void;
+  setShowLipSyncWizard: (show: boolean, context?: AppState['lipSyncContext']) => void;
+  setShowScenarioBuilder: (show: boolean) => void;
+  setShowDialogueBuilder: (show: boolean) => void;
+  setShowAudioProductionWizard: (show: boolean, context?: { audioId?: string; audioUrl?: string }) => void;
+  closeAudioProductionWizard: () => void;
+  setShowVideoEditorWizard: (show: boolean) => void;
+  closeVideoEditorWizard: () => void;
+  setShowComicToSequenceWizard: (show: boolean) => void;
+  closeComicToSequenceWizard: () => void;
+  setShowMarketingWizard: (show: boolean, context?: AppState['marketingWizardContext']) => void;
+  closeMarketingWizard: () => void;
   openSequencePlanWizard: (context?: SequencePlanWizardContext) => void;
   closeSequencePlanWizard: () => void;
   openShotWizard: (context?: ShotWizardContext) => void;
@@ -200,7 +250,7 @@ interface AppState {
   removeSequenceReferenceSheet: (id: string) => void;
   setActiveSequenceSheetId: (id: string | null) => void;
   addShotReference: (reference: ShotReference) => void;
-  updateShotReference: (id: string, reference: Partial<ShotReference>) => void;
+  updateShotReference: (id: string, updates: Partial<ShotReference>) => void;
   removeShotReference: (id: string) => void;
 
   // Continuous Creation dialog actions
@@ -215,7 +265,7 @@ interface AppState {
   closeAddonSettings: () => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   // Initial state
   project: null,
   shots: [],
@@ -245,7 +295,6 @@ export const useAppStore = create<AppState>((set) => ({
   history: [],
   historyIndex: -1,
   showInstallationWizard: false,
-  showAboutModal: false,
   installationComplete: false,
   showWorldWizard: false,
   showCharacterWizard: false,
@@ -262,7 +311,11 @@ export const useAppStore = create<AppState>((set) => ({
   showObjectsModal: false,
   showObjectWizard: false,
   showImageGalleryModal: false,
+  showVaultModal: false,
   showFactCheckModal: false,
+  showAboutModal: false,
+  showDocumentationModal: false,
+  showKeyboardShortcutsDialog: false,
   showDialogueEditor: false,
   showFeedbackPanel: false,
   showPendingReportsList: false,
@@ -271,6 +324,18 @@ export const useAppStore = create<AppState>((set) => ({
   showShotWizard: false,
   shotWizardContext: null,
   settingsAddonId: null,
+  showRogerWizard: false,
+  showGhostTrackerWizard: false,
+  showLipSyncWizard: false,
+  lipSyncContext: null,
+  showScenarioBuilder: false,
+  showDialogueBuilder: false,
+  showAudioProductionWizard: false,
+  audioProductionWizardContext: null,
+  showVideoEditorWizard: false,
+  showComicToSequenceWizard: false,
+  showMarketingWizard: false,
+  marketingWizardContext: null,
 
   // Generic wizard forms initial state (simple forms in GenericWizardModal)
   showDialogueWriter: false,
@@ -359,11 +424,54 @@ export const useAppStore = create<AppState>((set) => ({
     set({ showObjectWizard: show });
   },
   setShowImageGalleryModal: (show) => set({ showImageGalleryModal: show }),
+  setShowVaultModal: (show) => set({ showVaultModal: show }),
   setShowFactCheckModal: (show) => set({ showFactCheckModal: show }),
   setShowAboutModal: (show) => set({ showAboutModal: show }),
+  setShowDocumentationModal: (show) => set({ showDocumentationModal: show }),
+  setShowKeyboardShortcutsDialog: (show) => set({ showKeyboardShortcutsDialog: show }),
   setShowDialogueEditor: (show) => set({ showDialogueEditor: show }),
   setShowFeedbackPanel: (show) => set({ showFeedbackPanel: show }),
   setShowPendingReportsList: (show) => set({ showPendingReportsList: show }),
+  setShowRogerWizard: (show) => set({ showRogerWizard: show }),
+  setShowGhostTrackerWizard: (show) => set({ showGhostTrackerWizard: show }),
+  setShowLipSyncWizard: (show, context) => set({
+    showLipSyncWizard: show,
+    lipSyncContext: context || null
+  }),
+  setShowScenarioBuilder: (show) => set({ showScenarioBuilder: show }),
+  setShowDialogueBuilder: (show) => set({ showDialogueBuilder: show }),
+  setShowAudioProductionWizard: (show, context) => set({
+    showAudioProductionWizard: show,
+    audioProductionWizardContext: context || null,
+  }),
+  closeAudioProductionWizard: () => set({
+    showAudioProductionWizard: false,
+    audioProductionWizardContext: null,
+  }),
+
+  setShowVideoEditorWizard: (show) => {
+    if (show) get().closeActiveWizard();
+    set({ showVideoEditorWizard: show });
+  },
+  closeVideoEditorWizard: () => set({ showVideoEditorWizard: false }),
+
+  setShowComicToSequenceWizard: (show) => {
+    if (show) get().closeActiveWizard();
+    set({ showComicToSequenceWizard: show });
+  },
+  closeComicToSequenceWizard: () => set({ showComicToSequenceWizard: false }),
+
+  setShowMarketingWizard: (show, context) => {
+    if (show) get().closeActiveWizard();
+    set({
+      showMarketingWizard: show,
+      marketingWizardContext: context || null
+    });
+  },
+  closeMarketingWizard: () => set({
+    showMarketingWizard: false,
+    marketingWizardContext: null
+  }),
   openSequencePlanWizard: (context) => {
     set({
       showSequencePlanWizard: true,
@@ -405,6 +513,13 @@ export const useAppStore = create<AppState>((set) => ({
       showStoryboardCreator: false,
       showStyleTransfer: false,
       showAboutModal: false,
+      showDocumentationModal: false,
+      showRogerWizard: false,
+      showGhostTrackerWizard: false,
+      showLipSyncWizard: false,
+      showScenarioBuilder: false,
+      showDialogueBuilder: false,
+      showAudioProductionWizard: false,
       // Set active wizard type
       activeWizardType: wizardType,
       // Open the requested wizard
@@ -412,6 +527,12 @@ export const useAppStore = create<AppState>((set) => ({
       ...(wizardType === 'scene-generator' && { showSceneGenerator: true }),
       ...(wizardType === 'storyboard-creator' && { showStoryboardCreator: true }),
       ...(wizardType === 'style-transfer' && { showStyleTransfer: true }),
+      ...(wizardType === 'roger-wizard' && { showRogerWizard: true }),
+      ...(wizardType === 'ghost-tracker-wizard' && { showGhostTrackerWizard: true }),
+      ...(wizardType === 'lip-sync' && { showLipSyncWizard: true }),
+      ...(wizardType === 'scenario-builder' && { showScenarioBuilder: true }),
+      ...(wizardType === 'dialogue-builder' && { showDialogueBuilder: true }),
+      ...(wizardType === 'audio-production-wizard' && { showAudioProductionWizard: true }),
     }),
 
   // Close active wizard (Requirement 3.3)
@@ -425,6 +546,12 @@ export const useAppStore = create<AppState>((set) => ({
       showSceneGenerator: false,
       showStoryboardCreator: false,
       showStyleTransfer: false,
+      showRogerWizard: false,
+      showGhostTrackerWizard: false,
+      showLipSyncWizard: false,
+      showScenarioBuilder: false,
+      showDialogueBuilder: false,
+      showAudioProductionWizard: false,
       activeWizardType: null,
     }),
 
@@ -478,7 +605,8 @@ export const useAppStore = create<AppState>((set) => ({
     }),
   removeShotReference: (id) =>
     set((state) => {
-      const { [id]: _, ...rest } = state.shotReferences;
+      const rest = { ...state.shotReferences };
+      delete rest[id];
       return { shotReferences: rest };
     }),
 

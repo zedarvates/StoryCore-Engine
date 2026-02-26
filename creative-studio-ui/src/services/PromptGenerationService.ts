@@ -1,9 +1,5 @@
-/**
- * Prompt Generation Service
- * Integrates the Prompt Library with the StoryCore pipeline
- */
-
-import { promptLibrary, PromptTemplate } from '../library/PromptLibraryService';
+/* cspell:ignore ollama */
+import { promptLibrary } from '../library/PromptLibraryService';
 import { ollamaClient } from './llm/OllamaClient';
 import { useAppStore } from '../stores/useAppStore';
 
@@ -30,6 +26,13 @@ export interface ScenePromptData {
   genreValues?: Record<string, string>;
   shotValues?: Record<string, string>;
   lightingValues?: Record<string, string>;
+}
+
+export interface GrokPromptOptions {
+  mood?: string;
+  style?: 'cinematic' | 'realistic' | 'digital_art' | 'sketch' | 'vibrant';
+  lighting?: string;
+  motion?: boolean;
 }
 
 export class PromptGenerationService {
@@ -173,9 +176,8 @@ export class PromptGenerationService {
     }
 
     try {
-      // Find a suitable model (prefer llama3 or similar)
-      const models = await ollamaClient.listModels();
-      const model = models.find(m => m.category === 'storytelling' || m.name.includes('llama'))?.name || models[0]?.name;
+      // Use dynamic model discovery
+      const model = await ollamaClient.getBestAvailableModel('storytelling');
 
       if (!model) {
         return basePrompt;
@@ -192,6 +194,33 @@ sensory information, and artistic style while maintaining the original intent.
       console.error('❌ [PromptGenerationService] AI Enhancement failed:', error);
       return basePrompt;
     }
+  }
+
+  /**
+   * Craft a prompt specifically optimized for Grok Imagine
+   */
+  async generateGrokPrompt(content: string, options: GrokPromptOptions = {}): Promise<string> {
+    const parts = [content];
+    
+    if (options.style) {
+      parts.push(`in ${options.style.replace('_', ' ')} style`);
+    }
+    
+    if (options.lighting) {
+      parts.push(`lighting: ${options.lighting}`);
+    }
+    
+    if (options.mood) {
+      parts.push(`mood: ${options.mood}`);
+    }
+    
+    if (options.motion) {
+      parts.push('dynamic motion, high frame rate, fluid movement');
+    }
+    
+    parts.push('hyper-detailed, 8k resolution, cinematic composition');
+    
+    return parts.join(', ');
   }
 }
 

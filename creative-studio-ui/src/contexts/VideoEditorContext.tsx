@@ -75,7 +75,7 @@ interface VideoEditorContextType {
   canRedo: boolean;
 }
 
-const VideoEditorContext = createContext<VideoEditorContextType | null>(null);
+export const VideoEditorContext = createContext<VideoEditorContextType | null>(null);
 
 export const useVideoEditor = () => {
   const context = useContext(VideoEditorContext);
@@ -320,7 +320,7 @@ export const VideoEditorProvider: React.FC<VideoEditorProviderProps> = ({
   }, []);
   
   // Export action (placeholder)
-  const exportSettings = useCallback(async (settings: ExportSettings) => {
+  const handleExport = useCallback(async (settings: ExportSettings) => {
     console.log('Exporting with settings:', settings);
     // Should be connected to API
   }, []);
@@ -378,7 +378,7 @@ export const VideoEditorProvider: React.FC<VideoEditorProviderProps> = ({
     play,
     pause,
     seek,
-    export: exportSettings,
+    export: handleExport,
     
     // Computed
     selectedClips,

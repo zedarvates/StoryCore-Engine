@@ -170,6 +170,16 @@ export const WIZARD_DEFINITIONS: WizardDefinition[] = [
     requiresCharacters: false,
     requiresShots: false, // Creates shots from comic panels
   },
+  {
+    id: 'music-visionary',
+    name: 'Music Visionary',
+    description: 'Compose professional music videos with AI-powered lyrics, style analysis, and synchro-labial planning',
+    icon: '🎵',
+    enabled: true,
+    requiredConfig: ['llm'],
+    requiresCharacters: false,
+    requiresShots: false,
+  },
 ];
 
 /**
@@ -189,10 +199,12 @@ export function getEnabledWizards(): WizardDefinition[] {
 /**
  * Check if wizard requirements are met
  */
+import type { ProjectData } from '../types/project';
+
 export function checkWizardRequirements(
   wizard: WizardDefinition,
   availableConfig: string[],
-  project?: unknown
+  project?: ProjectData
 ): boolean {
   if (!wizard.requiredConfig) {
     return true;
@@ -209,12 +221,13 @@ export function checkWizardRequirements(
     return false;
   }
   
-  if (wizard.requiresShots && (!project?.shots || project.shots.length === 0)) {
+  if (wizard.requiresShots && (!project?.storyboard || project.storyboard.length === 0)) {
     return false;
   }
   
   return true;
 }
+
 
 /**
  * Get detailed dependency information for a wizard

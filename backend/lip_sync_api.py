@@ -15,12 +15,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Dict, Any
 from pydantic import BaseModel
-from fastapi import APIRouter, FastAPI, HTTPException, BackgroundTasks
+from fastapi import APIRouter, FastAPI, HTTPException, BackgroundTasks, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from backend.config import settings, get_comfyui_url
+from backend.auth import verify_jwt_token
 from comfyui_workflow_executor import ComfyUIWorkflowExecutor, WorkflowType
 
 logging.basicConfig(level=logging.INFO)
@@ -41,8 +43,10 @@ jobs: Dict[str, Dict[str, Any]] = {}
 
 # Request/Response models
 class LipSyncRequest(BaseModel):
+    project_id: str
     character_image: str  # Base64 or path
     dialogue_audio: str   # Base64 or path
+    comfyui_url: Optional[str] = None  # Specific ComfyUI server URL
     preset: str = "default"
     enhancer: bool = True
     nosmooth: bool = False
@@ -62,46 +66,66 @@ class JobStatusResponse(BaseModel):
     error: Optional[str] = None
 
 @router.post("/execute", response_model=LipSyncResponse)
-async def execute_lip_sync(request: LipSyncRequest, background_tasks: BackgroundTasks):
+async def execute_lip_sync(request: LipSyncRequest, background_tasks: BackgroundTasks, user_payload: dict = Depends(verify_jwt_token)):
+    # user_id is the payload from JWT (sub claim)
+    job_user_id = user_payload.get("sub") if isinstance(user_payload, dict) else str(user_payload)
     job_id = str(uuid.uuid4())
-    logger.info(f"Starting lip sync job: {job_id}")
+    logger.info(f"Starting lip sync job: {job_id} for user: {job_user_id}")
     
     jobs[job_id] = {
         "status": "pending",
         "progress": 0.0,
         "request": request.dict(),
         "output_path": None,
-        "error": None
+        "error": None,
+        "user_id": job_user_id  # Store user_id for authorization
     }
     
     background_tasks.add_task(run_lip_sync_job, job_id, request)
     return LipSyncResponse(job_id=job_id, status="started", message="Lip sync job started")
 
 async def run_lip_sync_job(job_id: str, request: LipSyncRequest):
+    # Use provided URL or default from settings
+    comfyui_url = request.comfyui_url
     executor = ComfyUIWorkflowExecutor()
+    
     try:
         jobs[job_id]["status"] = "processing"
-        output_filename = f"lip_sync_{job_id}.mp4"
-        output_path = str(OUTPUT_DIR / output_filename)
+        output_filename = f"lip_sync_{job_id}"
         
-        for progress in [10, 30, 50, 70, 90]:
-            jobs[job_id]["progress"] = progress
-            await asyncio.sleep(1)
+        logger.info(f"Submitting lip sync to ComfyUI at {comfyui_url or 'default server'}")
         
-        jobs[job_id]["status"] = "completed"
-        jobs[job_id]["progress"] = 100.0
-        jobs[job_id]["output_path"] = output_path
-        logger.info(f"Lip sync job completed: {job_id}")
+        # Real workflow execution
+        result = await executor.execute_lip_sync(
+            character_image=request.character_image,
+            dialogue_audio=request.dialogue_audio,
+            comfyui_url=comfyui_url,
+            output_filename=output_filename,
+            project_id=request.project_id
+        )
+        
+        if result.success:
+            jobs[job_id]["status"] = "completed"
+            jobs[job_id]["progress"] = 100.0
+            jobs[job_id]["output_path"] = result.output_path
+            logger.info(f"Lip sync job completed: {job_id} -> {result.output_path}")
+        else:
+            raise Exception(result.error_message)
+            
     except Exception as e:
         logger.error(f"Lip sync job failed: {job_id} - {e}")
         jobs[job_id]["status"] = "failed"
         jobs[job_id]["error"] = str(e)
 
 @router.get("/status/{job_id}", response_model=JobStatusResponse)
-async def get_job_status(job_id: str):
+async def get_job_status(job_id: str, user_payload: dict = Depends(verify_jwt_token)):
+    user_id = user_payload.get("sub") if isinstance(user_payload, dict) else str(user_payload)
     if job_id not in jobs:
         raise HTTPException(status_code=404, detail="Job not found")
     job = jobs[job_id]
+    # Only return job if it belongs to the user
+    if job.get("user_id") != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this job")
     return JobStatusResponse(
         job_id=job_id,
         status=job["status"],

@@ -154,6 +154,34 @@ class JSONFileStorage:
         self._index_field = index_field
         self._owner_index: Dict[str, Set[str]] = {}
         self._lock = threading.Lock()
+        
+        # Scan disk to populate index on startup
+        self._scan_disk()
+
+    def _scan_disk(self) -> None:
+        """
+        Scan the base directory for existing JSON files and populate the index.
+        This ensures O(1) lookups work even after a server restart.
+        """
+        if not self.base_dir.exists():
+            return
+            
+        logger.info(f"Scanning storage directory: {self.base_dir}")
+        count = 0
+        for filePath in self.base_dir.iterdir():
+            if filePath.suffix == '.json':
+                try:
+                    item_id = filePath.stem
+                    # We don't want to load every file into memory (LRU cache),
+                    # so we just read enough to get the index field.
+                    with open(filePath, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        self._update_index(item_id, data)
+                        count += 1
+                except (json.JSONDecodeError, IOError) as e:
+                    logger.warning(f"Failed to scan {filePath}: {e}")
+        
+        logger.info(f"Storage scan complete. Indexed {count} items.")
     
     def _update_index(self, item_id: str, data: Optional[Dict[str, Any]]) -> None:
         """
@@ -245,12 +273,9 @@ class JSONFileStorage:
         try:
             # Performance Fix: Update owner index before removing from cache
             if item_id in self.cache:
-                old_data = self.cache[item_id]
                 self._update_index(item_id, None)
-            
-            # Remove from cache
-            self.cache.pop(item_id, None)
-            
+                del self.cache[item_id]
+
             # Delete file
             path = self.get_path(item_id)
             if os.path.exists(path):
@@ -306,3 +331,21 @@ class JSONFileStorage:
     def clear_cache(self) -> None:
         """Clear the in-memory cache."""
         self.cache.clear()
+
+    def list_files(self) -> List[str]:
+        """
+        List all item IDs stored in the base directory.
+
+        Returns:
+            List of item IDs (filenames without the .json extension)
+        """
+        try:
+            return [
+                f.stem
+                for f in self.base_dir.iterdir()
+                if f.is_file() and f.suffix == '.json'
+            ]
+        except OSError as e:
+            logger.error(f"Failed to list files in {self.base_dir}: {e}")
+            return []
+

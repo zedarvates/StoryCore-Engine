@@ -244,7 +244,7 @@ export class MetricsService {
     try {
       // Calculer l'utilisation localStorage
       let storageUsed = 0;
-      for (let key in localStorage) {
+      for (const key in localStorage) {
         if (localStorage.hasOwnProperty(key)) {
           storageUsed += localStorage[key].length + key.length;
         }

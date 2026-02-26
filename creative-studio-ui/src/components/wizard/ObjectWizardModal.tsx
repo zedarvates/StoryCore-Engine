@@ -1,12 +1,7 @@
-/**
- * Object Wizard Modal
- * 
- * Modal wrapper for the Object Wizard that handles opening/closing
- * and completion logic.
- */
-
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
+import { X } from 'lucide-react';
 import { ObjectWizard } from './object/ObjectWizard';
+import { LLMStatusBanner } from './LLMStatusBanner';
 import { useAppStore } from '@/stores/useAppStore';
 import type { StoryObject } from '@/types/object';
 import './WizardModal.css';
@@ -14,7 +9,7 @@ import './WizardModal.css';
 export interface ObjectWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: (object: StoryObject) => void;
+  onComplete?: (object: Partial<StoryObject>) => void;
   initialData?: Partial<StoryObject>;
 }
 
@@ -24,36 +19,58 @@ export function ObjectWizardModal({
   onComplete,
   initialData,
 }: ObjectWizardModalProps) {
-  const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+  // Handle Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
-  console.log('[ObjectWizardModal] Rendered with isOpen:', isOpen);
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    }
 
-  if (!isOpen) {
-    return null;
-  }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, handleKeyDown]);
 
-  const handleCancel = () => {
-    console.log('[ObjectWizardModal] Wizard cancelled');
-    onClose();
-  };
-
-  const handleComplete = (object: StoryObject) => {
-    console.log('[ObjectWizardModal] Object completed:', object);
-    onComplete(object);
-    onClose();
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="wizard-modal-overlay">
-      <div className="wizard-modal-container">
-        <ObjectWizard
-          onComplete={handleComplete}
-          onCancel={handleCancel}
-          initialData={initialData}
-        />
+    <div className="wizard-modal-overlay" onClick={onClose}>
+      <div className="wizard-modal-container" onClick={(e) => e.stopPropagation()}>
+        <div className="wizard-modal-header">
+          <div className="flex items-center gap-2">
+            <h2 className="wizard-modal-title">Assistant de Création d'Objet</h2>
+            <LLMStatusBanner />
+          </div>
+          <button
+            className="wizard-modal-close"
+            onClick={onClose}
+            aria-label="Fermer"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="wizard-modal-content">
+          <ObjectWizard
+            onClose={onClose}
+            onComplete={onComplete}
+            initialData={initialData}
+          />
+        </div>
       </div>
     </div>
   );
 }
-
-export default ObjectWizardModal;

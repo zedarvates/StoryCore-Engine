@@ -5,10 +5,15 @@ Gestionnaire principal des extensions (add-ons) du système StoryCore.
 
 import json
 import os
+import sys
+import importlib
 import importlib.util
 import logging
+import zipfile
+import shutil
+import tempfile
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Set
+from typing import Dict, List, Optional, Any, Set, Union
 from dataclasses import dataclass
 from enum import Enum
 
@@ -23,6 +28,9 @@ class AddonType(Enum):
     PROCESSING = "processing_addon"
     MODEL = "model_addon"
     EXPORT = "export_addon"
+    VIDEO_GENERATION = "video_generation"
+    INTEGRATION = "integration"
+    EXTERNAL = "external_addon"  # Add-ons chargés depuis des sources externes
 
 
 class AddonState(Enum):
@@ -389,7 +397,6 @@ class AddonManager:
         Returns:
             True si installation réussie
         """
-        import zipfile
         import shutil
         
         try:
@@ -402,9 +409,12 @@ class AddonManager:
             temp_dir = self.addons_path / "temp" / source.stem
             temp_dir.mkdir(parents=True, exist_ok=True)
             
-            # Extraire l'archive
+            # Extraire l'archive de manière sécurisée
             with zipfile.ZipFile(source, 'r') as zip_ref:
-                zip_ref.extractall(temp_dir)
+                if not self._safe_extract_zip(zip_ref, temp_dir):
+                    shutil.rmtree(temp_dir)
+                    self.logger.error("Extraction sécurisée échouée: path traversal détecté")
+                    return False
             
             # Charger et valider le manifest
             manifest = await self.load_addon_manifest(temp_dir)
@@ -442,6 +452,74 @@ class AddonManager:
             self.logger.error(f"Erreur lors de l'installation: {e}")
             return False
     
+    async def install_addon_from_file(self, file_path: Path, category: str = "community") -> Optional[AddonInfo]:
+        """
+        Installe un add-on depuis un fichier ZIP
+        
+        Args:
+            file_path: Chemin vers le fichier ZIP
+            category: Catégorie de destination
+            
+        Returns:
+            Info de l'add-on installé ou None
+        """
+        try:
+            # 1. Créer un répertoire temporaire pour l'extraction
+            temp_dir = self.addons_dir / "temp_install"
+            temp_dir.mkdir(exist_ok=True)
+            
+            # 2. Extraire le ZIP de manière sécurisée
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                if not self._safe_extract_zip(zip_ref, temp_dir):
+                    shutil.rmtree(temp_dir)
+                    self.logger.error("Extraction sécurisée échouée: path traversal détecté")
+                    return None
+            
+            # 3. Trouver le manifest (addon.json)
+            # Il peut être à la racine ou dans un sous-répertoire
+            manifest_path = None
+            for p in temp_dir.rglob("addon.json"):
+                manifest_path = p
+                break
+                
+            if not manifest_path:
+                shutil.rmtree(temp_dir)
+                self.logger.error("Aucun fichier addon.json trouvé dans le ZIP")
+                return None
+                
+            # 4. Charger le manifest pour obtenir le nom
+            with open(manifest_path, 'r', encoding='utf-8') as f:
+                manifest_data = json.load(f)
+                addon_name = manifest_data.get("name")
+                
+            if not addon_name:
+                shutil.rmtree(temp_dir)
+                self.logger.error("Manifest invalide: nom manquant")
+                return None
+            
+            # 5. Déplacer vers le répertoire final
+            dest_dir = self.addons_dir / category / addon_name
+            if dest_dir.exists():
+                shutil.rmtree(dest_dir)
+            
+            dest_dir.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(manifest_path.parent), str(dest_dir))
+            
+            # 6. Nettoyage
+            shutil.rmtree(temp_dir)
+            
+            # 7. Re-découvrir et charger
+            new_info = await self.load_addon(dest_dir)
+            if new_info:
+                self.addons[addon_name] = new_info
+                return new_info
+                
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Erreur lors de l'installation depuis le fichier: {e}")
+            return None
+
     async def uninstall_addon(self, addon_name: str) -> bool:
         """
         Désinstalle un add-on
@@ -509,21 +587,49 @@ class AddonManager:
             self.logger.error(f"Erreur lors de la mise à jour de {addon_name}: {e}")
             return False
     
-    def get_addon_dependencies(self, addon_name: str) -> List[str]:
+    async def reload_addon(self, addon_name: str) -> bool:
         """
-        Retourne les dépendances d'un add-on
+        Recharge un add-on (manifest + code) sans redémarrage
         
         Args:
             addon_name: Nom de l'add-on
             
         Returns:
-            Liste des noms de dépendances
+            True si recharge réussi
         """
         if addon_name not in self.addons:
-            return []
-        
+            self.logger.error(f"Add-on inconnu pour recharge: {addon_name}")
+            return False
+            
         addon_info = self.addons[addon_name]
-        return list(addon_info.manifest.dependencies.keys())
+        addon_path = addon_info.path
+        was_enabled = addon_info.state == AddonState.ENABLED
+        
+        try:
+            # 1. Désactiver si nécessaire
+            if was_enabled:
+                await self.disable_addon(addon_name)
+            
+            # 2. Re-charger depuis le disque
+            self.logger.info(f"Rechargement de l'add-on: {addon_name} depuis {addon_path}")
+            new_info = await self.load_addon(addon_path)
+            
+            if new_info:
+                self.addons[addon_name] = new_info
+                
+                # 3. Ré-activer si c'était le cas
+                if was_enabled:
+                    await self.enable_addon(addon_name)
+                    
+                self.logger.info(f"Add-on {addon_name} rechargé avec succès")
+                return True
+            else:
+                self.logger.error(f"Échec du chargement de la nouvelle version de {addon_name}")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"Erreur lors du rechargement de {addon_name}: {e}")
+            return False
     
     async def check_compatibility(self, addon_name: str) -> Dict[str, Any]:
         """
@@ -651,9 +757,23 @@ class AddonManager:
     async def _load_addon_module(self, module_path: Path, addon_name: str) -> Optional[Any]:
         """Charge un module Python d'add-on"""
         try:
-            spec = importlib.util.spec_from_file_location(addon_name, module_path)
+            # Nettoyer le préfixe si nécessaire pour éviter les conflits
+            module_key = f"addon.{addon_name}"
+            
+            # Si déjà chargé dans sys.modules, on tente de le recharger
+            if module_key in sys.modules:
+                module = sys.modules[module_key]
+                try:
+                    importlib.reload(module)
+                    return module
+                except Exception as e:
+                    self.logger.error(f"Erreur lors du rechargement du module {module_key}: {e}")
+                    # On continue pour tenter un chargement frais
+            
+            spec = importlib.util.spec_from_file_location(module_key, module_path)
             if spec and spec.loader:
                 module = importlib.util.module_from_spec(spec)
+                sys.modules[module_key] = module # Enregistrer dans sys.modules
                 spec.loader.exec_module(module)
                 return module
             return None
@@ -669,3 +789,28 @@ class AddonManager:
             "logger": self.logger.getChild(addon_name),
             "permissions": self.addons[addon_name].manifest.permissions
         }
+
+    def _safe_extract_zip(self, zip_file: zipfile.ZipFile, dest_dir: Path) -> bool:
+        """
+        Extract ZIP safely without path traversal (Zip Slip vulnerability fix).
+        
+        Args:
+            zip_file: Open ZIP file object
+            dest_dir: Destination directory
+            
+        Returns:
+            True if extraction successful, False if path traversal detected
+        """
+        dest_path = dest_dir.resolve()
+        
+        for member in zip_file.members:
+            member_path = (dest_path / member.filename).resolve()
+            
+            # Check if the extracted path would be outside the destination directory
+            if not member_path.is_relative_to(dest_path):
+                self.logger.error(f"Path traversal attempt detected: {member.filename}")
+                return False
+        
+        # All paths are safe, proceed with extraction
+        zip_file.extractall(dest_dir)
+        return True

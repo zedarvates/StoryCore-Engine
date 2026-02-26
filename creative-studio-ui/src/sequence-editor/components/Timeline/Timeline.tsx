@@ -8,7 +8,7 @@
  */
 
 import React, { useCallback, useRef, useEffect, useState, useMemo } from 'react';
-import { useAppDispatch, useAppSelector } from '../../store';
+import { useAppDispatch, useAppSelector } from '@/sequence-editor/store';
 import {
   setPlayheadPosition,
   setZoomLevel,
@@ -22,15 +22,20 @@ import {
   reorderTracks,
   updateShot,
   splitShot,
-} from '../../store/slices/timelineSlice';
-import type { Track, Shot, LayerType, Layer, MediaLayerData } from '../../types';
-import { handleShotSplit } from '../../utils/toolInteractions';
+} from '@/sequence-editor/store/slices/timelineSlice';
+import type { Track, Shot, LayerType, Layer, MediaLayerData } from '@/sequence-editor/types';
+import type { VideoExtensionOptions, SpeechConfigOptions } from '@/sequence-editor/hooks/useTimelineInteractions';
+import { handleShotSplit } from '@/sequence-editor/utils/toolInteractions';
 import { VirtualTimelineCanvas } from './VirtualTimelineCanvas';
-import { TrackHeader, TRACK_CONFIG } from './TrackHeader';
+import { TrackHeader } from './TrackHeader';
 import { PlayheadIndicator } from './PlayheadIndicator';
 import { TimelineControls } from './TimelineControls';
 import { TimeRuler } from './TimeRuler';
+import { TimelineContextMenu } from './TimelineContextMenu';
+import { VideoExtensionDialog } from './VideoExtensionDialog';
+import { SpeechConfigDialog } from './SpeechConfigDialog';
 import './timeline.css';
+import './timelineDialogs.css';
 
 // ============================================================================
 // Constants
@@ -45,10 +50,8 @@ const TRACK_DEFAULTS: Record<LayerType, { color: string; icon: string; height: n
   keyframes: { color: '#E74C3C', icon: 'key', height: 30 },
 };
 
-const DEFAULT_ZOOM = 10; // pixels per frame
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 100;
-const PLAYHEAD_SNAP_THRESHOLD = 5; // pixels
 const TRACK_HEADERS_WIDTH = 200;
 
 // ============================================================================
@@ -74,11 +77,10 @@ export const Timeline: React.FC = () => {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(0);
   const [useVirtualMode, setUseVirtualMode] = useState(true);
   const [draggingTrackIndex, setDraggingTrackIndex] = useState<number | null>(null);
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
-  const [snapToGrid, setSnapToGrid] = useState(true);
+  const snapToGrid = true;
 
   // ============================================================================
   // CALCULATED VALUES (must be before callbacks that use them)
@@ -113,7 +115,6 @@ export const Timeline: React.FC = () => {
   const [draggingShotId, setDraggingShotId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<number>(0);
   const [snappedPosition, setSnappedPosition] = useState<number | null>(null);
-  const [isSnapping, setIsSnapping] = useState(false);
 
   // ============================================================================
   // SNAPPING LOGIC
@@ -142,48 +143,20 @@ export const Timeline: React.FC = () => {
       // Snap to shot start
       if (Math.abs(position - shotStart) < SNAP_THRESHOLD_PIXELS) {
         snappedPos = shotStart;
-        setIsSnapping(true);
         break;
       }
 
       // Snap to shot end
       if (Math.abs(position - shotEnd) < SNAP_THRESHOLD_PIXELS) {
         snappedPos = shotEnd;
-        setIsSnapping(true);
         break;
       }
-    }
-
-    if (Math.abs(snappedPos - position) > SNAP_THRESHOLD_PIXELS) {
-      setIsSnapping(false);
     }
 
     return snappedPos;
   }, [snapToGrid, zoomLevel, shots, draggingShotId]);
 
-  /**
-   * Get all snap points (grid lines and shot boundaries)
-   */
-  const getSnapPoints = useCallback((): number[] => {
-    const points: number[] = [];
 
-    if (snapToGrid) {
-      // Add grid snap points
-      const gridInterval = zoomLevel; // Snap to frames
-      for (let x = 0; x < timelineWidth; x += gridInterval) {
-        points.push(x);
-      }
-    }
-
-    // Add shot boundaries as snap points
-    for (const shot of shots) {
-      if (shot.id === draggingShotId) continue;
-      points.push(shot.startTime * zoomLevel);
-      points.push((shot.startTime + shot.duration) * zoomLevel);
-    }
-
-    return points;
-  }, [snapToGrid, zoomLevel, shots, draggingShotId, timelineWidth]);
 
   // ============================================================================
   // SELECTION BOX HANDLERS
@@ -257,19 +230,7 @@ export const Timeline: React.FC = () => {
   // SHOT DRAG HANDLERS
   // ============================================================================
 
-  const handleShotDragStart = useCallback((shotId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const shot = shots.find((s: Shot) => s.id === shotId);
-    if (!shot) return;
 
-    const rect = contentAreaRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const x = e.clientX - rect.left + scrollLeft;
-    setDragOffset(x - shot.startTime * zoomLevel);
-    setDraggingShotId(shotId);
-    setSnappedPosition(shot.startTime * zoomLevel);
-  }, [shots, scrollLeft]);
 
   const handleShotDragMove = useCallback((e: React.MouseEvent) => {
     if (!draggingShotId) return;
@@ -298,7 +259,6 @@ export const Timeline: React.FC = () => {
     setDraggingShotId(null);
     setDragOffset(0);
     setSnappedPosition(null);
-    setIsSnapping(false);
   }, [draggingShotId, snappedPosition, zoomLevel, shots, dispatch]);
 
   // Setup global mouse handlers for shot dragging
@@ -324,7 +284,7 @@ export const Timeline: React.FC = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [draggingShotId, handleShotDragMove, handleShotDragEnd]);
+  }, [draggingShotId, handleShotDragMove, handleShotDragEnd, zoomLevel]);
 
   // ============================================================================
   // KEYBOARD SHORTCUTS FOR SELECTION
@@ -484,19 +444,7 @@ export const Timeline: React.FC = () => {
   }, []);
 
   // Handle layer selection
-  const handleLayerSelect = useCallback((shotId: string, layerId: string, multiSelect: boolean) => {
-    // For now, treat layer selection same as shot selection
-    // In the future, this could be expanded to support multi-level selection
-    if (multiSelect) {
-      if (selectedElements.includes(shotId)) {
-        dispatch(setSelectedElements(selectedElements.filter((id: string) => id !== shotId)));
-      } else {
-        dispatch(setSelectedElements([...selectedElements, shotId]));
-      }
-    } else {
-      dispatch(selectElement(shotId));
-    }
-  }, [dispatch, selectedElements]);
+
 
   // Handle shot selection (wrapper for layer selection)
   const handleShotSelect = useCallback((shotId: string, multiSelect: boolean) => {
@@ -571,7 +519,6 @@ export const Timeline: React.FC = () => {
     const updateContainerDimensions = () => {
       if (timelineRef.current) {
         setContainerWidth(timelineRef.current.clientWidth - TRACK_HEADERS_WIDTH);
-        setContainerHeight(timelineRef.current.clientHeight - 30);
       }
     };
 
@@ -598,10 +545,9 @@ export const Timeline: React.FC = () => {
         onReorder={handleTrackReorder}
         onMuteToggle={() => handleAudioMuteToggle(track.id)}
         onSoloToggle={() => handleAudioSoloToggle(track.id)}
-        zoomLevel={zoomLevel}
       />
     ));
-  }, [tracks, hoveredTrackId, draggingTrackIndex, dropTargetIndex, handleTrackLockToggle, handleTrackHideToggle, handleTrackResize, handleTrackReorder, handleAudioMuteToggle, handleAudioSoloToggle, zoomLevel]);
+  }, [tracks, hoveredTrackId, draggingTrackIndex, dropTargetIndex, handleTrackLockToggle, handleTrackHideToggle, handleTrackResize, handleTrackReorder, handleAudioMuteToggle, handleAudioSoloToggle]);
 
   // Add sample shots for demonstration
   useEffect(() => {
@@ -768,6 +714,196 @@ export const Timeline: React.FC = () => {
     [tracks]
   );
 
+  // ============================================================================
+  // DIALOG STATES
+  // ============================================================================
+
+  const [contextMenuState, setContextMenuState] = useState<{
+    position: { x: number; y: number } | null;
+    target: LayerType | 'shot' | 'track' | 'timeline' | null;
+    shotId: string | null;
+    layerId: string | null;
+  }>({
+    position: null,
+    target: null,
+    shotId: null,
+    layerId: null,
+  });
+
+  const [videoExtensionState, setVideoExtensionState] = useState<{
+    isOpen: boolean;
+    shotId: string | null;
+    layerId: string | null;
+  }>({
+    isOpen: false,
+    shotId: null,
+    layerId: null,
+  });
+
+  const [speechConfigState, setSpeechConfigState] = useState<{
+    isOpen: boolean;
+    shotId: string | null;
+    layerId: string | null;
+    currentConfig?: SpeechConfigOptions;
+    existingText?: string;
+  }>({
+    isOpen: false,
+    shotId: null,
+    layerId: null,
+  });
+
+  // ============================================================================
+  // CONTEXT MENU HANDLERS
+  // ============================================================================
+
+  // Note: handleOpenContextMenu can be passed to child components for right-click menu support
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleOpenContextMenu = useCallback(
+    (
+      position: { x: number; y: number },
+      target: string,
+      shotId?: string,
+      layerId?: string
+    ) => {
+      setContextMenuState({
+        position,
+        target: target as LayerType | 'shot' | 'track' | 'timeline',
+        shotId: shotId || null,
+        layerId: layerId || null,
+      });
+    },
+    []
+  );
+
+  const handleContextMenuAction = useCallback(
+    (action: string, data?: { shotId?: string; layerId?: string }) => {
+      const shotId = data?.shotId || contextMenuState.shotId;
+      const layerId = data?.layerId || contextMenuState.layerId;
+
+      switch (action) {
+        case 'extendVideo':
+        case 'extendFreeze':
+        case 'extendLoop':
+        case 'extendAI':
+          if (shotId) {
+            // Mode determined by action type
+            setVideoExtensionState({
+              isOpen: true,
+              shotId,
+              layerId,
+            });
+          }
+          break;
+
+        case 'configureSpeech':
+        case 'selectCharacter':
+        case 'changeVoice':
+          if (shotId) {
+            setSpeechConfigState({
+              isOpen: true,
+              shotId,
+              layerId,
+            });
+          }
+          break;
+
+        case 'delete':
+          if (shotId) {
+            console.log('[Timeline] Delete shot:', shotId);
+            // Implement delete logic
+          }
+          break;
+
+        case 'split':
+          handleSplit();
+          break;
+
+        default:
+          console.log('[Timeline] Context menu action:', action, { shotId, layerId });
+      }
+
+      setContextMenuState({ position: null, target: null, shotId: null, layerId: null });
+    },
+    [contextMenuState, handleSplit]
+  );
+
+  // ============================================================================
+  // VIDEO EXTENSION HANDLER
+  // ============================================================================
+
+  const handleVideoExtension = useCallback(
+    (options: VideoExtensionOptions) => {
+      const { shotId } = videoExtensionState;
+      if (!shotId) return;
+
+      const shot = shots.find((s) => s.id === shotId);
+      if (!shot) return;
+
+      console.log('[Timeline] Video extension:', { shotId, options });
+
+      // Update the shot duration
+      dispatch(
+        updateShot({
+          id: shotId,
+          updates: {
+            duration: shot.duration + options.duration,
+          },
+        })
+      );
+
+      setVideoExtensionState({ isOpen: false, shotId: null, layerId: null });
+    },
+    [videoExtensionState, shots, dispatch]
+  );
+
+  // ============================================================================
+  // SPEECH CONFIG HANDLER
+  // ============================================================================
+
+  const handleSpeechConfigApply = useCallback(
+    (config: SpeechConfigOptions, text?: string) => {
+      const { shotId, layerId } = speechConfigState;
+      if (!shotId) return;
+
+      console.log('[Timeline] Speech config:', { shotId, layerId, config, text });
+
+      // Update the shot layer with speech configuration
+      const shot = shots.find((s) => s.id === shotId);
+      if (shot && layerId) {
+        const updatedLayers = shot.layers.map((layer) => {
+          if (layer.id === layerId) {
+            return {
+              ...layer,
+              data: {
+                ...layer.data,
+                text: text || '',
+                characterId: config.characterId,
+                characterName: config.characterName,
+                ttsMethod: config.ttsMethod,
+                voiceId: config.voiceId,
+                speed: config.speed,
+                pitch: config.pitch,
+                emotion: config.emotion,
+                volume: 1,
+              },
+            };
+          }
+          return layer;
+        });
+
+        dispatch(
+          updateShot({
+            id: shotId,
+            updates: { layers: updatedLayers },
+          })
+        );
+      }
+
+      setSpeechConfigState({ isOpen: false, shotId: null, layerId: null });
+    },
+    [speechConfigState, shots, dispatch]
+  );
+
   return (
     <div className="timeline-panel">
       {/* Timeline Controls */}
@@ -800,6 +936,9 @@ export const Timeline: React.FC = () => {
         <div
           ref={contentAreaRef}
           className="timeline-content-area"
+          onMouseDown={handleSelectionBoxMouseDown}
+          onMouseMove={handleSelectionBoxMouseMove}
+          onMouseUp={handleSelectionBoxMouseUp}
         >
           {/* Time Ruler */}
           {renderTimeRuler()}
@@ -889,6 +1028,37 @@ export const Timeline: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Context Menu */}
+      <TimelineContextMenu
+        position={contextMenuState.position}
+        target={contextMenuState.target}
+        shotId={contextMenuState.shotId || undefined}
+        layerId={contextMenuState.layerId || undefined}
+        onClose={() => setContextMenuState({ position: null, target: null, shotId: null, layerId: null })}
+        onAction={handleContextMenuAction}
+      />
+
+      {/* Video Extension Dialog */}
+      <VideoExtensionDialog
+        isOpen={videoExtensionState.isOpen}
+        shotId={videoExtensionState.shotId || ''}
+        shot={shots.find((s) => s.id === videoExtensionState.shotId)}
+        currentDuration={shots.find((s) => s.id === videoExtensionState.shotId)?.duration || 0}
+        onApply={handleVideoExtension}
+        onClose={() => setVideoExtensionState({ isOpen: false, shotId: null, layerId: null })}
+      />
+
+      {/* Speech Config Dialog */}
+      <SpeechConfigDialog
+        isOpen={speechConfigState.isOpen}
+        shotId={speechConfigState.shotId || ''}
+        layerId={speechConfigState.layerId || ''}
+        currentConfig={speechConfigState.currentConfig}
+        existingText={speechConfigState.existingText}
+        onApply={handleSpeechConfigApply}
+        onClose={() => setSpeechConfigState({ isOpen: false, shotId: null, layerId: null })}
+      />
     </div>
   );
 };
@@ -897,17 +1067,7 @@ export const Timeline: React.FC = () => {
 // Utility Functions
 // ============================================================================
 
-/**
- * Format frame number to timecode string (MM:SS:FF)
- */
-function formatTimecode(frame: number, fps: number = 24): string {
-  const totalSeconds = Math.floor(frame / fps);
-  const seconds = totalSeconds % 60;
-  const minutes = Math.floor(totalSeconds / 60);
-  const frames = frame % fps;
 
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(frames).padStart(2, '0')}`;
-}
 
 export default Timeline;
 

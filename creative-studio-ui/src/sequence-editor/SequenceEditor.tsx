@@ -9,41 +9,45 @@ import React, { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { store } from './store';
-import { useAppSelector, useAppDispatch } from './store';
+import { store } from '@/sequence-editor/store';
+import { useAppSelector, useAppDispatch } from '@/sequence-editor/store';
+import { reorderShots, addShot } from '@/sequence-editor/store/slices/timelineSlice';
+import { updateMetadata } from '@/sequence-editor/store/slices/projectSlice';
 
 // Import components
-import { ToolBar } from './components/ToolBar/ToolBar';
-import { AssetLibrary } from './components/AssetLibrary/AssetLibrary';
-import { PreviewFrame } from './components/PreviewFrame/PreviewFrame';
-import { ShotConfigPanel } from './components/ShotConfig/ShotConfigPanel';
-import { Timeline } from './components/Timeline/Timeline';
-import { StatusBar } from './components/StatusBar/StatusBar';
-import { GenerateButton } from './components/GenerateButton/GenerateButton';
-import { ResizablePanel } from './components/Panels/ResizablePanel';
-import { RecoveryDialog } from './components/RecoveryDialog/RecoveryDialog';
-import { UnsavedChangesDialog } from './components/UnsavedChangesDialog/UnsavedChangesDialog';
-import { LayerManager } from './components/LayerManager/LayerManager';
-import { LayerPropertiesPanel } from './components/LayerPropertiesPanel/LayerPropertiesPanel';
+import { ToolBar } from '@/sequence-editor/components/ToolBar/ToolBar';
+import { AssetLibrary } from '@/sequence-editor/components/AssetLibrary/AssetLibrary';
+import { PreviewFrame } from '@/sequence-editor/components/PreviewFrame/PreviewFrame';
+import { ShotConfigPanel } from '@/sequence-editor/components/ShotConfig/ShotConfigPanel';
+import { Timeline } from '@/sequence-editor/components/Timeline/Timeline';
+import { StatusBar } from '@/sequence-editor/components/StatusBar/StatusBar';
+import { ResizablePanel } from '@/sequence-editor/components/Panels/ResizablePanel';
+import { RecoveryDialog } from '@/sequence-editor/components/RecoveryDialog/RecoveryDialog';
+import { UnsavedChangesDialog } from '@/sequence-editor/components/UnsavedChangesDialog/UnsavedChangesDialog';
+import { LayerManager } from '@/sequence-editor/components/LayerManager/LayerManager';
+import { LayerPropertiesPanel } from '@/sequence-editor/components/LayerPropertiesPanel/LayerPropertiesPanel';
 
 // Import new enhancement panels
-import { TransitionsPanel } from './components/TransitionsPanel';
-import { AIFeaturesPanel } from './components/AIFeaturesPanel';
-import { AudioMixerPanel } from './components/AudioMixerPanel';
-import { ExportPanel } from './components/ExportPanel';
-import { EffectsPanel } from './components/EffectsPanel';
+import { TransitionsPanel } from '@/sequence-editor/components/TransitionsPanel';
+import { AIFeaturesPanel } from '@/sequence-editor/components/AIFeaturesPanel';
+import { AudioMixerPanel } from '@/sequence-editor/components/AudioMixerPanel';
+import { ExportPanel } from '@/sequence-editor/components/ExportPanel';
+import { EffectsPanel } from '@/sequence-editor/components/EffectsPanel';
+
+// Import LLM Assistant Sidebar
+import { LLMAssistantSidebar } from '@/components/LLMAssistantSidebar';
 
 // Import R&D Phase 2/3 panels
-import { VideoEffectsPanel } from './components/VideoEffectsPanel/VideoEffectsPanel';
-import { CompositionTemplateBrowser } from './components/CompositionTemplateBrowser/CompositionTemplateBrowser';
+import { VideoEffectsPanel } from '@/sequence-editor/components/VideoEffectsPanel/VideoEffectsPanel';
+import { CompositionTemplateBrowser } from '@/sequence-editor/components/CompositionTemplateBrowser/CompositionTemplateBrowser';
 
 // Import hooks
-import { useProjectRecovery } from './hooks/useProjectRecovery';
-import { useProjectFile } from './hooks/useProjectFile';
-import { useAccessibilityInit } from './hooks/useAccessibility';
+import { useProjectRecovery } from '@/sequence-editor/hooks/useProjectRecovery';
+import { useProjectFile } from '@/sequence-editor/hooks/useProjectFile';
+import { useAccessibilityInit } from '@/sequence-editor/hooks/useAccessibility';
 
 // Import utilities
-import { initializeBrowserCompat } from './utils/browserCompat';
+import { initializeBrowserCompat } from '@/sequence-editor/utils/browserCompat';
 
 // Import styles
 import './styles/variables.css';
@@ -67,7 +71,7 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
 
 const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBack }) => {
   const dispatch = useAppDispatch();
-  const { selectedElements, shots } = useAppSelector((state) => state.timeline);
+  const { selectedElements, shots, playheadPosition } = useAppSelector((state) => state.timeline);
   const { showLayerManager } = useAppSelector((state) => state.panels);
 
   // State for right panel tabs (new enhancement panels)
@@ -119,11 +123,9 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
         }));
 
         // 4. Dispatch to Redux
-        const { reorderShots } = require('./store/slices/timelineSlice');
         dispatch(reorderShots(mappedShots));
 
         // 5. Update Project Metadata in Redux
-        const { updateMetadata } = require('./store/slices/projectSlice');
         dispatch(updateMetadata({
           id: sequenceId,
           name: sequenceShots[0]?.name || `Sequence ${sequenceId}`,
@@ -155,11 +157,16 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
 
   // Initialize project recovery
   const {
-    hasRecovery,
+    hasCrashedSession,
     recoverySnapshots,
     showRecoveryDialog,
+    setShowRecoveryDialog,
     handleRecover,
     handleDismiss,
+    deleteSnapshot,
+    formatTimestamp,
+    isRecovering,
+    error,
   } = useProjectRecovery();
 
   // Initialize project file management
@@ -198,9 +205,19 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
       role="application"
       aria-label="Sequence Editor"
     >
-      {/* Recovery Dialog - Uses hook internally, no props needed */}
+      {/* Recovery Dialog */}
       {showRecoveryDialog && (
-        <RecoveryDialog />
+        <RecoveryDialog
+          onClose={() => setShowRecoveryDialog(false)}
+          hasCrashedSession={hasCrashedSession}
+          recoverySnapshots={recoverySnapshots}
+          recoverFromSnapshot={handleRecover}
+          dismissCrashRecovery={handleDismiss}
+          deleteSnapshot={deleteSnapshot}
+          formatTimestamp={formatTimestamp}
+          isRecovering={isRecovering}
+          error={error}
+        />
       )}
 
       {/* Unsaved Changes Dialog */}
@@ -215,8 +232,6 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
       {/* Top Toolbar */}
       <div className="sequence-editor-toolbar" role="toolbar" aria-label="Main toolbar">
         <ToolBar onBack={onBack} />
-        <div className="toolbar-spacer" />
-        <GenerateButton />
       </div>
 
       {/* Main Content Area */}
@@ -313,10 +328,41 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
               <VideoEffectsPanel shot={null as any} selectedLayerId={null} />
             ) : activeRightPanel === 'templates' ? (
               <CompositionTemplateBrowser
-                insertionFrame={0}
+                insertionFrame={playheadPosition}
                 onInsertLayers={(layers) => {
                   console.log('[SequenceEditor] Insert template layers:', layers);
-                  // TODO: dispatch addLayer for each layer
+                  // Find the selected shot or create a new one
+                  const targetShot = selectedShotId ? shots.find(s => s.id === selectedShotId) : null;
+                  if (targetShot) {
+                    // Add layers to existing shot
+                    layers.forEach(layer => {
+                      dispatch({
+                        type: 'timeline/addLayer',
+                        payload: { shotId: targetShot.id, layer }
+                      });
+                    });
+                  } else {
+                    // Create a new shot with the template layers
+                    const newShot = {
+                      id: `shot-${Date.now()}`,
+                      name: 'Template Shot',
+                      startTime: playheadPosition,
+                      duration: Math.max(...layers.map(l => l.startTime + l.duration)),
+                      layers: layers,
+                      referenceImages: [],
+                      prompt: '',
+                      parameters: {
+                        seed: -1,
+                        denoising: 0.7,
+                        steps: 20,
+                        guidance: 7.0,
+                        sampler: 'euler',
+                        scheduler: 'normal'
+                      },
+                      generationStatus: 'pending' as const,
+                    };
+                    dispatch(addShot(newShot));
+                  }
                 }}
               />
             ) : null}
@@ -366,6 +412,9 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
       <div className="sequence-editor-status-bar" role="status" aria-label="Project status">
         <StatusBar />
       </div>
+
+      {/* LLM Assistant Sidebar - Voice Commands Helper */}
+      <LLMAssistantSidebar />
     </div>
   );
 };

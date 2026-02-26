@@ -122,6 +122,14 @@ export default defineConfig({
       usePolling: false, // Better performance on most systems
       ignored: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
     },
+    // Proxy API requests to the backend server
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   // Optimize dependency pre-bundling
   optimizeDeps: {

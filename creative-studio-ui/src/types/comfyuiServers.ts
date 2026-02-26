@@ -30,6 +30,31 @@ export interface ComfyUIServer {
   vramLimit?: number;
   modelsPath?: string;
   autoStart?: boolean;
+  corsHeaders?: boolean;
+  workflowsPath?: string;
+
+  // Performance settings
+  performance?: {
+    batchSize?: number;
+    precision?: 'FP16' | 'FP32' | 'FP8';
+    steps?: number;
+    denoisingStrength?: number;
+  };
+
+  // Workflow and Model Preferences
+  workflows?: {
+    imageGeneration?: string;
+    videoGeneration?: string;
+    upscaling?: string;
+    inpainting?: string;
+    characterGeneration?: string;
+  };
+  models?: {
+    preferredCheckpoint?: string;
+    preferredVAE?: string;
+    preferredCLIP?: string;
+    preferredLora?: string[];
+  };
 }
 
 /**

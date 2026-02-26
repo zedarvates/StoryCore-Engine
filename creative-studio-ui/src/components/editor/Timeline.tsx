@@ -221,7 +221,7 @@ export const Timeline: React.FC<TimelineProps> = ({
     if (!selectedClipId || !data.currentTime) return;
     
     const newTimeline = { ...data };
-    let splitTime = data.currentTime;
+    const splitTime = data.currentTime;
     
     for (const track of newTimeline.tracks) {
       const clipIndex = track.clips.findIndex(c => c.id === selectedClipId);

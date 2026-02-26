@@ -7,6 +7,7 @@
 
 import { OLLAMA_URL } from '../../config/apiConfig';
 import { logger } from '@/utils/logger';
+import { ConfigManager } from './ConfigManager';
 
 export interface ModelMetadata {
   name: string;
@@ -250,7 +251,7 @@ export class OllamaClient {
   /**
    * Get model metadata (size, parameters, etc.)
    */
-  async getModelInfo(modelName: string): Promise<any> {
+  async getModelInfo(modelName: string): Promise<unknown> {
     try {
       const response = await fetch(`${this.baseURL}/api/show`, {
         method: 'POST',
@@ -265,6 +266,29 @@ export class OllamaClient {
       return await response.json();
     } catch (error) {
       logger.error('[OllamaClient] Failed to get model info:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate embeddings for a text using Ollama
+   */
+  async embeddings(model: string, prompt: string): Promise<number[]> {
+    try {
+      const response = await fetch(`${this.baseURL}/api/embeddings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, prompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Embeddings generation failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.embedding;
+    } catch (error) {
+      logger.error('[OllamaClient] Embeddings generation failed:', error);
       throw error;
     }
   }
@@ -338,6 +362,49 @@ export class OllamaClient {
   private formatSize(bytes: number): string {
     const gb = bytes / (1024 ** 3);
     return `${gb.toFixed(1)}GB`;
+  }
+
+  /**
+   * Dynamically detect the best available model for general tasks.
+   * Prioritizes Llama 3 family, then Mistral, then Gemma.
+   */
+  async getBestAvailableModel(category: ModelMetadata['category'] = 'storytelling'): Promise<string> {
+    try {
+      const models = await this.listModels();
+      // 0. Check ConfigManager for user preference first
+      if (typeof window !== 'undefined') {
+        const config = ConfigManager.getLLMConfig();
+        if (config.provider === 'local' && config.model) {
+          const found = models.find(m => m.name === config.model || m.name.split(':')[0] === config.model.split(':')[0]);
+          if (found) return found.name;
+        }
+      }
+
+      // 1. Try to find models by category first
+      const categorizedModels = models.filter(m => m.category === category);
+      if (categorizedModels.length > 0) {
+        // Prefer llama3 or mistral within the category if possible
+        const preferred = categorizedModels.find(m => 
+          m.name.includes('llama3') || 
+          m.name.includes('mistral') || 
+          m.name.includes('llama2')
+        );
+        return preferred ? preferred.name : categorizedModels[0].name;
+      }
+
+      // 2. Global preferences if category match fails
+      const preferredNames = ['llama3', 'llama3.1', 'llama3.2', 'mistral', 'gemma', 'phi3', 'llama2'];
+      for (const pref of preferredNames) {
+        const found = models.find(m => m.name.toLowerCase().includes(pref));
+        if (found) return found.name;
+      }
+
+      // 3. Last resort: use the first available model
+      return models[0].name;
+    } catch (error) {
+      logger.error('[OllamaClient] Error detecting best model, falling back to llama3:', error);
+      return 'llama3'; // Default fallback
+    }
   }
 
 }

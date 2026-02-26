@@ -7,75 +7,49 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   Video,
-  Music,
-  Users,
-  MapPin,
-  Clock,
   ChevronRight,
   ChevronDown,
   Plus,
-  Trash2,
-  Edit3,
-  Save,
-  Sparkles,
-  Layout,
-  Type,
-  Volume2,
-  Lightbulb,
-  History,
-  Move,
+  Zap,
   RotateCcw,
-  Settings,
   Play,
   Pause,
-  Eye,
-  VolumeX,
-  Image,
-  FileText,
-  Zap,
-  Target,
-  TrendingUp,
+  Clock,
   Heart,
-  Moon,
-  Sun,
+  Layers,
+  Brain,
+  TrendingUp,
+  FileText,
+  Users,
+  Layout,
+  LayoutGrid,
   Smile,
   Frown,
-  AlertTriangle,
-  Award,
-  Brain,
-  Layers,
-  LayoutGrid
+  AlertTriangle
 } from 'lucide-react';
 import { CameraMovementSelector } from './CameraMovementSelector';
 import { BeatSelector } from './BeatSelector';
-import { EnhancedSequenceCard } from './EnhancedSequenceCard';
 import { CinematicElementsLibrary } from './CinematicElementsLibrary';
 import { SceneSequenceEditor } from './SceneSequenceEditor';
 import { CharacterBoardGenerator } from './CharacterBoardGenerator';
 import { CinematicPostTools } from './CinematicPostTools';
 import {
   EnhancedShot,
-  CompleteSequence,
-  ChapterWithBeats,
   BeatType,
   CameraMovement,
   MoodType,
   ToneType,
   PacingType,
-  TransitionType,
-  CharacterFocusTrack,
-  CharacterPresence, // Added import
-  CharacterFocus, // Added import
+  CharacterPresence,
   MoodArc,
   DirectorNote,
   getCameraMovementConfig,
   moodColors,
-  toneColors,
   pacingConfig,
-  beatConfig,
   generateBeatSuggestions
 } from '@/types/cinematicTypes';
 import type { Shot, Character } from '@/types';
+import { useCinematicVoiceCommands } from '@/hooks/useCinematicVoiceCommands';
 import './CinematicEditorPanel.css';
 
 interface CinematicEditorPanelProps {
@@ -83,7 +57,6 @@ interface CinematicEditorPanelProps {
   shots: Shot[];
   characters: Character[];
   onUpdateShot: (shotId: string, updates: Partial<Shot>) => void;
-  onUpdateSequence: (updates: Partial<CompleteSequence>) => void;
   className?: string;
 }
 
@@ -97,7 +70,6 @@ export function CinematicEditorPanel({
   shots,
   characters,
   onUpdateShot,
-  onUpdateSequence,
   className
 }: CinematicEditorPanelProps) {
   const [selectedTab, setSelectedTab] = useState<'shots' | 'beats' | 'pacing' | 'directors' | 'elements' | 'sequence' | 'board' | 'postprod'>('shots');
@@ -113,12 +85,30 @@ export function CinematicEditorPanel({
     directors: false
   });
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackTime, setPlaybackTime] = useState(0);
+
+  useCinematicVoiceCommands({
+    onTabChange: (tab) => setSelectedTab(tab as 'shots' | 'beats' | 'pacing' | 'directors' | 'elements' | 'sequence' | 'board' | 'postprod'),
+    onSelectShot: (index) => {
+      if (shots[index]) setSelectedShotId(shots[index].id);
+    },
+    onPlayback: (action) => setIsPlaying(action === 'play'),
+    onSetMood: (mood) => {
+      if (selectedShotId) {
+        const shot = shots.find(s => s.id === selectedShotId);
+        onUpdateShot(selectedShotId, { 
+          metadata: { 
+            ...(shot?.metadata || {}), 
+            mood 
+          } 
+        });
+      }
+    }
+  });
 
   // Convert base shots to cinematic shots
   const cinematicShots = useMemo((): CinematicShotData[] => {
     return shots.map((shot, index) => {
-      const metadata = (shot.metadata || {}) as any;
+      const metadata = (shot.metadata || {}) as Record<string, unknown>;
 
       return {
         id: shot.id,
@@ -128,14 +118,14 @@ export function CinematicEditorPanel({
         order: shot.position || index + 1,
         position: shot.position || index + 1,
         duration: shot.duration || 5,
-        sequence_id: (shot as any).sequence_id, // Cast as it might be missing in base type
+        sequence_id: (shot as Shot & { sequence_id?: string }).sequence_id, // Cast as it might be missing in base type
 
         // Cinematic defaults
         cameraMovement: (metadata.cameraMovement as CameraMovement) || null,
         mood: (metadata.mood as MoodType) || 'neutral',
         tone: (metadata.tone as ToneType) || 'neutral',
         pacing: (metadata.pacing as PacingType) || 'medium',
-        beatId: metadata.beatId || null,
+        beatId: (metadata.beatId as string) || undefined,
 
         // Character Conversion
         characters: (metadata.characterIds as string[])?.map(id => ({
@@ -146,20 +136,22 @@ export function CinematicEditorPanel({
           prominence: 1
         })) || [],
 
-        locationId: metadata.locationId || null,
+        locationId: (metadata.locationId as string) || undefined,
 
         // Director notes
-        directorNotes: metadata.directorNotes || [],
-        directorNote: typeof metadata.directorNote === 'string' ? metadata.directorNote : metadata.directorNote?.note || null, // legacy string
+        directorNotes: (metadata.directorNotes as DirectorNote[]) || [],
+        directorNote: typeof metadata.directorNote === 'string' 
+          ? metadata.directorNote 
+          : (metadata.directorNote as DirectorNote)?.note || undefined, // legacy string
 
         // Audio
-        audioMood: metadata.audioMood || null,
-        ttsPrompt: metadata.ttsPrompt || null,
+        audioMood: (metadata.audioMood as string) || undefined,
+        ttsPrompt: (metadata.ttsPrompt as string) || undefined,
 
         // Version
-        version: metadata.version || 1,
-        content: metadata.content,
-        beatType: metadata.beatType
+        version: (metadata.version as number) || 1,
+        content: metadata.content as string,
+        beatType: metadata.beatType as BeatType
       };
     });
   }, [shots]);
@@ -188,7 +180,7 @@ export function CinematicEditorPanel({
     if (cinematicShots.length === 0) return null;
 
     return {
-      id: `arc-${sequenceId || 'temp'}-${Date.now()}`,
+      id: `arc-${sequenceId || 'temp'}`,
       beats: [],
       overallTrend: 'flat',
       startMood: cinematicShots[0]?.mood || 'neutral',
@@ -200,7 +192,7 @@ export function CinematicEditorPanel({
         mood: s.mood
       }))
     };
-  }, [cinematicShots, sequenceMetrics.dominantMood]);
+  }, [cinematicShots, sequenceMetrics.dominantMood, sequenceId]);
 
   // Generate beat suggestions based on content
   const beatSuggestions = useMemo(() => {
@@ -700,7 +692,13 @@ export function CinematicEditorPanel({
           <div className="directors-notes-editor">
             <div className="notes-header">
               <h3>Notes de Réalisation</h3>
-              <button className="btn-add-note">
+              <button 
+                className="btn-add-note"
+                onClick={() => {
+                  const note = prompt('Entrez votre note de réalisation:');
+                  if (note) handleAddDirectorNote(note);
+                }}
+              >
                 <Plus className="w-4 h-4" />
                 Ajouter une note
               </button>

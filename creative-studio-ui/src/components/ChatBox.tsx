@@ -3,6 +3,7 @@ import { Send, Sparkles, Loader2, AlertCircle, Download } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
 import type { ChatMessage, Shot } from '@/types';
+import { SpeechBubble } from './ui/SpeechBubble';
 
 interface ChatBoxProps {
   className?: string;
@@ -24,7 +25,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
       setIsOllamaAvailable(available);
     }
     checkOllama();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // Intentionally run only on mount - Ollama status check is a one-time operation
   }, []);
 
@@ -37,6 +38,68 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Handle send message with specific text (for voice input) - defined before use
+  const handleSendMessageWithText = React.useCallback(async (text: string) => {
+    if (!text.trim() || isProcessing) return;
+
+    const userMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      role: 'user',
+      content: text.trim(),
+      timestamp: new Date(),
+    };
+
+    addChatMessage(userMessage);
+    setInputValue('');
+    setIsProcessing(true);
+
+    // Simulate AI processing (in production, this would call an LLM API)
+    setTimeout(() => {
+      const response = generateAIResponse(userMessage.content, shots);
+      const assistantMessage: ChatMessage = {
+        id: `msg-${Date.now()}-assistant`,
+        role: 'assistant',
+        content: response.message,
+        timestamp: new Date(),
+        suggestions: response.suggestions,
+      };
+
+      addChatMessage(assistantMessage);
+
+      // Execute any actions from the AI response
+      if (response.actions) {
+        response.actions.forEach((action) => {
+          if (action.type === 'addShot' && action.shot) {
+            addShot(action.shot as Shot);
+          } else if (action.type === 'updateShot' && action.shotId) {
+            updateShot(action.shotId, action.updates);
+          }
+        });
+      }
+
+      setIsProcessing(false);
+    }, 1000);
+  }, [isProcessing, shots, addChatMessage, addShot, updateShot]);
+
+  // Listen for voice input events and auto-send
+  useEffect(() => {
+    const handleVoiceInput = (event: CustomEvent<{ transcript: string; confidence: number; language: string }>) => {
+      const { transcript } = event.detail;
+      if (transcript.trim()) {
+        // Set the input value and auto-send
+        setInputValue(transcript.trim());
+        // Send the message directly
+        handleSendMessageWithText(transcript.trim());
+      }
+    };
+
+    window.addEventListener('storycore:voice-input', handleVoiceInput as EventListener);
+    
+    return () => {
+      window.removeEventListener('storycore:voice-input', handleVoiceInput as EventListener);
+    };
+  }, [handleSendMessageWithText]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isProcessing) return;
@@ -176,38 +239,14 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
         )}
 
         {chatMessages.map((message) => (
-          <div
+          <SpeechBubble
             key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user'
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-800 text-foreground'
-                }`}
-            >
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-              {message.suggestions && message.suggestions.length > 0 && (
-                <div className="mt-3 space-y-1">
-                  {message.suggestions.map((suggestion, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className="block w-full text-left px-2 py-1 text-xs bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <p className="text-xs opacity-70 mt-1">
-                {message.timestamp.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
-            </div>
-          </div>
+            content={message.content}
+            role={message.role}
+            timestamp={message.timestamp}
+            suggestions={message.suggestions}
+            onSuggestionClick={handleSuggestionClick}
+          />
         ))}
 
         {isProcessing && (

@@ -8,10 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type {
   TaskQueueItem,
-  TaskQueueResponse,
-  PriorityUpdateResponse,
-  RetryResponse,
-} from '../types';
+} from '@/types';
 import {
   getTaskQueue,
   moveJobUp,
@@ -23,7 +20,7 @@ import {
   formatEstimatedTime,
   getStatusIcon,
   getPriorityIcon,
-} from '../services/taskQueueService';
+} from '@/services/taskQueueService';
 
 interface TaskQueuePanelProps {
   projectId?: string;

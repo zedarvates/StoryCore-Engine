@@ -253,36 +253,43 @@ class SeedanceAPIClient:
         prompt_parts = []
         negative_prompt = ""
         
-        # Description de la scène
-        if "description" in scene:
+        # Priority 1: Specific Prompts
+        if "video_prompt" in scene and scene["video_prompt"]:
+            prompt_parts.append(scene["video_prompt"])
+        elif "image_prompt" in scene and scene["image_prompt"]:
+            prompt_parts.append(scene["image_prompt"])
+        elif "description" in scene and scene["description"]:
             prompt_parts.append(scene["description"])
         
         # Personnages
-        if "characters" in scene:
+        if "characters" in scene and isinstance(scene["characters"], list):
             for char in scene["characters"]:
+                char_desc = []
                 if "name" in char:
-                    prompt_parts.append(f"Character: {char['name']}")
+                    char_desc.append(f"Character: {char['name']}")
                 if "appearance" in char:
-                    prompt_parts.append(char["appearance"])
+                    char_desc.append(char["appearance"])
+                if char_desc:
+                    prompt_parts.append(", ".join(char_desc))
         
         # Actions
-        if "actions" in scene:
+        if "actions" in scene and isinstance(scene["actions"], list):
             prompt_parts.append(", ".join(scene["actions"]))
         
         # Environnement
-        if "environment" in scene:
+        if "environment" in scene and scene["environment"]:
             prompt_parts.append(f"Environment: {scene['environment']}")
         
         # Style
-        if "style" in scene:
+        if "style" in scene and scene["style"]:
             prompt_parts.append(f"Style: {scene['style']}")
         
         # Mouvement/Caméra
-        if "camera_movement" in scene:
+        if "camera_movement" in scene and scene["camera_movement"]:
             prompt_parts.append(f"Camera: {scene['camera_movement']}")
         
         # Assembler le prompt
-        prompt = ", ".join(prompt_parts) if prompt_parts else scene.get("name", "Generate a video")
+        prompt = ". ".join(prompt_parts) if prompt_parts else scene.get("name", "Generate a cinematic video")
         
         return {
             "prompt": prompt,

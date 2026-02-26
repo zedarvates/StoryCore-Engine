@@ -1,11 +1,19 @@
-/**
- * Toolbar Component
- * Editor toolbar with tools and actions
- */
-
-import React from 'react';
-import { useVideoEditor } from '../../contexts/VideoEditorContext';
-import { EditorMode } from '../../types/video-editor';
+import { 
+  Projector, 
+  Film, 
+  Image as ImageIcon, 
+  Music, 
+  Undo2, 
+  Redo2, 
+  MousePointer2, 
+  Scissors, 
+  Type, 
+  Hand, 
+  Download, 
+  Settings 
+} from 'lucide-react';
+import { useVideoEditor } from '@/contexts/VideoEditorContext';
+import { EditorMode } from '@/types/video-editor';
 import './Toolbar.css';
 
 interface ToolbarProps {
@@ -28,39 +36,39 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
     <div className="toolbar">
       <div className="toolbar-left">
         <div className="toolbar-logo">
-          <span className="logo-icon">🎬</span>
-          <span className="logo-text">StoryCore</span>
+          <Projector className="w-5 h-5 text-blue-500" />
+          <span className="logo-text">Story<span>Core</span></span>
         </div>
         <div className="toolbar-project">
-          <span className="project-name">{project?.name || 'Untitled'}</span>
-          {isDirty && <span className="unsaved-indicator">●</span>}
+          <span className="project-name">{project?.name || 'Sans titre'}</span>
+          {isDirty && <div className="dirty-indicator" title="Modifications non enregistrées" />}
         </div>
       </div>
 
       <div className="toolbar-center">
         <div className="toolbar-mode-group">
           <button
-            className={`toolbar-btn mode-btn ${editorMode === EditorMode.VIDEO ? 'active' : ''}`}
+            className={`mode-btn ${editorMode === EditorMode.VIDEO ? 'active' : ''}`}
             onClick={() => setEditorMode(EditorMode.VIDEO)}
-            title="Video Mode"
+            title="Mode Vidéo"
           >
-            <span className="btn-icon">🎥</span>
-            <span className="btn-label">Video</span>
+            <Film className="w-4 h-4" />
+            <span className="btn-label">Vidéo</span>
           </button>
           <button
-            className={`toolbar-btn mode-btn ${editorMode === EditorMode.IMAGE ? 'active' : ''}`}
+            className={`mode-btn ${editorMode === EditorMode.IMAGE ? 'active' : ''}`}
             onClick={() => setEditorMode(EditorMode.IMAGE)}
-            title="Image Mode"
+            title="Mode Image"
           >
-            <span className="btn-icon">🖼️</span>
+            <ImageIcon className="w-4 h-4" />
             <span className="btn-label">Image</span>
           </button>
           <button
-            className={`toolbar-btn mode-btn ${editorMode === EditorMode.AUDIO ? 'active' : ''}`}
+            className={`mode-btn ${editorMode === EditorMode.AUDIO ? 'active' : ''}`}
             onClick={() => setEditorMode(EditorMode.AUDIO)}
-            title="Audio Mode"
+            title="Mode Audio"
           >
-            <span className="btn-icon">🎵</span>
+            <Music className="w-4 h-4" />
             <span className="btn-label">Audio</span>
           </button>
         </div>
@@ -69,48 +77,48 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
 
         <div className="toolbar-actions">
           <button
-            className="toolbar-btn action-btn"
+            className="toolbar-btn"
             onClick={undo}
             disabled={!canUndo}
-            title="Undo (Ctrl+Z)"
+            title="Annuler (Ctrl+Z)"
           >
-            <span className="btn-icon">↩️</span>
+            <Undo2 className="w-4 h-4" />
           </button>
           <button
-            className="toolbar-btn action-btn"
+            className="toolbar-btn"
             onClick={redo}
             disabled={!canRedo}
-            title="Redo (Ctrl+Y)"
+            title="Rétablir (Ctrl+Y)"
           >
-            <span className="btn-icon">↪️</span>
+            <Redo2 className="w-4 h-4" />
           </button>
         </div>
 
         <div className="toolbar-divider" />
 
         <div className="toolbar-tools">
-          <button className="toolbar-btn tool-btn" title="Select (V)">
-            <span className="btn-icon">🖱️</span>
+          <button className="toolbar-btn" title="Sélection (V)">
+            <MousePointer2 className="w-4 h-4 text-blue-400" />
           </button>
-          <button className="toolbar-btn tool-btn" title="Cut (C)">
-            <span className="btn-icon">✂️</span>
+          <button className="toolbar-btn" title="Cutter (C)">
+            <Scissors className="w-4 h-4" />
           </button>
-          <button className="toolbar-btn tool-btn" title="Text (T)">
-            <span className="btn-icon">📝</span>
+          <button className="toolbar-btn" title="Texte (T)">
+            <Type className="w-4 h-4" />
           </button>
-          <button className="toolbar-btn tool-btn" title="Hand (H)">
-            <span className="btn-icon">✋</span>
+          <button className="toolbar-btn" title="Main (H)">
+            <Hand className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       <div className="toolbar-right">
         <button className="toolbar-btn primary export-btn" onClick={onExport}>
-          <span className="btn-icon">📤</span>
-          <span className="btn-label">Export</span>
+          <Download className="w-4 h-4" />
+          <span className="btn-label">Exporter</span>
         </button>
-        <button className="toolbar-btn settings-btn" title="Settings">
-          <span className="btn-icon">⚙️</span>
+        <button className="toolbar-btn" title="Paramètres">
+          <Settings className="w-4 h-4" />
         </button>
       </div>
     </div>

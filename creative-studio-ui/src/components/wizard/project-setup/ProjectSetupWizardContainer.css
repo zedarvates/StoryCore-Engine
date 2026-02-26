@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #ffffff;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.5);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -11,9 +12,9 @@
 /* Header */
 .project-setup-wizard-header {
   padding: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+  color: hsl(var(--primary-foreground));
+  border-bottom: 1px solid hsl(var(--border) / 0.2);
 }
 
 .project-setup-wizard-header__content {
@@ -50,14 +51,14 @@
 
 .project-setup-wizard-header__progress-bar {
   height: 4px;
-  background: rgba(255, 255, 255, 0.2);
+  background: hsl(var(--primary-foreground) / 0.2);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .project-setup-wizard-header__progress-fill {
   height: 100%;
-  background: #ffffff;
+  background: hsl(var(--primary-foreground));
   border-radius: 2px;
   transition: width 0.3s ease;
   width: var(--progress-width, 0%);
@@ -75,8 +76,8 @@
   display: flex;
   gap: 16px;
   padding: 20px 24px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  background: hsl(var(--muted) / 0.5);
+  border-bottom: 1px solid hsl(var(--border));
   overflow-x: auto;
 }
 
@@ -104,21 +105,24 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #e9ecef;
-  color: #495057;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
   font-weight: 600;
   font-size: 14px;
   flex-shrink: 0;
 }
 
 .project-setup-wizard-step--active .project-setup-wizard-step__indicator {
-  background: #667eea;
-  color: white;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
 }
 
 .project-setup-wizard-step--completed .project-setup-wizard-step__indicator {
-  background: #28a745;
+  background: hsl(142 70.6% 45.3%); /* Green */
   color: white;
+  border-color: transparent;
 }
 
 .project-setup-wizard-step__icon {
@@ -133,16 +137,16 @@
 .project-setup-wizard-step__label {
   font-size: 14px;
   font-weight: 500;
-  color: #495057;
+  color: hsl(var(--foreground) / 0.7);
 }
 
 .project-setup-wizard-step--active .project-setup-wizard-step__label {
-  color: #667eea;
+  color: hsl(var(--primary));
   font-weight: 600;
 }
 
 .project-setup-wizard-step--completed .project-setup-wizard-step__label {
-  color: #28a745;
+  color: hsl(142 70.6% 45.3%);
 }
 
 /* Content */
@@ -150,6 +154,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  background: hsl(var(--background));
 }
 
 /* Footer */
@@ -159,8 +164,8 @@
   align-items: center;
   gap: 12px;
   padding: 20px 24px;
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
+  background: hsl(var(--muted) / 0.3);
+  border-top: 1px solid hsl(var(--border));
 }
 
 .project-setup-wizard-footer__spacer {
@@ -172,8 +177,8 @@
   width: 100%;
   margin-bottom: 8px;
   padding: 12px 16px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: hsl(var(--destructive) / 0.1);
+  border: 1px solid hsl(var(--destructive) / 0.3);
   border-radius: 6px;
 }
 
@@ -181,7 +186,7 @@
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: #dc2626;
+  color: hsl(var(--destructive));
 }
 
 /* Buttons */
@@ -205,24 +210,24 @@
 }
 
 .project-setup-wizard-button--primary {
-  background: #667eea;
-  color: white;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 .project-setup-wizard-button--primary:hover:not(:disabled) {
-  background: #5568d3;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: hsl(var(--primary) / 0.9);
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.4);
 }
 
 .project-setup-wizard-button--secondary {
-  background: white;
-  color: #495057;
-  border: 1px solid #dee2e6;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
 }
 
 .project-setup-wizard-button--secondary:hover:not(:disabled) {
-  background: #f8f9fa;
-  border-color: #adb5bd;
+  background: hsl(var(--muted) / 0.5);
+  border-color: hsl(var(--border));
 }
 
 .project-setup-wizard-button__icon {

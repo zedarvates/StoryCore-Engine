@@ -8,7 +8,7 @@ import json
 import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .comfyui_config import ComfyUIConfig, ControlNetConfig, IPAdapterConfig
 from .comfyui_models import (
@@ -35,7 +35,7 @@ class StoryCorePanelConfig:
     vae_name: Optional[str] = None
     
     # ControlNet configuration
-    controlnet_config: Optional[ControlNetConfig] = None
+    controlnet_configs: List[ControlNetConfig] = field(default_factory=list)
     
     # IP-Adapter configuration
     ipadapter_config: Optional[IPAdapterConfig] = None
@@ -128,7 +128,7 @@ class WorkflowExecutor:
             self._add_text_encoders(workflow, panel_config)
             
             # Add ControlNet if configured
-            if panel_config.controlnet_config:
+            if panel_config.controlnet_configs:
                 self._add_controlnet_nodes(workflow, panel_config)
             
             # Add IP-Adapter if configured
@@ -209,83 +209,89 @@ class WorkflowExecutor:
         return pos_node_id, neg_node_id
     
     def _add_controlnet_nodes(self, workflow: ComfyUIWorkflow, config: StoryCorePanelConfig) -> str:
-        """Add ControlNet nodes if configured."""
-        if not config.controlnet_config:
+        """Add ControlNet nodes if configured, chaining them for multiple inputs."""
+        if not config.controlnet_configs:
             return None
         
-        controlnet_config = config.controlnet_config
+        last_conditioning = ["2", 0]  # Initial positive conditioning from CLIPTextEncode
+        last_apply_node_id = None
         
-        # Load ControlNet model
-        loader_node_id = self._get_next_node_id()
-        loader_node = WorkflowNode(
-            class_type="ControlNetLoader",
-            inputs={
-                "control_net_name": controlnet_config.model_name
-            }
-        )
-        workflow.add_node(loader_node_id, loader_node)
-        
-        # Load control image
-        image_node_id = self._get_next_node_id()
-        image_node = WorkflowNode(
-            class_type="LoadImage",
-            inputs={
-                "image": str(controlnet_config.control_image_path.name) if controlnet_config.control_image_path else "control_image.jpg"
-            }
-        )
-        workflow.add_node(image_node_id, image_node)
-        
-        # Add preprocessing if enabled
-        preprocessed_image_ref = [image_node_id, 0]
-        
-        if controlnet_config.preprocessing:
-            if "openpose" in controlnet_config.model_name.lower():
-                preprocess_node_id = self._get_next_node_id()
-                preprocess_node = WorkflowNode(
-                    class_type="OpenposePreprocessor",
-                    inputs={
-                        "image": [image_node_id, 0]
-                    }
-                )
-                workflow.add_node(preprocess_node_id, preprocess_node)
-                preprocessed_image_ref = [preprocess_node_id, 0]
+        for controlnet_config in config.controlnet_configs:
+            # Load ControlNet model
+            loader_node_id = self._get_next_node_id()
+            loader_node = WorkflowNode(
+                class_type="ControlNetLoader",
+                inputs={
+                    "control_net_name": controlnet_config.model_name
+                }
+            )
+            workflow.add_node(loader_node_id, loader_node)
             
-            elif "depth" in controlnet_config.model_name.lower():
-                preprocess_node_id = self._get_next_node_id()
-                preprocess_node = WorkflowNode(
-                    class_type="MiDaS-DepthMapPreprocessor",
-                    inputs={
-                        "image": [image_node_id, 0]
-                    }
-                )
-                workflow.add_node(preprocess_node_id, preprocess_node)
-                preprocessed_image_ref = [preprocess_node_id, 0]
+            # Load control image
+            image_node_id = self._get_next_node_id()
+            image_node = WorkflowNode(
+                class_type="LoadImage",
+                inputs={
+                    "image": str(controlnet_config.control_image_path.name) if controlnet_config.control_image_path else "control_image.jpg"
+                }
+            )
+            workflow.add_node(image_node_id, image_node)
             
-            elif "lineart" in controlnet_config.model_name.lower():
-                preprocess_node_id = self._get_next_node_id()
-                preprocess_node = WorkflowNode(
-                    class_type="LineArtPreprocessor",
-                    inputs={
-                        "image": [image_node_id, 0]
-                    }
-                )
-                workflow.add_node(preprocess_node_id, preprocess_node)
-                preprocessed_image_ref = [preprocess_node_id, 0]
+            # Add preprocessing if enabled
+            preprocessed_image_ref = [image_node_id, 0]
+            
+            if controlnet_config.preprocessing:
+                if "openpose" in controlnet_config.model_name.lower():
+                    preprocess_node_id = self._get_next_node_id()
+                    preprocess_node = WorkflowNode(
+                        class_type="OpenposePreprocessor",
+                        inputs={
+                            "image": [image_node_id, 0]
+                        }
+                    )
+                    workflow.add_node(preprocess_node_id, preprocess_node)
+                    preprocessed_image_ref = [preprocess_node_id, 0]
+                
+                elif "depth" in controlnet_config.model_name.lower():
+                    preprocess_node_id = self._get_next_node_id()
+                    preprocess_node = WorkflowNode(
+                        class_type="MiDaS-DepthMapPreprocessor",
+                        inputs={
+                            "image": [image_node_id, 0]
+                        }
+                    )
+                    workflow.add_node(preprocess_node_id, preprocess_node)
+                    preprocessed_image_ref = [preprocess_node_id, 0]
+                
+                elif "lineart" in controlnet_config.model_name.lower():
+                    preprocess_node_id = self._get_next_node_id()
+                    preprocess_node = WorkflowNode(
+                        class_type="LineArtPreprocessor",
+                        inputs={
+                            "image": [image_node_id, 0]
+                        }
+                    )
+                    workflow.add_node(preprocess_node_id, preprocess_node)
+                    preprocessed_image_ref = [preprocess_node_id, 0]
+            
+            # Apply ControlNet
+            apply_node_id = self._get_next_node_id()
+            apply_node = WorkflowNode(
+                class_type="ControlNetApply",
+                inputs={
+                    "conditioning": last_conditioning,
+                    "control_net": [loader_node_id, 0],
+                    "image": preprocessed_image_ref,
+                    "strength": controlnet_config.strength
+                }
+            )
+            workflow.add_node(apply_node_id, apply_node)
+            
+            # Update for next iteration (chaining)
+            last_conditioning = [apply_node_id, 0]
+            last_apply_node_id = apply_node_id
         
-        # Apply ControlNet
-        apply_node_id = self._get_next_node_id()
-        apply_node = WorkflowNode(
-            class_type="ControlNetApply",
-            inputs={
-                "conditioning": ["2", 0],  # Positive conditioning
-                "control_net": [loader_node_id, 0],
-                "image": preprocessed_image_ref,
-                "strength": controlnet_config.strength
-            }
-        )
-        workflow.add_node(apply_node_id, apply_node)
-        
-        return apply_node_id
+        return last_apply_node_id
     
     def _add_ipadapter_nodes(self, workflow: ComfyUIWorkflow, config: StoryCorePanelConfig) -> str:
         """Add IP-Adapter nodes if configured."""
@@ -353,11 +359,15 @@ class WorkflowExecutor:
         model_input = ["1", 0]  # Default checkpoint model
         
         # Check if ControlNet was added (would modify conditioning)
-        if config.controlnet_config:
-            # Find ControlNet apply node (should be the last ControlNet node)
+        if config.controlnet_configs:
+            # Find the last ControlNet apply node in the chain
+            last_apply_id = None
             for node_id, node in workflow.nodes.items():
                 if node.class_type == "ControlNetApply":
-                    positive_conditioning = [node_id, 0]
+                    last_apply_id = node_id
+            
+            if last_apply_id:
+                positive_conditioning = [last_apply_id, 0]
         
         # Check if IP-Adapter was added (would modify model)
         if config.ipadapter_config:

@@ -7,13 +7,11 @@
  */
 
 import { ollamaClient } from './llm/OllamaClient';
-import { useStore } from '@/store';
-import { useAppStore } from '@/stores/useAppStore';
 import { useMemoryStore } from '@/stores/memoryStore';
 
 export interface RLMVariable {
     id: string;
-    value: any;
+    value: unknown;
     description: string;
 }
 
@@ -57,11 +55,12 @@ export class RecursiveReasoningService {
      */
     public async executeTask(
         task: string,
-        model: string = 'llama3',
+        model: string | null = null,
         session?: RLMSession,
         depth: number = 0
     ): Promise<{ response: string; trajectory: RLMTrajectoryStep[] }> {
         const currentSession = session || this.createSession();
+        const modelToUse = model || await ollamaClient.getBestAvailableModel('storytelling');
 
         if (depth > currentSession.maxDepth) {
             return {
@@ -95,10 +94,10 @@ ${sandboxState || "Sandbox is empty."}
 Analyze the task. You can solve it immediately or use sub-tasks.
 If you use a <subtask>, the execution will halt and resume with the result.`;
 
-        const response = await ollamaClient.generate(model, `${systemPrompt}\n\nTask: ${task}`, { temperature: 0.7 });
+        const response = await ollamaClient.generate(modelToUse, `${systemPrompt}\n\nTask: ${task}`, { temperature: 0.7 });
 
         // Handle Subtasks and Sandbox updates
-        const processedResponse = await this.processResponse(response, model, currentSession, depth, task);
+        const processedResponse = await this.processResponse(response, modelToUse, currentSession, depth, task);
         return { response: processedResponse, trajectory: currentSession.trajectory };
     }
 

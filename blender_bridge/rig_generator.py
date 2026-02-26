@@ -321,6 +321,113 @@ def create_armature_{safe_name}():
 armature_{safe_name} = create_armature_{safe_name}()
 """
 
+    def generate_pantin_script(self, rig: CharacterRig) -> str:
+        """
+        Génère un bloc Python Blender complet pour un 'pantin' (maillage + armature).
+
+        Returns:
+            Code Python Blender complet
+        """
+        safe_name = rig.name.replace(" ", "_").replace("-", "_")
+        h = rig.height
+        pos = list(rig.position)
+        mc = rig.material_color
+        color_str = f"({mc[0]:.3f}, {mc[1]:.3f}, {mc[2]:.3f}, 1.0)"
+
+        return f"""\
+# ═══════════════════════════════════════════════════════════════
+#  PANTIN DE BASE (DUMMY) : {rig.name}
+# ═══════════════════════════════════════════════════════════════
+def create_pantin_{safe_name}():
+    sc = {h:.3f} / 1.75
+    
+    # 1. Créer l'Armature
+    bpy.ops.object.armature_add(enter_editmode=True, location={pos})
+    arm_obj = bpy.context.active_object
+    arm_obj.name = "{safe_name}_Armature"
+    bones = arm_obj.data.edit_bones
+    for b in list(bones): bones.remove(b)
+
+    def add_b(name, head, tail, parent=None):
+        b = bones.new(name)
+        b.head = tuple(h * sc for h in head)
+        b.tail = tuple(t * sc for t in tail)
+        if parent: b.parent = bones[parent]
+        return b
+
+    # Squelette
+    add_b("Hips",       (0,0,0.9), (0,0,1.0))
+    add_b("Spine",      (0,0,1.0), (0,0,1.2), "Hips")
+    add_b("Neck",       (0,0,1.2), (0,0,1.3), "Spine")
+    add_b("Head",       (0,0,1.3), (0,0,1.5), "Neck")
+    # Bras
+    add_b("Shoulder.L", (-0.1,0,1.2), (-0.2,0,1.2), "Spine")
+    add_b("Arm.L",      (-0.2,0,1.2), (-0.5,0,1.2), "Shoulder.L")
+    add_b("Forearm.L",  (-0.5,0,1.2), (-0.8,0,1.2), "Arm.L")
+    add_b("Shoulder.R", (0.1,0,1.2), (0.2,0,1.2), "Spine")
+    add_b("Arm.R",       (0.2,0,1.2), (0.5,0,1.2), "Shoulder.R")
+    add_b("Forearm.R",   (0.5,0,1.2), (0.8,0,1.2), "Arm.R")
+    # Jambes
+    add_b("Thigh.L",    (-0.1,0,0.9), (-0.1,0,0.45), "Hips")
+    add_b("Leg.L",      (-0.1,0,0.45), (-0.1,0,0.05), "Thigh.L")
+    add_b("Thigh.R",    (0.1,0,0.9), (0.1,0,0.45), "Hips")
+    add_b("Leg.R",      (0.1,0,0.45), (0.1,0,0.05), "Thigh.R")
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # 2. Créer le Maillage (Boîtes par os)
+    mesh_data = bpy.data.meshes.new("{safe_name}_Mesh")
+    mesh_obj = bpy.data.objects.new("{safe_name}_Pantin", mesh_data)
+    bpy.context.collection.objects.link(mesh_obj)
+    mesh_obj.location = {pos}
+
+    # Matériau du pantin
+    mat = bpy.data.materials.new("{safe_name}_Mat")
+    mat.use_nodes = True
+    mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = {color_str}
+    mesh_obj.data.materials.append(mat)
+
+    # Ajouter des boîtes pour chaque os
+    import bmesh
+    bm = bmesh.new()
+    
+    parts = {{
+        "Hips": (0.25, 0.15, 0.15),
+        "Spine": (0.22, 0.14, 0.25),
+        "Head": (0.15, 0.15, 0.20),
+        "Arm.L": (0.25, 0.08, 0.08), "Arm.R": (0.25, 0.08, 0.08),
+        "Forearm.L": (0.25, 0.06, 0.06), "Forearm.R": (0.25, 0.06, 0.06),
+        "Thigh.L": (0.1, 0.1, 0.4), "Thigh.R": (0.1, 0.1, 0.4),
+        "Leg.L": (0.08, 0.08, 0.4), "Leg.R": (0.08, 0.08, 0.4),
+    }}
+
+    bpy.context.view_layer.objects.active = mesh_obj
+    for b_name, size in parts.items():
+        bone = arm_obj.pose.bones.get(b_name)
+        if bone:
+            # Créer une boîte alignée sur l'os
+            bpy.ops.mesh.primitive_cube_add(size=1.0)
+            box = bpy.context.active_object
+            box.scale = tuple(s * sc for s in size)
+            
+            # Parentage simple à l'os
+            box.parent = arm_obj
+            box.parent_type = 'BONE'
+            box.parent_bone = b_name
+            
+            # Centrer sur l'os
+            box.location = (0, 0, 0)
+            if "Arm" in b_name or "Forearm" in b_name or "Shoulder" in b_name:
+                box.location.y = size[0] * sc / 2
+                box.rotation_euler.z = math.radians(90)
+            else:
+                box.location.y = 0
+
+    return arm_obj, mesh_obj
+
+pantin_{safe_name} = create_pantin_{safe_name}()
+"""
+
     # ─── PRIVÉ ──────────────────────────────────────────────────────────────
 
     def _get_character_color(self, name: str) -> Tuple[float, float, float]:

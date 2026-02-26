@@ -142,7 +142,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
       anchor: { x: 0.5, y: 0.5 },
     };
 
-    let newTransform = { ...currentTransform };
+    const newTransform = { ...currentTransform };
     if (typeof value === 'object') {
       newTransform[property] = { ...newTransform[property], ...value };
     } else {

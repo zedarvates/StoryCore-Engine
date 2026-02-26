@@ -29,6 +29,7 @@ export interface SequencePlan {
   createdAt: number;
   modifiedAt: number;
   status: 'draft' | 'in-progress' | 'completed';
+  preferredEngine?: string;
   tags: string[];
 }
 
@@ -106,5 +107,6 @@ export const SequencePlanSchema = z.object({
   createdAt: z.number(),
   modifiedAt: z.number(),
   status: z.enum(['draft', 'in-progress', 'completed']),
+  preferredEngine: z.string().optional(),
   tags: z.array(z.string()),
 });

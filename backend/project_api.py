@@ -123,14 +123,14 @@ class ProjectResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     version: int = 1
-
-
-class ProjectListResponse(BaseModel):
-    """Response model for listing projects"""
-    projects: List[ProjectSummary]
-    total: int
-    page: int
-    page_size: int
+    
+    # Related entities (cached in project file)
+    characters: Optional[List[Dict[str, Any]]] = []
+    stories: Optional[List[Dict[str, Any]]] = []
+    worlds: Optional[List[Dict[str, Any]]] = []
+    objects: Optional[List[Dict[str, Any]]] = []
+    sequences: Optional[List[Dict[str, Any]]] = []
+    shots: Optional[List[Dict[str, Any]]] = []
 
 
 class ProjectSummary(BaseModel):
@@ -142,6 +142,14 @@ class ProjectSummary(BaseModel):
     sequence_count: int
     created_at: datetime
     updated_at: datetime
+
+
+class ProjectListResponse(BaseModel):
+    """Response model for listing projects"""
+    projects: List[ProjectSummary]
+    total: int
+    page: int
+    page_size: int
 
 
 # Initialize shared storage with LRU cache (max 200 project entries)
@@ -494,7 +502,7 @@ async def get_project_summary(
     Raises:
         HTTPException: If project not found or access denied
     """
-    project = load_project(project_id)
+    project = project_storage.load(project_id)
     
     if not project:
         raise HTTPException(

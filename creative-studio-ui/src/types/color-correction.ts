@@ -28,22 +28,58 @@ export type PresetCategory =
   | 'custom';
 
 export interface ColorAdjustments {
+  // Primary Corrections (LGG)
+  lift: [number, number, number];
+  gamma: [number, number, number];
+  gain: [number, number, number];
+  offset: [number, number, number];
+  
+  // Basic Adjustments
   exposure: number;
   contrast: number;
+  pivot: number;
+  saturation: number;
+  vibrance: number;
+  temperature: number;
+  tint: number;
+  
+  // Secondary / Details
   highlights: number;
   shadows: number;
   whites: number;
   blacks: number;
-  temperature: number;
-  tint: number;
-  saturation: number;
-  vibrance: number;
   clarity: number;
   fade: number;
   grain: number;
+  
+  // Complex Corrections
   vignette: VignetteSettings;
   colorBalance: ColorBalance;
   hsl: HSLAdjustment[];
+  qualifier: HSLQualifierSettings;
+  curves: ColorCurves;
+}
+
+export interface HSLQualifierSettings {
+  enabled: boolean;
+  hue: { center: number; width: number; softness: number };
+  saturation: { low: number; high: number; softLow: number; softHigh: number };
+  luminance: { low: number; high: number; softLow: number; softHigh: number };
+  softness: number;
+  showMatte: boolean;
+}
+
+export interface ColorCurves {
+  rgb: CurvePoint[][]; // [r, g, b, luma]
+  hueVsHue: CurvePoint[];
+  hueVsSat: CurvePoint[];
+  hueVsLum: CurvePoint[];
+  lumVsSat: CurvePoint[];
+}
+
+export interface CurvePoint {
+  x: number;
+  y: number;
 }
 
 export interface ColorBalance {

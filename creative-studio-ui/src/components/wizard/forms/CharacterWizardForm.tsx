@@ -8,9 +8,19 @@
  * Requirements: 3.1
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FormField, FormSection, FormGrid } from '../WizardFormLayout';
 import './CharacterWizardForm.css';
+
+interface FormErrors {
+  name?: string;
+  description?: string;
+  personality?: string;
+  age?: string;
+  gender?: string;
+  appearance?: string;
+  clothing?: string;
+}
 
 export interface CharacterWizardInput {
   name: string;
@@ -29,24 +39,17 @@ export interface CharacterWizardFormProps {
   onSubmit: (data: CharacterWizardInput) => void;
   onCancel: () => void;
   onChange?: (data: Partial<CharacterWizardInput>) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
-interface FormErrors {
-  name?: string;
-  description?: string;
-  personality?: string;
-  age?: string;
-  gender?: string;
-  appearance?: string;
-  clothing?: string;
-}
-
-export function CharacterWizardForm({
+export const CharacterWizardForm = React.forwardRef<HTMLFormElement, CharacterWizardFormProps>(({
   initialData,
   onSubmit,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onCancel,
   onChange,
-}: CharacterWizardFormProps) {
+  onValidationChange,
+}, ref) => {
   const [formData, setFormData] = useState<CharacterWizardInput>({
     name: initialData?.name || '',
     description: initialData?.description || '',
@@ -100,21 +103,41 @@ export function CharacterWizardForm({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData]);
+    const isValid = Object.keys(newErrors).length === 0;
+    onValidationChange?.(isValid);
+    return isValid;
+  }, [formData, onValidationChange]);
+
+  // Validate form whenever data changes
+  useEffect(() => {
+    // Skip validation on initial mount - only validate if user has interacted
+    if (formData.name || formData.description || formData.personality.length > 0) {
+      // Use setTimeout to defer setState to next event loop tick
+      const timeoutId = setTimeout(() => {
+        validateForm();
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, validateForm]);
 
   const handleFieldChange = useCallback((field: string, value: unknown) => {
     setFormData(prev => {
       const updated = { ...prev };
       
       if (field.startsWith('visualAttributes.')) {
-        const attrField = field.split('.')[1];
+        const attrField = field.split('.')[1] as keyof typeof prev.visualAttributes;
         updated.visualAttributes = {
           ...prev.visualAttributes,
-          [attrField]: value,
+          [attrField]: value as string,
         };
       } else {
-        (updated as any)[field] = value;
+        // Handle top-level fields
+        const topLevelField = field as keyof Omit<CharacterWizardInput, 'visualAttributes'>;
+        if (topLevelField === 'name' || topLevelField === 'description') {
+          updated[topLevelField] = value as string;
+        } else if (topLevelField === 'personality') {
+          updated[topLevelField] = value as string[];
+        }
       }
       
       onChange?.(updated);
@@ -145,7 +168,7 @@ export function CharacterWizardForm({
   }, [formData, validateForm, onSubmit]);
 
   return (
-    <form className="character-wizard-form" onSubmit={handleSubmit}>
+    <form ref={ref} className="character-wizard-form" onSubmit={handleSubmit}>
       <FormSection title="Basic Information">
         <FormField
           name="name"
@@ -292,5 +315,5 @@ export function CharacterWizardForm({
       </FormSection>
     </form>
   );
-}
+});
 

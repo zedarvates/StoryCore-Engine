@@ -265,7 +265,7 @@ test('Video buffer management prevents memory leaks', () => {
       fc.array(fc.integer({ min: 0, max: 1000 }), { minLength: 1, maxLength: 50 }), // operations
       fc.float({ min: 0, max: 1 }), // memory pressure
       (bufferSize, operations, memoryPressure) => {
-        let buffer = [];
+        const buffer = [];
         let memoryUsage = 0;
 
         for (const op of operations) {

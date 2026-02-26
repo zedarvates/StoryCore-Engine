@@ -4,9 +4,15 @@
  * Displays activated addons as tiles/buttons on the dashboard
  * Provides quick access to addon features and settings
  * Supports launching wizards directly from addon tiles
+ * 
+ * Features:
+ * - Automatic addon discovery and status updates
+ * - Real-time status monitoring with periodic refresh
+ * - Toggle enable/disable directly from dashboard
+ * - Quick access to wizard launch for each addon
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { addonManager, AddonInfo, AddonAction } from '@/services/AddonManager';
 import { useAppStore } from '@/stores/useAppStore';
 import {
@@ -17,14 +23,14 @@ import {
   CheckCircle2,
   AlertCircle,
   Zap,
-  Info,
   Plus,
-  ToggleLeft,
-  ToggleRight,
-  Power
+  Power,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { WizardType } from '@/contexts/WizardContext';
+
+// Wizard type for launching wizards from addons
+type WizardType = string;
 
 interface DashboardAddonsSectionProps {
   readonly className?: string;
@@ -133,6 +139,9 @@ function getAddonWizard(addonId: string): WizardType | null {
   return ADDON_WIZARD_MAP[addonId] || null;
 }
 
+// Refresh interval for auto-updating addon status (in milliseconds)
+const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
+
 export function DashboardAddonsSection({
   className = '',
   onLaunchWizard,
@@ -145,10 +154,50 @@ export function DashboardAddonsSection({
   const [hoveredAddon, setHoveredAddon] = useState<string | null>(null);
   const [addonActions, setAddonActions] = useState<Record<string, AddonAction[]>>({});
   const [togglingAddon, setTogglingAddon] = useState<string | null>(null);
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
+
+  // Ref to track the auto-refresh interval
+  const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Get function to open settings modal from store
   const setShowGeneralSettings = useAppStore((state) => state.setShowGeneralSettings);
   const openAddonSettings = useAppStore((state) => state.openAddonSettings);
+
+  /**
+   * Refresh addon list and actions
+   */
+  const refreshAddons = useCallback(async (showLoadingState = true) => {
+    if (showLoadingState) {
+      setLoading(true);
+    } else {
+      setIsAutoRefreshing(true);
+    }
+    
+    try {
+      // Re-initialize to discover any new addons
+      await addonManager.initialize();
+      
+      // Get ALL addons (both enabled and disabled)
+      const allAddons = addonManager.getAddons();
+      setAddons(allAddons);
+
+      // Load custom actions for each addon
+      const actions: Record<string, AddonAction[]> = {};
+      for (const addon of allAddons) {
+        try {
+          actions[addon.id] = addonManager.getAddonActions(addon.id);
+        } catch {
+          actions[addon.id] = [];
+        }
+      }
+      setAddonActions(actions);
+    } catch (error) {
+      console.error('[DashboardAddonsSection] Failed to refresh addons:', error);
+    } finally {
+      setLoading(false);
+      setIsAutoRefreshing(false);
+    }
+  }, []);
 
   // Initialize addons and load them
   useEffect(() => {
@@ -182,9 +231,71 @@ export function DashboardAddonsSection({
     initializeAddons();
   }, [initialized]);
 
+  // Set up auto-refresh interval for real-time status updates
+  useEffect(() => {
+    // Start auto-refresh after initial load
+    if (initialized && !loading) {
+      autoRefreshRef.current = setInterval(() => {
+        refreshAddons(false);
+      }, AUTO_REFRESH_INTERVAL);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (autoRefreshRef.current) {
+        clearInterval(autoRefreshRef.current);
+        autoRefreshRef.current = null;
+      }
+    };
+  }, [initialized, loading, refreshAddons]);
+
+  // Listen for addon changes from other parts of the app
+  useEffect(() => {
+    const handleAddonChange = () => {
+      refreshAddons(false);
+    };
+
+    // Listen for storage changes (from settings panel, etc.)
+    window.addEventListener('storage', handleAddonChange);
+    
+    // Listen for custom addon update event
+    const handleAddonUpdate = () => {
+      refreshAddons(false);
+    };
+    window.addEventListener('addon-manager-updated', handleAddonUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleAddonChange);
+      window.removeEventListener('addon-manager-updated', handleAddonUpdate);
+    };
+  }, [refreshAddons]);
+
   // Handle toggle addon directly from dashboard
   const handleToggleAddon = useCallback(async (addonId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // First check if the addon exists in the manager
+    const existingAddon = addonManager.getAddon(addonId);
+    if (!existingAddon) {
+      console.warn(`[DashboardAddonsSection] Addon ${addonId} not found, refreshing addon list...`);
+      // Re-initialize the addon manager and refresh the list
+      try {
+        await addonManager.initialize();
+        const refreshedAddons = addonManager.getAddons();
+        setAddons(refreshedAddons);
+        
+        // Check again after refresh
+        const recheckedAddon = addonManager.getAddon(addonId);
+        if (!recheckedAddon) {
+          console.error(`[DashboardAddonsSection] Addon ${addonId} still not found after refresh`);
+          return;
+        }
+      } catch (initError) {
+        console.error('[DashboardAddonsSection] Failed to reinitialize addon manager:', initError);
+        return;
+      }
+    }
+    
     setTogglingAddon(addonId);
     try {
       const success = await addonManager.toggleAddon(addonId);
@@ -303,15 +414,16 @@ export function DashboardAddonsSection({
               ({addons.filter(a => a.enabled).length}/{addons.length})
             </span>
           </h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleRefresh}
               className="text-xs h-8 w-8 p-0"
-              title="Refresh"
+              title="Refresh addon list"
+              disabled={loading || isAutoRefreshing}
             >
-              <Loader2 className="w-4 h-4" />
+              <RefreshCw className={`w-4 h-4 ${isAutoRefreshing ? 'animate-spin' : ''}`} />
             </Button>
             <Button
               variant="outline"

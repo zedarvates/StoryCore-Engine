@@ -165,7 +165,7 @@ async function checkMaintainability(): Promise<boolean> {
   ];
 
   let passed = 0;
-  let total = checks.length;
+  const total = checks.length;
 
   for (const check of checks) {
     try {
@@ -201,7 +201,7 @@ async function main() {
   ];
 
   let passed = 0;
-  let total = checks.length;
+  const total = checks.length;
 
   for (const check of checks) {
     try {

@@ -245,7 +245,7 @@ export class MemoryMonitor<T> {
     const usageRatio = this.stats.currentMemoryUsage / this.config.maxMemoryUsage;
     
     let newLevel: MemoryPressureState['level'] = 'normal';
-    let wasUnderPressure = this.memoryPressure.isUnderPressure;
+    const wasUnderPressure = this.memoryPressure.isUnderPressure;
 
     if (usageRatio >= 1) {
       newLevel = 'critical';

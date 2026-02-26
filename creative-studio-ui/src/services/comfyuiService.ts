@@ -9,6 +9,7 @@
 
 import { COMFYUI_URL } from '../config/apiConfig';
 import { logger } from '../utils/logger';
+import { getComfyUIServersService } from './comfyuiServersService';
 
 // ============================================================================
 // Types
@@ -305,7 +306,7 @@ export class ComfyUIService {
           message: `ComfyUI server responded with error: ${response.status}`
         };
       }
-    } catch (error) {
+    } catch {
       return {
         available: false,
         message: 'ComfyUI server is not reachable. Please start ComfyUI and check the URL in settings.'
@@ -317,7 +318,18 @@ export class ComfyUIService {
    * Get configured endpoint from settings or return null
    */
   private getConfiguredEndpoint(): string | null {
-    // Try to get from localStorage settings
+    // 1. Try active server from the new registry first
+    try {
+      const registry = getComfyUIServersService();
+      const activeUrl = registry.getActiveServerUrl();
+      if (activeUrl) {
+        return activeUrl;
+      }
+    } catch (error) {
+      logger.warn('[ComfyUIService] Failed to get active server from registry:', error);
+    }
+
+    // 2. Fallback to legacy localStorage settings
     try {
       const settings = localStorage.getItem('storycore-settings');
       if (settings) {
@@ -327,11 +339,22 @@ export class ComfyUIService {
         }
       }
     } catch (error) {
-      logger.warn('[ComfyUIService] Failed to read ComfyUI settings:', error);
+      logger.warn('[ComfyUIService] Failed to read legacy ComfyUI settings:', error);
     }
 
-    // Fallback to default for ComfyUI (port 8188)
+    // 3. Ultimate Fallback to default port 8000
     return 'http://localhost:8000';
+  }
+
+  /**
+   * Get active server settings if available
+   */
+  public getActiveServerSettings() {
+    try {
+      return getComfyUIServersService().getActiveServer();
+    } catch {
+      return null;
+    }
   }
 
   public async generateImage(params: {
@@ -375,17 +398,30 @@ export class ComfyUIService {
     const availability = await this.isAvailable();
     if (!availability.available) throw new Error(availability.message);
 
+    const activeServer = this.getActiveServerSettings();
+    const serverPerformance = activeServer?.performance || {};
+    const inputParams = params as Record<string, unknown>;
+    
+    // Merge performance defaults from server
+    const effectiveParams: Record<string, unknown> = {
+      ...inputParams,
+      steps: (inputParams.steps as number) || serverPerformance.steps || 20,
+      denoise: (inputParams.denoise as number) || serverPerformance.denoisingStrength || 1.0,
+      batchSize: (inputParams.batchSize as number) || serverPerformance.batchSize || 1,
+      cfgScale: (inputParams.cfgScale as number) || 1.0,
+    };
+
     const workflow = type === 'image'
-      ? this.buildFluxTurboWorkflow(params as {
-        prompt: string;
-        negativePrompt?: string;
-        width: number;
-        height: number;
-        steps: number;
-        cfgScale: number;
-        seed?: number;
-      })
-      : this.buildVideoWorkflow(params);
+      ? this.buildFluxTurboWorkflow(effectiveParams as {
+          prompt: string;
+          negativePrompt?: string;
+          width: number;
+          height: number;
+          steps: number;
+          cfgScale: number;
+          seed?: number;
+        })
+      : this.buildVideoWorkflow(effectiveParams);
 
     const response = await fetch(`${endpoint}/prompt`, {
       method: 'POST',
@@ -413,9 +449,9 @@ export class ComfyUIService {
 
   private buildVideoWorkflow(params: unknown): Record<string, unknown> {
     // Check if it's a Wan 2.1 request
-    const p = params as any;
+    const p = params as Record<string, unknown>;
     if (p.modelType === 'wan21') {
-      return this.buildWan21Workflow(p);
+      return this.buildWan21Workflow(p as { prompt: string; inputImage?: string; width: number; height: number; frames: number; motionStrength: number });
     }
 
     // Fallback placeholder...
@@ -535,6 +571,7 @@ export class ComfyUIService {
     seed?: number;
   }): Record<string, unknown> {
     const seed = params.seed || Math.floor(Math.random() * 1000000);
+    const activeServer = this.getActiveServerSettings();
 
     return {
       "9": {
@@ -563,7 +600,7 @@ export class ComfyUIService {
       },
       "57:29": {
         "inputs": {
-          "vae_name": "ae.safetensors"
+          "vae_name": activeServer?.models?.preferredVAE || "ae.safetensors"
         },
         "class_type": "VAELoader",
         "_meta": { "title": "Load VAE" }
@@ -585,8 +622,8 @@ export class ComfyUIService {
       },
       "57:28": {
         "inputs": {
-          "unet_name": "z_image_turbo_bf16.safetensors",
-          "weight_dtype": "default"
+          "unet_name": activeServer?.models?.preferredCheckpoint || "z_image_turbo_bf16.safetensors",
+          "weight_dtype": activeServer?.performance?.precision === 'FP8' ? "fp8_e4m3fn" : "default"
         },
         "class_type": "UNETLoader",
         "_meta": { "title": "Load Diffusion Model" }
@@ -751,7 +788,6 @@ export class ComfyUIService {
     imageSize?: { width: number; height: number }
   ): Promise<string> {
     const startTime = Date.now();
-    let attempts = 0;
     let lastProgress = 0;
     let lastProgressTime = Date.now();
     let effectiveMaxWait = maxWait;
@@ -765,7 +801,6 @@ export class ComfyUIService {
     logger.debug('⏱️ [ComfyUIService] Starting to wait for image...');
 
     while (Date.now() - startTime < effectiveMaxWait) {
-      attempts++;
       try {
         // Check history for completed prompt
         const historyResponse = await fetch(`${endpoint}/history/${promptId}`);
@@ -912,18 +947,10 @@ function parseSystemInfo(stats: ComfyUISystemStats): ComfyUIServerInfo['systemIn
  * Fetch available workflows from ComfyUI server
  * Validates Requirements: 4.3
  */
-async function fetchWorkflows(
-  serverUrl: string,
-  auth?: ComfyUIConfig['authentication']
-): Promise<WorkflowInfo[]> {
-  try {
-    // ComfyUI doesn't have a standard workflows endpoint, so we return mock data
-    // In a real implementation, this would query a custom endpoint or workflow directory
-    return mockWorkflows;
-  } catch (error) {
-    logger.warn('[ComfyUIService] Failed to fetch workflows, using defaults:', error);
-    return mockWorkflows;
-  }
+async function fetchWorkflows(): Promise<WorkflowInfo[]> {
+  // ComfyUI doesn't have a standard workflows endpoint, so we return mock data
+  // In a real implementation, this would query a custom endpoint or workflow directory
+  return mockWorkflows;
 }
 
 /**
@@ -943,7 +970,7 @@ async function fetchModels(
     });
 
     if (response.ok) {
-      const data = await response.json();
+      await response.json();
       // Parse model information from object_info
       // This is a simplified version - real implementation would parse the full structure
       return mockModels;
@@ -958,6 +985,9 @@ async function fetchModels(
 /**
  * Test connection to ComfyUI server with health check
  * Validates Requirements: 4.2, 4.3, 4.4, 4.5
+ * 
+ * Note: ComfyUI is an OPTIONAL service. Connection failures should be handled gracefully
+ * and should NOT produce console errors when the service is simply not running.
  */
 export async function testComfyUIConnection(
   config: Partial<ComfyUIConfig>
@@ -978,6 +1008,14 @@ export async function testComfyUIConnection(
     };
   }
 
+  // Check if we're online first - avoid unnecessary network errors
+  if (!navigator.onLine) {
+    return {
+      success: false,
+      message: 'Offline - ComfyUI connection will be retried when online.',
+    };
+  }
+
   try {
     // Build request headers with authentication
     const headers = buildHeaders(config.authentication);
@@ -985,7 +1023,7 @@ export async function testComfyUIConnection(
     // Attempt to fetch system stats from ComfyUI
     // This is the primary health check endpoint
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout (reduced for faster feedback)
 
     try {
       const response = await fetch(`${config.serverUrl}/system_stats`, {
@@ -1021,7 +1059,7 @@ export async function testComfyUIConnection(
 
       // Fetch workflows and models
       const [workflows, models] = await Promise.all([
-        fetchWorkflows(config.serverUrl, config.authentication),
+        fetchWorkflows(),
         fetchModels(config.serverUrl, config.authentication),
       ]);
 
@@ -1041,29 +1079,43 @@ export async function testComfyUIConnection(
     } catch (fetchError) {
       clearTimeout(timeoutId);
 
-      // Handle fetch-specific errors
+      // Handle fetch-specific errors silently (ComfyUI is optional)
+      // These are EXPECTED errors when ComfyUI is not running - do not log as errors
       if (fetchError instanceof Error) {
         if (fetchError.name === 'AbortError') {
           return {
             success: false,
-            message: 'Connection timeout. Server took too long to respond (>10s).',
+            message: 'Connection timeout. Server took too long to respond (>5s).',
           };
-        } else if (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('NetworkError')) {
+        } else if (
+          fetchError.message.includes('Failed to fetch') || 
+          fetchError.message.includes('NetworkError') ||
+          fetchError.message.includes('ERR_CONNECTION_REFUSED') ||
+          fetchError.message.includes('Network request failed')
+        ) {
+          // ComfyUI is not running - this is expected and OK for optional service
+          // Return silently without logging - this is a normal state
           return {
             success: false,
-            message: 'Cannot reach server. Check that ComfyUI is running and the URL is correct.',
+            message: 'ComfyUI is not running. Start ComfyUI to enable image generation features.',
           };
         }
       }
 
-      throw fetchError;
+      // Log unexpected errors at debug level only (not console.error)
+      logger.debug('[ComfyUIService] Connection test failed - this is normal for optional service');
+      return {
+        success: false,
+        message: 'Cannot reach ComfyUI server. Service is optional.',
+      };
     }
-  } catch (error) {
-    // Handle unexpected errors
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+  } catch {
+    // Handle unexpected errors gracefully (ComfyUI is optional)
+    // Don't log to console - this is expected for optional service
+    logger.debug('[ComfyUIService] Connection test error - service is optional');
     return {
       success: false,
-      message: `Connection failed: ${errorMessage}`,
+      message: 'ComfyUI connection failed. Service is optional.',
     };
   }
 }
@@ -1072,11 +1124,8 @@ export async function testComfyUIConnection(
  * Get available workflows from server
  * Validates Requirements: 4.3
  */
-export async function getAvailableWorkflows(
-  serverUrl: string,
-  auth?: ComfyUIConfig['authentication']
-): Promise<WorkflowInfo[]> {
-  return fetchWorkflows(serverUrl, auth);
+export async function getAvailableWorkflows(): Promise<WorkflowInfo[]> {
+  return fetchWorkflows();
 }
 
 /**
@@ -1127,7 +1176,7 @@ export async function getConnectionDiagnostics(
   // Step 1: Validate URL
   if (!config.serverUrl) {
     diagnostics.urlError = 'Server URL is required';
-    diagnostics.suggestions.push('Enter a valid ComfyUI server URL (e.g., http://localhost:8188)');
+    diagnostics.suggestions.push('Enter a valid ComfyUI server URL (e.g., http://localhost:8000)');
     return diagnostics;
   }
 
@@ -1227,7 +1276,7 @@ export async function getConnectionDiagnostics(
   // Add general suggestions if connection failed
   if (!diagnostics.serverReachable) {
     diagnostics.suggestions.push('Ensure ComfyUI is installed and running');
-    diagnostics.suggestions.push('Default ComfyUI URL is http://127.0.0.1:8188');
+    diagnostics.suggestions.push('Default ComfyUI URL is http://127.0.0.1:8000');
   }
 
   return diagnostics;

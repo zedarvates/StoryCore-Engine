@@ -36,8 +36,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 </DialogHeader>
 
                 <div className="py-6 flex flex-col items-center text-center">
-                    <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-3xl shadow-lg flex items-center justify-center mb-6 transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                        <span className="text-4xl font-black text-white italic">SC</span>
+                    <div className="w-24 h-24 rounded-3xl shadow-lg flex items-center justify-center mb-6 transform rotate-3 hover:rotate-0 transition-transform duration-300 overflow-hidden">
+                        <img 
+                            src="/StorycoreIconeV2.png" 
+                            alt="StoryCore Logo" 
+                            className="w-full h-full object-cover"
+                        />
                     </div>
 
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -70,10 +74,10 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 <DialogFooter className="sm:justify-center border-t border-gray-100 dark:border-gray-800 pt-4">
                     <div className="flex flex-col items-center gap-2">
                         <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                            Made with <Heart className="w-3 h-3 text-red-500 fill-red-500" /> by Google DeepMind Team
+                            Made with <Heart className="w-3 h-3 text-red-500 fill-red-500" /> by nexRealm.shop Team
                         </p>
                         <p className="text-[10px] text-gray-300 dark:text-gray-600 uppercase tracking-widest font-bold">
-                            Advanced Agentic Coding Project
+                            Advanced Agentic Creative Project
                         </p>
                     </div>
                 </DialogFooter>

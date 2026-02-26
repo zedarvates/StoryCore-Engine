@@ -11,7 +11,7 @@ import { useWizard } from '@/contexts/WizardContext';
 import { validateString, validateNonEmptyArray, validateArray, validateReactNode, validateFunction } from '@/utils/propValidator';
 import { logger as Logger } from '@/utils/logger';
 import { useToast } from '@/hooks/use-toast';
-import type { ProjectSetupData } from './Step1ProjectInfo';
+import { ProjectSetupData } from '@/types/project';
 import './ProjectSetupWizardContainer.css';
 
 interface ProjectSetupWizardContainerProps {
@@ -19,7 +19,6 @@ interface ProjectSetupWizardContainerProps {
   steps: Array<{ id: string; title: string; description?: string }>;
   children: React.ReactNode;
   onCancel: () => void;
-  onComplete?: () => void;
 }
 
 export function ProjectSetupWizardContainer({
@@ -27,7 +26,6 @@ export function ProjectSetupWizardContainer({
   steps,
   children,
   onCancel,
-  onComplete,
 }: Readonly<ProjectSetupWizardContainerProps>) {
   const { toast } = useToast();
   
@@ -37,15 +35,12 @@ export function ProjectSetupWizardContainer({
     validateNonEmptyArray(validateArray(steps, 'steps'), 'steps');
     validateReactNode(children, 'children');
     validateFunction(onCancel, 'onCancel');
-    if (onComplete) {
-      validateFunction(onComplete, 'onComplete');
-    }
   } catch (error) {
     Logger.error('ProjectSetupWizardContainer prop validation failed:', error);
     throw error;
   }
 
-  const { currentStep, nextStep, previousStep, validationErrors } = useWizard<ProjectSetupData>();
+  const { currentStep, nextStep, previousStep, validationErrors, submitWizard } = useWizard<ProjectSetupData>();
 
   // Calculate progress
   const progress = (currentStep / steps.length) * 100;
@@ -68,12 +63,12 @@ export function ProjectSetupWizardContainer({
     }
     
     if (currentStep === steps.length) {
-      // Last step - complete wizard
-      onComplete?.();
+      // Last step - submit wizard
+      submitWizard();
     } else {
       nextStep();
     }
-  }, [currentStep, steps.length, nextStep, onComplete, hasValidationErrors, validationErrors, toast]);
+  }, [currentStep, steps.length, nextStep, submitWizard, hasValidationErrors, validationErrors, toast]);
 
   // Handle previous step
   const handlePrevious = useCallback(() => {

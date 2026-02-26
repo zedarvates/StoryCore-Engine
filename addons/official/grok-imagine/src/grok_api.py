@@ -20,6 +20,10 @@ class GrokModel(str, Enum):
     GROK_VIDEO_V1 = "grok-video-v1"
     GROK_IMAGE_V2 = "grok-image-v2"
     GROK_VIDEO_V2 = "grok-video-v2"
+    GROK_3_1_FAST = "grok-3.1-fast"
+    GROK_3_1_QUALITY = "grok-3.1-quality"
+    GROK_2_FAST = "grok-2-fast"
+    GROK_2_QUALITY = "grok-2-quality"
 
 
 class QualityPreset(str, Enum):
@@ -38,19 +42,21 @@ class AspectRatio(str, Enum):
     RATIO_4_3 = "4:3"
     RATIO_3_4 = "3:4"
     RATIO_21_9 = "21:9"
+    RATIO_2_3 = "2:3"
+    RATIO_3_2 = "3:2"
 
 
 @dataclass
 class GrokImagineConfig:
     """Configuration pour l'API Grok Imagine"""
     engine: str = "grok-imagine-v1"
-    model: str = "grok-image-v1"
+    model: str = "grok-3.1-fast"
     fps: int = 30
     resolution: str = "1080p"
     aspect_ratio: str = "16:9"
     style: str = "cinematic"
     quality: str = "high"
-    duration_seconds: int = 8
+    duration_seconds: int = 6
     enable_motion: bool = True
     creativity_scale: float = 0.5
     negative_prompt: str = "blurry, low quality, artifacts, text, watermark, deformed, distorted"
@@ -62,6 +68,9 @@ class GrokImagineConfig:
     seed: int = -1
     output_format: str = "mp4"
     image_format: str = "png"
+    concatenation_enabled: bool = False
+    batch_mode: bool = False
+    output_count_per_prompt: int = 1
 
 
 @dataclass
@@ -293,51 +302,58 @@ class GrokImagineAPIClient:
         prompt_parts = []
         negative_prompt = ""
         
-        # Description principale
-        if "description" in scene:
+        # Priority 1: Specific Prompts
+        if "image_prompt" in scene and scene["image_prompt"]:
+            prompt_parts.append(scene["image_prompt"])
+        elif "video_prompt" in scene and scene["video_prompt"]:
+            prompt_parts.append(scene["video_prompt"])
+        elif "description" in scene and scene["description"]:
             prompt_parts.append(scene["description"])
         
         # Personnages
-        if "characters" in scene:
+        if "characters" in scene and isinstance(scene["characters"], list):
             for char in scene["characters"]:
+                char_desc = []
                 if "name" in char:
-                    prompt_parts.append(f"Character: {char['name']}")
+                    char_desc.append(f"Character: {char['name']}")
                 if "appearance" in char:
-                    prompt_parts.append(char["appearance"])
+                    char_desc.append(char["appearance"])
                 if "clothing" in char:
-                    prompt_parts.append(f"wearing {char['clothing']}")
+                    char_desc.append(f"wearing {char['clothing']}")
+                if char_desc:
+                    prompt_parts.append(", ".join(char_desc))
         
         # Actions
-        if "actions" in scene:
+        if "actions" in scene and isinstance(scene["actions"], list):
             prompt_parts.append(", ".join(scene["actions"]))
         
         # Environnement
-        if "environment" in scene:
+        if "environment" in scene and scene["environment"]:
             prompt_parts.append(f"Environment: {scene['environment']}")
         
         # Style visuel
-        if "style" in scene:
+        if "style" in scene and scene["style"]:
             prompt_parts.append(f"Style: {scene['style']}")
-        else:
-            prompt_parts.append("cinematic style")
+        elif "style" not in [p.lower() for p in prompt_parts if "style:" in p.lower()]:
+             prompt_parts.append("cinematic style")
         
         # Éclairage
-        if "lighting" in scene:
+        if "lighting" in scene and scene["lighting"]:
             prompt_parts.append(f"Lighting: {scene['lighting']}")
         
         # Mouvement/Caméra (pour vidéo)
-        if "camera_movement" in scene:
+        if "camera_movement" in scene and scene["camera_movement"]:
             prompt_parts.append(f"Camera: {scene['camera_movement']}")
         
         # Atmosphère
-        if "atmosphere" in scene:
+        if "atmosphere" in scene and scene["atmosphere"]:
             prompt_parts.append(f"Atmosphere: {scene['atmosphere']}")
         
         # Assembler le prompt
-        prompt = ", ".join(prompt_parts) if prompt_parts else scene.get("name", "Generate an image")
+        prompt = ". ".join(prompt_parts) if prompt_parts else scene.get("name", "Generate a cinematic scene")
         
         # Ajouter des détails de qualité
-        quality_suffix = f", highly detailed, 8k, professional photography, {self.config.quality} quality"
+        quality_suffix = f". Highly detailed, 8k, professional cinematic render, {self.config.quality} quality."
         prompt += quality_suffix
         
         return {

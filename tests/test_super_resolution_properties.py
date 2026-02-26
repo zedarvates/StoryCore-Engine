@@ -17,8 +17,8 @@ from src.super_resolution_engine import (
     SuperResolutionEngine, UpscaleConfig, UpscaleFactor,
     UpscaleQuality, UpscaledFrame, TraditionalMethod
 )
-from src.ai_enhancement_engine import VideoFrame, PerformanceMode
-from src.model_manager import ModelManager, ModelManagerConfig
+from src.ai_enhancement_engine import VideoFrame, PerformanceMode, ModelConfig
+from src.model_manager import ModelManager
 
 
 # Hypothesis strategies for generating test data
@@ -69,7 +69,7 @@ class TestSuperResolutionProperties:
     @pytest.fixture
     async def engine(self):
         """Create a super resolution engine for testing."""
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)
@@ -91,7 +91,7 @@ class TestSuperResolutionProperties:
         
         Validates: Requirement 2.1
         """
-        config = ModelManagerConfig()
+        config = ModelConfig()
         model_manager = ModelManager(config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)
@@ -139,7 +139,7 @@ class TestSuperResolutionProperties:
         
         Validates: Requirement 2.2
         """
-        model_config = ModelManagerConfig()
+        model_config = ModelConfig()
         model_manager = ModelManager(model_config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)
@@ -189,7 +189,7 @@ class TestSuperResolutionProperties:
         
         Validates: Requirement 2.3
         """
-        model_config = ModelManagerConfig()
+        model_config = ModelConfig()
         model_manager = ModelManager(model_config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)
@@ -244,7 +244,7 @@ class TestSuperResolutionProperties:
         
         Validates: Requirement 2.4
         """
-        model_config = ModelManagerConfig()
+        model_config = ModelConfig()
         model_manager = ModelManager(model_config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)
@@ -300,7 +300,7 @@ class TestSuperResolutionProperties:
         
         Validates: Requirement 2.5
         """
-        model_config = ModelManagerConfig()
+        model_config = ModelConfig()
         model_manager = ModelManager(model_config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)
@@ -370,7 +370,7 @@ class TestSuperResolutionProperties:
             frame.timestamp = float(i)
             frame.frame_id = f"seq_frame_{i}"
         
-        model_config = ModelManagerConfig()
+        model_config = ModelConfig()
         model_manager = ModelManager(model_config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)
@@ -417,7 +417,7 @@ class TestSuperResolutionProperties:
         
         Validates: Requirement 2.2
         """
-        model_config = ModelManagerConfig()
+        model_config = ModelConfig()
         model_manager = ModelManager(model_config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)
@@ -463,7 +463,7 @@ class TestSuperResolutionProperties:
         
         Validates: Requirement 2.1
         """
-        model_config = ModelManagerConfig()
+        model_config = ModelConfig()
         model_manager = ModelManager(model_config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)
@@ -498,7 +498,7 @@ class TestSuperResolutionProperties:
         
         Validates: Requirements 2.4, 2.5
         """
-        model_config = ModelManagerConfig()
+        model_config = ModelConfig()
         model_manager = ModelManager(model_config)
         await model_manager.initialize()
         engine = SuperResolutionEngine(model_manager)

@@ -123,6 +123,14 @@ export const IPC_CHANNELS = {
   CONFIG_SAVE_GLOBAL: 'config:save-global',
   CONFIG_LOAD_GLOBAL: 'config:load-global',
   CONFIG_VALIDATE: 'config:validate',
+
+  // Detached Chat Window
+  CHAT_WINDOW_OPEN: 'chat-window:open',
+  CHAT_WINDOW_CLOSE: 'chat-window:close',
+  CHAT_WINDOW_TOGGLE: 'chat-window:toggle',
+  CHAT_WINDOW_GET_STATE: 'chat-window:get-state',
+  CHAT_WINDOW_SEND_MESSAGE: 'chat-window:send-message',
+  CHAT_WINDOW_SYNC_STATE: 'chat-window:sync-state',
 } as const;
 
 /**
@@ -175,6 +183,7 @@ registerHandlers(): void {
     this.registerRoverHandlers();
     this.registerCommandHandlers();
     this.registerConfigHandlers();
+    this.registerChatWindowHandlers();
   }
 
   /**
@@ -1948,6 +1957,84 @@ return { success: false, errors, warnings };
         console.error('Failed to validate config:', error);
         return { success: false, error: error instanceof Error ? error.message : String(error) };
       }
+    });
+  }
+
+  /**
+   * Register chat window handlers
+   * Handles detached chat window management
+   */
+  private registerChatWindowHandlers(): void {
+    // Note: The actual window creation is handled in main.ts
+    // These handlers communicate with the ChatWindowManager
+    
+    // Open chat window
+    ipcMain.handle(IPC_CHANNELS.CHAT_WINDOW_OPEN, async (event) => {
+      try {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        if (!window) {
+          throw new Error('No window found');
+        }
+        
+        // Emit event to main.ts to create chat window
+        event.sender.send('chat-window:create-request');
+        
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to open chat window:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Close chat window
+    ipcMain.handle(IPC_CHANNELS.CHAT_WINDOW_CLOSE, async () => {
+      try {
+        // Emit event to main.ts to close chat window
+        ipcMain.emit('chat-window:close-request');
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to close chat window:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Toggle chat window
+    ipcMain.handle(IPC_CHANNELS.CHAT_WINDOW_TOGGLE, async (event) => {
+      try {
+        // Emit event to toggle chat window
+        event.sender.send('chat-window:toggle-request');
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to toggle chat window:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Get chat window state
+    ipcMain.handle(IPC_CHANNELS.CHAT_WINDOW_GET_STATE, async () => {
+      try {
+        // This will be handled by checking if the window exists
+        return { success: true, state: { isOpen: false } };
+      } catch (error) {
+        console.error('Failed to get chat window state:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Send message to chat window
+    ipcMain.on(IPC_CHANNELS.CHAT_WINDOW_SEND_MESSAGE, (_event, message: any) => {
+      // Broadcast to all windows (including detached chat)
+      BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('chat-window:message', message);
+      });
+    });
+
+    // Sync state between main and chat window
+    ipcMain.on(IPC_CHANNELS.CHAT_WINDOW_SYNC_STATE, (_event, state: any) => {
+      // Broadcast state to all windows
+      BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('chat-window:state-update', state);
+      });
     });
   }
 }

@@ -105,12 +105,28 @@ export interface PromptEnhanceResponse {
   quality_tags: string[];
 }
 
+// Types pour Grok Imagine
+export interface GrokGenerationParams {
+  scene: Record<string, unknown>;
+  references?: Array<Record<string, unknown>>;
+  config_overrides?: Record<string, unknown>;
+}
+
+export interface GrokGenerationResponse {
+  status: 'success' | 'error';
+  video?: string;
+  images?: string[];
+  audio?: string;
+  error?: string;
+  metadata: Record<string, unknown>;
+}
+
 // Types pour la gestion des travaux (job queue avec retry)
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 
 export interface GenerationJob {
   job_id: string;
-  type: 'dialogue' | 'grid' | 'prompt';
+  type: 'dialogue' | 'grid' | 'prompt' | 'grok';
   status: JobStatus;
   params: Record<string, unknown>;
   result?: unknown;
@@ -206,6 +222,9 @@ class AutomationService {
           break;
         case 'prompt':
           result = await this.enhancePrompt(job.params as unknown as PromptEnhanceRequest);
+          break;
+        case 'grok':
+          result = await this.generateGrokImagine(job.params as unknown as GrokGenerationParams);
           break;
       }
 
@@ -404,7 +423,17 @@ class AutomationService {
     return response.data;
   }
 
-  // ==================== HEALTH CHECK ====================
+  // ==================== GROK IMAGINE METHODS ====================
+
+  async generateGrokImagine(params: GrokGenerationParams): Promise<GrokGenerationResponse> {
+    const response = await this.client.post('/api/addons/grok-imagine/generate', params);
+    return response.data;
+  }
+
+  async getGrokStatus(): Promise<Record<string, unknown>> {
+    const response = await this.client.get('/api/addons/grok-imagine/status');
+    return response.data;
+  }
 
   async healthCheck(): Promise<{
     status: string;

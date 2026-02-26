@@ -962,3 +962,49 @@ async def export_mix(
         "format": format,
         "message": f"Mix exported successfully"
     }
+
+
+# =============================================================================
+# MUSIC VISIONARY - ANALYSIS & STEMS
+# =============================================================================
+
+class StyleAnalysisRequest(BaseModel):
+    project_id: str
+    audio_id: str
+
+class StemExtractionRequest(BaseModel):
+    project_id: str
+    audio_id: str
+    stems: List[str] = ["vocals", "drums", "bass", "other"]
+
+@router.post("/audio/analyze-style")
+async def analyze_style(request: StyleAnalysisRequest, user_id: str = Depends(verify_jwt_token)):
+    """Analyze music style for video generation."""
+    logger.info(f"Analyzing style for audio {request.audio_id}")
+    # Mock analysis result
+    return {
+        "style": "Cinematic Electronic",
+        "bpm": 124.05,
+        "key": "A Minor",
+        "mood": ["Energetic", "Mysterious"],
+        "instruments": ["Synthesizer", "Digital Drums", "Atmospheric Pads"],
+        "cinematic_prompts": [
+            "neon lighting, high contrast, rapid camera movements",
+            "glitch effects on beat, urban landscape, rainy night aesthetic"
+        ]
+    }
+
+@router.post("/audio/extract-stems")
+async def extract_stems(request: StemExtractionRequest, background_tasks: BackgroundTasks, user_id: str = Depends(verify_jwt_token)):
+    """Extract stems from an audio file."""
+    job_id = f"stem_{uuid.uuid4()}"
+    logger.info(f"Starting stem extraction job {job_id} for audio {request.audio_id}")
+    
+    # In a real app, this would use Spleeter or Demucs
+    return {
+        "job_id": job_id,
+        "status": "processing",
+        "progress": 0,
+        "estimated_time_seconds": 45
+    }
+

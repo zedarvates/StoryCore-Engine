@@ -6,7 +6,49 @@
  */
 
 import { EventEmitter } from 'events';
-import type { CompositionRule, ShotType, CameraMovement, LightingStyle, VisualBalance } from '../../src/ai_shot_composition_engine';
+import { llmService } from './llmService';
+
+// Shot composition basic types (synchronized with existing codebase)
+export enum ShotType {
+  EXTREME_CLOSE_UP = 'extreme_close_up',
+  CLOSE_UP = 'close_up',
+  MEDIUM_CLOSE_UP = 'medium_close_up',
+  MEDIUM_SHOT = 'medium_shot',
+  WIDE_SHOT = 'wide_shot',
+  ESTABLISHING = 'establishing'
+}
+
+export enum CameraMovement {
+  STATIC = 'static',
+  PAN = 'pan',
+  TILT = 'tilt',
+  DOLLY = 'dolly',
+  TRACKING = 'tracking',
+  STEADICAM = 'steadicam'
+}
+
+export enum LightingStyle {
+  HIGH_KEY = 'high_key',
+  LOW_KEY = 'low_key',
+  NATURAL = 'natural',
+  CHIAOSCURO = 'chiaoscuro',
+  SOFT = 'soft'
+}
+
+export enum CompositionRule {
+  RULE_OF_THIRDS = 'rule_of_thirds',
+  GOLDEN_RATIO = 'golden_ratio',
+  SYMMETRICAL_BALANCE = 'symmetrical_balance',
+  LEADING_LINES = 'leading_lines',
+  FRAMING = 'framing'
+}
+
+export interface VisualBalance {
+  horizontalBalance: number;
+  verticalBalance: number;
+  depthBalance: number;
+  overallBalance: number;
+}
 
 // Shot composition data types
 export interface ShotComposition {
@@ -143,6 +185,64 @@ class AIShotCompositionService extends EventEmitter {
   }
 
   /**
+   * Intelligently suggest shot parameters using LLM in a compact format.
+   */
+  async generateConfigWithAI(sceneDescription: string): Promise<{
+    shotType: ShotType;
+    cameraAngle: string;
+    cameraMovement: CameraMovement;
+    lightingStyle: LightingStyle;
+    reasoning: string;
+  }> {
+    const prompt = `[TASK] Suggest optimal shot parameters for: "${sceneDescription}"
+[FORMAT] Return ONLY JSON.
+[SCHEMA]
+{
+  "config": ["shotType", "cameraAngle", "cameraMovement", "lightingStyle"],
+  "reasoning": "one sentence"
+}
+[OPTIONS]
+shotType: extreme_close_up|close_up|medium_shot|wide_shot|establishing
+cameraAngle: low_angle|eye_level|high_angle|dutch_angle
+cameraMovement: static|pan|tilt|dolly|tracking
+lightingStyle: high_key|low_key|natural|chiaoscuro|soft
+[RULES] No talk. Use high_speed extraction.`;
+
+    const service = llmService;
+    try {
+      const response = await llmService.generateCompletion({
+        prompt,
+        maxTokens: 150,
+        temperature: 0.3,
+      });
+
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'LLM generation failed');
+      }
+
+      const data = JSON.parse(response.data.content);
+      const [shotType, cameraAngle, cameraMovement, lightingStyle] = data.config;
+
+      return {
+        shotType: shotType as ShotType,
+        cameraAngle: cameraAngle || 'eye_level',
+        cameraMovement: cameraMovement as CameraMovement,
+        lightingStyle: lightingStyle as LightingStyle,
+        reasoning: data.reasoning || '',
+      };
+    } catch (error) {
+      console.error('AI Shot Config generation failed:', error);
+      return {
+        shotType: ShotType.MEDIUM_SHOT,
+        cameraAngle: 'eye_level',
+        cameraMovement: CameraMovement.STATIC,
+        lightingStyle: LightingStyle.NATURAL,
+        reasoning: 'Fallback to defaults due to error.',
+      };
+    }
+  }
+
+  /**
    * Get composition by ID
    */
   getComposition(id: string): ShotComposition | undefined {
@@ -266,19 +366,20 @@ class AIShotCompositionService extends EventEmitter {
    * Import composition
    */
   async importComposition(data: string, format: 'json' | 'xml' = 'json'): Promise<ShotComposition> {
-    let compositionData: unknown;
+    let rawData: unknown;
 
     if (format === 'json') {
-      compositionData = JSON.parse(data);
+      rawData = JSON.parse(data);
     } else {
-      compositionData = this.parseXML(data);
+      rawData = this.parseXML(data);
     }
 
-    const composition: ShotComposition = {
-      ...compositionData,
-      createdAt: new Date(compositionData.createdAt),
-      updatedAt: new Date(compositionData.updatedAt)
-    };
+    const parsed = rawData as Record<string, unknown>;
+    const composition = {
+      ...(parsed as unknown as ShotComposition),
+      createdAt: new Date(parsed['createdAt'] as string),
+      updatedAt: new Date(parsed['updatedAt'] as string)
+    } as ShotComposition;
 
     this.compositions.set(composition.id, composition);
     await this.saveCompositions();
@@ -335,7 +436,7 @@ class AIShotCompositionService extends EventEmitter {
         emotionalImpact: Math.random() * 0.4 + 0.5,
         technicalScore: Math.random() * 0.3 + 0.6,
         recommendations: this.generateRecommendations(shotType, cameraMovement, lightingStyle),
-        alternatives: this.generateAlternatives(shotType, cameraMovement, config)
+        alternatives: this.selectAlternatives(shotType, cameraMovement, config)
       },
       createdAt: new Date(),
       updatedAt: new Date()
@@ -348,7 +449,7 @@ class AIShotCompositionService extends EventEmitter {
     // Simulate analysis delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const ruleCompliance: Record<CompositionRule, boolean> = {};
+    const ruleCompliance = {} as Record<CompositionRule, boolean>;
     composition.composition.compositionRules.forEach(rule => {
       ruleCompliance[rule] = Math.random() > 0.3; // 70% compliance rate
     });
@@ -557,7 +658,7 @@ class AIShotCompositionService extends EventEmitter {
     return recommendations;
   }
 
-  private generateAlternatives(
+  private selectAlternatives(
     shotType: ShotType, 
     cameraMovement: CameraMovement, 
     config: ShotCompositionConfig
@@ -647,11 +748,12 @@ class AIShotCompositionService extends EventEmitter {
       const saved = localStorage.getItem('ai_shot_compositions');
       if (saved) {
         const compositions = JSON.parse(saved);
-        compositions.forEach((composition: unknown) => {
-          this.compositions.set(composition.id, {
-            ...composition,
-            createdAt: new Date(composition.createdAt),
-            updatedAt: new Date(composition.updatedAt)
+        compositions.forEach((comp: unknown) => {
+          const c = comp as Record<string, unknown>;
+          this.compositions.set(c['id'] as string, {
+            ...(c as unknown as ShotComposition),
+            createdAt: new Date(c['createdAt'] as string),
+            updatedAt: new Date(c['updatedAt'] as string)
           });
         });
       }
@@ -760,7 +862,12 @@ class AIShotCompositionService extends EventEmitter {
           technicalScore: 0,
           compositionRules: [],
           lightingStyle: 'natural',
-          visualBalance: { balance: 0.5, symmetry: 0.5, depth: 0.5 },
+          visualBalance: { 
+            horizontalBalance: 0.5, 
+            verticalBalance: 0.5, 
+            depthBalance: 0.5,
+            overallBalance: 0.5
+          },
           suggestedSettings: {
             focalLength: 50,
             aperture: 2.8,
@@ -773,8 +880,8 @@ class AIShotCompositionService extends EventEmitter {
           recommendations: [],
           alternatives: []
         },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
     } catch (error) {
       console.error('[AIShotCompositionService] Failed to parse XML:', error);
@@ -785,11 +892,5 @@ class AIShotCompositionService extends EventEmitter {
 
 // Export singleton instance
 export const aiShotCompositionService = new AIShotCompositionService();
-
-// Export types for React hooks
-export type { 
-  ShotComposition, ShotCompositionResult, CameraSettings, ShotCompositionAlternative,
-  ShotCompositionConfig, CompositionAnalysis 
-};
 
 

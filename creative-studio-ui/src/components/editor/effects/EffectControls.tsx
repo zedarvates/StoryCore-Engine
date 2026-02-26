@@ -11,14 +11,9 @@ import {
   ChevronUp,
   Sliders,
 } from 'lucide-react';
-import { Effect, EffectParameter } from './EffectsLibrary';
+import { Effect, EffectParameter, AppliedEffect } from '@/types/effect';
 import { EffectKeyframes } from './EffectKeyframes';
 import './EffectControls.css';
-
-interface AppliedEffect extends Effect {
-  enabled: boolean;
-  order: number;
-}
 
 interface EffectControlsProps {
   selectedEffect?: AppliedEffect;
@@ -59,9 +54,12 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
   useEffect(() => {
     if (selectedEffectData) {
       setLocalParameters([...selectedEffectData.parameters]);
-      setHasUnsavedChanges(false);
     }
-  }, [selectedEffectData]);
+  }, [selectedEffectId]); // Only trigger when the selected effect changes
+
+  useEffect(() => {
+    setHasUnsavedChanges(false);
+  }, [selectedEffectId]);
 
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);

@@ -73,7 +73,7 @@ export function useVideoThumbnail(): UseVideoThumbnailReturn {
         cacheRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // Intentionally run only on mount - cache should be initialized once
   }, []);
   
@@ -89,7 +89,7 @@ export function useVideoThumbnail(): UseVideoThumbnailReturn {
     return () => {
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // Intentionally run only on mount - stats polling should start once
   }, []);
   

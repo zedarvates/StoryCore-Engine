@@ -14,7 +14,6 @@ import type { WizardLauncherProps, WizardDefinition } from '../../types/configur
 import { checkWizardRequirements, getWizardDependencies } from '../../data/wizardDefinitions';
 import { WizardService } from '../../services/wizard/WizardService';
 import { useAppStore } from '../../stores/useAppStore';
-import { logger } from '../../utils/logging';
 import './WizardLauncher.css';
 
 interface ConnectionStatus {
@@ -42,25 +41,20 @@ export function WizardLauncher({
       const wizardService = new WizardService();
       
       // Silently check connections - errors are expected when services aren't running
+      // ComfyUI is OPTIONAL - connection failures should not spam console
       const [ollamaStatus, comfyuiStatus] = await Promise.all([
-        wizardService.checkOllamaConnection().catch((error) => {
-          logger.error("OLLAMA_CONNECTION_ERROR:", error.message);
-          return {
-            connected: false,
-            service: 'ollama' as const,
-            endpoint: 'http://localhost:11434',
-            error: 'Service not available'
-          };
-        }),
-        wizardService.checkComfyUIConnection().catch((error) => {
-          logger.error("COMFYUI_CONNECTION_ERROR:", error.message);
-          return {
-            connected: false,
-            service: 'comfyui' as const,
-            endpoint: 'http://localhost:8188',
-            error: 'Service not available'
-          };
-        }),
+        wizardService.checkOllamaConnection().catch(() => ({
+          connected: false,
+          service: 'ollama' as const,
+          endpoint: 'http://localhost:11434',
+          error: 'Service not available'
+        })),
+        wizardService.checkComfyUIConnection().catch(() => ({
+          connected: false,
+          service: 'comfyui' as const,
+          endpoint: 'http://localhost:8000',
+          error: 'Service not available'
+        })),
       ]);
       
       setConnectionStatus({

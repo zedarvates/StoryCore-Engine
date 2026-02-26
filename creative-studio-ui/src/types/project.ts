@@ -5,17 +5,38 @@
 import type { Shot } from './index';
 import type { AssetMetadata } from './asset';
 
+export interface ProjectConstraint {
+  id: string;
+  category: 'technical' | 'creative' | 'budget' | 'timeline';
+  constraint: string;
+  impact: string;
+}
+
+export interface ProjectSetupData {
+  projectName?: string;
+  projectDescription?: string;
+  genre?: string[];
+  tone?: string[];
+  targetAudience?: string;
+  estimatedDuration?: string;
+  visualStyle?: string;
+  audioStyle?: string;
+  constraints?: ProjectConstraint[];
+}
+
 export interface ProjectData {
   schema_version: string;
   project_name: string;
   capabilities: ProjectCapabilities;
   generation_status: GenerationStatus;
-  storyboard: Shot[];
-  assets: AssetMetadata[];
-  characters: CharacterReference[];
-  scenes: SceneReference[];
+  storyboard?: Shot[];
+  assets?: AssetMetadata[];
+  characters?: CharacterReference[];
+  scenes?: SceneReference[];
   world?: WorldDefinition;
   global_resume?: string;
+  projectSetup?: ProjectSetupData;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ProjectCapabilities {
@@ -23,13 +44,13 @@ export interface ProjectCapabilities {
   promotion_engine: boolean;
   qa_engine: boolean;
   autofix_engine: boolean;
-  wizard_generation: boolean;
+  wizard_generation?: boolean;
 }
 
 export interface GenerationStatus {
   grid: 'pending' | 'done' | 'failed' | 'passed';
   promotion: 'pending' | 'done' | 'failed' | 'passed';
-  wizard: 'pending' | 'done' | 'failed' | 'passed';
+  wizard?: 'pending' | 'done' | 'failed' | 'passed';
 }
 
 export interface CharacterReference {

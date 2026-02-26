@@ -8,63 +8,31 @@
 import { fileSystemService } from './FileSystemService';
 import { logger } from '@/utils/logger';
 
-/**
- * Pagination options
- */
-export interface PaginationOptions {
-  page?: number;
-  pageSize?: number;
-  sortBy?: 'name' | 'version' | 'status' | 'category';
-  sortOrder?: 'asc' | 'desc';
-}
+// Import types from shared types file to avoid circular dependencies
+import type {
+  PaginationOptions,
+  PaginatedResult,
+  MarketplaceAddon,
+  AddonManifest,
+  AddonConfig,
+  AddonAction,
+  AddonInfo,
+  AddonSetting,
+  AddonSettingsDefinition
+} from './addonTypes';
 
-/**
- * Paginated result
- */
-export interface PaginatedResult<T> {
-  items: T[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-  sort: {
-    by: string;
-    order: string;
-  };
-}
-
-/**
- * Marketplace addon info
- */
-export interface MarketplaceAddon {
-  id: string;
-  name: string;
-  description: string;
-  author: string;
-  version: string;
-  category: string;
-  rating: number;
-  downloads: number;
-  price: string;
-}
-
-/**
- * External add-on manifest
- */
-export interface AddonManifest {
-  id: string;
-  name: string;
-  version: string;
-  author: string;
-  description: string;
-  permissions: string[];
-  entryPoint: string;
-  dependencies?: Record<string, string>;
-}
+// Re-export types for backward compatibility
+export type {
+  PaginationOptions,
+  PaginatedResult,
+  MarketplaceAddon,
+  AddonManifest,
+  AddonConfig,
+  AddonAction,
+  AddonInfo,
+  AddonSetting,
+  AddonSettingsDefinition
+};
 
 /**
  * Resource registered for an add-on (for cleanup)
@@ -74,53 +42,6 @@ interface AddonResource {
   timers: number[];
   domElements: Set<HTMLElement>;
   intervals: number[];
-}
-
-export interface AddonAction {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: React.ReactNode | string;
-  handler?: () => Promise<void> | void;
-}
-
-export interface AddonInfo {
-  id: string;
-  name: string;
-  description: string;
-  version: string;
-  author: string;
-  category: 'ui' | 'processing' | 'export' | 'integration' | 'utility' | 'character' | 'world' | 'story';
-  dependencies?: string[];
-  enabled: boolean;
-  builtin: boolean; // true for built-in add-ons, false for external ones
-  status: 'active' | 'inactive' | 'error' | 'loading';
-  errorMessage?: string;
-  icon?: string;
-  tags?: string[];
-}
-
-export interface AddonConfig {
-  [addonId: string]: {
-    enabled: boolean;
-    settings?: Record<string, unknown>;
-  };
-}
-
-export interface AddonSetting {
-  key: string;
-  label: string;
-  type: 'text' | 'number' | 'boolean' | 'select' | 'textarea';
-  defaultValue: unknown;
-  description?: string;
-  options?: Array<{ label: string; value: unknown }>; // For selects
-  min?: number; // For numbers
-  max?: number; // For numbers
-  validation?: (value: unknown) => boolean;
-}
-
-export interface AddonSettingsDefinition {
-  [addonId: string]: AddonSetting[];
 }
 
 /**
@@ -202,6 +123,15 @@ export class AddonManager {
   }
 
   /**
+   * Dispatch an event to notify listeners of addon changes
+   */
+  private dispatchAddonsUpdatedEvent(): void {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('addon-manager-updated'));
+    }
+  }
+
+  /**
    * Activates an add-on
    */
   async activateAddon(addonId: string): Promise<boolean> {
@@ -210,12 +140,14 @@ export class AddonManager {
       throw new Error(`Addon ${addonId} not found`);
     }
 
-    if (addon.enabled) {
+    // Check if already fully activated (both enabled AND active status)
+    if (addon.enabled && addon.status === 'active') {
       return true; // Already activated
     }
 
     try {
       addon.status = 'loading';
+      this.dispatchAddonsUpdatedEvent();
 
       // Check dependencies
       await this.checkDependencies(addon);
@@ -228,8 +160,18 @@ export class AddonManager {
       addon.status = 'active';
       addon.errorMessage = undefined;
 
+      // Update config to persist enabled state
+      if (!this.config[addon.id]) {
+        this.config[addon.id] = { enabled: true };
+      } else {
+        this.config[addon.id].enabled = true;
+      }
+
       // Save configuration
       await this.saveConfig();
+
+      // Notify listeners of the change
+      this.dispatchAddonsUpdatedEvent();
 
       return true;
 
@@ -237,6 +179,7 @@ export class AddonManager {
       addon.status = 'error';
       addon.errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error(`[AddonManager] Failed to activate addon ${addonId}:`, error);
+      this.dispatchAddonsUpdatedEvent();
       return false;
     }
   }
@@ -263,8 +206,18 @@ export class AddonManager {
       addon.status = 'inactive';
       addon.errorMessage = undefined;
 
+      // Update config to persist disabled state
+      if (!this.config[addon.id]) {
+        this.config[addon.id] = { enabled: false };
+      } else {
+        this.config[addon.id].enabled = false;
+      }
+
       // Save configuration
       await this.saveConfig();
+
+      // Notify listeners of the change
+      this.dispatchAddonsUpdatedEvent();
 
       return true;
 
@@ -272,6 +225,7 @@ export class AddonManager {
       addon.status = 'error';
       addon.errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error(`[AddonManager] Failed to deactivate addon ${addonId}:`, error);
+      this.dispatchAddonsUpdatedEvent();
       return false;
     }
   }
@@ -430,6 +384,20 @@ export class AddonManager {
           icon: '🎵'
         });
         break;
+      case 'comic-generator':
+        defaultActions.push({
+          id: 'generate-page',
+          name: 'Générer une planche',
+          description: 'Générer la prochaine planche BD du projet',
+          icon: '🎨'
+        });
+        defaultActions.push({
+          id: 'export-comic',
+          name: 'Exporter',
+          description: 'Exporter les planches générées (JSON/PDF)',
+          icon: '📤'
+        });
+        break;
       default:
         break;
     }
@@ -540,6 +508,9 @@ export class AddonManager {
           case 'example-workflow':
             await import('@/addons/example-workflow');
             break;
+          case 'comic-generator':
+            await import('@/addons/comic-generator');
+            break;
           case 'grok-integration':
             await import('@/addons/grok-integration');
             break;
@@ -580,11 +551,9 @@ export class AddonManager {
       const eventTypes = Array.from(resources.eventListeners.keys());
       for (const eventType of eventTypes) {
         const listeners = resources.eventListeners.get(eventType) || [];
-        for (const listener of listeners) {
-          // Note: For complete cleanup, we should keep track of listener targets
-          // Here we just log for debugging
-          logger.debug(`[AddonManager] Would remove event listener: ${eventType} for addon ${addon.id}`);
-        }
+        // Note: For complete cleanup, we should keep track of listener targets
+        // Log the count of listeners that would be removed
+        logger.debug(`[AddonManager] Would remove ${listeners.length} event listeners of type: ${eventType} for addon ${addon.id}`);
         resources.eventListeners.delete(eventType);
       }
 
@@ -749,6 +718,19 @@ export class AddonManager {
       builtin: true,
       tags: ['video', 'ai', 'generation', 'animation', 'seeddance']
     });
+
+    // Comic Generator Add-on
+    this.registerAddon({
+      id: 'comic-generator',
+      name: 'Comic Generator',
+      description: 'Génère des planches BD / Comics / Webtoon / Manga cohérentes à partir des données narratives du projet.',
+      version: '1.0.0',
+      author: 'StoryCore Team',
+      category: 'processing',
+      builtin: true,
+      icon: '🎨',
+      tags: ['comic', 'manga', 'webtoon', 'bd', 'narrative', 'visual-storytelling']
+    });
   }
 
   /**
@@ -848,7 +830,7 @@ export class AddonManager {
       }
 
     } catch (error) {
-      logger.warn('[AddonManager] Cannot scan addons directory:', { basePath });
+      logger.warn('[AddonManager] Cannot scan addons directory:', error, { basePath });
     }
 
     return folders;
@@ -883,7 +865,7 @@ export class AddonManager {
       }
 
       return manifest;
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof SyntaxError) {
         logger.warn(`[AddonManager] Invalid JSON in manifest: ${manifestPath}`);
       } else {
@@ -1316,6 +1298,63 @@ export class AddonManager {
           defaultValue: false,
           description: 'Generate dynamic animated subtitles'
         }
+      ],
+      'comic-generator': [
+        {
+          key: 'defaultStyle',
+          label: 'Default Comic Style',
+          type: 'select',
+          defaultValue: 'manga',
+          description: 'Visual style applied to generated pages',
+          options: [
+            { label: '🇧🇪 Franco-Belge (Tintin, Astérix)', value: 'franco-belge' },
+            { label: '🦸 US Comics (Marvel, DC)', value: 'comics-us' },
+            { label: '🎌 Manga (Shonen, Shojo)', value: 'manga' },
+            { label: '📱 Webtoon (vertical scroll)', value: 'webtoon' }
+          ]
+        },
+        {
+          key: 'panelsPerPage',
+          label: 'Panels per page',
+          type: 'number',
+          defaultValue: 4,
+          description: 'Number of panels generated per comic page',
+          min: 1,
+          max: 9,
+          validation: (value: unknown): boolean => typeof value === 'number' && value >= 1 && value <= 9
+        },
+        {
+          key: 'generateImages',
+          label: 'Generate panel images (ComfyUI)',
+          type: 'boolean',
+          defaultValue: false,
+          description: 'Use ComfyUI to generate AI images for each panel (requires ComfyUI running locally)'
+        },
+        {
+          key: 'comfyuiUrl',
+          label: 'ComfyUI URL',
+          type: 'text',
+          defaultValue: 'http://127.0.0.1:8188',
+          description: 'Address of your local ComfyUI instance'
+        },
+        {
+          key: 'exportFormat',
+          label: 'Default export format',
+          type: 'select',
+          defaultValue: 'json',
+          description: 'Format for exporting generated pages',
+          options: [
+            { label: 'JSON (raw data)', value: 'json' },
+            { label: 'PDF (printable)', value: 'pdf' }
+          ]
+        },
+        {
+          key: 'narrativeDirection',
+          label: 'Narrative direction hint',
+          type: 'textarea',
+          defaultValue: '',
+          description: 'Optional guidance for the narrative engine (e.g. "Focus on the conflict between the two main characters")'
+        }
       ]
     };
   }
@@ -1402,7 +1441,7 @@ export class AddonManager {
       sortOrder = 'asc'
     } = options;
 
-    let addonsList = Array.from(this.addons.values());
+    const addonsList = Array.from(this.addons.values());
 
     // Apply sorting
     const reverse = sortOrder === 'desc';
@@ -1541,7 +1580,14 @@ export class AddonManager {
     search?: string;
     page?: number;
     pageSize?: number;
-  } = {}): Promise<{ items: MarketplaceAddon[]; pagination: any }> {
+  } = {}): Promise<{ items: MarketplaceAddon[]; pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } }> {
     // Mock marketplace data
     const marketplaceAddons: MarketplaceAddon[] = [
       {

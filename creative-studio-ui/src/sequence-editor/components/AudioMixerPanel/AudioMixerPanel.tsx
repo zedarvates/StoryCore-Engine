@@ -6,25 +6,16 @@
  * - Auto-mix with ducking controls
  * - Audio export with format selection
  * - Waveform visualization
+ * - Surround sound support (5.1, 7.1, Subwoofer)
  * 
  * Requirements: Phase 3 - Integrate audio backend features into UI
  * Phase 2 - Connected to Redux store
+ * Enhanced: Surround Sound System
  */
 
 import React, { useState, useCallback } from 'react';
-import { useAppDispatch, useAppSelector } from '../../store';
-import {
-  setTrackVolume,
-  setTrackPan,
-  toggleTrackMute,
-  toggleTrackSolo,
-  setMasterVolume,
-  setAutoMixEnabled,
-  setDuckingEnabled,
-  selectAllTracks,
-  selectMasterVolume,
-  selectMixConfiguration
-} from '../../store/slices/audioSlice';
+import { useAppSelector } from '../../store';
+import { SurroundMixer } from './SurroundMixer';
 import './audioMixerPanel.css';
 
 // =============================================================================
@@ -89,11 +80,10 @@ const EXPORT_FORMATS = [
 // =============================================================================
 
 export const AudioMixerPanel: React.FC = () => {
-  const dispatch = useAppDispatch();
   const projectId = useAppSelector((state) => state.project.metadata?.id);
   
-  // Active tab
-  const [activeTab, setActiveTab] = useState<'mix' | 'generate' | 'export'>('mix');
+  // Active tab - include 'surround' tab
+  const [activeTab, setActiveTab] = useState<'mix' | 'surround' | 'generate' | 'export'>('mix');
   
   // Track state
   const [tracks, setTracks] = useState<AudioTrack[]>([
@@ -194,7 +184,7 @@ export const AudioMixerPanel: React.FC = () => {
         // Apply mix settings from response
         if (data.configuration?.tracks) {
           setTracks(prev => prev.map(t => {
-            const mixTrack = data.configuration.tracks.find((mt: any) => mt.id === t.id);
+            const mixTrack = data.configuration.tracks.find((mt: { id: string }) => mt.id === t.id);
             return mixTrack ? { ...t, volume: mixTrack.volume, pan: mixTrack.pan } : t;
           }));
         }
@@ -244,6 +234,12 @@ export const AudioMixerPanel: React.FC = () => {
           onClick={() => setActiveTab('mix')}
         >
           Mix
+        </button>
+        <button
+          className={`mixer-tab ${activeTab === 'surround' ? 'active' : ''}`}
+          onClick={() => setActiveTab('surround')}
+        >
+          Surround
         </button>
         <button
           className={`mixer-tab ${activeTab === 'generate' ? 'active' : ''}`}
@@ -360,6 +356,11 @@ export const AudioMixerPanel: React.FC = () => {
               ))}
             </div>
           </div>
+        )}
+        
+        {/* Surround Tab */}
+        {activeTab === 'surround' && (
+          <SurroundMixer />
         )}
         
         {/* Generate Tab */}

@@ -1,16 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import './EffectKeyframes.css';
-import { EffectKeyframe } from './EffectsLibrary';
-
-export interface EffectParameter {
-  id: string;
-  name: string;
-  min: number;
-  max: number;
-  defaultValue: number;
-  keyframes: EffectKeyframe[];
-}
+import { EffectKeyframe, EffectParameter } from '@/types/effect';
 
 interface EffectKeyframesProps {
   parameter: EffectParameter;
@@ -36,21 +27,26 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
 
   // Calculate current value based on keyframes
   const getCurrentValue = useCallback(() => {
-    if (parameter.keyframes.length === 0) {
-      return parameter.defaultValue;
+    const keyframes = parameter.keyframes || [];
+    if (keyframes.length === 0) {
+      return parameter.defaultValue ?? parameter.value;
     }
 
     // Find keyframes before and after current time
-    const sortedKeyframes = [...parameter.keyframes].sort((a, b) => a.time - b.time);
+    const sortedKeyframes = [...keyframes].sort((a, b) => a.time - b.time);
     const beforeKeyframe = sortedKeyframes.filter(k => k.time <= currentTime).pop();
     const afterKeyframe = sortedKeyframes.filter(k => k.time > currentTime)[0];
 
+    const min = parameter.min ?? 0;
+    const max = parameter.max ?? 100;
+
     if (!beforeKeyframe) {
-      return parameter.defaultValue;
+      const firstKeyframe = sortedKeyframes[0];
+      return (firstKeyframe.value * (max - min)) + min;
     }
 
     if (!afterKeyframe) {
-      return beforeKeyframe.value * (parameter.max - parameter.min) + parameter.min;
+      return beforeKeyframe.value * (max - min) + min;
     }
 
     // Interpolate between keyframes
@@ -74,7 +70,7 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
         interpolatedValue = beforeKeyframe.value + valueDiff * progress;
     }
 
-    return interpolatedValue * (parameter.max - parameter.min) + parameter.min;
+    return interpolatedValue * (max - min) + min;
   }, [parameter, currentTime]);
 
   // Update current value when keyframes change
@@ -91,13 +87,13 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
       interpolation: 'linear',
     };
 
-    const newKeyframes = [...parameter.keyframes, newKeyframe];
+    const newKeyframes = [...(parameter.keyframes || []), newKeyframe];
     onKeyframesChange(newKeyframes);
     setSelectedKeyframe(newKeyframe.id);
   }, [parameter.keyframes, onKeyframesChange]);
 
   const removeKeyframe = useCallback((keyframeId: string) => {
-    const newKeyframes = parameter.keyframes.filter(k => k.id !== keyframeId);
+    const newKeyframes = (parameter.keyframes || []).filter(k => k.id !== keyframeId);
     onKeyframesChange(newKeyframes);
     if (selectedKeyframe === keyframeId) {
       setSelectedKeyframe(null);
@@ -105,7 +101,7 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
   }, [parameter.keyframes, onKeyframesChange, selectedKeyframe]);
 
   const updateKeyframe = useCallback((keyframeId: string, updates: Partial<EffectKeyframe>) => {
-    const newKeyframes = parameter.keyframes.map(k =>
+    const newKeyframes = (parameter.keyframes || []).map(k =>
       k.id === keyframeId ? { ...k, ...updates } : k
     );
     onKeyframesChange(newKeyframes);
@@ -123,7 +119,7 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
     const value = 1 - (y / rect.height); // Invert Y axis
 
     // Check if clicking on existing keyframe
-    const clickedKeyframe = parameter.keyframes.find(k => {
+    const clickedKeyframe = (parameter.keyframes || []).find(k => {
       const keyframeX = (k.time / duration) * rect.width;
       const keyframeY = (1 - k.value) * rect.height;
       const distance = Math.sqrt((x - keyframeX) ** 2 + (y - keyframeY) ** 2);
@@ -145,7 +141,7 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    const clickedKeyframe = parameter.keyframes.find(k => {
+    const clickedKeyframe = (parameter.keyframes || []).find(k => {
       const keyframeX = (k.time / duration) * rect.width;
       const keyframeY = (1 - k.value) * rect.height;
       const distance = Math.sqrt((x - keyframeX) ** 2 + (y - keyframeY) ** 2);
@@ -214,9 +210,11 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
       ctx.stroke();
     }
 
+    const keyframes = parameter.keyframes || [];
+
     // Draw curve
-    if (parameter.keyframes.length > 0) {
-      const sortedKeyframes = [...parameter.keyframes].sort((a, b) => a.time - b.time);
+    if (keyframes.length > 0) {
+      const sortedKeyframes = [...keyframes].sort((a, b) => a.time - b.time);
 
       ctx.strokeStyle = '#7c3aed';
       ctx.lineWidth = 2;
@@ -238,7 +236,7 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
     }
 
     // Draw keyframes
-    parameter.keyframes.forEach(keyframe => {
+    keyframes.forEach(keyframe => {
       const x = (keyframe.time / duration) * width;
       const y = (1 - keyframe.value) * height;
 
@@ -311,7 +309,7 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
           <div className="property-group">
             <label>Interpolation:</label>
             <select
-              value={parameter.keyframes.find(k => k.id === selectedKeyframe)?.interpolation || 'linear'}
+              value={(parameter.keyframes || []).find(k => k.id === selectedKeyframe)?.interpolation || 'linear'}
               onChange={(e) => updateKeyframe(selectedKeyframe, {
                 interpolation: e.target.value as EffectKeyframe['interpolation']
               })}
