@@ -7,6 +7,7 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { PuppetAnimationControls } from './PuppetAnimationControls';
+import { FiberSceneView } from './FiberSceneView';
 import { exportSceneToVideo, downloadExportedFile, generateExportFilename } from '../../services/sceneExportService';
 import { useToast } from '@/hooks/use-toast';
 import './sceneView3D.css';
@@ -92,7 +93,6 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
-  const buffersRef = useRef<Map<string, WebGLBuffer>>(new Map());
   const { toast } = useToast();
 
   // WebGL Shader sources
@@ -159,16 +159,6 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
     r[13] = m[1] * x + m[5] * y + m[9] * z + m[13];
     r[14] = m[2] * x + m[6] * y + m[10] * z + m[14];
     r[15] = m[3] * x + m[7] * y + m[11] * z + m[15];
-    return r;
-  };
-
-  const rotateYMatrix = (m: Float32Array, angle: number) => {
-    const c = Math.cos(angle), s = Math.sin(angle);
-    const r = new Float32Array(16);
-    r[0] = m[0] * c + m[8] * s; r[1] = m[1] * c + m[9] * s; r[2] = m[2] * c + m[10] * s; r[3] = m[3] * c + m[11] * s;
-    r[4] = m[4]; r[5] = m[5]; r[6] = m[6]; r[7] = m[7];
-    r[8] = m[8] * c - m[0] * s; r[9] = m[9] * c - m[1] * s; r[10] = m[10] * c - m[2] * s; r[11] = m[11] * c - m[3] * s;
-    r[12] = m[12]; r[13] = m[13]; r[14] = m[14]; r[15] = m[15];
     return r;
   };
 
@@ -615,6 +605,90 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
     };
   }, [renderScene]);
 
+  // Voice Command Listener for adding objects
+  useEffect(() => {
+    const handleAddObjectVoice = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const transcript = customEvent.detail?.transcript?.toLowerCase() || '';
+      
+      let objectType = 'unknown';
+      if (transcript.includes('voiture')) objectType = 'voiture';
+      else if (transcript.includes('poubelle')) objectType = 'poubelle';
+      else if (transcript.includes('plante') || transcript.includes('arbre')) objectType = 'plante';
+      else if (transcript.includes('figurant') || transcript.includes('personnage')) objectType = 'figurant';
+      else {
+        // Fallback: try to extract a noun after "ajoute/ajouter"
+        const match = transcript.match(/ajoute\s+(?:un|une|des)\s+([a-zA-Z\u00C0-\u024F]+)/);
+        if (match && match[1]) {
+          objectType = match[1];
+        }
+      }
+
+      toast({
+        title: 'Commande vocale',
+        description: `Ajout de l'objet : ${objectType}`,
+      });
+
+      setEnvironment((prev) => ({
+        ...prev,
+        props: [
+          ...prev.props,
+          {
+            id: `prop-${objectType}-${Date.now()}`,
+            type: objectType,
+            position: { x: (Math.random() - 0.5) * 4, y: 0, z: (Math.random() - 0.5) * 4 },
+          },
+        ],
+      }));
+    };
+
+    const handleCameraVoice = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const transcript = customEvent.detail?.transcript?.toLowerCase() || '';
+      
+      let camDistance = 5;
+      if (transcript.includes('proche') || transcript.includes('gros plan')) camDistance = 2;
+      else if (transcript.includes('loin') || transcript.includes('large')) camDistance = 10;
+      
+      toast({
+        title: 'Commande vocale',
+        description: `Modification de la caméra : ${transcript}`,
+      });
+
+      setCamera((prev) => ({
+        ...prev,
+        position: { ...prev.position, z: camDistance }
+      }));
+    };
+
+    const handleLightingVoice = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const transcript = customEvent.detail?.transcript?.toLowerCase() || '';
+      
+      let newLighting: Environment['lighting'] = 'natural';
+      if (transcript.includes('sombre') || transcript.includes('nuit')) newLighting = 'dim';
+      else if (transcript.includes('clair') || transcript.includes('jour')) newLighting = 'bright';
+      else if (transcript.includes('dramatique') || transcript.includes('cinéma')) newLighting = 'dramatic';
+      
+      toast({
+        title: 'Commande vocale',
+        description: `Changement de l'éclairage : ${newLighting}`,
+      });
+
+      setEnvironment((prev) => ({ ...prev, lighting: newLighting }));
+    };
+
+    window.addEventListener('storycore:add-object', handleAddObjectVoice);
+    window.addEventListener('storycore:add-camera', handleCameraVoice);
+    window.addEventListener('storycore:change-lighting', handleLightingVoice);
+    
+    return () => {
+      window.removeEventListener('storycore:add-object', handleAddObjectVoice);
+      window.removeEventListener('storycore:add-camera', handleCameraVoice);
+      window.removeEventListener('storycore:change-lighting', handleLightingVoice);
+    };
+  }, [toast, setCamera, setEnvironment]);
+
   // Mouse interaction handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
@@ -777,11 +851,6 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   };
 
-  // Linear interpolation helper
-  const lerp = (start: number, end: number, t: number) => {
-    return start + (end - start) * t;
-  };
-
   // Apply keyframe animation at current frame with smooth interpolation
   useEffect(() => {
     if (!selectedPuppet || keyframes.length === 0) return;
@@ -888,16 +957,23 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
 
   return (
     <div className="scene-view-3d">
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        className="scene-canvas"
+      <div 
+        className="scene-canvas-wrapper"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-      />
+        style={{ width, height, position: 'relative' }}
+      >
+        <FiberSceneView
+          puppetPath="C:\storycore-engine\assets\characters\ActionProtagonistGeneric\ActionProtagonistGeneric.glb"
+          skyboxPath="C:\storycore-engine\assets\skyboxes\skybox1.png"
+          width={width}
+          height={height}
+          lighting={environment.lighting}
+          cameraProps={camera}
+        />
+      </div>
 
       {/* Animation Controls Toggle */}
       <button

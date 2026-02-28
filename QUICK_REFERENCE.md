@@ -163,6 +163,8 @@ npm run build 2>&1 | tee build.log
 - **Recursive LLM Service (RLM)**: ✅ Completed
 - **Project Genesis Integration**: ✅ Completed
 - **Location & Object Reference Sheets**: ✅ Completed
+- **Voice-Directed 3D Controls**: ✅ Completed (v3.2)
+- **Automated Visual Style Propagation**: ✅ Completed (v3.2)
 
 ### Performance Targets
 - Build Time: < 10 seconds ✅

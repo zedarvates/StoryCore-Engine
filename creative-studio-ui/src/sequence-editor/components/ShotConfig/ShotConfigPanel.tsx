@@ -14,6 +14,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
+import { useStore as useMainStore } from '../../../store';
 import { useToast } from '@/hooks/use-toast';
 import { updateShot } from '../../store/slices/timelineSlice';
 import { ShotConfigDropTarget } from './ShotConfigDropTarget';
@@ -33,6 +34,7 @@ import './shotConfigPanel.css';
 
 interface ShotModifications {
   prompt?: string;
+  animationPrompt?: string;
   referenceImages?: ReferenceImage[];
   seed?: number;
   denoising?: number;
@@ -57,7 +59,9 @@ export const ShotConfigPanel: React.FC = () => {
   const { toast } = useToast();
 
   // Redux state
-  const { shots, selectedElements, sequences, currentSequenceId } = useAppSelector((state) => state.timeline);
+  const { shots, selectedElements, currentSequenceId } = useAppSelector((state) => state.timeline);
+  const mainProject = useMainStore((state) => state.project);
+  const globalStyle = mainProject?.projectSetup?.visualStyle || 'cinematic';
 
   // Get selected shot
   const selectedShot = shots.find((shot: Shot) => selectedElements.includes(shot.id));
@@ -132,34 +136,174 @@ export const ShotConfigPanel: React.FC = () => {
     }
   };
 
-  const handleGenerateImage = useCallback(async () => {
+  const handleGenerateImageFrom3D = useCallback(async () => {
     if (!selectedShot) return;
     setIsGeneratingImage(true);
     try {
-      // TODO: Implement actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast({ title: 'Image Generation', description: 'Reference image generation started.' });
-      handleApply(); // Save changes first just in case
+      toast({ title: 'Génération', description: 'Capture de la scène 3D et génération de l\'image en cours...' });
+
+      // 1. Récupérer l'image du canvas WebGL (React-Three-Fiber ou fallback 2D)
+      const canvasElement = document.getElementById('fiber-scene-canvas') as HTMLCanvasElement 
+                         || document.querySelector('.scene-view-context canvas') as HTMLCanvasElement;
+                         
+      if (!canvasElement) {
+        throw new Error("Canvas 3D introuvable dans le DOM. Veuillez ouvrir l'onglet de vue 3D.");
+      }
+
+      const base64Image = canvasElement.toDataURL('image/png');
+
+      // 2. Envoyer en img2img avec le prompt vers l'API
+      const response = await fetch('/api/addons/grok-imagine/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scene: {
+            description: modifications.prompt || selectedShot.prompt,
+            aspect_ratio: '16:9',
+            style: globalStyle,
+            reference_image_url: base64Image
+          },
+          config_overrides: {
+            model: 'grok-3.1-fast',
+            enable_motion: false,
+            image_strength: modifications.denoising || selectedShot.parameters?.denoising || 0.75
+          }
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success' && result.images && result.images.length > 0) {
+        const newRef: ReferenceImage = {
+          id: crypto.randomUUID(),
+          url: result.images[0],
+          source: 'generated',
+          weight: 1
+        };
+        
+        setModifications(prev => ({
+          ...prev,
+          referenceImages: [...(prev.referenceImages || []), newRef]
+        }));
+        
+        dispatch(
+          updateShot({
+            id: selectedShot.id,
+            updates: {
+              referenceImages: [...(selectedShot.referenceImages || []), newRef]
+            },
+          })
+        );
+        toast({ title: 'Succès', description: 'Image de référence générée depuis la 3D.' });
+      } else {
+        throw new Error(result.error || 'No images returned');
+      }
+
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to generate image', variant: 'destructive' });
+      console.error(error);
+      const msg = error instanceof Error ? error.message : 'Échec de la génération via 3D';
+      toast({ title: 'Erreur', description: msg, variant: 'destructive' });
     } finally {
       setIsGeneratingImage(false);
     }
-  }, [selectedShot, toast]);
+  }, [selectedShot, modifications, dispatch, toast, globalStyle]);
+
+  const handleGenerateImageFromPrompt = useCallback(async () => {
+    if (!selectedShot) return;
+    setIsGeneratingImage(true);
+    try {
+      toast({ title: 'Génération', description: 'Génération de l\'image de référence via le prompt...' });
+      
+      const response = await fetch('/api/addons/grok-imagine/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scene: {
+            description: modifications.prompt || selectedShot.prompt,
+            aspect_ratio: '16:9',
+            style: globalStyle
+          },
+          config_overrides: {
+            model: 'grok-3.1-fast',
+            enable_motion: false
+          }
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success' && result.images && result.images.length > 0) {
+        const newRef: ReferenceImage = {
+          id: crypto.randomUUID(),
+          url: result.images[0],
+          source: 'generated',
+          weight: 1
+        };
+        
+        // Add new reference image to current modifications or directly update shot
+        setModifications(prev => ({
+          ...prev,
+          referenceImages: [...(prev.referenceImages || []), newRef]
+        }));
+        
+        dispatch(
+          updateShot({
+            id: selectedShot.id,
+            updates: {
+              referenceImages: [...(selectedShot.referenceImages || []), newRef]
+            },
+          })
+        );
+        toast({ title: 'Succès', description: 'Image de référence générée depuis le prompt.' });
+      } else {
+        throw new Error(result.error || 'No images returned');
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ title: 'Erreur', description: 'Échec de la génération via prompt', variant: 'destructive' });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  }, [selectedShot, modifications, dispatch, toast, globalStyle]);
 
   const handleGenerateVideo = useCallback(async () => {
     if (!selectedShot) return;
     setIsGeneratingVideo(true);
     try {
-      // TODO: Implement actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast({ title: 'Video Generation', description: 'Video generation started.' });
+      toast({ title: 'Vidéo', description: 'Création de la vidéo avec le prompt d\'animation...' });
+      
+      const response = await fetch('/api/addons/grok-imagine/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scene: {
+            description: modifications.animationPrompt || selectedShot.animationPrompt || modifications.prompt || selectedShot.prompt,
+            aspect_ratio: '16:9',
+            style: globalStyle
+          },
+          config_overrides: {
+            model: 'grok-3.1-fast',
+            enable_motion: true,
+            duration_seconds: 6
+          }
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success' && result.video) {
+        // Enregistrer la vidéo générée dans le projet
+        toast({ title: 'Succès', description: 'Vidéo générée avec succès.' });
+      } else {
+        throw new Error(result.error || 'No video returned');
+      }
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to generate video', variant: 'destructive' });
+      console.error(error);
+      toast({ title: 'Erreur', description: 'Échec de la génération de la vidéo', variant: 'destructive' });
     } finally {
       setIsGeneratingVideo(false);
     }
-  }, [selectedShot, toast]);
+  }, [selectedShot, modifications, toast, globalStyle]);
 
   const handleGenerateAudio = useCallback(async () => {
     if (!selectedShot) return;
@@ -168,7 +312,7 @@ export const ShotConfigPanel: React.FC = () => {
       // TODO: Implement actual API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       toast({ title: 'Audio Generation', description: 'Audio generation started.' });
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to generate audio', variant: 'destructive' });
     } finally {
       setIsGeneratingAudio(false);
@@ -176,16 +320,8 @@ export const ShotConfigPanel: React.FC = () => {
   }, [selectedShot, toast]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load inherited references when shot changes
-  useEffect(() => {
-    if (selectedShot && currentSequenceId) {
-      loadInheritedReferences();
-      loadConsistencyInfo();
-    }
-  }, [selectedShot?.id, currentSequenceId]);
-
   // Load inherited references
-  const loadInheritedReferences = async () => {
+  const loadInheritedReferences = useCallback(async () => {
     if (!selectedShot) return;
 
     setIsLoading(true);
@@ -233,10 +369,10 @@ export const ShotConfigPanel: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedShot]);
 
   // Load consistency info
-  const loadConsistencyInfo = async () => {
+  const loadConsistencyInfo = useCallback(async () => {
     if (!selectedShot) return;
 
     try {
@@ -272,7 +408,15 @@ export const ShotConfigPanel: React.FC = () => {
     } catch (error) {
       console.error('Failed to load consistency info:', error);
     }
-  };
+  }, [selectedShot]);
+
+  // Load inherited references when shot changes
+  useEffect(() => {
+    if (selectedShot && currentSequenceId) {
+      loadInheritedReferences();
+      loadConsistencyInfo();
+    }
+  }, [selectedShot, currentSequenceId, loadInheritedReferences, loadConsistencyInfo]);
 
   // Apply inherited references
   const handleApplyInherited = useCallback(() => {
@@ -300,6 +444,7 @@ export const ShotConfigPanel: React.FC = () => {
     if (selectedShot) {
       setModifications({
         prompt: selectedShot.prompt,
+        animationPrompt: selectedShot.animationPrompt,
         referenceImages: selectedShot.referenceImages || [],
         seed: selectedShot.parameters.seed,
         denoising: selectedShot.parameters.denoising,
@@ -308,12 +453,17 @@ export const ShotConfigPanel: React.FC = () => {
       });
       setHasModifications(false);
     }
-  }, [selectedShot?.id, selectedShot?.prompt, selectedShot?.referenceImages]);
+  }, [selectedShot]);
 
-  // Handle prompt change
   const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newPrompt = e.target.value;
     setModifications((prev) => ({ ...prev, prompt: newPrompt }));
+    setHasModifications(true);
+  }, []);
+
+  const handleAnimationPromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newPrompt = e.target.value;
+    setModifications((prev) => ({ ...prev, animationPrompt: newPrompt }));
     setHasModifications(true);
   }, []);
 
@@ -373,6 +523,7 @@ export const ShotConfigPanel: React.FC = () => {
       id: selectedShot.id,
       updates: {
         prompt: modifications.prompt,
+        animationPrompt: modifications.animationPrompt,
         referenceImages: modifications.referenceImages,
         parameters: {
           ...selectedShot.parameters,
@@ -393,6 +544,7 @@ export const ShotConfigPanel: React.FC = () => {
 
     setModifications({
       prompt: selectedShot.prompt,
+      animationPrompt: selectedShot.animationPrompt,
       referenceImages: selectedShot.referenceImages || [],
       seed: selectedShot.parameters.seed,
       denoising: selectedShot.parameters.denoising,
@@ -637,7 +789,7 @@ export const ShotConfigPanel: React.FC = () => {
         {/* Prompt Editor */}
         <div className="config-section">
           <div className="section-header">
-            <h4 className="section-title">Prompt</h4>
+            <h4 className="section-title">Prompt Image</h4>
             <span className="char-count">{promptLength} characters</span>
           </div>
 
@@ -645,8 +797,21 @@ export const ShotConfigPanel: React.FC = () => {
             className="prompt-editor"
             value={modifications.prompt || ''}
             onChange={handlePromptChange}
-            placeholder="Describe the shot in detail..."
-            rows={6}
+            placeholder="Describe the image in detail..."
+            rows={4}
+          />
+          
+          <div className="section-header" style={{ marginTop: '16px' }}>
+            <h4 className="section-title">Prompt Animation</h4>
+            <span className="char-count">{modifications.animationPrompt?.length || 0} characters</span>
+          </div>
+
+          <textarea
+            className="prompt-editor"
+            value={modifications.animationPrompt || ''}
+            onChange={handleAnimationPromptChange}
+            placeholder="Describe the animation or motion in detail..."
+            rows={4}
           />
           
           {/* Generate Button - positioned under the prompt editor */}
@@ -733,36 +898,46 @@ export const ShotConfigPanel: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="config-actions">
-          <div className="generation-actions" style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #333', paddingBottom: '16px', width: '100%' }}>
+          <div className="generation-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #333', paddingBottom: '16px', width: '100%' }}>
             <button
               className="action-btn"
-              onClick={handleGenerateImage}
+              onClick={handleGenerateImageFrom3D}
               disabled={isGeneratingImage}
-              title="Generate Reference Image"
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
+              title="Générer l'image par rapport à la scène 3D"
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
             >
               <ImageIcon size={16} />
-              <span style={{ fontSize: '10px' }}>Image</span>
+              <span style={{ fontSize: '10px', textAlign: 'center' }}>Générer Image via Scène 3D</span>
+            </button>
+            <button
+              className="action-btn"
+              onClick={handleGenerateImageFromPrompt}
+              disabled={isGeneratingImage}
+              title="Générer l'image de sous référence par rapport au prompt"
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
+            >
+              <ImageIcon size={16} />
+              <span style={{ fontSize: '10px', textAlign: 'center' }}>Générer Image via Prompt</span>
             </button>
             <button
               className="action-btn"
               onClick={handleGenerateVideo}
               disabled={isGeneratingVideo}
-              title="Generate Video"
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
+              title="Générer la vidéo par rapport à l'image"
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
             >
               <VideoIcon size={16} />
-              <span style={{ fontSize: '10px' }}>Video</span>
+              <span style={{ fontSize: '10px', textAlign: 'center' }}>Générer Vidéo via Image</span>
             </button>
             <button
               className="action-btn"
               onClick={handleGenerateAudio}
               disabled={isGeneratingAudio}
-              title="Generate Audio"
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
+              title="Générer l'audio"
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
             >
               <AudioIcon size={16} />
-              <span style={{ fontSize: '10px' }}>Audio</span>
+              <span style={{ fontSize: '10px', textAlign: 'center' }}>Audio</span>
             </button>
           </div>
           {/* New button to convert shot to puppet */}

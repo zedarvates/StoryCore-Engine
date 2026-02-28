@@ -6,7 +6,7 @@
  * 
  * File: creative-studio-ui/src/components/location/LocationEditor.tsx
  */
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Save, X, Info, Box, Image as ImageIcon, Map, Layers, Eye, Images, MessageSquare, RefreshCw } from 'lucide-react';
 import type { Location, LocationType, CubeFace } from '@/types/location';
 import { useLocationStore } from '@/stores/locationStore';
@@ -17,6 +17,7 @@ import { PromptsManager } from '../common/PromptsManager';
 import { assetCreatorService } from '@/services/assetCreatorService';
 import { notificationService } from '@/services/NotificationService';
 import { buildVisualPromptForLocation } from '@/lib/promptUtils';
+import { Scene3DGenerationPipeline, Scene3DGenerationState } from '@/services/ai/Scene3DGenerationPipeline';
 import './LocationEditor.css';
 
 export interface LocationEditorProps {
@@ -51,6 +52,8 @@ export function LocationEditor({
   const [isDirty, setIsDirty] = useState(false);
   const [activeCubeFace, setActiveCubeFace] = useState<CubeFace>('front');
   const [isLoading, setIsLoading] = useState(false);
+  const [pipelineState, setPipelineState] = useState<Scene3DGenerationState | null>(null);
+  const [isGenerating3DScene, setIsGenerating3DScene] = useState(false);
 
   const cubeFaces: CubeFace[] = useMemo(() => ['front', 'back', 'left', 'right', 'top', 'bottom'], []);
 
@@ -101,7 +104,7 @@ export function LocationEditor({
     setIsLoading(true);
     try {
       const type = locationType === 'interior' ? 'room' : 'corridor';
-      const result = await assetCreatorService.generateBoxScene(type as any, {
+      const result = await assetCreatorService.generateBoxScene(type as 'room' | 'corridor', {
         name,
         dimensions: [10, 4, 10],
       });
@@ -120,6 +123,31 @@ export function LocationEditor({
       setIsLoading(false);
     }
   }, [currentLocation, name, locationType]);
+
+  const handleGenerate3DScene = useCallback(async () => {
+    if (!currentLocation) return;
+    setIsGenerating3DScene(true);
+    setPipelineState({ status: 'idle', progress: 0, message: 'Initialisation...' });
+
+    try {
+      const result = await Scene3DGenerationPipeline.buildSceneFromLocation(
+        currentLocation,
+        { mode: 'isometric', extractBuildingsIndividually: true },
+        (state) => setPipelineState(state)
+      );
+      
+      notificationService.success('Scène 3D générée', 'La scène a été composée avec succès dans la vue 3D.');
+      console.log('Generated Scene Elements:', result);
+      // À l'avenir, on pourrait stocker ces infos dans location.metadata.scene3d_data
+      
+    } catch (err) {
+      console.error('Failed to generate 3D scene:', err);
+      notificationService.error('Erreur', 'Impossible de générer la scène 3D.');
+      setPipelineState({ status: 'error', progress: 0, message: 'Erreur lors de la génération' });
+    } finally {
+      setIsGenerating3DScene(false);
+    }
+  }, [currentLocation]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -143,13 +171,13 @@ export function LocationEditor({
     { id: 'scene', label: 'Scene', icon: Map },
     { id: 'images', label: 'Images', icon: Images },
     { id: 'prompts', label: 'Prompts', icon: MessageSquare },
-  ];
+  ] as const;
 
   return (
     <div className={`location-editor ${mode === 'full' ? 'location-editor--full' : ''}`}>
       <div className="location-editor__tabs">
         {tabs.map((tab) => (
-          <button key={tab.id} className={`location-editor__tab ${activeTab === tab.id ? 'location-editor__tab--active' : ''}`} onClick={() => setActiveTab(tab.id as any)}>
+          <button key={tab.id} className={`location-editor__tab ${activeTab === tab.id ? 'location-editor__tab--active' : ''}`} onClick={() => setActiveTab(tab.id)}>
             <tab.icon size={16} />
             <span>{tab.label}</span>
           </button>
@@ -202,12 +230,44 @@ export function LocationEditor({
         )}
 
         {activeTab === 'scene' && currentLocation && (
-          <div className="location-editor__scene-panel">
-            <h3>3D Layout Generation</h3>
-            <button onClick={handleGenerateLayout} disabled={isLoading} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', backgroundColor: '#00d4ff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-              {isLoading ? <RefreshCw size={16} className="spin" /> : <Box size={16} />}
-              Generate Blender Layout
-            </button>
+          <div className="location-editor__scene-panel" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div>
+              <h3>3D Layout Generation (Old Method)</h3>
+              <button onClick={handleGenerateLayout} disabled={isLoading || isGenerating3DScene} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '10px' }}>
+                {isLoading ? <RefreshCw size={16} className="spin" /> : <Box size={16} />}
+                Generate Blender Layout
+              </button>
+            </div>
+
+            <div style={{ padding: '20px', backgroundColor: '#1e1e24', borderRadius: '8px', border: '1px solid #333' }}>
+              <h3 style={{ margin: '0 0 10px 0', color: '#4A90E2', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Layers size={20} /> Pipeline Avancé : Génération Scène 3D (Iso)
+              </h3>
+              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '15px' }}>
+                Ce pipeline génère un décor top-down avec splat mapping, détecte les bâtiments et arbres, efface les éléments mobiles, et recompose tout en 3D.
+              </p>
+              
+              <button 
+                onClick={handleGenerate3DScene} 
+                disabled={isGenerating3DScene} 
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', backgroundColor: isGenerating3DScene ? '#555' : '#4A90E2', color: '#fff', border: 'none', borderRadius: '4px', cursor: isGenerating3DScene ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+              >
+                {isGenerating3DScene ? <RefreshCw size={16} className="spin" /> : <Map size={16} />}
+                {isGenerating3DScene ? 'Génération en cours...' : 'Créer la Scène du Lieu'}
+              </button>
+
+              {pipelineState && (
+                <div style={{ marginTop: '20px', background: '#111', padding: '15px', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', color: '#ddd' }}>
+                    <span>{pipelineState.message}</span>
+                    <span>{pipelineState.progress}%</span>
+                  </div>
+                  <div style={{ width: '100%', height: '8px', background: '#333', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${pipelineState.progress}%`, height: '100%', background: pipelineState.status === 'error' ? '#e74c3c' : '#2ecc71', transition: 'width 0.3s ease' }}></div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

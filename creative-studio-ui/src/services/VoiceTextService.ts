@@ -9,6 +9,8 @@
 import { notificationService } from './NotificationService';
 import { LanguageCode } from '@/utils/llmConfigStorage';
 
+import { VOICE_COMMANDS_DATA, type VoiceCommandDef } from '../data/voiceCommands';
+
 // Use any type for browser Web Speech APIs to avoid type conflicts
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -29,6 +31,15 @@ export interface VoiceSettings {
   voiceActivationKeyword: string;
   continuousListening: boolean;
   activationHotkey: VoiceHotkeyConfig;
+  // Discord-style settings
+  inputMode: 'voice-activity' | 'push-to-talk';
+  inputSensitivity: number; // 0 - 100
+  inputDevice: string;
+  noiseSuppression: boolean;
+  echoCancellation: boolean;
+  autoGainControl: boolean;
+  commandPrefix: string; // e.g. "slash"
+  pttKeybind: string; // Key for Push-to-Talk
 }
 
 export interface SpeechRecognitionResult {
@@ -38,9 +49,8 @@ export interface SpeechRecognitionResult {
   language: LanguageCode;
 }
 
-export interface VoiceCommand {
-  command: string;
-  action: () => void;
+export interface VoiceCommand extends VoiceCommandDef {
+  action: (transcript?: string) => void;
   keywords: string[];
   description: string;
 }
@@ -76,11 +86,17 @@ export class VoiceTextService {
   private retryTimeout: ReturnType<typeof setTimeout> | null = null;
   private lastNetworkErrorTime = 0;
   private isRetrying = false;
+  // Audio analysis for volume levels
+  private audioContext: AudioContext | null = null;
+  private analyser: AnalyserNode | null = null;
+  private stream: MediaStream | null = null;
+  private volumeLevel = 0;
 
   private constructor() {
     this.settings = this.loadSettings();
     this.initializeAPIs();
     this.setupVoiceCommands();
+    this.setupGlobalShortcuts();
   }
 
   static getInstance(): VoiceTextService {
@@ -88,6 +104,74 @@ export class VoiceTextService {
       VoiceTextService.instance = new VoiceTextService();
     }
     return VoiceTextService.instance;
+  }
+
+  /**
+   * Configure les raccourcis globaux (PTT)
+   */
+  private setupGlobalShortcuts(): void {
+    if (typeof window === 'undefined') return;
+
+    // Handle Control key and custom PTT key for voice activation
+    const handlePTTDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input field
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      // Eviter le déclenchement en boucle lors d'un appui long
+      if (e.repeat) return;
+
+      const isControl = e.key === 'Control';
+      const isCustomPTT = this.settings.inputMode === 'push-to-talk' && e.code === this.settings.pttKeybind;
+
+      if (isControl || isCustomPTT) {
+        if (!this.isListening) {
+          // Si c'est Control, on preventDefault pour éviter les comportements système indésirables
+          if (isControl) e.preventDefault();
+          
+          window.dispatchEvent(new CustomEvent('storycore:voice-ptt-start'));
+          this.startListening({
+            onStart: () => {
+              this.isListening = true;
+              window.dispatchEvent(new CustomEvent('storycore:voice-state', { detail: { isListening: true } }));
+            },
+            onResult: (res) => {
+              if (res.isFinal) {
+                window.dispatchEvent(new CustomEvent('storycore:voice-ptt-result', { detail: res.transcript }));
+              }
+            },
+            onError: (err) => {
+              console.error(err);
+              this.isListening = false;
+              window.dispatchEvent(new CustomEvent('storycore:voice-state', { detail: { isListening: false } }));
+            },
+            onEnd: () => {
+              this.isListening = false;
+              window.dispatchEvent(new CustomEvent('storycore:voice-state', { detail: { isListening: false } }));
+            },
+          });
+        }
+      }
+    };
+
+    const handlePTTUp = (e: KeyboardEvent) => {
+      const isControl = e.key === 'Control';
+      const isCustomPTT = this.settings.inputMode === 'push-to-talk' && e.code === this.settings.pttKeybind;
+
+      if (isControl || isCustomPTT) {
+        if (this.isListening) {
+          // On laisse un petit délai pour capturer les derniers mots
+          setTimeout(() => {
+            this.stopListening();
+          }, 300);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handlePTTDown);
+    window.addEventListener('keyup', handlePTTUp);
   }
 
   /**
@@ -139,19 +223,28 @@ export class VoiceTextService {
 
     this.speechRecognition.onresult = (event: any) => {
       const result = event.results[event.results.length - 1];
-      const transcript = result[0].transcript;
+      let transcript = result[0].transcript;
       const confidence = result[0].confidence;
 
-      this.recognitionCallbacks?.onResult({
-        transcript,
-        confidence,
-        isFinal: result.isFinal,
-        language: this.settings.inputLanguage
-      });
-
-      // Vérifier les commandes vocales
+      // Appliquer la correction contextuelle intelligente
       if (result.isFinal) {
-        this.processVoiceCommand(transcript);
+        transcript = this.correctTranscript(transcript);
+      }
+
+      // Vérifier si c'est une commande vocale (Protocole Carotte)
+      let handled = false;
+      if (result.isFinal) {
+        handled = this.processVoiceCommand(transcript);
+      }
+
+      // Si ce n'est pas une commande, envoyer le résultat pour la dictée
+      if (!handled) {
+        this.recognitionCallbacks?.onResult({
+          transcript,
+          confidence,
+          isFinal: result.isFinal,
+          language: this.settings.inputLanguage
+        });
       }
     };
 
@@ -213,6 +306,7 @@ export class VoiceTextService {
     };
   }
 
+
   /**
    * Charge les paramètres
    */
@@ -228,10 +322,18 @@ export class VoiceTextService {
       voiceActivationKeyword: 'hé ros',
       continuousListening: false,
       activationHotkey: {
-        key: 'Space',
-        modifier: 'alt',
+        key: 'Control',
+        modifier: 'none',
         enabled: true
-      }
+      },
+      inputMode: 'voice-activity',
+      inputSensitivity: 50,
+      inputDevice: 'default',
+      noiseSuppression: true,
+      echoCancellation: true,
+      autoGainControl: false,
+      commandPrefix: 'slash',
+      pttKeybind: 'KeyV'
     };
 
     try {
@@ -250,74 +352,138 @@ export class VoiceTextService {
     this.settings = { ...this.settings, ...settings };
     localStorage.setItem('voice-settings', JSON.stringify(this.settings));
 
-    // Reconfigurer la reconnaissance si la langue a changé
-    if (settings.inputLanguage) {
+    // Reconfigurer la reconnaissance si la langue ou le mode a changé
+    if (settings.inputLanguage || settings.continuousListening !== undefined) {
       this.configureSpeechRecognition();
+      this.setupVoiceCommands();
     }
   }
 
   /**
-   * Configure les commandes vocales
+   * Configure les commandes vocales basées sur les données partagées
    */
   private setupVoiceCommands(): void {
-    this.voiceCommands = [
-      {
-        command: 'envoyer',
-        action: () => {
-          // Simuler l'envoi du message
-          const sendButton = document.querySelector('button[aria-label="Send message"]') as HTMLButtonElement;
-          sendButton?.click();
-        },
-        keywords: ['envoyer', 'envoyez', 'send', 'submit'],
-        description: 'Envoyer le message actuel'
-      },
-      {
-        command: 'effacer',
-        action: () => {
-          // Effacer le texte
-          const textarea = document.querySelector('textarea[aria-label="Message input"]') as HTMLTextAreaElement;
-          if (textarea) {
-            textarea.value = '';
-            textarea.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-        },
-        keywords: ['effacer', 'clear', 'delete', 'supprimer'],
-        description: 'Effacer le texte saisi'
-      },
-      {
-        command: 'suggestions',
-        action: () => {
-          // Basculer l'affichage des suggestions
-          const suggestionsButton = document.querySelector('button[title*="suggestions"]') as HTMLButtonElement;
-          suggestionsButton?.click();
-        },
-        keywords: ['suggestions', 'conseils', 'aide'],
-        description: 'Afficher/masquer les suggestions'
-      },
-      {
-        command: 'améliorer',
-        action: () => {
-          // Déclencher l'amélioration IA
-          const enhanceButton = document.querySelector('button[aria-label*="améliorer"]') as HTMLButtonElement;
-          enhanceButton?.click();
-        },
-        keywords: ['améliorer', 'enhance', 'improve'],
-        description: 'Améliorer le texte avec IA'
-      },
-      {
-        command: 'parler',
-        action: () => {
-          // Activer/désactiver la synthèse vocale
-          this.settings.autoSpeakResponses = !this.settings.autoSpeakResponses;
-          notificationService.info(
-            'Synthèse vocale',
-            `Synthèse vocale ${this.settings.autoSpeakResponses ? 'activée' : 'désactivée'}`
-          );
-        },
-        keywords: ['parler', 'speak', 'voice', 'talk'],
-        description: 'Activer/désactiver la synthèse vocale'
+    // Mapper les données partagées vers des actions concrètes
+    this.voiceCommands = VOICE_COMMANDS_DATA.map(def => {
+      return {
+        ...def,
+        keywords: this.settings.inputLanguage === 'fr' ? def.keywordsFr : def.keywordsEn,
+        description: this.settings.inputLanguage === 'fr' ? def.descriptionFr : def.descriptionEn,
+        action: (transcript?: string) => this.executeAction(def.id, transcript)
+      };
+    });
+  }
+
+  /**
+   * Exécute une action basée sur l'ID de commande
+   */
+  private executeAction(id: string, transcript?: string): void {
+    switch (id) {
+      case 'undo':
+        window.dispatchEvent(new CustomEvent('storycore-undo'));
+        break;
+      case 'redo':
+        window.dispatchEvent(new CustomEvent('storycore-redo'));
+        break;
+      case 'save':
+        window.dispatchEvent(new CustomEvent('storycore-save'));
+        break;
+      case 'help':
+        (document.querySelector('.llm-sidebar-header') as HTMLElement)?.click();
+        break;
+      case 'generate-image':
+        window.dispatchEvent(new CustomEvent('storycore-generate-image'));
+        break;
+      case 'correct-last':
+        window.dispatchEvent(new CustomEvent('storycore-correct-last-word'));
+        break;
+      case 'capture-screen':
+        window.dispatchEvent(new CustomEvent('storycore:capture-screen'));
+        break;
+      case 'add-object':
+        window.dispatchEvent(new CustomEvent('storycore:add-object', { detail: { transcript } }));
+        break;
+      case 'change-lighting':
+        window.dispatchEvent(new CustomEvent('storycore:change-lighting', { detail: { transcript } }));
+        break;
+      case 'add-camera':
+        window.dispatchEvent(new CustomEvent('storycore:add-camera', { detail: { transcript } }));
+        break;
+      default:
+        console.warn(`Action non implémentée pour la commande: ${id}`);
+    }
+  }
+
+  /**
+   * Démarre l'analyse audio pour le retour visuel
+   */
+  private async startAudioAnalysis(): Promise<void> {
+    try {
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-    ];
+
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
+      this.stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: this.settings.echoCancellation,
+          noiseSuppression: this.settings.noiseSuppression,
+          autoGainControl: this.settings.autoGainControl,
+        } 
+      });
+
+      const source = this.audioContext.createMediaStreamSource(this.stream);
+      this.analyser = this.audioContext.createAnalyser();
+      this.analyser.fftSize = 256;
+      source.connect(this.analyser);
+
+      const bufferLength = this.analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const updateVolume = () => {
+        if (!this.analyser || !this.isListening) {
+          this.volumeLevel = 0;
+          return;
+        }
+        
+        this.analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
+        this.volumeLevel = (average / 128) * 100; // Normalisé 0-100
+
+        if (this.isListening) {
+          requestAnimationFrame(updateVolume);
+        }
+      };
+
+      updateVolume();
+    } catch (err) {
+      console.error('[VoiceTextService] Failed to start audio analysis:', err);
+    }
+  }
+
+  /**
+   * Arrête l'analyse audio
+   */
+  private stopAudioAnalysis(): void {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+    this.volumeLevel = 0;
+  }
+
+  /**
+   * Obtient le niveau de volume actuel (0-100)
+   */
+  getVolumeLevel(): number {
+    return this.volumeLevel;
   }
 
   /**
@@ -351,6 +517,7 @@ export class VoiceTextService {
 
     try {
       this.speechRecognition.start();
+      this.startAudioAnalysis();
       return true;
     } catch {
       callbacks.onError('Impossible de démarrer la reconnaissance vocale');
@@ -364,6 +531,7 @@ export class VoiceTextService {
   stopListening(): void {
     if (this.speechRecognition && this.isListening) {
       this.speechRecognition.stop();
+      this.stopAudioAnalysis();
     }
   }
 
@@ -509,44 +677,104 @@ export class VoiceTextService {
   /**
    * Traite une commande vocale
    */
-  private processVoiceCommand(transcript: string): void {
+  public processVoiceCommand(transcript: string): boolean {
     const lowerTranscript = transcript.toLowerCase().trim();
+    const prefix = this.settings.commandPrefix.toLowerCase();
 
-    // Vérifier le mot-clé d'activation
-    if (this.settings.voiceActivationKeyword &&
-        !lowerTranscript.includes(this.settings.voiceActivationKeyword.toLowerCase())) {
-      return;
+    // Vérifier si le transcript commence par le préfixe réservé (ex: "slash")
+    if (!lowerTranscript.startsWith(prefix)) {
+      return false; // Pas une commande, laisser comme dictée normale
     }
 
-    // Nettoyer le transcript du mot-clé
-    let cleanTranscript = lowerTranscript;
-    if (this.settings.voiceActivationKeyword) {
-      cleanTranscript = cleanTranscript.replace(this.settings.voiceActivationKeyword.toLowerCase(), '').trim();
-    }
+    // Nettoyer le transcript du préfixe
+    const cleanTranscript = lowerTranscript.substring(prefix.length).trim();
 
     // Trouver la commande correspondante
     for (const command of this.voiceCommands) {
       const hasKeyword = command.keywords.some(keyword =>
-        cleanTranscript.includes(keyword.toLowerCase())
+        cleanTranscript.startsWith(keyword.toLowerCase())
       );
 
       if (hasKeyword) {
         notificationService.info(
-          'Commande vocale exécutée',
-          `"${command.description}"`,
+          'Commande vocale StoryCore',
+          `Exécution : "${command.description}"`,
           [
             {
               label: 'Annuler',
-              action: () => {}, // Pourrait implémenter un undo
+              action: () => {}, 
               primary: true
             }
           ]
         );
 
-        command.action();
-        return;
+        command.action(cleanTranscript);
+        return true;
       }
     }
+
+    return false;
+  }
+
+  /**
+   * Corrige intelligemment le transcript (Protocole Carotte)
+   */
+  private correctTranscript(transcript: string): string {
+    let corrected = transcript.trim();
+
+    // 1. Supprimer les hésitations courantes
+    const hesitations = [
+      /\b(uhm|uh|euh|hmm|ah|oh)\b/gi,
+      /\.\.\./g,
+      /\s{2,}/g
+    ];
+
+    hesitations.forEach(regex => {
+      corrected = corrected.replace(regex, ' ').trim();
+    });
+
+    // 2. Correction des homophones et termes techniques (gaming/streaming)
+    const rules = this.getCorrectionRules(this.settings.inputLanguage);
+    
+    for (const [wrong, right] of Object.entries(rules)) {
+      const regex = new RegExp(`\\b${wrong}\\b`, 'gi');
+      corrected = corrected.replace(regex, right);
+    }
+
+    // 3. Capitalisation automatique si nécessaire
+    if (corrected.length > 0) {
+      corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
+    }
+
+    return corrected;
+  }
+
+  /**
+   * Fournit les règles de correction par langue
+   */
+  private getCorrectionRules(lang: LanguageCode): Record<string, string> {
+    const commonRules: Record<string, string> = {
+      'pouchtok': 'push-to-talk',
+      'stt': 'speech-to-text',
+      'tts': 'text-to-speech',
+    };
+
+    const languageSpecific: Record<string, Record<string, string>> = {
+      'fr': {
+        'story corps': 'StoryCore',
+        'story cord': 'StoryCore',
+        'pousse tout talk': 'push-to-talk',
+        'carrotte': 'Carrot',
+      },
+      'en': {
+        'story core': 'StoryCore',
+        'story chord': 'StoryCore',
+        'push to talk': 'push-to-talk',
+        'carrot protocol': 'Carrot Protocol',
+      }
+    };
+
+    return { ...commonRules, ...(languageSpecific[lang] || {}) };
   }
 
   /**
@@ -617,49 +845,6 @@ export class VoiceTextService {
       ko: 'ko-KR'
     };
     return languageMap[language] || 'fr-FR';
-  }
-
-  /**
-   * Teste la reconnaissance vocale
-   */
-  async testSpeechRecognition(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (!this.speechRecognition) {
-        resolve(false);
-        return;
-      }
-
-      const testCallbacks = {
-        onResult: (result: SpeechRecognitionResult) => {
-          if (result.isFinal && result.transcript.trim()) {
-            notificationService.success(
-              'Test réussi',
-              `Reconnaissance: "${result.transcript}" (${Math.round(result.confidence * 100)}% de confiance)`
-            );
-            this.stopListening();
-            resolve(true);
-          }
-        },
-        onError: (error: string) => {
-          notificationService.error('Test échoué', error);
-          resolve(false);
-        },
-        onStart: () => {
-          notificationService.info('Test en cours', 'Parlez maintenant...');
-        },
-        onEnd: () => {
-          resolve(false);
-        }
-      };
-
-      setTimeout(() => {
-        this.stopListening();
-        notificationService.warning('Test expiré', 'Aucune parole détectée');
-        resolve(false);
-      }, 5000);
-
-      this.startListening(testCallbacks);
-    });
   }
 
   /**

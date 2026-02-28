@@ -966,6 +966,10 @@ interface TimelineProps {
 | Document | Status | Last Updated |
 |----------|--------|--------------|
 | INDEX.md | ✅ Updated | Jan 23, 2026 |
+| **Q1 2026** | Recursive LLM Service (RLM) | ✅ Completed |
+| **Q1 2026** | Location & Object Reference Sheets | ✅ Completed |
+| **Q1 2026** | **Creative Studio v3.2: Voice & Style Synergy** | ✅ Completed |
+| **Q2 2026** | Advanced Video AI (Power Tools) | ✅ Completed |
 | ROADMAP.md | ✅ Updated | Jan 26, 2026 |
 | DOCUMENTATION_INDEX.md | ✅ Updated | Jan 26, 2026 |
 | CHANGELOG.md | ✅ Updated | Jan 26, 2026 |

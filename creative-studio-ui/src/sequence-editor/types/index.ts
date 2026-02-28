@@ -261,6 +261,7 @@ export interface Shot {
   layers: Layer[];
   referenceImages: ReferenceImage[];
   prompt: string;
+  animationPrompt?: string;
   parameters: GenerationParameters;
   generationStatus: 'pending' | 'processing' | 'complete' | 'error';
   outputPath?: string; // Path to generated media
@@ -286,7 +287,7 @@ export interface Shot {
 
   gltfPath?: string;
   referenceImage?: string;
-  sheet?: any;
+  sheet?: unknown;
 }
 
 export interface Track {
@@ -360,7 +361,7 @@ export interface TimelineState {
   selectedMarkers: string[]; // Selected marker IDs
 
   selectedRegions: string[]; // Selected region IDs
-  sequences?: any[];
+  sequences?: unknown[];
   currentSequenceId?: string;
 }
 

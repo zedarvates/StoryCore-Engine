@@ -1,5 +1,8 @@
 # 🎬 StoryCore Engine
-### The Self-Correcting Multimodal Production Pipeline
+
+## The Self-Correcting Multimodal Production Pipeline
+
+## Vision
 
 **From Script to Screen in Minutes — With Visual Coherence**
 
@@ -71,6 +74,7 @@ graph LR
 ## 📋 System Requirements
 
 ### Minimum Hardware
+
 - **GPU**: NVIDIA RTX 3060 with 12GB VRAM (RTX 4090+ recommended for speed)
 - **RAM**: 32GB system memory
 - **Storage**: ~500GB SSD (fast NVMe recommended)
@@ -84,28 +88,32 @@ graph LR
 
 ### Installation in 5 Minutes
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/zedarvates/StoryCore-Engine.git
-    cd storycore-engine
-    ```
+1. Clone the repository
 
-2.  **Install dependencies**
-    ```bash
-    pip install -r requirements.txt
-    npm install
-    ```
+   ```bash
+   git clone https://github.com/zedarvates/StoryCore-Engine.git
+   cd storycore-engine
+   ```
 
-3.  **Install ComfyUI (Optional but Recommended)**
-    - Download from [ComfyUI GitHub](https://github.com/comfyanonymous/ComfyUI)
-    - Default port: `8188`
+2. Install dependencies
 
-4.  **Start the Engine**
-    ```bash
-    python storycore.py
-    ```
+   ```bash
+   pip install -r requirements.txt
+   npm install
+   ```
+
+3. Install ComfyUI (Optional but Recommended)
+   - Download from [ComfyUI GitHub](https://github.com/comfyanonymous/ComfyUI)
+   - Default port: `8188`
+
+4. Start the Engine
+
+   ```bash
+   python storycore.py
+   ```
 
 ### Video Demo
+
 [![StoryCore Presentation Video]](https://www.youtube.com/watch?v=P0K7DueyICo)
 
 ---
@@ -123,24 +131,39 @@ graph LR
 ## ✨ Key Features
 
 ### 🎬 Video Generation
+
 - **Visual Coherence System**: Master Coherence Sheet ensures consistent style.
 - **Total Recall (Living Protocol)**: Persistent neural memory that captures stylistic decisions, character facts, and production rules as they emerge during chat or creation.
 - **Multimodal Vision Analysis**: Native support for analyzing reference images to extract visual archetypes, atmospheres, and cinematic styles.
 - **Multi-Model Support**: Flux, SDXL, NewBie, Qwen 2.5-VL, HunyuanVideo, Wan Video.
 - **Self-Correcting**: Automatic quality detection and auto-fix capability.
+- **Advanced Video AI (Power Tools)**:
+  - **Smart Zoom & Pan Scan**: Intelligent face-tracking and dynamic reframing (9:16 vertical video support).
+  - **Magic Mask**: AI-driven subject isolation and background removal.
+  - **Transcription & OCR Search**: Navigate and search your video timeline by spoken words or on-screen text.
+  - **Cinematic Flow**: Automated J-cuts and L-cuts for professional dialogue transitions.
+  - **Audio Mastering**: Auto-Ducking, Voice Isolation, and High-Fidelity Cinematic EQ presets.
+  - **VFX Polish**: Hellation, Color Isolation (Sin City style), and Dynamic Grain/Vignette.
+  - **Multi-Angle Camera**: Instant scene variations from different cinematic angles (Low/High/Aerial).
+  - **Voice-Directed 3D Controls (VDC)**: Orchestrate your 3D scene using natural language. Add objects (cars, props, NPCs), adjust camera distances, and change lighting modes (Dramatic, Night, Bright) in real-time.
+  - **Automated Visual Coherence**: The engine automatically injects your project's visual style into every generation, ensuring that all 3D-to-Image and Prompt-to-Video outputs strictly follow your artistic direction.
+  - **Character Consistency Sheets**: Effortless generation of Face/Profile/Back reference sheets for steady character design.
 
 ### 🛠 Neural Augmented Creation & Project Genesis
-*   **Context-Bound Intelligence**: Every created character, world, and story part is cross-referenced with the **Total Recall Working Context**, ensuring zero narrative drift.
-*   **Autonomous Genesis**: AI can now autonomously suggest names, archetypes, and lore based on the project's living protocol, transforming creative prompts into fully realized entities instantly.
-*   **Multi-Methodology Weaving**: From legacy sequential generation to advanced structured drafting, the methodology engine uses neural augmentation to maintain consistency across different creative workflows.
-*   **Vision-to-Asset Genesis**: Transform visual inspiration into persistent project assets (Characters, Worlds, Objects) with the integrated Multimodal Vision system.
+
+- **Context-Bound Intelligence**: Every created character, world, and story part is cross-referenced with the **Total Recall Working Context**, ensuring zero narrative drift.
+- **Autonomous Genesis**: AI can now autonomously suggest names, archetypes, and lore based on the project's living protocol, transforming creative prompts into fully realized entities instantly.
+- **Multi-Methodology Weaving**: From legacy sequential generation to advanced structured drafting, the methodology engine uses neural augmentation to maintain consistency across different creative workflows.
+- **Vision-to-Asset Genesis**: Transform visual inspiration into persistent project assets (Characters, Worlds, Objects) with the integrated Multimodal Vision system.
 
 ### ✍️ Story & Content Creation
+
 - **AI Dialogue**: Natural voice generation with emotion control.
 - **Background Music**: Automatic composition based on scene mood.
 - **Sound Effects**: Integrated SFX library and synchronization.
 
 ### 🛠️ Production Tools
+
 - **Neural Production Assistant**: AI-driven directorial advice and "Neural Manufacturing" workflow.
 - **Neural Brain**: Dedicated interface for managing persistent project insights and distilling "Living Protocols."
 - **Production Ledger**: A verified manifest of all AI-generated assets (Character Sheets, Style Guides, Lore fragments).
@@ -149,6 +172,7 @@ graph LR
 - **Production Guide**: Comprehensive shot recap with Technical Rig metadata (Lens, Sensor, Emotion).
 
 ### 🏗️ Architecture
+
 - **100% Local**: No external dependencies for core processing.
 - **Extensible**: Robust Add-on system for custom tools.
 - **Resilient**: Circuit breakers and retry mechanisms for long-running tasks.
@@ -218,6 +242,10 @@ graph TD
 | **Q1 2026** | Neural Augmented Creation & Project Genesis | ✅ Completed |
 | **Q1 2026** | Recursive LLM Service (RLM) | ✅ Completed |
 | **Q1 2026** | Location & Object Reference Sheets | ✅ Completed |
+| **Q1 2026** | **Creative Studio v3.2: Voice & Style Synergy** | ✅ Completed |
+| **Q2 2026** | Advanced Video AI (Power Tools) | ✅ Completed |
+| **Q2 2026** | Audio Mastering (Auto-Ducking/Isolation) | ✅ Completed |
+| **Q2 2026** | Multi-Angle & Character Consistency | ✅ Completed |
 | **Q2 2026** | Image Generation Dialog Enhancement | 🔄 In Progress |
 | **Q2 2026** | Multi-format Export (MP4/WebM) | 🔜 Planned |
 | **Q3 2026** | Collaborative Features | 📋 Backlog |
