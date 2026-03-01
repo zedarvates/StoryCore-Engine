@@ -131,6 +131,7 @@ const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'tools.batchGeneration': 'Lot',
     'tools.qualityAnalysis': 'Qualité',
     'tools.factCheck': 'Vérification',
+    'tools.tttLRM': 'Reconstruction tttLRM',
     
     // Help Menu (simplified)
     'help.documentation': 'Documentation',
@@ -280,6 +281,7 @@ const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'tools.batchGeneration': 'Batch',
     'tools.qualityAnalysis': 'Quality',
     'tools.factCheck': 'Verify',
+    'tools.tttLRM': 'tttLRM Reconstruction',
     
     // Help Menu (simplified)
     'help.documentation': 'Docs',
@@ -429,6 +431,7 @@ const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'tools.batchGeneration': 'Lote',
     'tools.qualityAnalysis': 'Calidad',
     'tools.factCheck': 'Verificar',
+    'tools.tttLRM': 'Reconstrucción tttLRM',
     
     // Help Menu (simplified)
     'help.documentation': 'Docs',

@@ -43,6 +43,7 @@ import { MarketingWizardModal } from '@/components/wizard/marketing/MarketingWiz
 import { ScenarioBuilderWizardModal } from '@/components/wizard/ScenarioBuilderWizardModal';
 import { DialogueBuilderWizardModal } from '@/components/wizard/DialogueBuilderWizardModal';
 import { ProjectTranslatorModal } from '@/components/wizard/ProjectTranslatorModal';
+import { TTTLRMModal } from '@/components/wizard/TTTLRMModal';
 import { LLMSettingsModal } from '@/components/settings/LLMSettingsModal';
 import { ComfyUISettingsModal } from '@/components/settings/ComfyUISettingsModal';
 import { GeneralSettingsWindow } from '@/components/configuration/GeneralSettingsWindow';
@@ -1071,8 +1072,11 @@ function AppContent() {
         isOpen={showProjectTranslator}
         onClose={() => setShowProjectTranslator(false)}
         projectId={project?.id || ''}
-        projectData={project}
+        projectData={project || {}}
       />
+
+      {/* tttLRM Reconstruction Modal */}
+      <TTTLRMModal />
 
       {/* Generic Wizard Modal (Requirements 1.2, 1.3, 1.4) */}
       <GenericWizardModal

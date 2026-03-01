@@ -679,6 +679,16 @@ const toolsMenuConfig: MenuConfig = {
       action: toolsActions.comfyuiServer,
     },
     {
+      id: 'ttt-lrm-reconstruction',
+      label: 'tools.tttLRM',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'box',
+      description: '3D Gaussian Splatting Reconstruction with tttLRM',
+      action: toolsActions.tttLRM,
+    },
+    {
       id: 'llm-configuration',
       label: 'tools.llmConfiguration',
       type: 'action',

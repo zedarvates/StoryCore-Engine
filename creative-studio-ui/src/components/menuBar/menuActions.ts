@@ -794,11 +794,17 @@ export const toolsActions = {
     store.setShowChat(true);
   },
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
   comfyuiServer(ctx: ActionContext): void {
     console.log('[MenuAction] ComfyUI Server');
     const store = useAppStore.getState();
     store.setShowComfyUISettings(true);
+  },
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  tttLRM(_ctx: ActionContext): void {
+    console.log('[MenuAction] tttLRM Reconstruction');
+    const store = useAppStore.getState();
+    store.setShowTTTLRMModal(true);
   },
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

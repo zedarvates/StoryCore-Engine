@@ -25,7 +25,8 @@ export type WizardType =
   | 'comic-to-sequence-wizard'
   | 'marketing-wizard'
   | 'discovery-lab'
-  | 'project-translator';
+  | 'project-translator'
+  | 'ttt-lrm';
 
 // Character filter types for character integration system
 // Requirements: 9.3
@@ -114,6 +115,7 @@ interface AppState {
   showMarketingWizard: boolean;
   showDiscoveryLab: boolean;
   showProjectTranslator: boolean;
+  showTTTLRMModal: boolean;
   marketingWizardContext: {
     projectId: string;
     projectName: string;
@@ -229,6 +231,7 @@ interface AppState {
   closeMarketingWizard: () => void;
   setShowDiscoveryLab: (show: boolean) => void;
   setShowProjectTranslator: (show: boolean) => void;
+  setShowTTTLRMModal: (show: boolean) => void;
   openSequencePlanWizard: (context?: SequencePlanWizardContext) => void;
   closeSequencePlanWizard: () => void;
   openShotWizard: (context?: ShotWizardContext) => void;
@@ -347,6 +350,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   marketingWizardContext: null,
   showDiscoveryLab: false,
   showProjectTranslator: false,
+  showTTTLRMModal: false,
 
   // Generic wizard forms initial state (simple forms in GenericWizardModal)
   showDialogueWriter: false,
@@ -491,6 +495,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (show) get().closeActiveWizard();
     set({ showProjectTranslator: show });
   },
+  setShowTTTLRMModal: (show) => {
+    if (show) get().closeActiveWizard();
+    set({ showTTTLRMModal: show });
+  },
   openSequencePlanWizard: (context) => {
     set({
       showSequencePlanWizard: true,
@@ -554,6 +562,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       ...(wizardType === 'audio-production-wizard' && { showAudioProductionWizard: true }),
       ...(wizardType === 'discovery-lab' && { showDiscoveryLab: true }),
       ...(wizardType === 'project-translator' && { showProjectTranslator: true }),
+      ...(wizardType === 'ttt-lrm' && { showTTTLRMModal: true }),
     }),
 
   // Close active wizard (Requirement 3.3)
@@ -575,6 +584,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       showAudioProductionWizard: false,
       showDiscoveryLab: false,
       showProjectTranslator: false,
+      showTTTLRMModal: false,
       activeWizardType: null,
     }),
 
