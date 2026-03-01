@@ -9,7 +9,7 @@ Generates complete character sheets from parsed prompts, including:
 """
 
 import uuid
-from typing import List, Dict
+from typing import List, Dict, Any
 from src.end_to_end.data_models import ParsedPrompt, Character, WorldConfig, CharacterInfo
 
 

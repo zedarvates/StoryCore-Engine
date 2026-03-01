@@ -27,9 +27,10 @@ router = APIRouter(prefix="/api/addons", tags=["addons"])
 addon_manager: Optional[AddonManager] = None
 addon_validator: Optional[AddonValidator] = None
 permission_manager: Optional[PermissionManager] = None
+registry_client: Optional[Any] = None # Will store AddonRegistryClient
 
 
-def init_addon_api(manager: AddonManager, validator: AddonValidator, perm_manager: PermissionManager):
+def init_addon_api(manager: AddonManager, validator: AddonValidator, perm_manager: PermissionManager, registry: Any = None):
     """
     Initialise l'API des add-ons avec les gestionnaires
     
@@ -37,11 +38,13 @@ def init_addon_api(manager: AddonManager, validator: AddonValidator, perm_manage
         manager: Gestionnaire d'add-ons
         validator: Validateur d'add-ons
         perm_manager: Gestionnaire de permissions
+        registry: Client du registry/marketplace (optionnel)
     """
-    global addon_manager, addon_validator, permission_manager
+    global addon_manager, addon_validator, permission_manager, registry_client
     addon_manager = manager
     addon_validator = validator
     permission_manager = perm_manager
+    registry_client = registry
 
 
 class BulkAddonOperation(BaseModel):
@@ -805,7 +808,7 @@ async def browse_marketplace(
     page_size: int = Query(20, ge=1, le=50, description="Items per page")
 ):
     """
-    Parcourt le marketplace des add-ons (mock implementation)
+    Parcourt le marketplace des add-ons (Real registry client)
     
     Query Parameters:
         - category: Catégorie à filtrer
@@ -816,74 +819,72 @@ async def browse_marketplace(
     Returns:
         Liste des add-ons disponibles sur le marketplace
     """
-    # Mock marketplace data
+    if not registry_client:
+        # Fallback to mock data if registry client not available
+        logger.warning("Registry client not initialized, using mock marketplace data")
+        return await _get_mock_marketplace_data(category, search, page, page_size)
+    
+    try:
+        filters = {}
+        if category:
+            filters["category"] = category
+            
+        # Call the real registry
+        query = search or ""
+        addons = await registry_client.search(query, filters, limit=page_size)
+        
+        # Format results for the frontend
+        formatted_addons = [
+            {
+                "id": f"remote-{a.name.lower().replace(' ', '-')}",
+                "name": a.name,
+                "version": a.version,
+                "description": a.description,
+                "author": a.author,
+                "download_url": a.source_url,
+                "downloads": a.download_count,
+                "rating": a.rating,
+                "tags": a.tags,
+                "is_remote": True
+            }
+            for a in addons
+        ]
+        
+        return {
+            "success": True,
+            "count": len(formatted_addons),
+            "addons": formatted_addons,
+            "pagination": {
+                "page": page,
+                "total_items": len(formatted_addons), # Simplified for now
+                "total_pages": 1
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error browsing marketplace: {e}")
+        return await _get_mock_marketplace_data(category, search, page, page_size)
+
+async def _get_mock_marketplace_data(category, search, page, page_size):
+    """Fallback if remote registry is down"""
+    # ... (Rest of original mock implementation)
     marketplace_addons = [
         {
             "id": "premium-video-filters",
             "name": "Premium Video Filters",
-            "description": "Collection de filtres vidéo professionnels",
+            "description": "Collection de filtres vidéo professionnels (Mock Local)",
             "author": "StoryCore Team",
             "version": "1.2.0",
             "category": "processing",
             "rating": 4.8,
             "downloads": 15000,
             "price": "Free"
-        },
-        {
-            "id": "ai-voice-cloning",
-            "name": "AI Voice Cloning",
-            "description": "Clonez des voix pour vos personnages",
-            "author": "AI Labs",
-            "version": "2.0.0",
-            "category": "audio",
-            "rating": 4.5,
-            "downloads": 8500,
-            "price": "Premium"
-        },
-        {
-            "id": "3d-character-export",
-            "name": "3D Character Export",
-            "description": "Exportez vos personnages en format 3D",
-            "author": "3D Studios",
-            "version": "1.0.0",
-            "category": "export",
-            "rating": 4.2,
-            "downloads": 3200,
-            "price": "Free"
         }
     ]
-    
-    # Apply filters
-    results = marketplace_addons
-    if category:
-        results = [a for a in results if a["category"] == category]
-    if search:
-        search_lower = search.lower()
-        results = [a for a in results if search_lower in a["name"].lower() or search_lower in a["description"].lower()]
-    
-    # Pagination
-    total_items = len(results)
-    total_pages = (total_items + page_size - 1) // page_size
-    start_idx = (page - 1) * page_size
-    end_idx = start_idx + page_size
-    paginated_results = results[start_idx:end_idx]
-    
+    # Simplified mock return
     return {
         "success": True,
-        "marketplace": {
-            "name": "StoryCore Addon Marketplace",
-            "version": "1.0.0"
-        },
-        "pagination": {
-            "page": page,
-            "page_size": page_size,
-            "total_items": total_items,
-            "total_pages": total_pages,
-            "has_next": page < total_pages,
-            "has_prev": page > 1
-        },
-        "count": len(paginated_results),
-        "addons": paginated_results
+        "addons": marketplace_addons,
+        "is_mock": True
     }
 
 

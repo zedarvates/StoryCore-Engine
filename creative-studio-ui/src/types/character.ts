@@ -28,7 +28,7 @@ export interface SheetImageData {
 export interface Character {
   character_id: string;
   name: string;
-  creation_method: 'wizard' | 'auto_generated' | 'manual';
+  creation_method: 'wizard' | 'auto_generated' | 'manual' | 'ai_vision';
   creation_timestamp: number; // timestamp in ms
   last_modified?: number; // timestamp in ms
   version: string;

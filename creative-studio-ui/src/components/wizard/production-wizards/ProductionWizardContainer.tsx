@@ -1,10 +1,11 @@
-import React, { ReactNode, useRef, useEffect, useState, useCallback } from 'react';
+import React, { ReactNode, useRef, useEffect, useState, useCallback, useContext } from 'react';
 import { AlertTriangle, Clock, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ProductionWizardStepIndicator } from './ProductionWizardStepIndicator';
 import { ProductionWizardNavigation } from './ProductionWizardNavigation';
 import { WizardStep } from '@/types';
-import { useWizard } from '@/contexts/WizardContext';
+import { WizardContext } from '@/contexts/WizardContext/useWizard';
+import { WizardContextState } from '@/contexts/WizardContext/types';
 import { useToast } from '@/hooks/use-toast';
 
 // ============================================================================
@@ -50,13 +51,13 @@ export function ProductionWizardContainer({
   const { toast } = useToast();
 
   // Fallback to wizard context if navigation props aren't provided
-  const wizardContext = useWizard();
+  const wizardContext = useContext(WizardContext) as WizardContextState<unknown> | null;
   const { 
     submitWizard, 
     isSubmitting: contextIsSubmitting, 
     validationErrors,
     lastSaved: contextLastSaved 
-  } = wizardContext;
+  } = wizardContext || {};
   const isSubmitting = contextIsSubmitting || false;
   const currentLastSaved = lastSaved || contextLastSaved || 0;
 
@@ -109,8 +110,8 @@ export function ProductionWizardContainer({
       }
     },
     nextStep: handleNextStep,
-    previousStep: onPreviousStep || (() => wizardContext.previousStep()),
-    goToStep: onGoToStep || ((step: number) => wizardContext.goToStep(step)),
+    previousStep: onPreviousStep || (() => wizardContext?.previousStep?.()),
+    goToStep: onGoToStep || ((step: number) => wizardContext?.goToStep?.(step)),
   };
 
   const handleSubmit = async () => {

@@ -2,7 +2,7 @@
 // MCP Settings Component
 // ============================================================================
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useMCPAddon, useMCPError } from './hooks';
 import type { MCPServerConfig } from '@/types/addons';
 import {
@@ -36,7 +36,6 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -91,7 +90,6 @@ export function MCPSettings({ className }: MCPSettingsProps) {
     updateServer,
     removeServer,
     testServer,
-    setSelectedServer,
   } = useMCPAddon();
 
   const { clearError } = useMCPError();
@@ -111,6 +109,8 @@ export function MCPSettings({ className }: MCPSettingsProps) {
       enabled: true,
     },
   });
+
+  if (!addon) return null;
 
   const handleSubmit = async (data: ServerFormData) => {
     try {
@@ -519,7 +519,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
                 <Input
                   id="defaultTimeout"
                   type="number"
-                  value={(addon.config as any).defaultTimeout || 30000}
+                  value={(addon.config as Record<string, number | string>).defaultTimeout || 30000}
                   onChange={(e) => handleConfigChange('defaultTimeout', Number(e.target.value))}
                   disabled={isLoading}
                 />
@@ -529,7 +529,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
                 <Input
                   id="maxConcurrent"
                   type="number"
-                  value={(addon.config as any).maxConcurrent || 5}
+                  value={(addon.config as Record<string, number | string>).maxConcurrent || 5}
                   onChange={(e) => handleConfigChange('maxConcurrent', Number(e.target.value))}
                   disabled={isLoading}
                 />
@@ -540,7 +540,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
               <Input
                 id="retryDelay"
                 type="number"
-                value={(addon.config as any).retryDelay || 1000}
+                value={(addon.config as Record<string, number | string>).retryDelay || 1000}
                 onChange={(e) => handleConfigChange('retryDelay', Number(e.target.value))}
                 disabled={isLoading}
               />
@@ -548,7 +548,7 @@ export function MCPSettings({ className }: MCPSettingsProps) {
             <div>
               <Label htmlFor="logLevel">Log Level</Label>
               <Select
-                value={(addon.config as any).logLevel || 'info'}
+                value={String((addon.config as Record<string, number | string>).logLevel || 'info')}
                 onValueChange={(value) => handleConfigChange('logLevel', value)}
                 disabled={isLoading}
               >

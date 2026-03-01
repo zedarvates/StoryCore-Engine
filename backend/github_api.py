@@ -408,10 +408,10 @@ def create_github_issue(
             except:
                 response_details = {"text": response.text[:200]}
             raise GitHubAPIError(
-                error_message=error_msg,
-                error_code=response.status_code,
-                response_details=response_details,
-                error_category="not_found"
+                message=error_msg,
+                error_code=GitHubAPIError.NOT_FOUND,
+                status_code=response.status_code,
+                response_details=response_details
             )
         
         elif response.status_code == 422:
@@ -421,7 +421,7 @@ def create_github_issue(
             except:
                 error_data = {"message": "Validation failed", "details": response.text[:200], "errors": []}
             
-            error_message = error_data.get("message", "Validation failed")
+            validation_message = error_data.get("message", "Validation failed")
             errors = error_data.get("errors", [])
             
             error_details = []
@@ -430,16 +430,16 @@ def create_github_issue(
                 code = error.get("code", "unknown")
                 error_details.append(f"{field}: {code}")
             
-            error_msg = f"GitHub validation failed: {error_message}"
+            error_msg = f"GitHub validation failed: {validation_message}"
             if error_details:
                 error_msg += f" - {', '.join(error_details)}"
             
             logger.error(f"{error_msg} Status: {response.status_code}")
             raise GitHubAPIError(
-                error_message=error_msg,
-                error_code=response.status_code,
-                response_details=error_data,
-                error_category="validation"
+                message=error_msg,
+                error_code=GitHubAPIError.VALIDATION_ERROR,
+                status_code=response.status_code,
+                response_details=error_data
             )
         
         else:
@@ -447,16 +447,16 @@ def create_github_issue(
             error_msg = f"GitHub API request failed with status {response.status_code}"
             try:
                 error_data = response.json()
-                error_message = error_data.get("message", "Unknown error")
-                error_msg += f": {error_message}"
+                other_error_message = error_data.get("message", "Unknown error")
+                error_msg += f": {other_error_message}"
             except:
                 error_data = {"text": response.text[:200]}
                 error_msg += f": {response.text[:200]}"
             
             logger.error(error_msg)
             raise GitHubAPIError(
-                error_message=error_msg,
-                error_code=response.status_code,
+                message=error_msg,
+                status_code=response.status_code,
                 response_details=error_data
             )
     
@@ -464,24 +464,24 @@ def create_github_issue(
         error_msg = "GitHub API request timed out after 30 seconds"
         logger.error(error_msg)
         raise GitHubAPIError(
-            error_message=error_msg,
-            error_category="timeout"
+            message=error_msg,
+            error_code=GitHubAPIError.NETWORK_ERROR
         )
     
     except requests.exceptions.ConnectionError as e:
         error_msg = f"Failed to connect to GitHub API: {str(e)}"
         logger.error(error_msg)
         raise GitHubAPIError(
-            error_message=error_msg,
-            error_category="connection"
+            message=error_msg,
+            error_code=GitHubAPIError.NETWORK_ERROR
         )
     
     except requests.exceptions.RequestException as e:
         error_msg = f"GitHub API request failed: {str(e)}"
         logger.error(error_msg)
         raise GitHubAPIError(
-            error_message=error_msg,
-            error_category="unknown"
+            message=error_msg,
+            error_code=GitHubAPIError.UNKNOWN_ERROR
         )
     
     except GitHubAPIError:
@@ -492,8 +492,8 @@ def create_github_issue(
         error_msg = f"Unexpected error creating GitHub issue: {str(e)}"
         logger.error(error_msg, exc_info=True)
         raise GitHubAPIError(
-            error_message=error_msg,
-            error_category="unknown"
+            message=error_msg,
+            error_code=GitHubAPIError.UNKNOWN_ERROR
         )
 
 

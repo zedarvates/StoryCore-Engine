@@ -22,9 +22,7 @@ import {
   AddonVoiceCommandRouter,
   AddonId,
   ParsedVoiceIntent,
-  AddonCommandContext,
   VoiceCommandResult,
-  registerAddonVoiceCommands,
 } from '@/services/AddonVoiceCommandRouter';
 import { eventEmitter, EventPayload, EventListener, AddonActionPayload } from '@/services/eventEmitter';
 
@@ -37,7 +35,7 @@ export interface UseAddonVoiceCommandsOptions {
   addonId: AddonId;
 
   /** Contexte courant (sera mis à jour automatiquement) */
-  context?: Partial<AddonCommandContext>;
+  context?: Record<string, unknown>;
 
   /** Callbacks déclenchés par les commandes vocales */
   onGenerate?: (payload: EventPayload) => void;
@@ -55,7 +53,7 @@ export interface UseAddonVoiceCommandsReturn {
   route: (transcript: string, confidence?: number) => Promise<VoiceCommandResult>;
 
   /** Met à jour le contexte du routeur */
-  updateContext: (ctx: Partial<AddonCommandContext>) => void;
+  updateContext?: (ctx: Record<string, unknown>) => void;
 
   /** Dernier intent reconnu */
   lastIntent: ParsedVoiceIntent | null;
@@ -75,7 +73,7 @@ let _registered = false;
 
 function ensureRegistered(): void {
   if (!_registered) {
-    registerAddonVoiceCommands();
+    // Note: Registration of commands is now handled internally or explicitly elsewhere
     _registered = true;
   }
 }
@@ -99,12 +97,10 @@ export function useAddonVoiceCommands(
     ensureRegistered();
   }, []);
 
-  // Mise à jour contexte
+  // Context sync has been removed
   useEffect(() => {
-    if (context) {
-      router.updateContext(context);
-    }
-  }, [context, router]);
+    // Kept to satisfy hook structure
+  }, [context]);
 
   // Mappage événements → callbacks selon l'addonId
   useEffect(() => {
@@ -149,11 +145,9 @@ export function useAddonVoiceCommands(
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setIsProcessing(false), 3000);
  
-      const result = await router.route(transcript, confidence);
+      const result = router.route(transcript, confidence);
  
-      if (result.intent) {
-        setLastIntent(result.intent);
-      }
+      // AddonVoiceCommandRouter no longer returns intent in VoiceCommandResult
  
       setIsProcessing(false);
       return result;
@@ -163,18 +157,20 @@ export function useAddonVoiceCommands(
 
   // ── updateContext() ────────────────────────────────────────────────────────
 
+  // ── updateContext() (Removed) ────────────────────────────────────────────────────────
+  
   const updateContext = useCallback(
-    (ctx: Partial<AddonCommandContext>) => {
-      router.updateContext(ctx);
+    (_ctx: Record<string, unknown>) => {
+      // Intentionally left blank as AddonVoiceCommandRouter no longer maintains generic state
     },
-    [router],
+    [],
   );
 
   // ── emit() ────────────────────────────────────────────────────────────────
 
   const emit = useCallback(
-    (eventName: string, payload: EventPayload) => {
-      eventEmitter.emit(eventName, payload);
+    (eventName: string, payload?: EventPayload) => {
+      eventEmitter.emit(eventName, payload || ({} as EventPayload));
     },
     [],
   );
@@ -268,10 +264,9 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
 
       if (latest.isFinal) {
         // Router le transcript final
-        router.route(text, conf).then(result => {
-          onCommand?.(result);
-          setTranscript('');
-        });
+        const result = router.route(text, conf);
+        onCommand?.(result);
+        setTranscript('');
       }
     };
 

@@ -627,7 +627,7 @@ audio_mix_service = AudioMixService()
 async def run_multitrack_generation(
     job_id: str,
     request: MultitrackGenerationRequest
-) -> MultitrackGenerationResponse:
+) -> MultitrackJobResponse:
     """
     Background task to run multi-track audio generation.
     """
@@ -692,7 +692,7 @@ async def run_multitrack_generation(
         
         logger.info(f"Multi-track generation job {job_id} completed with {len(track_ids)} tracks")
         
-        return MultitrackGenerationResponse(
+        return MultitrackJobResponse(
             job_id=job_id,
             status="completed",
             progress=100,
@@ -707,7 +707,7 @@ async def run_multitrack_generation(
         
     except Exception as e:
         logger.exception(f"Multi-track generation job {job_id} failed: {e}")
-        return MultitrackGenerationResponse(
+        return MultitrackJobResponse(
             job_id=job_id,
             status="failed",
             progress=0,
@@ -1006,5 +1006,32 @@ async def extract_stems(request: StemExtractionRequest, background_tasks: Backgr
         "status": "processing",
         "progress": 0,
         "estimated_time_seconds": 45
+    }
+
+@router.post("/audio/analyze-rhythm")
+async def analyze_rhythm(request: StyleAnalysisRequest, user_id: str = Depends(verify_jwt_token)):
+    """Analyze audio for beat markers (Phase 1 Rhythm Lock)."""
+    logger.info(f"Analyzing rhythm for audio {request.audio_id}")
+    # Mock data for 60s track at 128bpm
+    duration = 60.0
+    bpm = 128.0
+    beat_interval = 60.0 / bpm
+    
+    markers = []
+    # Major markers every 16 beats (approx every 7.5s)
+    for i in range(0, int(duration / beat_interval)):
+        time = i * beat_interval
+        is_major = (i % 16 == 0)
+        markers.append({
+            "time": round(time, 3),
+            "type": "major" if is_major else "minor",
+            "energy": 0.9 if is_major else 0.3
+        })
+        
+    return {
+        "audio_id": request.audio_id,
+        "bpm": bpm,
+        "duration": duration,
+        "markers": markers
     }
 

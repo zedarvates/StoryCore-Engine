@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Undo, Redo, BarChart3, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Character } from '@/types/character';
@@ -46,7 +46,8 @@ export function CastingInterface({
   const { analytics } = useCastingAnalytics(manager);
 
   // Load avatars on mount
-  React.useEffect(() => {
+  useEffect(() => {
+    loadAvatars('');
   }, [loadAvatars]);
 
   const getAssignedAvatar = (characterId: string): Avatar | null => {

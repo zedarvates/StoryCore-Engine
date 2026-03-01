@@ -245,12 +245,12 @@
 /* Modal */
 .cube-view-editor__modal-overlay {
   position: fixed;
+  z-index: 99999;
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
   padding: 24px;
 }
 

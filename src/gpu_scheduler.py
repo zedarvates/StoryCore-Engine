@@ -3,6 +3,7 @@ GPU Scheduler - Resource allocation and job management for AI operations.
 
 This module provides intelligent GPU job scheduling with priority queue management,
 resource monitoring, and optimization for AI enhancement operations.
+Includes dynamic VRAM detection via ComfyUI API.
 """
 
 import asyncio
@@ -15,6 +16,8 @@ from typing import Dict, List, Optional, Any, Callable
 from collections import deque
 import heapq
 import threading
+
+import aiohttp
 
 from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 
@@ -91,11 +94,23 @@ class GPUScheduler:
     
     Provides priority-based job scheduling, resource monitoring,
     and intelligent GPU device selection for AI operations.
+    Includes dynamic VRAM detection via ComfyUI API.
     """
     
-    def __init__(self, circuit_breaker: Optional[CircuitBreaker] = None):
+    def __init__(
+        self, 
+        circuit_breaker: Optional[CircuitBreaker] = None,
+        comfyui_url: Optional[str] = None,
+        vram_check_interval: int = 30
+    ):
         """Initialize GPU Scheduler."""
         self.logger = logging.getLogger(__name__)
+        
+        # ComfyUI URL for VRAM detection
+        self.comfyui_url = comfyui_url
+        self.vram_check_interval = vram_check_interval
+        self._last_vram_check: float = 0
+        self._vram_check_task: Optional[asyncio.Task] = None
         
         # Circuit breaker for fault tolerance
         if circuit_breaker is None:
@@ -139,21 +154,131 @@ class GPUScheduler:
         
         self.logger.info("GPU Scheduler initialized")
     
+    async def detect_vram_from_comfyui(self) -> Dict[int, Dict[str, Any]]:
+        """
+        Detect VRAM from ComfyUI /system_stats endpoint.
+        
+        Returns:
+            Dictionary mapping device_id to VRAM information
+        """
+        if not self.comfyui_url:
+            self.logger.warning("No ComfyUI URL configured for VRAM detection")
+            return {}
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"{self.comfyui_url.rstrip('/')}/system_stats",
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        
+                        vram_info = {}
+                        
+                        # Parse VRAM information from ComfyUI response
+                        devices = data.get('devices', [])
+                        for idx, device in enumerate(devices):
+                            vram_info[idx] = {
+                                'device_name': device.get('name', f'GPU {idx}'),
+                                'total_memory': device.get('total_memory', 0),
+                                'memory_used': device.get('memory_used', 0),
+                                'memory_free': device.get('memory_free', 0),
+                                'utilization_percent': device.get('utilization', 0),
+                                'temperature': device.get('temperature', 0)
+                            }
+                        
+                        self.logger.info(f"Detected VRAM from ComfyUI: {len(vram_info)} device(s)")
+                        return vram_info
+                    else:
+                        self.logger.warning(f"ComfyUI returned status {response.status} for VRAM detection")
+                        return {}
+                        
+        except asyncio.TimeoutError:
+            self.logger.warning("VRAM detection timeout")
+            return {}
+        except aiohttp.ClientError as e:
+            self.logger.warning(f"VRAM detection connection error: {e}")
+            return {}
+        except Exception as e:
+            self.logger.error(f"Unexpected error in VRAM detection: {e}")
+            return {}
+    
     def _initialize_gpu_devices(self):
-        """Initialize GPU device information."""
-        # Simulate GPU device detection
-        # In real implementation, would query actual GPU devices
+        """Initialize GPU device information with dynamic VRAM detection."""
+        # Initialize with default values (will be updated when ComfyUI is available)
         self.gpu_devices[0] = GPUDevice(
             device_id=0,
-            device_name="Simulated GPU 0",
-            total_memory=8192,  # 8GB
+            device_name="GPU 0",
+            total_memory=8192,  # 8GB default
             available_memory=8192,
             utilization_percent=0.0,
             temperature=45.0,
             is_available=True
         )
         
-        self.logger.info(f"Initialized {len(self.gpu_devices)} GPU device(s)")
+        self.logger.info(f"Initialized {len(self.gpu_devices)} GPU device(s) with default values")
+    
+    async def update_vram_from_comfyui(self):
+        """
+        Update GPU device information from ComfyUI API.
+        
+        Should be called periodically to keep VRAM info current.
+        """
+        current_time = time.time()
+        
+        # Throttle VRAM checks
+        if current_time - self._last_vram_check < self.vram_check_interval:
+            return
+        
+        vram_info = await self.detect_vram_from_comfyui()
+        
+        if vram_info:
+            self._last_vram_check = current_time
+            
+            # Update existing devices or add new ones
+            for device_id, info in vram_info.items():
+                if device_id in self.gpu_devices:
+                    # Update existing device
+                    device = self.gpu_devices[device_id]
+                    device.device_name = info.get('device_name', device.device_name)
+                    device.total_memory = info.get('total_memory', device.total_memory)
+                    device.available_memory = info.get('memory_free', device.available_memory)
+                    device.utilization_percent = info.get('utilization_percent', device.utilization_percent)
+                    device.temperature = info.get('temperature', device.temperature)
+                    device.is_available = device.available_memory > 0
+                else:
+                    # Add new device
+                    self.gpu_devices[device_id] = GPUDevice(
+                        device_id=device_id,
+                        device_name=info.get('device_name', f'GPU {device_id}'),
+                        total_memory=info.get('total_memory', 8192),
+                        available_memory=info.get('memory_free', 8192),
+                        utilization_percent=info.get('utilization_percent', 0.0),
+                        temperature=info.get('temperature', 45.0),
+                        is_available=True
+                    )
+            
+            # Remove devices that are no longer reported
+            detected_ids = set(vram_info.keys())
+            for device_id in list(self.gpu_devices.keys()):
+                if device_id not in detected_ids:
+                    del self.gpu_devices[device_id]
+            
+            self.logger.info(f"Updated GPU devices from ComfyUI: {len(self.gpu_devices)} device(s)")
+    
+    async def set_comfyui_url(self, url: str):
+        """
+        Set ComfyUI URL for VRAM detection.
+        
+        Args:
+            url: ComfyUI server URL
+        """
+        self.comfyui_url = url
+        self.logger.info(f"ComfyUI URL set to: {url}")
+        
+        # Immediately try to detect VRAM
+        await self.update_vram_from_comfyui()
     
     async def start(self):
         """Start the GPU scheduler."""
@@ -163,6 +288,13 @@ class GPUScheduler:
         
         self.is_running = True
         self.scheduler_task = asyncio.create_task(self._scheduler_loop())
+        
+        # Start VRAM monitoring task if ComfyUI URL is configured
+        if self.comfyui_url:
+            self._vram_check_task = asyncio.create_task(self._vram_monitor_loop())
+            # Initial VRAM detection
+            await self.update_vram_from_comfyui()
+        
         self.logger.info("GPU Scheduler started")
     
     async def stop(self):
@@ -171,6 +303,14 @@ class GPUScheduler:
             return
         
         self.is_running = False
+        
+        # Stop VRAM monitoring
+        if self._vram_check_task:
+            self._vram_check_task.cancel()
+            try:
+                await self._vram_check_task
+            except asyncio.CancelledError:
+                pass
         
         if self.scheduler_task:
             self.scheduler_task.cancel()
@@ -190,6 +330,26 @@ class GPUScheduler:
                 ))
         
         self.logger.info("GPU Scheduler stopped")
+    
+    async def _vram_monitor_loop(self):
+        """
+        Periodic VRAM monitoring loop.
+        
+        Updates GPU device information from ComfyUI at regular intervals.
+        """
+        self.logger.info("VRAM monitoring loop started")
+        
+        while self.is_running:
+            try:
+                await self.update_vram_from_comfyui()
+                await asyncio.sleep(self.vram_check_interval)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                self.logger.error(f"Error in VRAM monitor loop: {e}")
+                await asyncio.sleep(self.vram_check_interval)
+        
+        self.logger.info("VRAM monitoring loop stopped")
     
     async def submit_job(self, job_request: GPUJobRequest) -> str:
         """

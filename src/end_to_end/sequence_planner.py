@@ -12,7 +12,7 @@ import uuid
 from typing import List, Dict
 from src.end_to_end.data_models import (
     ParsedPrompt, StoryStructure, DialogueScript, WorldConfig,
-    SequencePlan, Sequence, Shot, PromptModules
+    SequencePlan, Sequence, Shot, PromptModules, Character
 )
 
 

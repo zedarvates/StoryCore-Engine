@@ -166,36 +166,6 @@ except Exception:
     settings = Settings()
 
 
-def save_job(job_id: str, job_data: Dict[str, Any]) -> bool:
-    """
-    Save job data to storage.
-    
-    Args:
-        job_id: Job identifier
-        job_data: Job data dictionary
-    
-    Returns:
-        True if save succeeded, False otherwise
-    """
-    return job_storage.save(job_id, job_data)
-
-
-def load_job(job_id: str) -> Optional[GenerationJob]:
-    """
-    Load job from storage.
-    
-    Args:
-        job_id: Job identifier
-    
-    Returns:
-        GenerationJob if found, None otherwise
-    """
-    job_data = job_storage.load(job_id)
-    if job_data:
-        return GenerationJob(**job_data)
-    return None
-
-
 class GenerationStatus(str, Enum):
     """Generation job status"""
     PENDING = "pending"
@@ -266,6 +236,38 @@ class SequenceResponse(BaseModel):
 # Initialize shared storage with LRU cache (max 500 job entries)
 # Index by user_id for efficient user-based queries
 job_storage = JSONFileStorage("./data/jobs", max_cache_size=500, index_field="user_id")
+
+
+def save_job(job_id: str, job_data: Dict[str, Any]) -> bool:
+    """
+    Save job data to storage.
+    
+    Args:
+        job_id: Job identifier
+        job_data: Job data dictionary
+    
+    Returns:
+        True if save succeeded, False otherwise
+    """
+    return job_storage.save(job_id, job_data)
+
+
+def load_job(job_id: str) -> Optional[GenerationJob]:
+    """
+    Load job from storage.
+    
+    Args:
+        job_id: Job identifier
+    
+    Returns:
+        GenerationJob if found, None otherwise
+    """
+    job_data = job_storage.load(job_id)
+    if job_data:
+        return GenerationJob(**job_data)
+    return None
+
+
 
 # In-memory job results cache (optional, but storage handles caching)
 job_results: Dict[str, Dict[str, Any]] = {}

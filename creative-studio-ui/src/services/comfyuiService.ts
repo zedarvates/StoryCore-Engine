@@ -991,7 +991,7 @@ async function fetchModels(
  */
 export async function testComfyUIConnection(
   config: Partial<ComfyUIConfig>
-): Promise<{ success: boolean; message: string; serverInfo?: ComfyUIServerInfo }> {
+): Promise<{ success: boolean; message: string; serverInfo?: ComfyUIServerInfo; isOffline?: boolean }> {
   // Validate URL format first
   if (!config.serverUrl) {
     return {
@@ -1098,6 +1098,7 @@ export async function testComfyUIConnection(
           return {
             success: false,
             message: 'ComfyUI is not running. Start ComfyUI to enable image generation features.',
+            isOffline: true,
           };
         }
       }
@@ -1107,6 +1108,7 @@ export async function testComfyUIConnection(
       return {
         success: false,
         message: 'Cannot reach ComfyUI server. Service is optional.',
+        isOffline: true,
       };
     }
   } catch {
@@ -1116,6 +1118,7 @@ export async function testComfyUIConnection(
     return {
       success: false,
       message: 'ComfyUI connection failed. Service is optional.',
+      isOffline: true,
     };
   }
 }

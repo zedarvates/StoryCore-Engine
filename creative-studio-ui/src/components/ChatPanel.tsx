@@ -414,8 +414,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           <div className="flex-1 overflow-hidden">
             <LandingChatBox 
               placeholder="Ask for modifications, ask questions about your project..."
-              height={size.height - 48}
-              context="project"
+              height="100%"
             />
           </div>
         )}

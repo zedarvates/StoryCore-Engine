@@ -12,6 +12,7 @@ import type { AudioTrack, SurroundConfig, AudioEffect } from '../types';
  */
 
 interface AudioTrackNode {
+  id: string;
   source: AudioBufferSourceNode | null;
   buffer: AudioBuffer;
   gainNode: GainNode;
@@ -19,6 +20,7 @@ interface AudioTrackNode {
   surroundNodes: SurroundNodes | null;
   limiter: DynamicsCompressorNode;
   voiceClarityNode: BiquadFilterNode;
+  effects: AudioEffect[];
   isPlaying: boolean;
   startTime: number;
   pauseTime: number;
@@ -42,7 +44,7 @@ export class AudioEngine {
   private masterGain: GainNode;
 
   constructor() {
-    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     this.masterGain = this.audioContext.createGain();
     this.masterGain.connect(this.audioContext.destination);
   }
@@ -72,9 +74,8 @@ export class AudioEngine {
       if (track.surroundConfig) {
         surroundNodes = this.createSurroundNodes(track.surroundConfig);
       } else {
-        // Fallback to stereo panner
         pannerNode = this.audioContext.createStereoPanner();
-        pannerNode.pan.value = track.pan / 100;
+        pannerNode.pan.value = (track.pan ?? 0) / 100;
       }
 
       // Create dynamics compressor for limiter
@@ -90,6 +91,7 @@ export class AudioEngine {
 
       // Store track node
       this.tracks.set(track.id, {
+        id: track.id,
         source: null,
         buffer: audioBuffer,
         gainNode,
@@ -97,6 +99,7 @@ export class AudioEngine {
         surroundNodes,
         limiter,
         voiceClarityNode,
+        effects: track.effects || [],
         isPlaying: false,
         startTime: 0,
         pauseTime: 0,
@@ -162,7 +165,7 @@ export class AudioEngine {
    * Create Voice Clarity processing chain
    */
   private createVoiceClarityNode(track: AudioTrack): BiquadFilterNode {
-    const voiceClarityEffect = track.effects.find((e) => e.type === 'voice-clarity');
+    const voiceClarityEffect = (track.effects || []).find((e) => e.type === 'voice-clarity');
 
     if (!voiceClarityEffect || !voiceClarityEffect.enabled) {
       // Passthrough node
@@ -195,28 +198,6 @@ export class AudioEngine {
     presenceBoost.connect(deEsser);
 
     return highPass; // Return first node in chain
-  }
-
-  /**
-   * Create and apply all audio effects for a track
-   */
-  private createEffectsChain(track: AudioTrack): AudioNode {
-    // Start with the gain node
-    let currentNode: AudioNode = this.audioContext.createGain();
-    (currentNode as GainNode).gain.value = 1;
-
-    // Apply each enabled effect in order
-    for (const effect of track.effects) {
-      if (!effect.enabled) continue;
-
-      const effectNode = this.createEffectNode(effect);
-      if (effectNode) {
-        currentNode.connect(effectNode);
-        currentNode = effectNode;
-      }
-    }
-
-    return currentNode;
   }
 
   /**
@@ -395,18 +376,14 @@ export class AudioEngine {
     // Get the track to access effects
     let currentNode: AudioNode = effectsChainStart;
     
-    // Apply effects chain if track has effects
-    const track = Array.from(this.tracks.entries()).find(([id]) => id === trackId);
-    if (track) {
-      // Apply each enabled effect
-      for (const effect of (track[1] as any).effects || []) {
-        if (!effect.enabled) continue;
-        
-        const effectNode = this.createEffectNode(effect);
-        if (effectNode) {
-          currentNode.connect(effectNode);
-          currentNode = effectNode;
-        }
+    // Apply each enabled effect
+    for (const effect of trackNode.effects) {
+      if (!effect.enabled) continue;
+      
+      const effectNode = this.createEffectNode(effect);
+      if (effectNode) {
+        currentNode.connect(effectNode);
+        currentNode = effectNode;
       }
     }
 
@@ -591,7 +568,7 @@ export class AudioEngine {
     // Normalize position (-1 to 1 for x and y)
     const x = Math.max(-1, Math.min(1, position.x));
     const y = Math.max(-1, Math.min(1, position.y));
-    const z = Math.max(0, Math.min(1, position.z));
+    const _z = Math.max(0, Math.min(1, position.z));
 
     if (mode === '5.1') {
       // Front speakers (y > 0)
@@ -605,8 +582,8 @@ export class AudioEngine {
       channels.surroundLeft = Math.round(surroundGain * Math.max(0, 1 - x) * 100);
       channels.surroundRight = Math.round(surroundGain * Math.max(0, 1 + x) * 100);
 
-      // LFE (subwoofer) - constant low level
-      channels.lfe = 30;
+      // LFE (subwoofer) - constant low level modified by depth
+      channels.lfe = Math.round(30 + (_z * 20));
     } else if (mode === '7.1') {
       // Front speakers
       const frontGain = Math.max(0, y);

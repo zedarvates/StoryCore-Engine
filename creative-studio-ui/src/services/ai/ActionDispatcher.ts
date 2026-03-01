@@ -62,6 +62,10 @@ export class ActionDispatcher {
       case 'OPEN_SETTINGS':
         useAppStore.getState().setShowGeneralSettings(true);
         break;
+      
+      case 'CAPTURE_SCREEN':
+        window.dispatchEvent(new CustomEvent('storycore:capture-screen'));
+        break;
 
       // --- TIMELINE ---
       case 'PLAY_TIMELINE':
@@ -121,6 +125,23 @@ export class ActionDispatcher {
              suggestions: response.suggestions 
            });
         }
+        break;
+
+      case 'LIP_SYNC':
+        notificationService.info('LipSync Studio', 'Ouverture de l\'assistant Lip-Sync...');
+        this.emitAddonEvent('lip-sync', 'launch-wizard', response.feedback);
+        break;
+
+      case 'GENERATE_RECAP':
+        notificationService.info('Recap Engine', 'Lancement de la génération du récapitulatif...');
+        this.emitAddonEvent('recap-engine', 'generate-recap', response.feedback);
+        break;
+
+      case 'OPEN_MCP':
+        notificationService.info('MCP Dashboard', 'Ouverture du tableau de bord MCP...');
+        window.dispatchEvent(new CustomEvent('storycore:addon-action', { 
+          detail: { addonId: 'mcp-ui', actionId: 'open-dashboard' } 
+        }));
         break;
 
       default:

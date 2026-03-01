@@ -3,16 +3,8 @@
  */
 
 import * as fs from 'fs';
-import * as path from 'path';
-import { ProjectDiscoveryService, DiscoveredProject } from '../ProjectDiscoveryService';
+import { ProjectDiscoveryService } from '../ProjectDiscoveryService';
 import * as defaultPaths from '../../defaultPaths';
-
-// Mock electron before importing modules that use it
-jest.mock('electron', () => ({
-  app: {
-    getPath: jest.fn(),
-  },
-}));
 
 // Mock electron before importing modules that use it
 jest.mock('electron', () => ({

@@ -5,6 +5,8 @@ from datetime import datetime
 import subprocess
 import os
 import logging
+from backend.gpu_service import GPUService
+from backend.cache_service import AICacheService
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +75,11 @@ class ProcessingTask:
 class VideoEnhancementService:
     """Service d'amélioration vidéo avec IA"""
     
-    def __init__(self, ffmpeg_path: str = "ffmpeg", models_path: str = None):
+    def __init__(self, ffmpeg_path: str = "ffmpeg", models_path: str = None, gpu=None, cache=None):
         self.ffmpeg = ffmpeg_path
         self.models_path = models_path or os.path.join(os.path.dirname(__file__), "models")
+        self.gpu = gpu or GPUService()
+        self.cache = cache or AICacheService()
         self.tasks: Dict[str, ProcessingTask] = {}
         self._ensure_ffmpeg()
     
@@ -101,7 +105,17 @@ class VideoEnhancementService:
         enhancements: List[EnhancementConfig],
         callback: Callable[[str, float], None] = None
     ) -> Dict[str, Any]:
-        """Appliquer des améliorations à une vidéo"""
+        """Améliore une vidéo avec mise en cache et accélération GPU."""
+        # Vérification du cache pour l'ensemble des opérations
+        params = {"input": input_path, "enhancements": [str(e) for e in enhancements]}
+        cached = self.cache.get_cached_file("enhance_video", params)
+        if cached:
+            if os.path.exists(cached):
+                import shutil
+                shutil.copy2(cached, output_path)
+                return {"success": True, "output_path": output_path, "cached": True}
+
+        # Initialisation de la tâche
         task_id = str(datetime.now().timestamp())
         task = ProcessingTask(
             id=task_id,
@@ -222,26 +236,87 @@ class VideoEnhancementService:
     
     def _get_video_duration(self, input_path: str) -> float:
         """Obtenir la durée de la vidéo en secondes"""
+        info = self._get_video_info(input_path)
+        return info.get("duration", 0.0)
+
+    def _get_video_info(self, input_path: str) -> Dict[str, Any]:
+        """Obtenir les informations vidéo (résolution, fps, duration, etc.)"""
         try:
-            cmd = [
-                self.ffmpeg, "-i", input_path,
-                "-f", "null", "-"
-            ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            import json
+            # Essayer avec ffprobe si disponible
+            ffprobe = self._find_executable("ffprobe")
+            if ffprobe:
+                cmd = [
+                    ffprobe, "-v", "error", "-select_streams", "v:0",
+                    "-show_entries", "stream=width,height,avg_frame_rate,duration,codec_name,bit_rate",
+                    "-of", "json", input_path
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    data = json.loads(result.stdout)
+                    if 'streams' in data and len(data['streams']) > 0:
+                        stream = data['streams'][0]
+                        
+                        # Parser FPS (ex: "30000/1001" -> 29.97)
+                        fps_str = stream.get('avg_frame_rate', '0/1')
+                        if '/' in fps_str:
+                            num, den = fps_str.split('/')
+                            fps = float(num) / float(den) if float(den) != 0 else 0
+                        else:
+                            try:
+                                fps = float(fps_str)
+                            except:
+                                fps = 0
+                            
+                        return {
+                            "width": int(stream.get('width', 0)),
+                            "height": int(stream.get('height', 0)),
+                            "fps": fps,
+                            "duration": float(stream.get('duration', 0) or 0),
+                            "codec": stream.get('codec_name', 'unknown'),
+                            "bit_rate": int(stream.get('bit_rate', 0) or 0)
+                        }
             
-            # Parser la durée de la sortie
+            # Fallback simple avec ffmpeg si ffprobe échoue
+            cmd = [self.ffmpeg, "-i", input_path, "-f", "null", "-"]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            
             import re
             duration_match = re.search(r"Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})", result.stderr)
+            res_match = re.search(r", (\d{2,5})x(\d{2,5})", result.stderr)
+            
+            info = {"width": 0, "height": 0, "fps": 0, "duration": 0, "codec": "unknown"}
             if duration_match:
                 hours = int(duration_match.group(1))
-                mins = int(duration_match.group(2))
-                secs = int(duration_match.group(3))
-                return hours * 3600 + mins * 60 + secs
+                minutes = int(duration_match.group(2))
+                seconds = int(duration_match.group(3))
+                centiseconds = int(duration_match.group(4))
+                info["duration"] = hours * 3600 + minutes * 60 + seconds + centiseconds / 100.0
             
-        except Exception:
-            pass
-        
-        return 0.0
+            if res_match:
+                info["width"] = int(res_match.group(1))
+                info["height"] = int(res_match.group(2))
+                
+            return info
+        except Exception as e:
+            logger.error(f"Error getting video info: {e}")
+            return {"width": 0, "height": 0, "fps": 0, "duration": 0, "codec": "unknown"}
+
+    def _build_ffmpeg_command(self, input_path: str, output_path: str, filters: List[str] = None) -> List[str]:
+        """Construit une commande FFmpeg optimisée (GPU si dispo)."""
+        if self.gpu.is_gpu_available():
+            cmd = [self.ffmpeg, "-y", "-hwaccel", "cuda", "-i", input_path]
+            if filters:
+                cmd.extend(["-vf", ",".join(filters)])
+            cmd.extend(["-c:v", "h264_nvenc", "-preset", "p4", "-tune", "hq"])
+        else:
+            cmd = [self.ffmpeg, "-y", "-i", input_path]
+            if filters:
+                cmd.extend(["-vf", ",".join(filters)])
+            cmd.extend(["-c:v", "libx264", "-preset", "fast", "-crf", "18"])
+            
+        cmd.append(output_path)
+        return cmd
     
     def _apply_super_resolution(
         self,
@@ -373,17 +448,7 @@ class VideoEnhancementService:
             ])
         
         # Appliquer les filtres
-        filter_complex = ",".join(filters)
-        
-        cmd = [
-            self.ffmpeg, "-y",
-            "-i", input_path,
-            "-vf", filter_complex,
-            "-c:v", "libx264",
-            "-preset", "fast",
-            "-crf", "18",
-            output_path
-        ]
+        cmd = self._build_ffmpeg_command(input_path, output_path, filters)
         return self._run_command(cmd)
     
     def _apply_noise_reduction(
@@ -395,14 +460,9 @@ class VideoEnhancementService:
         """Appliquer réduction de bruit"""
         strength = int(config.strength * 10)
         
-        cmd = [
-            self.ffmpeg, "-y",
-            "-i", input_path,
-            "-vf", f"nlmeans=s={strength}:p={7}:r={7}",
-            "-c:v", "libx264",
-            "-preset", "fast",
-            output_path
-        ]
+        # Appliquer la réduction de bruit
+        filters = [f"nlmeans=s={strength}:p={7}:r={7}"]
+        cmd = self._build_ffmpeg_command(input_path, output_path, filters)
         return self._run_command(cmd)
     
     def _apply_stabilization(
@@ -430,14 +490,8 @@ class VideoEnhancementService:
         output_path: str
     ) -> bool:
         """Appliquer désentrelacement"""
-        cmd = [
-            self.ffmpeg, "-y",
-            "-i", input_path,
-            "-vf", "bwdif=1:-1:0",
-            "-c:v", "libx264",
-            "-preset", "fast",
-            output_path
-        ]
+        filters = ["yadif"]
+        cmd = self._build_ffmpeg_command(input_path, output_path, filters)
         return self._run_command(cmd)
     
     def _apply_deblurring(
@@ -705,34 +759,67 @@ class VideoEnhancementService:
         config: EnhancementConfig
     ) -> bool:
         """
-        Appliquer Magic Mask (Détourage/Segmentation).
-        En attendant l'intégration de Segment Anything Model (SAM), 
-        on utilise un filtre de chromakey adaptatif ou un flou d'arrière-plan intelligent.
+        Appliquer Magic Mask (Détourage/Segmentation) réel avec MediaPipe.
+        Génère une vidéo avec canal alpha (WebM Transparent).
         """
-        logger.info(f"Appliquer Magic Mask à {input_path}")
-        strength = config.strength
+        logger.info(f"Appliquer Magic Mask (Réel) à {input_path}")
         
-        # Effet : Détourage basique (fond noir) ou flou d'arrière-plan
-        # Ici on simule un flou d'arrière-plan progressif
-        filter_str = (
-            f"split=2[orig][bg];"
-            f"[bg]boxblur=20:20[blurred];"
-            f"[orig]edgedetect=low=0.1:high=0.4,dilation,erosion[mask];"
-            f"[orig][blurred][mask]maskedmerge[out]"
-        )
-        
-        cmd = [
-            self.ffmpeg, "-y",
-            "-i", input_path,
-            "-filter_complex", filter_str,
-            "-map", "[out]",
-            "-c:v", "libx264",
-            "-preset", "medium",
-            "-crf", "23",
-            output_path
-        ]
-        
-        return self._run_command(cmd)
+        try:
+            import cv2
+            import numpy as np
+            import mediapipe as mp
+            import asyncio
+            
+            cap = cv2.VideoCapture(input_path)
+            fps = cap.get(cv2.CAP_PROP_FPS) or 30
+            w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            
+            # Utiliser FFmpeg en pipe pour encoder le flux Transparent WebM
+            ffmpeg_cmd = [
+                self.ffmpeg, "-y", "-f", "rawvideo", "-vcodec", "rawvideo",
+                "-s", f"{w}x{h}", "-pix_fmt", "bgra", "-r", str(fps),
+                "-i", "-", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p",
+                "-lossless", "1", output_path
+            ]
+            
+            process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            mp_selfie = mp.solutions.selfie_segmentation
+            with mp_selfie.SelfieSegmentation(model_selection=1) as segmentation:
+                while cap.isOpened():
+                    ret, frame = cap.read()
+                    if not ret: break
+                    
+                    # Segmentation
+                    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    results = segmentation.process(rgb)
+                    
+                    if results.segmentation_mask is not None:
+                         # Seuil de segmentation
+                         mask = results.segmentation_mask > 0.5
+                         # Créer canal Alpha
+                         alpha = (mask * 255).astype(np.uint8)
+                         # Fusion BGRA
+                         bgra = cv2.merge([frame[:,:,0], frame[:,:,1], frame[:,:,2], alpha])
+                         process.stdin.write(bgra.tobytes())
+                    else:
+                         # Fallback if no mask
+                         bgra = cv2.merge([frame[:,:,0], frame[:,:,1], frame[:,:,2], np.full((h, w), 255, dtype=np.uint8)])
+                         process.stdin.write(bgra.tobytes())
+                         
+            process.stdin.close()
+            process.wait()
+            cap.release()
+            
+            return process.returncode == 0
+            
+        except ImportError:
+            logger.error("MediaPipe or OpenCV not installed for Magic Mask")
+            return False
+        except Exception as e:
+            logger.error(f"Magic Mask precision failed: {e}")
+            return False
 
     def _apply_color_isolation(
         self,
@@ -751,16 +838,9 @@ class VideoEnhancementService:
         # Par défaut on garde le rouge (hue=0)
         filter_str = f"hsvhold=h=0:s=0.5:v=0.5:similarity={0.1 + strength * 0.2}"
         
-        cmd = [
-            self.ffmpeg, "-y",
-            "-i", input_path,
-            "-vf", filter_str,
-            "-c:v", "libx264",
-            "-preset", "medium",
-            "-crf", "23",
-            output_path
-        ]
-        
+        # Appliquer Color Isolation
+        filters = [filter_str]
+        cmd = self._build_ffmpeg_command(input_path, output_path, filters)
         return self._run_command(cmd)
 
     def _apply_vignette_grain(
@@ -777,14 +857,156 @@ class VideoEnhancementService:
         vignette_str = f"vignette=angle={0.1 + strength * 0.4}"
         noise_str = f"noise=alls={strength * 10}:allf=t+u"
         
-        cmd = [
-            self.ffmpeg, "-y",
-            "-i", input_path,
-            "-vf", f"{vignette_str},{noise_str}",
-            "-c:v", "libx264",
-            "-preset", "medium",
-            "-crf", "23",
-            output_path
-        ]
-        
+        # Appliquer Vignette & Grain
+        filters = [vignette_str, noise_str]
+        cmd = self._build_ffmpeg_command(input_path, output_path, filters)
         return self._run_command(cmd)
+
+    def export_8k(
+        self,
+        input_path: str,
+        output_path: str,
+        custom_codec: Optional[str] = None,
+        callback: Optional[Callable[[str, float], None]] = None
+    ) -> Dict[str, Any]:
+        """
+        Export 8K (7680x4320) avec upscale progressif et filtre de cohérence temporelle.
+        
+        Algorithme d'upscale :
+        - Si source <= 2K : upscale 2K -> 4K -> 8K.
+        - Si source = 4K : upscale 4K -> 8K.
+        - Si source = 8K : aucune action (simple copie ou conversion de codec).
+        """
+        logger.info(f"Démarrage de l'export 8K pour {input_path}")
+        
+        info = self._get_video_info(input_path)
+        src_width = info.get("width", 0)
+        src_height = info.get("height", 0)
+        
+        results = {
+            "success": False,
+            "status": "Starting 8K Export",
+            "metadata": {
+                "source_resolution": f"{src_width}x{src_height}",
+                "final_resolution": "7680x4320",
+                "duration": info.get("duration", 0),
+                "fps": info.get("fps", 0)
+            },
+            "steps": []
+        }
+        
+        if src_width >= 7680:
+            logger.info("Source est déjà 8K ou plus. Aucune action d'upscale.")
+            import shutil
+            shutil.copy2(input_path, output_path)
+            results["success"] = True
+            results["status"] = "Export 8K terminé (Source déjà 8K)"
+            return results
+
+        # Déterminer les étapes progressives
+        passes = []
+        if src_width <= 2560:  # <= 2K (Approx)
+            passes = ["4K", "8K"]
+        else:  # Assume 4K (Approx 3840)
+            passes = ["8K"]
+            
+        current_input = input_path
+        temp_files = []
+        
+        try:
+            for i, p in enumerate(passes):
+                step_name = f"Upscale Pass {p}"
+                target_w = 3840 if p == "4K" else 7680
+                target_h = 2160 if p == "4K" else 4320
+                
+                pass_output = output_path.replace(".", f"_pass_{p}.")
+                if os.path.exists(pass_output):
+                    os.remove(pass_output)
+                
+                temp_files.append(pass_output)
+                
+                logger.info(f"Exécution de la passe {p} : {target_w}x{target_h}")
+                
+                # Filtres : Upscale + Cohérence Temporelle (hqdn3d pour réduction de bruit/flicker)
+                # hqdn3d(luma_spatial, chroma_spatial, luma_tmp, chroma_tmp)
+                filters = [
+                    f"scale={target_w}:{target_h}:flags=lanczos",
+                    "hqdn3d=1.5:1.5:6:6" # Filtre de cohérence temporelle entre les passes
+                ]
+                
+                # Encoder avec le codec cible pour la dernière passe ou garder le codec original
+                if p == "8K":
+                    # Codec final : ProRes 422 ou H.265
+                    final_codec = custom_codec or "libx265" # H.265 par défaut
+                    if final_codec == "prores":
+                        cmd = [
+                            self.ffmpeg, "-y", "-i", current_input,
+                            "-vf", ",".join(filters),
+                            "-c:v", "prores_ks", "-profile:v", "3", "-vendor", "apl0", "-bits_per_mb", "8000",
+                            "-pix_fmt", "yuv422p10le",
+                            pass_output
+                        ]
+                    else:
+                        # Utiliser le encodeur matériel si dispo, sinon libx265
+                        if self.gpu.is_gpu_available():
+                            cmd = [
+                                self.ffmpeg, "-y", "-hwaccel", "cuda", "-i", current_input,
+                                "-vf", ",".join(filters),
+                                "-c:v", "hevc_nvenc", "-preset", "slow", "-tier", "high", "-tag:v", "hvc1",
+                                pass_output
+                            ]
+                        else:
+                            cmd = [
+                                self.ffmpeg, "-y", "-i", current_input,
+                                "-vf", ",".join(filters),
+                                "-c:v", "libx265", "-crf", "20", "-preset", "slow", "-tag:v", "hvc1",
+                                pass_output
+                            ]
+                else:
+                    # Passe intermédiaire (4K) : On garde une haute qualité
+                    cmd = self._build_ffmpeg_command(current_input, pass_output, filters)
+                
+                success = self._run_command(cmd)
+                if not success:
+                    raise Exception(f"Échec de l'upscale à la passe {p}")
+                
+                current_input = pass_output
+                results["steps"].append({"pass": p, "success": True})
+                
+                if callback:
+                    callback(f"Upscale {p}", (i + 1) / len(passes) * 100)
+            
+            # Finalisation
+            import shutil
+            if os.path.exists(output_path):
+                os.remove(output_path)
+            shutil.move(current_input, output_path)
+            
+            # Nettoyage
+            for tf in temp_files:
+                if os.path.exists(tf):
+                    os.remove(tf)
+            
+            results["success"] = True
+            results["status"] = "Export 8K terminé"
+            
+            # Ajouter le poids estimé
+            if os.path.exists(output_path):
+                results["metadata"]["estimated_weight_mb"] = os.path.getsize(output_path) / (1024 * 1024)
+                
+            return results
+            
+        except Exception as e:
+            logger.error(f"Export 8K échoué : {e}")
+            results["success"] = False
+            results["status"] = f"Erreur Export 8K : {str(e)}"
+            return results
+
+_enhancement_service_instance = None
+
+def get_enhancement_service() -> VideoEnhancementService:
+    """Récupère l'instance unique du service d'amélioration."""
+    global _enhancement_service_instance
+    if _enhancement_service_instance is None:
+        _enhancement_service_instance = VideoEnhancementService()
+    return _enhancement_service_instance

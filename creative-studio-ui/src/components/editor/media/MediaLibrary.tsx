@@ -8,19 +8,16 @@ import {
   Music,
   Upload,
   Search,
-  Filter,
   Grid,
   List,
   Download,
   Trash2,
   Star,
-  Tag,
-  Calendar,
   HardDrive
 } from 'lucide-react';
 import './MediaLibrary.css';
 
-interface MediaAsset {
+export interface MediaAsset {
   id: string;
   name: string;
   type: 'video' | 'audio' | 'image' | 'document';
@@ -42,7 +39,7 @@ interface MediaAsset {
   };
 }
 
-interface MediaFolder {
+export interface MediaFolder {
   id: string;
   name: string;
   parentId?: string;
@@ -61,14 +58,7 @@ interface MediaLibraryProps {
   onAssetDownload: (assetId: string) => void;
   onAssetFavorite: (assetId: string) => void;
   onFolderCreate: (name: string, parentId?: string) => void;
-  onFolderDelete: (folderId: string) => void;
-  onAssetMove: (assetId: string, folderId: string) => void;
 }
-
-const VIEW_MODES = {
-  GRID: 'grid',
-  LIST: 'list'
-} as const;
 
 const SORT_OPTIONS = [
   { value: 'name', label: 'Name' },
@@ -87,9 +77,7 @@ export function MediaLibrary({
   onAssetDelete,
   onAssetDownload,
   onAssetFavorite,
-  onFolderCreate,
-  onFolderDelete,
-  onAssetMove
+  onFolderCreate
 }: MediaLibraryProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');

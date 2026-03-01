@@ -55,6 +55,18 @@ export interface LLMConfiguration {
     // Using 'any' for custom provider properties to support arbitrary LLM provider configurations
     [key: string]: unknown;
   };
+  parameters?: {
+    temperature: number;
+    maxTokens: number;
+    topP: number;
+    frequencyPenalty: number;
+    presencePenalty: number;
+  };
+  systemPrompts?: {
+    worldGeneration: string;
+    characterGeneration: string;
+    dialogueGeneration: string;
+  };
   defaultProvider: string;
   enableFallback: boolean;
 }
@@ -327,6 +339,18 @@ export const DEFAULT_LLM_CONFIG: LLMConfiguration = {
     model: 'gemma2:2b',
     temperature: 0.7,
     maxTokens: 2048,
+  },
+  parameters: {
+    temperature: 0.7,
+    maxTokens: 2000,
+    topP: 1.0,
+    frequencyPenalty: 0,
+    presencePenalty: 0,
+  },
+  systemPrompts: {
+    worldGeneration: 'You are a creative world-building assistant...',
+    characterGeneration: 'You are a character development expert...',
+    dialogueGeneration: 'You are a dialogue writing specialist...',
   },
   defaultProvider: 'ollama',
   enableFallback: false,

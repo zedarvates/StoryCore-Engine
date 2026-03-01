@@ -21,6 +21,8 @@ import {
   HardDrive,
   Maximize2,
   Video,
+  Users,
+  UserSquare2,
 } from 'lucide-react';
 import type { GeneratedAsset } from '../../types/generation';
 import { getOptimizedImage, formatFileSize } from '../../utils/assetOptimization';
@@ -51,6 +53,21 @@ export interface ImagePreviewPanelProps {
    * Whether video generation is available
    */
   canGenerateVideo?: boolean;
+  
+  /**
+   * Callback when multi-angle is triggered
+   */
+  onGenerateMultiAngle?: (asset: GeneratedAsset) => void;
+  
+  /**
+   * Callback when character sheet is triggered
+   */
+  onGenerateCharacterSheet?: (asset: GeneratedAsset) => void;
+  
+  /**
+   * Callback when sprite generation is triggered
+   */
+  onGenerateSprite?: (asset: GeneratedAsset) => void;
   
   /**
    * Custom className for styling
@@ -85,6 +102,9 @@ export const ImagePreviewPanel: React.FC<ImagePreviewPanelProps> = ({
   onSave,
   onRegenerate,
   onGenerateVideo,
+  onGenerateMultiAngle,
+  onGenerateCharacterSheet,
+  onGenerateSprite,
   canGenerateVideo = true,
   className = '',
 }) => {
@@ -155,6 +175,33 @@ export const ImagePreviewPanel: React.FC<ImagePreviewPanelProps> = ({
   const handleGenerateVideo = () => {
     if (onGenerateVideo && canGenerateVideo) {
       onGenerateVideo(asset);
+    }
+  };
+
+  /**
+   * Handle multi-angle generation
+   */
+  const handleGenerateMultiAngle = () => {
+    if (onGenerateMultiAngle) {
+      onGenerateMultiAngle(asset);
+    }
+  };
+
+  /**
+   * Handle character sheet generation
+   */
+  const handleGenerateCharacterSheet = () => {
+    if (onGenerateCharacterSheet) {
+      onGenerateCharacterSheet(asset);
+    }
+  };
+
+  /**
+   * Handle generating sprite
+   */
+  const handleGenerateSprite = () => {
+    if (onGenerateSprite) {
+      onGenerateSprite(asset);
     }
   };
   
@@ -321,10 +368,33 @@ export const ImagePreviewPanel: React.FC<ImagePreviewPanelProps> = ({
           <Button
             onClick={handleGenerateVideo}
             disabled={!canGenerateVideo}
-            className="ml-auto"
           >
             <Video className="mr-2 h-4 w-4" />
-            Generate Video
+            Video
+          </Button>
+        )}
+
+        {/* Multi-Angle Button */}
+        {onGenerateMultiAngle && (
+          <Button variant="outline" onClick={handleGenerateMultiAngle}>
+            <Maximize2 className="mr-2 h-4 w-4 text-purple-400" />
+            Multi-Angle
+          </Button>
+        )}
+
+        {/* Character Sheet Button */}
+        {onGenerateCharacterSheet && (
+          <Button variant="outline" onClick={handleGenerateCharacterSheet}>
+            <Users className="mr-2 h-4 w-4 text-emerald-400" />
+            Character Sheet
+          </Button>
+        )}
+
+        {/* Generate Sprite Button */}
+        {onGenerateSprite && (
+          <Button variant="outline" onClick={handleGenerateSprite}>
+            <UserSquare2 className="mr-2 h-4 w-4 text-orange-400" />
+            Sprite
           </Button>
         )}
       </CardFooter>

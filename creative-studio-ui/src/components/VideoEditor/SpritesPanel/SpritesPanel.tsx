@@ -13,33 +13,31 @@ import {
   Play,
   Pause,
   RotateCcw,
-  ChevronDown,
-  ChevronUp,
   Copy,
-  Download,
-  Settings,
   Layers,
   Sparkles,
-  Compass
+  Compass,
+  User,
+  AlertCircle
 } from 'lucide-react';
 
 import {
   AnimatedSprite,
   SpriteOrientation,
   SpriteTransform,
-  createEmptySprite,
-  SPRITE_ORIENTATIONS
+  createEmptySprite
 } from '@/types/sprite';
 
 import {
-  AnimeEffect,
-  createDefaultSpeedLinesEffect,
-  createDefaultImpactFrameEffect
+  AnimeEffect
 } from '@/types/animeEffect';
 
 import { useSpriteStore } from '@/stores/spriteStore';
 import { OrientationSelector } from '@/components/sprites/OrientationSelector';
 import { AnimeEffectPanel } from '@/components/sprites/AnimeEffectPanel';
+import { ImageSpriteCreator } from '@/components/sprites/ImageSpriteCreator';
+import { IdentityCastingPanel } from '@/components/sprites/IdentityCastingPanel';
+import { Modal } from '@/components/modals/Modal';
 
 // ============================================================================
 // Types
@@ -49,7 +47,7 @@ interface SpritesPanelProps {
   className?: string;
 }
 
-type TabType = 'sprites' | 'animations' | 'effects' | 'settings';
+type TabType = 'sprites' | 'animations' | 'effects' | 'casting' | 'settings';
 
 // ============================================================================
 // Component
@@ -58,7 +56,7 @@ type TabType = 'sprites' | 'animations' | 'effects' | 'settings';
 export const SpritesPanel: React.FC<SpritesPanelProps> = ({ className }) => {
   // State
   const [activeTab, setActiveTab] = useState<TabType>('sprites');
-  const [showImport, setShowImport] = useState(false);
+  const [showImageCreator, setShowImageCreator] = useState(false);
   
   // Store
   const {
@@ -74,10 +72,11 @@ export const SpritesPanel: React.FC<SpritesPanelProps> = ({ className }) => {
     pause,
     stop,
     setOrientation,
-    setTransform,
-    addEffect: addEffectToSprite,
-    removeEffect: removeEffectFromSprite
+    setTransform
   } = useSpriteStore();
+
+  // Project context (should be retrieved from a project store, but using placeholder for now)
+  const projectId = 'default_project'; 
 
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -85,7 +84,7 @@ export const SpritesPanel: React.FC<SpritesPanelProps> = ({ className }) => {
   // ==========================================================================
   // Handlers
   // ==========================================================================
-
+// ... (omitting unchanged handlers for brevity in view, but the tool will handle the block)
   const handleCreateSprite = useCallback(() => {
     const newSprite = createEmptySprite(
       `sprite_${Date.now()}`,
@@ -181,6 +180,13 @@ export const SpritesPanel: React.FC<SpritesPanelProps> = ({ className }) => {
           >
             <Upload className="w-4 h-4" />
           </button>
+          <button
+            onClick={() => setShowImageCreator(true)}
+            className="p-1.5 rounded hover:bg-slate-700 text-violet-400 hover:text-violet-300 transition-colors"
+            title="Créer via IA Vision"
+          >
+            <Sparkles className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -211,18 +217,22 @@ export const SpritesPanel: React.FC<SpritesPanelProps> = ({ className }) => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-700">
-        {(['sprites', 'animations', 'effects', 'settings'] as TabType[]).map((tab) => (
+      <div className="flex border-b border-slate-700 overflow-x-auto">
+        {(['sprites', 'animations', 'effects', 'casting', 'settings'] as TabType[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-2 py-1.5 text-xs font-medium capitalize transition-colors ${
+            className={`min-w-[70px] px-2 py-1.5 text-[10px] font-medium uppercase transition-colors ${
               activeTab === tab
                 ? 'bg-slate-700 text-white border-b-2 border-violet-500'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
-            {tab}
+            {tab === 'casting' ? (
+              <span className="flex items-center gap-1 justify-center">
+                <User className="w-3 h-3" /> Casting
+              </span>
+            ) : tab}
           </button>
         ))}
       </div>
@@ -253,6 +263,13 @@ export const SpritesPanel: React.FC<SpritesPanelProps> = ({ className }) => {
           />
         )}
 
+        {activeTab === 'casting' && (
+          <IdentityCastingPanel 
+            selectedSprite={selectedSprite?.sprite || null}
+            projectId={projectId}
+          />
+        )}
+
         {activeTab === 'settings' && selectedSprite && (
           <SpriteSettingsPanel
             sprite={selectedSprite.sprite}
@@ -262,22 +279,34 @@ export const SpritesPanel: React.FC<SpritesPanelProps> = ({ className }) => {
           />
         )}
 
-        {activeTab === 'effects' && !selectedSprite && (
+        {(activeTab === 'effects' || activeTab === 'settings') && !selectedSprite && (
           <div className="flex flex-col items-center justify-center h-full text-slate-500">
-            <Sparkles className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-sm">Sélectionnez un sprite</p>
-          </div>
-        )}
-
-        {activeTab === 'settings' && !selectedSprite && (
-          <div className="flex flex-col items-center justify-center h-full text-slate-500">
-            <Settings className="w-8 h-8 mb-2 opacity-50" />
+            <AlertCircle className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm">Sélectionnez un sprite</p>
           </div>
         )}
       </div>
 
       {/* Footer - Selected Sprite Info */}
+      {/* Modal for Image Sprite Creator */}
+      {showImageCreator && (
+        <Modal
+          isOpen={showImageCreator}
+          onClose={() => setShowImageCreator(false)}
+          title="Créateur de Sprite IA"
+          size="lg"
+        >
+          <div className="p-0 bg-[#0f172a]" style={{ height: '70vh' }}>
+            <ImageSpriteCreator
+              onSpriteCreated={(sprite) => {
+                addSprite(sprite);
+                setShowImageCreator(false);
+              }}
+            />
+          </div>
+        </Modal>
+      )}
+
       {selectedSprite && (
         <div className="px-3 py-2 border-t border-slate-700 bg-slate-800">
           <div className="flex items-center justify-between">

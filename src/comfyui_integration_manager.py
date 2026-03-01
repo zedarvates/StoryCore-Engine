@@ -10,6 +10,8 @@ from typing import Dict, Any, List, Optional, Callable
 from pathlib import Path
 
 from .comfy_client import ComfyUIClient, VRAMOverflowError, ExecutionError, ValidationError
+from .comfyui_config import ComfyUIConfig, ConfigManager
+from .platform_manager import PlatformManager
 from .integration_utils import (
     load_workflow, inject_storycore_parameters, create_panel_workflow,
     process_comfyui_outputs, validate_workflow_structure, optimize_workflow_for_memory
@@ -26,7 +28,71 @@ class ComfyUIIntegrationManager:
         self.client = ComfyUIClient(base_url)
         self.workflow_path = workflow_path or "assets/workflows/storycore_flux2.json"
         self.base_workflow = None
-        self.available_vram = 8.0  # Default conservative estimate
+        
+        # Initialize Platform Manager for dynamic VRAM detection
+        try:
+            config = ConfigManager().load_config()
+            self.platform_manager = PlatformManager(config)
+            self.available_vram = self._detect_vram()  # Dynamic VRAM detection
+            logger.info(f"Dynamic VRAM detection: {self.available_vram:.2f} GB available")
+        except Exception as e:
+            logger.warning(f"Failed to initialize PlatformManager: {e}. Using fallback VRAM estimate.")
+            self.platform_manager = None
+            self.available_vram = 8.0  # Default conservative estimate as fallback
+    
+    def _detect_vram(self) -> float:
+        """
+        Dynamically detect available VRAM using PlatformManager.
+        
+        Returns:
+            Available VRAM in GB (as float)
+        """
+        try:
+            if self.platform_manager is not None:
+                # Get GPU info from platform manager
+                gpu_info = self.platform_manager.get_platform_info()
+                
+                if gpu_info.get('gpu_info'):
+                    # Get the GPU with most available memory
+                    max_available = 0
+                    for gpu in gpu_info['gpu_info']:
+                        available_mb = gpu.get('memory_available_mb', 0)
+                        if available_mb > max_available:
+                            max_available = available_mb
+                    
+                    if max_available > 0:
+                        # Convert MB to GB
+                        vram_gb = max_available / 1024.0
+                        logger.info(f"Detected {vram_gb:.2f} GB available VRAM from GPU detection")
+                        return vram_gb
+                
+                # Fallback: check system capabilities
+                capabilities = gpu_info.get('capabilities', {})
+                available_memory_mb = capabilities.get('available_memory_mb', 0)
+                if available_memory_mb > 0:
+                    # Use 50% of available system memory as rough VRAM estimate
+                    vram_gb = (available_memory_mb / 1024.0) * 0.5
+                    logger.info(f"Using system memory estimate: {vram_gb:.2f} GB VRAM")
+                    return max(4.0, min(vram_gb, 16.0))  # Clamp between 4-16GB
+            
+            # Final fallback
+            logger.warning("Could not detect VRAM, using default 8GB")
+            return 8.0
+            
+        except Exception as e:
+            logger.warning(f"VRAM detection failed: {e}. Using default 8GB.")
+            return 8.0
+    
+    def refresh_vram_detection(self) -> float:
+        """
+        Refresh VRAM detection (can be called during runtime).
+        
+        Returns:
+            Current available VRAM in GB
+        """
+        self.available_vram = self._detect_vram()
+        logger.info(f"Refreshed VRAM detection: {self.available_vram:.2f} GB")
+        return self.available_vram
         
     def initialize(self) -> bool:
         """Initialize the integration manager and validate setup"""

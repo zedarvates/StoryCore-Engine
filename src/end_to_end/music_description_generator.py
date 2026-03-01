@@ -12,7 +12,7 @@ import uuid
 from typing import List, Dict
 from src.end_to_end.data_models import (
     ParsedPrompt, StoryStructure,
-    MusicDescription, MusicCue, SoundEffect
+    MusicDescription, MusicCue, SoundEffect, Character
 )
 
 

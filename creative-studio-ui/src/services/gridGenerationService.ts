@@ -12,7 +12,11 @@
  */
 
 import { ComfyUIService } from './comfyuiService';
-import { ProgressTrackingService } from './progressTrackingService';
+const comfyuiService = ComfyUIService.getInstance();
+
+import { createProgressTrackingService } from './progressTrackingService';
+const progressTrackingService = createProgressTrackingService();
+
 
 export interface Shot {
   id: number;
@@ -139,7 +143,7 @@ export class GridGenerationService {
    * @param onProgress Progress callback
    * @returns Promise resolving to generation results
    */
-  public async generateGridForSequence(
+  public async generateGrid(
     shots: Shot[],
     options: GridGenerationOptions = {},
     onProgress?: (progress: GridGenerationProgress) => void
@@ -163,7 +167,7 @@ export class GridGenerationService {
       }
 
       // Initialize progress tracking
-      const progressTracker = ProgressTrackingService.createTracker('grid-generation', {
+      const progressTracker = progressTrackingService.createTracker('grid-generation', {
         total: validShots.length,
         description: `Generating ${validShots.length} images`
       });

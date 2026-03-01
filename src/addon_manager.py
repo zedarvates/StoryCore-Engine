@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Set, Union
 from dataclasses import dataclass
 from enum import Enum
+import aiohttp
+import asyncio
 
 from src.error_handling_resilience import ErrorHandlingSystem
 from src.security_validation_system import SecurityValidationSystem
@@ -97,13 +99,18 @@ class AddonManager:
         self.addons: Dict[str, AddonInfo] = {}
         self.enabled_addons: Set[str] = set()
 
-        # Statistiques
         self.stats = {
             "discovered": 0,
             "loaded": 0,
             "enabled": 0,
-            "errors": 0
+            "errors": 0,
+            "updates_available": 0
         }
+
+        # Marketplace configuration
+        self.marketplace_url = os.getenv("STORYCORE_MARKETPLACE_API", "https://nexrealm.shop/wp-json/storycore/v1/marketplace")
+        self.marketplace_addons: List[Dict[str, Any]] = []
+        self.last_sync_time: Optional[float] = None
 
     async def discover_addons(self) -> List[Path]:
         """
@@ -359,10 +366,10 @@ class AddonManager:
             return False
 
     async def initialize_all_addons(self):
-        """Initialise tous les add-ons disponibles"""
+        """Initialise tous les add-ons disponibles et synchronise avec le marketplace"""
         self.logger.info("Initialisation du système d'add-ons...")
 
-        # Découvrir les add-ons
+        # Découvrir les add-ons locaux
         addon_paths = await self.discover_addons()
 
         # Charger chaque add-on
@@ -371,7 +378,52 @@ class AddonManager:
             if addon_info:
                 self.addons[addon_info.manifest.name] = addon_info
 
+        # Synchroniser avec le marketplace automatiquement au démarrage
+        try:
+            # On lance la tâche de synchro sans bloquer l'initialisation locale
+            asyncio.create_task(self.sync_with_marketplace())
+        except Exception as e:
+            self.logger.warning(f"Échec de la synchronisation automatique: {e}")
+
         self.logger.info(f"Système d'add-ons initialisé: {self.stats}")
+
+    async def sync_with_marketplace(self) -> bool:
+        """
+        Synchronise le catalogue local avec le marketplace distant (nexrealm.shop)
+        
+        Returns:
+            True si succès
+        """
+        import time
+        self.logger.info(f"Synchronisation avec le marketplace: {self.marketplace_url}")
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.marketplace_url, timeout=10) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        if isinstance(data, list):
+                            self.marketplace_addons = data
+                        elif isinstance(data, dict) and "addons" in data:
+                            self.marketplace_addons = data["addons"]
+                        
+                        self.last_sync_time = time.time()
+                        self.logger.info(f"Synchronisé: {len(self.marketplace_addons)} addons trouvés sur le marketplace")
+                        
+                        # Vérifier les mises à jour après synchro
+                        await self._refresh_update_stats()
+                        return True
+                    else:
+                        self.logger.error(f"Erreur marketplace (HTTP {response.status})")
+                        return False
+        except Exception as e:
+            self.logger.error(f"Échec de synchronisation marketplace: {e}")
+            return False
+
+    async def _refresh_update_stats(self):
+        """Met à jour le compteur de mises à jour disponibles"""
+        updates = await self.get_addon_updates()
+        self.stats["updates_available"] = len(updates)
 
     def get_enabled_addons(self) -> List[str]:
         """Retourne la liste des add-ons activés"""
@@ -386,23 +438,46 @@ class AddonManager:
         return [name for name, info in self.addons.items()
                 if info.manifest.type == addon_type]
 
-    async def install_addon(self, source: Path, category: str = "community") -> bool:
+    async def install_addon(self, source: Union[Path, str], category: str = "community") -> bool:
         """
-        Installe un add-on depuis un fichier source
+        Installe un add-on depuis un fichier source ou une URL
         
         Args:
-            source: Chemin vers le fichier .zip de l'add-on
+            source: Chemin vers le fichier .zip ou URL de téléchargement
             category: Catégorie (official, community)
             
         Returns:
             True si installation réussie
         """
         import shutil
+        import tempfile
+        import aiohttp
         
         try:
-            # Vérifier que le fichier existe
-            if not source.exists():
-                self.logger.error(f"Fichier source introuvable: {source}")
+            # Si c'est une URL, on télécharge d'abord
+            if isinstance(source, str) and (source.startswith("http://") or source.startswith("https://")):
+                self.logger.info(f"Téléchargement de l'addon depuis: {source}")
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(source) as resp:
+                            if resp.status != 200:
+                                self.logger.error(f"Échec du téléchargement (HTTP {resp.status})")
+                                return False
+                            tmp.write(await resp.read())
+                            tmp_source = Path(tmp.name)
+                
+                try:
+                    # On utilise la méthode install_addon_from_file pour le ZIP téléchargé
+                    result = await self.install_addon_from_file(tmp_source, category)
+                    return result is not None
+                finally:
+                    if tmp_source.exists():
+                        os.unlink(tmp_source)
+            
+            # Sinon on traite comme un chemin local
+            source_path = Path(source)
+            if not source_path.exists():
+                self.logger.error(f"Fichier source introuvable: {source_path}")
                 return False
                 
             # Créer un répertoire temporaire pour l'extraction
@@ -722,16 +797,48 @@ class AddonManager:
                 results.append(name)
         return results
     
-    def get_addon_updates(self) -> List[Dict[str, Any]]:
+    async def get_addon_updates(self) -> List[Dict[str, Any]]:
         """
-        Vérifie les mises à jour disponibles
+        Vérifie les mises à jour disponibles en comparant les versions locales et distantes
         
         Returns:
             Liste des add-ons avec mises à jour disponibles
         """
-        # Pour l'instant, retourne une liste vide
-        # À implémenter avec un système de registry distant
-        return []
+        updates = []
+        
+        if not self.marketplace_addons:
+            return []
+
+        for remote in self.marketplace_addons:
+            name = remote.get("name")
+            remote_version = remote.get("version")
+            
+            if name in self.addons:
+                local_version = self.addons[name].manifest.version
+                if self._is_newer_version(local_version, remote_version):
+                    updates.append({
+                        "name": name,
+                        "local_version": local_version,
+                        "remote_version": remote_version,
+                        "download_url": remote.get("download_url"),
+                        "description": remote.get("description", "")
+                    })
+        
+        return updates
+
+    def _is_newer_version(self, local: str, remote: str) -> bool:
+        """Détermine si la version distante est plus récente que la version locale"""
+        try:
+            from packaging import version
+            return version.parse(remote) > version.parse(local)
+        except ImportError:
+            # Fallback basique si packaging n'est pas installé
+            try:
+                l_parts = [int(p) for p in local.split('.')]
+                r_parts = [int(p) for p in remote.split('.')]
+                return r_parts > l_parts
+            except:
+                return remote != local
 
     # Méthodes privées
 

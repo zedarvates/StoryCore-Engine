@@ -65,6 +65,24 @@ Option 3: Redémarrage Complet (Si problèmes)
 4. Redémarrer:
    npm run dev
 
+Option 4: Démarrage Complet (Front + Back) - RECOMMANDÉ
+=====================================================
+
+Pour que toutes les fonctionnalités (création de personnages, etc.) fonctionnent, vous devez lancer le Frontend ET le Backend.
+
+1. Lancer le Backend (API Python):
+   Ouvrir un premier terminal at à la racine du projet:
+   python backend/main_api.py
+   (Attendre le message: "INFO: Application startup complete")
+
+2. Lancer le Frontend (Vite):
+   Ouvrir un second terminal:
+   cd creative-studio-ui
+   npm run dev
+
+3. Accéder à l'application:
+   http://localhost:5173/
+
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │ 🎯 COMMANDES RAPIDES (COPIER-COLLER)                                        │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -83,6 +101,15 @@ npm run dev
 Redémarrage Complet:
 --------------------
 rmdir /s /q node_modules & rmdir /s /q dist & npm install & npm run dev
+
+Démarrage Complet (Backend + Frontend):
+---------------------------------------
+# Fenêtre 1 (Backend)
+python backend/main_api.py
+
+# Fenêtre 2 (Frontend)
+cd creative-studio-ui
+npm run dev
 
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │ ✅ VÉRIFICATIONS APRÈS REDÉMARRAGE                                          │

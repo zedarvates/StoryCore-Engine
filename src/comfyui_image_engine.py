@@ -79,7 +79,7 @@ class ComfyUIImageEngine:
         self.character_registry = CharacterRegistry()
         
         # Service state tracking
-        self.mock_mode = True  # Default to mock mode for hackathon demo
+        self.mock_mode = False  # Default to real mode - will fallback to mock if ComfyUI unavailable
         self._service_available = False
         
         # ComfyUI workflow templates
@@ -248,9 +248,35 @@ class ComfyUIImageEngine:
                 loop.close()
                 
         except Exception as e:
-            print(f"⚠️  ComfyUI health check failed: {e}")
-            self._service_available = False
-            return False
+            # If health check fails, try direct API connection as fallback
+            try:
+                import aiohttp
+                import asyncio
+                
+                async def check_api():
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            async with session.get(f"{self.config.server_url}/system_stats", timeout=aiohttp.ClientTimeout(total=5)) as response:
+                                return response.status == 200
+                    except Exception as api_check_error:
+                        print(f"⚠️  API check failed: {api_check_error}")
+                        return False
+                
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    self._service_available = loop.run_until_complete(check_api())
+                    if self._service_available:
+                        print(f"✅ ComfyUI API accessible directly")
+                    else:
+                        print(f"⚠️  ComfyUI not accessible via API")
+                    return self._service_available
+                finally:
+                    loop.close()
+            except Exception as api_error:
+                print(f"⚠️  ComfyUI health check and API check failed: {api_error}")
+                self._service_available = False
+                return False
     
     def _generate_frame_images(self, frame_generation: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
                                storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],

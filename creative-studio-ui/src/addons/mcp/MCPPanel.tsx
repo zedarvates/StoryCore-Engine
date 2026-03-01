@@ -2,7 +2,7 @@
 // MCP Panel Component
 // ============================================================================
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useMCPAddon, useMCPError } from './hooks';
 import type { MCPServerConfig } from '@/types/addons';
 import {
@@ -20,7 +20,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -37,7 +36,6 @@ import {
   CheckCircle,
   XCircle,
   Server,
-  Globe,
   Activity,
   Zap,
   Shield,
@@ -59,9 +57,7 @@ export function MCPPanel({ className }: MCPPanelProps) {
     enable,
     disable,
     servers,
-    selectedServer,
     testServer,
-    setSelectedServer,
   } = useMCPAddon();
 
   const { clearError } = useMCPError();
@@ -111,6 +107,8 @@ export function MCPPanel({ className }: MCPPanelProps) {
   const avgLatency = connectedServers.length > 0
     ? Math.round(connectedServers.reduce((sum, s) => sum + (s.lastConnected ? 50 : 0), 0) / connectedServers.length)
     : 0;
+
+  if (!addon) return null;
 
   return (
     <div className={`space-y-6 ${className}`}>

@@ -800,10 +800,11 @@ class SFXProfileBuilder:
     
     def _generate_bullet_time_prompt(self) -> str:
         """Generate prompt for bullet time SFX (Section 6.1)"""
+        muffling_desc = "sous l'eau" if self._muffling_context == "underwater" else "bullet time"
         return (
             f"Genere uniquement la piste SFX BULLET TIME pour une scene en slow motion. "
             f"Effets: time stretch, pitch down, etouffement. "
-            f"Contexte: {'sous l\'eau' if self._muffling_context == 'underwater' else 'bullet time'}."
+            f"Contexte: {muffling_desc}."
         )
     
     # -------------------------------------------------------------------------

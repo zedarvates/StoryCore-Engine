@@ -262,7 +262,11 @@ class TranscriptionEngine:
         
         try:
             transcript = await self.circuit_breaker.call(_transcribe_operation)
+            
+            # Cache by both audio_id (for deduplication) and transcript_id (for direct lookup)
             self.transcript_cache[audio_id] = transcript
+            self.transcript_cache[transcript.transcript_id] = transcript
+            
             return transcript
             
         except Exception as e:
@@ -455,17 +459,14 @@ class TranscriptionEngine:
     async def _perform_montage_generation(self, request: MontageRequest) -> MontageResult:
         """Effectuer la génération de montage."""
         
-        # Récupérer la transcription
-        transcript = self.transcript_cache.get(request.transcript_id)
-        if not transcript:
-            # Essayer de charger depuis le cache par valeurs
-            for t in self.transcript_cache.values():
-                if t.transcript_id == request.transcript_id:
-                    transcript = t
-                    break
+        # Récupérer la transcription via la méthode API robuste
+        transcript = await self.get_transcript(request.transcript_id)
         
         if not transcript:
+            self.logger.error(f"Transcript NOT FOUND for ID: {request.transcript_id}")
             raise TranscriptionError(f"Transcript not found: {request.transcript_id}")
+        
+        self.logger.info(f"Transcript FOUND for ID: {request.transcript_id}")
         
         self.logger.info(f"Generating {request.style.value} montage from transcript")
         

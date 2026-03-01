@@ -93,6 +93,8 @@ class StorageBatchingManager {
       // Use Electron API if available
       const encoder = new TextEncoder();
       const uint8Array = encoder.encode(serialized);
+      // Uint8Array is supported by Electron IPC via structured clone
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await window.electronAPI.fs.writeFile(key, uint8Array as any);
     } else {
       // Fallback to localStorage
@@ -137,7 +139,7 @@ class StorageBatchingManager {
           `{used: ${totalUsed}, limit: ${limit}}`
         );
       }
-    } catch (error) {
+    } catch {
       // Ignore errors during usage logging
     }
   }

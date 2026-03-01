@@ -35,6 +35,7 @@ interface TimelineControlsProps {
   onToggleMagneticTimeline?: () => void;
   onSplit?: () => void;
   onAutoMix?: () => void;
+  className?: string;
 }
 
 export const TimelineControls: React.FC<TimelineControlsProps> = ({

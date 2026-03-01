@@ -213,8 +213,8 @@ export function validateLLMConfiguration(config: LLMConfiguration): ValidationRe
     });
   }
   
-  // Validate Ollama configuration
-  if (config.ollama) {
+  // Only validate active provider settings
+  if (config.provider === 'ollama' && config.ollama) {
     const urlResult = validateURL(config.ollama.baseUrl);
     urlResult.errors.forEach(error => {
       errors.push({
@@ -246,10 +246,7 @@ export function validateLLMConfiguration(config: LLMConfiguration): ValidationRe
         severity: 'error',
       });
     }
-  }
-  
-  // Validate OpenAI configuration
-  if (config.openai) {
+  } else if (config.provider === 'openai' && config.openai) {
     if (!config.openai.apiKey || config.openai.apiKey.trim() === '') {
       errors.push({
         field: 'openai.apiKey',
@@ -273,10 +270,7 @@ export function validateLLMConfiguration(config: LLMConfiguration): ValidationRe
         severity: 'error',
       });
     }
-  }
-  
-  // Validate Anthropic configuration
-  if (config.anthropic) {
+  } else if (config.provider === 'anthropic' && config.anthropic) {
     if (!config.anthropic.apiKey || config.anthropic.apiKey.trim() === '') {
       errors.push({
         field: 'anthropic.apiKey',
@@ -300,6 +294,29 @@ export function validateLLMConfiguration(config: LLMConfiguration): ValidationRe
         severity: 'error',
       });
     }
+  } else if (config.provider === 'custom' && config.custom) {
+    const urlResult = validateURL(config.custom.baseUrl);
+    urlResult.errors.forEach(error => {
+      errors.push({
+        ...error,
+        field: 'custom.baseUrl',
+      });
+    });
+
+    if (!config.custom.model || config.custom.model.trim() === '') {
+      errors.push({
+        field: 'custom.model',
+        message: 'Model name is required',
+        severity: 'error',
+      });
+    }
+  } else {
+    // Requirements check: Active provider configuration MUST exist
+    errors.push({
+      field: config.provider,
+      message: `${config.provider.charAt(0).toUpperCase() + config.provider.slice(1)} configuration is missing`,
+      severity: 'error',
+    });
   }
   
   return {

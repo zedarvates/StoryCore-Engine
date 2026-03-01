@@ -87,6 +87,32 @@ class LRUCache:
         """Allow direct access like a dict."""
         return self.get(key)
     
+    def pop(self, key: str, default: Any = None) -> Optional[Any]:
+        """
+        Remove and return the value for a key if it exists, otherwise return default.
+        This is a thread-safe way to remove items from the cache.
+        
+        Args:
+            key: The key to remove
+            default: Default value to return if key not found
+        
+        Returns:
+            The cached value if found, otherwise default
+        """
+        if key not in self.cache:
+            return default
+        
+        value, timestamp = self.cache[key]
+        
+        # Check TTL expiration
+        if self._is_expired(timestamp):
+            del self.cache[key]
+            return default
+        
+        # Remove the entry
+        del self.cache[key]
+        return value
+
     def __delitem__(self, key: str) -> None:
         """Allow deletion like a dict."""
         del self.cache[key]
@@ -271,10 +297,10 @@ class JSONFileStorage:
             True if deletion succeeded, False otherwise
         """
         try:
-            # Performance Fix: Update owner index before removing from cache
-            if item_id in self.cache:
-                self._update_index(item_id, None)
-                del self.cache[item_id]
+            # Update owner index first (handles both cached and non-cached items)
+            # Use pop() instead of del to avoid KeyError in case of race condition
+            self._update_index(item_id, None)
+            self.cache.pop(item_id, None)  # Safe removal, no exception if key missing
 
             # Delete file
             path = self.get_path(item_id)

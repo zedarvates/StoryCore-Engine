@@ -17,7 +17,9 @@ import type { Project } from '../../types';
 import type { MenuItemConfig } from '../../types/menuConfig';
 import { evaluateEnabled, evaluateVisible, evaluateChecked } from '../../types/menuConfig';
 import { projectExportService } from '../../services/projectExportService';
+import type { MenuItemProps } from './MenuItem';
 import { useToast } from '@/hooks/use-toast';
+import { VoiceStatusHeader } from '../layout/VoiceStatusHeader';
 
 export interface MenuBarProps {
   /** Current project state */
@@ -92,7 +94,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
 
         // Check if a menu trigger button is focused
         const focusedMenuId = Array.from(menuTriggerRefs.current.entries()).find(
-          ([_, ref]) => ref === activeElement
+          ([, ref]) => ref === activeElement
         )?.[0];
 
         if (focusedMenuId) {
@@ -229,7 +231,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
   /**
    * Convert menu config items to Menu component props
    */
-  const convertMenuItems = useCallback((items: MenuItemConfig[]): any[] => {
+  const convertMenuItems = useCallback((items: MenuItemConfig[]): Omit<MenuItemProps, 'focused' | 'tabIndex' | 'onFocus' | 'onMouseEnter'>[] => {
     const state = getAppState();
 
     return items
@@ -290,16 +292,15 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
         return {
           id: item.id,
           label: t(item.label),
-          type: item.type,
           enabled,
           checked,
           shortcut: item.shortcut ? `${item.shortcut.ctrl ? 'Ctrl+' : ''}${item.shortcut.key}` : undefined,
           icon: getIconElement(item.icon),
           onClick: () => handleMenuItemClick(item.id),
           submenu: item.submenu ? convertMenuItems(item.submenu) : undefined,
-        };
+        } as Omit<MenuItemProps, 'focused' | 'tabIndex' | 'onFocus' | 'onMouseEnter'>;
       });
-  }, [getAppState, handleMenuItemClick, props.onViewStateChange, t, getIconElement]);
+  }, [getAppState, handleMenuItemClick, props.onViewStateChange, t, toast]);
 
   return (
     <nav
@@ -326,6 +327,11 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
           onRegisterTriggerRef={(ref) => registerMenuTriggerRef(menu.id, ref)}
         />
       ))}
+      
+      {/* Voice Status Indicator (Requirement: Voice & Transcription) */}
+      <div className="ml-auto flex items-center pr-2">
+        <VoiceStatusHeader />
+      </div>
     </nav>
   );
 };

@@ -52,18 +52,22 @@ export function useCinematicVoiceCommands(options: UseCinematicVoiceCommandsOpti
   }, [onPlayback]);
 
   useEffect(() => {
-    const subTab = eventEmitter.on(ADDON_EVENTS.CINEMATIC_TAB, handleTab);
+    const subTab = eventEmitter.on(ADDON_EVENTS.CINEMATIC_SWITCH_TAB, handleTab);
     const subShot = eventEmitter.on(ADDON_EVENTS.CINEMATIC_SELECT_SHOT, handleSelectShot);
-    const subMood = eventEmitter.on(ADDON_EVENTS.CINEMATIC_SET_MOOD, handleMood);
-    const subCam = eventEmitter.on(ADDON_EVENTS.CINEMATIC_SET_CAMERA, handleCamera);
-    const subPlay = eventEmitter.on(ADDON_EVENTS.CINEMATIC_PLAYBACK, handlePlayback);
+    const subMood = eventEmitter.on(ADDON_EVENTS.CINEMATIC_CHANGE_MOOD, handleMood);
+    
+    // Create combined handlers for the actions that are split into multiple events
+    const subPlay = eventEmitter.on(ADDON_EVENTS.CINEMATIC_PLAY, handlePlayback);
+    const subPause = eventEmitter.on(ADDON_EVENTS.CINEMATIC_PAUSE, handlePlayback);
+    const subStop = eventEmitter.on(ADDON_EVENTS.CINEMATIC_STOP, handlePlayback);
 
     return () => {
       subTab.unsubscribe();
       subShot.unsubscribe();
       subMood.unsubscribe();
-      subCam.unsubscribe();
       subPlay.unsubscribe();
+      subPause.unsubscribe();
+      subStop.unsubscribe();
     };
   }, [handleTab, handleSelectShot, handleMood, handleCamera, handlePlayback]);
 }

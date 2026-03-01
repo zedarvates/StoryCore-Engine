@@ -4,7 +4,7 @@
  * Modal window for configuring API endpoints and authentication
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type {
   APISettingsWindowProps,
   APIConfiguration,
@@ -22,20 +22,21 @@ export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindow
   const { toast } = useToast();
   
   // Local state for form
-  const [formData, setFormData] = useState<APIConfiguration | null>(null);
+  const [formData, setFormData] = useState<APIConfiguration | null>(apiConfig);
+  const [prevConfig, setPrevConfig] = useState<APIConfiguration | null>(apiConfig);
+
+  // Sync state if config from props changes
+  if (apiConfig !== prevConfig) {
+    setPrevConfig(apiConfig);
+    setFormData(apiConfig);
+  }
+
   const [validationErrors, setValidationErrors] = useState<ValidationResult>({
     isValid: true,
     errors: [],
   });
   const [isTesting, setIsTesting] = useState(false);
   const [testResults, setTestResults] = useState<Record<string, string>>({});
-
-  // Initialize form data when config changes
-  useEffect(() => {
-    if (apiConfig) {
-      setFormData(apiConfig);
-    }
-  }, [apiConfig]);
 
   if (!isOpen || !formData) return null;
 
@@ -45,10 +46,15 @@ export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindow
       if (!prev) return prev;
       
       const keys = field.split('.');
-      const newData = { ...prev };
-      let current: unknown = newData;
+      // Deep copy to avoid mutation
+      const newData = JSON.parse(JSON.stringify(prev));
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      let current: any = newData;
       
       for (let i = 0; i < keys.length - 1; i++) {
+        if (!current[keys[i]]) {
+          current[keys[i]] = {};
+        }
         current = current[keys[i]];
       }
       
@@ -82,10 +88,11 @@ export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindow
   const handleRemoveEndpoint = (serviceName: string) => {
     setFormData(prev => {
       if (!prev) return prev;
-      const { [serviceName]: removed, ...rest } = prev.endpoints;
+      const newEndpoints = { ...prev.endpoints };
+      delete newEndpoints[serviceName];
       return {
         ...prev,
-        endpoints: rest,
+        endpoints: newEndpoints,
       };
     });
   };
@@ -148,8 +155,8 @@ export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindow
     return error ? error.message : null;
   };
 
-  return (
-    <div className="modal-overlay">
+return (
+    <div className="modal-overlay" style={{ zIndex: 99999 }}>
       <div className="modal-window api-settings-window">
         <div className="modal-header">
           <h2>API Settings</h2>

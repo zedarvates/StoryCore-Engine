@@ -335,6 +335,129 @@ class EnhancedImageEngine:
         
         self.logger.info("Enhanced Image Engine initialized successfully")
     
+    def _create_basic_workflow(self, request: ImageGenerationRequest, fast_mode: bool = False) -> Dict[str, Any]:
+        """
+        Create basic ComfyUI workflow for standard generation.
+        
+        Args:
+            request: Image generation request
+            fast_mode: Whether to use fast mode
+            
+        Returns:
+            ComfyUI workflow dictionary
+        """
+        # Use seed from request or generate random
+        seed = request.seed if request.seed is not None else int(time.time() * 1000) % (2**32)
+        
+        # Adjust steps based on fast_mode
+        steps = 20 if fast_mode else 30
+        cfg_scale = 7.0 if fast_mode else 8.0
+        
+        # Basic workflow for SD-XL or similar
+        workflow = {
+            "1": {
+                "inputs": {
+                    "seed": seed,
+                    "steps": steps,
+                    "cfg": cfg_scale,
+                    "sampler_name": "euler",
+                    "scheduler": "normal",
+                    "positive": request.prompt,
+                    "negative": "low quality, blurry, distorted, watermark, text",
+                    "width": request.width,
+                    "height": request.height,
+                    "model": ["4", 0]
+                },
+                "class_type": "KSampler"
+            },
+            "2": {
+                "inputs": {
+                    "model_name": "sd_xl_base_1.0.safetensors",
+                    "model_path": "models/checkpoints"
+                },
+                "class_type": "CheckpointLoaderSimple"
+            },
+            "3": {
+                "inputs": {
+                    "samples": ["1", 0],
+                    "vae": ["4", 0]
+                },
+                "class_type": "VAEDecode"
+            },
+            "4": {
+                "inputs": {
+                    "model_name": "sd_xl_vae.safetensors"
+                },
+                "class_type": "VAELoader"
+            },
+            "5": {
+                "inputs": {
+                    "images": ["3", 0]
+                },
+                "class_type": "SaveImage"
+            }
+        }
+        
+        return workflow
+    
+    async def _poll_for_comfyui_result(
+        self,
+        session: aiohttp.ClientSession,
+        comfyui_url: str,
+        prompt_id: str,
+        poll_interval: float = 1.0,
+        max_wait: int = 300
+    ) -> Optional[bytes]:
+        """
+        Poll ComfyUI for generation result.
+        
+        Args:
+            session: aiohttp session
+            comfyui_url: ComfyUI server URL
+            prompt_id: Prompt ID to poll
+            poll_interval: Polling interval in seconds
+            max_wait: Maximum wait time in seconds
+            
+        Returns:
+            Image bytes or None if not ready
+        """
+        start_time = time.time()
+        
+        while time.time() - start_time < max_wait:
+            try:
+                # Check history endpoint
+                history_url = f"{comfyui_url.rstrip('/')}/history/{prompt_id}"
+                async with session.get(history_url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                    if response.status == 200:
+                        history = await response.json()
+                        
+                        if prompt_id in history:
+                            prompt_history = history[prompt_id]
+                            outputs = prompt_history.get('outputs', {})
+                            
+                            # Find image output
+                            for node_id, node_output in outputs.items():
+                                if 'images' in node_output and node_output['images']:
+                                    image_info = node_output['images'][0]
+                                    filename = image_info['filename']
+                                    subfolder = image_info.get('subfolder', '')
+                                    
+                                    # Download image
+                                    view_url = f"{comfyui_url.rstrip('/')}/view?filename={filename}&subfolder={subfolder}"
+                                    async with session.get(view_url, timeout=aiohttp.ClientTimeout(total=60)) as img_response:
+                                        if img_response.status == 200:
+                                            return await img_response.read()
+                
+                await asyncio.sleep(poll_interval)
+                
+            except asyncio.TimeoutError:
+                self.logger.warning("Polling timeout, retrying...")
+            except aiohttp.ClientError as e:
+                self.logger.warning(f"Polling error: {e}, retrying...")
+        
+        self.logger.error(f"Timeout waiting for ComfyUI result: prompt_id={prompt_id}")
+        return None
+    
     async def generate_image(self, request: ImageGenerationRequest) -> ImageGenerationResult:
         """
         Generate image using enhanced workflows.
@@ -717,7 +840,63 @@ class EnhancedImageEngine:
     async def _generate_standard(self, request: ImageGenerationRequest, fast_mode: bool = False) -> ImageGenerationResult:
         """Generate image using standard ComfyUI workflow"""
         try:
-            # Mock standard generation for now
+            # Try to use ComfyUI API if available
+            import aiohttp
+            
+            # Get ComfyUI URL from base engine
+            comfyui_url = getattr(self.base_engine, 'url', 'http://127.0.0.1:8188')
+            
+            # Check if ComfyUI is available
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        f"{comfyui_url.rstrip('/')}/system_stats",
+                        timeout=aiohttp.ClientTimeout(total=5)
+                    ) as response:
+                        if response.status == 200:
+                            # ComfyUI is available, submit workflow
+                            workflow = self._create_basic_workflow(request, fast_mode)
+                            
+                            # Submit to ComfyUI
+                            submit_url = f"{comfyui_url.rstrip('/')}/prompt"
+                            async with session.post(
+                                submit_url,
+                                json={"prompt": workflow},
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as submit_response:
+                                if submit_response.status == 200:
+                                    result = await submit_response.json()
+                                    prompt_id = result.get('prompt_id')
+                                    
+                                    # Poll for completion
+                                    image_data = await self._poll_for_comfyui_result(
+                                        session, comfyui_url, prompt_id
+                                    )
+                                    
+                                    if image_data:
+                                        # Save and load image
+                                        from PIL import Image
+                                        import io
+                                        img = Image.open(io.BytesIO(image_data))
+                                        
+                                        return ImageGenerationResult(
+                                            success=True,
+                                            image=img,
+                                            workflow_used="standard_comfyui_api",
+                                            quality_score=0.85 if not fast_mode else 0.75,
+                                            metadata={
+                                                'fast_mode': fast_mode,
+                                                'resolution': f"{request.width}x{request.height}",
+                                                'prompt_id': prompt_id,
+                                                'seed': request.seed
+                                            }
+                                        )
+            except (aiohttp.ClientError, asyncio.TimeoutError):
+                # ComfyUI not available, use fallback
+                pass
+            
+            # Fallback: create mock image (original behavior)
+            # This is used when ComfyUI is not available
             await asyncio.sleep(0.1 if fast_mode else 0.2)
             
             # Create mock image

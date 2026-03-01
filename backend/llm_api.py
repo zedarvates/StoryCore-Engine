@@ -432,6 +432,58 @@ The rule: Nothing is random. Every detail should be explainable by the function+
 
 Respond as a comprehensive JSON object with all layers populated.""",
         variables=["location_name", "genre", "tone", "description", "context"]
+    ),
+    PromptTemplate(
+        name="assistant_editor_discovery",
+        template_type=PromptTemplateType.GENERAL,
+        template="""You are a Professional Assistant Editor for a high-end film/documentary project. 
+Your role is to analyze raw story data (transcripts, logs, or scripts) to discover compelling narratives.
+
+Current Project Context:
+Project Name: {project_name}
+Goal: {project_goal}
+Raw Story Media/Transcripts:
+{content_to_analyze}
+
+TASK:
+1. THEME IDENTIFICATION: Identify 3-5 sub-themes or character arcs emerging from the content.
+2. CONFLICT & FRICTION: Identify the primary sources of internal or external conflict.
+3. STORY STAKES: What is at risk for the characters/subjects?
+4. ROUGH STRUCTURE: Propose a 3-act or "Save the Cat" structure using SPECIFIC QUOTES (with timestamps if available) from the provided content.
+
+Maintain an expert, analytical, yet creative tone. Focus on human emotion and "Why" instead of just "What" happened.""",
+        variables=["project_name", "project_goal", "content_to_analyze"]
+    ),
+    PromptTemplate(
+        name="cinematic_visual_prompting",
+        template_type=PromptTemplateType.SHOT_DESCRIPTION,
+        template="""You are a world-class Cinematographer and Prompt Engineer.
+Convert this narrative beat into a hyper-detailed visual prompt for AI generation.
+
+NARRATIVE BEAT:
+{narrative_description}
+
+PROJECT STYLE:
+{visual_style}
+
+CINEMATIC CONTEXT:
+- Shot Type: {shot_type}
+- Camera Movement: {camera_movement}
+- Lighting: {lighting_mood}
+- Key Character(s): {characters}
+
+TASK:
+Write a single, dense paragraph describing the visual elements. 
+Include specific details on:
+1. COMPOSITION: Describe the framing (e.g., extreme close-up, wide shot), the depth of field (bokeh), and the lens (e.g., 35mm, anamorphic).
+2. LIGHTING: Describe the light sources (rim lights, volumetric fog, high-contrast chiaroscuro).
+3. TEXTURES: Describe the skin texture, fabric, or environmental grit.
+4. MOTION: Describe the dynamic elements (hair blowing, dust motes, slow-pan).
+
+MANDATORY: Ensure the prompt is COMPATIBLE with {visual_style} and maintains character consistency for {characters}.
+
+Refine the prompt to be technically precise for Stable Diffusion / Flux / ComfyUI.""",
+        variables=["narrative_description", "visual_style", "shot_type", "camera_movement", "lighting_mood", "characters"]
     )
 ]
 

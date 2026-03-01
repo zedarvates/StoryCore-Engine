@@ -37,19 +37,14 @@ class GenerateSkyboxHandler(BaseHandler):
             from blender_bridge.skybox_generator import SkyboxGenerator
             import asyncio
             
-            generator = SkyboxGenerator()
-            
-            # This is a bit tricky as the prompt might contain multiple words
-            # argparse handles this if we pass it correctly
+            generator = SkyboxGenerator(output_dir=args.output_dir)
             
             print(f"Generating skybox with prompt: {args.prompt}")
             
-            # SkyboxGenerator.generate_panorama is synchronous in its current implementation
-            # but it uses requests. We should be careful about blocking.
-            result_path = generator.generate_panorama(
+            # Use generate_skybox which is the actual method name in skybox_generator.py
+            result_path = generator.generate_skybox(
                 prompt=args.prompt,
-                style=args.style,
-                output_dir=args.output_dir
+                style=args.style
             )
             
             if result_path and Path(result_path).exists():
@@ -57,7 +52,7 @@ class GenerateSkyboxHandler(BaseHandler):
                 print(result_path) # Output for backend capture
                 return 0
             else:
-                self.print_error("Failed to generate skybox")
+                self.print_error("Failed to generate skybox. Check if ComfyUI is running.")
                 return 1
             
         except Exception as e:

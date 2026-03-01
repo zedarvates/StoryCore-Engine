@@ -1,3 +1,4 @@
+/* cspell:ignore Chatbox chatbox openai openai Anthropic Anthropic Italiano Português creer */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,25 @@ import {
   getMigratedChatHistory,
   clearMigratedChatHistory 
 } from '@/utils/ollamaMigration';
+import { 
+  UserPlus, 
+  MapPin, 
+  Package, 
+  Video, 
+  Ghost, 
+  Mic, 
+  MicOff, 
+  PlusSquare, 
+  Wand2, 
+  Zap, 
+  Minimize2, 
+  Type, 
+  Eraser,
+  BookOpen
+} from 'lucide-react';
+import { VoiceTextService } from '@/services/VoiceTextService';
+import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ============================================================================
 // Constants
@@ -52,6 +72,8 @@ interface Message {
 interface LandingChatBoxProps {
   onSendMessage?: (message: string, attachments?: File[]) => void;
   placeholder?: string;
+  height?: string;
+  isDetached?: boolean;
 }
 
 // ============================================================================
@@ -61,6 +83,8 @@ interface LandingChatBoxProps {
 export function LandingChatBox({
   onSendMessage,
   placeholder = "Décrivez votre projet ou posez une question...",
+  height,
+  isDetached = false,
 }: LandingChatBoxProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -70,7 +94,7 @@ export function LandingChatBox({
   const [providerName, setProviderName] = useState<string>('');
   const [modelName, setModelName] = useState<string>('');
   const [showConfigDialog, setShowConfigDialog] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => getInitialLanguagePreference());
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => getInitialLanguagePreference() as LanguageCode);
   const [llmConfig, setLlmConfig] = useState<LLMConfig>({
     provider: 'openai',
     model: 'gpt-4',
@@ -101,6 +125,12 @@ export function LandingChatBox({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const configDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { toast } = useToast();
+  const [isListening, setIsListening] = useState(false);
+  const [isImproving, setIsImproving] = useState(false);
+
+  // Ref to break circular dependency between createErrorMessage and handleRetryMessage
+  const handleRetryMessageRef = useRef<((userInput: string) => Promise<void>) | null>(null);
 
   // Helper function to add messages with history limit
   const addMessage = useCallback((newMessage: Message | Message[]) => {
@@ -134,7 +164,7 @@ export function LandingChatBox({
       };
       setMessages([welcomeMessage]);
     }
-  }, []); // Run only once on mount
+  }, [currentLanguage, messages.length]); // Run when language changes or messages are cleared
 
   // Check for Ollama migration and load configuration on mount
   useEffect(() => {
@@ -350,7 +380,7 @@ export function LandingChatBox({
 
 
   // Helper function to create error message with recovery options (Requirements 7.1-7.8)
-  const createErrorMessage = (error: Error | LLMError, userInput: string): Message => {
+  const createErrorMessage = useCallback((error: Error | LLMError, userInput: string): Message => {
     const llmError = error instanceof LLMError ? error : new LLMError(
       error.message,
       'unknown',
@@ -380,7 +410,9 @@ export function LandingChatBox({
           label: 'Retry',
           action: async () => {
             // Resend the last message (Requirement 7.6)
-            await handleRetryMessage(userInput);
+            if (handleRetryMessageRef.current) {
+              await handleRetryMessageRef.current(userInput);
+            }
           },
           primary: true,
         }] : []),
@@ -411,7 +443,7 @@ export function LandingChatBox({
       timestamp: new Date(),
       error: recoveryOptions,
     };
-  };
+  }, [setShowConfigDialog]); // handleRetryMessageRef, addMessage, setMessages are stable
 
   // Helper function to retry a failed message (Requirement 7.6)
   const handleRetryMessage = useCallback(async (userInput: string) => {
@@ -518,7 +550,104 @@ export function LandingChatBox({
       const errorMessage = createErrorMessage(error as Error, userInput);
       addMessage(errorMessage);
     }
-  }, [llmService, llmConfig, currentLanguage, addMessage]);
+  }, [llmService, llmConfig, currentLanguage, addMessage, createErrorMessage]);
+
+  // Update retry ref
+  useEffect(() => {
+    handleRetryMessageRef.current = handleRetryMessage;
+  }, [handleRetryMessage]);
+
+  // Handle quick action (Requirements for character, location, object, shot)
+  const handleQuickAction = useCallback(async (action: string) => {
+    let prompt = '';
+    switch (action) {
+      case 'character': prompt = "Je souhaite créer un nouveau personnage pour mon projet. Peux-tu m'aider à définir son background et sa personnalité ?"; break;
+      case 'location': prompt = "Je dois concevoir un nouveau lieu (décor/environnement). Quelles idées peux-tu me proposer ?"; break;
+      case 'object': prompt = "J'ai besoin d'un objet clé (un accessoire/prop) pour mon histoire. Peux-tu m'aider à le créer ?"; break;
+      case 'shot': prompt = "J'aimerais planifier un nouveau shot (plan de caméra) pour ma séquence. Peux-tu m'aider à définir le cadrage et l'angle ?"; break;
+      case 'scenario': prompt = "Je souhaite travailler sur le scénario de mon projet. Peux-tu m'aider à structurer l'intrigue ou à écrire une scène ?"; break;
+      case 'ghost': prompt = "Peux-tu me donner des conseils du Ghost Tracker sur l'état actuel de mon projet et les améliorations possibles ?"; break;
+      default: return;
+    }
+    setInputValue(prompt);
+  }, []);
+
+  // Handle prompt improvement (Requirement 3.1+)
+  const handleImprovePrompt = useCallback(async (type: 'improve' | 'shorter' | 'longer') => {
+    if (!inputValue.trim() || !llmService) return;
+
+    setIsImproving(true);
+    try {
+      let instruction = '';
+      if (type === 'improve') instruction = "Réécris ce prompt de façon plus claire, riche et efficace pour un assistant créatif :";
+      else if (type === 'shorter') instruction = "Rends ce prompt beaucoup plus court et concis :";
+      else if (type === 'longer') instruction = "Enrichis ce prompt avec beaucoup plus de détails créatifs :";
+
+      const request: LLMRequest = {
+        prompt: `${instruction}\n\n"${inputValue}"`,
+        systemPrompt: "Tu es un expert en prompt engineering. Réponds UNIQUEMENT par le prompt amélioré, sans introduction ni conclusion.",
+        stream: false,
+      };
+
+      const response = await llmService.generateCompletion(request);
+      if (response.success && response.data) {
+        setInputValue(response.data.content.trim().replace(/^"/, '').replace(/"$/, ''));
+        toast({ title: "Prompt amélioré ✨", description: "Le texte a été mis à jour par l'IA." });
+      }
+    } catch (error) {
+      console.error('Failed to improve prompt:', error);
+      toast({ variant: "destructive", title: "Erreur", description: "Impossible d'améliorer le prompt." });
+    } finally {
+      setIsImproving(false);
+    }
+  }, [inputValue, llmService, toast]);
+
+  // Handle voice recording
+  const handleVoiceRecording = useCallback(() => {
+    const voiceService = VoiceTextService.getInstance();
+    if (isListening) {
+      voiceService.stopListening();
+      setIsListening(false);
+    } else {
+      voiceService.startListening({
+        onStart: () => setIsListening(true),
+        onResult: (result) => {
+          if (result.isFinal) {
+            setInputValue(prev => prev + (prev ? ' ' : '') + result.transcript);
+          }
+        },
+        onError: (error) => {
+          console.error('Voice error:', error);
+          setIsListening(false);
+          toast({ variant: "destructive", title: "Erreur vocale", description: error });
+        },
+        onEnd: () => setIsListening(false),
+      });
+    }
+  }, [isListening, toast]);
+
+  // Handle screen area capture (Requirement "+" button)
+  const handleScreenCapture = async () => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const electron = (window as any).electron;
+      if (electron && electron.startAreaCapture) {
+        const result = await electron.startAreaCapture();
+        if (result && result.base64Data) {
+          const res = await fetch(result.base64Data);
+          const blob = await res.blob();
+          const file = new File([blob], `capture-${Date.now()}.png`, { type: 'image/png' });
+          setAttachments(prev => [...prev, file]);
+          toast({ title: "Capture réussie 📸", description: "L'image a été ajoutée." });
+        }
+      } else {
+        toast({ variant: "destructive", title: "Indisponible", description: "La capture d'écran n'est pas supportée dans ce contexte." });
+      }
+    } catch (error) {
+      console.error('Screen capture error:', error);
+      toast({ variant: "destructive", title: "Erreur", description: "Erreur lors de la capture." });
+    }
+  };
 
   // Handle send message
   const handleSend = async () => {
@@ -943,7 +1072,11 @@ export function LandingChatBox({
   }, [addMessage]);
 
   return (
-    <div className="flex flex-col h-[400px] bg-gray-900 rounded-lg border border-gray-700 overflow-hidden">
+    <div
+      className={`flex flex-col ${height ? '' : 'min-h-[400px] max-h-[70vh]'} bg-gray-900 ${isDetached ? '' : 'rounded-lg border border-gray-700 shadow-2xl'} overflow-hidden transition-all duration-300`}
+      style={height ? { height } : {}}
+      id="landing-chatbox-container"
+    >
       {/* Header */}
       <div 
         className="flex items-center gap-2 px-4 py-3 bg-gray-800 border-b border-gray-700"
@@ -1163,6 +1296,67 @@ export function LandingChatBox({
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Quick Action Buttons (Barre Ghost) */}
+      <div className="px-4 py-2 bg-gray-900/40 border-t border-gray-700/50 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={() => handleQuickAction('character')} className="h-8 px-2.5 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-full border border-transparent hover:border-blue-400/20">
+                <UserPlus className="w-3.5 h-3.5 mr-1.5" /> <span className="text-[11px] font-medium">Perso</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Créer un personnage</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={() => handleQuickAction('location')} className="h-8 px-2.5 text-gray-400 hover:text-green-400 hover:bg-green-400/10 rounded-full border border-transparent hover:border-green-400/20">
+                <MapPin className="w-3.5 h-3.5 mr-1.5" /> <span className="text-[11px] font-medium">Lieu</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Créer un lieu</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={() => handleQuickAction('object')} className="h-8 px-2.5 text-gray-400 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-full border border-transparent hover:border-yellow-400/20">
+                <Package className="w-3.5 h-3.5 mr-1.5" /> <span className="text-[11px] font-medium">Objet</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Créer un objet</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={() => handleQuickAction('shot')} className="h-8 px-2.5 text-gray-400 hover:text-purple-400 hover:bg-purple-400/10 rounded-full border border-transparent hover:border-purple-400/20">
+                <Video className="w-3.5 h-3.5 mr-1.5" /> <span className="text-[11px] font-medium">Shot</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Créer un shot</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={() => handleQuickAction('scenario')} className="h-8 px-2.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full border border-transparent hover:border-cyan-400/20">
+                <BookOpen className="w-3.5 h-3.5 mr-1.5" /> <span className="text-[11px] font-medium">Scénario</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Écrire un scénario</TooltipContent>
+          </Tooltip>
+
+          <div className="h-4 w-[1px] bg-gray-700/50 mx-1 flex-shrink-0" />
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={() => handleQuickAction('ghost')} className="h-8 px-2.5 text-orange-400/80 hover:text-orange-400 hover:bg-orange-400/10 rounded-full border border-orange-400/10 hover:border-orange-400/30">
+                <Ghost className="w-3.5 h-3.5 mr-1.5" /> <span className="text-[11px] font-bold tracking-tight">GHOST</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Conseils stratégiques du Ghost Tracker</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
       {/* Attachments Preview */}
       {attachments.length > 0 && (
         <div 
@@ -1195,12 +1389,129 @@ export function LandingChatBox({
 
       {/* Input Area */}
       <div 
-        className="p-4 bg-gray-800 border-t border-gray-700"
+        className="pt-4 px-4 pb-2 bg-gray-800 border-t border-gray-700"
         role="form"
         aria-label="Message input"
       >
+        {/* Prompt Improvement Toolbar */}
+        <div className="flex items-center gap-1.5 mb-2 px-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleImprovePrompt('improve')} 
+                  disabled={!inputValue.trim() || isImproving}
+                  className="h-7 w-7 text-gray-400 hover:text-purple-400 hover:bg-purple-400/10"
+                >
+                  <Wand2 className={`w-3.5 h-3.5 ${isImproving ? 'animate-pulse' : ''}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">Améliorer le prompt</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleImprovePrompt('shorter')} 
+                  disabled={!inputValue.trim() || isImproving}
+                  className="h-7 w-7 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">Raccourcir</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleImprovePrompt('longer')} 
+                  disabled={!inputValue.trim() || isImproving}
+                  className="h-7 w-7 text-gray-400 hover:text-green-400 hover:bg-green-400/10"
+                >
+                  <Type className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">Détailler</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleImprovePrompt('improve')} // Placeholder for optimize
+                  disabled={!inputValue.trim() || isImproving}
+                  className="h-7 w-7 text-gray-400 hover:text-yellow-400 hover:bg-yellow-400/10"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">Optimiser pour le modèle</TooltipContent>
+            </Tooltip>
+            
+            <div className="flex-1" />
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setInputValue('')} 
+                  disabled={!inputValue.trim()}
+                  className="h-7 w-7 text-gray-400 hover:text-red-400 hover:bg-red-400/10"
+                >
+                  <Eraser className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">Effacer tout</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
         <div className="flex items-end gap-2">
-          {/* File Attachment Button */}
+          {/* File & Screen Capture Group */}
+          <div className="flex flex-col gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-9 w-9 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Joindre un fichier</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleScreenCapture}
+                    className="h-9 w-9 text-gray-400 hover:text-purple-400 hover:bg-gray-700"
+                  >
+                    <PlusSquare className="w-5 h-5 text-purple-400" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Capture de zone (Tous écrans)</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          {/* Hidden File Input */}
           <input
             ref={fileInputRef}
             type="file"
@@ -1208,49 +1519,56 @@ export function LandingChatBox({
             accept="audio/*,image/*,.pdf,.txt,.doc,.docx"
             onChange={handleFileSelect}
             className="hidden"
-            aria-label="Select files to attach"
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => fileInputRef.current?.click()}
-            className="text-gray-400 hover:text-white hover:bg-gray-700"
-            title="Joindre un fichier"
-            aria-label="Attach file"
-          >
-            <Paperclip className="w-5 h-5" aria-hidden="true" />
-            <span className="sr-only">Attach file</span>
-          </Button>
 
           {/* Text Input */}
-          <Textarea
-            ref={textareaRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            className="flex-1 min-h-[40px] max-h-[120px] bg-gray-700 border-gray-600 text-white placeholder:text-gray-500 resize-none"
-            rows={1}
-            aria-label="Message input"
-            aria-describedby="input-help-text"
-          />
+          <div className="relative flex-1">
+            <Textarea
+              ref={textareaRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              className="flex-1 min-h-[132px] max-h-[480px] pr-10 bg-gray-700 border-gray-600 text-white placeholder:text-gray-500 resize-none shadow-inner"
+              rows={3}
+            />
+            {/* Microphone Button */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleVoiceRecording}
+                    className={`absolute right-3 bottom-2.5 p-1 rounded-full transition-all ${
+                      isListening ? 'bg-red-500 animate-pulse text-white' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{isListening ? "Arrêter l'enregistrement" : "Enregistrer la voix"}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
 
           {/* Send Button */}
           <Button
             type="button"
             onClick={handleSend}
-            disabled={!inputValue.trim() && attachments.length === 0}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-            title="Envoyer (Entrée)"
-            aria-label="Send message"
+            disabled={(!inputValue.trim() && attachments.length === 0) || isStreaming}
+            className={`h-11 w-11 rounded-full flex-shrink-0 transition-transform active:scale-95 ${
+              isStreaming ? 'bg-gray-600' : 'bg-purple-600 hover:bg-purple-700'
+            }`}
           >
-            <Send className="w-5 h-5" aria-hidden="true" />
-            <span className="sr-only">Send message</span>
+            {isStreaming ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </Button>
         </div>
-        <p id="input-help-text" className="text-xs text-gray-500 mt-2">
-          Appuyez sur Entrée pour envoyer, Shift+Entrée pour une nouvelle ligne
+        
+        <p className="text-[10px] text-gray-500 mt-1 ml-1">
+          {isListening ? "🎙️ Transcription en cours..." : "Appuyez sur Entrée pour envoyer • Shift+Entrée pour nouvelle ligne"}
         </p>
       </div>
 

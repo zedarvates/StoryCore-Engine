@@ -65,29 +65,27 @@ class SkyboxGenerator:
         return None
 
     def _get_skybox_workflow(self, prompt: str) -> Dict[str, Any]:
-        """Retourne un dictionnaire workflow ComfyUI pour un panorama."""
-        # Note: Ce workflow est un exemple simplifié. 
-        # Pour une vraie skybox, on utiliserait un modèle SDXL avec des réglages panorama.
+        """Retourne un dictionnaire workflow ComfyUI pour un panorama (optimisé pour Flux)."""
         return {
             "3": {
                 "class_type": "KSampler",
                 "inputs": {
-                    "cfg": 8,
+                    "cfg": 3.5,
                     "denoise": 1,
                     "latent_image": ["5", 0],
                     "model": ["4", 0],
                     "negative": ["7", 0],
                     "positive": ["6", 0],
                     "sampler_name": "euler",
-                    "scheduler": "normal",
+                    "scheduler": "simple",
                     "seed": 42,
-                    "steps": 25
+                    "steps": 20
                 }
             },
             "4": {
                 "class_type": "CheckpointLoaderSimple",
                 "inputs": {
-                    "ckpt_name": "sd_xl_base_1.0.safetensors"
+                    "ckpt_name": "flux1-dev.safetensors"
                 }
             },
             "5": {
@@ -109,7 +107,7 @@ class SkyboxGenerator:
                 "class_type": "CLIPTextEncode",
                 "inputs": {
                     "clip": ["4", 1],
-                    "text": "blurry, low quality, distorted, watermark"
+                    "text": "low quality, distorted, watermark, signature"
                 }
             },
             "8": {

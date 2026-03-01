@@ -275,10 +275,7 @@ async def startup_event():
         # Load and discover all addons
         await manager.initialize_all_addons()
         
-        # Initialize Addon API with managers
-        init_addon_api(manager, validator, perm_manager)
-        
-        # Initialize External Addon API
+        # Initialize External Addon Systems
         from src.addon_api import ExternalAddonLoader, AddonRegistryClient, DependencyManager
         from pathlib import Path
         
@@ -286,9 +283,13 @@ async def startup_event():
         external_loader = ExternalAddonLoader(engine_path / "addons")
         await external_loader.initialize()
         
-        registry_client = AddonRegistryClient()
+        registry_url = os.getenv("STORYCORE_MARKETPLACE_API", "https://nexrealm.shop/wp-json/storycore/v1/marketplace")
+        registry_client = AddonRegistryClient(registry_url=registry_url)
         deps_manager = DependencyManager()
         await deps_manager.initialize()
+
+        # Initialize Addon API with managers
+        init_addon_api(manager, validator, perm_manager, registry_client)
         
         init_external_addon_api(manager, external_loader, registry_client, deps_manager)
         

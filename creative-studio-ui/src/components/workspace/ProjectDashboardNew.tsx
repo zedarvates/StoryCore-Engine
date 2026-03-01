@@ -1843,10 +1843,6 @@ export function ProjectDashboardNew({
             defaultExpanded={false}
           >
             <LocationSection
-              onCreateLocation={() => {
-                // Open location creation wizard
-                openWizard('location-creation' as Parameters<typeof openWizard>[0]);
-              }}
               hideHeader={true}
               style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
             />

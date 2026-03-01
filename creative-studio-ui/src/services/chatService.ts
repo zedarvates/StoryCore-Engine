@@ -27,7 +27,7 @@ export interface ChatContext {
 }
 
 export interface ChatAction {
-  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject' | 'createCharacter' | 'createLocation' | 'createObject' | 'createDialogue' | 'createStory' | 'createWorld' | 'createScenario' | 'generateImage' | 'generateAudio' | 'generateVideo' | 'analyzeImage' | 'changeTheme';
+  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject' | 'createCharacter' | 'createLocation' | 'createObject' | 'createDialogue' | 'createStory' | 'createWorld' | 'createScenario' | 'generateImage' | 'generateAudio' | 'generateVideo' | 'analyzeImage' | 'changeTheme' | 'updateStyle' | 'updateGenre';
   payload: unknown;
 }
 
@@ -161,6 +161,12 @@ export class ChatService {
 
       case 'change_theme':
         return this.handleThemeChange(intent, userInput, language);
+      
+      case 'update_style':
+        return await this.handleUpdateStyle(userInput, llmService, language);
+      
+      case 'update_genre':
+        return await this.handleUpdateGenre(userInput, llmService, language);
 
       default: {
         const response = await this.handleGeneral(userInput, llmService, language);
@@ -763,6 +769,30 @@ export class ChatService {
       return {
         type: 'change_theme',
         confidence: 0.95,
+        params: { rawInput: input },
+      };
+    }
+
+    // Update style (FR + EN)
+    if (
+      input.match(/change|switch|use|set|mets|active|utilise|applique|apply|extrait|extract/i) &&
+      input.match(/style|esthétique|direction artistique|da|art style/i)
+    ) {
+      return {
+        type: 'update_style',
+        confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Update genre (FR + EN)
+    if (
+      input.match(/change|switch|use|set|mets|active|utilise|applique|apply/i) &&
+      input.match(/genre|typologie|type de projet/i)
+    ) {
+      return {
+        type: 'update_genre',
+        confidence: 0.9,
         params: { rawInput: input },
       };
     }
@@ -1877,7 +1907,7 @@ export class ChatService {
     const lowerInput = input.toLowerCase();
 
     // Detect intent specific to the image
-    let entityType: 'character' | 'location' | 'object' | 'unknown' = 'unknown';
+    let entityType: 'character' | 'location' | 'object' | 'style' | 'genre' | 'unknown' = 'unknown';
 
     if (lowerInput.match(/personnage|character|héros|hero|portrait|visage|face/i)) {
       entityType = 'character';
@@ -1885,6 +1915,10 @@ export class ChatService {
       entityType = 'location';
     } else if (lowerInput.match(/objet|object|item|arme|weapon|outil|tool/i)) {
       entityType = 'object';
+    } else if (lowerInput.match(/style|esthétique|direction artistique|da|art style/i)) {
+      entityType = 'style';
+    } else if (lowerInput.match(/genre|typologie|ton|mood/i)) {
+      entityType = 'genre';
     }
 
     // Call Vision Model to analyze the image
@@ -1964,6 +1998,36 @@ export class ChatService {
           "- Usage: (what it does or its purpose)\n" +
           "- Style: (overall artistic style)\n\n" +
           "Also provide a detailed prompt that could be used to regenerate this object." + projectContext;
+      } else if (entityType === 'style') {
+        prompt = language === 'fr'
+          ? "Analyse cette image comme une référence de style artistique. Décris le style en utilisant ces étiquettes :\n" +
+          "- Name: (nom du style)\n" +
+          "- Palette: (couleurs dominantes)\n" +
+          "- Lighting: (type d'éclairage)\n" +
+          "- Techniques: (ex: aquarelle, 3d, cyberpunk, etc.)\n" +
+          "- Mood: (humeur visuelle)\n\n" +
+          "Fournis également un prompt de style détaillé en anglais." + projectContext
+          : "Analyze this image as an artistic style reference. Describe the style using these labels:\n" +
+          "- Name: (style name)\n" +
+          "- Palette: (dominant colors)\n" +
+          "- Lighting: (lighting style)\n" +
+          "- Techniques: (e.g. watercolor, 3d render, cyberpunk, etc.)\n" +
+          "- Mood: (visual mood)\n\n" +
+          "Also provide a detailed style prompt in English." + projectContext;
+      } else if (entityType === 'genre') {
+        prompt = language === 'fr'
+          ? "Analyse cette image pour identifier le genre cinématographique ou littéraire. Décris le genre :\n" +
+          "- Name: (genre principal)\n" +
+          "- Subgenres: (sous-genres identifiés)\n" +
+          "- Tropes: (clichés ou éléments caractéristiques visibles)\n" +
+          "- Audience: (public cible estimé)\n\n" +
+          "Fournis également une brève justification de ton analyse." + projectContext
+          : "Analyze this image to identify the cinematic or literary genre. Describe the genre:\n" +
+          "- Name: (main genre)\n" +
+          "- Subgenres: (identified subgenres)\n" +
+          "- Tropes: (characteristic tropes or elements visible)\n" +
+          "- Audience: (estimated target audience)\n\n" +
+          "Also provide a brief justification of your analysis." + projectContext;
       } else {
         prompt = language === 'fr'
           ? "Analyse cette image et décris ce que tu vois en détail. Identifie s'il s'agit d'un personnage, d'un lieu ou d'un objet." + projectContext
@@ -2120,6 +2184,41 @@ export class ChatService {
         suggestions,
         actions
       };
+    } else if (entityType === 'style') {
+      suggestions.push(language === 'fr' ? 'Appliquer ce style au projet' : 'Apply this style to project');
+      actions.push({
+        type: 'updateStyle',
+        payload: {
+          style: parsedData.name || parsedData.techniques || analysis.substring(0, 50),
+          description: analysis,
+          palette: parsedData.palette,
+          stylePrompt: parsedData.techniques || analysis
+        }
+      });
+      return {
+        message: language === 'fr'
+          ? `J'ai analysé le style visuel de cette image.\n\nAnalyse :\n${analysis}\n\nVoulez-vous définir cela comme le style visuel de référence pour votre projet ?`
+          : `I've analyzed the visual style of this image.\n\nAnalysis:\n${analysis}\n\nWould you like to set this as the reference visual style for your project?`,
+        suggestions,
+        actions
+      };
+    } else if (entityType === 'genre') {
+      suggestions.push(language === 'fr' ? 'Définir comme genre du projet' : 'Set as project genre');
+      actions.push({
+        type: 'updateGenre',
+        payload: {
+          genre: parsedData.name || analysis.substring(0, 30),
+          subgenres: parsedData.subgenres,
+          description: analysis
+        }
+      });
+      return {
+        message: language === 'fr'
+          ? `L'image suggère le genre suivant :\n\n${analysis}\n\nVoulez-vous mettre à jour le genre de votre projet ?`
+          : `The image suggests the following genre:\n\n${analysis}\n\nWould you like to update your project's genre?`,
+        suggestions,
+        actions
+      };
     }
 
     return {
@@ -2236,6 +2335,82 @@ export class ChatService {
     if (text.includes('music')) return 'music';
     if (text.includes('voiceover') || text.includes('narration')) return 'voiceover';
     return 'ambient';
+  }
+
+  /**
+   * Handle style update request
+   */
+  private async handleUpdateStyle(input: string, llmService?: ChatLLMService, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    let style = '';
+    let description = '';
+
+    if (llmService && typeof llmService.generateCompletion === 'function') {
+      const workingContext = useMemoryStore.getState().workingContext;
+      const prompt = `Extract the artistic style or visual direction from this request: "${input}". 
+      
+      [LIVING PROJECT PROTOCOL]
+      ${workingContext}
+      
+      Return a JSON: { "style": "brief style name", "description": "detailed description" }`;
+      
+      const res = await llmService.generateCompletion({ prompt, maxTokens: 200 });
+      if (res.success && res.data) {
+        try {
+          const data = JSON.parse(res.data.content.match(/\{[\s\S]*\}/)?.[0] || '{}');
+          style = data.style || '';
+          description = data.description || '';
+        } catch {
+          style = res.data.content;
+        }
+      }
+    }
+
+    return {
+      message: language === 'fr' 
+        ? `Je vais mettre à jour le style du projet en "${style || 'style personnalisé'}".`
+        : `I'll update the project style to "${style || 'custom style'}".`,
+      actions: [{
+        type: 'updateStyle',
+        payload: { style, description, rawInput: input }
+      }]
+    };
+  }
+
+  /**
+   * Handle genre update request
+   */
+  private async handleUpdateGenre(input: string, llmService?: ChatLLMService, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    let genre = '';
+    
+    if (llmService && typeof llmService.generateCompletion === 'function') {
+      const workingContext = useMemoryStore.getState().workingContext;
+      const prompt = `Extract the literary/cinematic genre from this request: "${input}". 
+      
+      [LIVING PROJECT PROTOCOL]
+      ${workingContext}
+      
+      Return a JSON: { "genre": "genre name" }`;
+      
+      const res = await llmService.generateCompletion({ prompt, maxTokens: 100 });
+      if (res.success && res.data) {
+        try {
+          const data = JSON.parse(res.data.content.match(/\{[\s\S]*\}/)?.[0] || '{}');
+          genre = data.genre || '';
+        } catch {
+          genre = res.data.content;
+        }
+      }
+    }
+
+    return {
+      message: language === 'fr'
+        ? `Le genre du projet sera désormais : ${genre || 'Inconnu'}.`
+        : `The project genre is now set to: ${genre || 'Unknown'}.`,
+      actions: [{
+        type: 'updateGenre',
+        payload: { genre, rawInput: input }
+      }]
+    };
   }
 }
 

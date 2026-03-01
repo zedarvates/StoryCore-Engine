@@ -21,7 +21,10 @@ try:
         PersonalityTrait,
         BehaviorPattern,
         StressResponse,
-        ConflictStyle
+        ConflictStyle,
+        CharacterArchetype,
+        CharacterRole,
+        PersonalityProfile
     )
 except ImportError:
     from ai_character_engine import (
@@ -29,7 +32,10 @@ except ImportError:
         PersonalityTrait,
         BehaviorPattern,
         StressResponse,
-        ConflictStyle
+        ConflictStyle,
+        CharacterArchetype,
+        CharacterRole,
+        PersonalityProfile
     )
 
 

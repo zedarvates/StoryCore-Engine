@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useColorCorrectionStore } from '../../stores/colorCorrectionStore';
 import { colorCorrectionPresetsService } from '../../services/ColorCorrectionPresets';
 import { ColorCorrectionPreset } from '../../types/color-correction';
+import { ColorPage } from './ColorPage';
 import styles from './ColorCorrectionPanel.module.css';
 
 type Category = 'vintage' | 'noir' | 'vibrant' | 'cinematic' | 'all';
@@ -16,7 +17,6 @@ export const ColorCorrectionPanel: React.FC = () => {
     presets,
     favorites,
     recentlyUsed,
-    layers,
     state,
     selectedPresetId,
     compareMode,
@@ -24,7 +24,6 @@ export const ColorCorrectionPanel: React.FC = () => {
     applyPreset,
     addToFavorites,
     removeFromFavorites,
-    addLayer,
     toggleEnabled,
     setCompareMode,
     togglePanel,
@@ -214,6 +213,13 @@ export const ColorCorrectionPanel: React.FC = () => {
           {showCustomPanel ? '▼' : '▶'} Custom Adjustments
         </button>
 
+        {/* Color Page Integration */}
+        {showCustomPanel && (
+          <div className={styles.customPanel}>
+            <ColorPage />
+          </div>
+        )}
+
         {/* Preview Modal */}
         {previewPreset && compareMode && (
           <div className={styles.previewModal}>
@@ -251,3 +257,4 @@ function getPresetGradient(preset: ColorCorrectionPreset): string {
 }
 
 export default ColorCorrectionPanel;
+

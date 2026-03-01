@@ -809,6 +809,14 @@ export const toolsActions = {
   },
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  projectTranslator(ctx: ActionContext): void {
+    console.log('[MenuAction] Project Translator');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    store.setShowProjectTranslator(true);
+  },
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   scriptWizard(ctx: ActionContext): void {
     console.log('[MenuAction] Script Wizard');
     const store = useAppStore.getState();
@@ -834,11 +842,18 @@ export const toolsActions = {
     });
   },
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   factCheck(ctx: ActionContext): void {
     console.log('[MenuAction] Fact Check');
     const store = useAppStore.getState();
     store.setShowFactCheckModal(true);
+  },
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  discoveryLab(ctx: ActionContext): void {
+    console.log('[MenuAction] Discovery Lab');
+    const store = useAppStore.getState();
+    store.setShowDiscoveryLab(true);
   },
 };
 

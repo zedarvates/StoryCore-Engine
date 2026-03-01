@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { ProjectSetupWizard, type ProjectSetupData } from './project-setup';
 import { useAppStore } from '@/stores/useAppStore';
@@ -67,6 +67,19 @@ export function ProjectSetupWizardModal() {
           audioStyle: data.audioStyle,
           constraints: data.constraints,
         },
+        // Ensure Data Contract v1 compliance fields
+        storyboard: project.storyboard || project.shots || [],
+        assets: project.assets || [],
+        capabilities: project.capabilities || {
+          grid_generation: false,
+          promotion_engine: false,
+          qa_engine: false,
+          autofix_engine: false
+        },
+        generation_status: project.generation_status || {
+          grid: 'pending',
+          promotion: 'pending'
+        }
       };
       
       setProject(updatedProject);

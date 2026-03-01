@@ -224,8 +224,8 @@ export const createConfig = (): AppConfig => {
   return {
     server: {
       host: getEnvString('VITE_API_HOST', '0.0.0.0') || '0.0.0.0',
-      port: getEnvNumber('VITE_API_PORT', 8001),
-      url: getEnvString('VITE_API_URL', 'http://localhost:8001') || 'http://localhost:8001',
+      port: getEnvNumber('VITE_API_PORT', 8080),
+      url: getEnvString('VITE_API_URL', 'http://localhost:8080') || 'http://localhost:8080',
       version: getEnvString('VITE_API_VERSION', 'v1') || 'v1',
     },
     ollama: {

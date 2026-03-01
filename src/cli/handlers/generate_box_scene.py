@@ -22,6 +22,19 @@ class GenerateBoxSceneHandler(BaseHandler):
             help="Type of scene to generate (default: room)"
         )
         parser.add_argument(
+            "--name",
+            type=str,
+            default="location",
+            help="Name of the generated object"
+        )
+        parser.add_argument(
+            "--dimensions",
+            type=float,
+            nargs=3,
+            default=[5.0, 2.5, 5.0],
+            help="Dimensions [width, height, depth] (default: 5.0 2.5 5.0)"
+        )
+        parser.add_argument(
             "--width",
             type=float,
             default=5.0,
@@ -43,25 +56,28 @@ class GenerateBoxSceneHandler(BaseHandler):
     def execute(self, args: argparse.Namespace) -> int:
         """Execute the generate-box-scene command."""
         try:
+            # Check if dimensions was provided as a list (API might send it so)
+            if hasattr(args, 'dimensions') and args.dimensions and len(args.dimensions) == 3:
+                # [width, height, depth] based on common convention
+                width, height, depth = args.dimensions
+            else:
+                width, height, depth = getattr(args, 'width', 5.0), getattr(args, 'height', 2.5), getattr(args, 'depth', 5.0)
+                
             from blender_bridge.box_scene_generator import BoxSceneGenerator
             
-            generator = BoxSceneGenerator()
-            
-            if args.scene_type == "room":
-                script = generator.generate_room_script(
-                    width=args.width,
-                    depth=args.depth,
-                    height=args.height
-                )
-            else:
-                script = generator.generate_corridor_script(
-                    length=args.depth, # depth is used as length for corridor
-                    width=args.width,
-                    height=args.height
-                )
+            # Using get_blender_script which is available in the current implementation
+            script = BoxSceneGenerator.get_blender_script(
+                scene_type=args.scene_type,
+                width=width,
+                depth=depth,
+                height=height
+            )
             
             # Print the script to stdout
             print(script)
+            
+            # Optionally store the last output for the API to pick it up later in cli_api.py
+            self.last_output = script
             
             return 0
             

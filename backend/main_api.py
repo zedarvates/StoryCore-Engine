@@ -74,6 +74,7 @@ async def lifespan(app: FastAPI):
         "./data/prompt_templates",  # Prompt Templates storage
         "./projects",
         "./output",
+        "./output/pro",  # AI Pro output storage
         "./output/lip_sync",
         "./output/frames"
     ]
@@ -186,6 +187,8 @@ async def api_info():
             "identity": "/api/identity",
             "segment": "/api/segment",
             "prompt-templates": "/api/prompt-templates",
+            "ai-pro": "/api/ai/pro",
+            "ai-workflow": "/api/ai/workflow",
             "comic-generator": "/api/addons/comic_generator",
             "recap-engine": "/api/addons/recap_engine"
         },
@@ -246,6 +249,50 @@ app.include_router(script_segmenter_router, prefix="/api")
 from backend.prompt_template_api import router as prompt_template_router
 app.include_router(prompt_template_router)
 
+# Include Automation API router
+from backend.automation_endpoints import router as automation_router
+app.include_router(automation_router)
+
+# Include AI Audio API router (Beat Detection, Voice Isolation, Auto-Ducking, etc.)
+from backend.ai_audio_api import router as ai_audio_router
+app.include_router(ai_audio_router)
+
+# Include AI Video API router (Smart Crop, Multi-Angle, Character Consistency, etc.)
+from backend.ai_video_api import router as ai_video_router
+app.include_router(ai_video_router)
+
+# Include AI Creative API router (Animation Presets, Music Remix, Pose Interpolation, etc.)
+from backend.ai_creative_api import router as ai_creative_router
+app.include_router(ai_creative_router)
+
+# Include AI Advanced API router (Magic Mask, Depth Map, Bloom, Subtitles, Background Replacement)
+from backend.ai_advanced_api import router as ai_advanced_router
+app.include_router(ai_advanced_router)
+
+# Include AI Performance API router (Job Progress, Cache, Batch Processing, Job Queue)
+from backend.ai_performance_api import router as ai_performance_router
+app.include_router(ai_performance_router)
+
+# Include CLI API router
+from backend.cli_api import router as cli_router
+app.include_router(cli_router, prefix="/api")
+
+# Include AI Pro API router (Color Grading, Speed Ramping, Scene Detection, etc.)
+try:
+    from backend.ai_pro_api import router as ai_pro_router
+    app.include_router(ai_pro_router, prefix="/api")
+    logger.info("AI Pro API Router registered at /api/ai/pro")
+except ImportError as e:
+    logger.warning(f"Could not load ai_pro_api: {e}")
+
+# Include AI Workflow Orchestrator API router (Phase 11: Complex Pipeline Chaining)
+try:
+    from backend.ai_workflow_api import router as ai_workflow_router
+    app.include_router(ai_workflow_router, prefix="/api")
+    logger.info("AI Workflow API Router registered at /api/ai/workflow")
+except ImportError as e:
+    logger.warning(f"Could not load ai_workflow_api: {e}")
+
 # Include Comic Generator addon router
 try:
     from addons.official.comic_generator.src.main import router as comic_generator_router
@@ -266,6 +313,33 @@ except ImportError as e:
     logger.warning(f"[Recap Engine] Could not load router (dependencies may be missing): {e}")
 except Exception as e:
     logger.warning(f"[Recap Engine] Router registration skipped: {e}")
+
+# Include Project Translator addon router
+try:
+    from addons.official.project_translator.src.main import router as project_translator_router
+    if project_translator_router is not None:
+        app.include_router(project_translator_router, prefix="/api/addons/project_translator")
+        logger.info("[Project Translator] Router registered at /api/addons/project_translator")
+except ImportError as e:
+    logger.warning(f"[Project Translator] Could not load router (dependencies may be missing): {e}")
+except Exception as e:
+    logger.warning(f"[Project Translator] Router registration skipped: {e}")
+
+# Include Character Image API router
+try:
+    from backend.character_image_api import router as character_image_router
+    app.include_router(character_image_router, prefix="/api")
+    logger.info("Character Image API Router registered at /api")
+except ImportError as e:
+    logger.warning(f"Could not load character_image_api: {e}")
+
+# Include Location and Object Image API router
+try:
+    from backend.location_object_api import router as location_object_router
+    app.include_router(location_object_router, prefix="/api")
+    logger.info("Location and Object Image API Router registered at /api")
+except ImportError as e:
+    logger.warning(f"Could not load location_object_api: {e}")
 
 # Mount static files for output
 app.mount("/output", StaticFiles(directory="output"), name="output")
@@ -315,10 +389,14 @@ async def global_exception_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     
+    # MIGRATION NOTE: Default port changed from 8001 to 8080
+    # This aligns with standard HTTP port conventions (8080 = HTTP alt)
+    # and avoids conflicts with common development services.
+    # Override with environment variable: PORT=8001 python -m backend.main_api
     uvicorn.run(
         "backend.main_api:app",
         host="0.0.0.0",
-        port=8001,
+        port=8080,
         reload=True,
         log_level="info"
     )

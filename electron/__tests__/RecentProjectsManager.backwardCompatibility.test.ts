@@ -463,7 +463,8 @@ describe('RecentProjectsManager - Backward Compatibility', () => {
         {
           name: 'Discovered Project',
           path: testProjectDir,
-          lastModified: new Date('2024-01-15'),
+          lastModified: new Date('2024-01-15').getTime(),
+          isValid: true,
           isRecent: false,
         },
       ];
@@ -566,8 +567,9 @@ describe('RecentProjectsManager - Backward Compatibility', () => {
         {
           name: 'Different Name', // Different name in discovered list
           path: testProjectDir, // Same path
-          lastModified: new Date('2024-01-20'),
+          lastModified: new Date('2024-01-20').getTime(),
           createdAt: new Date('2024-01-01'),
+          isValid: true,
           isRecent: false,
         },
       ];
@@ -638,7 +640,8 @@ describe('RecentProjectsManager - Backward Compatibility', () => {
         discoveredProjects.push({
           name: `Discovered Name ${i}`, // Different name
           path: projectDir,
-          lastModified: new Date(`2024-01-${10 + i}`),
+          lastModified: new Date(`2024-01-${10 + i}`).getTime(),
+          isValid: true,
           isRecent: false,
         });
       }
@@ -652,7 +655,8 @@ describe('RecentProjectsManager - Backward Compatibility', () => {
         discoveredProjects.push({
           name: `Discovered Project ${i}`,
           path: projectDir,
-          lastModified: new Date(`2024-01-${10 + i}`),
+          lastModified: new Date(`2024-01-${10 + i}`).getTime(),
+          isValid: true,
           isRecent: false,
         });
       }
@@ -666,7 +670,7 @@ describe('RecentProjectsManager - Backward Compatibility', () => {
       const recentProjects = merged.filter(p => p.isRecent);
       expect(recentProjects.length).toBe(5);
       
-      recentProjects.forEach((project, index) => {
+      recentProjects.forEach((project) => {
         // Should have recent project names, not discovered names
         expect(project.name).toMatch(/^Recent Project \d+$/);
         expect(project.id).toBeDefined();
@@ -726,13 +730,15 @@ describe('RecentProjectsManager - Backward Compatibility', () => {
         {
           name: 'Existing Project', // Same project
           path: testProjectDir1,
-          lastModified: new Date('2024-01-10'),
+          lastModified: new Date('2024-01-10').getTime(),
+          isValid: true,
           isRecent: false,
         },
         {
           name: 'Discovered Project', // New project found
           path: testProjectDir2,
-          lastModified: new Date('2024-01-15'),
+          lastModified: new Date('2024-01-15').getTime(),
+          isValid: true,
           isRecent: false,
         },
       ];

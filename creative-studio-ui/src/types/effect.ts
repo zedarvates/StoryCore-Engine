@@ -1,5 +1,7 @@
 import React from 'react';
 
+export type EffectCategory = 'color' | 'blur' | 'stylize' | 'distort' | 'noise' | 'creative' | 'transform' | 'temporal';
+
 export interface EffectKeyframe {
   id: string;
   time: number; // in seconds

@@ -261,9 +261,9 @@ export function importWizardState<T>(
 // Validate Wizard State Structure
 // ============================================================================
 
-// Using 'any' for state parameter to validate arbitrary wizard state structures
+// Using unknown for state parameter to validate arbitrary wizard state structures
 // before type narrowing with the type guard
-function isValidWizardState(state: unknown): state is WizardAutoSaveState<any> {
+function isValidWizardState(state: unknown): state is WizardAutoSaveState<unknown> {
   const validWizardTypes: WizardType[] = [
     'world',
     'character',
@@ -278,11 +278,13 @@ function isValidWizardState(state: unknown): state is WizardAutoSaveState<any> {
     'lyrics-generation',
   ];
 
-  const s = state as any;
+  if (!state || typeof state !== 'object') {
+    return false;
+  }
+
+  const s = state as Record<string, unknown>;
 
   return (
-    s &&
-    typeof s === 'object' &&
     typeof s.wizardType === 'string' &&
     validWizardTypes.includes(s.wizardType as WizardType) &&
     typeof s.timestamp === 'string' &&
@@ -302,7 +304,7 @@ export function isLocalStorageAvailable(): boolean {
     localStorage.setItem(test, test);
     localStorage.removeItem(test);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -320,7 +322,7 @@ export function getLocalStorageUsage(): {
     let used = 0;
 
     for (const key in localStorage) {
-      if (localStorage.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
         used += localStorage[key].length + key.length;
       }
     }

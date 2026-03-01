@@ -391,7 +391,7 @@ export interface Location {
   name: string;
 
   /** Creation method: wizard-guided, auto-generated, or manual */
-  creation_method: 'wizard' | 'auto_generated' | 'manual';
+  creation_method: 'wizard' | 'auto_generated' | 'manual' | 'ai_vision';
 
   /** timestamp of creation in ms */
   creation_timestamp: number;

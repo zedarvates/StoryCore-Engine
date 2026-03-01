@@ -7,7 +7,7 @@
         "remote": "ComfyUI sur serveur distant -> adapter host + port"
     },
     "host": "127.0.0.1",
-    "port": 8188,
+    "port": 8000,
     "_port_presets": {
         "comfyui_standard": 8188,
         "comfyui_desktop": 8000,

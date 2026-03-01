@@ -131,6 +131,12 @@ creative-studio-ui/test-baseline.txt
 creative-studio-ui/test-output.txt
 tailwindcss
 
+# Additional directories to ignore
+traces/
+coverage/
+quarantine/
+test_cleanup/
+
 # ComfyUI downloads
 comfyui_download_zone/
 

@@ -58,20 +58,26 @@ class LLMConfigService {
 
       // If no configuration exists, create a default one with auto-detected model
       if (!config) {
-
         // Try to detect available Ollama models
-        let detectedModel = 'llama3.2:1b'; // Fallback default
+        let detectedModel = 'llama3'; // More generic default fallback
+        
         try {
           const { suggestBestModel } = await import('@/utils/ollamaModelDetection');
           const suggestion = await suggestBestModel('http://localhost:11434');
 
           if (suggestion) {
             detectedModel = suggestion.model;
-            if (suggestion.alternatives.length > 0) {
-              logger.debug('[LLMConfigService] Found alternative models:', suggestion.alternatives);
-            }
+            logger.info(`[LLMConfigService] Auto-detected best model: ${detectedModel}`);
           } else {
-            logger.warn('[LLMConfigService] No models detected, using fallback:', detectedModel);
+            // Last resort: try to fetch any models directly if suggestBestModel failed
+            const { getInstalledOllamaModels } = await import('@/utils/ollamaModelDetection');
+            const allModels = await getInstalledOllamaModels('http://localhost:11434');
+            if (allModels.length > 0) {
+              detectedModel = allModels[0].name;
+              logger.info(`[LLMConfigService] Using first available model as fallback: ${detectedModel}`);
+            } else {
+              logger.warn('[LLMConfigService] No Ollama models found at all. Using default string:', detectedModel);
+            }
           }
         } catch (error) {
           logger.warn('[LLMConfigService] Failed to detect models, using fallback:', error);

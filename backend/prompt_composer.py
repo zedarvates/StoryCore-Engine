@@ -299,10 +299,11 @@ class PromptComposer:
     
     def _compose_sfx_bullet_time_prompt(self, profile: SFXProfile) -> str:
         """Compose bullet time SFX prompt - Section 6.1"""
+        muffling_ctx = "sous l'eau" if profile.muffling.context == "underwater" else "bullet time"
         return (
             f"Génère uniquement la piste SFX BULLET TIME pour une scène en slow motion. "
             f"Effets: time stretch, pitch down, étouffement automatique. "
-            f"Contexte: {'sous l\'eau' if profile.muffling.context == 'underwater' else 'bullet time'}. "
+            f"Contexte: {muffling_ctx}. "
             f"Filtres: time_stretch (x2), pitch_shift (-7 demi-tons). "
             f"Durée: {profile.duration_seconds or 8} secondes."
         )

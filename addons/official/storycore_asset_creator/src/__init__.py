@@ -20,12 +20,25 @@ Dependances (pip install dans le Python de Blender):
 """
 from __future__ import annotations
 
-import bpy
-from bpy.types import AddonPreferences, Panel, Operator, PropertyGroup
-from bpy.props import (
-    StringProperty, EnumProperty, BoolProperty,
-    FloatProperty, IntProperty, PointerProperty,
-)
+try:
+    import bpy
+    from bpy.types import AddonPreferences, Panel, Operator, PropertyGroup
+    from bpy.props import (
+        StringProperty, EnumProperty, BoolProperty,
+        FloatProperty, IntProperty, PointerProperty,
+    )
+    BLENDER_AVAILABLE = True
+except ImportError:
+    BLENDER_AVAILABLE = False
+    # Mocking basic types for non-Blender environment imports (like CLI registry discovery)
+    class MockType: pass
+    AddonPreferences = Panel = Operator = PropertyGroup = MockType
+    def StringProperty(**kwargs): return None
+    def EnumProperty(**kwargs): return None
+    def BoolProperty(**kwargs): return None
+    def FloatProperty(**kwargs): return None
+    def IntProperty(**kwargs): return None
+    def PointerProperty(**kwargs): return None
 
 bl_info = {
     "name": "StoryCore Asset Creator",

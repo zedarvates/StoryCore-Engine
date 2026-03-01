@@ -68,3 +68,88 @@
   color: var(--error-color, #ff4444);
   border: 1px solid var(--error-color, #ff4444);
 }
+
+/* Tabs for switching between Provider and Prompts */
+.config-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color, #444);
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.config-tab {
+  padding: 10px 5px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary, #999);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.config-tab:hover {
+  color: var(--text-primary, #292727);
+}
+
+.config-tab.active {
+  color: var(--accent-color, #4a9eff);
+  border-bottom-color: var(--accent-color, #4a9eff);
+}
+
+.system-prompts-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.system-prompts-editor h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.field-description {
+  font-size: 12px;
+  color: var(--text-secondary, #999);
+  margin: -10px 0 5px 0;
+}
+
+.system-prompts-editor textarea {
+  width: 100%;
+  padding: 10px;
+  background: var(--input-bg, #1a1a1a);
+  color: var(--text-primary, #fff);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.system-prompts-editor textarea:focus {
+  outline: none;
+  border-color: var(--accent-color, #4a9eff);
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+/* Fix for inputs with light background (Tailwind classes) */
+input[type="text"].border-gray-300,
+input[type="number"].border-gray-300,
+select.border-gray-300 {
+  color: #000000 !important;
+  background-color: #ffffff;
+}
+
+input[type="text"].border-gray-300::placeholder,
+input[type="number"].border-gray-300::placeholder {
+  color: #6b7280;
+}

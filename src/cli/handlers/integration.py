@@ -8,19 +8,86 @@ import argparse
 import asyncio
 from typing import Dict, Any
 
-from src.integration.integration_manager import create_integration_manager
+from ..base import BaseHandler
+from ..errors import UserError, SystemError
 
-
-class IntegrationHandler:
+class IntegrationHandler(BaseHandler):
     """
     CLI handler for integration commands.
     
     Provides commands to manage component integration and services.
     """
     
+    command_name = "integration"
+    description = "Manage component integration and services"
+    
     def __init__(self):
         """Initialize the integration handler."""
-        self.manager = create_integration_manager()
+        super().__init__()
+        try:
+            from src.integration.integration_manager import create_integration_manager
+            self.manager = create_integration_manager()
+        except ImportError:
+            self.manager = None
+            
+    def setup_parser(self, parser: argparse.ArgumentParser) -> None:
+        """Set up integration command arguments."""
+        subparsers = parser.add_subparsers(dest="subcommand", help="Integration subcommands")
+        
+        # Integration status command
+        status_parser = subparsers.add_parser(
+            'status',
+            help='Show current integration status of all components'
+        )
+        
+        # Integrate components command
+        integrate_parser = subparsers.add_parser(
+            'integrate',
+            help='Integrate all StoryCore components'
+        )
+        integrate_parser.add_argument(
+            '--audio-config',
+            help='Audio engine configuration file'
+        )
+        integrate_parser.add_argument(
+            '--3d-config',
+            help='3D rendering engine configuration file'
+        )
+        integrate_parser.add_argument(
+            '--http-config',
+            help='HTTP server configuration file'
+        )
+        
+        # Start services command
+        start_parser = subparsers.add_parser(
+            'start',
+            help='Start all integrated services'
+        )
+        
+        # Stop services command
+        stop_parser = subparsers.add_parser(
+            'stop',
+            help='Stop all running services'
+        )
+
+    def execute(self, args: argparse.Namespace) -> int:
+        """Execute integration subcommands."""
+        if not self.manager:
+            return self.handle_error(Exception("Integration manager not available"), "integration")
+            
+        if args.subcommand == 'status':
+            return self.handle_integration_status(args)
+        elif args.subcommand == 'integrate':
+            return self.handle_integrate(args)
+        elif args.subcommand == 'start':
+            # Use asyncio for start_services
+            import asyncio
+            return asyncio.run(self.handle_start_services(args))
+        elif args.subcommand == 'stop':
+            return self.handle_stop_services(args)
+        else:
+            self.print_error(f"Unknown subcommand: {args.subcommand}")
+            return 1
     
     def register_commands(self, subparsers) -> None:
         """

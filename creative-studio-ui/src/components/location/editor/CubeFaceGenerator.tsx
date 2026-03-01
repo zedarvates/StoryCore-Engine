@@ -8,7 +8,7 @@
  * File: creative-studio-ui/src/components/location/editor/CubeFaceGenerator.tsx
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Sparkles, X, Loader2, Check, Copy, Zap, Settings, ChevronDown } from 'lucide-react';
 import type { CubeFace, CubeFaceTexture } from '@/types/location';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,9 +19,8 @@ import './CubeFaceGenerator.css';
 // ============================================================================
 
 // ComfyUI API URL - configurable for different instances
-const COMFYUI_API_URL = process.env.VITE_COMFYUI_API_URL || 'http://127.0.0.1:8188';
+const COMFYUI_API_URL = process.env.VITE_COMFYUI_API_URL || 'http://127.0.0.1:8000';
 const COMFYUI_API_URL_8000 = process.env.VITE_COMFYUI_API_URL_8000 || 'http://127.0.0.1:8000';
-const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:8080';
 
 // ============================================================================
 // Types
@@ -71,17 +70,18 @@ export interface CubeFaceGeneratorProps {
 // ============================================================================
 
 /**
- * Generate image using ComfyUI API
+ * Generate image using ComfyUI API with polling for completion
  */
 async function generateWithComfyUI(
   face: CubeFace,
   prompt: string,
   negativePrompt: string,
   settings: { width: number; height: number; steps: number; cfgScale: number; seed: number },
-  apiUrl: string
+  apiUrl: string,
+  onProgress?: (progress: number) => void
 ): Promise<string> {
   // ComfyUI API endpoint for text-to-image
-  const endpoint = `${apiUrl}/api/prompt`;
+  const promptEndpoint = `${apiUrl}/api/prompt`;
   
   // Build the workflow based on face
   const faceDirection: Record<CubeFace, string> = {
@@ -147,7 +147,7 @@ async function generateWithComfyUI(
     },
     "9": {
       "inputs": {
-        "filename_prefix": `cube_${face}_${Date.now()}`,
+        "filename_prefix": `cube_${face}`,
         "images": ["8", 0]
       },
       "class_type": "SaveImage"
@@ -155,7 +155,9 @@ async function generateWithComfyUI(
   };
   
   try {
-    const response = await fetch(endpoint, {
+    // 1. Queue the prompt
+    if (onProgress) onProgress(10);
+    const response = await fetch(promptEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -167,17 +169,54 @@ async function generateWithComfyUI(
       throw new Error(`ComfyUI API error: ${response.status}`);
     }
     
-    const result = await response.json();
+    const { prompt_id } = await response.json();
+    if (onProgress) onProgress(20);
+
+    // 2. Poll for results
+    // We poll the history endpoint to see when our prompt_id appears
+    const historyEndpoint = `${apiUrl}/api/history/${prompt_id}`;
     
-    // The prompt was queued successfully
-    // In a real implementation, we'd poll for completion
-    // For now, return a mock URL
-    return `${apiUrl}/output/cube_${face}_${Date.now()}.png`;
+    const maxAttempts = 60; // 60 attempts * 2 seconds = 2 minutes
+    let attempts = 0;
+    
+    while (attempts < maxAttempts) {
+      const historyResponse = await fetch(historyEndpoint);
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json();
+        
+        // If the prompt_id exists in history, it's done
+        if (historyData[prompt_id]) {
+          const result = historyData[prompt_id];
+          const output = result.outputs["9"]; // Node ID 9 is our SaveImage node
+          
+          if (output && output.images && output.images.length > 0) {
+            const filename = output.images[0].filename;
+            const subfolder = output.images[0].subfolder;
+            const type = output.images[0].type;
+            
+            // Construct full URL to view the image
+            const imageUrl = `${apiUrl}/view?filename=${encodeURIComponent(filename)}&subfolder=${encodeURIComponent(subfolder)}&type=${encodeURIComponent(type)}`;
+            if (onProgress) onProgress(100);
+            return imageUrl;
+          }
+        }
+      }
+      
+      // Update progress based on attempts
+      attempts++;
+      if (onProgress) onProgress(20 + Math.min(70, attempts * 2));
+      
+      // Wait before next poll
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    
+    throw new Error('ComfyUI generation timed out');
   } catch (error) {
     console.error('ComfyUI generation error:', error);
     throw error;
   }
 }
+
 
 // ============================================================================
 // Component
@@ -185,7 +224,6 @@ async function generateWithComfyUI(
 
 export function CubeFaceGenerator({
   face,
-  locationId,
   existingTexture,
   onGenerate,
   onCancel,
@@ -246,7 +284,8 @@ export function CubeFaceGenerator({
           cfgScale,
           seed: seed === -1 ? Math.floor(Math.random() * 1000000) : seed,
         },
-        useTestMode ? COMFYUI_API_URL_8000 : COMFYUI_API_URL
+        useTestMode ? COMFYUI_API_URL_8000 : COMFYUI_API_URL,
+        (p) => setProgress(p)
       );
       
       setProgress(100);
@@ -261,7 +300,7 @@ export function CubeFaceGenerator({
       setIsGenerating(false);
       setProgress(null);
     }
-  }, [face, prompt, negativePrompt, width, height, steps, cfgScale, seed]);
+  }, [face, prompt, negativePrompt, width, height, steps, cfgScale, seed, useTestMode]);
   
   const handleApply = useCallback(() => {
     if (!generatedImage) return;
@@ -272,7 +311,7 @@ export function CubeFaceGenerator({
       id: uuidv4(),
       face,
       image_path: generatedImage,
-      generated_at: new Date().toISOString(),
+      generated_at: Date.now(),
       generation_params: {
         prompt,
         negative_prompt: negativePrompt || undefined,

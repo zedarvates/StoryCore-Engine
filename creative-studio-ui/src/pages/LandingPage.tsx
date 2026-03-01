@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Clapperboard, FolderOpen, Plus, Sparkles, Video, Film, Image, Clock, Calendar } from 'lucide-react';
+import { Clapperboard, FolderOpen, Plus, Sparkles } from 'lucide-react';
 import { Alert } from '@/components/ui/alert';
 import { RecentProjectsList, type RecentProject } from '@/components/launcher/RecentProjectsList';
-import { useServiceStatus } from '@/components/ui/service-warning';
-import { cn } from '@/lib/utils';
+import type { MergedProject } from '@/types/electron';
 
 // ============================================================================
 // Types
@@ -14,17 +13,6 @@ import { cn } from '@/lib/utils';
  * It combines stored recent projects with discovered projects from the file system.
  * The isRecent flag indicates if this is from the recent projects list.
  */
-interface MergedProject {
-  id?: string;
-  name: string;
-  path: string;
-  lastModified?: Date;
-  lastAccessed?: Date;
-  createdAt?: Date;
-  isRecent?: boolean;
-  lastOpened?: Date;
-  exists?: boolean;
-}
 
 // ============================================================================
 // Landing Page Component
@@ -56,11 +44,7 @@ export function LandingPage({
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
 
   // Trigger project discovery on component mount
-  useEffect(() => {
-    discoverProjects();
-  }, []);
-
-  const discoverProjects = async () => {
+  const discoverProjects = useCallback(async () => {
     // Only discover if we have access to the Electron API
     if (!window.electronAPI?.recentProjects?.getMergedList) {
       // Fallback to provided recent projects if not in Electron environment
@@ -79,7 +63,7 @@ export function LandingPage({
         id: project.id || project.path,
         name: project.name,
         path: project.path,
-        lastAccessed: project.lastOpened || project.lastModified || new Date(),
+        lastAccessed: new Date(project.lastOpened || project.lastModified || Date.now()),
         exists: project.exists,
         isRecent: project.isRecent ?? true, // Default to true for merged list projects
       }));
@@ -95,7 +79,11 @@ export function LandingPage({
     } finally {
       setIsDiscovering(false);
     }
-  };
+  }, [recentProjects]);
+
+  useEffect(() => {
+    discoverProjects();
+  }, [discoverProjects]);
 
   const handleRefresh = async () => {
     await discoverProjects();
@@ -249,12 +237,6 @@ export function LandingPage({
             </div>
           )}
 
-          {/* Chat Assistant Section */}
-          {children && (
-            <div className="mt-8">
-              {children}
-            </div>
-          )}
 
           {/* Features Highlight - Hidden per UI Polish requirements */}
           {/* 
@@ -325,6 +307,13 @@ export function LandingPage({
             </div>
           )}
         </div>
+
+        {/* Chat Assistant Section - MOVED OUTSIDE max-w-4xl (Requirement 3.5) */}
+        {children && (
+          <div className="mt-12 w-full">
+            {children}
+          </div>
+        )}
       </main>
 
       {/* Footer */}

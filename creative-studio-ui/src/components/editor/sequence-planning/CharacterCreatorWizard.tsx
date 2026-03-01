@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Wand2, Save, Eye, Volume2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Save, Eye, Volume2 } from 'lucide-react';
 import { LLMService } from '../../../services/llmService';
 import { ttsService } from '../../../services/ttsService';
 import { EnhancedCharacterAssistant } from '../../wizard/character-creator/EnhancedCharacterAssistant';
 import { ConfigManager } from '../../../services/llm/ConfigManager';
+import { z } from 'zod';
 
 export interface CharacterCreatorWizardProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (character: unknown) => void;
-  worldContext?: unknown; // From project world/lore
+  worldContext?: any; // From project world/lore
 }
 
 interface CharacterData {
@@ -43,7 +44,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
     worldRelation: ''
   });
 
-  const [llmSuggestions, setLlmSuggestions] = useState<any>({});
+  const [, setLlmSuggestions] = useState<any>({});
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<{[key: number]: string[]}>({});
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
@@ -160,6 +161,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
       // Generate LLM suggestions based on world
       generateLlmSuggestions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [worldContext]);
 
   // Auto-save functionality
@@ -196,6 +198,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
         clearInterval(timer);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const autoSave = () => {
@@ -242,17 +245,29 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
       // Safely get genre string with proper error handling
       const genreString = getGenreString(worldContext.genre);
       const rulesString = worldContext.rules && Array.isArray(worldContext.rules)
-        ? worldContext.rules.map((r: unknown) => r.rule).join(', ')
+        ? worldContext.rules.map((r: { rule: string }) => r.rule).join(', ')
         : 'magie et technologie';
 
-      // Enhanced prompts with more world context
-      const namePrompt = `Pour un monde ${genreString} avec ces caractéristiques: ${worldContext.description || 'monde fantastique'}, génère 5 noms de personnages originaux et immersifs. Les noms doivent être cohérents avec le genre et l'ambiance du monde. Format: nom1, nom2, nom3, nom4, nom5`;
+      // Enhanced prompts with more world context and JSON formatting
+      const namePrompt = `Pour un monde ${genreString} avec ces caractéristiques: ${worldContext.description || 'monde fantastique'}, génère 5 noms de personnages originaux et immersifs. Les noms doivent être cohérents avec le genre et l'ambiance du monde.
 
-      const personalityPrompt = `Dans un monde ${genreString} (${worldContext.atmosphere || 'mystérieux'}), décris 4 traits de personnalité complexes et intéressants pour des personnages. Chaque trait doit être unique et adapté au contexte du monde. Format: trait1, trait2, trait3, trait4`;
+Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
+{ "suggestions": ["nom1", "nom2", "nom3", "nom4", "nom5"] }`;
 
-      const abilityPrompt = `Pour un monde ${genreString} avec ces règles: ${rulesString}, quelles seraient 4 capacités ou pouvoirs uniques et équilibrés ? Chaque capacité doit être cohérente avec les règles du monde. Format: capacité1, capacité2, capacité3, capacité4`;
+      const personalityPrompt = `Dans un monde ${genreString} (${worldContext.atmosphere || 'mystérieux'}), décris 4 traits de personnalité complexes et intéressants pour des personnages. Chaque trait doit être unique et adapté au contexte du monde.
 
-      const backstoryPrompt = `Génère 3 concepts d'histoire personnelle courte pour un personnage dans ce monde: ${worldContext.description || 'monde fantastique'}. Chaque backstory doit être intrigante et liée aux éléments culturels du monde. Format: histoire1 | histoire2 | histoire3`;
+Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
+{ "suggestions": ["trait1", "trait2", "trait3", "trait4"] }`;
+
+      const abilityPrompt = `Pour un monde ${genreString} avec ces règles: ${rulesString}, quelles seraient 4 capacités ou pouvoirs uniques et équilibrés ? Chaque capacité doit être cohérente avec les règles du monde.
+
+Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
+{ "suggestions": ["capacité1", "capacité2", "capacité3", "capacité4"] }`;
+
+      const backstoryPrompt = `Génère 3 concepts d'histoire personnelle courte pour un personnage dans ce monde: ${worldContext.description || 'monde fantastique'}. Chaque backstory doit être intrigante et liée aux éléments culturels du monde.
+
+Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
+{ "suggestions": ["histoire 1...", "histoire 2...", "histoire 3..."] }`;
 
       // Parallel generation for better performance
       const [nameResponse, personalityResponse, abilityResponse, backstoryResponse] = await Promise.all([
@@ -262,10 +277,38 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
         llmService.generateText(backstoryPrompt, { temperature: 0.8, maxTokens: 200 })
       ]);
 
-      const names = nameResponse.split(',').map(n => n.trim()).filter(n => n.length > 0).slice(0, 5);
-      const personalities = personalityResponse.split(',').map(p => p.trim()).filter(p => p.length > 0).slice(0, 4);
-      const abilities = abilityResponse.split(',').map(a => a.trim()).filter(a => a.length > 0).slice(0, 4);
-      const backstories = backstoryResponse.split('|').map(b => b.trim()).filter(b => b.length > 0).slice(0, 3);
+      // Helper function to safely parse the JSON LLM generation
+      const parseJsonGeneration = (text: string, fallbackExtract: (str: string) => string[]): string[] => {
+        const suggestionSchema = z.object({ suggestions: z.array(z.string()) });
+        try {
+          const match = text.match(/\{[\s\S]*?\}/);
+          if (match) {
+            const parsed = JSON.parse(match[0]);
+            const validated = suggestionSchema.parse(parsed);
+            return validated.suggestions;
+          }
+        } catch (e) {
+          console.warn("Zod validation or JSON parse failed for text:", text, e);
+        }
+        return fallbackExtract(text);
+      };
+
+      const names = parseJsonGeneration(
+        nameResponse,
+        (res) => res.split(',').map(n => n.trim()).filter(n => n.length > 0).slice(0, 5)
+      );
+      const personalities = parseJsonGeneration(
+        personalityResponse, 
+        (res) => res.split(',').map(p => p.trim()).filter(p => p.length > 0).slice(0, 4)
+      );
+      const abilities = parseJsonGeneration(
+        abilityResponse, 
+        (res) => res.split(',').map(a => a.trim()).filter(a => a.length > 0).slice(0, 4)
+      );
+      const backstories = parseJsonGeneration(
+        backstoryResponse, 
+        (res) => res.split('|').map(b => b.trim()).filter(b => b.length > 0).slice(0, 3)
+      );
 
       setLlmSuggestions({
         name: names,
@@ -535,8 +578,10 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
                   placeholder="Entrez le nom du personnage"
                 />
                 <EnhancedCharacterAssistant
-                  worldContext={worldContext}
-                  characterData={character}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  worldContext={worldContext as any}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  characterData={character as any}
                   onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                   suggestionType="name"
                 />
@@ -590,8 +635,10 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
                     ))}
                   </div>
                   <EnhancedCharacterAssistant
-                    worldContext={worldContext}
-                    characterData={character}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    worldContext={worldContext as any}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    characterData={character as any}
                     onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                     suggestionType="personality"
                   />
@@ -607,8 +654,10 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
                   placeholder="Décrivez l'apparence du personnage"
                 />
                 <EnhancedCharacterAssistant
-                  worldContext={worldContext}
-                  characterData={character}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  worldContext={worldContext as any}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  characterData={character as any}
                   onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                   suggestionType="appearance"
                 />
@@ -628,8 +677,10 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
                   placeholder="Racontez l'histoire du personnage"
                 />
                 <EnhancedCharacterAssistant
-                  worldContext={worldContext}
-                  characterData={character}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  worldContext={worldContext as any}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  characterData={character as any}
                   onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                   suggestionType="backstory"
                 />
@@ -671,8 +722,10 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
                     ))}
                   </div>
                   <EnhancedCharacterAssistant
-                    worldContext={worldContext}
-                    characterData={character}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    worldContext={worldContext as any}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    characterData={character as any}
                     onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                     suggestionType="abilities"
                   />

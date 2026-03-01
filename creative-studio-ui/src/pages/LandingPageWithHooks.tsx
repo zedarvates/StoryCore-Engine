@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { LandingPage } from './LandingPage';
 import { CreateProjectDialog } from '@/components/launcher/CreateProjectDialog';
 import { FolderNavigationModal } from '@/components/launcher/FolderNavigationModal';
-// import { LandingChatBox } from '@/components/launcher/LandingChatBox'; // Temporairement masqué
 import { useLandingPage } from '@/hooks/useLandingPage';
 import { useRecentProjects } from '@/hooks/useRecentProjects';
 import { Alert } from '@/components/ui/alert';
@@ -22,7 +21,6 @@ export function LandingPageWithHooks() {
     handleCreateProjectSubmit,
     handleOpenProjectSubmit,
     handleRecentProjectClick,
-    handleRemoveRecentProject,
     setShowCreateDialog,
     setShowOpenDialog,
     clearError,
@@ -73,16 +71,7 @@ export function LandingPageWithHooks() {
         onRecentProjectClick={handleRecentProjectClick}
         onRemoveRecentProject={removeRecentProject}
         version="1.0.0"
-      >
-        {/* Chat Box Assistant - TEMPORAIREMENT MASQUÉ POUR LA PREMIÈRE PUBLICATION */}
-        {/* Sera réactivé une fois l'intégration LLM complète et testée */}
-        {/* <LandingChatBox
-          onSendMessage={(message, attachments) => {
-            ;
-            ;
-          }}
-        /> */}
-      </LandingPage>
+      />
 
       {/* Create Project Dialog */}
       <CreateProjectDialog

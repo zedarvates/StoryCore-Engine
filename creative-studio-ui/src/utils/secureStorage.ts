@@ -69,7 +69,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
         true,
         ['encrypt', 'decrypt']
       );
-    } catch (error) {
+    } catch {
       console.warn('Failed to import stored key, generating new one');
     }
   }
@@ -202,6 +202,7 @@ export async function saveLLMSettings(config: LLMConfig): Promise<void> {
     const { encrypted, iv } = await encryptValue(config.apiKey);
 
     // Store config without API key, plus encrypted API key
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { apiKey, ...configWithoutKey } = config;
 
     settings.llm = {
@@ -288,6 +289,19 @@ export function deleteLLMSettings(): void {
 }
 
 /**
+ * Export data type (settings without credentials)
+ */
+interface ExportData {
+  version: string;
+  llm?: {
+    config: Omit<LLMConfig, 'apiKey'>;
+  };
+  comfyui?: {
+    config: unknown;
+  };
+}
+
+/**
  * Export settings without credentials
  */
 export function exportSettings(): string {
@@ -295,8 +309,7 @@ export function exportSettings(): string {
     const settings = loadSettings();
 
     // Create export object without encrypted credentials
-    // Using 'any' to allow dynamic property assignment based on available settings
-    const exportData: any = {
+    const exportData: ExportData = {
       version: settings.version,
     };
 

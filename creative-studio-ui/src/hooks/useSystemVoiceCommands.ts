@@ -3,7 +3,8 @@ import { eventEmitter, type EventPayload, type SystemNavigatePayload } from '@/s
 import { ADDON_EVENTS } from '@/services/AddonVoiceCommandRouter';
 import { useAppStore } from '@/stores/useAppStore';
 import { useToast } from '@/hooks/use-toast';
-import { downloadProject } from '@/utils/projectManager';
+import { projectService } from '@/services/project/ProjectService';
+import { ProjectData } from '@/types/project';
 
 /**
  * useSystemVoiceCommands
@@ -13,7 +14,7 @@ import { downloadProject } from '@/utils/projectManager';
  * S'assure que les actions déclenchées par la voix sont cohérentes avec l'état de l'application.
  */
 export function useSystemVoiceCommands() {
-  const { project, setShowLLMSettings, setShowGeneralSettings } = useAppStore();
+  const { project, setShowLLMSettings, setShowGeneralSettings, setShowProjectTranslator } = useAppStore();
   const { toast } = useToast();
 
   const handleUndo = useCallback(() => {
@@ -32,14 +33,15 @@ export function useSystemVoiceCommands() {
     });
   }, [toast]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     console.log('[VoiceCommand] Save');
-    if (project) {
+    if (project && project.path) {
       try {
-        downloadProject(project);
+        // Use the proper projectService to save to disk in Electron
+        await projectService.saveProject(project.path, project as unknown as ProjectData);
         toast({
           title: 'Commande Vocale : Sauvegarder',
-          description: `Projet "${project.project_name}" sauvegardé localement.`,
+          description: `Projet "${project.project_name}" sauvegardé sur le disque.`,
         });
       } catch (err) {
         console.error('Save error:', err);
@@ -52,7 +54,7 @@ export function useSystemVoiceCommands() {
     } else {
       toast({
         title: 'Erreur',
-        description: 'Aucun projet actif à sauvegarder.',
+        description: 'Aucun projet actif ou chemin de projet manquant.',
         variant: 'destructive',
       });
     }
@@ -69,13 +71,15 @@ export function useSystemVoiceCommands() {
       setShowGeneralSettings(true);
     } else if (target.includes('ai') || target.includes('llm') || target.includes('intelligence')) {
       setShowLLMSettings(true);
+    } else if (target.includes('traduct') || target.includes('translat')) {
+      setShowProjectTranslator(true);
     } else {
       toast({
         title: 'Navigation',
         description: `Navigation vers "${target}" non encore supportée par commande vocale.`,
       });
     }
-  }, [setShowGeneralSettings, setShowLLMSettings, toast]);
+  }, [setShowGeneralSettings, setShowLLMSettings, setShowProjectTranslator, toast]);
 
   useEffect(() => {
     // Souscrire aux événements système émis par le VoiceCommandRouter
@@ -83,12 +87,18 @@ export function useSystemVoiceCommands() {
     const subRedo = eventEmitter.on(ADDON_EVENTS.SYSTEM_REDO, handleRedo);
     const subSave = eventEmitter.on(ADDON_EVENTS.SYSTEM_SAVE, handleSave);
     const subNav = eventEmitter.on(ADDON_EVENTS.SYSTEM_NAVIGATE, handleNavigate);
+    
+    // Listen for addon-specific navigate
+    const subTranslatorNav = eventEmitter.on('addon:project-translator:navigate', () => {
+      setShowProjectTranslator(true);
+    });
 
     return () => {
       subUndo.unsubscribe();
       subRedo.unsubscribe();
       subSave.unsubscribe();
       subNav.unsubscribe();
+      subTranslatorNav.unsubscribe();
     };
-  }, [handleUndo, handleRedo, handleSave, handleNavigate]);
+  }, [handleUndo, handleRedo, handleSave, handleNavigate, setShowProjectTranslator]);
 }

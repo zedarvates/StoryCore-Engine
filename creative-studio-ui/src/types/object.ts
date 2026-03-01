@@ -94,7 +94,7 @@ export interface StoryObject {
   // Generation metadata
   imageUrl?: string;
   imagePrompt?: string;
-  generatedBy?: 'user' | 'ai';
+  generatedBy?: 'user' | 'ai' | 'ai_vision';
 
   // Timestamps
   createdAt: number; // timestamp

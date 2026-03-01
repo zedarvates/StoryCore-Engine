@@ -220,7 +220,7 @@ export class ComfyUIServersService {
         return true;
       } else {
         this.updateServer(id, {
-          status: 'error',
+          status: result.isOffline ? 'disconnected' : 'error',
         });
         return false;
       }

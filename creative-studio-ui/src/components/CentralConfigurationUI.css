@@ -1,4 +1,4 @@
-/* Central Configuration UI Styles */
+le/* Central Configuration UI Styles */
 
 .central-configuration-ui {
   min-height: 100vh;
@@ -72,7 +72,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 99999;
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
@@ -215,6 +215,19 @@
   border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.2s;
+}
+
+/* Fix for inputs with light background (Tailwind classes) */
+input[type="text"].border-gray-300,
+input[type="number"].border-gray-300,
+select.border-gray-300 {
+  color: #000000 !important;
+  background-color: #ffffff;
+}
+
+input[type="text"].border-gray-300::placeholder,
+input[type="number"].border-gray-300::placeholder {
+  color: #6b7280;
 }
 
 .form-group input:focus,

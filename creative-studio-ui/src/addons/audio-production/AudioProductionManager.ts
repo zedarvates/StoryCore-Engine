@@ -131,9 +131,9 @@ export class AudioProductionManager {
   /**
    * Apply EQ to a track
    */
-  applyEQ(trackId: string, settings: AudioSettings): void {
+  applyEQ(trackId: string, _settings: AudioSettings): void {
     const track = this.project.tracks.find(t => t.id === trackId);
-    if (track) {
+    if (track && _settings) {
       // In a real implementation, this would process the audio data
       this.recordOperation('modify', `Applied EQ to track: ${track.name}`, trackId);
     }
@@ -142,8 +142,11 @@ export class AudioProductionManager {
   /**
    * Export audio project
    */
-  async exportAudio(options: AudioExportOptions): Promise<Blob> {
+  async exportAudio(_options: AudioExportOptions): Promise<Blob> {
     // In a real implementation, this would process and export the audio
+    if (_options.format) {
+       return new Blob([JSON.stringify(this.project, null, 2)], { type: 'application/json' });
+    }
     return new Blob([JSON.stringify(this.project, null, 2)], { type: 'application/json' });
   }
 
@@ -240,13 +243,16 @@ export class AudioProductionManager {
    * Validate audio project state
    */
   private isValidAudioProjectState(state: unknown): state is AudioProjectState {
+    if (state === null || typeof state !== 'object') return false;
+    
+    const s = state as Record<string, unknown>;
     return (
-      state !== null &&
-      typeof state === 'object' &&
-      (state as any).project &&
-      Array.isArray((state as any).project.tracks) &&
-      typeof (state as any).version === 'string' &&
-      typeof (state as any).lastModified === 'string'
+      s.project !== undefined &&
+      typeof s.project === 'object' &&
+      s.project !== null &&
+      Array.isArray((s.project as Record<string, unknown>).tracks) &&
+      typeof s.version === 'string' &&
+      typeof s.lastModified === 'string'
     );
   }
 

@@ -125,6 +125,7 @@ const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     // Tools Menu (simplified)
     'tools.llmAssistant': 'Assistant LLM',
     'tools.comfyUIServer': 'ComfyUI',
+    'tools.projectTranslator': 'Traducteur de Projet',
     'tools.llmConfiguration': 'Configuration LLM',
     'tools.scriptWizard': 'Script',
     'tools.batchGeneration': 'Lot',
@@ -273,6 +274,7 @@ const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     // Tools Menu (simplified)
     'tools.llmAssistant': 'LLM Assistant',
     'tools.comfyUIServer': 'ComfyUI',
+    'tools.projectTranslator': 'Project Translator',
     'tools.llmConfiguration': 'LLM Configuration',
     'tools.scriptWizard': 'Script',
     'tools.batchGeneration': 'Batch',
@@ -421,6 +423,7 @@ const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     // Tools Menu (simplified)
     'tools.llmAssistant': 'Asistente LLM',
     'tools.comfyUIServer': 'ComfyUI',
+    'tools.projectTranslator': 'Traductor de Proyecto',
     'tools.llmConfiguration': 'Configuración LLM',
     'tools.scriptWizard': 'Guión',
     'tools.batchGeneration': 'Lote',
@@ -569,6 +572,7 @@ const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     // Tools Menu (simplified)
     'tools.llmAssistant': 'LLM-Assistent',
     'tools.comfyUIServer': 'ComfyUI',
+    'tools.projectTranslator': 'Projektübersetzer',
     'tools.llmConfiguration': 'LLM-Konfiguration',
     'tools.scriptWizard': 'Skript',
     'tools.batchGeneration': 'Stapel',
@@ -703,6 +707,7 @@ const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'wizards.script': 'スクリプト',
     'tools.llmAssistant': 'LLM助手',
     'tools.comfyUIServer': 'ComfyUI',
+    'tools.projectTranslator': 'プロジェクト翻訳者',
     'tools.llmConfiguration': 'LLM設定',
     'tools.scriptWizard': 'スクリプト',
     'tools.batchGeneration': 'バッチ',

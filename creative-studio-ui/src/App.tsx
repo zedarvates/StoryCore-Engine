@@ -42,6 +42,7 @@ import { ComicToSequenceWizardModal } from '@/components/wizard/production/Comic
 import { MarketingWizardModal } from '@/components/wizard/marketing/MarketingWizardModal';
 import { ScenarioBuilderWizardModal } from '@/components/wizard/ScenarioBuilderWizardModal';
 import { DialogueBuilderWizardModal } from '@/components/wizard/DialogueBuilderWizardModal';
+import { ProjectTranslatorModal } from '@/components/wizard/ProjectTranslatorModal';
 import { LLMSettingsModal } from '@/components/settings/LLMSettingsModal';
 import { ComfyUISettingsModal } from '@/components/settings/ComfyUISettingsModal';
 import { GeneralSettingsWindow } from '@/components/configuration/GeneralSettingsWindow';
@@ -85,7 +86,11 @@ import { devLog } from '@/utils/devOnly';
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
 import { eventEmitter, WizardEventType, GenerationCompletedPayload } from '@/services/eventEmitter';
+import { useThemeStore } from '@/stores/themeStore';
 import { DialogueBuilderData } from '@/components/wizard/dialogue-builder/DialogueBuilderWizard';
+import { DiscoveryLab } from '@/components/DiscoveryLab/DiscoveryLab';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 
 function AppContent() {
@@ -164,6 +169,10 @@ function AppContent() {
     setShowProjectBranchingDialog,
     showEpisodeReferenceDialog,
     setShowEpisodeReferenceDialog,
+    showDiscoveryLab,
+    setShowDiscoveryLab,
+    showProjectTranslator,
+    setShowProjectTranslator,
     selectedShotId,
   } = useAppStore(useShallow((state) => ({
     project: state.project,
@@ -237,6 +246,10 @@ function AppContent() {
     setShowProjectBranchingDialog: state.setShowProjectBranchingDialog,
     showEpisodeReferenceDialog: state.showEpisodeReferenceDialog,
     setShowEpisodeReferenceDialog: state.setShowEpisodeReferenceDialog,
+    showDiscoveryLab: state.showDiscoveryLab,
+    setShowDiscoveryLab: state.setShowDiscoveryLab,
+    showProjectTranslator: state.showProjectTranslator,
+    setShowProjectTranslator: state.setShowProjectTranslator,
     selectedShotId: state.selectedShotId,
   })));
 
@@ -396,12 +409,60 @@ function AppContent() {
     validateFeatureRegistry();
   }, []);
 
+  // Initialize theme system on app startup
+  useEffect(() => {
+    // Sync theme with system preferences and user saved preferences
+    useThemeStore.getState().syncWithSystem();
+  }, []);
+
   useEffect(() => {
     serviceStatusMonitor.start();
     return () => {
       serviceStatusMonitor.stop();
     };
   }, []);
+
+  // Handle global capture-screen event
+  useEffect(() => {
+    const handleCaptureScreen = async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const displayIndex = customEvent.detail?.displayIndex || 0;
+      
+      try {
+        console.log(`[App] Triggering screen capture for display ${displayIndex}`);
+        const base64Image = await window.electronAPI.screen.capture({ displayIndex });
+        
+        if (base64Image) {
+          const timestamp = new Date().getTime();
+          const filename = `capture_${timestamp}.png`;
+          const projectPath = project?.path;
+          
+          const result = await window.electronAPI.screen.saveCapture(base64Image, filename, projectPath);
+          
+          if (result.success) {
+            toast({
+              title: 'Capture d\'écran réussie',
+              description: `Image sauvegardée : ${result.path}`,
+            });
+          } else {
+            throw new Error('Failed to save capture');
+          }
+        }
+      } catch (error) {
+        console.error('Screen capture failed:', error);
+        toast({
+          title: 'Erreur de capture',
+          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la capture.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    window.addEventListener('storycore:capture-screen', handleCaptureScreen);
+    return () => {
+      window.removeEventListener('storycore:capture-screen', handleCaptureScreen);
+    };
+  }, [project, toast]);
 
   // Generation notifications (Toasts)
   useEffect(() => {
@@ -600,7 +661,7 @@ function AppContent() {
     }
   };
 
-  const handleObjectComplete = (object: StoryObject) => {
+  const handleObjectComplete = (object: Partial<StoryObject>) => {
     try {
       if (!object || !object.id) {
         throw new Error('Invalid object data');
@@ -613,8 +674,8 @@ function AppContent() {
       );
 
       if (!objectExistsInStore) {
-        useStore.getState().addObject(object);
-        devLog('[App] Object added to Zustand store:', object.id);
+        useStore.getState().addObject(object as StoryObject);
+        devLog('[App] Object added to Zustand store:', (object as StoryObject).id);
       }
 
       // Sync to App store project objects
@@ -629,10 +690,10 @@ function AppContent() {
           useAppStore.setState({
             project: {
               ...currentProject,
-              objects: [...projectObjects, object]
+              objects: [...projectObjects, object as StoryObject]
             }
           });
-          devLog('[App] Object synced to project:', object.id);
+          devLog('[App] Object synced to project:', (object as StoryObject).id);
         }
       }
 
@@ -1004,6 +1065,14 @@ function AppContent() {
       <VideoEditorWizardModal />
       <ComicToSequenceWizardModal />
       <MarketingWizardModal />
+      
+      {/* Project Translator Modal */}
+      <ProjectTranslatorModal
+        isOpen={showProjectTranslator}
+        onClose={() => setShowProjectTranslator(false)}
+        projectId={project?.id || ''}
+        projectData={project}
+      />
 
       {/* Generic Wizard Modal (Requirements 1.2, 1.3, 1.4) */}
       <GenericWizardModal
@@ -1188,6 +1257,23 @@ function AppContent() {
           });
         }}
       />
+
+      {/* Narrative Discovery Lab (P0 R&D) */}
+      {showDiscoveryLab && (
+        <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col">
+          <div className="absolute top-4 right-6 z-[110]">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowDiscoveryLab(false)}
+              className="text-slate-400 hover:text-white hover:bg-slate-800 rounded-full"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
+          <DiscoveryLab />
+        </div>
+      )}
 
       {/* Toast Notifications */}
       <Toaster />

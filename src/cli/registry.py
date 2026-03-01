@@ -41,7 +41,11 @@ class CommandRegistry:
         
         try:
             # Import handlers package
-            handlers_package = importlib.import_module("cli.handlers")
+            try:
+                handlers_package = importlib.import_module("cli.handlers")
+            except ImportError:
+                handlers_package = importlib.import_module("src.cli.handlers")
+            
             handlers_path = Path(handlers_package.__file__).parent
             
             # Scan for handler modules
@@ -49,7 +53,7 @@ class CommandRegistry:
                 if module_info.name.startswith('_'):
                     continue  # Skip private modules
                 
-                module_name = f"cli.handlers.{module_info.name}"
+                module_name = f"{handlers_package.__name__}.{module_info.name}"
                 
                 if self.lazy_load:
                     # In lazy mode, just store the module path
@@ -69,9 +73,8 @@ class CommandRegistry:
                             
                             # Check if it's a handler class
                             if (isinstance(attr, type) and 
-                                issubclass(attr, BaseHandler) and 
-                                attr != BaseHandler and
-                                hasattr(attr, 'command_name')):
+                                hasattr(attr, 'command_name') and
+                                hasattr(attr, 'execute')):
                                 
                                 handler_classes.append(attr)
                                 self.logger.debug(f"Discovered handler: {attr.command_name}")
@@ -102,27 +105,26 @@ class CommandRegistry:
         
         try:
             # Import the module
+            self.logger.debug(f"Attempting to load module {module_name} for {command_name}")
             module = importlib.import_module(module_name)
             
             # Look for handler class
             for attr_name in dir(module):
                 attr = getattr(module, attr_name)
                 
-                # Check if it's a handler class
-                if (isinstance(attr, type) and 
-                    issubclass(attr, BaseHandler) and 
-                    attr != BaseHandler and
-                    hasattr(attr, 'command_name') and
-                    attr.command_name == command_name):
-                    
-                    self.logger.debug(f"Lazy loaded handler: {command_name}")
-                    return attr
+                # Check if it's a handler class (we check attributes to be robust against import issues)
+                if isinstance(attr, type) and hasattr(attr, 'command_name'):
+                    if (hasattr(attr, 'execute') and 
+                        attr.command_name == command_name):
+                        
+                        self.logger.debug(f"Lazy loaded handler: {command_name}")
+                        return attr
             
-            self.logger.warning(f"No handler class found in module {module_name}")
+            self.logger.warning(f"No handler class found in module {module_name} with command_name='{command_name}'")
             return None
             
         except Exception as e:
-            self.logger.error(f"Failed to lazy load handler {command_name}: {e}")
+            self.logger.error(f"Failed to lazy load handler {command_name} from {module_name}: {e}", exc_info=True)
             return None
     
     def register_handler(self, handler_class: Type[BaseHandler]) -> None:
@@ -264,7 +266,12 @@ class CommandRegistry:
     
     def list_commands(self) -> List[str]:
         """Get list of all registered command names."""
-        return list(self.handlers.keys())
+        # Include loaded handlers, registered classes, and discovered modules
+        commands = set(self.handlers.keys())
+        commands.update(self.handler_classes.keys())
+        commands.update(self.handler_modules.keys())
+        commands.update(self.aliases.keys())
+        return sorted(list(commands))
     
     def validate_handlers(self) -> bool:
         """Validate all registered handlers against interface contracts."""

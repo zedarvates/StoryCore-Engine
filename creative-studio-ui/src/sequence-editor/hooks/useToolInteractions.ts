@@ -7,7 +7,7 @@
  * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store';
 import { setActiveTool } from '../store/slices/toolsSlice';
 import {
@@ -32,7 +32,7 @@ import {
   handleAddKeyframe,
   findShotAtFrame,
 } from '../utils/toolInteractions';
-import type { ToolType, Shot, Layer, LayerType } from '../types';
+import type { ToolType, Shot, MediaLayerData } from '../types';
 
 interface ToolInteractionsOptions {
   onAddImage?: () => void;
@@ -53,7 +53,7 @@ export function useToolInteractions(
 ): ToolInteractionsResult {
   const dispatch = useAppDispatch();
   const { activeTool } = useAppSelector((state) => state.tools);
-  const { shots, playheadPosition, zoomLevel, selectedElements, duration } = useAppSelector(
+  const { shots, playheadPosition, zoomLevel, selectedElements } = useAppSelector(
     (state) => state.timeline
   );
 
@@ -168,7 +168,8 @@ export function useToolInteractions(
         case 'add-image':
           options.onAddImage?.();
           // Create a placeholder image shot
-          const imageShot: Shot = {
+          {
+            const imageShot: Shot = {
             id: `shot-image-${Date.now()}`,
             name: 'Image Shot',
             startTime: playheadPosition,
@@ -208,50 +209,54 @@ export function useToolInteractions(
             generationStatus: 'pending',
           };
           dispatch(addShot(imageShot));
+          }
           break;
 
         case 'add-video':
           options.onAddVideo?.();
-          const videoShot: Shot = {
-            id: `shot-video-${Date.now()}`,
-            name: 'Video Shot',
-            startTime: playheadPosition,
-            duration: 120, // 5 seconds
-            layers: [
-              {
-                id: `layer-${Date.now()}`,
-                type: 'media',
-                startTime: 0,
-                duration: 120,
-                locked: false,
-                hidden: false,
-                opacity: 1,
-                blendMode: 'normal',
-                data: {
-                  sourceUrl: '',
-                  trim: { start: 0, end: 120 },
-                  transform: {
-                    position: { x: 0, y: 0 },
-                    scale: { x: 1, y: 1 },
-                    rotation: 0,
-                    anchor: { x: 0.5, y: 0.5 },
+          // Create a placeholder video shot
+          {
+            const videoShot: Shot = {
+              id: `shot-video-${Date.now()}`,
+              name: 'Video Shot',
+              startTime: playheadPosition,
+              duration: 120, // 5 seconds
+              layers: [
+                {
+                  id: `layer-${Date.now()}`,
+                  type: 'media',
+                  startTime: 0,
+                  duration: 120,
+                  locked: false,
+                  hidden: false,
+                  opacity: 1,
+                  blendMode: 'normal',
+                  data: {
+                    sourceUrl: '',
+                    trim: { start: 0, end: 120 },
+                    transform: {
+                      position: { x: 0, y: 0 },
+                      scale: { x: 1, y: 1 },
+                      rotation: 0,
+                      anchor: { x: 0.5, y: 0.5 },
+                    },
                   },
                 },
+              ],
+              referenceImages: [],
+              prompt: '',
+              parameters: {
+                seed: -1,
+                denoising: 0.7,
+                steps: 20,
+                guidance: 7.0,
+                sampler: 'euler',
+                scheduler: 'normal',
               },
-            ],
-            referenceImages: [],
-            prompt: '',
-            parameters: {
-              seed: -1,
-              denoising: 0.7,
-              steps: 20,
-              guidance: 7.0,
-              sampler: 'euler',
-              scheduler: 'normal',
-            },
-            generationStatus: 'pending',
-          };
-          dispatch(addShot(videoShot));
+              generationStatus: 'pending',
+            };
+            dispatch(addShot(videoShot));
+          }
           break;
 
         case 'add-audio':
@@ -362,7 +367,7 @@ export function useToolInteractions(
               if (shot) {
                 const mediaLayer = shot.layers.find((l) => l.type === 'media');
                 if (mediaLayer) {
-                  const layerData = { ...mediaLayer.data } as any;
+                  const layerData = { ...mediaLayer.data } as MediaLayerData;
                   if (layerData.trim) {
                     layerData.trim.start = result.newTrimStart;
                     layerData.trim.end = result.newTrimEnd;

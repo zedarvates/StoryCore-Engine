@@ -344,7 +344,8 @@ abstract class LLMProviderBase {
   abstract generateStreamingCompletion(
     request: LLMRequest,
     onChunk: StreamChunkCallback,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    modelOverride?: string
   ): Promise<LLMResponse>;
 
   /**
@@ -448,8 +449,10 @@ class OpenAIProvider extends LLMProviderBase {
   async generateStreamingCompletion(
     request: LLMRequest,
     onChunk: StreamChunkCallback,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    modelOverride?: string
   ): Promise<LLMResponse> {
+    const model = modelOverride || this.config.model;
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -457,7 +460,7 @@ class OpenAIProvider extends LLMProviderBase {
         'Authorization': `Bearer ${this.config.apiKey}`,
       },
       body: JSON.stringify({
-        model: this.config.model,
+        model,
         messages: [
           ...(request.systemPrompt ? [{ role: 'system', content: request.systemPrompt }] : []),
           {
@@ -680,8 +683,10 @@ class AnthropicProvider extends LLMProviderBase {
   async generateStreamingCompletion(
     request: LLMRequest,
     onChunk: StreamChunkCallback,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    modelOverride?: string
   ): Promise<LLMResponse> {
+    const model = modelOverride || this.config.model;
     const response = await fetch(`${this.baseUrl}/messages`, {
       method: 'POST',
       headers: {
@@ -690,7 +695,7 @@ class AnthropicProvider extends LLMProviderBase {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: this.config.model,
+        model,
         max_tokens: request.maxTokens ?? this.config.parameters.maxTokens,
         temperature: request.temperature ?? this.config.parameters.temperature,
         system: request.systemPrompt,
@@ -837,9 +842,43 @@ class CustomProvider extends LLMProviderBase {
         content: response || '',
         finish_reason: 'stop',
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      // HANDLE MODEL NOT FOUND: Automatically try to fallback to any available model
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (
+        this.config.provider === 'local' && 
+        (errorMessage.includes('Not Found') || errorMessage.includes('not found'))
+      ) {
+        logger.warn(`[CustomProvider] Model '${this.config.model}' not found. Attempting auto-fallback...`);
+        try {
+          const bestModel = await ollamaClient.getBestAvailableModel();
+          if (bestModel && bestModel !== this.config.model) {
+            logger.info(`[CustomProvider] Falling back to available model: ${bestModel}`);
+            
+            const maxTokens = request.maxTokens ?? this.config.parameters.maxTokens;
+            const numPredict = Math.max(maxTokens * 2, 500);
+            const prompt = request.systemPrompt
+              ? `${request.systemPrompt}\n\n${request.prompt}`
+              : request.prompt;
+
+            const response = await ollamaClient.generate(bestModel, prompt, {
+              temperature: request.temperature ?? this.config.parameters.temperature,
+              maxTokens: numPredict,
+              images: request.images,
+            }, signal);
+
+            return {
+              content: response || '',
+              finish_reason: 'stop',
+            };
+          }
+        } catch (fallbackError) {
+          logger.error('[CustomProvider] Fallback failed:', fallbackError);
+        }
+      }
+
       // Handle network errors
-      if (error instanceof TypeError && error.message.includes('fetch')) {
+      if (error instanceof TypeError && (error as Error).message.includes('fetch')) {
         throw new LLMError(
           'Cannot connect to Ollama. Please ensure Ollama is running at ' + endpoint,
           'network',
@@ -866,9 +905,11 @@ class CustomProvider extends LLMProviderBase {
   async generateStreamingCompletion(
     request: LLMRequest,
     onChunk: StreamChunkCallback,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    modelOverride?: string
   ): Promise<LLMResponse> {
     const endpoint = this.config.apiEndpoint || OLLAMA_URL;
+    const model = modelOverride || this.config.model;
 
     try {
       // Use Ollama's native API format with streaming
@@ -883,7 +924,7 @@ class CustomProvider extends LLMProviderBase {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: this.config.model,
+          model,
           prompt: request.systemPrompt
             ? `${request.systemPrompt}\n\n${request.prompt}`
             : request.prompt,
@@ -900,11 +941,25 @@ class CustomProvider extends LLMProviderBase {
       if (!response.ok) {
         // Handle specific error cases
         if (response.status === 404) {
+          const errorData = await response.json().catch(() => ({}));
+          const isModelMissing = errorData.error && (errorData.error.includes('not found') || errorData.error.includes('Not Found'));
+          
+          if (isModelMissing) {
+             logger.warn(`[CustomProvider] Model '${this.config.model}' not found during streaming. Attempting fallback...`);
+             const bestModel = await ollamaClient.getBestAvailableModel();
+             
+             if (bestModel && bestModel !== model) {
+               logger.info(`[CustomProvider] Falling back to: ${bestModel}`);
+               // Recurse with new model override
+               return this.generateStreamingCompletion(request, onChunk, signal, bestModel);
+             }
+          }
+
           throw new LLMError(
-            'Ollama service not found. Please ensure Ollama is running and accessible at ' + endpoint,
+            isModelMissing ? `Model '${model}' not found in Ollama.` : 'Ollama service not found at ' + endpoint,
             'connection',
             true,
-            { endpoint, status: 404 }
+            { endpoint, status: 404, error: errorData.error }
           );
         }
 

@@ -73,6 +73,7 @@ class UpdateIdentityRequest(BaseModel):
     name: Optional[str] = Field(default=None, description="Nouveau nom")
     description: Optional[str] = Field(default=None, description="Nouvelle description")
     visual_attributes: Optional[Dict[str, Any]] = Field(default=None, description="Attributs visuels à mettre à jour")
+    is_locked: Optional[bool] = Field(default=None, description="État de verrouillage")
 
 
 class ExtractAttributesRequest(BaseModel):
@@ -234,6 +235,8 @@ async def update_identity(identity_id: str, request: UpdateIdentityRequest, user
             updates["description"] = request.description
         if request.visual_attributes is not None:
             updates["visual_attributes"] = request.visual_attributes
+        if request.is_locked is not None:
+            updates["is_locked"] = request.is_locked
         
         if not updates:
             raise HTTPException(status_code=400, detail="No updates provided")

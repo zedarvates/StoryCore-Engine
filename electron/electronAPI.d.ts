@@ -663,6 +663,34 @@ restoreCheckpoint: (projectPath: string, commitId: string) => Promise<any>;
     onStateUpdate: (callback: (state: any) => void) => () => void;
   };
 
+  /**
+   * Screen capture functionality
+   */
+  screen: {
+    /**
+     * Capture the full screen
+     * @param options Capture options (quality, format)
+     * @returns Base64 image data
+     */
+    capture: (options?: { quality?: number; format?: 'png' | 'jpg'; displayIndex?: number }) => Promise<string>;
+
+    /**
+     * Start area capture workflow (interactive)
+     * @param options Capture options (quality, format)
+     * @returns Base64 image data or null if canceled
+     */
+    startAreaCapture: (options?: { quality?: number; format?: 'png' | 'jpg' }) => Promise<string | null>;
+
+    /**
+     * Save a capture to disk
+     * @param data Base64 image data
+     * @param filename Filename to save as
+     * @param projectPath Optional project path to save in project's capture folder
+     * @returns Success status and saved path
+     */
+    saveCapture: (data: string, filename: string, projectPath?: string) => Promise<{ success: boolean; path: string }>;
+  };
+
   // Event listening
   on: (channel: string, func: (...args: any[]) => void) => () => void;
   once: (channel: string, func: (...args: any[]) => void) => void;

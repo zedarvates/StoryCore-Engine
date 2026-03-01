@@ -4,7 +4,7 @@
  * Modal window for configuring general application settings with dark neon theme
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,11 +27,10 @@ import {
   Moon,
   Sun,
   Mic,
-  Keyboard,
 } from 'lucide-react';
 import { voiceTextService, type VoiceSettings } from '@/services/VoiceTextService';
-import type { LanguageCode } from '@/utils/llmConfigStorage';
-import type { ThemeType } from '@/stores/themeStore';
+import { type ThemeType } from '@/stores/themeStore';
+import { useI18n, type SupportedLanguage } from '@/utils/i18n';
 
 interface GeneralSettingsWindowProps {
   isOpen: boolean;
@@ -40,7 +39,7 @@ interface GeneralSettingsWindowProps {
 
 interface GeneralSettings {
   // Appearance
-  theme: 'dark' | 'light' | 'auto';
+  theme: ThemeType;
   language: string;
   fontSize: 'small' | 'medium' | 'large';
   neonEffects: boolean;
@@ -74,7 +73,7 @@ interface GeneralSettings {
 
 const DEFAULT_SETTINGS: GeneralSettings = {
   // Appearance
-  theme: 'dark',
+  theme: 'dark-neon',
   language: 'fr',
   fontSize: 'medium',
   neonEffects: true,
@@ -108,28 +107,29 @@ const DEFAULT_SETTINGS: GeneralSettings = {
 export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindowProps) {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
-  const [settings, setSettings] = useState<GeneralSettings>(DEFAULT_SETTINGS);
+  const { language: currentLang, setLanguage } = useI18n();
+  
+  const [settings, setSettings] = useState<GeneralSettings>(() => {
+    const saved = localStorage.getItem('general-settings');
+    let baseSettings = DEFAULT_SETTINGS;
+    
+    // Sync with current i18n language if no saved settings
+    if (!saved) {
+      baseSettings = { ...DEFAULT_SETTINGS, language: currentLang };
+    }
 
-  // Load settings on open
-  useEffect(() => {
-    if (isOpen) {
-      const savedSettings = localStorage.getItem('general-settings');
-      if (savedSettings) {
-        try {
-          const parsed = JSON.parse(savedSettings);
-          const newSettings = { ...DEFAULT_SETTINGS, ...parsed };
-          if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
-            setSettings(newSettings);
-          }
-        } catch (error) {
-          console.error('Failed to load general settings:', error);
-          setSettings(DEFAULT_SETTINGS);
-        }
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return { ...baseSettings, ...parsed };
+      } catch {
+        return baseSettings;
       }
     }
-  }, [isOpen]);
+    return baseSettings;
+  });
 
-  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(voiceTextService.getSettings());
+  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(() => voiceTextService.getSettings());
 
   const updateVoiceSetting = <K extends keyof VoiceSettings>(
     key: K,
@@ -153,8 +153,11 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
     try {
       localStorage.setItem('general-settings', JSON.stringify(settings));
       voiceTextService.saveSettings(voiceSettings);
-      // NOTE: Theme is now handled directly by setTheme calls in the UI
-      // which persist via themeStore
+      
+      // Apply language setting to I18nProvider
+      if (settings.language) {
+        setLanguage(settings.language as SupportedLanguage);
+      }
 
       // Apply neon effects
       document.documentElement.classList.toggle('neon-disabled', !settings.neonEffects);
@@ -163,6 +166,8 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
         title: 'Settings Saved',
         description: 'General settings have been saved successfully.',
       });
+
+      onClose();
 
     } catch (error) {
       console.error('Failed to save settings:', error);
@@ -223,7 +228,10 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
                   ].map((t) => (
                     <button
                       key={t.id}
-                      onClick={() => setTheme(t.id as ThemeType)}
+                      onClick={() => {
+                        setTheme(t.id as ThemeType);
+                        updateSetting('theme', t.id as ThemeType);
+                      }}
                       className={cn(
                         'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all',
                         theme === t.id
@@ -474,10 +482,10 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Mic className="w-5 h-5 text-accent" />
-              <h3 className="text-lg font-semibold neon-text">Voice & Transcription</h3>
+              <h3 className="text-lg font-semibold neon-text">Voice & Transcription (Microphone Style)</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-7">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-7">
               <div className="flex items-center justify-between">
                 <Label className="text-muted-foreground">Enable Voice Features</Label>
                 <Switch
@@ -486,79 +494,138 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <Label className="text-muted-foreground">Continuous Listening</Label>
-                <Switch
-                  checked={voiceSettings.continuousListening}
-                  onCheckedChange={(checked) => updateVoiceSetting('continuousListening', checked)}
-                />
-              </div>
-
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Input Language</Label>
-                <Select value={voiceSettings.inputLanguage} onValueChange={(value) => updateVoiceSetting('inputLanguage', value as LanguageCode)}>
+                <Label className="text-muted-foreground">Input Mode</Label>
+                <Select value={voiceSettings.inputMode} onValueChange={(value) => updateVoiceSetting('inputMode', value as 'voice-activity' | 'push-to-talk')}>
                   <SelectTrigger className="bg-background/50 border-primary/30">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="fr">Français</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
-                    <SelectItem value="de">Deutsch</SelectItem>
+                    <SelectItem value="voice-activity">Voice Activity (Auto)</SelectItem>
+                    <SelectItem value="push-to-talk">Push-to-Talk (PTT)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
+              {voiceSettings.inputMode === 'voice-activity' && (
+                <div className="space-y-4 pt-2">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-muted-foreground">Input Sensitivity</Label>
+                    <span className="text-xs text-primary font-mono">{voiceSettings.inputSensitivity}%</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value={voiceSettings.inputSensitivity} 
+                    onChange={(e) => updateVoiceSetting('inputSensitivity', parseInt(e.target.value))}
+                    className="w-full accent-primary bg-background/50"
+                  />
+                  <p className="text-[10px] text-muted-foreground italic">Lower = more sensitive. Higher = requires louder voice.</p>
+                </div>
+              )}
+
+              {voiceSettings.inputMode === 'push-to-talk' && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Push-to-Talk Key</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={voiceSettings.pttKeybind}
+                      readOnly
+                      placeholder="Press a key..."
+                      className="bg-background/50 border-primary/30 flex-1 font-mono text-center"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-primary/30"
+                      onClick={() => {
+                        const handler = (e: KeyboardEvent) => {
+                          e.preventDefault();
+                          updateVoiceSetting('pttKeybind', e.code);
+                          window.removeEventListener('keydown', handler);
+                        };
+                        window.addEventListener('keydown', handler);
+                        toast({ title: 'Recording Keybind', description: 'Press any key to set your PTT shortcut.' });
+                      }}
+                    >
+                      Record
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Voice Activation Keyword</Label>
+                <Label className="text-muted-foreground">Command Prefix (Carrot Mode)</Label>
                 <Input
-                  value={voiceSettings.voiceActivationKeyword}
-                  onChange={(e) => updateVoiceSetting('voiceActivationKeyword', e.target.value)}
-                  placeholder="e.g. hé ros"
+                  value={voiceSettings.commandPrefix}
+                  onChange={(e) => updateVoiceSetting('commandPrefix', e.target.value)}
+                  placeholder="e.g. slash, macro, hey"
                   className="bg-background/50 border-primary/30"
                 />
+                <p className="text-[10px] text-muted-foreground">Start speaking with this word to trigger commands. (Ex: "{voiceSettings.commandPrefix} help")</p>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-primary/10 col-span-1 md:col-span-2">
+                <Label className="text-primary font-semibold">Audio Filters & Processing</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between p-2 bg-primary/5 rounded-md">
+                    <Label className="text-xs text-muted-foreground">Noise Suppression (Krisp Style)</Label>
+                    <Switch
+                      checked={voiceSettings.noiseSuppression}
+                      onCheckedChange={(checked) => updateVoiceSetting('noiseSuppression', checked)}
+                      className="scale-75"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-primary/5 rounded-md">
+                    <Label className="text-xs text-muted-foreground">Echo Cancellation</Label>
+                    <Switch
+                      checked={voiceSettings.echoCancellation}
+                      onCheckedChange={(checked) => updateVoiceSetting('echoCancellation', checked)}
+                      className="scale-75"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-primary/5 rounded-md">
+                    <Label className="text-xs text-muted-foreground">Auto Gain Control (AGC)</Label>
+                    <Switch
+                      checked={voiceSettings.autoGainControl}
+                      onCheckedChange={(checked) => updateVoiceSetting('autoGainControl', checked)}
+                      className="scale-75"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-primary/5 rounded-md">
+                    <Label className="text-xs text-muted-foreground">Continuous Listening</Label>
+                    <Switch
+                      checked={voiceSettings.continuousListening}
+                      onCheckedChange={(checked) => updateVoiceSetting('continuousListening', checked)}
+                      className="scale-75"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="col-span-1 md:col-span-2 space-y-4 pt-2">
                 <div className="flex items-center gap-2">
-                  <Keyboard className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Activation Hotkey</span>
+                  <Zap className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Test Microphone</span>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground text-xs">Modifier</Label>
-                    <Select 
-                      value={voiceSettings.activationHotkey.modifier} 
-                      onValueChange={(value) => updateVoiceSetting('activationHotkey', { ...voiceSettings.activationHotkey, modifier: value as 'alt' | 'ctrl' | 'shift' | 'meta' | 'none' })}
-                    >
-                      <SelectTrigger className="bg-background/50 border-primary/30 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="alt">Alt</SelectItem>
-                        <SelectItem value="ctrl">Ctrl</SelectItem>
-                        <SelectItem value="shift">Shift</SelectItem>
-                        <SelectItem value="meta">Cmd/Win</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground text-xs">Key</Label>
-                    <Input
-                      value={voiceSettings.activationHotkey.key}
-                      onChange={(e) => updateVoiceSetting('activationHotkey', { ...voiceSettings.activationHotkey, key: e.target.value })}
-                      placeholder="e.g. Space"
-                      className="bg-background/50 border-primary/30 h-8"
-                    />
+                <div className="flex gap-4 items-center p-4 bg-background/30 rounded-lg border border-primary/20">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="neon-border hover:bg-primary/20"
+                    onClick={() => voiceTextService.testSpeechRecognition()}
+                  >
+                    <Mic className="w-4 h-4 mr-2" />
+                    Let's Check
+                  </Button>
+                  <div className="flex-1 space-y-1">
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-green-500 w-[70%]" /> {/* Mock visual feedback */}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground text-center">Speak to verify your level (Aim for green zone 70-90%)</p>
                   </div>
                 </div>
-                <p className="text-[10px] text-muted-foreground">
-                  Global shortcut: {voiceSettings.activationHotkey.modifier !== 'none' ? voiceSettings.activationHotkey.modifier + ' + ' : ''}{voiceSettings.activationHotkey.key}. 
-                  Works even when the application is in the background.
-                </p>
               </div>
             </div>
           </div>

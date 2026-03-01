@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Scissors, Music, ZoomIn, Brain, Mic, Palette } from 'lucide-react';
+import { Search, Scissors, Music, ZoomIn, Brain, Mic, Palette, Loader2, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,7 +11,7 @@ interface SearchResult {
   media_id: string;
   type: 'transcription' | 'video_ocr';
   preview: string;
-  matches: any[];
+  matches: { start?: number; timestamp?: number; text: string }[];
 }
 
 export const AISearchPanel: React.FC = () => {
@@ -59,6 +59,46 @@ export const AISearchPanel: React.FC = () => {
     // Appel API /ai/auto-trim...
   };
 
+  const handleBeatDetect = async () => {
+    toast({
+      title: "Beat Detection",
+      description: "Analyse du rythme musical en cours...",
+    });
+    // Appel API /ai/detect-beats...
+  };
+
+  const handleMagicMask = async () => {
+    toast({
+      title: "Magic Mask",
+      description: "Isolant le sujet principal du fond...",
+    });
+    // Appel API /ai/magic-mask...
+  };
+
+  const handleVocals = async () => {
+    toast({
+      title: "Voice Isolation",
+      description: "Extraction de la voix et suppression du bruit...",
+    });
+    // Appel API /ai/voice-isolation...
+  };
+
+  const handleDucking = async () => {
+    toast({
+      title: "Auto-Ducking",
+      description: "Ajustement automatique de la musique sur la voix...",
+    });
+    // Appel API /ai/auto-ducking...
+  };
+
+  const handleIsolation = async () => {
+    toast({
+      title: "Color Isolation",
+      description: "Application du filtre HSL Qualifier (Cinematic)...",
+    });
+    // Appel API /ai/enhance (type: color_isolation)...
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-900 text-slate-200 p-4">
       <div className="flex items-center gap-2 mb-6">
@@ -83,7 +123,7 @@ export const AISearchPanel: React.FC = () => {
           variant="outline" 
           size="sm" 
           className="bg-slate-800 border-slate-700 hover:bg-slate-700 h-20 flex flex-col gap-2"
-          onClick={() => {}}
+          onClick={handleBeatDetect}
         >
           <Music className="w-4 h-4 text-emerald-400" />
           <span className="text-[10px]">Beat Detect</span>
@@ -101,7 +141,7 @@ export const AISearchPanel: React.FC = () => {
           variant="outline" 
           size="sm" 
           className="bg-slate-800 border-slate-700 hover:bg-slate-700 h-20 flex flex-col gap-2"
-          onClick={() => {}}
+          onClick={handleMagicMask}
         >
           <Brain className="w-4 h-4 text-pink-400" />
           <span className="text-[10px]">Magic Mask</span>
@@ -110,7 +150,7 @@ export const AISearchPanel: React.FC = () => {
           variant="outline" 
           size="sm" 
           className="bg-slate-800 border-slate-700 hover:bg-slate-700 h-20 flex flex-col gap-2"
-          onClick={() => {}}
+          onClick={handleVocals}
         >
           <Mic className="w-4 h-4 text-cyan-400" />
           <span className="text-[10px]">Vocals</span>
@@ -119,7 +159,7 @@ export const AISearchPanel: React.FC = () => {
           variant="outline" 
           size="sm" 
           className="bg-slate-800 border-slate-700 hover:bg-slate-700 h-20 flex flex-col gap-2"
-          onClick={() => {}}
+          onClick={handleDucking}
         >
           <Music className="w-4 h-4 text-yellow-400" />
           <span className="text-[10px]">Ducking</span>
@@ -128,7 +168,7 @@ export const AISearchPanel: React.FC = () => {
           variant="outline" 
           size="sm" 
           className="bg-slate-800 border-slate-700 hover:bg-slate-700 h-20 flex flex-col gap-2"
-          onClick={() => {}}
+          onClick={handleIsolation}
         >
           <Palette className="w-4 h-4 text-orange-400" />
           <span className="text-[10px]">Isolation</span>

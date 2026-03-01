@@ -333,6 +333,15 @@ class TextLayer:
 
 
 @dataclass
+class AudioEffect:
+    """Audio effect."""
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    type: str = "eq"  # eq, compressor, limiter, reverb, noise_reduction, etc.
+    enabled: bool = True
+    parameters: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class AudioTrack:
     """Audio track configuration."""
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -347,15 +356,6 @@ class AudioTrack:
     height: int = 40
     color: str = "#50C878"
     effects: List[AudioEffect] = field(default_factory=list)
-
-
-@dataclass
-class AudioEffect:
-    """Audio effect."""
-    id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    type: str = "eq"  # eq, compressor, limiter, reverb, noise_reduction, etc.
-    enabled: bool = True
-    parameters: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

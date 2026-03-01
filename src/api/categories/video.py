@@ -64,11 +64,18 @@ class VideoCategoryHandler(BaseAPIHandler):
     def _initialize_video_engine(self) -> None:
         """Initialize video processing engine if available."""
         try:
-            from video_processing_engine import VideoProcessingEngine
+            try:
+                from ...video_processing_engine import VideoProcessingEngine
+            except (ImportError, ValueError):
+                try:
+                    from src.video_processing_engine import VideoProcessingEngine
+                except ImportError:
+                    from video_processing_engine import VideoProcessingEngine
+            
             self.video_engine = VideoProcessingEngine()
             logger.info("Video processing engine initialized successfully")
-        except ImportError:
-            logger.warning("VideoProcessingEngine not available, using mock mode")
+        except Exception as e:
+            logger.warning(f"VideoProcessingEngine not available ({str(e)}), using mock mode")
             self.video_engine = None
     
     def register_endpoints(self) -> None:
@@ -198,6 +205,7 @@ class VideoCategoryHandler(BaseAPIHandler):
             resolution = params.get("resolution", "1920x1080")
             framerate = params.get("framerate", 30)
             codec = params.get("codec", "h264")
+            use_ai_upscale = params.get("use_ai_upscale", False)
             metadata = params.get("metadata", {})
             
             # Validate shots
@@ -248,16 +256,39 @@ class VideoCategoryHandler(BaseAPIHandler):
             
             start_time = time.time()
             
-            # Mock video assembly
-            # In real implementation, this would use video processing engine
+            # Real or Mock video assembly
             total_duration = 0.0
-            for shot_data in shots_data:
-                duration = shot_data.get("duration_seconds")
-                if duration:
+            success = True
+            
+            if self.video_engine:
+                # Map API shots to engine config
+                shots_config = []
+                for shot in shots_data:
+                    shots_config.append({
+                        "path": shot["video_path"],
+                        "in_point": shot.get("in_point"),
+                        "out_point": shot.get("out_point")
+                    })
+                    duration = shot.get("duration_seconds", 3.0)
                     total_duration += duration
-                else:
-                    # Estimate 3 seconds per shot if not specified
-                    total_duration += 3.0
+                
+                success = self.video_engine.assemble(shots_config, output_path, use_ai_upscale=use_ai_upscale)
+            else:
+                # Mock video assembly
+                for shot_data in shots_data:
+                    duration = shot_data.get("duration_seconds")
+                    if duration:
+                        total_duration += duration
+                    else:
+                        total_duration += 3.0
+                logger.info("[MOCK] Assembling video to %s", output_path)
+            
+            if not success:
+                 return self.create_error_response(
+                    error_code=ErrorCodes.INTERNAL_ERROR,
+                    message="Video assembly failed",
+                    context=context
+                )
             
             # Calculate file size
             file_size = self._calculate_file_size(total_duration, resolution, "5M")
@@ -467,9 +498,30 @@ class VideoCategoryHandler(BaseAPIHandler):
                 path_obj = Path(video_path)
                 output_path = str(path_obj.parent / f"{path_obj.stem}_effects{path_obj.suffix}")
             
-            # Mock effects application
-            # In real implementation, this would use video processing engine
+            # Real or Mock effects application
             duration = 27.0  # Mock duration
+            success = True
+            
+            if self.video_engine:
+                # Merge effects into a single dict for the engine
+                engine_effects = {}
+                for effect in effects_data:
+                    effect_type = effect["effect_type"]
+                    params = effect.get("parameters", {})
+                    # Map standard effects
+                    if effect_type in ["brightness", "contrast", "saturation"]:
+                        engine_effects[effect_type] = params.get("value")
+                
+                success = self.video_engine.apply_effects(video_path, output_path, engine_effects)
+            else:
+                logger.info("[MOCK] Applying effects to %s", output_path)
+            
+            if not success:
+                 return self.create_error_response(
+                    error_code=ErrorCodes.INTERNAL_ERROR,
+                    message="Effect application failed",
+                    context=context
+                )
             
             result = EffectsApplyResult(
                 video_path=output_path,
@@ -525,6 +577,7 @@ class VideoCategoryHandler(BaseAPIHandler):
             quality = params.get("quality", "high")
             audio_codec = params.get("audio_codec", "aac")
             audio_bitrate = params.get("audio_bitrate", "192K")
+            use_ai_upscale = params.get("use_ai_upscale", False)
             metadata = params.get("metadata", {})
             
             # Validate video file exists
@@ -560,8 +613,22 @@ class VideoCategoryHandler(BaseAPIHandler):
             
             start_time = time.time()
             
-            # Mock video rendering
-            # In real implementation, this would use video processing engine
+            # Real or Mock video rendering
+            success = True
+            width, height = self._parse_resolution(resolution)
+            
+            if self.video_engine:
+                success = self.video_engine.render(video_path, output_path, width, height, use_ai_upscale=use_ai_upscale)
+            else:
+                logger.info("[MOCK] Rendering video to %s", output_path)
+            
+            if not success:
+                 return self.create_error_response(
+                    error_code=ErrorCodes.INTERNAL_ERROR,
+                    message="Video rendering failed",
+                    context=context
+                )
+            
             duration = 27.0  # Mock duration
             file_size = self._calculate_file_size(duration, resolution, bitrate)
             

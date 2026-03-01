@@ -8,12 +8,11 @@
  * File: creative-studio-ui/src/components/scene/Scene3DView.tsx
  */
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { Location, SceneLocation, Transform3D } from '@/types/location';
-import { CameraPresetControl } from './CameraPresetControl';
 import { LightingPresets, LIGHTING_PRESETS } from './LightingPresets';
 import './Scene3DView.css';
 
@@ -106,6 +105,16 @@ function LocationCube({ location, transform, isSelected, onSelect }: LocationCub
 }
 
 /**
+ * Procedural Item Type
+ */
+export interface ProceduralItem {
+  id: string;
+  type: 'house' | 'tree';
+  position: [number, number, number];
+  params?: Record<string, unknown>;
+}
+
+/**
  * Scene Content Component
  */
 interface SceneContentProps {
@@ -114,7 +123,11 @@ interface SceneContentProps {
   selectedInstanceId: string | null;
   onSelectSceneLocation: (instanceId: string | null) => void;
   lightingPreset?: string;
+  proceduralItems?: ProceduralItem[];
 }
+
+import { ProceduralHouse } from './procedural/ProceduralHouse';
+import { ProceduralTree } from './procedural/ProceduralTree';
 
 function SceneContent({
   locations,
@@ -122,6 +135,7 @@ function SceneContent({
   selectedInstanceId,
   onSelectSceneLocation,
   lightingPreset,
+  proceduralItems = [],
 }: SceneContentProps) {
   // Get lighting configuration from preset
   const preset = LIGHTING_PRESETS.find(p => p.id === lightingPreset);
@@ -148,6 +162,7 @@ function SceneContent({
         position={directionalPosition as [number, number, number]} 
         intensity={directionalIntensity} 
         color={directionalColor} 
+        castShadow
       />
       
       {/* Point Light (if specified) */}
@@ -160,8 +175,16 @@ function SceneContent({
       )}
       
       {/* Grid */}
-      <gridHelper args={[20, 20, '#444', '#333']} />
+      <gridHelper args={[40, 40, '#444', '#333']} />
       
+      {/* Procedural Items */}
+      {proceduralItems.map((item) => (
+        <React.Fragment key={item.id}>
+          {item.type === 'house' && <ProceduralHouse position={item.position} {...item.params} />}
+          {item.type === 'tree' && <ProceduralTree position={item.position} {...item.params} />}
+        </React.Fragment>
+      ))}
+
       {/* Location Cubes */}
       {sceneLocations.map((sceneLoc) => {
         const location = locations.find((l) => l.location_id === sceneLoc.location_id);
@@ -193,26 +216,58 @@ export function Scene3DView({
   sceneLocations,
   selectedInstanceId,
   onSelectSceneLocation,
-  onTransformChange,
-  viewMode = 'perspective',
+  // Next two kept in props for parent compatibility:
+  // onTransformChange,
+  // viewMode = 'perspective',
 }: Scene3DViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   // State for lighting presets
   const [activeLightingPreset, setActiveLightingPreset] = useState<string>('bright-daylight');
   
-  // Handle reset
-  const handleReset = useCallback(() => {
-    // Reset is handled by the child component
-  }, []);
+  // State for Procedural R&D
+  const [proceduralItems, setProceduralItems] = useState<ProceduralItem[]>([]);
+
+  const addProceduralHouse = () => {
+    const x = Math.floor(Math.random() * 20) - 10;
+    const z = Math.floor(Math.random() * 20) - 10;
+    const isManoir = Math.random() > 0.8;
+    setProceduralItems(prev => [
+      ...prev,
+      {
+        id: `house-${Date.now()}`,
+        type: 'house',
+        position: [x, 0, z],
+        params: isManoir 
+          ? { floors: 2, wallColor: '#d3d3d3', roofColor: '#333333', roofType: '45deg', width: 12, depth: 10 } 
+          : { floors: 1, wallColor: '#f5f5dc', roofColor: '#8b0000', roofType: '45deg' }
+      }
+    ]);
+  };
+
+  const addProceduralTree = () => {
+    const x = Math.floor(Math.random() * 30) - 15;
+    const z = Math.floor(Math.random() * 30) - 15;
+    const height = 4 + Math.random() * 6;
+    setProceduralItems(prev => [
+      ...prev,
+      {
+        id: `tree-${Date.now()}`,
+        type: 'tree',
+        position: [x, 0, z],
+        params: { height }
+      }
+    ]);
+  };
   
   return (
     <div className="scene-3d-view">
       <Canvas
         ref={canvasRef}
-        camera={{ position: [5, 5, 5], fov: 50 }}
+        camera={{ position: [15, 10, 15], fov: 50 }}
         gl={{ antialias: true }}
         style={{ background: LIGHTING_PRESETS.find(p => p.id === activeLightingPreset)?.skyColor || '#1a1a1a' }}
+        shadows
       >
         <SceneContent
           locations={locations}
@@ -220,6 +275,7 @@ export function Scene3DView({
           selectedInstanceId={selectedInstanceId}
           onSelectSceneLocation={onSelectSceneLocation}
           lightingPreset={activeLightingPreset}
+          proceduralItems={proceduralItems}
         />
       </Canvas>
       
@@ -230,6 +286,22 @@ export function Scene3DView({
           currentPreset={activeLightingPreset}
           onPresetSelect={(preset) => setActiveLightingPreset(preset.id)}
         />
+        
+        {/* Procedural R&D Tools */}
+        <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', padding: '0 8px' }}>
+          <button 
+            onClick={addProceduralHouse}
+            style={{ padding: '6px 12px', background: '#3b82f6', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+          >
+            + Maison (Générée)
+          </button>
+          <button 
+            onClick={addProceduralTree}
+            style={{ padding: '6px 12px', background: '#22c55e', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+          >
+            + Sapin (Généré)
+          </button>
+        </div>
       </div>
       
       {/* Info */}
@@ -241,6 +313,8 @@ export function Scene3DView({
         <span className="scene-3d-view__lighting-label">
           {LIGHTING_PRESETS.find(p => p.id === activeLightingPreset)?.name || 'Custom'}
         </span>
+        <span>|</span>
+        <span style={{ color: '#a855f7' }}>{proceduralItems.length} Procedural Objects (R&D)</span>
       </div>
     </div>
   );

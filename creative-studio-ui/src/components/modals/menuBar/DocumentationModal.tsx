@@ -238,6 +238,38 @@ Professional audio editing:
 | Full screen | F11 |
 `
     },
+    'ai-features': {
+      title: 'AI & Voice Commands',
+      content: `# AI & Voice Commands
+      
+## Voice Commands (Carrot Protocol 🥕)
+
+Activate the voice recognition by saying **"/slash"** followed by:
+
+### 🤖 AI Commands
+- **"Translate project"**: Opens the localization & translation wizard.
+- **"Upscale video"**: Triggers AI super-resolution on selected assets.
+- **"Cinematic mode"**: Toggles high-quality rendering filters.
+
+### ✨ Creation
+- **"Generate image"**: Creates a new image from the active prompt.
+- **"Add object [name]"**: Places a 3D asset in the scene.
+- **"Change lighting [type]"**: Adjusts scene ambiance.
+
+### ⚙️ System
+- **"Undo / Redo"**: Revert or repeat actions.
+- **"Save project"**: Persistence trigger.
+- **"Help"**: Displays the carrot protocol menu.
+
+## Addons Features
+
+### Project Translator
+Allows you to localize your story into multiple languages (French, English, Japanese, etc.) using AI translation.
+
+### Recap Engine
+Generates visual recaps of your story progression for social media or internal review.
+`
+    },
     'troubleshooting': {
       title: 'Troubleshooting',
       content: `# Troubleshooting
@@ -413,6 +445,24 @@ Le système détecte automatiquement:
 5. Exporter le résultat final
 `
     },
+    'audio': {
+      title: 'Traitement Audio',
+      content: `# Traitement Audio
+      
+## Dialogue IA
+Génération de voix naturelle avec contrôle émotionnel :
+1. Sélectionner le personnage
+2. Écrire le dialogue
+3. Choisir l'émotion et le ton
+4. Générer la voix
+
+## Musique de Fond
+Composition automatique basée sur l'ambiance.
+
+## Effets Sonores
+Bibliothèque SFX intégrée.
+`
+    },
     'export': {
       title: 'Export & Sortie',
       content: `# Export & Sortie
@@ -456,6 +506,38 @@ Le système détecte automatiquement:
 | Exporter | Ctrl+E |
 | Paramètres | Ctrl+, |
 | Plein écran | F11 |
+`
+    },
+    'ai-features': {
+      title: 'IA & Commandes Vocales',
+      content: `# IA & Commandes Vocales
+      
+## Commandes Vocales (Protocole Carotte 🥕)
+
+Activez la reconnaissance vocale en disant **"/slash"** suivi de :
+
+### 🤖 Commandes IA
+- **"Traduire le projet"** : Ouvre l'assistant de localisation.
+- **"Upscaling vidéo"** : Lance la super-résolution sur les ressources.
+- **"Mode cinématique"** : Active les filtres de rendu haute qualité.
+
+### ✨ Création
+- **"Générer image"** : Crée une image à partir du prompt actif.
+- **"Ajouter objet [nom]"** : Place un objet 3D dans la scène.
+- **"Changer lumière [type]"** : Ajuste l'ambiance lumineuse.
+
+### ⚙️ Système
+- **"Annuler / Rétablir"** : Gère l'historique des actions.
+- **"Sauvegarder le projet"** : Force l'enregistrement.
+- **"Aide"** : Affiche le menu du protocole carotte.
+
+## Fonctionnalités des Addons
+
+### Project Translator
+Permet de traduire votre histoire dans plusieurs langues (Français, Anglais, Japonais, etc.) via l'IA.
+
+### Recap Engine
+Génère des récaps visuels de la progression de votre histoire.
 `
     },
     'troubleshooting': {

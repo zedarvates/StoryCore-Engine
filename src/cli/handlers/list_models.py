@@ -55,9 +55,9 @@ class ListModelsHandler(BaseHandler):
             else:
                 models_dir = Path.home() / "ComfyUI" / "models"
             
-            print("╔══════════════════════════════════════════════════════════════════════════════╗")
-            print("║                    ComfyUI Model Status                                       ║")
-            print("╚══════════════════════════════════════════════════════════════════════════════╝")
+            print("+------------------------------------------------------------------------------+")
+            print("|                    ComfyUI Model Status                                      |")
+            print("+------------------------------------------------------------------------------+")
             print()
             print(f"  Models Directory: {models_dir}")
             print()
@@ -83,9 +83,9 @@ class ListModelsHandler(BaseHandler):
             models_to_show.sort(key=lambda m: m.priority)
             
             # Check which models are present
-            print("┌──────────────────────────────────────────────────────────────────────────────┐")
-            print("│ Model Status                                                                  │")
-            print("└──────────────────────────────────────────────────────────────────────────────┘")
+            print("+------------------------------------------------------------------------------+")
+            print("| Model Status                                                                 |")
+            print("+------------------------------------------------------------------------------+")
             print()
             
             present_count = 0
@@ -97,15 +97,15 @@ class ListModelsHandler(BaseHandler):
                 
                 if is_present:
                     present_count += 1
-                    status = "✓ PRESENT"
+                    status = "[V] PRESENT"
                 else:
                     missing_count += 1
-                    status = "✗ MISSING"
+                    status = "[X] MISSING"
                 
                 required_str = "REQUIRED" if model_info.required else "OPTIONAL"
                 size_gb = model_info.file_size / (1024 ** 3)
                 
-                print(f"  [{status}] {model_info.name}")
+                print(f"  {status} {model_info.name}")
                 print(f"    Priority: {model_info.priority} | {required_str}")
                 print(f"    Type: {model_info.type.value}")
                 print(f"    Size: {size_gb:.2f} GB")
@@ -119,9 +119,9 @@ class ListModelsHandler(BaseHandler):
                 print()
             
             # Summary
-            print("┌──────────────────────────────────────────────────────────────────────────────┐")
-            print("│ Summary                                                                       │")
-            print("└──────────────────────────────────────────────────────────────────────────────┘")
+            print("+------------------------------------------------------------------------------+")
+            print("| Summary                                                                      |")
+            print("+------------------------------------------------------------------------------+")
             print()
             print(f"  Total models: {len(models_to_show)}")
             print(f"  Present: {present_count}")
@@ -135,9 +135,9 @@ class ListModelsHandler(BaseHandler):
                 self.print_success("All models are present")
             
             print()
-            print("╔══════════════════════════════════════════════════════════════════════════════╗")
-            print("║ Model listing complete                                                        ║")
-            print("╚══════════════════════════════════════════════════════════════════════════════╝")
+            print("+------------------------------------------------------------------------------+")
+            print("| Model listing complete                                                       |")
+            print("+------------------------------------------------------------------------------+")
             
             return 0
             

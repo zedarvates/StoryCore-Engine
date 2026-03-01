@@ -59,6 +59,7 @@ export async function suggestBestModel(
   const preferredModels = [
     'llama3.1:8b',        // Best: High quality, excellent for JSON and narratives
     'mistral:latest',     // Excellent: Fast and reliable for structured output
+    'mistral-nemo:latest', // Excellent: High context and quality
     'gemma3:4b',          // Good: Fast and efficient
     'llama3.2:3b',        // Good: Balanced performance
     'qwen2.5-coder:latest', // Good: Reliable for structured content
@@ -69,7 +70,10 @@ export async function suggestBestModel(
 
   // Find the first preferred model that's installed
   for (const preferred of preferredModels) {
-    const found = models.find(m => m.name === preferred);
+    const found = models.find(m => 
+      m.name === preferred || 
+      m.name.split(':')[0] === preferred.split(':')[0]
+    );
     if (found) {
       return {
         model: found.name,

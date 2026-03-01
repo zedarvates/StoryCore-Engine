@@ -9,10 +9,11 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Plus, Map, X, Globe, RefreshCw, ExternalLink } from 'lucide-react';
+import { Plus, Map, X, Globe, RefreshCw, ExternalLink, Sparkles } from 'lucide-react';
 import { LocationList } from './LocationList';
 import { LocationEditor } from './LocationEditor';
-import type { Location } from '@/types/location';
+import { ImageLocationCreator } from './ImageLocationCreator';
+import type { Location, LocationType } from '@/types/location';
 import { useLocationStore } from '@/stores/locationStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -104,12 +105,13 @@ export function LocationSection({
 
   // Get project ID from app store for fetching project-local locations
   const project = useAppStore((state) => state.project);
-  const projectId = project?.id || project?.project_name || 'unknown';
+  const projectId = project?.path || project?.id || project?.project_name || 'unknown';
 
   const [showEditor, setShowEditor] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showWorldSelector, setShowWorldSelector] = useState(false);
+  const [showImageCreator, setShowImageCreator] = useState(false);
 
   // Fetch locations on mount (both central and project-local)
   useEffect(() => {
@@ -269,6 +271,16 @@ export function LocationSection({
               <RefreshCw size={16} className={isLoading ? 'location-section__spinner' : ''} />
             </button>
 
+            {/* Create from image button */}
+            <button
+              className="location-section__image-btn"
+              onClick={() => setShowImageCreator(true)}
+              title="Create from Image"
+            >
+              <Sparkles size={16} />
+              <span>From Image</span>
+            </button>
+
             {/* Create button */}
             <button
               className="location-section__create"
@@ -339,6 +351,41 @@ export function LocationSection({
               onCancel={handleCloseEditor}
               mode="full"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Image Creator Modal */}
+      {showImageCreator && (
+        <div className="location-section__modal-overlay" onClick={() => setShowImageCreator(false)}>
+          <div className="location-section__modal max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <div className="location-section__modal-header">
+              <h3 className="location-section__modal-title">
+                Create Location from Image
+              </h3>
+              <button className="location-section__modal-close" onClick={() => setShowImageCreator(false)} title="Close">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 bg-[#1a1a1a]">
+              <ImageLocationCreator
+                onLocationCreated={(locData) => {
+                  const location: Partial<Location> = {
+                    name: locData.name,
+                    location_type: (locData.location_type === 'interior' ? 'interior' : 'exterior') as LocationType,
+                    metadata: {
+                      description: locData.description || '',
+                      atmosphere: locData.attributes?.atmosphere || '',
+                      genre_tags: [],
+                    },
+                    creation_method: 'ai_vision'
+                  };
+                  handleSaveLocation(location);
+                  setShowImageCreator(false);
+                }}
+                genre={(project?.projectSetup?.genre?.[0] as string) || 'fantasy'}
+              />
+            </div>
           </div>
         </div>
       )}

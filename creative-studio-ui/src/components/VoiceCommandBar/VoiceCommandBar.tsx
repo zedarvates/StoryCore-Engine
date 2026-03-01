@@ -9,7 +9,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAddonVoiceCommands, useVoiceInput } from '@/hooks/useAddonVoiceCommands';
-import { AddonId, AddonCommandContext, VoiceCommandResult } from '@/services/AddonVoiceCommandRouter';
+import { AddonId, VoiceCommandResult } from '@/services/AddonVoiceCommandRouter';
 import './VoiceCommandBar.css';
 
 // ============================================================================
@@ -65,8 +65,14 @@ const ADDON_SUGGESTIONS: Record<string, string[]> = {
     'Annule la dernière action',
     'Refais l\'action',
     'Sauvegarde le projet',
-    'Va sur le dashboard',
     'Ouvre les paramètres',
+    'Va sur le dashboard',
+  ],
+  'project-translator': [
+    'Traduire le projet en anglais',
+    'Traduire en espagnol',
+    'Ouvrir le traducteur',
+    'Lancer la traduction',
   ],
 };
 
@@ -78,8 +84,8 @@ interface VoiceCommandBarProps {
   /** Addon courant (pour les suggestions contextuelles) */
   addonId?: AddonId;
 
-  /** Contexte du projet actif */
-  context?: Partial<AddonCommandContext>;
+  /** Context object (kept for backward compatibility with props, not strictly used by router) */
+  context?: Record<string, unknown>;
 
   /** Placeholder du champ texte */
   placeholder?: string;
@@ -111,7 +117,7 @@ export const VoiceCommandBar: React.FC<VoiceCommandBarProps> = ({
   const [lastResult, setLastResult] = useState<VoiceCommandResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { route, updateContext } = useAddonVoiceCommands({ addonId, context });
+  const { route } = useAddonVoiceCommands({ addonId, context });
 
   const { isListening, isSupported, transcript, toggleListening } = useVoiceInput({
     onCommand: (result) => {
@@ -121,10 +127,12 @@ export const VoiceCommandBar: React.FC<VoiceCommandBarProps> = ({
     onTranscriptChange: (t) => setInputText(t),
   });
 
-  // Mettre à jour contexte si changement
+  // Context sync has been removed since AddonVoiceCommandRouter
+  // handles intent and subjects rather than maintaining generic state 
   useEffect(() => {
-    if (context) updateContext(context);
-  }, [context, updateContext]);
+    // Kept empty to satisfy signature expectations if any, 
+    // or you can just remove this entirely.
+  }, [context]);
 
   // Réflection du transcript vocal dans le champ texte
   useEffect(() => {
@@ -143,7 +151,7 @@ export const VoiceCommandBar: React.FC<VoiceCommandBarProps> = ({
     const result = await route(text);
     setLastResult(result);
     onCommand?.(result);
-    if (result.handled) {
+    if (result.success) {
       setInputText('');
       setShowSuggestions(false);
     }
@@ -260,8 +268,8 @@ export const VoiceCommandBar: React.FC<VoiceCommandBarProps> = ({
 
       {/* Résultat de la dernière commande */}
       {lastResult && (
-        <div className={`vcb-result ${lastResult.handled ? 'vcb-result--success' : 'vcb-result--warning'}`}>
-          {lastResult.handled ? '✅' : '⚠️'} {lastResult.message}
+        <div className={`vcb-result ${lastResult.success ? 'vcb-result--success' : 'vcb-result--warning'}`}>
+          {lastResult.success ? '✅' : '⚠️'} {lastResult.message}
         </div>
       )}
 

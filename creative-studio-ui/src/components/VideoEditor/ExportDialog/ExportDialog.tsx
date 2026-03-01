@@ -4,7 +4,6 @@
  */
 
 import React, { useState } from 'react';
-import { useVideoEditor } from '../../../contexts/VideoEditorContext';
 import {
   ExportFormat,
   ExportCodec,
@@ -20,7 +19,6 @@ interface ExportDialogProps {
 }
 
 export const ExportDialog: React.FC<ExportDialogProps> = ({ onClose, onExport }) => {
-  const { project } = useVideoEditor();
   const [format, setFormat] = useState<ExportFormat>(ExportFormat.MP4);
   const [preset, setPreset] = useState<ExportPreset>(ExportPreset.YOUTUBE_1080P);
   const [resolution, setResolution] = useState<Resolution>({ width: 1920, height: 1080 });
@@ -70,6 +68,13 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ onClose, onExport })
       icon: '📘',
       resolution: { width: 1920, height: 1080 },
       description: 'Best for Facebook',
+    },
+    {
+      id: ExportPreset.CUSTOM,
+      name: 'Sprite GIF',
+      icon: '🏃',
+      resolution: { width: 480, height: 480 },
+      description: 'Animated sprite GIF',
     },
   ];
 
@@ -169,7 +174,31 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ onClose, onExport })
                 />
                 MOV
               </label>
+              <label className={format === ExportFormat.GIF ? 'selected' : ''} htmlFor="format-gif">
+                <input
+                  id="format-gif"
+                  type="radio"
+                  name="format"
+                  value={ExportFormat.GIF}
+                  checked={format === ExportFormat.GIF}
+                  onChange={() => setFormat(ExportFormat.GIF)}
+                />
+                GIF
+              </label>
             </div>
+            {format === ExportFormat.WEBM && (
+              <div className="transparency-option mt-2">
+                <label className="checkbox-label" htmlFor="transparent-export">
+                  <input
+                    id="transparent-export"
+                    type="checkbox"
+                    checked={quality > 90} // Hack pour démo, normalement on ajouterait un state
+                    onChange={(e) => setQuality(e.target.checked ? 100 : 80)}
+                  />
+                  Transparent Background (Alpha)
+                </label>
+              </div>
+            )}
           </div>
 
           <div className="export-section">

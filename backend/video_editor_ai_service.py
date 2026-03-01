@@ -23,10 +23,15 @@ from typing import Any, Dict, List, Optional, Tuple
 import uuid
 import torch
 import numpy as np
+import logging
 
 # Import from existing modules
 import sys
+from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
+
+from gpu_service import GPUService
+from cache_service import AICacheService
 
 # =============================================================================
 # Configuration
@@ -58,6 +63,52 @@ class AIConfig:
 # Global config
 ai_config = AIConfig()
 
+class ModelRegistry:
+    """Global registry to keep AI models in memory and avoid reloading."""
+    _models = {}
+    _locks = {}
+    
+    @classmethod
+    def get_model(cls, name: str, loader_fn):
+        if name not in cls._models:
+            logger_ai = logging.getLogger("ModelRegistry")
+            logger_ai.info(f"Loading model: {name}")
+            cls._models[name] = loader_fn()
+        return cls._models[name]
+    
+    @classmethod
+    def unload_model(cls, name: str):
+        """Unload a specific model from the registry."""
+        if name in cls._models:
+            logger_ai = logging.getLogger("ModelRegistry")
+            logger_ai.info(f"Unloading model: {name}")
+            model = cls._models[name]
+            # Try to call unload if available (for PyTorch models)
+            if hasattr(model, 'unload'):
+                model.unload()
+            elif hasattr(model, 'cpu'):
+                # Move to CPU and clear CUDA cache if available
+                try:
+                    import torch
+                    if torch.cuda.is_available():
+                        del model
+                        torch.cuda.empty_cache()
+                except ImportError:
+                    pass
+            del cls._models[name]
+    
+    @classmethod
+    def clear_all(cls):
+        """Clear all models from the registry to free memory."""
+        logger_ai = logging.getLogger("ModelRegistry")
+        logger_ai.info(f"Clearing all {len(cls._models)} models from registry")
+        for name in list(cls._models.keys()):
+            cls.unload_model(name)
+    
+    @classmethod
+    def list_models(cls) -> list:
+        """List all loaded model names."""
+        return list(cls._models.keys())
 
 # =============================================================================
 # Result Classes
@@ -134,15 +185,14 @@ class TranscriptionService:
         self.model = None
         
     async def load_model(self):
-        """Load Whisper model."""
-        try:
+        """Load Whisper model via Registry."""
+        def loader():
             import whisper
-            self.model = whisper.load_model(
+            return whisper.load_model(
                 self.config.whisper_model,
                 device=self.config.whisper_device
             )
-        except ImportError:
-            raise ImportError("OpenAI Whisper not installed. Run: pip install openai-whisper")
+        self.model = ModelRegistry.get_model(f"whisper_{self.config.whisper_model}", loader)
     
     async def transcribe(
         self,
@@ -210,16 +260,18 @@ class TranslationService:
     def __init__(self, config: AIConfig = None):
         self.config = config or ai_config
         self.model = None
+        self.tokenizer = None
         
     async def load_model(self):
-        """Load translation model."""
-        try:
+        """Load translation model via Registry."""
+        def loader():
             from transformers import MarianMTModel, MarianTokenizer
             model_name = f"Helsinki-NLP/opus-mt-{self.config.translation_model}"
-            self.model = MarianTokenizer.from_pretrained(model_name)
-            self.translator = MarianMTModel.from_pretrained(model_name)
-        except ImportError:
-            raise ImportError("Transformers not installed. Run: pip install transformers")
+            tokenizer = MarianTokenizer.from_pretrained(model_name)
+            translator = MarianMTModel.from_pretrained(model_name)
+            return (tokenizer, translator)
+        
+        self.tokenizer, self.model = ModelRegistry.get_model(f"translation_{self.config.translation_model}", loader)
     
     async def translate(
         self,
@@ -244,9 +296,9 @@ class TranslationService:
         tgt = lang_code_map.get(target_language.lower(), target_language[:2])
         
         # Translate
-        inputs = self.model.prepare_seq2seq_batch([text])
-        outputs = self.translator.generate(**inputs)
-        translated = self.model.decode(outputs[0], skip_special_tokens=True)
+        inputs = self.tokenizer(text, return_tensors="pt")
+        outputs = self.model.generate(**inputs)
+        translated = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         
         return TranslationResult(
             original_text=text,
@@ -550,9 +602,11 @@ class SmartCropService:
 class AudioCleaningService:
     """Service for audio enhancement, cleaning and analysis."""
     
-    def __init__(self):
+    def __init__(self, gpu=None, cache=None):
         from ffmpeg_service import FFmpegFactory
         self.ffmpeg = FFmpegFactory.create_default()
+        self.gpu = gpu
+        self.cache = cache
 
     async def detect_beats(self, audio_path: str) -> List[float]:
         """Detect beats in audio using librosa."""
@@ -689,6 +743,10 @@ class AudioCleaningService:
 class VideoOCRService:
     """Service for indexing and searching text within video frames."""
     
+    def __init__(self, gpu=None, cache=None):
+        self.gpu = gpu
+        self.cache = cache
+    
     async def index_video_text(self, video_path: str) -> List[Dict[str, Any]]:
         """Index text appearing in video frames."""
         # Pour l'OCR, on échantillonne des frames et on utilise pytesseract si dispo
@@ -722,6 +780,10 @@ class VideoOCRService:
 
 class SceneDetectionService:
     """Service for automatic scene detection."""
+    
+    def __init__(self, gpu=None, cache=None):
+        self.gpu = gpu
+        self.cache = cache
     
     async def detect_scenes(
         self,
@@ -795,6 +857,10 @@ class SceneDetectionService:
 class DialogueAutomationService:
     """Service for automating cinematic dialogue cuts (J-cuts and L-cuts)."""
     
+    def __init__(self, gpu=None, cache=None):
+        self.gpu = gpu
+        self.cache = cache
+    
     def apply_j_cut(self, video_clip: Dict[str, Any], audio_clip: Dict[str, Any], overlap_sec: float = 1.5) -> Dict[str, Any]:
         """
         Creates a J-cut: Audio from the next clip starts BEFORE the video cuts.
@@ -853,7 +919,7 @@ class CharacterConsistencyService:
         
     def create_character_profile(self, name: str, reference_images: List[str]) -> str:
         """Create a character profile (simulates LoRA training/embedding generation)."""
-        char_id = f"char_{name.lower()}_{uuid.uuid4().hex[:8]}"
+        char_id = f"char_{name.lower().replace(' ', '_')}_{uuid.uuid4().hex[:8]}"
         self.characters[char_id] = {
             "name": name,
             "references": reference_images,
@@ -861,6 +927,20 @@ class CharacterConsistencyService:
             "trigger_word": name.replace(" ", "")
         }
         return char_id
+
+    async def generate_character_sheet(self, char_id: str) -> List[str]:
+        """Génère une planche de cohérence (Face, Profile, Back)."""
+        if char_id not in self.characters:
+            return []
+            
+        char = self.characters[char_id]
+        # Simule la génération de 3 images cohérentes
+        result_paths = [
+            f"data/output/{char_id}_face.png",
+            f"data/output/{char_id}_profile.png",
+            f"data/output/{char_id}_back.png"
+        ]
+        return result_paths
 
 class Layout3DService:
     """Service for using 3D layouts as guides for AI generation."""
@@ -873,8 +953,219 @@ class Layout3DService:
             "model": os.path.basename(model_path),
             "depth_map": "data/renders/depth_01.png",
             "canny_edge": "data/renders/canny_01.png",
-            "status": "ready_for_controlnet"
         }
+
+class MultiAngleService:
+    """Service for generating the same scene from multiple camera angles."""
+    
+    async def generate_angles(self, base_prompt: str, angles: List[str]) -> Dict[str, str]:
+        """Génère des variations de prompts pour différents angles de caméra."""
+        results = {}
+        for angle in angles:
+            results[angle] = f"{angle} view, {base_prompt}, cinematic lighting, high quality"
+        return results
+
+class ExportService:
+    """Service for multi-format video/audio/image export."""
+    
+    def __init__(self, gpu=None):
+        self.gpu = gpu
+        self._ffmpeg_available = None
+        
+    def _check_ffmpeg(self) -> bool:
+        """Check if FFmpeg is available on the system."""
+        if self._ffmpeg_available is not None:
+            return self._ffmpeg_available
+        
+        try:
+            result = subprocess.run(
+                ["ffmpeg", "-version"], 
+                capture_output=True, 
+                timeout=5
+            )
+            self._ffmpeg_available = result.returncode == 0
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            self._ffmpeg_available = False
+        
+        if not self._ffmpeg_available:
+            logging.getLogger("ExportService").warning(
+                "FFmpeg not found. Video export will not work. "
+                "Please install FFmpeg: https://ffmpeg.org/download.html"
+            )
+        
+        return self._ffmpeg_available
+    
+    async def export_video(
+        self,
+        input_path: str,
+        output_path: str,
+        format: str = "mp4",
+        quality: int = 23,
+        transparent: bool = False
+    ) -> bool:
+        """Export video to specified format with optional GPU acceleration."""
+        import subprocess
+        
+        # Check FFmpeg availability first
+        if not self._check_ffmpeg():
+            logging.getLogger("ExportService").error(
+                "FFmpeg is not available. Cannot export video."
+            )
+            return False
+        
+        # Base command
+        cmd = ["ffmpeg", "-y"]
+        
+        # GPU Acceleration check
+        use_gpu = self.gpu and self.gpu.is_gpu_available()
+        
+        if use_gpu:
+            cmd.extend(["-hwaccel", "cuda"])
+            
+        cmd.extend(["-i", input_path])
+        
+        # Format specific settings
+        if format == "mp4":
+            if use_gpu:
+                cmd.extend(["-c:v", "h264_nvenc", "-preset", "p4"])
+            else:
+                cmd.extend(["-c:v", "libx264", "-preset", "fast"])
+            cmd.extend(["-crf", str(quality), "-c:a", "aac"])
+            
+        elif format == "webm":
+            if transparent:
+                # Transparent WebM (VP9)
+                cmd.extend(["-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p"])
+            else:
+                cmd.extend(["-c:v", "libvpx-vp9"])
+            cmd.extend(["-crf", str(quality), "-b:v", "0", "-c:a", "libopus"])
+            
+        elif format == "gif":
+            # High quality GIF generation
+            filter_str = "fps=15,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse"
+            cmd.extend(["-vf", filter_str])
+            
+        cmd.append(output_path)
+        
+        try:
+            subprocess.run(cmd, check=True, capture_output=True)
+            return True
+        except Exception as e:
+            logging.getLogger("ExportService").error(f"Export failed: {e}")
+            return False
+
+class SpriteService:
+    """Service for generating game-ready or overlay sprites from character sheets."""
+    
+    def __init__(self, gpu=None, cache=None):
+        self.gpu = gpu
+        self.cache = cache
+        
+    async def generate_sprite(
+        self,
+        image_path: str,
+        output_dir: str,
+        remove_bg: bool = True
+    ) -> List[str]:
+        """Extract individual sprites from a character sheet or image with real segmentation."""
+        import os
+        import cv2
+        import numpy as np
+        import mediapipe as mp
+        from pathlib import Path
+        
+        os.makedirs(output_dir, exist_ok=True)
+        base_name = Path(image_path).stem
+        
+        # Charger l'image
+        image = cv2.imread(image_path)
+        if image is None:
+            return []
+            
+        h, w, _ = image.shape
+        # On assume une planche générée avec 3 poses (3 colonnes) par défaut 
+        # (Standard pour Consistency Sheet)
+        sprite_w = w // 3
+        
+        # Mediapipe Selfie Segmentation
+        mp_selfie = mp.solutions.selfie_segmentation
+        
+        sprite_paths = []
+        labels = ["front", "side", "back"]
+        
+        with mp_selfie.SelfieSegmentation(model_selection=0) as segmentation:
+            for i in range(3):
+                # Crop direct
+                x_start = i * sprite_w
+                sprite_crop = image[:, x_start:x_start+sprite_w]
+                
+                if remove_bg:
+                    # Conversion RGB pour MediaPipe
+                    rgb_sprite = cv2.cvtColor(sprite_crop, cv2.COLOR_BGR2RGB)
+                    results = segmentation.process(rgb_sprite)
+                    mask = results.segmentation_mask > 0.1
+                    
+                    # Créer canal Alpha
+                    alpha = (mask * 255).astype(np.uint8)
+                    bgra = cv2.merge([sprite_crop[:,:,0], sprite_crop[:,:,1], sprite_crop[:,:,2], alpha])
+                else:
+                    bgra = sprite_crop
+
+                output_path = os.path.join(output_dir, f"{base_name}_{labels[i]}.webp")
+                cv2.imwrite(output_path, bgra, [cv2.IMWRITE_WEBP_LOSSLESS, 1])
+                sprite_paths.append(output_path)
+                
+        return sprite_paths
+
+class MagicMaskService:
+    """Advanced service for background removal and object isolation in video."""
+    
+    def __init__(self, gpu=None):
+        self.gpu = gpu
+        
+    async def remove_video_background(self, input_path: str, output_path: str) -> bool:
+        """Process video and remove background frame by frame (Transparent WebM)."""
+        import cv2
+        import numpy as np
+        import mediapipe as mp
+        
+        cap = cv2.VideoCapture(input_path)
+        fps = cap.get(cv2.CAP_PROP_FPS) or 30
+        w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        
+        # Pour sortir du Transparent WebM (VP9), on utilise FFmpeg en pipe
+        import subprocess
+        ffmpeg_cmd = [
+            "ffmpeg", "-y", "-f", "rawvideo", "-vcodec", "rawvideo",
+            "-s", f"{w}x{h}", "-pix_fmt", "bgra", "-r", str(fps),
+            "-i", "-", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p",
+            "-lossless", "1", output_path
+        ]
+        
+        process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
+        
+        mp_selfie = mp.solutions.selfie_segmentation
+        with mp_selfie.SelfieSegmentation(model_selection=1) as segmentation:
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret: break
+                
+                # Segmentation
+                rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                results = segmentation.process(rgb)
+                mask = results.segmentation_mask > 0.5
+                
+                # Build BGRA frame
+                alpha = (mask * 255).astype(np.uint8)
+                bgra = cv2.merge([frame[:,:,0], frame[:,:,1], frame[:,:,2], alpha])
+                
+                process.stdin.write(bgra.tobytes())
+                
+        process.stdin.close()
+        process.wait()
+        cap.release()
+        return process.returncode == 0
 
 
 # =============================================================================
@@ -886,16 +1177,22 @@ class AIVideoEditorService:
     
     def __init__(self, config: AIConfig = None):
         self.config = config or ai_config
+        self.gpu = GPUService()
+        self.cache = AICacheService()
         self.transcription = TranscriptionService(config)
         self.translation = TranslationService(config)
         self.tts = TTSService(config)
         self.smart_crop = SmartCropService(config)
-        self.audio_cleaning = AudioCleaningService()
-        self.scene_detection = SceneDetectionService()
-        self.video_ocr = VideoOCRService()
-        self.dialogue_automation = DialogueAutomationService()
+        self.audio_cleaning = AudioCleaningService(gpu=self.gpu, cache=self.cache)
+        self.scene_detection = SceneDetectionService(gpu=self.gpu, cache=self.cache)
+        self.video_ocr = VideoOCRService(gpu=self.gpu, cache=self.cache)
+        self.dialogue_automation = DialogueAutomationService(gpu=self.gpu, cache=self.cache)
         self.character_consistency = CharacterConsistencyService()
         self.layout_3d = Layout3DService()
+        self.multi_angle = MultiAngleService()
+        self.export = ExportService(gpu=self.gpu)
+        self.sprite = SpriteService(gpu=self.gpu, cache=self.cache)
+        self.magic_mask = MagicMaskService(gpu=self.gpu)
     
     async def detect_beats(self, audio_path: str) -> List[float]:
         """Expose beat detection."""
@@ -910,18 +1207,32 @@ class AIVideoEditorService:
         video_path: str,
         operations: List[str]
     ) -> Dict[str, Any]:
-        """Process video with multiple AI operations."""
+        """Process video with multiple AI operations and caching."""
+        params = {"video_path": video_path, "operations": operations}
+        cache_key = self.cache._generate_key("process_video", params)
+        cached_result = self.cache.registry.get(cache_key)
+        if cached_result:
+             return cached_result.get("data", {})
+
         results = {}
-        
         for op in operations:
             if op == "transcribe":
                 results["transcription"] = await self.transcription.transcribe(video_path)
-            
             elif op == "detect_scenes":
                 results["scenes"] = await self.scene_detection.detect_scenes(video_path)
-            
             elif op == "smart_crop":
                 results["crop"] = await self.smart_crop.smart_crop(video_path)
+            elif op == "ocr":
+                results["ocr"] = await self.video_ocr.index_video_text(video_path)
+
+        # Mettre en cache les résultats (données JSON uniquement pour process_video)
+        self.cache.registry[cache_key] = {
+            "operation": "process_video",
+            "params": params,
+            "data": results,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        self.cache._save_registry()
         
         return results
     
@@ -967,9 +1278,14 @@ def create_smart_crop_service(config: AIConfig = None) -> SmartCropService:
     return SmartCropService(config)
 
 
+_ai_service_instance = None
+
 def create_ai_service(config: AIConfig = None) -> AIVideoEditorService:
-    """Create main AI service instance."""
-    return AIVideoEditorService(config)
+    """Create or return main AI service instance (singleton for performance)."""
+    global _ai_service_instance
+    if _ai_service_instance is None:
+        _ai_service_instance = AIVideoEditorService(config)
+    return _ai_service_instance
 
 
 # =============================================================================

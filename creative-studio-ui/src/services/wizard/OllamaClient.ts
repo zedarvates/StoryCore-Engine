@@ -90,7 +90,7 @@ export class OllamaClient {
       options: {
         temperature: mergedOptions.temperature,
         top_p: mergedOptions.top_p,
-        num_predict: mergedOptions.max_tokens,
+        num_predict: mergedOptions.num_predict || mergedOptions.max_tokens,
         seed: mergedOptions.seed,
       },
     };
@@ -180,7 +180,7 @@ export class OllamaClient {
       options: {
         temperature: mergedOptions.temperature,
         top_p: mergedOptions.top_p,
-        num_predict: mergedOptions.max_tokens,
+        num_predict: mergedOptions.num_predict || mergedOptions.max_tokens,
         seed: mergedOptions.seed,
       },
     };
@@ -277,7 +277,7 @@ export class OllamaClient {
                 totalDuration: data.total_duration,
               });
             }
-          } catch (parseError) {
+          } catch {
             // Skip invalid JSON lines
             this.logger.debug('ollama', 'Skipped invalid JSON line in stream', {
               line,

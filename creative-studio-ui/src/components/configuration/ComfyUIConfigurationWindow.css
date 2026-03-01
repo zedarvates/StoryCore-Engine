@@ -156,11 +156,17 @@
   color: #9E9E9E;
 }
 
-/* Server form modal */
+/* Server form modal - nested modal needs higher z-index */
 .server-form-modal {
   width: 500px;
   max-height: 80vh;
   overflow-y: auto;
+}
+
+/* Nested modal overlay - must be higher than parent modal */
+.comfyui-configuration-window + .modal-overlay,
+.modal-overlay .modal-overlay {
+  z-index: 99999;
 }
 
 /* CORS Warning Banner */

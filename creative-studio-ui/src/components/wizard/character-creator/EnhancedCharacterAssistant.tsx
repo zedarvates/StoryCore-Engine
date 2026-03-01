@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Wand2, Loader2 } from 'lucide-react';
+import { z } from 'zod';
 import { useEnhancedLLM } from '../../../hooks/useEnhancedLLM';
 import type { Character } from '@/types/character';
 import type { World, WorldRule } from '@/types/world';
@@ -60,7 +61,10 @@ Génère des noms qui sont:
 
 Contexte du monde: ${worldDesc}
 
-Format de réponse: nom1, nom2, nom3, nom4, nom5`;
+Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
+{
+  "suggestions": ["nom1", "nom2", "nom3", "nom4", "nom5"]
+}`;
         break;
 
       case 'personality':
@@ -71,7 +75,10 @@ Génère des traits qui sont:
 - Cohérents avec l'atmosphère du monde (${worldContext?.atmosphere || 'mystérieux'})
 - Créent des opportunités de conflit et de croissance
 
-Format de réponse: trait1, trait2, trait3, trait4`;
+Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
+{
+  "suggestions": ["trait1", "trait2", "trait3", "trait4"]
+}`;
         break;
 
       case 'appearance':
@@ -82,7 +89,12 @@ Crée une description qui:
 - Reflète la personnalité: ${characterData.personality?.traits?.join(', ') || 'à définir'}
 - Est cohérente avec le monde: ${worldDesc}
 - Inclut des détails mémorables
-Génère une description en 2-3 phrases.`;
+Génère une description en 2-3 phrases. 
+
+Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
+{
+  "suggestions": ["Ta description captivante ici..."]
+}`;
         break;
 
       case 'backstory':
@@ -94,7 +106,12 @@ Crée une histoire qui:
 - Crée des motivations claires
 - Laisse des mystères à explorer
 Contexte du monde: ${worldDesc}
-Génère une histoire en 3-4 paragraphes.`;
+Génère une histoire en 3-4 paragraphes.
+
+Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
+{
+  "suggestions": ["Ton histoire fascinante ici..."]
+}`;
         break;
 
       case 'abilities':
@@ -105,7 +122,11 @@ Génère des capacités qui:
 - Sont équilibrées (ni trop faibles ni trop puissantes)
 - Reflètent la personnalité: ${characterData.personality?.traits?.join(', ') || 'à définir'}
 - Créent des opportunités narratives intéressantes
-Format de réponse: capacité1, capacité2, capacité3, capacité4`;
+
+Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
+{
+  "suggestions": ["capacité1", "capacité2", "capacité3", "capacité4"]
+}`;
         break;
     }
 
@@ -114,6 +135,23 @@ Format de réponse: capacité1, capacité2, capacité3, capacité4`;
   };
 
   const parseSuggestions = (text: string): string[] => {
+    // Schéma Zod pour valider la réponse JSON du LLM
+    const suggestionSchema = z.object({
+      suggestions: z.array(z.string())
+    });
+
+    try {
+      // Nettoyage : tentative de récupération du JSON s'il y a du texte autour (ex: blocs markdown)
+      const jsonMatch = text.match(/\{[\s\S]*?\}/);
+      if (jsonMatch) {
+        const parsedJson = JSON.parse(jsonMatch[0]);
+        const validatedData = suggestionSchema.parse(parsedJson);
+        return validatedData.suggestions;
+      }
+    } catch (e) {
+      console.warn("Échec de la validation JSON/Zod, fallback sur le parsing manuel", e);
+    }
+
     // Try comma-separated first
     if (text.includes(',')) {
       return text.split(',').map(s => s.trim()).filter(s => s.length > 0);

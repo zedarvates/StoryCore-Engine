@@ -293,23 +293,125 @@ export const VideoEditor: React.FC<VideoEditorProps> = ({ projectId }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedClipIds, isPlaying, undoStack, redoStack, clips, tracks, project, mediaLibrary]);
   
+  // Computed values
+  const selectedClips = clips.filter(clip => selectedClipIds.includes(clip.id));
+  const selectedTrack = tracks.find(track => track.id === selectedTrackId) || null;
+  const canUndo = undoStack.length > 0;
+  const canRedo = redoStack.length > 0;
+
+  // Undo action
+  const handleUndo = useCallback(() => {
+    if (undoStack.length === 0) return;
+    const prev = undoStack[undoStack.length - 1];
+    setRedoStack(prev => [...prev, { clips: [...clips], tracks: [...tracks], timestamp: Date.now() }]);
+    setClips(prev.clips);
+    setTracks(prev.tracks);
+    setUndoStack(prev => prev.slice(0, -1));
+    setIsDirty(true);
+  }, [undoStack, clips, tracks]);
+
+  // Redo action
+  const handleRedo = useCallback(() => {
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setUndoStack(prev => [...prev, { clips: [...clips], tracks: [...tracks], timestamp: Date.now() }]);
+    setClips(next.clips);
+    setTracks(next.tracks);
+    setRedoStack(prev => prev.slice(0, -1));
+    setIsDirty(true);
+  }, [redoStack, clips, tracks]);
+
+  // Update clip
+  const handleUpdateClip = useCallback((clipId: string, updates: Partial<Clip>) => {
+    setUndoStack(prev => [...prev.slice(-19), { clips: [...clips], tracks: [...tracks], timestamp: Date.now() }]);
+    setRedoStack([]);
+    setClips(prev => prev.map(c => c.id === clipId ? { ...c, ...updates } : c));
+    setIsDirty(true);
+  }, [clips, tracks]);
+
+  // Update track
+  const handleUpdateTrack = useCallback((trackId: string, updates: Partial<Track>) => {
+    setUndoStack(prev => [...prev.slice(-19), { clips: [...clips], tracks: [...tracks], timestamp: Date.now() }]);
+    setRedoStack([]);
+    setTracks(prev => prev.map(t => t.id === trackId ? { ...t, ...updates } : t));
+    setIsDirty(true);
+  }, [clips, tracks]);
+
+  // Delete media
+  const handleDeleteMedia = useCallback((mediaId: string) => {
+    setMediaLibrary(prev => prev.filter(m => m.id !== mediaId));
+    setIsDirty(true);
+  }, []);
+
+  // Trim clip
+  const handleTrimClip = useCallback((clipId: string, inPoint?: number, outPoint?: number) => {
+    const clip = clips.find(c => c.id === clipId);
+    if (!clip) return;
+    setUndoStack(prev => [...prev.slice(-19), { clips: [...clips], tracks: [...tracks], timestamp: Date.now() }]);
+    setRedoStack([]);
+    setClips(prev => prev.map(c => 
+      c.id === clipId 
+        ? { ...c, inPoint: inPoint ?? c.inPoint, outPoint: outPoint ?? c.outPoint }
+        : c
+    ));
+    setIsDirty(true);
+  }, [clips, tracks]);
+
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+
   const contextValue = {
-    project, mediaLibrary, tracks, clips,
-    selectedClipIds, selectedTrackId, activePanel, editorMode,
-    previewUrl, isPlaying, currentTime, duration, isDirty,
-    setProject, setMediaLibrary, setTracks, setClips,
-    setSelectedClipIds, setSelectedTrackId, setActivePanel, setEditorMode,
-    setPreviewUrl, setIsPlaying, setCurrentTime, setDuration,
+    project,
+    mediaLibrary,
+    tracks,
+    clips,
+    selectedClipIds,
+    selectedTrackId,
+    activePanel,
+    editorMode,
+    previewUrl,
+    isPlaying,
+    currentTime,
+    duration,
+    isDirty,
+    undoStack,
+    redoStack,
+    showExportDialog,
+    showSettingsDialog,
+    setProject,
+    setMediaLibrary,
+    setTracks,
+    setClips,
+    setSelectedClipIds,
+    setSelectedTrackId,
+    setActivePanel,
+    setEditorMode,
+    setPreviewUrl,
+    setIsPlaying,
+    setCurrentTime,
+    setDuration,
     setShowExportDialog,
+    setShowSettingsDialog,
     importMedia: handleImportMedia,
     addClipToTimeline: handleAddClipToTimeline,
     moveClip: handleMoveClip,
+    trimClip: handleTrimClip,
     splitClip: handleSplitClip,
     deleteClips: handleDeleteClips,
+    updateClip: handleUpdateClip,
+    updateTrack: handleUpdateTrack,
+    deleteMedia: handleDeleteMedia,
     selectClip: handleSelectClip,
     selectTrack: setSelectedTrackId,
-    play: handlePlay, pause: handlePause, seek: handleSeek,
+    undo: handleUndo,
+    redo: handleRedo,
+    play: handlePlay,
+    pause: handlePause,
+    seek: handleSeek,
     export: handleExport,
+    selectedClips,
+    selectedTrack,
+    canUndo,
+    canRedo,
   };
   
   if (!project) {

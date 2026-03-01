@@ -3,9 +3,9 @@ import { Search, X, Filter } from 'lucide-react';
 import './EffectsLibrary.css';
 import { EFFECTS_DATA, CATEGORIES } from './constants';
 
-import { Effect, EffectParameter, EffectKeyframe } from '@/types/effect';
+import { Effect, EffectParameter, EffectKeyframe, EffectCategory } from '@/types/effect';
 
-export type { Effect, EffectParameter, EffectKeyframe };
+export type { Effect, EffectParameter, EffectKeyframe, EffectCategory };
 
 interface EffectsLibraryProps {
   onEffectSelect: (effect: Effect) => void;

@@ -19,7 +19,8 @@ export type AddonId =
   | 'comic-generator'
   | 'recap-engine'
   | 'asset-creator'
-  | 'cinematic-editor';
+  | 'cinematic-editor'
+  | 'project-translator';
 
 export type VerbCategory =
   | 'create'
@@ -107,6 +108,7 @@ class VoiceIntentParser {
     'recap-engine': ['recap', 'résumé', 'recapitulatif'],
     'asset-creator': ['asset', 'objet', 'élément', 'accessoire'],
     'cinematic-editor': ['éditeur', 'cinématique', 'cinematic', 'editor', 'timeline', 'séquence'],
+    'project-translator': ['traducteur', 'traduction', 'translator', 'translate', 'traduire'],
   };
 
   public static parse(transcript: string, confidence: number = 1.0): ParsedVoiceIntent {
@@ -183,6 +185,7 @@ export class AddonVoiceCommandRouter {
       case 'stable-diffusion':
       case 'seedance':
       case 'comic-generator':
+      case 'project-translator':
         return this.handleImageVideoAddon(intent);
       default:
         return {

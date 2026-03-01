@@ -2,7 +2,7 @@
  * Shared Voice Commands Data
  */
 
-export type CommandCategory = 'system' | 'navigation' | 'creation' | 'playback' | 'editing';
+export type CommandCategory = 'system' | 'navigation' | 'creation' | 'playback' | 'editing' | 'ai';
 
 export interface VoiceCommandDef {
   id: string;
@@ -16,6 +16,7 @@ export interface VoiceCommandDef {
 }
 
 export const VOICE_COMMANDS_DATA: VoiceCommandDef[] = [
+
   // System commands
   {
     id: 'undo',
@@ -428,5 +429,37 @@ export const VOICE_COMMANDS_DATA: VoiceCommandDef[] = [
     keywordsEn: ['add camera', 'move camera', 'new camera'],
     keywordsFr: ['ajoute une caméra', 'caméra', 'nouvelle caméra', 'bouge la caméra'],
     category: 'creation',
+  },
+  
+  // AI & Addon commands
+  {
+    id: 'translate-project',
+    commandEn: 'translate project',
+    commandFr: 'traduire le projet',
+    descriptionEn: 'Open the Project Translator addon',
+    descriptionFr: "Ouvrir l'addon Traducteur de Projet",
+    keywordsEn: ['translate', 'translator', 'language', 'localization'],
+    keywordsFr: ['traduire', 'traducteur', 'langue', 'localisation'],
+    category: 'ai',
+  },
+  {
+    id: 'upscale-video',
+    commandEn: 'upscale video',
+    commandFr: 'upscaling vidéo',
+    descriptionEn: 'Enhance video quality with AI upscaling',
+    descriptionFr: "Améliorer la qualité vidéo via l'IA",
+    keywordsEn: ['upscale', 'super resolution', 'quality', 'enhance'],
+    keywordsFr: ['upscale', 'super résolution', 'qualité', 'améliorer'],
+    category: 'ai',
+  },
+  {
+    id: 'cinematic-mode',
+    commandEn: 'cinematic mode',
+    commandFr: 'mode cinématique',
+    descriptionEn: 'Toggle cinematic rendering parameters',
+    descriptionFr: 'Activer les paramètres de rendu cinématique',
+    keywordsEn: ['cinematic', 'movie', 'hq', 'render'],
+    keywordsFr: ['cinématique', 'film', 'hq', 'rendu'],
+    category: 'ai',
   },
 ];

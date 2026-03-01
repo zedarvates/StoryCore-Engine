@@ -23,7 +23,7 @@
  * - Production environments with complex setups
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type {
   ComfyUIConfigurationWindowProps,
   ComfyUIConfiguration,
@@ -42,7 +42,15 @@ export function ComfyUIConfigurationWindow({
   const comfyuiConfig = useComfyUIConfig();
 
   // Local state for form
-  const [formData, setFormData] = useState<ComfyUIConfiguration | null>(null);
+  const [formData, setFormData] = useState<ComfyUIConfiguration | null>(comfyuiConfig);
+  const [prevConfig, setPrevConfig] = useState<ComfyUIConfiguration | null>(comfyuiConfig);
+
+  // Sync state if config from props changes
+  if (comfyuiConfig !== prevConfig) {
+    setPrevConfig(comfyuiConfig);
+    setFormData(comfyuiConfig);
+  }
+
   const [validationErrors, setValidationErrors] = useState<ValidationResult>({
     isValid: true,
     errors: [],
@@ -50,28 +58,12 @@ export function ComfyUIConfigurationWindow({
   const [editingServer, setEditingServer] = useState<ComfyUIServer | null>(null);
   const [showServerForm, setShowServerForm] = useState(false);
 
-  // Initialize form data when config changes
-  useEffect(() => {
-    if (comfyuiConfig) {
-      setFormData(comfyuiConfig);
-    }
-  }, [comfyuiConfig]);
-
   if (!isOpen || !formData) return null;
 
   // Generate unique ID for new servers
   const generateServerId = () => `server_${Date.now()}`;
 
-  // Handle server field changes
-  const handleServerFieldChange = (serverId: string, field: string, value: unknown) => {
-    setFormData(prev => {
-      if (!prev) return prev;
-      const newServers = prev.servers.map(server =>
-        server.id === serverId ? { ...server, [field]: value } : server
-      );
-      return { ...prev, servers: newServers };
-    });
-  };
+
 
   // Add new server
   const handleAddServer = () => {
@@ -151,7 +143,7 @@ export function ComfyUIConfigurationWindow({
               ? {
                   ...s,
                   status: 'connected' as const,
-                  lastTested: new Date(),
+                  lastTested: Date.now(),
                   errorMessage: undefined,
                   availableWorkflows: [
                     'text2img_basic',
@@ -174,7 +166,7 @@ export function ComfyUIConfigurationWindow({
               ? {
                   ...s,
                   status: 'disconnected' as const,
-                  lastTested: new Date(),
+                  lastTested: Date.now(),
                   errorMessage: 'CORS Error: ComfyUI is blocking cross-origin requests. See warning above for configuration instructions.',
                 }
               : s
@@ -190,7 +182,7 @@ export function ComfyUIConfigurationWindow({
               ? {
                   ...s,
                   status: 'disconnected' as const,
-                  lastTested: new Date(),
+                  lastTested: Date.now(),
                   errorMessage: `HTTP ${response.status}: ${response.statusText}`,
                 }
               : s
@@ -202,12 +194,14 @@ export function ComfyUIConfigurationWindow({
       // Network error or timeout
       let errorMessage = 'Connection failed';
       
-      if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+      const err = error as { name?: string; message?: string };
+      
+      if (err.name === 'AbortError' || err.name === 'TimeoutError') {
         errorMessage = 'Connection timeout - server may be offline or unreachable';
-      } else if (error.message?.includes('CORS') || error.message?.includes('cross-origin')) {
+      } else if (err.message?.includes('CORS') || err.message?.includes('cross-origin')) {
         errorMessage = 'CORS Error: Enable CORS in ComfyUI settings (see warning above)';
-      } else if (error.message) {
-        errorMessage = error.message;
+      } else if (err.message) {
+        errorMessage = err.message;
       }
 
       setFormData(prev => {
@@ -217,7 +211,7 @@ export function ComfyUIConfigurationWindow({
             ? { 
                 ...s, 
                 status: 'disconnected' as const, 
-                lastTested: new Date(),
+                lastTested: Date.now(),
                 errorMessage,
               }
             : s
@@ -283,10 +277,7 @@ export function ComfyUIConfigurationWindow({
   };
 
   // Get field error
-  const getFieldError = (field: string): string | null => {
-    const error = validationErrors.errors.find(e => e.field === field);
-    return error ? error.message : null;
-  };
+
 
   // Get status indicator
   const getStatusIndicator = (status?: string) => {
@@ -298,19 +289,10 @@ export function ComfyUIConfigurationWindow({
   };
 
   // Get all available workflows from all servers
-  const getAllWorkflows = () => {
-    if (!formData) return [];
-    const workflowSet = new Set<string>();
-    formData.servers.forEach(server => {
-      if (server.availableWorkflows) {
-        server.availableWorkflows.forEach(workflow => workflowSet.add(workflow));
-      }
-    });
-    return Array.from(workflowSet);
-  };
 
-  return (
-    <div className="modal-overlay">
+
+return (
+    <div className="modal-overlay" style={{ zIndex: 99999 }}>
       <div className="modal-window comfyui-configuration-window">
         <div className="modal-header">
           <h2>Multi-Server ComfyUI Configuration</h2>

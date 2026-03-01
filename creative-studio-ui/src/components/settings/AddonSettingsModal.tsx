@@ -27,6 +27,7 @@ export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: Addo
     if (isOpen && addonId) {
       loadSettings();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, addonId]);
 
   const loadSettings = () => {
@@ -74,9 +75,9 @@ export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: Addo
               type="checkbox"
               checked={Boolean(value)}
               onChange={(e) => handleSettingChange(setting.key, e.target.checked)}
-              className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+              className="w-4 h-4 text-purple-600 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-700 dark:text-gray-300">
               {setting.description || setting.label}
             </span>
           </label>
@@ -85,19 +86,19 @@ export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: Addo
       case 'number':
         return (
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {setting.label}
             </label>
             <input
               type="number"
-              value={value || ''}
+              value={(value as number | string) ?? ''}
               onChange={(e) => handleSettingChange(setting.key, parseFloat(e.target.value) || 0)}
               min={setting.min}
               max={setting.max}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
             {setting.description && (
-              <p className="text-xs text-gray-500">{setting.description}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{setting.description}</p>
             )}
           </div>
         );
@@ -110,12 +111,12 @@ export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: Addo
             </label>
             <input
               type="text"
-              value={value || ''}
+              value={(value as string) || ''}
               onChange={(e) => handleSettingChange(setting.key, e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
             {setting.description && (
-              <p className="text-xs text-gray-500">{setting.description}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{setting.description}</p>
             )}
           </div>
         );
@@ -127,13 +128,13 @@ export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: Addo
               {setting.label}
             </label>
             <textarea
-              value={value || ''}
+              value={(value as string) || ''}
               onChange={(e) => handleSettingChange(setting.key, e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
             {setting.description && (
-              <p className="text-xs text-gray-500">{setting.description}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{setting.description}</p>
             )}
           </div>
         );
@@ -145,18 +146,18 @@ export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: Addo
               {setting.label}
             </label>
             <select
-              value={value || ''}
+              value={(value as string) || ''}
               onChange={(e) => handleSettingChange(setting.key, e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
               {setting.options?.map(option => (
-                <option key={option.value} value={option.value}>
+                <option key={String(option.value)} value={String(option.value)} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                   {option.label}
                 </option>
               ))}
             </select>
             {setting.description && (
-              <p className="text-xs text-gray-500">{setting.description}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{setting.description}</p>
             )}
           </div>
         );
@@ -182,14 +183,14 @@ export function AddonSettingsModal({ isOpen, onClose, addonId, addonName }: Addo
         <div className="flex-1 overflow-y-auto max-h-[60vh]">
           {settingsDefinition.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">
+              <p className="text-gray-500 dark:text-gray-400">
                 Aucun paramètre configurable pour cet add-on.
               </p>
             </div>
           ) : (
             <div className="space-y-6">
               {settingsDefinition.map(setting => (
-                <div key={setting.key} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                <div key={setting.key} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0 last:pb-0">
                   {renderSettingInput(setting)}
                 </div>
               ))}

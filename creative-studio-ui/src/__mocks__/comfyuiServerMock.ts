@@ -264,8 +264,9 @@ export class ComfyUIServerMock {
   }
 
   private hasValidAuth(headers: HeadersInit = {}): boolean {
-    const authHeader = (headers as any)['Authorization'] || (headers as any)['authorization'];
-    return authHeader && authHeader.startsWith('Bearer ') || authHeader.startsWith('Basic ');
+    const headerRecord = headers as Record<string, string>;
+    const authHeader = headerRecord['Authorization'] || headerRecord['authorization'];
+    return !!authHeader && (authHeader.startsWith('Bearer ') || authHeader.startsWith('Basic '));
   }
 
   /**
@@ -299,7 +300,9 @@ export function setupComfyUIMock(config: MockComfyUIServerConfig = { port: 8188 
 
   // Mock the global fetch function
   // Mock the global fetch function with proper Promise<Response> return type
-  global.fetch = jest.fn().mockImplementation((url: RequestInfo, options: RequestInit = {}): Promise<Response> => {
+  global.fetch = jest.fn().mockImplementation((...args: unknown[]): Promise<Response> => {
+    const url = args[0] as RequestInfo | URL | string;
+    const options = (args[1] || {}) as RequestInit;
     const urlString = typeof url === 'string' ? url : url.toString();
     if (globalMockServer && urlString.includes(`localhost:${config.port}`)) {
       // Ensure the mockFetch returns a Promise<Response>
@@ -307,8 +310,9 @@ export function setupComfyUIMock(config: MockComfyUIServerConfig = { port: 8188 
       return Promise.resolve(result);
     }
     // Fallback to real fetch for non-ComfyUI URLs
-    return jest.requireActual('node-fetch')(url, options);
-  });
+    const fetchFunc = jest.requireActual('node-fetch') as typeof fetch;
+    return fetchFunc(url, options);
+  }) as unknown as typeof fetch;
 }
 
 /**

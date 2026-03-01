@@ -247,3 +247,65 @@ async def get_project_location(project_id: str, location_id: str) -> LocationRes
     except (json.JSONDecodeError, IOError, UnicodeDecodeError) as e:
         logger.error(f"Error loading location {project_id}/{location_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error loading location: {str(e)}")
+
+@router.post("/{location_id}/cube-textures", response_model=LocationResponse)
+async def update_cube_texture(location_id: str, data: dict) -> LocationResponse:
+    """
+    Update cube textures for a location.
+    Typically called after a face generation.
+    """
+    loc = load_location(location_id)
+    if not loc:
+        raise HTTPException(status_code=404, detail="Location not found")
+    
+    face = data.get("face")
+    if not face:
+        raise HTTPException(status_code=400, detail="Face direction is required")
+        
+    # Initialize dictionaries if they don't exist
+    if "cube_faces" not in loc or loc["cube_faces"] is None:
+        loc["cube_faces"] = {}
+        
+    # Update the face texture path (which might be a URL or local path)
+    # The frontend might pass the image_path or we might need to derive it
+    image_path = data.get("image_path") or data.get("image")
+    if image_path:
+        loc["cube_faces"][face] = image_path
+        
+    # Also update metadata if provided
+    if "metadata" not in loc:
+        loc["metadata"] = {}
+    
+    if "generation_history" not in loc["metadata"]:
+        loc["metadata"]["generation_history"] = []
+        
+    loc["metadata"]["generation_history"].append({
+        "type": "cube_face",
+        "face": face,
+        "timestamp": datetime.utcnow().isoformat(),
+        "params": data
+    })
+    
+    loc["updated_at"] = datetime.utcnow().isoformat()
+    save_location(location_id, loc)
+    return LocationResponse(**loc)
+
+@router.post("/{location_id}/skybox", response_model=LocationResponse)
+async def update_skybox(location_id: str, data: dict) -> LocationResponse:
+    """
+    Update skybox data for a location.
+    """
+    loc = load_location(location_id)
+    if not loc:
+        raise HTTPException(status_code=404, detail="Location not found")
+        
+    # Update skybox metadata
+    loc["skybox_data"] = data
+    
+    # If there's an image_path in the data, also update tile_image_path for preview
+    if "image_path" in data:
+        loc["tile_image_path"] = data["image_path"]
+        
+    loc["updated_at"] = datetime.utcnow().isoformat()
+    save_location(location_id, loc)
+    return LocationResponse(**loc)

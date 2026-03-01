@@ -7,7 +7,7 @@
  * Requirements: 7.3
  */
 
-import type { Shot, DialoguePhrase, Project } from '../types/projectDashboard';
+import type { DialoguePhrase, Project } from '../types/projectDashboard';
 
 /**
  * Result of shot deletion validation

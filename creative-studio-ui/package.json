@@ -21,7 +21,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:ui": "vitest --run ./creative-studio-ui/**/*.test.tsx",
+"test:ui": "vitest --run ./creative-studio-ui/**/*.test.tsx",
+    "test:unit": "vitest --run ./creative-studio-ui/**/*.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --UI",
     "test:e2e:install": "playwright install --with-deps chromium firefox webkit"
@@ -29,6 +30,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
+    "axios": "^1.7.9",
     "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",

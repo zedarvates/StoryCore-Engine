@@ -79,6 +79,14 @@ export function createLocationFromWizardData(
   return location;
 }
 
+function getLocationsDir(projectId: string): string {
+  // If it's an absolute path
+  if (projectId.match(/^[a-zA-Z]:[\\/]/) || projectId.startsWith('/')) {
+    return `${projectId}/locations`;
+  }
+  return `./projects/${projectId}/locations`;
+}
+
 /**
  * Saves a location to the project's locations directory
  * 
@@ -119,7 +127,7 @@ export async function saveLocationToProject(
     }
 
     // Build file path
-    const locationsDir = `./projects/${projectId}/locations`;
+    const locationsDir = getLocationsDir(projectId);
     const filePath = `${locationsDir}/${locationId}.json`;
 
     // Ensure directory exists using mkdir (recursive to create parent directories if needed)
@@ -173,18 +181,38 @@ export async function loadLocationFromProject(
       return existingLocations[locationId] || null;
     }
 
-    const filePath = `./projects/${projectId}/locations/${locationId}.json`;
-
-    const exists = await window.electronAPI.fs.exists(filePath);
-    if (!exists) {
-      return null;
+    // Try standard path first
+    const locationsDir = getLocationsDir(projectId);
+    const standardPath = `${locationsDir}/${locationId}.json`;
+    if (await window.electronAPI.fs.exists(standardPath)) {
+      const fileContent = await window.electronAPI.fs.readFile(standardPath);
+      const decoder = new TextDecoder();
+      return JSON.parse(decoder.decode(fileContent)) as Location;
     }
 
-    const fileContent = await window.electronAPI.fs.readFile(filePath);
-    const decoder = new TextDecoder();
-    const jsonData = decoder.decode(fileContent);
+    // Try new directory-based organization: locations/{name}/{locationId}.json
+    const items = await window.electronAPI.fs.readdir(locationsDir);
+    
+    for (const item of items) {
+      if (item.includes('.')) continue; // Skip files with extensions
+      
+      const nestedPath = `${locationsDir}/${item}/${locationId}.json`;
+      if (await window.electronAPI.fs.exists(nestedPath)) {
+        const fileContent = await window.electronAPI.fs.readFile(nestedPath);
+        const decoder = new TextDecoder();
+        return JSON.parse(decoder.decode(fileContent)) as Location;
+      }
+      
+      // Also try locations/{name}/{name}.json if locationId matches the name
+      const namePath = `${locationsDir}/${item}/${item}.json`;
+      if (item === locationId && await window.electronAPI.fs.exists(namePath)) {
+        const fileContent = await window.electronAPI.fs.readFile(namePath);
+        const decoder = new TextDecoder();
+        return JSON.parse(decoder.decode(fileContent)) as Location;
+      }
+    }
 
-    return JSON.parse(jsonData) as Location;
+    return null;
   } catch (error) {
     console.error('[locationStorage] Failed to load location:', error);
     return null;
@@ -205,17 +233,38 @@ export async function listLocationsInProject(
       return Object.keys(existingLocations);
     }
 
-    const locationsDir = `./projects/${projectId}/locations`;
+    const locationsDir = getLocationsDir(projectId);
 
     const exists = await window.electronAPI.fs.exists(locationsDir);
     if (!exists) {
       return [];
     }
 
-    const files = await window.electronAPI.fs.readdir(locationsDir);
-    return files
-      .filter((file: string) => file.endsWith('.json'))
-      .map((file: string) => file.replace('.json', ''));
+    const items = await window.electronAPI.fs.readdir(locationsDir);
+    const locationIds: string[] = [];
+
+    for (const item of items) {
+      if (item.endsWith('.json')) {
+        // Standard organization: locations/{id}.json
+        locationIds.push(item.replace('.json', ''));
+      } else {
+        // New organization: locations/{name}/ containing a .json file
+        try {
+          const subDir = `${locationsDir}/${item}`;
+          // Check if it's a directory by trying to readdir it (simplest check if we don't have isDirectory)
+          const subFiles = await window.electronAPI.fs.readdir(subDir);
+          const jsonFile = subFiles.find((f: string) => f.endsWith('.json'));
+          if (jsonFile) {
+            // Use the JSON filename as the ID (consistent with standard approach)
+            locationIds.push(jsonFile.replace('.json', ''));
+          }
+        } catch {
+          // Skip items that aren't directories or fail to read
+        }
+      }
+    }
+
+    return Array.from(new Set(locationIds));
   } catch (error) {
     console.error('[locationStorage] Failed to list locations:', error);
     return [];
@@ -239,7 +288,8 @@ export async function deleteLocationFromProject(
       return true;
     }
 
-    const filePath = `./projects/${projectId}/locations/${locationId}.json`;
+    const locationsDir = getLocationsDir(projectId);
+    const filePath = `${locationsDir}/${locationId}.json`;
 
     // Try to delete the file, but don't fail if it doesn't exist
     try {

@@ -261,6 +261,13 @@ export interface StoryCoreElectronAPI {
     onStateUpdate: (callback: (state: unknown) => void) => () => void;
   };
 
+  // Screen capture
+  screen: {
+    capture: (options?: { quality?: number; format?: 'png' | 'jpg'; displayIndex?: number }) => Promise<string>;
+    startAreaCapture: (options?: { quality?: number; format?: 'png' | 'jpg' }) => Promise<string | null>;
+    saveCapture: (data: string, filename: string, projectPath?: string) => Promise<{ success: boolean; path: string }>;
+  };
+
   // Event listening
   on: (channel: string, func: (...args: unknown[]) => void) => () => void;
   once: (channel: string, func: (...args: unknown[]) => void) => void;

@@ -8,6 +8,7 @@ import { debounce, throttle } from './debounceAndThrottle';
 export { debounce, throttle };
 
 // Using 'any' in generic constraint to allow memoizing functions with any parameter types and return values
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MemoizedFunction<T extends (...args: any[]) => any> = T & {
   cache: Map<string, ReturnType<T>>;
   clearCache: () => void;
@@ -17,6 +18,7 @@ type MemoizedFunction<T extends (...args: any[]) => any> = T & {
  * Memoize a function with custom key generation
  */
 // Using 'any' in generic constraint to allow memoizing functions with any parameter types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function memoize<T extends (...args: any[]) => any>(
   fn: T,
   keyGenerator?: (...args: Parameters<T>) => string
@@ -45,6 +47,7 @@ export function memoize<T extends (...args: any[]) => any>(
  * Memoize async functions
  */
 // Using 'any' in generic constraint to allow memoizing async functions with any parameter and return types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function memoizeAsync<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   keyGenerator?: (...args: Parameters<T>) => string
@@ -67,7 +70,7 @@ export function memoizeAsync<T extends (...args: any[]) => Promise<any>>(
 
     // Execute and cache
     const promise = fn(...args);
-    pending.set(key, promise as ReturnType<T>);
+    pending.set(key, promise as unknown as ReturnType<T>);
 
     try {
       const result = await promise;

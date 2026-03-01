@@ -163,7 +163,8 @@ describe('IPC Channels - Project Discovery', () => {
       const mockProject = {
         name: 'Test Project',
         path: '/path/to/project',
-        lastModified: new Date(),
+        lastModified: Date.now(),
+        isValid: true,
         isRecent: false,
       };
 
@@ -173,7 +174,7 @@ describe('IPC Channels - Project Discovery', () => {
       expect(mockProject).toHaveProperty('isRecent');
       expect(typeof mockProject.name).toBe('string');
       expect(typeof mockProject.path).toBe('string');
-      expect(mockProject.lastModified instanceof Date).toBe(true);
+      expect(typeof mockProject.lastModified).toBe('number');
       expect(typeof mockProject.isRecent).toBe('boolean');
     });
 
@@ -181,7 +182,7 @@ describe('IPC Channels - Project Discovery', () => {
       const mockMergedProject = {
         name: 'Test Project',
         path: '/path/to/project',
-        lastModified: new Date(),
+        lastModified: Date.now(),
         isRecent: true,
         lastOpened: new Date(),
       };

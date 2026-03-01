@@ -6,7 +6,7 @@ Génère des environnements simples composés de boînes (cuboids) pour le proto
 Utile pour la mise en scène avant d'ajouter des assets complexes.
 """
 
-import bpy
+# import bpy (removed from global scope for non-Blender environments)
 import math
 
 class BoxSceneGenerator:
@@ -72,4 +72,9 @@ class BoxSceneGenerator:
             d = kwargs.get("depth", 10)
             h = kwargs.get("height", 4)
             return f"from blender_bridge.box_scene_generator import BoxSceneGenerator; BoxSceneGenerator.create_simple_room({w}, {d}, {h})"
+        elif scene_type == "corridor":
+            l = kwargs.get("depth", 20)
+            w = kwargs.get("width", 3)
+            h = kwargs.get("height", 3)
+            return f"from blender_bridge.box_scene_generator import BoxSceneGenerator; BoxSceneGenerator.create_corridor({l}, {w}, {h})"
         return ""

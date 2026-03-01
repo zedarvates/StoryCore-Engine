@@ -736,6 +736,26 @@ const toolsMenuConfig: MenuConfig = {
       description: 'Fact Check - Verify statements with AI',
       action: toolsActions.factCheck,
     },
+    {
+      id: 'discovery-lab',
+      label: 'tools.discoveryLab',
+      type: 'action',
+      enabled: true,
+      visible: true,
+      icon: 'telescope',
+      description: 'Discovery Lab - Narrative Intelligence & R&D',
+      action: toolsActions.discoveryLab,
+    },
+    {
+      id: 'project-translator',
+      label: 'tools.projectTranslator',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'globe',
+      description: 'Project Translator - Local AI Translation Engine',
+      action: toolsActions.projectTranslator,
+    },
   ],
 };
 

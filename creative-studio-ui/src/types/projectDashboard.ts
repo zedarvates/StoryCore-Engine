@@ -193,19 +193,84 @@ export const PromptValidationSchema = z.object({
 });
 
 export const ShotSchema = z.object({
+  // Core identification
   id: z.string(),
-  sequenceId: z.string().optional(), // Optionnel pour compatibilité avec types/index.ts
-  startTime: z.number().nonnegative(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  
+  // Core timing and positioning
   duration: z.number().positive(),
-  prompt: z.string(),
-  promptValidation: PromptValidationSchema.optional(),
-  generatedImageUrl: z.string().optional(),
-  metadata: z.object({
-    cameraAngle: z.string().optional(),
-    lighting: z.string().optional(),
-    mood: z.string().optional(),
-  }),
+  image: z.string().optional(),
   position: z.number().nonnegative(),
+  
+  // Data Contract v1 / Dashboard Compatibility (snake_case for persistence)
+  sequence_id: z.string().optional(),
+  start_time: z.number().optional(),
+  prompt: z.string().optional(),
+  generated_image_url: z.string().optional(),
+  status: z.string().optional(),
+  progress: z.number().optional(),
+  promoted_panel_path: z.string().optional(),
+  
+  // CamelCase Aliases (for dashboard/store compatibility)
+  sequenceId: z.string().optional(),
+  startTime: z.number().optional(),
+  generatedImageUrl: z.string().optional(),
+  name: z.string().optional(),
+  orderIndex: z.number().optional(),
+  thumbnailUrl: z.string().optional(),
+  
+  // Wizard / Production specific
+  number: z.number().optional(),
+  type: z.string().optional(),
+  category: z.enum(['establishing', 'action', 'dialogue', 'reaction', 'insert', 'transition', 'custom']).optional(),
+  
+  // Timing sub-object
+  timing: z.object({
+    duration: z.number(),
+    inPoint: z.number(),
+    outPoint: z.number(),
+    transition: z.string(),
+    transitionDuration: z.number(),
+    trimStart: z.number().optional(),
+    trimEnd: z.number().optional(),
+  }).optional(),
+  
+  // Generation metadata
+  generation: z.object({
+    aiProvider: z.string(),
+    model: z.string(),
+    prompt: z.string(),
+    negativePrompt: z.string(),
+    comfyuiPreset: z.string(),
+    parameters: z.record(z.any()),
+    styleReferences: z.array(z.string()),
+    seed: z.number().optional(),
+    referenceImage: z.string().optional(),
+  }).optional(),
+  
+  // Audio tracks
+  audioTracks: z.array(z.any()).optional(),
+  
+  // Visual effects
+  effects: z.array(z.any()).optional(),
+  
+  // Text layers
+  textLayers: z.array(z.any()).optional(),
+  
+  // Keyframe animations
+  animations: z.array(z.any()).optional(),
+  
+  // Transition to next shot
+  transitionOut: z.any().optional(),
+  
+  // Metadata and legacy fields
+  metadata: z.record(z.any()).optional(),
+  referenceImage: z.string().optional(),
+  result_url: z.string().optional(),
+  
+  // Prompt validation (dashboard-specific extension)
+  promptValidation: PromptValidationSchema.optional(),
 });
 
 export const DialoguePhraseSchema = z.object({
@@ -288,30 +353,91 @@ export const GenerationRecordSchema = z.object({
 });
 
 export const ProjectSchema = z.object({
+  // Core identification
   id: z.string(),
-  project_name: z.string(), // snake_case pour compatibilité Data Contract v1
-  schema_version: z.string(), // snake_case pour compatibilité
-  sequences: z.array(SequenceSchema),
+  schema_version: z.string(), // Data Contract v1: "1.0"
+  project_name: z.string(),
+  path: z.string().optional(),
+  
+  // Core collections
   shots: z.array(ShotSchema),
-  assets: z.array(z.any()).optional(), // Ajouté pour compatibilité avec types/index.ts
-  audioPhrases: z.array(DialoguePhraseSchema),
+  assets: z.array(z.any()).optional(),
+  
+  // Story-related collections
+  worlds: z.array(z.any()).optional(),
+  selectedWorldId: z.string().nullable().optional(),
+  characters: z.array(z.any()).optional(),
+  stories: z.array(z.any()).optional(),
+  storyVersions: z.array(z.any()).optional(),
+  objects: z.array(z.any()).optional(),
+  sequencePlans: z.array(z.any()).optional(),
+  
+  // Project setup
+  projectSetup: z.any().optional(),
+  
+  // Sequences (dashboard-specific extension)
+  sequences: z.array(SequenceSchema),
+  
+  // Audio and dialogue
+  audio_phrases: z.array(DialoguePhraseSchema).optional(),
+  audioPhrases: z.array(DialoguePhraseSchema).optional(),
+  
+  // Master coherence sheet
+  master_coherence_sheet: z.object({
+    url: z.string(),
+    generated_at: z.number(),
+  }).optional(),
   masterCoherenceSheet: z.object({
     url: z.string(),
     generatedAt: z.number(),
   }).optional(),
-  generationHistory: z.array(GenerationRecordSchema),
+  
+  // Generation
+  generation_history: z.array(GenerationRecordSchema).optional(),
+  generationHistory: z.array(GenerationRecordSchema).optional(),
+  
+  // Capabilities
+  capabilities: z.object({
+    grid_generation: z.boolean(),
+    promotion_engine: z.boolean(),
+    qa_engine: z.boolean(),
+    autofix_engine: z.boolean(),
+    character_casting: z.boolean().optional(),
+    voice_generation: z.boolean().optional(),
+    gridGeneration: z.boolean().optional(),
+    promotionEngine: z.boolean().optional(),
+    qaEngine: z.boolean().optional(),
+    autofixEngine: z.boolean().optional(),
+  }),
+  
+  // Generation status
   generation_status: z.object({
     grid: z.enum(['pending', 'done', 'failed', 'passed']),
     promotion: z.enum(['pending', 'done', 'failed', 'passed']),
     wizard: z.enum(['pending', 'done', 'failed', 'passed']).optional(),
-  }).optional(), // Ajouté pour compatibilité
-  capabilities: z.object({
-    gridGeneration: z.boolean(),
-    promotionEngine: z.boolean(),
-    qaEngine: z.boolean(),
-    autofixEngine: z.boolean(),
-    voiceGeneration: z.boolean(),
-  }),
+  }).optional(),
+  
+  // CamelCase Aliases
+  name: z.string().optional(),
+  schemaVersion: z.string().optional(),
+  
+  // Storyboard alias
+  storyboard: z.array(ShotSchema).optional(),
+  
+  // Casting
+  casting: z.object({
+    version: z.string(),
+    assignments: z.array(z.object({
+      character_id: z.string(),
+      avatar_id: z.string(),
+      assigned_at: z.number(),
+    })),
+    last_modified: z.number(),
+  }).optional(),
+  
+  // Metadata
+  metadata: z.record(z.any()).optional(),
+  global_resume: z.string().optional(),
 });
 
 // ============================================================================

@@ -20,6 +20,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["*.ts"],
-  "exclude": ["node_modules", "../dist", "../src/ui", "*.test.ts", "*.example.ts"]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "../dist", "../src/ui", "**/*.test.ts", "**/*.example.ts", "**/__tests__/*"]
 }

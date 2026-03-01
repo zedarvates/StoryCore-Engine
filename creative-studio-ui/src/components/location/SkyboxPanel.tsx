@@ -90,17 +90,25 @@ export function SkyboxPanel({
     handleConfigUpdate({ intensity: value });
   }, [handleConfigUpdate]);
 
+  const [showPromptDialog, setShowPromptDialog] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+
   const handleGenerateHD = useCallback(async () => {
     const defaultPrompt = location.metadata?.genre_tags?.join(', ') || location.name || 'beautiful landscape';
-    const userPrompt = window.prompt('Enter a prompt for the HD Skybox:', defaultPrompt);
-    if (!userPrompt) return;
+    setCustomPrompt(defaultPrompt);
+    setShowPromptDialog(true);
+  }, [location, location.name]); // Changed 'name' to 'location.name' to be correct
+
+  const confirmGenerateHD = useCallback(async () => {
+    setShowPromptDialog(false);
+    if (!customPrompt) return;
 
     setIsGenerating(true);
     try {
-      const result = await assetCreatorService.generateSkybox(userPrompt, localConfig.skybox_type);
+      const result = await assetCreatorService.generateSkybox(customPrompt, localConfig.skybox_type);
       if (result.success && result.filePath) {
         handleConfigUpdate({
-          type: 'image_based', // 'hdri' is not a valid type in SkyBoxConfig, use 'image_based'
+          type: 'image_based',
           texture_path: result.filePath
         });
         notificationService.success('Skybox Generated', 'HD Skybox has been added to your location.');
@@ -108,11 +116,11 @@ export function SkyboxPanel({
         notificationService.error('Generation Failed', result.error || 'Unknown error');
       }
     } catch {
-      notificationService.error('Generation Failed', 'An error occurred during skybox generation.');
+      notificationService.error('Generation Failed', 'An error occurred.');
     } finally {
       setIsGenerating(false);
     }
-  }, [location, localConfig.skybox_type, handleConfigUpdate]);
+  }, [customPrompt, localConfig.skybox_type, handleConfigUpdate]);
   
   if (location.location_type === 'interior') {
     return (
@@ -319,6 +327,34 @@ export function SkyboxPanel({
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .spin { animation: spin 1s linear infinite; }
       `}</style>
+
+      {showPromptDialog && (
+        <div className="skybox-panel__dialog-overlay">
+          <div className="skybox-panel__dialog">
+            <h3>Enter HD Skybox Prompt</h3>
+            <textarea
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              placeholder="e.g., sci-fi city at sunset, cinematic lighting, 8k"
+              rows={4}
+            />
+            <div className="skybox-panel__dialog-actions">
+              <button 
+                className="skybox-panel__dialog-cancel"
+                onClick={() => setShowPromptDialog(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="skybox-panel__dialog-confirm"
+                onClick={confirmGenerateHD}
+              >
+                Generate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

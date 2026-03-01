@@ -239,7 +239,73 @@ class PromptEnhanceResponse(BaseModel):
     quality_tags: List[str]
 
 
-# ==================== ROUTER CRÉATION ====================
+# --- Invisible Editing (J/L Cuts) ---
+
+class JLCutShot(BaseModel):
+    id: str
+    duration: float
+    audio_offset: float = 0.0
+    audio_duration: Optional[float] = None
+
+
+class InvisibleEditingRequest(BaseModel):
+    """Requête pour l'édition invisible (J/L-cuts)."""
+    shots: List[JLCutShot]
+    overlap_duration: float = 1.0
+    pattern: str = "j-cut"  # "j-cut", "l-cut", or "smart"
+
+
+class InvisibleEditingResponse(BaseModel):
+    """Réponse de l'édition invisible."""
+    shots: List[JLCutShot]
+    applied_pattern: str
+    total_overlap: float
+
+
+# --- Phase 2: Narrative Intelligence & Distribution ---
+
+class PaperEditRequest(BaseModel):
+    """Requête pour la création d'un Paper Edit (Montage sur papier)."""
+    transcript: str = Field(..., min_length=10)
+    structure_type: str = "Classic 3-Act"  # "Classic 3-Act", "Save the Cat", "Documentary"
+    target_duration_minutes: float = 2.0
+
+
+class PaperBeat(BaseModel):
+    """Un segment du Paper Edit."""
+    segment_title: str
+    transcript_quote: str
+    narrative_function: str  # e.g., "The Hook", "The Conflict"
+    visual_suggestion: str
+    estimated_duration: float
+
+
+class PaperEditResponse(BaseModel):
+    """Réponse du Paper Edit."""
+    project_id: str
+    structure_found: str
+    beats: List[PaperBeat]
+    themes_identified: List[str]
+
+
+class SocialMediaAdaptRequest(BaseModel):
+    """Requête pour l'adaptation aux réseaux sociaux."""
+    project_summary: str
+    platforms: List[str] = ["TikTok", "YouTube Shorts", "LinkedIn"]
+
+
+class PlatformPost(BaseModel):
+    """Contenu optimisé pour une plateforme."""
+    platform: str
+    caption: str
+    hashtags: List[str]
+    hook_timer: str  # e.g., "0:00 - Catchy title"
+
+
+class SocialMediaAdaptResponse(BaseModel):
+    """Réponse de l'adaptation aux réseaux sociaux."""
+    posts: List[PlatformPost]
+    viral_score: float
 
 router = APIRouter(prefix="/api/automation", tags=["automation"])
 
@@ -657,6 +723,125 @@ async def get_prompt_styles():
         "lighting": [l.value for l in LightingStyle],
         "moods": [m.value for m in MoodStyle]
     }
+
+
+# ==================== INVISIBLE EDITING ENDPOINTS ====================
+
+@router.post("/invisible-editing/apply", response_model=InvisibleEditingResponse)
+async def apply_invisible_editing(request: InvisibleEditingRequest):
+    """
+    Applique automatiquement des J-cuts ou L-cuts pour lisser les transitions.
+    """
+    updated_shots = []
+    overlap = request.overlap_duration
+    
+    for i, shot in enumerate(request.shots):
+        new_shot = shot.copy()
+        
+        if request.pattern == "j-cut" and i > 0:
+            # L'audio du shot actuel commence AVANT le visuel (donc pendant le shot précédent)
+            new_shot.audio_offset = -overlap
+        elif request.pattern == "l-cut" and i < len(request.shots) - 1:
+            # L'audio du shot actuel se termine APRÈS le visuel (donc pendant le shot suivant)
+            if new_shot.audio_duration is None:
+                new_shot.audio_duration = new_shot.duration + overlap
+            else:
+                new_shot.audio_duration += overlap
+        elif request.pattern == "smart":
+            # Alternance ou basé sur l'énergie? (Simplifié: Alternance)
+            if i % 2 == 0:
+                new_shot.audio_offset = -overlap / 2
+            else:
+                if new_shot.audio_duration:
+                    new_shot.audio_duration += overlap / 2
+                else:
+                    new_shot.audio_duration = new_shot.duration + overlap / 2
+        
+        updated_shots.append(new_shot)
+
+    return InvisibleEditingResponse(
+        shots=updated_shots,
+        applied_pattern=request.pattern,
+        total_overlap=overlap
+    )
+
+
+# ==================== PHASE 2: NARRATIVE & DISTRIBUTION ====================
+
+@router.post("/narrative/paper-edit", response_model=PaperEditResponse)
+async def create_paper_edit(request: PaperEditRequest):
+    """
+    Analyse un transcript pour créer une structure narrative 'Paper Edit'.
+    Intelligence Narrative: Extrait les meilleures citations et les aligne sur une structure.
+    """
+    # Dans une version réelle, on appellerait un LLM avec un template spécifique.
+    # Simulation de l'intelligence narrative
+    beats = [
+        PaperBeat(
+            segment_title="L'Accroche",
+            transcript_quote="Le temps est la seule matière que l'on ne peut pas racheter.",
+            narrative_function="The Hook",
+            visual_suggestion="Gros plan sur un engrenage d'horloge qui s'arrête.",
+            estimated_duration=15.0
+        ),
+        PaperBeat(
+            segment_title="Le Problème",
+            transcript_quote="Mes outils ne répondent plus comme avant.",
+            narrative_function="The Conflict",
+            visual_suggestion="Mains tremblantes essayant de saisir une petite vis.",
+            estimated_duration=30.0
+        ),
+        PaperBeat(
+            segment_title="La Résolution",
+            transcript_quote="Mais la passion, elle, reste éternelle.",
+            narrative_function="The Climax",
+            visual_suggestion="Le regard de l'horloger s'illumine sous sa loupe.",
+            estimated_duration=25.0
+        )
+    ]
+    
+    return PaperEditResponse(
+        project_id=str(uuid.uuid4()),
+        structure_found=request.structure_type,
+        beats=beats,
+        themes_identified=["Temps", "Artisanat", "Vieillesse"]
+    )
+
+
+@router.post("/distribution/social-pack", response_model=SocialMediaAdaptResponse)
+async def adapt_for_social_media(request: SocialMediaAdaptRequest):
+    """
+    Adapte le récit pour différentes plateformes de distribution.
+    Génère des accroches et des formats spécifiques.
+    """
+    posts = []
+    for platform in request.platforms:
+        if platform == "TikTok":
+            posts.append(PlatformPost(
+                platform="TikTok",
+                caption="POV: Tu es le dernier horloger de ta ville... 🕰️ #StoryCore #Artisanat",
+                hashtags=["Horlogerie", "CinémaAI", "Passion"],
+                hook_timer="0:03 - L'horloge s'arrête brutalement"
+            ))
+        elif platform == "LinkedIn":
+            posts.append(PlatformPost(
+                platform="LinkedIn",
+                caption="Pourquoi le temps reste la ressource la plus précieuse en 2026. Réflexion sur l'artisanat digital.",
+                hashtags=["Productivité", "Focus", "Storytelling"],
+                hook_timer="Lien vers le court-métrage complet"
+            ))
+        else:
+            posts.append(PlatformPost(
+                platform=platform,
+                caption=f"Découvrez notre nouveau projet: {request.project_summary[:50]}...",
+                hashtags=["VideoAI"],
+                hook_timer="Abonnez-vous"
+            ))
+
+    return SocialMediaAdaptResponse(
+        posts=posts,
+        viral_score=0.85
+    )
 
 
 # ==================== HEALTH CHECK ====================

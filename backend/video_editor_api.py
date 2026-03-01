@@ -301,6 +301,29 @@ class DialogueAutomationRequest(BaseModel):
     type: str # "j-cut", "l-cut", "balanced"
     overlap: float = 1.5
 
+class VoiceIsolationRequest(BaseModel):
+    """Voice isolation request."""
+    media_id: str
+
+class AutoDuckingRequest(BaseModel):
+    """Auto-ducking request."""
+    music_id: str
+    speech_id: str
+
+class PanScanRequest(BaseModel):
+    """Smart pan & scan request."""
+    media_id: str
+
+class MultiAngleRequest(BaseModel):
+    """Multi-angle generation request."""
+    base_prompt: str
+    angles: List[str] = ["low angle", "high angle", "canted angle", "aerial"]
+
+class CharacterSheetRequest(BaseModel):
+    """Character consistency sheet request."""
+    name: str
+    reference_images: List[str]
+
 # =============================================================================
 # In-Memory Storage (Replace with database in production)
 # =============================================================================
@@ -993,36 +1016,47 @@ async def download_export(job_id: str):
     return {"url": job["download_url"]}
 
 
-def process_export(job_id: str):
-    """Background task to process video export."""
+async def process_export(job_id: str):
+    """Background task to process video export with real FFmpeg/GPU."""
+    from video_editor_ai_service import create_ai_service
+    service = create_ai_service()
+    
     job = jobs_db[job_id]
     job["status"] = "processing"
-    job["message"] = "Starting export..."
+    job["message"] = "Starting high-quality export..."
     
     project_id = job["project_id"]
-    project = projects_db[project_id]
+    format_ext = job["format"]
     
     try:
-        # Simulate export progress
-        for progress in [10, 20, 30, 50, 70, 90, 100]:
-            job["progress"] = progress
-            job["message"] = f"Exporting... {progress}%"
-            
-            # In production, this would call FFmpeg
-            import time
-            time.sleep(1)
+        # En production, on rendrait la timeline. Ici on simule sur le premier média pour la démo
+        # Mais avec les vrais réglages de qualité/format/transparent
+        project = projects_db[project_id]
+        if not project["media_items"]:
+             raise FileNotFoundError("No media in project to export")
+             
+        input_path = project["media_items"][0]["path"]
+        output_path = str(EXPORT_DIR / f"{project_id}_{job_id}.{format_ext}")
         
-        # Create export file
-        export_path = EXPORT_DIR / f"{project_id}_{job_id}.{job['format']}"
-        export_path.parent.mkdir(parents=True, exist_ok=True)
+        job["progress"] = 30.0
+        job["message"] = f"Encoding {format_ext}..."
         
-        # Placeholder export (create empty file)
-        export_path.touch()
+        success = await service.export.export_video(
+            input_path=input_path,
+            output_path=output_path,
+            format=format_ext,
+            quality=job.get("quality", 23),
+            transparent=(format_ext == "webm" and job.get("quality") == 100) # Hack démo
+        )
         
-        job["status"] = "completed"
-        job["progress"] = 100.0
-        job["message"] = "Export completed"
-        job["download_url"] = f"/api/video-editor/export/{job_id}/file"
+        if success:
+            job["status"] = "completed"
+            job["progress"] = 100.0
+            job["message"] = "Export completed successfully"
+            job["download_url"] = f"/api/video-editor/export/{job_id}/file"
+        else:
+            job["status"] = "failed"
+            job["message"] = "FFmpeg export failed"
         
     except FileNotFoundError as e:
         # Export file or project file not found
@@ -1316,6 +1350,108 @@ async def automate_dialogue(request: DialogueAutomationRequest):
         results.append(res)
     
     return {"status": "success", "results": results}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/voice-isolation")
+async def isolate_voice(request: VoiceIsolationRequest, background_tasks: BackgroundTasks):
+    """Start voice isolation background task."""
+    media = media_db.get(request.media_id)
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "type": "voice_isolation",
+        "media_id": request.media_id,
+        "status": "pending",
+        "output_path": None,
+        "created_at": datetime.utcnow()
+    }
+    jobs_db[job_id] = job
+    background_tasks.add_task(process_voice_isolation, job_id)
+    
+    return {"job_id": job_id, "status": "pending"}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/auto-ducking")
+async def auto_ducking(request: AutoDuckingRequest, background_tasks: BackgroundTasks):
+    """Start auto-ducking background task."""
+    music = media_db.get(request.music_id)
+    speech = media_db.get(request.speech_id)
+    if not music or not speech:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "type": "auto_ducking",
+        "music_id": request.music_id,
+        "speech_id": request.speech_id,
+        "status": "pending",
+        "output_path": None,
+        "created_at": datetime.utcnow()
+    }
+    jobs_db[job_id] = job
+    background_tasks.add_task(process_auto_ducking, job_id)
+    
+    return {"job_id": job_id, "status": "pending"}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/pan-scan")
+async def pan_and_scan(request: PanScanRequest, background_tasks: BackgroundTasks):
+    """Start smart pan & scan background task."""
+    media = media_db.get(request.media_id)
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "type": "pan_scan",
+        "media_id": request.media_id,
+        "status": "pending",
+        "output_path": None,
+        "created_at": datetime.utcnow()
+    }
+    jobs_db[job_id] = job
+    background_tasks.add_task(process_pan_scan, job_id)
+    
+    return {"job_id": job_id, "status": "pending"}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/multi-angle")
+async def generate_multi_angle(request: MultiAngleRequest):
+    """Generate prompts for multiple camera angles."""
+    from video_editor_ai_service import create_ai_service
+    service = create_ai_service()
+    prompts = await service.multi_angle.generate_angles(request.base_prompt, request.angles)
+    return {"status": "success", "prompts": prompts}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/character-sheet")
+async def generate_character_sheet(request: CharacterSheetRequest):
+    """Generate a character consistency sheet."""
+    from video_editor_ai_service import create_ai_service
+    service = create_ai_service()
+    char_id = service.character_consistency.create_character_profile(request.name, request.reference_images)
+    sheet = await service.character_consistency.generate_character_sheet(char_id)
+    return {"status": "success", "char_id": char_id, "sheet": sheet}
+
+@VIDEO_EDITOR_ROUTER.post("/ai/sprite")
+async def generate_sprites(media_id: str):
+    """Generate individual sprites from a media (sheet)."""
+    media = media_db.get(media_id)
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+        
+    from video_editor_ai_service import create_ai_service
+    service = create_ai_service()
+    
+    output_dir = os.path.join(os.path.dirname(media["path"]), "sprites")
+    sprites = await service.sprite.generate_sprite(media["path"], output_dir)
+    
+    return {"status": "success", "sprites": sprites}
 
 
 # =============================================================================
@@ -1709,13 +1845,13 @@ async def process_auto_trim(job_id: str):
 
 async def process_video_enhance(job_id: str):
     """Background task for video enhancement."""
-    from video_enhancement_service import VideoEnhancementService, EnhancementConfig, EnhancementType
+    from video_enhancement_service import get_enhancement_service, EnhancementConfig, EnhancementType
     job = jobs_db[job_id]
     job["status"] = "processing"
     
     try:
         media = media_db[job["media_id"]]
-        service = VideoEnhancementService()
+        service = get_enhancement_service()
         
         input_path = media["path"]
         output_path = input_path.replace(".", "_enhanced.")
@@ -1741,6 +1877,73 @@ async def process_video_enhance(job_id: str):
         job["status"] = "failed"
         job["error"] = str(e)
         logger.error(f"Video enhancement failed: {e}")
+
+
+async def process_voice_isolation(job_id: str):
+    """Background task for voice isolation."""
+    from video_editor_ai_service import create_ai_service
+    job = jobs_db[job_id]
+    job["status"] = "processing"
+    try:
+        media = media_db[job["media_id"]]
+        service = create_ai_service()
+        output_path = media["path"].replace(".", "_isolated.")
+        success = await service.audio_cleaning.voice_isolation(media["path"], output_path)
+        if success:
+            job["status"] = "completed"
+            job["output_path"] = output_path
+        else:
+            job["status"] = "failed"
+            job["error"] = "Voice isolation failed"
+    except Exception as e:
+        job["status"] = "failed"
+        job["error"] = str(e)
+        logger.error(f"Voice isolation failed: {e}")
+
+
+async def process_auto_ducking(job_id: str):
+    """Background task for auto-ducking."""
+    from video_editor_ai_service import create_ai_service
+    job = jobs_db[job_id]
+    job["status"] = "processing"
+    try:
+        music = media_db[job["music_id"]]
+        speech = media_db[job["speech_id"]]
+        service = create_ai_service()
+        output_path = music["path"].replace(".", "_ducked.")
+        success = await service.dialogue_automation.apply_auto_ducking(music["path"], speech["path"], output_path)
+        if success:
+            job["status"] = "completed"
+            job["output_path"] = output_path
+        else:
+            job["status"] = "failed"
+            job["error"] = "Auto-ducking failed"
+    except Exception as e:
+        job["status"] = "failed"
+        job["error"] = str(e)
+        logger.error(f"Auto-ducking failed: {e}")
+
+
+async def process_pan_scan(job_id: str):
+    """Background task for pan & scan."""
+    from video_editor_ai_service import create_ai_service
+    job = jobs_db[job_id]
+    job["status"] = "processing"
+    try:
+        media = media_db[job["media_id"]]
+        service = create_ai_service()
+        output_path = media["path"].replace(".", "_panscan.")
+        success = await service.smart_crop.smart_pan_scan(media["path"], output_path)
+        if success:
+            job["status"] = "completed"
+            job["output_path"] = output_path
+        else:
+            job["status"] = "failed"
+            job["error"] = "Pan & scan failed"
+    except Exception as e:
+        job["status"] = "failed"
+        job["error"] = str(e)
+        logger.error(f"Pan & scan failed: {e}")
 
 
 async def process_video_ocr(job_id: str):

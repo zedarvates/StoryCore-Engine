@@ -462,6 +462,19 @@ const electronAPI: ElectronAPI = {
       return () => ipcRenderer.removeListener('chat-window:state-update', subscription);
     },
   },
+
+  // Screen capture
+  screen: {
+    capture: async (options) => {
+      return await ipcRenderer.invoke('screen:capture', options);
+    },
+    startAreaCapture: async (options) => {
+      return await ipcRenderer.invoke('screen:start-area-capture', options);
+    },
+    saveCapture: async (data, filename, projectPath) => {
+      return await ipcRenderer.invoke('screen:save-capture', data, filename, projectPath);
+    },
+  },
 };
 
 // Expose the API to the renderer process

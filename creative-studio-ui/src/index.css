@@ -174,40 +174,59 @@
 
   /* Theme: Plasma Plex Neon (KDE Plasma-inspired) */
   .theme-plasma-plex-neon {
-    --background: 260 30% 6%;
-    /* Deep purple-black */
-    --foreground: 260 20% 95%;
-    /* Soft white with purple tint */
-    --card: 260 25% 10%;
-    /* Elevated card background */
-    --card-foreground: 260 20% 95%;
-    --popover: 260 25% 8%;
-    --popover-foreground: 260 20% 95%;
-    --primary: 280 100% 65%;
-    /* Neon purple */
-    --primary-foreground: 260 30% 6%;
-    --secondary: 260 30% 15%;
-    /* Deep purple surface */
-    --secondary-foreground: 260 20% 95%;
-    --muted: 260 20% 18%;
-    --muted-foreground: 260 15% 65%;
-    --accent: 200 100% 60%;
-    /* Cyan neon accent */
-    --accent-foreground: 260 30% 6%;
+    --background: 260 40% 4%;
+    /* Deep purple-black - darker for better contrast */
+    --foreground: 260 10% 98%;
+    /* Near pure white with slight purple tint */
+    --card: 260 35% 9%;
+    /* Elevated card background - slightly brighter */
+    --card-foreground: 260 10% 98%;
+    --popover: 260 35% 7%;
+    --popover-foreground: 260 10% 98%;
+    --primary: 280 100% 70%;
+    /* Neon purple - brighter for visibility */
+    --primary-foreground: 260 40% 4%;
+    --secondary: 260 35% 16%;
+    /* Deep purple surface - brighter */
+    --secondary-foreground: 260 10% 95%;
+    --muted: 260 25% 22%;
+    /* Brighter muted for visibility */
+    --muted-foreground: 260 15% 75%;
+    /* Brighter muted text */
+    --accent: 190 100% 55%;
+    /* Cyan neon accent - high visibility */
+    --accent-foreground: 260 40% 4%;
     --destructive: 0 100% 60%;
-    --border: 280 50% 25%;
-    /* Purple border */
-    --input: 260 25% 12%;
-    --ring: 280 100% 65%;
+    --border: 280 60% 32%;
+    /* Purple border - brighter */
+    --input: 260 30% 14%;
+    --ring: 280 100% 70%;
 
-    /* Plasma Plex Neon custom palette */
-    --plasma-purple: 280 100% 65%;
+    /* Plasma Plex Neon custom palette - Enhanced visibility */
+    --plasma-purple: 280 100% 70%;
     --plasma-cyan: 190 100% 55%;
-    --plasma-magenta: 320 100% 60%;
-    --plasma-blue: 220 100% 60%;
-    --plasma-pink: 340 100% 65%;
-    --plasma-teal: 170 100% 45%;
-    --plasma-glow-intensity: 0.8;
+    --plasma-magenta: 320 100% 65%;
+    --plasma-blue: 220 100% 65%;
+    --plasma-pink: 340 100% 70%;
+    --plasma-teal: 170 100% 50%;
+    --plasma-green: 140 100% 55%;
+    --plasma-amber: 40 100% 60%;
+    --plasma-glow-intensity: 1;
+    
+    /* Cinematic Assembler specific colors */
+    --cinematic-bg: 260 40% 3%;
+    --cinematic-surface: 260 35% 8%;
+    --cinematic-surface-hover: 260 35% 12%;
+    --cinematic-border: 280 60% 35%;
+    --cinematic-border-glow: 280 100% 70%;
+    --cinematic-text-primary: 0 0% 100%;
+    --cinematic-text-secondary: 260 15% 80%;
+    --cinematic-text-muted: 260 15% 55%;
+    --cinematic-accent-indigo: 260 100% 70%;
+    --cinematic-accent-pink: 320 100% 65%;
+    --cinematic-accent-emerald: 160 100% 50%;
+    --cinematic-glow-purple: 280 100% 70%;
+    --cinematic-glow-cyan: 190 100% 55%;
   }
 }
 

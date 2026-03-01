@@ -23,7 +23,9 @@ export type WizardType =
   | 'audio-production-wizard'
   | 'video-editor-wizard'
   | 'comic-to-sequence-wizard'
-  | 'marketing-wizard';
+  | 'marketing-wizard'
+  | 'discovery-lab'
+  | 'project-translator';
 
 // Character filter types for character integration system
 // Requirements: 9.3
@@ -110,12 +112,17 @@ interface AppState {
   showVideoEditorWizard: boolean;
   showComicToSequenceWizard: boolean;
   showMarketingWizard: boolean;
+  showDiscoveryLab: boolean;
+  showProjectTranslator: boolean;
   marketingWizardContext: {
     projectId: string;
     projectName: string;
     storySummary?: string;
     characters?: string[];
     scenes?: string[];
+    themes?: string[];
+    conflict?: string;
+    stakes?: string;
   } | null;
 
   // Production wizards state
@@ -220,6 +227,8 @@ interface AppState {
   closeComicToSequenceWizard: () => void;
   setShowMarketingWizard: (show: boolean, context?: AppState['marketingWizardContext']) => void;
   closeMarketingWizard: () => void;
+  setShowDiscoveryLab: (show: boolean) => void;
+  setShowProjectTranslator: (show: boolean) => void;
   openSequencePlanWizard: (context?: SequencePlanWizardContext) => void;
   closeSequencePlanWizard: () => void;
   openShotWizard: (context?: ShotWizardContext) => void;
@@ -336,6 +345,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   showComicToSequenceWizard: false,
   showMarketingWizard: false,
   marketingWizardContext: null,
+  showDiscoveryLab: false,
+  showProjectTranslator: false,
 
   // Generic wizard forms initial state (simple forms in GenericWizardModal)
   showDialogueWriter: false,
@@ -472,6 +483,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     showMarketingWizard: false,
     marketingWizardContext: null
   }),
+  setShowDiscoveryLab: (show) => {
+    if (show) get().closeActiveWizard();
+    set({ showDiscoveryLab: show });
+  },
+  setShowProjectTranslator: (show) => {
+    if (show) get().closeActiveWizard();
+    set({ showProjectTranslator: show });
+  },
   openSequencePlanWizard: (context) => {
     set({
       showSequencePlanWizard: true,
@@ -533,6 +552,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       ...(wizardType === 'scenario-builder' && { showScenarioBuilder: true }),
       ...(wizardType === 'dialogue-builder' && { showDialogueBuilder: true }),
       ...(wizardType === 'audio-production-wizard' && { showAudioProductionWizard: true }),
+      ...(wizardType === 'discovery-lab' && { showDiscoveryLab: true }),
+      ...(wizardType === 'project-translator' && { showProjectTranslator: true }),
     }),
 
   // Close active wizard (Requirement 3.3)
@@ -552,6 +573,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       showScenarioBuilder: false,
       showDialogueBuilder: false,
       showAudioProductionWizard: false,
+      showDiscoveryLab: false,
+      showProjectTranslator: false,
       activeWizardType: null,
     }),
 

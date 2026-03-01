@@ -1135,7 +1135,7 @@ const AIGenerationPanel: React.FC = () => {
             <div className="status-info">
               <span
                 className="status-indicator"
-                style={{ backgroundColor: getStatusColor(currentJob.status) }}
+                style={{ backgroundColor: getStatusColor(currentJob?.status || (activeTab === 'grok' ? grokStatus : 'idle')) }}
               ></span>
               <span className="status-text">
                 {(activeTab === 'grok' ? grokStatus : currentJob?.status || '').toUpperCase()} - {(activeTab === 'grok' ? 'Grok Imagine' : currentJob?.type?.replace('_', ' ') || '').toUpperCase()}

@@ -6,6 +6,7 @@ import { ProjectService } from './ProjectService';
 import { RecentProjectsManager } from './RecentProjectsManager';
 import { ConfigStorage } from './ConfigStorage';
 import { IPCHandlers } from './ipcChannels';
+import { CaptureService } from './services/CaptureService';
 // DISABLED: TOS Dialog imports (dialog has been disabled)
 // import { createTOSWindow } from './tosDialogManager';
 // import { TOSStorageService } from './tosStorageService';
@@ -27,8 +28,8 @@ function getIconPath(): string | undefined {
     path.join(process.resourcesPath, 'StorycoreIconeV2.png'),
     path.join(process.resourcesPath, 'build', 'icon.ico'),
     // Development paths (when running from source)
-    path.join(__dirname, '../../StorycoreIconeV2.png'),
-    path.join(__dirname, '../../build/icon.ico'),
+    path.join(__dirname, '../StorycoreIconeV2.png'),
+    path.join(__dirname, '../build/icon.ico'),
   ];
 
   for (const iconPath of possiblePaths) {
@@ -466,6 +467,7 @@ async function initialize(): Promise<void> {
 
     // Initialize services and IPC handlers
     initializeServices();
+    new CaptureService(); // Initialize capture service handlers
 
     // Register global shortcut for voice activation (Alt+Space)
     try {

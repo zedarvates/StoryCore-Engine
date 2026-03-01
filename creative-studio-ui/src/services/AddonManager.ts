@@ -398,6 +398,22 @@ export class AddonManager {
           icon: '📤'
         });
         break;
+      case 'lip-sync':
+        defaultActions.push({
+          id: 'launch-wizard',
+          name: 'Lip-Sync Studio',
+          description: 'Synchroniser les lèvres du personnage avec un audio',
+          icon: '👄'
+        });
+        break;
+      case 'recap-engine':
+        defaultActions.push({
+          id: 'generate-recap',
+          name: 'Générer Récapitulatif',
+          description: 'Créer un résumé automatique des scènes sélectionnées',
+          icon: '📝'
+        });
+        break;
       default:
         break;
     }
@@ -516,6 +532,15 @@ export class AddonManager {
             break;
           case 'seed-dance':
             await import('@/addons/seed-dance');
+            break;
+          case 'lip-sync':
+            await import('@/addons/lip-sync');
+            break;
+          case 'recap-engine':
+            await import('@/addons/recap-engine');
+            break;
+          case 'mcp-ui':
+            await import('@/addons/mcp');
             break;
           default:
             logger.warn(`[AddonManager] Unknown builtin addon: ${addon.id}`);
@@ -730,6 +755,42 @@ export class AddonManager {
       builtin: true,
       icon: '🎨',
       tags: ['comic', 'manga', 'webtoon', 'bd', 'narrative', 'visual-storytelling']
+    });
+
+    // LipSync Add-on
+    this.registerAddon({
+      id: 'lip-sync',
+      name: 'LipSync Studio',
+      description: 'Synchronisation labiale avancée pour personnages animés utilisant la technologie wav2lip et audio-to-face AI.',
+      version: '1.0.0',
+      author: 'StoryCore AI',
+      category: 'processing',
+      builtin: true,
+      tags: ['animation', 'lip-sync', 'video', 'characters']
+    });
+
+    // Recap Engine Add-on
+    this.registerAddon({
+      id: 'recap-engine',
+      name: 'Recap Engine',
+      description: 'Génération automatique de résumés de scènes et de "highlighs" pour les récapitulatifs de production.',
+      version: '1.0.0',
+      author: 'StoryCore AI',
+      category: 'processing',
+      builtin: true,
+      tags: ['recap', 'summary', 'production', 'post-production']
+    });
+
+    // MCP UI Add-on
+    this.registerAddon({
+      id: 'mcp-ui',
+      name: 'MCP Dashboard',
+      description: 'Interface de gestion pour le Model Context Protocol (MCP) permettant de gérer les outils et ressources IA.',
+      version: '1.0.0',
+      author: 'StoryCore Team',
+      category: 'ui',
+      builtin: true,
+      tags: ['mcp', 'ui', 'dashboard', 'ai-tools']
     });
   }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { LandingChatBox } from '@/components/launcher/LandingChatBox';
 
 /**
@@ -27,12 +27,23 @@ export function DetachedChatPage() {
   }, [isElectron]);
 
   return (
-    <div className="h-screen w-screen bg-gray-900 overflow-hidden">
+    <div className="flex flex-col h-screen w-screen bg-gray-900 overflow-hidden">
       {/* Header with title */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">🤖</span>
-          <h1 className="text-lg font-semibold text-white">StoryCore Assistant</h1>
+      <div className="flex-none flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700 shadow-lg">
+        <div className="flex items-center gap-3">
+          <img 
+            src="/StorycoreIconeV2.png" 
+            alt="Logo" 
+            className="w-6 h-6 object-contain"
+            onError={(e) => {
+              // Fallback if image not found (public folder might not be served correctly in some contexts)
+              (e.target as HTMLImageElement).style.display = 'none';
+              const span = (e.target as HTMLImageElement).parentElement?.querySelector('span');
+              if (span) span.style.display = 'block';
+            }}
+          />
+          <span className="text-xl hidden" aria-hidden="true">🤖</span>
+          <h1 className="text-base font-bold text-white tracking-tight">StoryCore Assistant</h1>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-400">
@@ -41,11 +52,10 @@ export function DetachedChatPage() {
         </div>
       </div>
 
-      {/* Chat component - full height minus header */}
-      <div className="h-[calc(100vh-48px)]">
+      {/* Chat component - full height remaining */}
+      <div className="flex-1 overflow-hidden">
         <LandingChatBox
-          height={window.innerHeight - 48}
-          context="landing"
+          height="100%"
           isDetached={true}
         />
       </div>

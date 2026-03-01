@@ -45,3 +45,6 @@ export type { SkyboxPanelProps } from './SkyboxPanel';
 
 export { LocationAssetsPanel } from './LocationAssetsPanel';
 export type { LocationAssetsPanelProps } from './LocationAssetsPanel';
+
+export { ImageLocationCreator } from './ImageLocationCreator';
+export type { ImageLocationCreatorProps } from './ImageLocationCreator';

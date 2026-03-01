@@ -4,7 +4,7 @@
  * Interface utilisateur pour activer/désactiver les add-ons
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { addonManager, AddonInfo } from '@/services/AddonManager';
 import {
   Puzzle,
@@ -83,7 +83,7 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: `Échec de la sauvegarde: ${error.message}`,
+        description: `Échec de la sauvegarde: ${error instanceof Error ? error.message : String(error)}`,
         variant: 'destructive'
       });
     }
@@ -106,7 +106,7 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: `Échec de la restauration: ${error.message}`,
+        description: `Échec de la restauration: ${error instanceof Error ? error.message : String(error)}`,
         variant: 'destructive'
       });
     }
@@ -162,17 +162,17 @@ export function AddonsPanel({ className = '', onOpenSettings }: AddonsPanelProps
   const getCategoryColor = (category: AddonInfo['category']) => {
     switch (category) {
       case 'ui':
-        return 'bg-blue-500/20 text-blue-400 dark:text-blue-300';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300';
       case 'processing':
-        return 'bg-green-500/20 text-green-400 dark:text-green-300';
+        return 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300';
       case 'export':
-        return 'bg-purple-500/20 text-purple-400 dark:text-purple-300';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300';
       case 'integration':
-        return 'bg-orange-500/20 text-orange-400 dark:text-orange-300';
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300';
       case 'utility':
-        return 'bg-muted text-muted-foreground';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
       default:
-        return 'bg-muted text-muted-foreground';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
 

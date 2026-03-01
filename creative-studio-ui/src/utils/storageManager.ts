@@ -18,7 +18,7 @@ export class StorageManager {
     let size = 0;
     try {
       for (const key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
           size += localStorage[key].length + key.length;
         }
       }

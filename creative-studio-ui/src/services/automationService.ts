@@ -112,6 +112,15 @@ export interface GrokGenerationParams {
   config_overrides?: Record<string, unknown>;
 }
 
+export interface CinematicPromptParams {
+  narrative_description: string;
+  visual_style: string;
+  shot_type?: string;
+  camera_movement?: string;
+  lighting_mood?: string;
+  characters?: string[];
+}
+
 export interface GrokGenerationResponse {
   status: 'success' | 'error';
   video?: string;
@@ -137,6 +146,67 @@ export interface GenerationJob {
   started_at?: string;
   completed_at?: string;
   progress?: number;
+}
+
+export interface AudioRhythmMarker {
+  time: number;
+  type: 'major' | 'minor';
+  energy: number;
+}
+
+export interface AudioRhythmData {
+  audio_id: string;
+  bpm: number;
+  duration: number;
+  markers: AudioRhythmMarker[];
+}
+
+export interface JLCutShot {
+  id: string;
+  duration: number;
+  audio_offset?: number;
+  audio_duration?: number;
+}
+
+export interface InvisibleEditingResponse {
+  shots: JLCutShot[];
+  applied_pattern: string;
+  total_overlap: number;
+}
+
+export interface CinematicVisualResult {
+  job_id: string;
+  shot_id: string;
+  enhanced_prompt: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+}
+
+// --- Phase 2: Narrative Intelligence & Distribution ---
+export interface PaperBeat {
+  segment_title: string;
+  transcript_quote: string;
+  narrative_function: string;
+  visual_suggestion: string;
+  estimated_duration: number;
+}
+
+export interface PaperEditResponse {
+  project_id: string;
+  structure_found: string;
+  beats: PaperBeat[];
+  themes_identified: string[];
+}
+
+export interface PlatformPost {
+  platform: string;
+  caption: string;
+  hashtags: string[];
+  hook_timer: string;
+}
+
+export interface SocialMediaAdaptResponse {
+  posts: PlatformPost[];
+  viral_score: number;
 }
 
 export interface JobQueueState {
@@ -414,6 +484,40 @@ class AutomationService {
     return response.data;
   }
 
+  /**
+   * Specifically for Phase 1: Cinematic Assembly
+   * Converts a narrative description into a technical visual prompt
+   */
+  async enhanceCinematicVisualPrompt(params: CinematicPromptParams): Promise<string> {
+    const llmClient = axios.create({
+      baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:8001') + '/api/llm'
+    });
+
+    // 1. Render the cinematic template
+    const renderResponse = await llmClient.post('/render-template', {
+      template_name: 'cinematic_visual_prompting',
+      variables: {
+        narrative_description: params.narrative_description,
+        visual_style: params.visual_style || 'Cinematic Realism',
+        shot_type: params.shot_type || 'Medium Shot',
+        camera_movement: params.camera_movement || 'Static',
+        lighting_mood: params.lighting_mood || 'Cinematic',
+        characters: params.characters?.join(', ') || 'None'
+      }
+    });
+
+    const renderedPrompt = renderResponse.data.rendered_prompt;
+
+    // 2. Generate the enhanced prompt
+    const generateResponse = await llmClient.post('/generate', {
+      prompt: renderedPrompt,
+      max_tokens: 1024,
+      temperature: 0.7
+    });
+
+    return generateResponse.data.text;
+  }
+
   async getPromptStyles(): Promise<{
     styles: string[];
     lighting: string[];
@@ -432,6 +536,56 @@ class AutomationService {
 
   async getGrokStatus(): Promise<Record<string, unknown>> {
     const response = await this.client.get('/api/addons/grok-imagine/status');
+    return response.data;
+  }
+
+  // ==================== AUDIO RHYTHM LOCK (P1) ====================
+  
+  /**
+   * Analyzes an audio file for beat markers and energy
+   */
+  async analyzeAudioRhythm(projectId: string, audioId: string): Promise<AudioRhythmData> {
+    const client = axios.create({
+      baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:8001') + '/api/audio'
+    });
+    const response = await client.post('/analyze-rhythm', { project_id: projectId, audio_id: audioId });
+    return response.data;
+  }
+
+  /**
+   * Applies J-cuts or L-cuts to a sequence of shots
+   */
+  async applyInvisibleEditing(shots: JLCutShot[], overlap: number = 1.0, pattern: 'j-cut' | 'l-cut' | 'smart' = 'j-cut'): Promise<InvisibleEditingResponse> {
+    const response = await this.client.post('/invisible-editing/apply', {
+      shots,
+      overlap_duration: overlap,
+      pattern
+    });
+    return response.data;
+  }
+
+  // ==================== PHASE 2: NARRATIVE & DISTRIBUTION ====================
+
+  /**
+   * Generates a "Paper Edit" from a transcript using Narrative Intelligence (Phase 2)
+   */
+  async createPaperEdit(transcript: string, structure: string = 'Classic 3-Act', duration: number = 2.0): Promise<PaperEditResponse> {
+    const response = await this.client.post('/narrative/paper-edit', {
+      transcript,
+      structure_type: structure,
+      target_duration_minutes: duration
+    });
+    return response.data;
+  }
+
+  /**
+   * Generates a social media distribution pack (Phase 2)
+   */
+  async generateSocialPack(summary: string, platforms: string[] = ['TikTok', 'YouTube Shorts', 'LinkedIn']): Promise<SocialMediaAdaptResponse> {
+    const response = await this.client.post('/distribution/social-pack', {
+      project_summary: summary,
+      platforms
+    });
     return response.data;
   }
 

@@ -96,6 +96,7 @@ class IdentityProfile:
     name: str = ""
     description: str = ""
     visual_attributes: VisualAttributes = field(default_factory=VisualAttributes)
+    owner_id: Optional[str] = None
     
     # Prompts de référence générés
     base_prompt: str = ""  # Prompt de base pour toutes les générations
@@ -119,7 +120,8 @@ class IdentityProfile:
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "project_id": self.project_id,
-            "is_locked": self.is_locked
+            "is_locked": self.is_locked,
+            "owner_id": self.owner_id
         }
     
     @classmethod
@@ -135,7 +137,8 @@ class IdentityProfile:
             created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now(),
             updated_at=datetime.fromisoformat(data["updated_at"]) if "updated_at" in data else datetime.now(),
             project_id=data.get("project_id", ""),
-            is_locked=data.get("is_locked", False)
+            is_locked=data.get("is_locked", False),
+            owner_id=data.get("owner_id")
         )
 
 
@@ -178,7 +181,8 @@ class IdentityLockService:
         name: str, 
         description: str,
         project_id: str,
-        source_image_path: Optional[str] = None
+        source_image_path: Optional[str] = None,
+        owner_id: Optional[str] = None
     ) -> IdentityProfile:
         """Crée un nouveau profil d'identité"""
         await self._ensure_loaded()
@@ -186,7 +190,8 @@ class IdentityLockService:
         identity = IdentityProfile(
             name=name,
             description=description,
-            project_id=project_id
+            project_id=project_id,
+            owner_id=owner_id
         )
         if source_image_path:
             identity.visual_attributes.source_image_path = source_image_path
@@ -388,6 +393,7 @@ class IdentityLockService:
                     if hasattr(identity.visual_attributes, attr_key):
                         setattr(identity.visual_attributes, attr_key, attr_value)
             elif hasattr(identity, key) and key not in ["id", "created_at", "is_locked"]:
+                # SECURITY: is_locked can only be modified via dedicated unlock_identity method
                 setattr(identity, key, value)
         
         identity.updated_at = datetime.now()

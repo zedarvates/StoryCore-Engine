@@ -23,7 +23,14 @@ import type { StoryObject } from './object';
 import type { ShotType, TransitionType, ComfyUIParameters } from './shot';
 import type { SequencePlan } from './sequencePlan';
 import type { DialoguePhrase, GenerationRecord } from './projectDashboard';
-import type { ProjectSetupData, ProjectConstraint } from './project';
+import type { ProjectSetupData } from './project';
+import type { 
+  Effect, 
+  EffectParameter, 
+  EffectKeyframe, 
+  AppliedEffect, 
+  EffectStackProps 
+} from './effect';
 
 
 // Project Setup Types are now in project.ts
@@ -49,7 +56,8 @@ export interface Shot {
   progress?: number;
   promoted_panel_path?: string;
 
-  // CamelCase Aliases (for dashboard/store compatibility)
+  // Dashboard / Generation compatibility
+  animationPrompt?: string;
   sequenceId?: string;
   startTime?: number;
   generatedImageUrl?: string;
@@ -292,14 +300,14 @@ export interface Transition {
   parameters?: Record<string, unknown>;
 }
 
-export interface Effect {
-  id: string;
-  type: string; // 'filter' | 'adjustment' | 'overlay' or custom
-  name: string; // e.g., "vintage", "blur", "brightness"
-  enabled?: boolean;
-  intensity?: number; // 0-100
-  parameters?: Record<string, unknown>; // effect-specific parameters
-}
+// Re-export Effect types
+export type { 
+  Effect, 
+  EffectParameter, 
+  EffectKeyframe, 
+  AppliedEffect, 
+  EffectStackProps 
+};
 
 // ============================================================================
 // Text and Animation Types
