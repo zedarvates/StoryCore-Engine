@@ -1,0 +1,25 @@
+{
+  "name": "content_sensitivity",
+  "version": "1.1.0",
+  "type": "workflow_addon",
+  "author": "StoryCore Team",
+  "description": "Content sensitivity detection addon – analyse culturelle, religieuse, politique + notation PEGI + censure automatique (pixelisation d'images, filtrage textuel, alternatives vestimentaires)",
+  "compatibility": {
+    "engine_version": ">=2.0.0",
+    "python_version": ">=3.9"
+  },
+  "permissions": ["model_access", "file_system_read", "file_system_write", "config_access"],
+  "entry_points": {
+    "main": "src/main.js"
+  },
+  "dependencies": {
+    "sharp": ">=0.33.0",
+    "perspective-api-client": ">=1.0.0"
+  },
+  "metadata": {
+    "tags": ["content", "sensitivity", "cultural", "pegi", "rating", "censorship", "pixelation"],
+    "homepage": "https://github.com/storycore/content_sensitivity",
+    "license": "MIT",
+    "keywords": ["storycore", "addon", "content", "sensitivity", "pegi", "cultural", "pixelation", "censorship"]
+  }
+}

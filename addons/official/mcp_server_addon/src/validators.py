@@ -488,17 +488,32 @@ class MCPValidator:
             }
     
     def _check_rate_limit(self) -> SecurityCheck:
-        """Vérifie le taux de requêtes"""
-        # Implémentation simplifiée
-        issues = []
-        recommendations = []
+        """Vérifie le taux de requêtes avec un limiteur glissant basique"""
+        import time
         
-        # TODO: Implémenter un vrai système de rate limiting
-        # Pour l'instant, toujours passer
+        if not hasattr(self, '_request_history'):
+            self._request_history = []
+            
+        current_time = time.time()
+        
+        # Nettoyer l'historique (garder seulement les requêtes de la dernière minute)
+        self._request_history = [t for t in self._request_history if current_time - t < 60]
+        
+        # Limite par défaut : 60 requêtes par minute
+        max_requests = self.rate_limit.get('requests_per_minute', 60)
+        
+        if len(self._request_history) >= max_requests:
+            return SecurityCheck(
+                passed=False,
+                issues=["Rate limit exceeded"],
+                recommendations=[f"Maximum {max_requests} requests per minute allowed."]
+            )
+            
+        self._request_history.append(current_time)
         return SecurityCheck(
             passed=True,
-            issues=issues,
-            recommendations=recommendations
+            issues=[],
+            recommendations=[]
         )
     
     def _check_suspicious_payload(self, message_data: Dict[str, Any]) -> SecurityCheck:

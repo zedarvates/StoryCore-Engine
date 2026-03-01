@@ -1,0 +1,53 @@
+{
+  "id": "casting_studio",
+  "name": "Casting Studio",
+  "version": "0.8.0",
+  "status": "beta",
+  "description": "Manage character consistency and varied actor performances across multiple shots and sequences. Ensures that every appearance of a character stays visually and emotionally coherent throughout your production.",
+  "author": "StoryCore Team",
+  "license": "MIT",
+  "entry_point": "addon.py",
+  "engine_version_min": "1.0.0",
+  "permissions": ["read_project", "read_assets", "write_assets", "read_characters"],
+  "hooks": [
+    "on_project_load",
+    "on_before_generate",
+    "on_image_ready",
+    "on_character_create"
+  ],
+  "dependencies": {
+    "python": ["numpy>=1.24", "Pillow>=9.0"],
+    "optional": ["insightface", "facenet-pytorch"]
+  },
+  "config_schema": {
+    "consistency_threshold": {
+      "type": "number",
+      "default": 0.90,
+      "minimum": 0.50,
+      "maximum": 1.0,
+      "description": "Face embedding similarity threshold for character consistency (0.90 = strict)"
+    },
+    "auto_inject_reference": {
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically inject character reference sheet embeddings into every generation prompt"
+    },
+    "generate_reference_sheets": {
+      "type": "boolean",
+      "default": true,
+      "description": "Auto-generate Face/Profile/Back reference sheets on first character appearance"
+    },
+    "performance_variants": {
+      "type": "integer",
+      "default": 3,
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Number of emotional performance variants to pre-generate per character"
+    },
+    "flagging": {
+      "type": "boolean",
+      "default": true,
+      "description": "Flag images where character similarity drops below threshold for manual review"
+    }
+  }
+}

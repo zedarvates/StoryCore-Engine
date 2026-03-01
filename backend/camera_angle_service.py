@@ -29,6 +29,8 @@ from backend.camera_angle_types import (
     CameraAngleResult,
     CameraAngleRequest,
     CAMERA_ANGLE_PRESET_METADATA,
+    LensType,
+    LENS_TYPE_METADATA,
 )
 from backend.storage import JSONFileStorage
 from backend.config import settings, get_comfyui_url
@@ -191,6 +193,7 @@ class CameraAngleService:
         preset: CameraAnglePreset,
         user_id: str,
         custom_prompt: Optional[str] = None,
+        lens_type: LensType = LensType.STANDARD,
         quality: str = "standard",
         preserve_style: bool = True,
         seed: Optional[int] = None
@@ -216,7 +219,8 @@ class CameraAngleService:
             preserve_style=preserve_style,
             quality=quality,
             seed=seed,
-            custom_prompt=custom_prompt
+            custom_prompt=custom_prompt,
+            lens_type=lens_type
         )
         
         job_id = self._create_job(request, user_id)
@@ -308,6 +312,7 @@ class CameraAngleService:
             quality=request.quality,
             seed=request.seed,
             custom_prompt=request.custom_prompt,
+            lens_type=request.lens_type,
             comfyui_url=request.comfyui_url or self.comfyui_url,
             status=CameraAngleJobStatus.PENDING,
             remaining_angles=[a.value for a in (request.angle_ids or [])] + 
@@ -427,6 +432,7 @@ class CameraAngleService:
         # Convert enums to values
         job_data['status'] = job.status.value
         job_data['angle_ids'] = [a.value for a in job.angle_ids]
+        job_data['lens_type'] = job.lens_type.value
         job_data['granular_angles'] = [a.model_dump() for a in job.granular_angles]
         job_data['completed_angles'] = job.completed_angles
         job_data['remaining_angles'] = job.remaining_angles
@@ -455,10 +461,8 @@ class CameraAngleService:
             
             # Check ComfyUI connection
             if not await self.check_comfyui_connection(job.comfyui_url):
-                # Use mock generation if ComfyUI not available
-                logger.warning(f"ComfyUI not available for job {job_id}, using mock generation")
-                await self._mock_process_job(job_id)
-                return
+                logger.error(f"ComfyUI not available for job {job_id}")
+                raise Exception("ComfyUI server is offline. Real media transformation requires a connection to ComfyUI.")
             
             # Process each angle
             results: List[CameraAngleResult] = []
@@ -545,73 +549,6 @@ class CameraAngleService:
             self._save_job(job)
             self._notify_progress(job_id, 0, f"Failed: {str(e)}")
     
-    async def _mock_process_job(self, job_id: str) -> None:
-        """
-        Mock processing for testing without ComfyUI.
-        
-        Args:
-            job_id: Job identifier
-        """
-        job = self._jobs.get(job_id)
-        if not job:
-            return
-        
-        results: List[CameraAngleResult] = []
-        total_angles = len(job.angle_ids)
-        
-        for i, angle_id in enumerate(job.angle_ids):
-            # Check for cancellation
-            if job.status == CameraAngleJobStatus.CANCELLED:
-                return
-            
-            job.current_step = f"Generating {CAMERA_ANGLE_PRESET_METADATA[angle_id.value]['display_name']}"
-            self._save_job(job)
-            self._notify_progress(
-                job_id,
-                (i / total_angles) * 100,
-                job.current_step
-            )
-            
-            # Simulate processing time
-            await asyncio.sleep(1.0)
-            
-            # Create mock result
-            result = CameraAngleResult(
-                id=str(uuid.uuid4()),
-                angle_id=angle_id,
-                original_image_base64=job.image_base64[:100] + "...",  # Truncated for mock
-                generated_image_base64="mock_generated_image_base64",
-                prompt_used=self._build_prompt(job, angle_id),
-                generation_time_seconds=1.0,
-                metadata={
-                    "model": "mock_model",
-                    "steps": QUALITY_SETTINGS.get(job.quality, QUALITY_SETTINGS["standard"])["steps"],
-                    "cfg_scale": QUALITY_SETTINGS.get(job.quality, QUALITY_SETTINGS["standard"])["cfg_scale"],
-                    "mock": True
-                }
-            )
-            
-            results.append(result)
-            job.completed_angles.append(angle_id)
-            if angle_id in job.remaining_angles:
-                job.remaining_angles.remove(angle_id)
-            
-            job.progress = ((i + 1) / total_angles) * 100
-            self._save_job(job)
-        
-        # Store results
-        self._results[job_id] = results
-        
-        # Mark job as completed
-        job.status = CameraAngleJobStatus.COMPLETED
-        job.completed_at = datetime.utcnow()
-        job.progress = 100.0
-        job.current_step = "Completed"
-        self._save_job(job)
-        self._notify_progress(job_id, 100, "Completed")
-        
-        logger.info(f"Mock job {job_id} completed with {len(results)} results")
-    
     def _build_prompt(
         self,
         job: CameraAngleJob,
@@ -641,6 +578,10 @@ class CameraAngleService:
         # Add custom prompt if provided
         if job.custom_prompt:
             parts.append(job.custom_prompt)
+        
+        # Add lens characteristics (Delrama simulation)
+        lens_meta = LENS_TYPE_METADATA.get(job.lens_type.value, LENS_TYPE_METADATA[LensType.STANDARD.value])
+        parts.append(lens_meta["prompt_suffix"])
         
         return ", ".join(parts)
     

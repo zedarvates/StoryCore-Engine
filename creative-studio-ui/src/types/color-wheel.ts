@@ -1,0 +1,1 @@
+export type ColorWheelType = 'lift' | 'gamma' | 'gain' | 'offset' | 'contrast' | 'pivot' | 'saturation' | 'hue' | 'temperature' | 'tint';

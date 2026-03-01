@@ -30,6 +30,8 @@ import time
 import shutil
 import zipfile
 import hashlib
+import ffmpeg
+import subprocess
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -394,31 +396,105 @@ class AssemblyExportEngine:
             logger.warning("No audio output directory found")
             audio_files = []
         
-        # Mock video assembly
-        if self.mock_mode:
-            # Create mock assembled video
-            assembled_video_path = assembly_dir / "assembled_video.mp4"
-            with open(assembled_video_path, 'w') as f:
-                f.write(f"# Mock assembled video file\n")
-                f.write(f"# Format: {settings.format.value}\n")
-                f.write(f"# Resolution: {settings.resolution}\n")
-                f.write(f"# Frame rate: {settings.frame_rate} fps\n")
-                f.write(f"# Video sequences: {len(video_files)}\n")
-                f.write(f"# Assembly timestamp: {time.time()}\n")
-            
-            # Create mock assembled audio
-            assembled_audio_path = assembly_dir / "assembled_audio.wav"
-            with open(assembled_audio_path, 'w') as f:
-                f.write(f"# Mock assembled audio file\n")
-                f.write(f"# Audio bitrate: {settings.audio_bitrate}\n")
-                f.write(f"# Audio tracks: {len(audio_files)}\n")
-                f.write(f"# Assembly timestamp: {time.time()}\n")
-            
-            logger.info(f"Mock media assembly complete")
-            return assembled_video_path, assembled_audio_path
+        # Real assembly using FFmpeg
+        logger.info(f"Real media assembly starting - Mock mode: {self.mock_mode}")
         
-        # Real assembly would use FFmpeg or similar
-        raise NotImplementedError("Real media assembly not implemented")
+        try:
+            # 1. Identify all shot videos in sequence
+            video_clips = []
+            
+            # If project_data has storyboard, use it to find shot files
+            if "storyboard" in project_data:
+                for shot in project_data["storyboard"].get("shots", []):
+                    # In a real scenario, we'd have the actual video file path for each shot
+                    # Here we assume a convention: project_path / shots / shot_{id}.mp4
+                    shot_id = shot.get("id")
+                    shot_path = project_path / "shots" / f"shot_{shot_id}.mp4"
+                    if shot_path.exists():
+                        video_clips.append(shot_path)
+            
+            # If no storyboard shots found, look in video_output
+            if not video_clips and video_output_dir.exists():
+                video_clips = sorted(list(video_output_dir.glob("shot_*.mp4")))
+            
+            if not video_clips:
+                if self.mock_mode:
+                    # Fallback to mock in mock mode if no files found
+                    return self._create_mock_assembly(assembly_dir, settings, video_files, audio_files)
+                raise FileNotFoundError("No video shots found for assembly")
+            
+            # 2. Concatenate video clips
+            assembled_video_path = assembly_dir / "assembled_video.mp4"
+            
+            # Create a file list for ffmpeg concat demuxer
+            concat_list = assembly_dir / "concat_list.txt"
+            with open(concat_list, 'w') as f:
+                for clip in video_clips:
+                    f.write(f"file '{clip.absolute().as_posix()}'\n")
+            
+            # Run concatenation
+            (
+                ffmpeg
+                .input(str(concat_list), format='concat', safe=0)
+                .output(str(assembled_video_path), c='copy')
+                .overwrite_output()
+                .run(quiet=True)
+            )
+            
+            # 3. Handle Audio
+            assembled_audio_path = assembly_dir / "assembled_audio.wav"
+            
+            # Try to find audio stems or manifest
+            # For now, if audio_output has a final mix, use it
+            final_mix = project_path / "audio_output" / "final_mix.wav"
+            if final_mix.exists():
+                shutil.copy2(final_mix, assembled_audio_path)
+            else:
+                # If no audio, create a silent track of the same duration
+                # or just return mock if requested
+                if self.mock_mode:
+                    with open(assembled_audio_path, 'w') as f:
+                        f.write("# Mock silent audio\n")
+                else:
+                    # Use ffmpeg to generate silence
+                    dur_cmd = ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', str(assembled_video_path)]
+                    duration = float(subprocess.check_output(dur_cmd).strip())
+                    (
+                        ffmpeg
+                        .input(f'anullsrc=r=44100:cl=stereo', f='lavfi', t=duration)
+                        .output(str(assembled_audio_path))
+                        .overwrite_output()
+                        .run(quiet=True)
+                    )
+            
+            return assembled_video_path, assembled_audio_path
+            
+        except Exception as e:
+            logger.error(f"FFmpeg assembly error: {e}")
+            if self.mock_mode:
+                return self._create_mock_assembly(assembly_dir, settings, video_files, audio_files)
+            raise
+
+    def _create_mock_assembly(self, assembly_dir: Path, settings: ExportSettings, video_files: list, audio_files: list) -> Tuple[Path, Path]:
+        """Helper to create mock assembly files."""
+        assembled_video_path = assembly_dir / "assembled_video.mp4"
+        with open(assembled_video_path, 'w') as f:
+            f.write(f"# Mock assembled video file\n")
+            f.write(f"# Format: {settings.format.value}\n")
+            f.write(f"# Resolution: {settings.resolution}\n")
+            f.write(f"# Frame rate: {settings.frame_rate} fps\n")
+            f.write(f"# Video sequences: {len(video_files)}\n")
+            f.write(f"# Assembly timestamp: {time.time()}\n")
+        
+        assembled_audio_path = assembly_dir / "assembled_audio.wav"
+        with open(assembled_audio_path, 'w') as f:
+            f.write(f"# Mock assembled audio file\n")
+            f.write(f"# Audio bitrate: {settings.audio_bitrate}\n")
+            f.write(f"# Audio tracks: {len(audio_files)}\n")
+            f.write(f"# Assembly timestamp: {time.time()}\n")
+        
+        logger.info("Mock media assembly complete (fallback)")
+        return assembled_video_path, assembled_audio_path
     
     def _apply_final_processing(self, 
                               video_path: Path,
@@ -434,39 +510,78 @@ class AssemblyExportEngine:
         preset = self.quality_presets[settings.quality_preset]
         format_spec = self.format_specs[settings.format]
         
-        if self.mock_mode:
-            # Mock final processing
-            final_video_path = processing_dir / f"final_video.{settings.format.value}"
-            
-            with open(final_video_path, 'w') as f:
-                f.write(f"# Mock final processed video\n")
-                f.write(f"# Original video: {video_path.name}\n")
-                f.write(f"# Original audio: {audio_path.name}\n")
-                f.write(f"# Format: {settings.format.value}\n")
-                f.write(f"# Quality preset: {settings.quality_preset.value}\n")
-                f.write(f"# Resolution: {preset['resolution']}\n")
-                f.write(f"# Frame rate: {preset['frame_rate']} fps\n")
-                f.write(f"# Video bitrate: {preset['video_bitrate']}\n")
-                f.write(f"# Audio bitrate: {preset['audio_bitrate']}\n")
-                f.write(f"# Video codec: {format_spec['video_codec']}\n")
-                f.write(f"# Audio codec: {format_spec['audio_codec']}\n")
-                f.write(f"# Color depth: {preset['color_depth']} bit\n")
-                f.write(f"# Compression: {preset['compression']}\n")
-                f.write(f"# Processing timestamp: {time.time()}\n")
-                
-                # Add watermark info if specified
-                if settings.watermark:
-                    f.write(f"# Watermark: {settings.watermark}\n")
-                
-                # Add custom settings
-                if settings.custom_settings:
-                    f.write(f"# Custom settings: {json.dumps(settings.custom_settings)}\n")
-            
-            logger.info(f"Mock final processing complete: {final_video_path}")
-            return final_video_path
+        # Real processing using FFmpeg
+        logger.info(f"Real final processing starting - Format: {settings.format.value}")
         
-        # Real processing would use FFmpeg with color grading and audio mixing
-        raise NotImplementedError("Real final processing not implemented")
+        final_video_path = processing_dir / f"final_video.{settings.format.value}"
+        
+        try:
+            input_v = ffmpeg.input(str(video_path))
+            input_a = ffmpeg.input(str(audio_path))
+            
+            # Apply resolution and frame rate
+            v = input_v.filter('scale', preset['resolution'].split('x')[0], preset['resolution'].split('x')[1])
+            v = v.filter('fps', fps=preset['frame_rate'])
+            
+            # Apply watermark if needed
+            if settings.watermark:
+                # v = v.filter('drawtext', text=settings.watermark, ...)
+                pass
+            
+            # Output settings
+            output_args = {
+                'vcodec': format_spec['video_codec'],
+                'acodec': format_spec['audio_codec'],
+                'video_bitrate': preset['video_bitrate'],
+                'audio_bitrate': preset['audio_bitrate'],
+                'f': format_spec['container']
+            }
+            
+            if self.mock_mode:
+                return self._create_mock_final_video(final_video_path, video_path, audio_path, settings, preset, format_spec)
+
+            # Run ffmpeg
+            (
+                ffmpeg
+                .output(v, input_a, str(final_video_path), **output_args)
+                .overwrite_output()
+                .run(quiet=True)
+            )
+            
+            return final_video_path
+            
+        except Exception as e:
+            logger.error(f"FFmpeg processing error: {e}")
+            if self.mock_mode:
+                return self._create_mock_final_video(final_video_path, video_path, audio_path, settings, preset, format_spec)
+            raise
+
+    def _create_mock_final_video(self, final_video_path: Path, video_path: Path, audio_path: Path, settings: ExportSettings, preset: dict, format_spec: dict) -> Path:
+        """Helper to create mock final video file."""
+        with open(final_video_path, 'w') as f:
+            f.write(f"# Mock final processed video\n")
+            f.write(f"# Original video: {video_path.name}\n")
+            f.write(f"# Original audio: {audio_path.name}\n")
+            f.write(f"# Format: {settings.format.value}\n")
+            f.write(f"# Quality preset: {settings.quality_preset.value}\n")
+            f.write(f"# Resolution: {preset['resolution']}\n")
+            f.write(f"# Frame rate: {preset['frame_rate']} fps\n")
+            f.write(f"# Video bitrate: {preset['video_bitrate']}\n")
+            f.write(f"# Audio bitrate: {preset['audio_bitrate']}\n")
+            f.write(f"# Video codec: {format_spec['video_codec']}\n")
+            f.write(f"# Audio codec: {format_spec['audio_codec']}\n")
+            f.write(f"# Color depth: {preset['color_depth']} bit\n")
+            f.write(f"# Compression: {preset['compression']}\n")
+            f.write(f"# Processing timestamp: {time.time()}\n")
+            
+            if settings.watermark:
+                f.write(f"# Watermark: {settings.watermark}\n")
+            
+            if settings.custom_settings:
+                f.write(f"# Custom settings: {json.dumps(settings.custom_settings)}\n")
+        
+        logger.info(f"Mock final processing complete: {final_video_path}")
+        return final_video_path
     
     def _create_package_structure(self, 
                                 project_path: Path,

@@ -11,7 +11,7 @@ export const initialize = async () => {
     logger.info('[SeedDance] Initializing SeedDance Video Gen...');
 
     // Register specialized video generation actions
-    addonManager.trackEventListener('seed-dance', 'generate-video', async (event: any) => {
+    addonManager.trackEventListener('seed-dance', 'generate-video', async (_event: unknown) => {
         const settings = await addonManager.getAddonSettings('seed-dance');
 
         if (settings?.viralOptimization) {

@@ -1,0 +1,56 @@
+{
+  "id": "transitions_fx",
+  "name": "Transitions & FX Pack",
+  "version": "0.7.0",
+  "status": "beta",
+  "description": "Cinematic transitions and VFX compositing pack. Provides 25+ professional-grade transitions designed to match the mood and tension arc of your story. Also includes effects (glitch, neon flicker, film grain, color grade, vignette) that integrate with StoryCore's scene mood system.",
+  "author": "StoryCore Team",
+  "license": "MIT",
+  "entry_point": "addon.py",
+  "engine_version_min": "1.0.0",
+  "permissions": ["read_project", "read_assets", "write_assets", "write_video"],
+  "hooks": [
+    "on_before_assemble",
+    "on_clip_pair_ready",
+    "on_export_ready"
+  ],
+  "dependencies": {
+    "python": ["ffmpeg-python>=0.2.0"],
+    "system": ["ffmpeg>=5.0 with libfdk_aac"],
+    "optional": []
+  },
+  "config_schema": {
+    "default_transition": {
+      "type": "string",
+      "enum": [
+        "cut", "crossfade", "glitch_cut", "neon_wipe",
+        "cinematic_fade", "pixel_blur", "vertical_wipe",
+        "dramatic_zoom", "whip_pan", "black_flash"
+      ],
+      "default": "crossfade",
+      "description": "Transition type used when no scene-specific override is set"
+    },
+    "auto_mood_transitions": {
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically select transition type based on tension delta between scenes"
+    },
+    "transition_duration_ms": {
+      "type": "integer",
+      "default": 600,
+      "minimum": 100,
+      "maximum": 3000,
+      "description": "Transition duration in milliseconds"
+    },
+    "global_vfx": {
+      "type": "object",
+      "description": "VFX applied to the entire exported video",
+      "properties": {
+        "film_grain":      { "type": "boolean", "default": true },
+        "vignette":        { "type": "boolean", "default": true },
+        "color_grade":     { "type": "string",  "default": "cyberpunk_noir", "enum": ["none", "cyberpunk_noir", "warm_vintage", "cold_horror", "euphoric", "desaturated"] },
+        "flicker_enabled": { "type": "boolean", "default": false }
+      }
+    }
+  }
+}

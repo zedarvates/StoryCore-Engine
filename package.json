@@ -53,6 +53,7 @@
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "sharp": "^0.34.5",
     "typescript": "^5.9.3",
     "uuid": "^9.0.0"
   },

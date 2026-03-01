@@ -47,6 +47,21 @@ class GenerateProjectRequest(BaseModel):
     )
 
 
+class GenerateRLMRequest(BaseModel):
+    """Request for advanced RLM-based generation"""
+    prompt: str = Field(..., description="The complex request for the RLM brain")
+    massive_context: Optional[str] = Field(
+        default="", 
+        description="Optional massive context or reference text to slice and analyze"
+    )
+
+
+class GenerateRLMResponse(BaseModel):
+    """Response from the RLM engine"""
+    final_answer: str = Field(..., description="The highly refined and critique-corrected answer")
+    steps: Optional[List[str]] = Field(default=None, description="The internal exploration steps (if enabled)")
+
+
 class ScenePreview(BaseModel):
     """Scene preview in generated project"""
     id: str
@@ -248,3 +263,27 @@ class HealthResponse(BaseModel):
     storage_limit_gb: float = Field(..., description="Storage limit in GB")
     file_count: int = Field(..., description="Current file count")
     file_limit: int = Field(..., description="File count limit")
+
+
+# Knowledge Graph models
+class GraphNodeModel(BaseModel):
+    """Knowledge Graph node"""
+    name: str
+    type: str
+    attributes: Dict[str, Any]
+
+
+class GraphEdgeModel(BaseModel):
+    """Knowledge Graph edge"""
+    source: str
+    relation: str
+    target: str
+    scene_context: Optional[str] = None
+
+
+class GraphResponse(BaseModel):
+    """Knowledge Graph full data"""
+    nodes: List[GraphNodeModel]
+    edges: List[GraphEdgeModel]
+    stats: Dict[str, int]
+

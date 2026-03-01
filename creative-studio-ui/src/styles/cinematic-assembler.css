@@ -1,0 +1,505 @@
+/**
+ * Cinematic Assembler - Plasma Plex Neon Theme
+ * 
+ * Enhanced visibility with dark neon plasma aesthetic
+ * Automatically adapts to user theme preferences
+ */
+
+/* ============================================================================ */
+/* Base Container - Plasma Neon Style */
+/* ============================================================================ */
+
+.cinematic-assembler {
+  --ca-bg: hsl(var(--cinematic-bg, 260 40% 4%));
+  --ca-surface: hsl(var(--cinematic-surface, 260 35% 8%));
+  --ca-surface-hover: hsl(var(--cinematic-surface-hover, 260 35% 12%));
+  --ca-border: hsl(var(--cinematic-border, 280 60% 35%));
+  --ca-border-glow: hsl(var(--cinematic-border-glow, 280 100% 70%));
+  --ca-text-primary: hsl(var(--cinematic-text-primary, 0 0% 100%));
+  --ca-text-secondary: hsl(var(--cinematic-text-secondary, 260 15% 80%));
+  --ca-text-muted: hsl(var(--cinematic-text-muted, 260 15% 55%));
+  --ca-accent-indigo: hsl(var(--cinematic-accent-indigo, 260 100% 70%));
+  --ca-accent-pink: hsl(var(--cinematic-accent-pink, 320 100% 65%));
+  --ca-accent-emerald: hsl(var(--cinematic-accent-emerald, 160 100% 50%));
+  --ca-glow-purple: hsl(var(--cinematic-glow-purple, 280 100% 70%));
+  --ca-glow-cyan: hsl(var(--cinematic-glow-cyan, 190 100% 55%));
+  
+  background: linear-gradient(180deg, var(--ca-bg) 0%, hsl(260 45% 2%) 100%);
+  border: 1px solid var(--ca-border);
+  box-shadow: 
+    0 0 40px rgba(139, 92, 246, 0.1),
+    0 0 80px rgba(139, 92, 246, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Fallback for non-plasma themes */
+.dark .cinematic-assembler:not(.theme-plasma-plex-neon *) {
+  --ca-bg: hsl(240 20% 4%);
+  --ca-surface: hsl(240 20% 8%);
+  --ca-surface-hover: hsl(240 20% 12%);
+  --ca-border: hsl(240 20% 20%);
+  --ca-border-glow: hsl(220 100% 65%);
+  --ca-text-primary: hsl(0 0% 100%);
+  --ca-text-secondary: hsl(220 15% 75%);
+  --ca-text-muted: hsl(220 15% 50%);
+  --ca-accent-indigo: hsl(220 100% 65%);
+  --ca-accent-pink: hsl(320 100% 60%);
+  --ca-accent-emerald: hsl(160 100% 45%);
+}
+
+/* ============================================================================ */
+/* Header - Neon Glow Enhancement */
+/* ============================================================================ */
+
+.cinematic-header {
+  background: linear-gradient(90deg, 
+    rgba(139, 92, 246, 0.15) 0%, 
+    rgba(139, 92, 246, 0.05) 50%,
+    transparent 100%
+  );
+  border-bottom: 1px solid var(--ca-border);
+  position: relative;
+}
+
+.cinematic-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    var(--ca-glow-purple) 0%, 
+    transparent 50%,
+    var(--ca-glow-cyan) 100%
+  );
+  opacity: 0.5;
+}
+
+.cinematic-header-icon {
+  background: linear-gradient(135deg, var(--ca-accent-indigo) 0%, hsl(280 100% 60%) 100%);
+  box-shadow: 
+    0 0 20px rgba(139, 92, 246, 0.4),
+    0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.cinematic-header-title {
+  color: var(--ca-text-primary);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.cinematic-header-subtitle {
+  color: var(--ca-accent-indigo);
+  letter-spacing: 0.15em;
+}
+
+/* ============================================================================ */
+/* Cards & Panels - Glass Morphism with Neon */
+/* ============================================================================ */
+
+.cinematic-card {
+  background: linear-gradient(135deg, 
+    rgba(139, 92, 246, 0.08) 0%, 
+    rgba(30, 30, 50, 0.95) 100%
+  );
+  border: 1px solid var(--ca-border);
+  border-radius: 1rem;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cinematic-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--ca-glow-purple) 50%, 
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+.cinematic-card:hover {
+  border-color: var(--ca-border-glow);
+  box-shadow: 
+    0 0 30px rgba(139, 92, 246, 0.15),
+    0 10px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Identity Casting Card */
+.cinematic-identity-card {
+  background: rgba(139, 92, 246, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.cinematic-identity-card.selected {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--ca-accent-indigo);
+  box-shadow: 
+    0 0 25px rgba(139, 92, 246, 0.25),
+    inset 0 0 20px rgba(139, 92, 246, 0.05);
+}
+
+/* ============================================================================ */
+/* Buttons - Neon Glow Effects */
+/* ============================================================================ */
+
+.cinematic-btn-primary {
+  background: linear-gradient(135deg, 
+    var(--ca-text-primary) 0%, 
+    hsl(0 0% 95%) 100%
+  );
+  color: hsl(260 50% 15%);
+  font-weight: 800;
+  border-radius: 1rem;
+  box-shadow: 
+    0 0 30px rgba(255, 255, 255, 0.2),
+    0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.cinematic-btn-primary::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(139, 92, 246, 0.3) 50%, 
+    transparent 70%
+  );
+  animation: shimmer 3s infinite;
+  transform: translateX(-100%);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.cinematic-btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 0 40px rgba(255, 255, 255, 0.3),
+    0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.cinematic-btn-secondary {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: var(--ca-text-secondary);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.cinematic-btn-secondary:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--ca-accent-indigo);
+  color: var(--ca-text-primary);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.cinematic-btn-accent {
+  background: linear-gradient(135deg, var(--ca-accent-indigo) 0%, hsl(280 100% 60%) 100%);
+  color: white;
+  border-radius: 0.75rem;
+  box-shadow: 
+    0 0 25px rgba(139, 92, 246, 0.4),
+    0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.cinematic-btn-accent:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 0 35px rgba(139, 92, 246, 0.5),
+    0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.cinematic-btn-success {
+  background: linear-gradient(135deg, hsl(160 100% 40%) 0%, hsl(140 100% 35%) 100%);
+  color: white;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+}
+
+.cinematic-btn-success:hover {
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.5);
+}
+
+/* ============================================================================ */
+/* Audio Blueprint Section - Pink/Magenta Accent */
+/* ============================================================================ */
+
+.cinematic-audio-section {
+  background: linear-gradient(135deg, 
+    rgba(236, 72, 153, 0.1) 0%, 
+    rgba(139, 92, 246, 0.08) 100%
+  );
+  border: 1px solid rgba(236, 72, 153, 0.25);
+  border-radius: 1rem;
+}
+
+.cinematic-audio-section::before {
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--ca-accent-pink) 50%, 
+    transparent 100%
+  );
+}
+
+.cinematic-rhythm-bar {
+  background: linear-gradient(180deg, 
+    var(--ca-accent-pink) 0%, 
+    var(--ca-accent-indigo) 100%
+  );
+  border-radius: 2px 2px 0 0;
+  transition: all 0.2s ease;
+}
+
+.cinematic-rhythm-bar.major {
+  background: var(--ca-accent-pink);
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+}
+
+.cinematic-rhythm-bar.minor {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* ============================================================================ */
+/* Invisible Editing Section - Emerald/Teal */
+/* ============================================================================ */
+
+.cinematic-editing-section {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 1rem;
+  transition: all 0.5s ease;
+}
+
+.cinematic-editing-section.completed {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.15);
+}
+
+/* ============================================================================ */
+/* Progress & Status Indicators */
+/* ============================================================================ */
+
+.cinematic-step-indicator {
+  background: var(--ca-surface);
+  border: 1px solid var(--ca-border);
+  transition: all 0.3s ease;
+}
+
+.cinematic-step-indicator.active {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--ca-accent-indigo);
+  box-shadow: 
+    0 0 25px rgba(139, 92, 246, 0.2),
+    inset 0 0 15px rgba(139, 92, 246, 0.05);
+  transform: scale(1.01);
+}
+
+.cinematic-step-indicator.completed {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.cinematic-step-number {
+  background: var(--ca-surface-hover);
+  color: var(--ca-text-muted);
+  font-weight: 700;
+}
+
+.cinematic-step-indicator.active .cinematic-step-number {
+  background: var(--ca-accent-indigo);
+  color: white;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+}
+
+/* ============================================================================ */
+/* Completion State */
+/* ============================================================================ */
+
+.cinematic-completion {
+  background: linear-gradient(135deg, 
+    rgba(16, 185, 129, 0.15) 0%, 
+    rgba(30, 30, 50, 0.95) 100%
+  );
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 
+    0 0 50px rgba(16, 185, 129, 0.2),
+    inset 0 0 30px rgba(16, 185, 129, 0.05);
+}
+
+.cinematic-completion-icon {
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow: 
+    0 0 30px rgba(16, 185, 129, 0.4),
+    inset 0 0 20px rgba(16, 185, 129, 0.1);
+}
+
+/* ============================================================================ */
+/* Status Bar */
+/* ============================================================================ */
+
+.cinematic-status-bar {
+  background: rgba(0, 0, 0, 0.4);
+  border-top: 1px solid var(--ca-border);
+  backdrop-filter: blur(10px);
+}
+
+.cinematic-status-item {
+  color: var(--ca-text-muted);
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+}
+
+.cinematic-status-item:hover {
+  color: var(--ca-text-secondary);
+}
+
+.cinematic-status-item.highlight {
+  color: hsl(40 100% 60%);
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+}
+
+/* ============================================================================ */
+/* Loading States */
+/* ============================================================================ */
+
+.cinematic-loader {
+  position: relative;
+}
+
+.cinematic-loader::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+  animation: pulse-glow 2s ease-in-out infinite;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* ============================================================================ */
+/* Typography Enhancements */
+/* ============================================================================ */
+
+.cinematic-title {
+  color: var(--ca-text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.cinematic-subtitle {
+  color: var(--ca-text-secondary);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.cinematic-text-highlight {
+  color: var(--ca-accent-indigo);
+  font-weight: 600;
+}
+
+.cinematic-text-muted {
+  color: var(--ca-text-muted);
+}
+
+/* ============================================================================ */
+/* Responsive Adjustments */
+/* ============================================================================ */
+
+@media (max-width: 768px) {
+  .cinematic-assembler {
+    border-radius: 0;
+  }
+  
+  .cinematic-card {
+    border-radius: 0.75rem;
+  }
+  
+  .cinematic-btn-primary,
+  .cinematic-btn-secondary,
+  .cinematic-btn-accent {
+    border-radius: 0.5rem;
+  }
+}
+
+/* ============================================================================ */
+/* Accessibility - High Contrast Support */
+/* ============================================================================ */
+
+@media (prefers-contrast: high) {
+  .cinematic-assembler {
+    --ca-border: hsl(280 100% 80%);
+    --ca-text-primary: hsl(0 0% 100%);
+    --ca-text-secondary: hsl(0 0% 90%);
+    --ca-text-muted: hsl(0 0% 75%);
+  }
+  
+  .cinematic-card {
+    border-width: 2px;
+  }
+}
+
+/* ============================================================================ */
+/* Reduced Motion Support */
+/* ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-btn-primary::before {
+    animation: none;
+  }
+  
+  .cinematic-loader::after {
+    animation: none;
+  }
+  
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================================ */
+/* Theme-aware adjustments for non-plasma themes */
+/* ============================================================================ */
+
+.theme-dark-neon .cinematic-assembler,
+.theme-dark-onyx .cinematic-assembler {
+  --ca-accent-indigo: hsl(220 100% 65%);
+  --ca-glow-purple: hsl(220 100% 65%);
+}
+
+.theme-classic-slate .cinematic-assembler {
+  --ca-accent-indigo: hsl(199 89% 48%);
+  --ca-glow-purple: hsl(199 89% 48%);
+}
+
+.theme-classic-retro .cinematic-assembler {
+  --ca-accent-indigo: hsl(45 100% 50%);
+  --ca-glow-purple: hsl(45 100% 50%);
+  --ca-accent-pink: hsl(45 100% 60%);
+}

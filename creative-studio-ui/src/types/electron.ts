@@ -7,8 +7,23 @@ export interface ProjectData {
   name: string;
   location?: string;
   template?: string;
-  format?: Record<string, unknown>;
-  initialShots?: Record<string, unknown>[];
+  format?: ProjectFormat;
+  initialShots?: ShotData[];
+}
+
+export interface ProjectFormat {
+  aspectRatio: string;
+  resolution: string;
+  frameRate: number;
+  colorSpace: string;
+}
+
+export interface ShotData {
+  id: string;
+  name: string;
+  type: string;
+  duration: number;
+  parameters: Record<string, unknown>;
 }
 
 export interface Project {
@@ -18,7 +33,14 @@ export interface Project {
   version: string;
   createdAt: number; // timestamp
   modifiedAt: number; // timestamp
-  config: Record<string, unknown>;
+  config: ProjectConfig;
+}
+
+export interface ProjectConfig {
+  autoSave: boolean;
+  defaultOutput: string;
+  preferredModels: Record<string, string>;
+  theme: 'light' | 'dark' | 'system';
 }
 
 export interface RecentProject {
@@ -101,7 +123,7 @@ export interface ValidationResult {
     message: string;
     path?: string;
   }>;
-  config?: Record<string, unknown>;
+  config?: ProjectConfig;
 }
 
 export interface DirectoryItem {
@@ -157,8 +179,8 @@ export interface StoryCoreElectronAPI {
 
   // Sequence management
   sequence: {
-    updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, unknown>) => Promise<unknown>;
-    getShots: (projectPath: string, sequenceId: string) => Promise<unknown[]>;
+    updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Partial<ShotData>) => Promise<void>;
+    getShots: (projectPath: string, sequenceId: string) => Promise<ShotData[]>;
     getAll: (projectPath: string) => Promise<unknown[]>;
   };
 
@@ -218,31 +240,31 @@ export interface StoryCoreElectronAPI {
 
   // LLM integration
   llm: {
-    getConfig: () => Promise<Record<string, unknown>>;
-    updateConfig: (config: Record<string, unknown>) => Promise<Record<string, unknown>>;
-    testConnection: (provider: Record<string, unknown>) => Promise<{ success: boolean; message: string }>;
-    getModels: (provider: Record<string, unknown>) => Promise<unknown[]>;
+    getConfig: () => Promise<LLMConfig>;
+    updateConfig: (config: Partial<LLMConfig>) => Promise<LLMConfig>;
+    testConnection: (provider: LLMProvider) => Promise<{ success: boolean; message: string }>;
+    getModels: (provider: LLMProvider) => Promise<string[]>;
   };
 
   // ComfyUI integration
   comfyui: {
-    getConfig: () => Promise<Record<string, unknown>>;
-    updateConfig: (config: Record<string, unknown>) => Promise<Record<string, unknown>>;
+    getConfig: () => Promise<ComfyUIConfig>;
+    updateConfig: (config: Partial<ComfyUIConfig>) => Promise<ComfyUIConfig>;
     testConnection: () => Promise<{ success: boolean; message: string }>;
-    getServiceStatus: () => Promise<Record<string, unknown>>;
-    startService: () => Promise<Record<string, unknown>>;
-    stopService: () => Promise<Record<string, unknown>>;
-    executeWorkflow: (workflow: Record<string, unknown>) => Promise<Record<string, unknown>>;
-    getQueueStatus: () => Promise<Record<string, unknown>>;
-    uploadMedia: (filePath: string, filename: string) => Promise<unknown>;
-    downloadOutput: (filename: string, outputPath: string) => Promise<unknown>;
+    getServiceStatus: () => Promise<{ running: boolean; pid?: number }>;
+    startService: () => Promise<void>;
+    stopService: () => Promise<void>;
+    executeWorkflow: (workflow: ComfyUIWorkflow) => Promise<{ prompt_id: string }>;
+    getQueueStatus: () => Promise<{ queue_remaining: number }>;
+    uploadMedia: (filePath: string, filename: string) => Promise<string>;
+    downloadOutput: (filename: string, outputPath: string) => Promise<void>;
   };
 
   // Rover (Persistent Memory Layer)
   rover: {
-    sync: (projectPath: string, projectId: string, message: string, data: Record<string, unknown>) => Promise<RoverCommit>;
+    sync: (projectPath: string, projectId: string, message: string, data: unknown) => Promise<RoverCommit>;
     getHistory: (projectPath: string) => Promise<RoverHistory>;
-    restoreCheckpoint: (projectPath: string, commitId: string) => Promise<unknown>;
+    restoreCheckpoint: (projectPath: string, commitId: string) => Promise<void>;
   };
 
   // Terminal/Command execution
@@ -255,10 +277,10 @@ export interface StoryCoreElectronAPI {
     toggle: () => Promise<void>;
     isOpen: () => Promise<boolean>;
     onStateChanged: (callback: (state: { isOpen: boolean }) => void) => () => void;
-    sendMessage: (message: unknown) => void;
-    onMessage: (callback: (message: unknown) => void) => () => void;
-    syncState: (state: unknown) => void;
-    onStateUpdate: (callback: (state: unknown) => void) => () => void;
+    sendMessage: (message: ChatMessage) => void;
+    onMessage: (callback: (message: ChatMessage) => void) => () => void;
+    syncState: (state: Record<string, unknown>) => void;
+    onStateUpdate: (callback: (state: Record<string, unknown>) => void) => () => void;
   };
 
   // Screen capture
@@ -272,6 +294,45 @@ export interface StoryCoreElectronAPI {
   on: (channel: string, func: (...args: unknown[]) => void) => () => void;
   once: (channel: string, func: (...args: unknown[]) => void) => void;
   off: (channel: string, func: (...args: unknown[]) => void) => void;
+}
+
+export interface LLMConfig {
+  provider: string;
+  model: string;
+  apiKey?: string;
+  apiBaseUrl?: string;
+  temperature: number;
+  maxTokens: number;
+}
+
+export interface LLMProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  type: 'openai' | 'ollama' | 'anthropic' | 'custom';
+}
+
+export interface ComfyUIConfig {
+  baseUrl: string;
+  wsUrl: string;
+  outputPath: string;
+  inputPath: string;
+  gpuId: number;
+  lowVram: boolean;
+}
+
+export interface ComfyUIWorkflow {
+  nodes: Record<string, unknown>[];
+  links: Array<[number, number, number, number, number, string]>;
+  extra_data?: Record<string, unknown>;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
 }
 
 export { };

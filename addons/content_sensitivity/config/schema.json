@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "sensitivity_levels": {
+    "low": {"threshold": 30, "actions": ["log", "suggest_review"]},
+    "medium": {"threshold": 60, "actions": ["log", "suggest_review", "auto_censor"]},
+    "high": {"threshold": 80, "actions": ["log", "suggest_review", "auto_censor", "alert_user"]}
+  },
+  "pegi_ratings": {
+    "PEGI 3": {"threshold": 30, "description": "Suitable for all ages"},
+    "PEGI 7": {"threshold": 60, "description": "May contain mild frightening scenes"},
+    "PEGI 12": {"threshold": 80, "description": "Moderate violence, mild language"},
+    "PEGI 16": {"threshold": 90, "description": "Realistic violence, coarse language, adult themes"},
+    "PEGI 18": {"threshold": 100, "description": "Extreme violence, adult themes"}
+  },
+  "content_indicators": {
+    "violence": {"label": "Violence", "threshold": 20},
+    "language": {"label": "Bad Language", "threshold": 15},
+    "fear": {"label": "Fear", "threshold": 10},
+    "drugs": {"label": "Drugs", "threshold": 25},
+    "sex": {"label": "Sexual Content", "threshold": 30},
+    "discrimination": {"label": "Discrimination", "threshold": 35},
+    "gambling": {"label": "Gambling", "threshold": 20},
+    "online_interaction": {"label": "Online Interaction", "threshold": 15},
+    "in_app_purchases": {"label": "In-App Purchases", "threshold": 10}
+  },
+  "detection_criteria": {
+    "keywords": {
+      "patterns": [
+        {"regex": "\b(religion|faith|belief)\b", "level": "medium"},
+        {"regex": "\b(racist|xenophobic)\b", "level": "high"}
+      ]
+    },
+    "cultural_context": {
+      "mappings": {
+        "clothing": {"cultural_significance": true, "threshold": 40},
+        "dialogue": {"context_aware": true, "threshold": 50}
+      }
+    },
+    "image_analysis": {
+      "metadata_checks": [
+        {"property": "origin", "threshold": 35},
+        {"property": "style", "threshold": 45}
+      ]
+    }
+  },
+  "library_integration": {
+    "perspective_api": {"enabled": true, "confidence_threshold": 0.7},
+    "deepcontentfilter": {"enabled": true, "custom_rules": []}
+  }
+}

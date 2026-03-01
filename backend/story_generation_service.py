@@ -22,6 +22,32 @@ class StoryStructure(Enum):
     FIVE_POINT = "five_point"
     SEQUENCE = "sequence"
 
+class ProductionMode(Enum):
+    FICTION = "fiction"
+    DOCUMENTARY = "documentary"
+    INTERVIEW = "interview"
+    MUSIC_VIDEO = "music_video"
+    SOCIAL_MEDIA = "social_media"
+    CINEMATIC = "cinematic"
+    AUDIODRAMA = "audiodrama"
+
+@dataclass
+class StoryProp:
+    id: str
+    name: str
+    description: str
+    is_immutale: bool = False
+    owner_id: Optional[str] = None
+    interaction_type: str = ""
+
+@dataclass
+class StorySFX:
+    id: str
+    name: str
+    category: str  # action, character, ambiance
+    description: str
+    associated_entity_id: Optional[str] = None # Char, Prop, or Location ID
+
 @dataclass
 class StoryBeat:
     id: str
@@ -57,6 +83,8 @@ class StoryScene:
     beat_ids: List[str] = field(default_factory=list)
     visual_direction: str = ""
     audio_mood: str = ""
+    props: List[str] = field(default_factory=list)
+    sfx: List[str] = field(default_factory=list)
 
 @dataclass
 class Story:
@@ -64,9 +92,13 @@ class Story:
     title: str
     synopsis: str
     genre: StoryGenre
+    mode: ProductionMode = ProductionMode.FICTION
     arcs: List[StoryArc] = field(default_factory=list)
     scenes: List[StoryScene] = field(default_factory=list)
     characters: List[Dict[str, Any]] = field(default_factory=list)
+    locations: List[Dict[str, Any]] = field(default_factory=list)
+    props: List[StoryProp] = field(default_factory=list)
+    sfx: List[StorySFX] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
@@ -75,40 +107,49 @@ class StoryGenerationService:
     
     PROMPT_TEMPLATES = {
         StoryGenre.ADVENTURE: """
-        Create an adventure story with high stakes, exploration, 
-        and character growth. Include obstacles and discoveries.
-        """,
-        StoryGenre.DRAMA: """
-        Create a dramatic story focusing on character relationships,
-        emotional depth, and personal conflicts.
-        """,
-        StoryGenre.COMEDY: """
-        Create a comedic story with witty dialogue, humorous situations,
-        and light-hearted moments while maintaining a compelling narrative.
-        """,
-        StoryGenre.HORROR: """
-        Create a horror story with tension, fear, and psychological 
-        elements. Build dread through atmosphere and anticipation.
-        """,
-        StoryGenre.ROMANCE: """
-        Create a romantic story focusing on emotional connection,
-        relationship development, and romantic tension.
-        """,
-        StoryGenre.SCIFI: """
-        Create a science fiction story with technological concepts,
-        future settings, and exploration of ideas.
-        """,
-        StoryGenre.FANTASY: """
-        Create a fantasy story with magical elements, mythical creatures,
-        and imaginative world-building.
-        """,
-        StoryGenre.THRILLER: """
-        Create a thriller with suspense, unexpected twists, and
-        high tension throughout the narrative.
+        ## METHODOLOGIE BOUT EN BOUT - FICTION/ADVENTURE
+        Create an adventure story bible.
+        CONTRAINTES STRICTES:
+        - Personnages: Min. 3 (Triangle de relation).
+        - Lieux: Min. 3 (Progression spatiale).
+        - Objets: Min. 1 porté par perso + 2 immuables.
+        - SFX: 1 par objet + signatures personnages + ambiance par lieu.
         """,
         StoryGenre.DOCUMENTARY: """
-        Create a documentary-style narrative with informative content,
-        real-world themes, and engaging storytelling.
+        ## METHODOLOGIE BOUT EN BOUT - DOCUMENTAIRE
+        Create a factual documentary structure.
+        CONTRAINTES STRICTES:
+        - Personnages: Min. 2 (Intervenants/Narrateurs).
+        - Lieux: Min. 2 (Contextes réels).
+        - Objets: Min. 3 objets de preuve/illustration.
+        - SFX: Ambiances sonores réelles (diegetic).
+        """,
+        ProductionMode.INTERVIEW: """
+        ## METHODOLOGIE BOUT EN BOUT - INTERVIEW
+        Create a conversational flow.
+        CONTRAINTES: 2 Personnes minimum. Focus sur l'échange et les réactions.
+        """,
+        ProductionMode.MUSIC_VIDEO: """
+        ## METHODOLOGIE BOUT EN BOUT - CLIP MUSICAL
+        Create a visual structure synced to music.
+        CONTRAINTES: 
+        - Structure: Intro, Verset 1, Refrain, Verset 2, Refrain, Outro.
+        - SFX: Focus sur les sons rythmiques et synchronisation visuelle.
+        """,
+        ProductionMode.SOCIAL_MEDIA: """
+        ## METHODOLOGIE BOUT EN BOUT - SOCIAL/SHORT
+        Create high-retention short content.
+        CONTRAINTES:
+        - 0-3s: Hook ultra-visuel.
+        - 3-15s: Contenu rapide (coupes rapides).
+        - Outro: Call to Action.
+        """,
+        ProductionMode.CINEMATIC: """
+        ## METHODOLOGIE BOUT EN BOUT - CINEMATOGRAPHIE PRO
+        Create high-fidelity cinematic project.
+        CONTRAINTES:
+        - Direction visuelle: Focus sur l'éclairage et les objectifs (Lenses).
+        - Mouvements: Dolly, Pan, Tilt spécifiés pour chaque scène.
         """
     }
     
@@ -160,6 +201,7 @@ class StoryGenerationService:
         prompt: str,
         genre: StoryGenre,
         structure: StoryStructure,
+        mode: ProductionMode = ProductionMode.FICTION,
         length: str = "medium",  # short, medium, long
         characters: List[Dict[str, Any]] = None
     ) -> Story:
@@ -169,10 +211,14 @@ class StoryGenerationService:
             title=self._extract_title(prompt),
             synopsis=prompt,
             genre=genre,
+            mode=mode,
             arcs=[],
             scenes=[],
             characters=characters or []
         )
+        
+        # Générer la bible de production (méthodologie bout en bout)
+        self._populate_production_bible(story)
         
         # Générer les arcs narratifs
         story.arcs = self._generate_arcs(story, structure)
@@ -185,6 +231,80 @@ class StoryGenerationService:
         
         self.stories[story.id] = story
         return story
+
+    def _populate_production_bible(self, story: Story):
+        """
+        Implémente la règle 'Bout en Bout' : 
+        Force la création du triangle relationnel, de la trinité spatiale, 
+        des objets immuables et des SFX.
+        """
+        import random
+        
+        # 1. Personnages (Triangle de relation)
+        min_chars = 3 if story.mode == ProductionMode.FICTION else 2
+        if not story.characters:
+            for i in range(min_chars):
+                char_id = str(uuid.uuid4())
+                story.characters.append({
+                    "id": char_id,
+                    "nom": f"Personnage {i+1}",
+                    "role": "Protagoniste" if i == 0 else "Antagoniste" if i == 1 else "Allié",
+                    "description": "Généré via méthodologie bout en bout"
+                })
+
+        # 2. Lieux (Trinité spatiale)
+        min_locs = 3 if story.mode == ProductionMode.FICTION else 2
+        for i in range(min_locs):
+            loc_id = str(uuid.uuid4())
+            story.locations.append({
+                "id": loc_id,
+                "nom": f"Lieu {i+1} ({['Départ', 'Transition', 'Résolution'][i] if i < 3 else 'Autre'})",
+                "description": "Ancrage spatial consistant"
+            })
+
+        # 3. Objets (Props)
+        # Portés (1 par perso)
+        for char in story.characters:
+            prop = StoryProp(
+                id=str(uuid.uuid4()),
+                name=f"Accessoire de {char['nom']}",
+                description="Objet porté consistant",
+                owner_id=char['id']
+            )
+            story.props.append(prop)
+        
+        # Immuables (Min 2)
+        for i in range(2):
+            prop = StoryProp(
+                id=str(uuid.uuid4()),
+                name=f"Objet Immuable {i+1} (ex: Porte, Cloche)",
+                description="Élément de décor interactif",
+                is_immutale=True
+            )
+            story.props.append(prop)
+
+        # 4. SFX (Bruitages)
+        # SFX d'interaction (1 par prop)
+        for prop in story.props:
+            sfx = StorySFX(
+                id=str(uuid.uuid4()),
+                name=f"Son de {prop.name}",
+                category="action",
+                description=f"SFX lié à {prop.name}",
+                associated_entity_id=prop.id
+            )
+            story.sfx.append(sfx)
+        
+        # SFX Ambiance (1 par lieu)
+        for loc in story.locations:
+            sfx = StorySFX(
+                id=str(uuid.uuid4()),
+                name=f"Ambiance de {loc['nom']}",
+                category="ambiance",
+                description=f"Son d'ambiance pour {loc['nom']}",
+                associated_entity_id=loc['id']
+            )
+            story.sfx.append(sfx)
     
     def _generate_arcs(self, story: Story, structure: StoryStructure) -> List[StoryArc]:
         """Générer les arcs narratifs basés sur la structure"""
@@ -452,6 +572,27 @@ class StoryGenerationService:
                 for s in story.scenes
             ],
             "characters": story.characters,
+            "locations": story.locations,
+            "props": [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "description": p.description,
+                    "is_immutale": p.is_immutale,
+                    "owner_id": p.owner_id
+                }
+                for p in story.props
+            ],
+            "sfx": [
+                {
+                    "id": s.id,
+                    "name": s.name,
+                    "category": s.category,
+                    "description": s.description,
+                    "associated_entity_id": s.associated_entity_id
+                }
+                for s in story.sfx
+            ],
             "created_at": story.created_at.isoformat(),
             "updated_at": story.updated_at.isoformat()
         }

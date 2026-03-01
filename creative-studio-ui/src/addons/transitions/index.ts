@@ -3,7 +3,7 @@
 // ============================================================================
 
 // Core types - Import first, then re-export
-import type { Transition, TransitionPreset, TransitionSettings, TransitionLibrary } from './types';
+import type { TransitionPreset, TransitionSettings } from './types';
 export type {
   Transition,
   TransitionPreset,

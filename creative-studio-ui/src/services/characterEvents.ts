@@ -266,7 +266,7 @@ export type CharacterEventPayload =
  * Type guard to check if an event is a character event
  */
 export function isCharacterEvent(eventType: string): boolean {
-  return Object.values(CharacterEventType).includes(eventType as any);
+  return Object.values(CharacterEventType).includes(eventType as typeof CharacterEventType[keyof typeof CharacterEventType]);
 }
 
 /**
@@ -275,7 +275,7 @@ export function isCharacterEvent(eventType: string): boolean {
 export function isCharacterCreatedEvent(
   payload: unknown
 ): payload is CharacterCreatedEventPayload {
-  return !!payload && 'character' in payload && 'source' in payload;
+  return typeof payload === 'object' && payload !== null && 'character' in payload && 'source' in payload;
 }
 
 /**
@@ -284,7 +284,7 @@ export function isCharacterCreatedEvent(
 export function isCharacterUpdatedEvent(
   payload: unknown
 ): payload is CharacterUpdatedEventPayload {
-  return !!payload && 'characterId' in payload && 'updates' in payload;
+  return typeof payload === 'object' && payload !== null && 'characterId' in payload && 'updates' in payload;
 }
 
 /**
@@ -293,7 +293,7 @@ export function isCharacterUpdatedEvent(
 export function isCharacterDeletedEvent(
   payload: unknown
 ): payload is CharacterDeletedEventPayload {
-  return !!payload && 'characterId' in payload && 'characterName' in payload;
+  return typeof payload === 'object' && payload !== null && 'characterId' in payload && 'characterName' in payload;
 }
 
 // ============================================================================

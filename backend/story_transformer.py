@@ -828,9 +828,10 @@ class StoryAnalyzer:
 # =============================================================================
 
 class StoryTransformer:
-    def __init__(self, raw_story: str, title: Optional[str] = None):
+    def __init__(self, raw_story: str, title: Optional[str] = None, mode: str = "fiction"):
         self.raw_story = raw_story
         self.title = title or "Histoire Sans Titre"
+        self.mode = mode.lower()
         self.analyzer = StoryAnalyzer(raw_story)
         self.characters_data = []
         self.locations_data = []
@@ -1044,8 +1045,8 @@ class StoryTransformer:
         return scenes
 
 
-def transform_story_to_scenario(raw_story: str, title: Optional[str] = None) -> StructuredScenario:
-    return StoryTransformer(raw_story, title).transform()
+def transform_story_to_scenario(raw_story: str, title: Optional[str] = None, mode: str = "fiction") -> StructuredScenario:
+    return StoryTransformer(raw_story, title, mode).transform()
 
 
 # =============================================================================

@@ -1,0 +1,39 @@
+/**
+ * AI Tools Components - Phase 8: UI Integration
+ * 
+ * Export all AI-powered tools for StoryCore-Engine
+ */
+
+// Animation Presets - Drag & drop animation presets
+export { AnimationPresetsPanel } from './AnimationPresetsPanel';
+
+// Magic Mask - One-click subject isolation
+export { MagicMaskTool } from './MagicMaskTool';
+
+// Subtitle Editor - AI-powered subtitle generation
+export { SubtitleEditor } from './SubtitleEditor';
+
+/**
+ * Usage Examples:
+ * 
+ * // Animation Presets
+ * import { AnimationPresetsPanel } from '@/components/AITools';
+ * <AnimationPresetsPanel
+ *   inputPath="/path/to/image.jpg"
+ *   onApply={(config) => console.log('Applied:', config)}
+ * />
+ * 
+ * // Magic Mask
+ * import { MagicMaskTool } from '@/components/AITools';
+ * <MagicMaskTool
+ *   inputPath="/path/to/image.jpg"
+ *   onMaskGenerated={(result) => console.log('Mask:', result)}
+ * />
+ * 
+ * // Subtitle Editor
+ * import { SubtitleEditor } from '@/components/AITools';
+ * <SubtitleEditor
+ *   videoPath="/path/to/video.mp4"
+ *   onSubtitlesGenerated={(srtPath) => console.log('SRT:', srtPath)}
+ * />
+ */

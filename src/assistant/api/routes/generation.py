@@ -11,7 +11,9 @@ from ..dependencies import get_current_user
 from ..models import (
     GenerateProjectRequest, GenerateProjectResponse,
     FinalizeProjectRequest, FinalizeProjectResponse,
-    ScenePreview, CharacterPreview, SequencePreview, ShotPreview
+    GenerateRLMRequest, GenerateRLMResponse,
+    ScenePreview, CharacterPreview, SequencePreview, ShotPreview,
+    GraphResponse, GraphNodeModel, GraphEdgeModel
 )
 from ...logging_config import get_logger
 
@@ -168,3 +170,101 @@ async def finalize_project(request: FinalizeProjectRequest, user: User = Depends
     except Exception as e:
         logger.error(f"Project finalization failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Project finalization failed: {str(e)}")
+
+
+@router.post("/rlm/generate", response_model=GenerateRLMResponse)
+async def generate_rlm(request: GenerateRLMRequest, user: User = Depends(get_current_user)):
+    """
+    Experimental RLM-based generation.
+    Uses recursive reasoning, code execution, and GraphRAG reflection.
+    """
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+        
+    logger.info(f"Triggering RLM Engine for user: {user.username}")
+    
+    try:
+        steps = []
+        def on_step(msg: str):
+            steps.append(msg)
+            logger.info(f"[RLM-STEP]: {msg}")
+
+        # Call the async RLM method
+        result, rlm_steps = await assistant.generate_complex_scenario_rlm(
+            main_prompt=request.prompt,
+            massive_context=request.massive_context
+        )
+        
+        return GenerateRLMResponse(
+            final_answer=result,
+            steps=rlm_steps if rlm_steps else steps
+        )
+        
+    except Exception as e:
+        logger.error(f"RLM Generation failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"RLM Engine error: {str(e)}")
+
+
+@router.get("/rlm/graph", response_model=GraphResponse)
+async def get_lore_graph(user: User = Depends(get_current_user)):
+    """
+    Retrieve the full Knowledge Graph (Lore) for the active project.
+    """
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    if not assistant.story_graph:
+        raise HTTPException(status_code=404, detail="Knowledge Graph not initialized or no project open")
+
+    # Serialize nodes and edges for API
+    nodes = [
+        GraphNodeModel(
+            name=n.name,
+            type=n.entity_type,
+            attributes=n.attributes
+        )
+        for n in assistant.story_graph._nodes.values()
+    ]
+    edges = [
+        GraphEdgeModel(
+            source=assistant.story_graph._nodes[e.source_id].name,
+            relation=e.relation,
+            target=assistant.story_graph._nodes[e.target_id].name,
+            scene_context=e.scene_context
+        )
+        for e in assistant.story_graph._edges.values()
+    ]
+
+    return GraphResponse(
+        nodes=nodes,
+        edges=edges,
+        stats=assistant.story_graph.stats()
+    )
+
+
+@router.get("/rlm/graph/timeline")
+async def get_lore_timeline(user: User = Depends(get_current_user)):
+    """
+    Returns the narrative timeline reconstructed from the Knowledge Graph.
+    """
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    if not assistant.graph_rag:
+        raise HTTPException(status_code=404, detail="GraphRAG not initialized")
+
+    return {"timeline": assistant.graph_rag.query_timeline()}
+
+
+@router.get("/rlm/graph/arc/{character_name}")
+async def get_character_arc(character_name: str, user: User = Depends(get_current_user)):
+    """
+    Returns the narrative arc for a specific character.
+    """
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    if not assistant.graph_rag:
+        raise HTTPException(status_code=404, detail="GraphRAG not initialized")
+
+    return {"arc": assistant.graph_rag.query_character_arc(character_name)}

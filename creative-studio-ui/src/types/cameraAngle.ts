@@ -26,6 +26,16 @@ export type CameraAnglePreset =
   | 'worm_eye';
 
 /**
+ * Camera lens/objective types
+ */
+export type CameraLensType =
+  | 'standard'
+  | 'anamorphic_classic'
+  | 'anamorphic_delrama'
+  | 'vintage_8mm'
+  | 'macro_diopter';
+
+/**
  * Camera angle generation job status
  */
 export type CameraAngleJobStatus =
@@ -83,6 +93,8 @@ export interface CameraAngleRequest {
   seed?: number | null;
   /** Additional custom prompt to append to angle prompts */
   customPrompt?: string | null;
+  /** Type of lens/objective to simulate */
+  lensType?: CameraLensType;
   /** Dynamic ComfyUI URL to use for this generation */
   comfyuiUrl?: string;
 }
@@ -111,6 +123,8 @@ export interface CameraAngleJob {
   seed: number | null;
   /** Custom prompt */
   customPrompt: string | null;
+  /** Lens type used for simulation */
+  lensType: CameraLensType;
   /** Current job status */
   status: CameraAngleJobStatus;
   /** Progress percentage (0-100) */
@@ -271,6 +285,7 @@ export interface CameraAngleStoreState {
     quality: CameraAngleQuality;
     seed: number | null;
     customPrompt: string | null;
+    lensType: CameraLensType;
   };
   
   // Error state

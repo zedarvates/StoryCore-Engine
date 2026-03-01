@@ -100,7 +100,7 @@ export class MCPServerManager {
   /**
    * Execute a command on the server
    */
-  async executeCommand(command: string): Promise<any> {
+  async executeCommand(command: string): Promise<Record<string, unknown>> {
     // In a real implementation, this would execute the command on the server
     this.recordOperation('command', `Command executed: ${command}`, { command });
     return { success: true, result: `Command "${command}" executed` };
@@ -197,13 +197,15 @@ export class MCPServerManager {
    * Validate MCP server state
    */
   private isValidMCPServerState(state: unknown): state is MCPServerState {
+    if (state === null || typeof state !== 'object') {
+      return false;
+    }
+    const s = state as Record<string, unknown>;
     return (
-      state !== null &&
-      typeof state === 'object' &&
-      (state as any).config &&
-      (state as any).status &&
-      typeof (state as any).version === 'string' &&
-      typeof (state as any).lastModified === 'string'
+      s.config !== undefined &&
+      s.status !== undefined &&
+      typeof s.version === 'string' &&
+      typeof s.lastModified === 'string'
     );
   }
 
@@ -215,7 +217,7 @@ export class MCPServerManager {
     operationCount: number;
     errorCount: number;
   } {
-    const errorCount = this.operations.filter(op => op.type === 'start' && (op.details as any)?.error).length;
+    const errorCount = this.operations.filter(op => op.type === 'start' && (op.details as Record<string, unknown>)?.error).length;
 
     return {
       uptime: this.status.uptime,

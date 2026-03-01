@@ -12,7 +12,6 @@ import type {
   Transform,
   CropRegion,
 } from '@/types/gridEditor';
-import { getCachedPlaceholder } from '@/utils/placeholderImage';
 
 /**
  * Panel generation configuration
@@ -95,7 +94,7 @@ export interface ConfigurationUploadResponse {
 /**
  * API response wrapper
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -481,187 +480,13 @@ export class GridAPIService {
 }
 
 /**
- * Mock Grid API Service for development/testing
+ * Create Grid API service
  */
-export class MockGridAPIService extends GridAPIService {
-  private mockDelayMs: number = 2000;
-  private mockFailureRate: number = 0; // 0-1, probability of failure
-
-  constructor(config?: Partial<GridAPIConfig>) {
-    super(config);
-  }
-
-  async generatePanelImage(
-    panelConfig: PanelGenerationConfig
-  ): Promise<ApiResponse<GeneratedImage>> {
-    await this.wait(this.mockDelayMs);
-
-    if (Math.random() < this.mockFailureRate) {
-      return {
-        success: false,
-        error: 'Mock generation failure',
-      };
-    }
-
-    return {
-      success: true,
-      data: {
-        panelId: panelConfig.panelId,
-        imageUrl: this.generateMockImageUrl(panelConfig.panelId),
-        metadata: {
-          seed: panelConfig.seed,
-          generationTime: this.mockDelayMs,
-          qualityScore: 0.85 + Math.random() * 0.15,
-          width: panelConfig.width || 512,
-          height: panelConfig.height || 512,
-        },
-      },
-    };
-  }
-
-  async batchGeneratePanels(
-    request: BatchGenerationRequest
-  ): Promise<ApiResponse<BatchGenerationResponse>> {
-    await this.wait(this.mockDelayMs * 2);
-
-    const results: GeneratedImage[] = [];
-    const errors: Array<{ panelId: string; error: string }> = [];
-
-    for (const panelConfig of request.panels) {
-      if (Math.random() < this.mockFailureRate) {
-        errors.push({
-          panelId: panelConfig.panelId,
-          error: 'Mock generation failure',
-        });
-      } else {
-        results.push({
-          panelId: panelConfig.panelId,
-          imageUrl: this.generateMockImageUrl(panelConfig.panelId),
-          metadata: {
-            seed: panelConfig.seed,
-            generationTime: this.mockDelayMs,
-            qualityScore: 0.85 + Math.random() * 0.15,
-            width: panelConfig.width || 512,
-            height: panelConfig.height || 512,
-          },
-        });
-      }
-    }
-
-    return {
-      success: true,
-      data: {
-        batchId: `batch-${Date.now()}`,
-        status: 'completed',
-        totalPanels: request.panels.length,
-        completedPanels: results.length,
-        failedPanels: errors.length,
-        results,
-        errors,
-      },
-    };
-  }
-
-  async getBatchStatus(
-    batchId: string
-  ): Promise<ApiResponse<BatchGenerationResponse>> {
-    await this.wait(this.mockDelayMs / 4);
-
-    return {
-      success: true,
-      data: {
-        batchId,
-        status: 'completed',
-        totalPanels: 9,
-        completedPanels: 9,
-        failedPanels: 0,
-        results: [],
-        errors: [],
-      },
-    };
-  }
-
-  async uploadGridConfiguration(
-    _config: GridConfiguration
-  ): Promise<ApiResponse<ConfigurationUploadResponse>> {
-    await this.wait(this.mockDelayMs / 2);
-
-    return {
-      success: true,
-      data: {
-        success: true,
-        configId: `config-${Date.now()}`,
-        url: `/api/grid/configs/config-${Date.now()}.json`,
-        timestamp: new Date().toISOString(),
-      },
-    };
-  }
-
-  async downloadGridConfiguration(
-    _configId: string
-  ): Promise<ApiResponse<GridConfiguration>> {
-    await this.wait(this.mockDelayMs / 2);
-
-    // Return a mock configuration
-    return {
-      success: true,
-      data: {
-        version: '1.0',
-        projectId: 'mock-project',
-        panels: [],
-        presets: [],
-        metadata: {
-          createdAt: new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
-          author: 'Mock User',
-        },
-      },
-    };
-  }
-
-  async cancelGeneration(_taskId: string): Promise<ApiResponse<void>> {
-    await this.wait(this.mockDelayMs / 4);
-
-    return {
-      success: true,
-    };
-  }
-
-  private wait(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  private generateMockImageUrl(panelId: string): string {
-    // Generate a local placeholder image as data URI to avoid CSP violations
-    return getCachedPlaceholder(512, 512, `Panel ${panelId}`);
-  }
-
-  setMockDelay(ms: number): void {
-    this.mockDelayMs = ms;
-  }
-
-  setMockFailureRate(rate: number): void {
-    this.mockFailureRate = Math.max(0, Math.min(1, rate));
-  }
-}
-
-/**
- * Create Grid API service based on environment
- */
-export function createGridAPIService(
-  useMock: boolean = false
-): GridAPIService {
-  if (useMock || import.meta.env.MODE === 'test') {
-    return new MockGridAPIService();
-  }
+export function createGridAPIService(): GridAPIService {
   return new GridAPIService();
 }
 
 /**
  * Default Grid API service instance
  */
-export const gridApi = createGridAPIService(
-  import.meta.env.MODE === 'development'
-);
-
-
+export const gridApi = createGridAPIService();

@@ -1,0 +1,440 @@
+/**
+ * Image Location Creator Styles
+ */
+
+.image-location-creator {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-secondary, #1a1a1a);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #333);
+  color: var(--text-primary, #fff);
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.image-location-creator__header {
+  padding: 20px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.image-location-creator__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.25rem;
+  color: #3b82f6; /* Blue shade for locations */
+}
+
+.image-location-creator__subtitle {
+  margin: 5px 0 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #aaa);
+}
+
+/* Tabs */
+.image-location-creator__tabs {
+  display: flex;
+  background-color: #252525;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.image-location-creator__tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: none;
+  background: none;
+  color: var(--text-secondary, #aaa);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.image-location-creator__tab:hover:not(:disabled) {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.image-location-creator__tab.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.image-location-creator__tab:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Upload Section */
+.image-location-creator__upload {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.image-location-creator__dropzone {
+  height: 240px;
+  border: 2px dashed #444;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  overflow: hidden;
+  position: relative;
+  background-color: #222;
+}
+
+.image-location-creator__dropzone:hover {
+  border-color: #3b82f6;
+  background-color: #252525;
+}
+
+.image-location-creator__dropzone.has-image {
+  border-style: solid;
+  border-color: #333;
+}
+
+.image-location-creator__preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-location-creator__dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary, #818181);
+  text-align: center;
+}
+
+.image-location-creator__dropzone-content p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.image-location-creator__dropzone-content span {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.image-location-creator__file-input {
+  display: none;
+}
+
+/* Form */
+.image-location-creator__form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.image-location-creator__field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.image-location-creator__field label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary, #aaa);
+}
+
+.image-location-creator__field input,
+.image-location-creator__field select,
+.image-location-creator__field textarea {
+  padding: 10px;
+  background-color: #252525;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.875rem;
+}
+
+.image-location-creator__field input:focus,
+.image-location-creator__field select:focus,
+.image-location-creator__field textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: #2a2a2a;
+}
+
+/* Actions */
+.image-location-creator__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.image-location-creator__button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.image-location-creator__button--primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.image-location-creator__button--primary:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.image-location-creator__button--secondary {
+  background-color: transparent;
+  border-color: #444;
+  color: #fff;
+}
+
+.image-location-creator__button--secondary:hover:not(:disabled) {
+  background-color: #333;
+}
+
+.image-location-creator__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Result Section */
+.image-location-creator__result {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.image-location-creator__success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(16, 185, 129, 0.1);
+  padding: 12px;
+  border-radius: 6px;
+  color: #10b981;
+  font-size: 0.875rem;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.image-location-creator__confidence {
+  margin-left: auto;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.image-location-creator__location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.image-location-creator__info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.image-location-creator__info-row label {
+  font-size: 0.75rem;
+  color: #888;
+  font-weight: 600;
+}
+
+.image-location-creator__info-row span.badge {
+  background-color: #3b82f6;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  width: fit-content;
+}
+
+/* Attributes Grid */
+.image-location-creator__attributes h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: #3b82f6;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+.image-location-creator__attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.image-location-creator__attribute {
+  background-color: #252525;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #333;
+}
+
+.attr-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.image-location-creator__attribute .value {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* story potential */
+.image-location-creator__narrative h4,
+.image-location-creator__adaptations h4 {
+  margin: 20px 0 10px 0;
+  font-size: 0.9rem;
+  color: #3b82f6;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+.story-potential-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.875rem;
+  color: #ccc;
+  line-height: 1.5;
+}
+
+.adaptations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adaptation-item {
+  font-size: 0.875rem;
+  background-color: rgba(59, 130, 246, 0.05);
+  padding: 8px;
+  border-radius: 4px;
+  display: flex;
+  gap: 8px;
+}
+
+.adaptation-item .key {
+  color: #3b82f6;
+  font-weight: 600;
+  min-width: 100px;
+}
+
+/* Prompts */
+.image-location-creator__prompts {
+  padding: 20px;
+}
+
+.image-location-creator__prompts h4 {
+  margin: 0 0 5px 0;
+}
+
+.image-location-creator__prompts-hint {
+  font-size: 0.8rem;
+  color: #818181;
+  margin-bottom: 20px;
+}
+
+.prompt-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.prompt-card {
+  background-color: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.prompt-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.prompt-card-header h5 {
+  margin: 0;
+  color: #3b82f6;
+  font-size: 0.85rem;
+}
+
+.prompt-card-header button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #333;
+  border: none;
+  color: #ccc;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.prompt-card-header button:hover {
+  background-color: #444;
+  color: #fff;
+}
+
+.prompt-card p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #eee;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.image-location-creator__error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(239, 68, 68, 0.1);
+  padding: 12px;
+  border-radius: 6px;
+  color: #ef4444;
+  font-size: 0.875rem;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}

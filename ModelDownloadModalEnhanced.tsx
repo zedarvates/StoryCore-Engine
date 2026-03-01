@@ -47,24 +47,34 @@ export const ModelDownloadModal: React.FC<ModelDownloadModalProps> = ({
   };
 
   const checkUNCPermissions = async (): Promise<void> => {
-    // Simulate UNC path permission check
-    const hasPermission = Math.random() > 0.2; // 80% success rate for demo
+    // Real path validation if necessary in an Electron environment
+    const hasPermission = targetPath !== ''; 
     
     if (!hasPermission) {
       throw new Error(`UNC Path Access Denied: Cannot write to ${targetPath}. Please run as administrator or use manual mode.`);
     }
   };
 
-  const simulateModelDownload = async (model: ModelInfo): Promise<void> => {
-    // Simulate download time based on model size
-    const downloadTime = model.size.includes('GB') ? 3000 : 
-                        model.size.includes('MB') && parseInt(model.size) > 500 ? 2000 : 1000;
-    
-    await new Promise(resolve => setTimeout(resolve, downloadTime));
-    
-    // Simulate occasional download failure
-    if (Math.random() < 0.1) {
-      throw new Error(`Failed to download ${model.name}: Network timeout`);
+  const downloadModelFile = async (model: ModelInfo): Promise<void> => {
+    try {
+      const destFile = `${targetPath}\\${model.subfolder}\\${model.name}`;
+      
+      // Assure que le dossier existe
+      // @ts-ignore
+      await window.electronAPI.fs.mkdir(`${targetPath}\\${model.subfolder}`, { recursive: true });
+
+      // Execute le script python pour télécharger le fichier
+      // @ts-ignore
+      const result = await window.electronAPI.executeCommand({
+        command: `python scripts/download_url.py "${model.url}" "${destFile}"`,
+        timeout: 0 // Timeout infini pour les gros fichiers
+      });
+
+      if (!result.success || (result.output && result.output.includes("FAILED"))) {
+          throw new Error(result.error || result.output || "Unknown download error");
+      }
+    } catch (error: any) {
+      throw new Error(`Failed to download ${model.name}: ${error.message}`);
     }
   };
 
@@ -90,8 +100,8 @@ export const ModelDownloadModal: React.FC<ModelDownloadModalProps> = ({
           await checkUNCPermissions();
         }
         
-        // Simulate download
-        await simulateModelDownload(model);
+        // Execute real download script instead of simulate
+        await downloadModelFile(model);
         
         // Update progress to show completion of current model
         setProgress(((i + 1) / totalModels) * 100);
@@ -116,8 +126,21 @@ export const ModelDownloadModal: React.FC<ModelDownloadModalProps> = ({
   };
 
   const validateDownloadedModels = async () => {
-    // Simulate model validation (20% chance of missing models for demo)
-    const missingModels = Math.random() < 0.2 ? [models[0]] : [];
+    const missingModels: ModelInfo[] = [];
+
+    for (const model of models) {
+      try {
+        const destFile = `${targetPath}\\${model.subfolder}\\${model.name}`;
+        // @ts-ignore
+        const exists = await window.electronAPI.fs.exists(destFile);
+        if (!exists) {
+          missingModels.push(model);
+        }
+      } catch (err) {
+        // Fallback to missing if we can't check
+        missingModels.push(model);
+      }
+    }
 
     return {
       allValid: missingModels.length === 0,
@@ -201,7 +224,9 @@ export const ModelDownloadModal: React.FC<ModelDownloadModalProps> = ({
       const response = await fetch('http://127.0.0.1:8188/object_info', {
         signal: AbortSignal.timeout(5000)
       });
-      return response.ok && Math.random() > 0.7; // Simulate completion
+      // Verification logic should check if the required models are actually present
+      // For now, we return if ComfyUI is up and responding
+      return response.ok;
     } catch {
       return false;
     }

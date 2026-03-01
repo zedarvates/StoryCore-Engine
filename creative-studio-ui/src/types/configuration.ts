@@ -55,14 +55,14 @@ export interface LLMConfiguration {
     // Using 'any' for custom provider properties to support arbitrary LLM provider configurations
     [key: string]: unknown;
   };
-  parameters?: {
+  parameters: {
     temperature: number;
     maxTokens: number;
     topP: number;
     frequencyPenalty: number;
     presencePenalty: number;
   };
-  systemPrompts?: {
+  systemPrompts: {
     worldGeneration: string;
     characterGeneration: string;
     dialogueGeneration: string;

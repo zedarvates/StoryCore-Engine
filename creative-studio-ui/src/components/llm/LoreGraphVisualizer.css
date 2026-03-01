@@ -1,0 +1,186 @@
+.lore-graph-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0d0d1a 100%);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+}
+
+.lore-graph-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+}
+
+.lore-graph-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: "Outfit", sans-serif;
+}
+
+.lore-graph-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.lore-graph-stats span {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lore-graph-canvas-wrapper {
+    flex-grow: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+}
+
+canvas:active {
+    cursor: grabbing;
+}
+
+.lore-graph-legend {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.legend-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.legend-item .dot.char { background: #00f3ff; box-shadow: 0 0 10px #00f3ff; }
+.legend-item .dot.location { background: #bc13fe; box-shadow: 0 0 10px #bc13fe; }
+.legend-item .dot.event { background: #ff7e5f; box-shadow: 0 0 10px #ff7e5f; }
+
+.lore-graph-loading, .lore-graph-error {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    font-family: "Outfit", sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.lore-graph-loading::after {
+    content: "...";
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0% { content: "."; }
+    33% { content: ".."; }
+    66% { content: "..."; }
+}
+
+.node-details-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    padding: 24px;
+    background: rgba(30, 30, 46, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(24px);
+    border-radius: 20px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+    z-index: 100;
+}
+
+.node-details-overlay h4 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.4rem;
+    font-family: "Outfit", sans-serif;
+}
+
+.node-type {
+    font-size: 0.75rem;
+    color: #00f3ff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+.node-attrs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.attr-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.attr-key { color: rgba(255, 255, 255, 0.5); }
+.attr-val { color: rgba(255, 255, 255, 0.9); text-align: right; }
+
+.node-details-overlay button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #00f3ff 0%, #bc13fe 100%);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.node-details-overlay button:hover {
+    transform: scale(1.02);
+    opacity: 0.9;
+}

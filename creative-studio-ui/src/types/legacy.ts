@@ -169,7 +169,7 @@ export type LegacyOptions = Array<{ label: string; value: string }>;
  * | types/menuBarState.ts | 3 | Moyenne | À faire |
  * | types/index.ts | 1 | Basse | À faire |
  * | types/gridEditorAdvanced.ts | 3 | Moyenne | À faire |
- * | types/electron.ts | 10 | Haute | À faire |
+ * | types/electron.ts | 10 | Haute | Terminé |
  * | types/effect.ts | 2 | Basse | À faire |
  * | types/configuration.ts | 4 | Moyenne | À faire |
  * | types/comfyui-instance.ts | 1 | Basse | À faire |

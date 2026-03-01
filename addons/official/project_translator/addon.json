@@ -1,0 +1,45 @@
+{
+  "name": "project_translator",
+  "display_name": "Project Translator (Local AI)",
+  "version": "1.0.0",
+  "type": "workflow_addon",
+  "author": "Antigravity AI",
+  "description": "Traduction complète de projet StoryCore utilisant des modèles locaux via Ollama. Utilise Jina Embeddings v5 pour la cohérence sémantique et la mémoire de traduction.",
+  "category": "official",
+  "compatibility": {
+    "engine_version": ">=2.0.0",
+    "python_version": ">=3.9"
+  },
+  "permissions": [
+    "file_system_read",
+    "file_system_write",
+    "network_access",
+    "ui_access",
+    "config_access",
+    "model_access"
+  ],
+  "entry_points": {
+    "main": "src/main.py"
+  },
+  "dependencies": {
+    "aiohttp": ">=3.8.0",
+    "numpy": ">=1.20.0"
+  },
+  "metadata": {
+    "category": "translation",
+    "icon": "🌐",
+    "tags": ["translation", "local-ai", "ollama", "jina", "embeddings", "localization"],
+    "supported_features": [
+      "project_translation",
+      "character_translation",
+      "world_translation",
+      "sequence_translation",
+      "translation_memory",
+      "semantic_consistency"
+    ],
+    "recommended_models": {
+      "translation": "llama3",
+      "embeddings": "hf.co/jinaai/jina-embeddings-v5-text-small-retrieval-GGUF"
+    }
+  }
+}

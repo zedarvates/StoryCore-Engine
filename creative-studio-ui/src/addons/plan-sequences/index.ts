@@ -3,7 +3,7 @@
 // ============================================================================
 
 // Core types - Import first, then re-export
-import type { SequencePlan, ShotPlan, SequenceProject, PlanningSettings, ExportOptions } from './types';
+import type { SequencePlan, ShotPlan, ExportOptions } from './types';
 export type {
   SequencePlan,
   ShotPlan,

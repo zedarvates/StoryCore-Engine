@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Rocket, Loader2 } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
-import { GENRE_OPTIONS, TONE_OPTIONS } from '@/types/world';
+import { GENRE_OPTIONS, TONE_OPTIONS, PRODUCTION_MODE_OPTIONS } from '@/types/world';
 import { WizardFormLayout, FormField } from '../WizardFormLayout';
 import { ValidationErrorSummary } from '../ValidationErrorSummary';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warnin
 import { useAppStore } from '@/stores/useAppStore';
 import { cn } from '@/lib/utils';
 
-import { ProjectSetupData, ProjectConstraint } from '@/types/project';
+import { ProjectSetupData } from '@/types/project';
 
 // ============================================================================
 // Step 1: Project Information
@@ -107,6 +107,7 @@ export function Step1ProjectInfo() {
 
 Genre: ${formData.genre.join(', ')}
 Tone: ${formData.tone.join(', ')}
+${formData.productionMode ? `Production Mode: ${formData.productionMode}` : ''}
 Target Audience: ${formData.targetAudience || 'general audience'}
 
 RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
@@ -321,6 +322,39 @@ RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
           )}
         </div>
       </FormField>
+
+      {/* Production Mode Selection */}
+      <FormField
+        label={
+          <>
+            Production Mode <span className="text-red-600">*</span>
+          </>
+        }
+        name="productionMode"
+        required
+        error={validationErrors.productionMode?.[0]}
+        helpText="Select the methodology for your project generation"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3" role="group" aria-required="true">
+          {PRODUCTION_MODE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => updateFormData({ productionMode: option.value })}
+              className={cn(
+                "flex flex-col items-start p-3 rounded-lg border-2 text-left transition-all",
+                formData.productionMode === option.value
+                  ? "border-primary bg-primary/5 dark:bg-primary/10"
+                  : "border-gray-200 dark:border-gray-800 hover:border-primary/50"
+              )}
+            >
+              <span className="font-semibold text-sm">{option.label}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{option.description}</span>
+            </button>
+          ))}
+        </div>
+      </FormField>
+
       <FormField
         label={
           <>

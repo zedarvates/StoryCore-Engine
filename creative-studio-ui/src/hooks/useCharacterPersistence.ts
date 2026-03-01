@@ -102,7 +102,7 @@ function generateUUID(): string {
  * Retry a function with exponential backoff
  * Requirements: 8.2
  */
-async function retryWithBackoff<T>(
+async function _retryWithBackoff<T>(
   fn: () => Promise<T>,
   config: RetryConfig = {
     maxAttempts: 3,
@@ -170,7 +170,7 @@ function handleFileSystemError(error: Error, operation: string): void {
  * Detect concurrent modifications by comparing version numbers
  * Requirements: 2.5
  */
-function detectConcurrentModification(
+function _detectConcurrentModification(
   localChar: PersistedCharacter,
   remoteChar: PersistedCharacter
 ): boolean {
@@ -192,40 +192,41 @@ function detectConcurrentModification(
  * Validates character data against schema
  * Requirements: 8.3
  */
-function validateCharacterSchema(data: any): { valid: boolean; errors: string[] } {
+function validateCharacterSchema(data: unknown): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
+  const d = data as Record<string, unknown>;
 
   // Check required fields
-  if (!data.character_id || typeof data.character_id !== 'string') {
+  if (!d.character_id || typeof d.character_id !== 'string') {
     errors.push('character_id is required and must be a string');
   }
-  if (!data.name || typeof data.name !== 'string') {
+  if (!d.name || typeof d.name !== 'string') {
     errors.push('name is required and must be a string');
   }
-  if (!data.creation_method || !['wizard', 'auto_generated', 'manual'].includes(data.creation_method)) {
+  if (!d.creation_method || !['wizard', 'auto_generated', 'manual'].includes(d.creation_method as string)) {
     errors.push('creation_method must be one of: wizard, auto_generated, manual');
   }
-  if (!data.creation_timestamp || (typeof data.creation_timestamp !== 'string' && typeof data.creation_timestamp !== 'number')) {
+  if (!d.creation_timestamp || (typeof d.creation_timestamp !== 'string' && typeof d.creation_timestamp !== 'number')) {
     errors.push('creation_timestamp is required and must be a string or number');
   }
-  if (!data.version || typeof data.version !== 'string') {
+  if (!d.version || typeof d.version !== 'string') {
     errors.push('version is required and must be a string');
   }
 
   // Check nested objects
-  if (!data.visual_identity || typeof data.visual_identity !== 'object') {
+  if (!d.visual_identity || typeof d.visual_identity !== 'object') {
     errors.push('visual_identity is required and must be an object');
   }
-  if (!data.personality || typeof data.personality !== 'object') {
+  if (!d.personality || typeof d.personality !== 'object') {
     errors.push('personality is required and must be an object');
   }
-  if (!data.background || typeof data.background !== 'object') {
+  if (!d.background || typeof d.background !== 'object') {
     errors.push('background is required and must be an object');
   }
-  if (!data.role || typeof data.role !== 'object') {
+  if (!d.role || typeof d.role !== 'object') {
     errors.push('role is required and must be an object');
   }
-  if (!Array.isArray(data.relationships)) {
+  if (!Array.isArray(d.relationships)) {
     errors.push('relationships must be an array');
   }
 
@@ -239,7 +240,7 @@ function validateCharacterSchema(data: any): { valid: boolean; errors: string[] 
  * Resolves conflicts between two character versions by timestamp
  * Requirements: 8.5
  */
-function resolveConflictByTimestamp(
+function _resolveConflictByTimestamp(
   localChar: PersistedCharacter,
   remoteChar: PersistedCharacter
 ): PersistedCharacter {
@@ -297,7 +298,7 @@ export function useCharacterPersistence() {
             ],
           };
 
-          const fileHandle = await (window as any).showSaveFilePicker(options);
+          const fileHandle = await (window as unknown as Record<string, (o: unknown) => Promise<{ createWritable: () => Promise<{ write: (d: string) => Promise<void>; close: () => Promise<void> }> }>>)['showSaveFilePicker'](options);
           const writable = await fileHandle.createWritable();
           await writable.write(JSON.stringify(character, null, 2));
           await writable.close();
@@ -426,7 +427,7 @@ export function useCharacterPersistence() {
                 }
               }
             }
-          } catch (dirError) {
+          } catch (_dirError) {
             // Directory doesn't exist yet, return empty array
             console.log('[useCharacterPersistence] Characters directory does not exist yet');
           }
@@ -442,98 +443,7 @@ export function useCharacterPersistence() {
     []
   );
 
-  /**
-   * Load character from JSON file via File System Access API
-   * Requirements: 8.2
-   */
-  const loadFromFile = useCallback(
-    async (): Promise<PersistedCharacter | null> => {
-      try {
-        // Use File System Access API if available
-        // NOTE: showOpenFilePicker requires a user gesture (click event)
-        // This function should only be called from explicit user actions
-        if ('showOpenFilePicker' in window) {
-          try {
-            const options = {
-              types: [
-                {
-                  description: 'JSON Files',
-                  accept: { 'application/json': ['.json'] },
-                },
-              ],
-              multiple: false,
-            };
 
-            const [fileHandle] = await (window as any).showOpenFilePicker(options);
-            const file = await fileHandle.getFile();
-            const content = await file.text();
-            const character = JSON.parse(content);
-
-            // Validate loaded data (Requirement: 8.3)
-            const validation = validateCharacterSchema(character);
-            if (!validation.valid) {
-              throw new PersistenceError(
-                PersistenceErrorType.CORRUPTED_DATA,
-                `Loaded character failed validation: ${validation.errors.join(', ')}`,
-                { errors: validation.errors }
-              );
-            }
-
-            return character;
-          } catch (pickerError) {
-            // User cancelled or gesture requirement not met
-            // Fall through to fallback method
-            console.warn('File System Access API not available or cancelled:', pickerError);
-          }
-        }
-
-        // Fallback: use input element (works without user gesture requirement)
-        return new Promise((resolve, reject) => {
-          const input = document.createElement('input');
-          input.type = 'file';
-          input.accept = '.json,application/json';
-          input.onchange = async (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (!file) {
-              resolve(null);
-              return;
-            }
-            try {
-              const content = await file.text();
-              const character = JSON.parse(content);
-              const validation = validateCharacterSchema(character);
-              if (!validation.valid) {
-                throw new PersistenceError(
-                  PersistenceErrorType.CORRUPTED_DATA,
-                  `Loaded character failed validation: ${validation.errors.join(', ')}`,
-                  { errors: validation.errors }
-                );
-              }
-              resolve(character);
-            } catch (err) {
-              reject(err);
-            }
-          };
-          // Create the click event properly
-          const clickEvent = new MouseEvent('click', {
-            view: window,
-            bubbles: true,
-            cancelable: true
-          });
-          input.dispatchEvent(clickEvent);
-        });
-      } catch (error) {
-        // Check if user cancelled the open dialog - don't treat as error
-        if ((error as Error).name === 'AbortError') {
-          console.log('User cancelled file open');
-          return null;
-        }
-        console.warn('Failed to load character from file system:', error);
-        return null;
-      }
-    },
-    []
-  );
 
   // ============================================================================
   // LocalStorage Operations - All useCallback hooks at top level
@@ -742,7 +652,7 @@ export function useCharacterPersistence() {
         console.log('[useCharacterPersistence] No project path available, using file picker');
         try {
           await saveToFile(character);
-        } catch (error) {
+        } catch (_error) {
           // File system save failed, but localStorage succeeded
           console.warn('File system save failed, character saved to localStorage only');
         }
@@ -1049,7 +959,3 @@ export function useCharacterPersistence() {
     loadCharactersFromProjectDirectory,
   };
 }
-
-
-
-

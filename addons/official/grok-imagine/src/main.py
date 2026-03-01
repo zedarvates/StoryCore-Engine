@@ -135,7 +135,7 @@ class GrokImagineAddon:
             if self.api_client:
                 health_check = await self.api_client.health_check()
                 if not health_check:
-                    self.logger.warning("API Grok Imagine non disponible, mais l'addon reste fonctionnel en mode simulation")
+                    self.logger.warning("API Grok Imagine non disponible ou clé manquante.")
             
             self.is_running = True
             self.logger.info("Addon Grok Imagine démarré avec succès")

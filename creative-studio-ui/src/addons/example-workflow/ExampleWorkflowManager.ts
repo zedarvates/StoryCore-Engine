@@ -3,7 +3,6 @@
 // ============================================================================
 
 import type {
-  WorkflowStep,
   WorkflowConfig,
   WorkflowState,
   WorkflowOperation,
@@ -85,7 +84,7 @@ export class ExampleWorkflowManager {
   /**
    * Execute a workflow step
    */
-  async executeStep(workflowId: string, stepId: string): Promise<any> {
+  async executeStep(workflowId: string, stepId: string): Promise<Record<string, unknown>> {
     const workflow = this.workflows[workflowId];
     if (workflow && workflow.isRunning) {
       // In a real implementation, this would execute the actual step
@@ -194,12 +193,14 @@ export class ExampleWorkflowManager {
    * Validate example workflow state
    */
   private isValidExampleWorkflowState(state: unknown): state is ExampleWorkflowState {
+    if (state === null || typeof state !== 'object') {
+      return false;
+    }
+    const s = state as Record<string, unknown>;
     return (
-      state !== null &&
-      typeof state === 'object' &&
-      (state as any).config &&
-      typeof (state as any).version === 'string' &&
-      typeof (state as any).lastModified === 'string'
+      s.config !== undefined &&
+      typeof s.version === 'string' &&
+      typeof s.lastModified === 'string'
     );
   }
 

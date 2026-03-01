@@ -35,6 +35,56 @@
   gap: 8px;
 }
 
+.rlm-toggle-btn, .graph-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 32px;
+  color: white;
+}
+
+.rlm-toggle-btn:hover, .graph-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.rlm-toggle-btn.active, .graph-toggle-btn.active {
+  border: 1px solid rgba(34, 211, 238, 0.5);
+  background: rgba(34, 211, 238, 0.15);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
+}
+
+
+.rlm-toggle-btn:hover {
+  background: rgba(34, 211, 238, 0.2);
+  border-color: rgba(34, 211, 238, 0.5);
+  transform: translateY(-1px);
+}
+
+.rlm-toggle-btn.active {
+  background: rgba(34, 211, 238, 0.25);
+  border-color: #22d3ee;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+}
+
+.rlm-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #22d3ee;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 5px rgba(34, 211, 238, 0.5);
+}
+
+.rlm-contextual-panel {
+  padding: 0 20px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
 .assistant-icon {
   font-size: 2rem;
   width: 48px;
@@ -513,4 +563,50 @@
   border-radius: 12px 0 0 12px;
   height: calc(100% - 50px);
   max-height: none;
+}
+
+/* Knowledge Graph Overlay */
+.assistant-graph-overlay {
+  position: absolute;
+  top: 70px;
+  left: 20px;
+  right: 20px;
+  bottom: 120px;
+  z-index: 1000;
+  border-radius: 20px;
+  background: rgba(13, 13, 26, 0.98);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  animation: slideInUpAssistant 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.close-graph-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: #888;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1010;
+  transition: all 0.2s;
+}
+
+.close-graph-btn:hover {
+  background: rgba(255, 50, 50, 0.2);
+  color: #fff;
+}
+
+@keyframes slideInUpAssistant {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }

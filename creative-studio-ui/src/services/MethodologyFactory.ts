@@ -6,11 +6,7 @@
 import {
   StoryMethodologyType,
   StoryPhase,
-  ApprovalStatus,
-  WritingStyle,
-  ConsistencyCheckIntensity,
   MethodologyDescription,
-  MethodologyOption,
   MethodologyState,
   IStoryMethodology,
 } from '../types/storyMethodology';
@@ -45,8 +41,8 @@ const METHODOLOGY_DESCRIPTIONS: Record<StoryMethodologyTypeValue, MethodologyDes
     icon: 'list-ordered',
     color: '#3b82f6',
     phases: [
-      { phase: 'intro_summary' as any, name: 'Introduction', description: 'Generate story introduction' },
-      { phase: 'full_content' as any, name: 'Full Story', description: 'Expand to complete story' },
+      { phase: 'intro_summary' as StoryPhase, name: 'Introduction', description: 'Generate story introduction' },
+      { phase: 'full_content' as StoryPhase, name: 'Full Story', description: 'Expand to complete story' },
     ],
     options: [],
   },
@@ -66,11 +62,11 @@ const METHODOLOGY_DESCRIPTIONS: Record<StoryMethodologyTypeValue, MethodologyDes
     icon: 'layout-template',
     color: '#8b5cf6',
     phases: [
-      { phase: 'intro_summary' as any, name: 'Intro Summary', description: 'Create introduction outline' },
-      { phase: 'chapter_outline' as any, name: 'Chapter Outlines', description: 'Plan each chapter' },
-      { phase: 'ending_summary' as any, name: 'Ending Summary', description: 'Plan the conclusion' },
-      { phase: 'full_content' as any, name: 'Full Content', description: 'Expand to complete story' },
-      { phase: 'revision' as any, name: 'Revision', description: 'Refine based on feedback' },
+      { phase: 'intro_summary' as StoryPhase, name: 'Intro Summary', description: 'Create introduction outline' },
+      { phase: 'chapter_outline' as StoryPhase, name: 'Chapter Outlines', description: 'Plan each chapter' },
+      { phase: 'ending_summary' as StoryPhase, name: 'Ending Summary', description: 'Plan the conclusion' },
+      { phase: 'full_content' as StoryPhase, name: 'Full Content', description: 'Expand to complete story' },
+      { phase: 'revision' as StoryPhase, name: 'Revision', description: 'Refine based on feedback' },
     ],
     options: [
       {
@@ -111,10 +107,10 @@ const METHODOLOGY_DESCRIPTIONS: Record<StoryMethodologyTypeValue, MethodologyDes
     icon: 'trending-up',
     color: '#10b981',
     phases: [
-      { phase: 'skeleton' as any, name: 'Story Skeleton', description: 'Generate complete structure' },
-      { phase: 'skeleton_review' as any, name: 'Skeleton Review', description: 'Review and adjust structure' },
-      { phase: 'full_expansion' as any, name: 'Full Expansion', description: 'Expand to complete story' },
-      { phase: 'polish' as any, name: 'Polish', description: 'Final refinements' },
+      { phase: 'skeleton' as StoryPhase, name: 'Story Skeleton', description: 'Generate complete structure' },
+      { phase: 'skeleton_review' as StoryPhase, name: 'Skeleton Review', description: 'Review and adjust structure' },
+      { phase: 'full_expansion' as StoryPhase, name: 'Full Expansion', description: 'Expand to complete story' },
+      { phase: 'polish' as StoryPhase, name: 'Polish', description: 'Final refinements' },
     ],
     options: [
       {
@@ -157,10 +153,10 @@ const METHODOLOGY_DESCRIPTIONS: Record<StoryMethodologyTypeValue, MethodologyDes
     icon: 'book-open',
     color: '#f59e0b',
     phases: [
-      { phase: 'master_outline' as any, name: 'Master Outline', description: 'Create comprehensive blueprint' },
-      { phase: 'chapter_generation' as any, name: 'Chapter Generation', description: 'Generate chapters in batches' },
-      { phase: 'ending_summary' as any, name: 'Ending', description: 'Generate ending' },
-      { phase: 'consistency_check' as any, name: 'Consistency Check', description: 'Cross-check all parts' },
+      { phase: 'master_outline' as StoryPhase, name: 'Master Outline', description: 'Create comprehensive blueprint' },
+      { phase: 'chapter_generation' as StoryPhase, name: 'Chapter Generation', description: 'Generate chapters in batches' },
+      { phase: 'ending_summary' as StoryPhase, name: 'Ending', description: 'Generate ending' },
+      { phase: 'consistency_check' as StoryPhase, name: 'Consistency Check', description: 'Cross-check all parts' },
     ],
     options: [
       {
@@ -227,19 +223,19 @@ export class MethodologyFactory {
   ): IStoryMethodology {
     switch (type) {
       case 'sequential':
-        this.currentMethodology = new SequentialMethodology(type as any, options || {}, settings || {});
+        this.currentMethodology = new SequentialMethodology(type as StoryMethodologyType, options || {}, settings || {});
         break;
         
       case 'structured_draft_refine':
-        this.currentMethodology = new StructuredDraftRefineMethodology(type as any, options || {}, settings || {});
+        this.currentMethodology = new StructuredDraftRefineMethodology(type as StoryMethodologyType, options || {}, settings || {});
         break;
         
       case 'linear_progressive':
-        this.currentMethodology = new LinearProgressiveMethodology(type as any, options || {}, settings || {});
+        this.currentMethodology = new LinearProgressiveMethodology(type as StoryMethodologyType, options || {}, settings || {});
         break;
         
       case 'iterative_chapter':
-        this.currentMethodology = new IterativeChapterMethodology(type as any, options || {}, settings || {});
+        this.currentMethodology = new IterativeChapterMethodology(type as StoryMethodologyType, options || {}, settings || {});
         break;
         
       default:

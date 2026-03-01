@@ -652,25 +652,6 @@ class AudioCleaningService:
         remove_noise: bool = True,
         remove_echo: bool = False,
         enhance_speech: bool = True
-    ) -> str:
-        """Apply multiple cleaning filters to audio."""
-        # This is a high-level wrapper
-        return audio_path
-
-    async def voice_isolation(self, input_path: str, output_path: str) -> bool:
-        """Isolate voice by removing non-vocal frequencies (Simplified)."""
-        # Filtre FFmpeg : passe-bande (80Hz - 8kHz) + gate
-        cmd = [
-            "ffmpeg", "-y", "-i", input_path,
-            "-af", "highpass=f=80,lowpass=f=8000,afftdn,agate",
-            output_path
-        ]
-        import subprocess
-        try:
-            subprocess.run(cmd, check=True)
-            return True
-        except:
-            return False
     ) -> AudioCleaningResult:
         """Clean and enhance audio."""
         import noisereduce as nr

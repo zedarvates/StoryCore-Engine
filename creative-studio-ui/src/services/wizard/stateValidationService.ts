@@ -6,7 +6,7 @@
  * Requirements: 5.6
  */
 
-import type { WizardAutoSaveState } from '../../utils/wizardStorage';
+import type { WizardAutoSaveState, WizardType } from '../../utils/wizardStorage';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -35,8 +35,9 @@ export class StateValidationService {
   /**
    * Validate wizard state structure
    */
-  // Using 'any' for state parameter to validate arbitrary wizard state structures before type checking
-  validateState<T>(state: any): ValidationResult {
+  // Using 'unknown' for state parameter — validated structurally before type casting
+  validateState(state: unknown): ValidationResult {
+    const s = state as Record<string, unknown>;
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -63,45 +64,43 @@ export class StateValidationService {
     }
 
     // Validate required fields
-    if (!state.wizardType) {
+    if (!s.wizardType) {
       errors.push('Missing required field: wizardType');
-    } else if (state.wizardType !== 'world' && state.wizardType !== 'character' && state.wizardType !== 'sequence-plan') {
-      errors.push(`Invalid wizardType: ${state.wizardType}`);
+    } else if (s.wizardType !== 'world' && s.wizardType !== 'character' && s.wizardType !== 'sequence-plan') {
+      errors.push(`Invalid wizardType: ${s.wizardType}`);
     }
 
-    if (state.timestamp === undefined) {
+    if (s.timestamp === undefined) {
       errors.push('Missing required field: timestamp');
-    } else if (typeof state.timestamp !== 'string') {
+    } else if (typeof s.timestamp !== 'string') {
       errors.push('Invalid timestamp type');
     } else {
-      // Validate timestamp format
-      const date = new Date(state.timestamp);
+      const date = new Date(s.timestamp);
       if (isNaN(date.getTime())) {
         errors.push('Invalid timestamp format');
       }
     }
 
-    if (state.currentStep === undefined) {
+    if (s.currentStep === undefined) {
       errors.push('Missing required field: currentStep');
-    } else if (typeof state.currentStep !== 'number') {
+    } else if (typeof s.currentStep !== 'number') {
       errors.push('Invalid currentStep type');
-    } else if (state.currentStep < 0) {
+    } else if (s.currentStep < 0) {
       errors.push('currentStep cannot be negative');
     }
 
-    if (!state.formData) {
+    if (!s.formData) {
       errors.push('Missing required field: formData');
-    } else if (typeof state.formData !== 'object') {
+    } else if (typeof s.formData !== 'object') {
       errors.push('Invalid formData type');
     }
 
-    if (state.expiresAt === undefined) {
+    if (s.expiresAt === undefined) {
       errors.push('Missing required field: expiresAt');
-    } else if (typeof state.expiresAt !== 'string') {
+    } else if (typeof s.expiresAt !== 'string') {
       errors.push('Invalid expiresAt type');
     } else {
-      // Validate expiration date
-      const date = new Date(state.expiresAt);
+      const date = new Date(s.expiresAt);
       if (isNaN(date.getTime())) {
         errors.push('Invalid expiresAt format');
       } else if (date < new Date()) {
@@ -110,8 +109,8 @@ export class StateValidationService {
     }
 
     // Check for version mismatch
-    if (state.version) {
-      const versionResult = this.checkVersionCompatibility(state.version);
+    if (s.version) {
+      const versionResult = this.checkVersionCompatibility(s.version as string | StateVersion);
       if (!versionResult.compatible) {
         warnings.push(versionResult.message);
       }
@@ -175,21 +174,19 @@ export class StateValidationService {
   /**
    * Attempt to recover corrupted state
    */
-  // Using 'any' for state parameter to attempt recovery of corrupted wizard state structures
-  recoverState<T>(state: any): WizardAutoSaveState<T> | null {
+  // Using 'unknown' for state parameter to attempt recovery of corrupted wizard state structures
+  recoverState<T>(state: unknown): WizardAutoSaveState<T> | null {
     const validation = this.validateState(state);
-
     if (!validation.canRecover) {
       return null;
     }
-
-    // Create a clean state with defaults
+    const s = state as Record<string, unknown>;
     const recovered: WizardAutoSaveState<T> = {
-      wizardType: state.wizardType || 'world',
-      timestamp: state.timestamp || new Date().toISOString(),
-      currentStep: typeof state.currentStep === 'number' ? state.currentStep : 0,
-      formData: state.formData || {},
-      expiresAt: state.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      wizardType: ((s.wizardType as string) || 'world') as WizardType,
+      timestamp: (s.timestamp as string) || new Date().toISOString(),
+      currentStep: typeof s.currentStep === 'number' ? s.currentStep : 0,
+      formData: (s.formData as T) || ({} as T),
+      expiresAt: (s.expiresAt as string) || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     };
 
     // Validate recovered state
@@ -204,23 +201,19 @@ export class StateValidationService {
   /**
    * Sanitize form data
    */
-  // Using 'any' for formData parameter to sanitize arbitrary form data structures
-  sanitizeFormData<T>(formData: any): Partial<T> {
+  // Using 'unknown' for formData parameter to sanitize arbitrary form data structures
+  sanitizeFormData<T>(formData: unknown): Partial<T> {
     if (!formData || typeof formData !== 'object') {
       return {};
     }
-
-    // Remove null and undefined values
-    // Using 'any' for sanitized object to build cleaned structure dynamically
-    const sanitized: any = {};
-
-    for (const key in formData) {
-      if (formData[key] !== null && formData[key] !== undefined) {
-        sanitized[key] = formData[key];
+    const sanitized: Record<string, unknown> = {};
+    for (const key in (formData as Record<string, unknown>)) {
+      const val = (formData as Record<string, unknown>)[key];
+      if (val !== null && val !== undefined) {
+        sanitized[key] = val;
       }
     }
-
-    return sanitized;
+    return sanitized as Partial<T>;
   }
 
   /**

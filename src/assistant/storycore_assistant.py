@@ -7,7 +7,7 @@ management, and modification.
 """
 
 from pathlib import Path
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 from datetime import datetime
 import uuid
 
@@ -26,6 +26,8 @@ from .exceptions import (
     ResourceError, ValidationError, ProjectError, StorageLimitExceededError
 )
 from .logging_config import get_logger
+from .rlm_engine import RLMEngine, RLMAgentCore, RLMSubtask
+from .knowledge_graph import StoryGraph, GraphRAG
 
 logger = get_logger(__name__)
 
@@ -116,17 +118,21 @@ class StoryCoreAssistant:
         self.validator = DataContractValidator()
         
         # Initialize LLM client and generators
-        llm_client = create_llm_client(llm_provider)
-        self.prompt_parser = PromptParser(llm_client)
-        self.project_generator = ProjectGenerator(llm_client)
+        self.llm_client = create_llm_client(llm_provider)
+        self.prompt_parser = PromptParser(self.llm_client)
+        self.project_generator = ProjectGenerator(self.llm_client)
         self.comfyui_generator = ComfyUIConfigGenerator()
         
         # Initialize project manager
         self.project_manager = ProjectManager(self.file_ops, self.validator)
-        
+
         # Initialize auto-save manager
         self.autosave_manager = AutoSaveManager()
-        
+
+        # Initialize Knowledge Graph (in-memory, persisted per-project)
+        self.story_graph = StoryGraph()
+        self.graph_rag = GraphRAG(self.story_graph)
+
         # State
         self.active_previews: Dict[str, ProjectPreview] = {}
         
@@ -231,6 +237,54 @@ class StoryCoreAssistant:
         
         logger.info(f"Project preview created: {preview_id}")
         return preview
+
+    async def generate_complex_scenario_rlm(self, main_prompt: str, massive_context: str) -> Tuple[str, List[str]]:
+        """
+        Generates a complex scenario or story by using the Recursive Language Model (RLM) engine.
+        This handles extremely long contexts by actively exploring and decomposing the task.
+        
+        Returns:
+            Tuple of (final_answer, list_of_step_messages)
+        """
+        class StoryCoreRLMAgent(RLMAgentCore):
+            def __init__(self, assistant_ref: 'StoryCoreAssistant'):
+                self.assistant = assistant_ref
+                self.client = assistant_ref.llm_client
+                self.graph_rag = assistant_ref.graph_rag
+                
+            async def call_llm(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+                # Call the real LLM client
+                return self.client.complete(prompt)
+                
+            async def query_database(self, query: str) -> str:
+                # Search for specific mentions in project scenes/characters
+                # This is a lightweight RAG over the current project state
+                context = []
+                query_lower = query.lower()
+                
+                # Check characters in the graph
+                for node in self.assistant.story_graph._nodes.values():
+                    if query_lower in node.name.lower() or query_lower in str(node.attributes).lower():
+                        context.append(f"{node.entity_type.title()} '{node.name}': {node.attributes}")
+                
+                if not context:
+                    return f"No specific project data found for '{query}'."
+                return "\n".join(context[:5]) # Return top 5 matches
+
+            async def query_graph(self, entities: List[str], max_depth: int = 1) -> str:
+                # Use the real GraphRAG
+                if not self.graph_rag:
+                    return "Knowledge Graph not initialized."
+                return self.graph_rag.query(entities, max_depth=max_depth)
+                
+        agent = StoryCoreRLMAgent(self)
+        
+        # We can pass an optional step event callback to stream the process back to the UI
+        def on_step(msg: str):
+            logger.info(f"[RLM Engine Update]: {msg}")
+            
+        engine = RLMEngine(agent, graph_rag=self.graph_rag, on_step_event=on_step)
+        return await engine.process_with_steps(main_prompt, massive_context)
     
     def finalize_project(self, preview_id: str) -> Project:
         """
@@ -380,6 +434,12 @@ class StoryCoreAssistant:
         comfyui_path = project.path / "comfyui_config.json"
         self.file_ops.write_json(comfyui_path, comfyui_dict)
         
+        # Update and save Knowledge Graph
+        if hasattr(self, 'story_graph'):
+            self.story_graph.ingest_project(metadata_dict)
+            self.story_graph.save()
+            logger.info(f"Knowledge Graph updated and saved for: {project.name}")
+        
         logger.info(f"Project files saved: {project.name}")
     
     def open_project(self, project_name: str) -> Project:
@@ -403,7 +463,38 @@ class StoryCoreAssistant:
         
         # Use project manager to open
         project = self.project_manager.open_project(project_name)
-        
+
+        # Reload the Knowledge Graph for this project from its persisted file
+        graph_file = project.path / "knowledge_graph.json"
+        self.story_graph = StoryGraph(persistence_path=graph_file)
+        self.graph_rag = GraphRAG(self.story_graph)
+
+        # Ingest current project data into the graph (non-destructive update)
+        project_dict = {
+            "characters": [
+                {
+                    "name": c.name,
+                    "role": c.role,
+                    "personality": c.personality,
+                    "appearance": c.appearance
+                } for c in project.characters
+            ],
+            "scenes": [
+                {
+                    "id": s.id,
+                    "title": s.title,
+                    "description": s.description,
+                    "location": s.location,
+                    "time_of_day": s.time_of_day,
+                    "characters": s.characters
+                } for s in project.scenes
+            ]
+        }
+        self.story_graph.ingest_project(project_dict)
+        self.story_graph.save()
+
+        logger.info(f"Knowledge Graph loaded: {self.story_graph.stats()}")
+
         # Start auto-save
         self.autosave_manager.start(self.project_manager)
         

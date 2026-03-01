@@ -48,14 +48,13 @@ export function APISettingsWindow({ isOpen, onClose, onSave }: APISettingsWindow
       const keys = field.split('.');
       // Deep copy to avoid mutation
       const newData = JSON.parse(JSON.stringify(prev));
-      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-      let current: any = newData;
+      let current: Record<string, unknown> = newData;
       
       for (let i = 0; i < keys.length - 1; i++) {
         if (!current[keys[i]]) {
           current[keys[i]] = {};
         }
-        current = current[keys[i]];
+        current = current[keys[i]] as Record<string, unknown>;
       }
       
       current[keys[keys.length - 1]] = value;

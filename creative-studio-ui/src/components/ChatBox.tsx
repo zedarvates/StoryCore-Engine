@@ -73,7 +73,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
           if (action.type === 'addShot' && action.shot) {
             addShot(action.shot as Shot);
           } else if (action.type === 'updateShot' && action.shotId) {
-            updateShot(action.shotId, action.updates);
+            updateShot(action.shotId, action.updates as Partial<Shot>);
           }
         });
       }
@@ -134,7 +134,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
           if (action.type === 'addShot' && action.shot) {
             addShot(action.shot as Shot);
           } else if (action.type === 'updateShot' && action.shotId) {
-            updateShot(action.shotId, action.updates);
+            updateShot(action.shotId, action.updates as Partial<Shot>);
           }
         });
       }
@@ -156,11 +156,11 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
   };
 
   return (
-    <div className={`flex flex-col h-full bg-background ${className}`}>
+    <div className={`flex flex-col h-full rounded-[28px] overflow-hidden backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70 border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)] ${className}`}>
       {/* Header */}
-      <div className="flex items-center gap-2 p-4 border-b border-border">
+      <div className="flex items-center gap-2 px-4 py-3 bg-white/40 dark:bg-slate-800/40 border-b border-white/20 dark:border-slate-700/30">
         <Sparkles className="w-5 h-5 text-purple-400" />
-        <h2 className="text-lg font-semibold text-foreground">StoryCore AI Assistant</h2>
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-white">StoryCore AI Assistant</h2>
       </div>
 
       {/* Messages */}
@@ -261,29 +261,29 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-border">
-        <div className="flex gap-2">
+      <div className="pt-4 px-4 pb-2 bg-transparent border-t border-white/20 dark:border-slate-700/30">
+        <div className="flex items-end gap-2 p-1.5 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-[24px] border border-white/40 dark:border-slate-600/40 shadow-sm focus-within:ring-2 focus-within:ring-purple-500/50 transition-all">
           <textarea
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Describe what you want to create..."
-            className="flex-1 px-3 py-2 bg-background text-foreground border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-muted-foreground"
-            rows={2}
+            placeholder="Décrivez ce que vous souhaitez créer..."
+            className="flex-1 min-h-[44px] max-h-[150px] p-2 bg-transparent text-slate-800 dark:text-white placeholder:text-slate-500 border-none resize-none shadow-none focus-visible:ring-0 focus-visible:outline-none focus:ring-0"
+            rows={1}
             disabled={isProcessing}
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || isProcessing}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-3 mb-0.5 rounded-full bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:bg-slate-200 disabled:text-slate-400 transition-all shadow-sm"
             aria-label="Send message"
           >
             <Send className="w-5 h-5" />
           </button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          Press Enter to send, Shift+Enter for new line
+        <p className="text-[10px] text-slate-500 mt-1 ml-1">
+          Appuyez sur Entrée pour envoyer • Shift+Entrée pour une nouvelle ligne
         </p>
       </div>
     </div>
@@ -303,6 +303,7 @@ function generateAIResponse(
 
   // Project creation request
   if (
+    // cspell:disable-next-line
     (input.includes('créer') || input.includes('creer') || input.includes('create') || input.includes('nouveau') || input.includes('new')) &&
     (input.includes('projet') || input.includes('project'))
   ) {

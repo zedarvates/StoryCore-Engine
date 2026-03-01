@@ -1,4 +1,5 @@
 import type { Project, Shot } from '@/types';
+import type { ProjectFormat, ShotData } from '@/types/electron';
 
 // ============================================================================
 // Project Validation
@@ -77,7 +78,7 @@ function serializeShot(shot: Shot): Record<string, unknown> {
     description: shot.description,
     duration: shot.duration,
     image: shot.image,
-    audio: shot.audioTracks.map((track) => track.url),
+    audio: (shot.audioTracks ?? []).map((track) => track.url),
     position: shot.position,
     metadata: {
       audioTracks: shot.audioTracks,
@@ -249,8 +250,8 @@ export function createEmptyProject(name: string): Project {
 export async function createProjectOnDisk(data: {
   name: string;
   location?: string;
-  format?: unknown;
-  initialShots?: unknown[];
+  format?: ProjectFormat;
+  initialShots?: ShotData[];
 }): Promise<{
   id: string;
   name: string;
@@ -275,7 +276,7 @@ export async function createProjectOnDisk(data: {
       ...(data.initialShots ? { initialShots: data.initialShots } : {}),
     };
 
-    const project = await window.electronAPI.project.create(projectData as any);
+    const project = await window.electronAPI.project.create(projectData);
     console.log('[projectManager] Project created successfully on disk:', project.path);
     return project;
   } catch (error) {
@@ -323,10 +324,9 @@ export function getRecentProjects(): RecentProject[] {
     if (!json) return [];
     const projects = JSON.parse(json);
     // Convert lastAccessed strings back to Date objects
-    // Using 'any' for parsed JSON data before type validation
-    return projects.map((p: any) => ({
+    return projects.map((p: Record<string, unknown>) => ({
       ...p,
-      lastAccessed: new Date(p.lastAccessed),
+      lastAccessed: new Date(p.lastAccessed as string),
     }));
   } catch {
     return [];

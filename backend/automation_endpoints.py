@@ -339,13 +339,49 @@ async def generate_dialogue(request: DialogueGenerateRequest):
         # Convertir le template
         template = DialogueTemplate(request.template)
         
-        # Note: Les personnages sont intégrés en mode "mock"
-        # Dans une vraie implémentation, on chargerait depuis la DB
-        # Pour l'instant, on génère avec des personnages virtuels
+        # Implémentation réelle : conversion des données API vers les modèles Character Engine
+        from src.ai_character_engine import (
+            GeneratedCharacter, CharacterArchetype, CharacterRole, 
+            PersonalityProfile, CharacterAppearance, CharacterBackstory, 
+            CharacterConsistency, PersonalityTrait
+        )
+        
+        real_characters = []
+        for c in request.characters:
+            # Convertir archetype optionnel
+            try:
+                archetype = CharacterArchetype(c.archetype.lower())
+            except ValueError:
+                archetype = CharacterArchetype.HERO
+                
+            # Convertir role
+            try:
+                role = CharacterRole(c.role.lower())
+            except ValueError:
+                role = CharacterRole.SUPPORTING
+                
+            # Convertir traits
+            traits = {}
+            for k, v in c.personality_traits.items():
+                try:
+                    traits[PersonalityTrait(k.lower())] = v
+                except ValueError:
+                    pass
+                    
+            real_characters.append(GeneratedCharacter(
+                character_id=c.character_id,
+                name=c.name,
+                archetype=archetype,
+                role=role,
+                personality=PersonalityProfile(traits=traits),
+                appearance=CharacterAppearance(),
+                backstory=CharacterBackstory(),
+                consistency=CharacterConsistency(generation_id="api_gen", appearance_seed=0, personality_seed=0, last_modified=datetime.now())
+            ))
         
         # Générer le dialogue
         scene = dialogue_automation.generate_dialogue(
-            characters=[],  # TODO: Charger depuis la DB avec les vrais personnages
+            characters=real_characters,
             context=context,
             dialogue_type=dialogue_type,
             num_lines=request.num_lines,

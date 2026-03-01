@@ -365,8 +365,8 @@ class VideoEditorAPI {
     mediaId: string,
     targetRatio: string = "9:16",
     focusMode: 'center' | 'face' | 'motion' = 'center'
-  ): Promise<{ job_id: string; status: string; crop_regions?: any }> {
-    return this.request<{ job_id: string; status: string; crop_regions?: any }>(
+  ): Promise<{ job_id: string; status: string; crop_regions?: Record<string, unknown> }> {
+    return this.request<{ job_id: string; status: string; crop_regions?: Record<string, unknown> }>(
       `/ai/smart-crop`,
       {
         method: 'POST',
@@ -379,8 +379,8 @@ class VideoEditorAPI {
     );
   }
 
-  async getAiJobStatus(jobId: string): Promise<any> {
-    return this.request<any>(`/jobs/${jobId}`);
+  async getAiJobStatus(jobId: string): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>(`/jobs/${jobId}`);
   }
 }
 

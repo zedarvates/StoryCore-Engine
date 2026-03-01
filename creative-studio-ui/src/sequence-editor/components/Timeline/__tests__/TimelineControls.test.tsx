@@ -15,7 +15,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TimelineControls } from '../TimelineControls';
 import previewReducer from '../../../store/slices/previewSlice';
 import timelineReducer from '../../../store/slices/timelineSlice';
-import type { LayerType } from '../../../types';
+import projectReducer from '../../../store/slices/projectSlice';
+
 
 // Helper to create a test store
 const createTestStore = () => {
@@ -23,6 +24,7 @@ const createTestStore = () => {
     reducer: {
       preview: previewReducer,
       timeline: timelineReducer,
+      project: projectReducer,
     },
   });
 };

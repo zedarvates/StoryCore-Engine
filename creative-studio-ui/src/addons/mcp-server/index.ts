@@ -3,7 +3,7 @@
 // ============================================================================
 
 // Core types - Import first, then re-export
-import type { MCPServerConfig, MCPServerStatus, MCPServerOperation, MCPServerState } from './types';
+import type { MCPServerConfig, MCPServerStatus } from './types';
 export type {
   MCPServerConfig,
   MCPServerStatus,

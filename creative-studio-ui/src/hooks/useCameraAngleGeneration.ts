@@ -17,12 +17,13 @@ import {
   useIsGenerating,
   useHasResults,
 } from '@/stores/cameraAngleStore';
-import { cameraAngleService, CameraAngleService } from '@/services/cameraAngleService';
+import { CameraAngleService } from '@/services/cameraAngleService';
 import type {
   CameraAnglePreset,
   CameraAngleQuality,
   CameraAngleResult,
   CameraAnglePresetMetadata,
+  CameraLensType,
 } from '@/types/cameraAngle';
 
 // ============================================================================
@@ -92,6 +93,7 @@ interface UseCameraAngleGenerationReturn {
     quality?: CameraAngleQuality;
     seed?: number | null;
     customPrompt?: string | null;
+    lensType?: CameraLensType;
   }) => void;
   /** Clear error */
   clearError: () => void;
@@ -114,7 +116,6 @@ export function useCameraAngleGeneration(
   const {
     autoFetchPresets = true,
     onGenerationStart,
-    onGenerationComplete,
     onGenerationError,
     onGenerationCancel,
   } = options;

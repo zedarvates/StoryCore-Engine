@@ -17,7 +17,7 @@ export class AudioRecorder {
   private isRecording: boolean = false;
 
   constructor(audioFileManager: AudioFileManager) {
-    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     this.audioFileManager = audioFileManager;
   }
 
@@ -81,7 +81,7 @@ export class AudioRecorder {
       };
 
       // Arrêter l'enregistrement
-      this.mediaRecorder.stop();
+      this.mediaRecorder!.stop();
       this.isRecording = false;
     });
   }

@@ -34,6 +34,7 @@ from backend.llm_api import router as llm_router
 from backend.mvp_endpoints import router as mvp_router
 from backend.scenario_api import router as scenario_router
 from backend.lip_sync_api import router as lip_sync_router
+from backend.ttt_lrm_api import router as ttt_lrm_router
 
 # Configure logging
 logging.basicConfig(
@@ -272,6 +273,9 @@ app.include_router(ai_advanced_router)
 # Include AI Performance API router (Job Progress, Cache, Batch Processing, Job Queue)
 from backend.ai_performance_api import router as ai_performance_router
 app.include_router(ai_performance_router)
+
+# Include tttLRM 3D Reconstruction API router
+app.include_router(ttt_lrm_router)
 
 # Include CLI API router
 from backend.cli_api import router as cli_router

@@ -11,19 +11,17 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import { VirtualTimelineCanvas, getTrackShots, TRACK_CONFIG } from '../VirtualTimelineCanvas';
 import type { Track, Shot, LayerType, MediaLayerData } from '../../../types';
 
+class MockObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+
 // Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+global.ResizeObserver = MockObserver as unknown as typeof ResizeObserver;
 
 // Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+global.IntersectionObserver = MockObserver as unknown as typeof IntersectionObserver;
 
 // Mock HTMLCanvasElement.getContext
 HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
@@ -142,8 +140,6 @@ function createSampleShot(id: string, startTime: number, duration: number, layer
 describe('VirtualTimelineCanvas Component', () => {
   const mockOnShotSelect = vi.fn();
   const mockOnLayerSelect = vi.fn();
-  const mockOnShotMove = vi.fn();
-  const mockOnShotResize = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -237,7 +233,7 @@ describe('VirtualTimelineCanvas Component', () => {
       );
 
       // Should only render visible tracks
-      const virtualRows = container.querySelectorAll('.virtual-track-row');
+
       // Note: Virtual rendering may not show all rows immediately
       expect(container.querySelector('.virtual-timeline-canvas')).toBeTruthy();
     });

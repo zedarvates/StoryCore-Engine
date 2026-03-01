@@ -85,7 +85,6 @@ export class PlanSequencesManager {
     if (sequence) {
       const shotIndex = sequence.shots.findIndex(s => s.id === shotId);
       if (shotIndex !== -1) {
-        const shot = sequence.shots[shotIndex];
         sequence.shots.splice(shotIndex, 1);
         this.recordOperation('delete', `Removed shot from sequence: ${sequence.name}`, sequenceId, shotId);
 
@@ -122,7 +121,7 @@ export class PlanSequencesManager {
   /**
    * Auto-generate shots for a sequence
    */
-  autoGenerateShots(sequenceId: string, settings: PlanningSettings): void {
+  autoGenerateShots(sequenceId: string, _settings: PlanningSettings): void {
     const sequence = this.project.sequences.find(s => s.id === sequenceId);
     if (sequence) {
       // In a real implementation, this would use AI or templates to generate shots
@@ -160,7 +159,7 @@ export class PlanSequencesManager {
   /**
    * Export the plan
    */
-  async exportPlan(options: ExportOptions): Promise<Blob> {
+  async exportPlan(_options: ExportOptions): Promise<Blob> {
     // In a real implementation, this would export to the specified format
     return new Blob([JSON.stringify(this.project, null, 2)], { type: 'application/json' });
   }
@@ -301,13 +300,16 @@ export class PlanSequencesManager {
    * Validate planning state
    */
   private isValidPlanningState(state: unknown): state is PlanningState {
+    if (state === null || typeof state !== 'object') {
+      return false;
+    }
+    const s = state as Record<string, unknown>;
+    const project = s.project as Record<string, unknown> | undefined;
     return (
-      state !== null &&
-      typeof state === 'object' &&
-      (state as any).project &&
-      Array.isArray((state as any).project.sequences) &&
-      typeof (state as any).version === 'string' &&
-      typeof (state as any).lastModified === 'string'
+      project !== undefined &&
+      Array.isArray(project.sequences) &&
+      typeof s.version === 'string' &&
+      typeof s.lastModified === 'string'
     );
   }
 

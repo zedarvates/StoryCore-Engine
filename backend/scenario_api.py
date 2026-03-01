@@ -73,6 +73,7 @@ class ScenarioTransformRequest(BaseModel):
     """Request model for scenario transformation"""
     story: str = Field(..., min_length=10, max_length=50000)
     title: Optional[str] = Field(None, max_length=255)
+    mode: str = Field(default="fiction") # fiction, documentary, interview
     options: Dict[str, Any] = {}
 
 
@@ -157,7 +158,7 @@ async def transform_story(
         # Transform story to scenario
         logger.info(f"Transforming story (length: {len(request.story)})...")
         
-        scenario = transform_story_to_scenario(request.story, request.title)
+        scenario = transform_story_to_scenario(request.story, request.title, request.mode)
         
         # Convert to dict for storage
         scenario_data = scenario.to_dict()

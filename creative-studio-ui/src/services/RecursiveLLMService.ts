@@ -8,6 +8,7 @@
 
 import { ollamaClient } from './llm/OllamaClient';
 import { useMemoryStore } from '@/stores/memoryStore';
+import { BACKEND_URL } from '@/config/apiConfig';
 
 export interface RLMVariable {
     id: string;
@@ -29,6 +30,25 @@ export interface RLMSession {
     sandbox: Record<string, RLMVariable>;
     trajectory: RLMTrajectoryStep[];
     maxDepth: number;
+}
+
+export interface LoreNode {
+    name: string;
+    type: string;
+    attributes: Record<string, unknown>;
+}
+
+export interface LoreEdge {
+    source: string;
+    relation: string;
+    target: string;
+    scene_context?: string;
+}
+
+export interface LoreGraph {
+    nodes: LoreNode[];
+    edges: LoreEdge[];
+    stats: Record<string, number>;
 }
 
 export class RecursiveReasoningService {
@@ -174,6 +194,89 @@ If you use a <subtask>, the execution will halt and resume with the result.`;
             trajectory: [],
             maxDepth: 3
         };
+    }
+
+    /**
+     * Calls the backend Python RLM Engine.
+     * This leverages the full AST sandbox and GraphRAG.
+     */
+    public async generateRLM(
+        prompt: string, 
+        massiveContext: string = ""
+    ): Promise<{ final_answer: string; steps: string[] }> {
+        const response = await fetch(`${BACKEND_URL}/api/v1/generate/rlm/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Add Authorization header if needed by your backend
+                // 'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                prompt,
+                massive_context: massiveContext
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.detail || 'RLM Engine Error');
+        }
+
+        const data = await response.json();
+        return {
+            final_answer: data.final_answer,
+            steps: data.steps || []
+        };
+    }
+
+    /**
+     * Fetches the full Story Knowledge Graph.
+     */
+    public async getLoreGraph(): Promise<LoreGraph> {
+        const response = await fetch(`${BACKEND_URL}/api/v1/generate/rlm/graph`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch Knowledge Graph');
+        }
+
+        return await response.json();
+    }
+
+    /**
+     * Fetches the narrative timeline from the Knowledge Graph.
+     */
+    public async getTimeline(): Promise<{ timeline: string }> {
+        const response = await fetch(`${BACKEND_URL}/api/v1/generate/rlm/graph/timeline`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch timeline');
+        }
+
+        return await response.json();
+    }
+
+    /**
+     * Fetches a specific character's narrative arc.
+     */
+    public async getCharacterArc(characterName: string): Promise<{ arc: string }> {
+        const response = await fetch(`${BACKEND_URL}/api/v1/generate/rlm/graph/arc/${encodeURIComponent(characterName)}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch arc for ${characterName}`);
+        }
+
+        return await response.json();
     }
 }
 

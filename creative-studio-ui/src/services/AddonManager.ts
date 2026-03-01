@@ -414,6 +414,26 @@ export class AddonManager {
           icon: '📝'
         });
         break;
+      case 'nexrealm-marketplace':
+        defaultActions.push({
+          id: 'open-marketplace',
+          name: 'Ouvrir le Marketplace',
+          description: 'Parcourir et installer des assets depuis nexrealm.shop',
+          icon: '🌐'
+        });
+        defaultActions.push({
+          id: 'browse-characters',
+          name: 'Parcourir les Personnages',
+          description: 'Découvrir les packs de personnages disponibles',
+          icon: '👤'
+        });
+        defaultActions.push({
+          id: 'browse-scenes',
+          name: 'Parcourir les Scènes 3D',
+          description: 'Explorer les scènes 3D et décors disponibles',
+          icon: '🎬'
+        });
+        break;
       default:
         break;
     }
@@ -541,6 +561,9 @@ export class AddonManager {
             break;
           case 'mcp-ui':
             await import('@/addons/mcp');
+            break;
+          case 'nexrealm-marketplace':
+            await import('@/addons/nexrealm-marketplace');
             break;
           default:
             logger.warn(`[AddonManager] Unknown builtin addon: ${addon.id}`);
@@ -791,6 +814,19 @@ export class AddonManager {
       category: 'ui',
       builtin: true,
       tags: ['mcp', 'ui', 'dashboard', 'ai-tools']
+    });
+
+    // NexRealm Marketplace Add-on
+    this.registerAddon({
+      id: 'nexrealm-marketplace',
+      name: 'NexRealm Marketplace',
+      description: 'Marketplace officiel StoryCore pour découvrir, acheter et installer des assets : personnages, lieux, scènes 3D, objets, add-ons et plus. Propulsé par nexrealm.shop.',
+      version: '1.0.0',
+      author: 'StoryCore Team',
+      category: 'ui',
+      builtin: true,
+      icon: '🌐',
+      tags: ['marketplace', 'nexrealm', 'assets', 'characters', 'scenes', '3d', 'addons', 'shop']
     });
   }
 

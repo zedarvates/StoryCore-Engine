@@ -43,6 +43,7 @@ import { ResultsGrid } from './ResultsGrid';
 import type {
   CameraAngleResult,
   CameraAngleQuality,
+  CameraLensType,
 } from '@/types/cameraAngle';
 
 // ============================================================================
@@ -73,7 +74,7 @@ export interface CameraAngleEditorProps {
 // ============================================================================
 
 export const CameraAngleEditor: React.FC<CameraAngleEditorProps> = ({
-  initialImageId,
+  initialImageId: _initialImageId,
   initialImagePath,
   onGenerationComplete,
   onGenerationError,
@@ -91,7 +92,6 @@ export const CameraAngleEditor: React.FC<CameraAngleEditorProps> = ({
     options,
     error,
     isGenerating,
-    hasResults,
     startGeneration,
     cancelGeneration,
     reset,
@@ -99,16 +99,17 @@ export const CameraAngleEditor: React.FC<CameraAngleEditorProps> = ({
     setSourceImageFromFile,
     setSourceImage,
     toggleAngle,
-    setSelectedAngles,
-    selectAllAngles,
-    clearAngleSelection,
     setOptions,
     clearError,
+    selectAllAngles,
+    clearAngleSelection,
     downloadResult,
     downloadAllResults,
   } = useCameraAngleGeneration({
-    onGenerationComplete,
+    onGenerationStart: () => {}, // Placeholder for now
     onGenerationError,
+    onGenerationCancel: () => {}, // Placeholder for now
+    onGenerationComplete,
   });
 
   /**
@@ -164,6 +165,16 @@ export const CameraAngleEditor: React.FC<CameraAngleEditorProps> = ({
   const handleQualityChange = useCallback(
     (value: string) => {
       setOptions({ quality: value as CameraAngleQuality });
+    },
+    [setOptions]
+  );
+  
+  /**
+   * Handle lens type change
+   */
+  const handleLensTypeChange = useCallback(
+    (value: string) => {
+      setOptions({ lensType: value as CameraLensType });
     },
     [setOptions]
   );
@@ -353,6 +364,37 @@ export const CameraAngleEditor: React.FC<CameraAngleEditorProps> = ({
                     <SelectItem value="high">High (Slow)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Lens Type / Objective Simulation */}
+              <div className="space-y-2">
+                <Label
+                  htmlFor="lens-type"
+                  className="text-sm text-gray-700 dark:text-gray-300"
+                >
+                  Lens / Objective Simulation
+                </Label>
+                <Select
+                  value={options.lensType || 'standard'}
+                  onValueChange={handleLensTypeChange}
+                  disabled={isGenerating}
+                >
+                  <SelectTrigger id="lens-type" className="w-full">
+                    <SelectValue placeholder="Select lens type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard Spherical</SelectItem>
+                    <SelectItem value="anamorphic_classic">Classic Anamorphic (Cylindrical)</SelectItem>
+                    <SelectItem value="anamorphic_delrama">Delrama Anamorphic (Prismatic)</SelectItem>
+                    <SelectItem value="vintage_8mm">Vintage 8mm Film</SelectItem>
+                    <SelectItem value="macro_diopter">Macro Diopter (Close-up)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {options.lensType === 'anamorphic_delrama' && (
+                  <p className="text-[10px] text-primary/80 mt-1 italic">
+                    Simulates the rare Oud Delft prism adapter with corner-to-corner sharpness and zero distortion.
+                  </p>
+                )}
               </div>
 
               {/* Custom Prompt */}

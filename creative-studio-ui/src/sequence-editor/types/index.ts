@@ -348,6 +348,29 @@ export interface TimelineRegion {
   updatedAt: number;
 }
 
+export type AnnotationTargetType = 'marker' | 'region' | 'shot' | 'frame' | 'track';
+
+export interface AnnotationReply {
+  id: string;
+  content: string;
+  author?: string;
+  createdAt: number;
+}
+
+export interface Annotation {
+  id: string;
+  targetId: string;        // ID of the target (marker, region, shot, etc.)
+  targetType: AnnotationTargetType;
+  content: string;         // Annotation text
+  author?: string;
+  color?: string;
+  isResolved?: boolean;
+  replies?: AnnotationReply[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+
 export interface TimelineState {
   projectId: string;
   shots: Shot[];
@@ -358,6 +381,7 @@ export interface TimelineState {
   duration: number; // Total duration in frames
   markers: TimelineMarker[]; // Timeline markers
   regions: TimelineRegion[]; // Timeline regions
+  annotations: Annotation[]; // Timeline annotations
   selectedMarkers: string[]; // Selected marker IDs
 
   selectedRegions: string[]; // Selected region IDs

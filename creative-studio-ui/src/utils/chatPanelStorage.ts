@@ -83,18 +83,22 @@ export function clearChatPanelState(): void {
  * @param state - The state to validate
  * @returns true if valid, false otherwise
  */
-function isValidChatPanelState(state: any): state is ChatPanelState {
+function isValidChatPanelState(state: unknown): state is ChatPanelState {
   return (
-    state &&
     typeof state === 'object' &&
-    state.position &&
-    typeof state.position.x === 'number' &&
-    typeof state.position.y === 'number' &&
-    state.size &&
-    typeof state.size.width === 'number' &&
-    typeof state.size.height === 'number' &&
-    typeof state.isOpen === 'boolean' &&
-    typeof state.isMinimized === 'boolean'
+    state !== null &&
+    'position' in state &&
+    typeof (state as Record<string, unknown>).position === 'object' &&
+    (state as Record<string, unknown>).position !== null &&
+    typeof ((state as Record<string, unknown>).position as Record<string, unknown>).x === 'number' &&
+    typeof ((state as Record<string, unknown>).position as Record<string, unknown>).y === 'number' &&
+    'size' in state &&
+    typeof (state as Record<string, unknown>).size === 'object' &&
+    (state as Record<string, unknown>).size !== null &&
+    typeof ((state as Record<string, unknown>).size as Record<string, unknown>).width === 'number' &&
+    typeof ((state as Record<string, unknown>).size as Record<string, unknown>).height === 'number' &&
+    typeof (state as Record<string, unknown>).isOpen === 'boolean' &&
+    typeof (state as Record<string, unknown>).isMinimized === 'boolean'
   );
 }
 

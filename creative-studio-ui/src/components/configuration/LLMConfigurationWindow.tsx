@@ -87,14 +87,13 @@ export function LLMConfigurationWindow({ isOpen, onClose, onSave }: LLMConfigura
       
       const keys = field.split('.');
       const newData = JSON.parse(JSON.stringify(prev));
-      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-      let current: any = newData;
+      let current: Record<string, unknown> = newData;
       
       for (let i = 0; i < keys.length - 1; i++) {
         if (!current[keys[i]]) {
           current[keys[i]] = {};
         }
-        current = current[keys[i]];
+        current = current[keys[i]] as Record<string, unknown>;
       }
       
       current[keys[keys.length - 1]] = value;
@@ -146,10 +145,10 @@ export function LLMConfigurationWindow({ isOpen, onClose, onSave }: LLMConfigura
                  formData.provider === 'anthropic' ? formData.anthropic?.apiKey : '') || '',
         apiEndpoint: formData.provider === 'ollama' ? formData.ollama?.baseUrl : 
                     formData.provider === 'custom' ? formData.custom?.baseUrl : undefined,
-        model: formData.provider === 'ollama' ? formData.ollama?.model : 
+        model: (formData.provider === 'ollama' ? formData.ollama?.model : 
                formData.provider === 'openai' ? formData.openai?.model : 
                formData.provider === 'anthropic' ? formData.anthropic?.model : 
-               formData.custom?.model || '',
+               formData.custom?.model) || '',
         parameters: {
           temperature: (formData.provider === 'ollama' ? formData.ollama?.temperature : 
                        formData.provider === 'openai' ? formData.openai?.temperature : 

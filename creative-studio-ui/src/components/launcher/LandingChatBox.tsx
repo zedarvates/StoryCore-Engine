@@ -3,6 +3,13 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
 import { StatusIndicator, ConnectionStatus } from './StatusIndicator';
 import { LanguageSelector } from './LanguageSelector';
@@ -35,13 +42,20 @@ import {
   Ghost, 
   Mic, 
   MicOff, 
-  PlusSquare, 
   Wand2, 
   Zap, 
   Minimize2, 
   Type, 
   Eraser,
-  BookOpen
+  BookOpen,
+  Image as ImageIcon,
+  Search,
+  Radio,
+  FileQuestion,
+  MonitorUp,
+  Layout,
+  Link as LinkIcon,
+  Plus
 } from 'lucide-react';
 import { VoiceTextService } from '@/services/VoiceTextService';
 import { useToast } from '@/hooks/use-toast';
@@ -631,6 +645,8 @@ export function LandingChatBox({
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const electron = (window as any).electron;
+      const isElectronEnv = typeof window !== 'undefined' && 'electronAPI' in window;
+      
       if (electron && electron.startAreaCapture) {
         const result = await electron.startAreaCapture();
         if (result && result.base64Data) {
@@ -640,12 +656,48 @@ export function LandingChatBox({
           setAttachments(prev => [...prev, file]);
           toast({ title: "Capture réussie 📸", description: "L'image a été ajoutée." });
         }
+      } else if (!isElectronEnv && navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        // Fallback for browser mode
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        
+        await new Promise<void>((resolve, reject) => {
+          video.onloadedmetadata = () => {
+            video.play().then(resolve).catch(reject);
+          };
+          video.onerror = reject;
+        });
+
+        // Small delay to ensure frame is painted
+        await new Promise(r => setTimeout(r, 100));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const file = new File([blob], `capture-${Date.now()}.png`, { type: 'image/png' });
+              setAttachments(prev => [...prev, file]);
+              toast({ title: "Capture réussie 📸", description: "L'image a été ajoutée." });
+            }
+            // Stop all tracks to end screen sharing
+            stream.getTracks().forEach(track => track.stop());
+          }, 'image/png');
+        } else {
+          stream.getTracks().forEach(track => track.stop());
+          throw new Error("Canvas context is null");
+        }
       } else {
         toast({ variant: "destructive", title: "Indisponible", description: "La capture d'écran n'est pas supportée dans ce contexte." });
       }
     } catch (error) {
       console.error('Screen capture error:', error);
-      toast({ variant: "destructive", title: "Erreur", description: "Erreur lors de la capture." });
+      toast({ variant: "destructive", title: "Erreur / Annulé", description: "La capture a été annulée ou a échoué." });
     }
   };
 
@@ -1073,18 +1125,18 @@ export function LandingChatBox({
 
   return (
     <div
-      className={`flex flex-col ${height ? '' : 'min-h-[400px] max-h-[70vh]'} bg-gray-900 ${isDetached ? '' : 'rounded-lg border border-gray-700 shadow-2xl'} overflow-hidden transition-all duration-300`}
+      className={`flex flex-col ${height ? '' : 'min-h-[400px] max-h-[70vh]'} ${isDetached ? '' : 'rounded-[28px] border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]'} overflow-hidden transition-all duration-300 backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70`}
       style={height ? { height } : {}}
       id="landing-chatbox-container"
     >
       {/* Header */}
       <div 
-        className="flex items-center gap-2 px-4 py-3 bg-gray-800 border-b border-gray-700"
+        className="flex items-center gap-2 px-4 py-3 bg-white/40 dark:bg-slate-800/40 border-b border-white/20 dark:border-slate-700/30"
         role="banner"
         aria-label="Chat header"
       >
         <MessageSquare className="w-5 h-5 text-purple-400" aria-hidden="true" />
-        <h3 className="text-sm font-semibold text-white" id="chatbox-title">Assistant StoryCore</h3>
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-white" id="chatbox-title">Assistant StoryCore</h3>
         <StatusIndicator 
           status={connectionStatus}
           providerName={providerName}
@@ -1096,7 +1148,7 @@ export function LandingChatBox({
           variant="ghost"
           size="icon"
           onClick={() => setShowConfigDialog(true)}
-          className="text-gray-400 hover:text-white hover:bg-gray-700 ml-2"
+          className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white ml-2"
           title="Configure LLM"
           aria-label="Configure LLM settings"
         >
@@ -1297,7 +1349,7 @@ export function LandingChatBox({
       </div>
 
       {/* Quick Action Buttons (Barre Ghost) */}
-      <div className="px-4 py-2 bg-gray-900/40 border-t border-gray-700/50 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="px-4 py-2 bg-slate-100/40 dark:bg-gray-900/40 border-t border-white/20 dark:border-gray-700/50 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -1360,7 +1412,7 @@ export function LandingChatBox({
       {/* Attachments Preview */}
       {attachments.length > 0 && (
         <div 
-          className="px-4 py-2 bg-gray-800 border-t border-gray-700"
+          className="px-4 py-2 bg-white/40 dark:bg-gray-800/40 border-t border-white/20 dark:border-gray-700/30"
           role="region"
           aria-label="Attached files"
         >
@@ -1368,14 +1420,14 @@ export function LandingChatBox({
             {attachments.map((file, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-2 px-3 py-1 bg-gray-700 rounded-md text-xs text-gray-300"
+                className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-gray-700 rounded-lg text-xs text-slate-700 dark:text-gray-300 shadow-sm border border-slate-200 dark:border-slate-600"
                 role="listitem"
               >
                 <Paperclip className="w-3 h-3" aria-hidden="true" />
                 <span>{file.name}</span>
                 <button
                   onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
-                  className="ml-1 text-gray-400 hover:text-white"
+                  className="ml-1 text-slate-400 hover:text-red-500 transition-colors"
                   aria-label={`Remove ${file.name}`}
                   title={`Remove ${file.name}`}
                 >
@@ -1389,7 +1441,7 @@ export function LandingChatBox({
 
       {/* Input Area */}
       <div 
-        className="pt-4 px-4 pb-2 bg-gray-800 border-t border-gray-700"
+        className="pt-4 px-4 pb-2 bg-transparent border-t border-white/20 dark:border-gray-700/30"
         role="form"
         aria-label="Message input"
       >
@@ -1475,40 +1527,95 @@ export function LandingChatBox({
           </TooltipProvider>
         </div>
 
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-2 p-1.5 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-[24px] border border-white/40 dark:border-slate-600/40 shadow-sm focus-within:ring-2 focus-within:ring-purple-500/50 transition-all">
           {/* File & Screen Capture Group */}
           <div className="flex flex-col gap-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="h-9 w-9 text-gray-400 hover:text-white hover:bg-gray-700"
-                  >
-                    <Paperclip className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Joindre un fichier</TooltipContent>
-              </Tooltip>
+            <DropdownMenu>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-gray-400 hover:text-white hover:bg-gray-700 rounded-full"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Ajouter divers contenus</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleScreenCapture}
-                    className="h-9 w-9 text-gray-400 hover:text-purple-400 hover:bg-gray-700"
-                  >
-                    <PlusSquare className="w-5 h-5 text-purple-400" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Capture de zone (Tous écrans)</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+              <DropdownMenuContent 
+                align="start" 
+                className="w-72 rounded-[24px] backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70 border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)] p-2 mb-2 translate-y-[-10px]"
+              >
+                <div>
+                  <DropdownMenuItem onSelect={() => fileInputRef.current?.click()} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-purple-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <ImageIcon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Ajouter une image ou un fichier</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-blue-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Générer une image</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-green-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <Search className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Démarrer une recherche ciblée</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-orange-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <Radio className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Créer un podcast</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-emerald-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <FileQuestion className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Répondre à un questionnaire</span>
+                  </DropdownMenuItem>
+                </div>
+                
+                <DropdownMenuSeparator className="my-1 bg-slate-200 dark:bg-slate-700/50" />
+                
+                <div>
+                  <DropdownMenuItem onSelect={handleScreenCapture} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-slate-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <MonitorUp className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Prendre une capture d'écran</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-slate-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <Layout className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Ajouter des onglets</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-slate-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <LinkIcon className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Utiliser des connecteurs</span>
+                  </DropdownMenuItem>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Hidden File Input */}
@@ -1529,7 +1636,7 @@ export function LandingChatBox({
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className="flex-1 min-h-[132px] max-h-[480px] pr-10 bg-gray-700 border-gray-600 text-white placeholder:text-gray-500 resize-none shadow-inner"
+              className="flex-1 min-h-[44px] max-h-[480px] p-2 bg-transparent border-none text-slate-800 dark:text-white placeholder:text-slate-500 resize-none shadow-none focus-visible:ring-0 focus-visible:outline-none focus:ring-0"
               rows={3}
             />
             {/* Microphone Button */}

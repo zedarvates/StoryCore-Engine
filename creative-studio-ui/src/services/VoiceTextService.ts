@@ -11,8 +11,47 @@ import { LanguageCode } from '@/utils/llmConfigStorage';
 
 import { VOICE_COMMANDS_DATA, type VoiceCommandDef } from '../data/voiceCommands';
 
-// Use any type for browser Web Speech APIs to avoid type conflicts
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// Minimal typings for browser Web Speech APIs (not yet in lib.dom.d.ts everywhere)
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+interface ISpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+interface ISpeechSynthesisUtterance extends EventTarget {
+  text: string;
+  rate: number;
+  pitch: number;
+  volume: number;
+  lang: string;
+  voice: ISpeechSynthesisVoice | null;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+}
+interface ISpeechSynthesisVoice {
+  lang: string;
+  localService: boolean;
+  name: string;
+}
+interface ISpeechSynthesis {
+  cancel(): void;
+  speak(utterance: ISpeechSynthesisUtterance): void;
+  getVoices(): ISpeechSynthesisVoice[];
+}
 
 export interface VoiceHotkeyConfig {
   key: string;
@@ -61,9 +100,9 @@ export interface VoiceCommand extends VoiceCommandDef {
 export class VoiceTextService {
   private static instance: VoiceTextService;
 
-  // APIs du navigateur - using any to avoid type conflicts
-  private speechRecognition: any = null;
-  private speechSynthesis: any = null;
+  // APIs du navigateur - typed with minimal Web Speech API interfaces
+  private speechRecognition: ISpeechRecognition | null = null;
+  private speechSynthesis: ISpeechSynthesis | null = null;
 
   // État du service
   private settings: VoiceSettings;
@@ -179,7 +218,8 @@ export class VoiceTextService {
    */
   private initializeAPIs(): void {
     // Reconnaissance vocale - use any to access browser API
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as Window & { SpeechRecognition?: new() => ISpeechRecognition; webkitSpeechRecognition?: new() => ISpeechRecognition }).SpeechRecognition
+      || (window as Window & { webkitSpeechRecognition?: new() => ISpeechRecognition }).webkitSpeechRecognition;
     if (SpeechRecognition) {
       this.speechRecognition = new SpeechRecognition();
       this.configureSpeechRecognition();
@@ -187,7 +227,7 @@ export class VoiceTextService {
 
     // Synthèse vocale
     if ('speechSynthesis' in window) {
-      this.speechSynthesis = (window as any).speechSynthesis;
+      this.speechSynthesis = (window as Window & { speechSynthesis: ISpeechSynthesis }).speechSynthesis;
     }
 
     // Vérifier la compatibilité
@@ -221,7 +261,7 @@ export class VoiceTextService {
       this.recognitionCallbacks?.onStart();
     };
 
-    this.speechRecognition.onresult = (event: any) => {
+    this.speechRecognition.onresult = (event: SpeechRecognitionEvent) => {
       const result = event.results[event.results.length - 1];
       let transcript = result[0].transcript;
       const confidence = result[0].confidence;
@@ -248,15 +288,23 @@ export class VoiceTextService {
       }
     };
 
-    this.speechRecognition.onerror = (event: any) => {
+    this.speechRecognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       let errorMessage = 'Erreur de reconnaissance vocale';
       const isNetworkError = event.error === 'network';
 
       switch (event.error) {
-        case 'network':
+        case 'network': {
+          const isElectronEnv = typeof window !== 'undefined' && 'electronAPI' in window;
+          if (isElectronEnv) {
+            errorMessage = "Reconnaissance vocale non supportée dans cette version (Clé d'API manquante). Utilisez le mode navigateur.";
+            this.isListening = false;
+            this.recognitionCallbacks?.onError(errorMessage);
+            return;
+          }
           errorMessage = 'Erreur réseau lors de la reconnaissance vocale';
           console.warn('[VoiceTextService] Network error detected, will retry if possible');
           break;
+        }
         case 'not-allowed':
           errorMessage = 'Permission micro refusée';
           break;
@@ -420,7 +468,7 @@ export class VoiceTextService {
   private async startAudioAnalysis(): Promise<void> {
     try {
       if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        this.audioContext = new (window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext || AudioContext)();
       }
 
       if (this.audioContext.state === 'suspended') {
@@ -542,7 +590,7 @@ export class VoiceTextService {
     speed?: number;
     pitch?: number;
     volume?: number;
-    voice?: any;
+    voice?: ISpeechSynthesisVoice;
   }): boolean {
     if (!this.settings.enabled || !this.speechSynthesis) {
       return false;
@@ -553,7 +601,7 @@ export class VoiceTextService {
       this.speechSynthesis.cancel();
     }
 
-    const utterance = new (window as any).SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(text) as unknown as ISpeechSynthesisUtterance;
 
     // Configuration
     utterance.rate = options?.speed || this.settings.voiceSpeed;
@@ -566,7 +614,7 @@ export class VoiceTextService {
     } else {
       // Sélectionner une voix appropriée
       const voices = this.speechSynthesis.getVoices();
-      const preferredVoice = voices.find((voice: any) =>
+      const preferredVoice = voices.find((voice: ISpeechSynthesisVoice) =>
         voice.lang.startsWith(this.settings.outputLanguage) && voice.localService
       );
       if (preferredVoice) {
@@ -582,7 +630,7 @@ export class VoiceTextService {
       this.isSpeaking = false;
     };
 
-    utterance.onerror = (event: any) => {
+    utterance.onerror = (event: { error: string }) => {
       this.isSpeaking = false;
       console.error('Speech synthesis error:', event.error);
     };
@@ -780,7 +828,7 @@ export class VoiceTextService {
   /**
    * Obtient la liste des voix disponibles
    */
-  getAvailableVoices(): any[] {
+  getAvailableVoices(): ISpeechSynthesisVoice[] {
     return this.speechSynthesis ? this.speechSynthesis.getVoices() : [];
   }
 

@@ -97,6 +97,7 @@ export class NotificationService {
       currentPage: window.location.pathname,
       pendingTasks: 0,
       lastInteraction: new Date(),
+      language: 'fr',
     };
   }
 
@@ -254,7 +255,9 @@ export class NotificationService {
   private playNotificationSound(type: NotificationType): void {
     try {
       // Utiliser l'API Web Audio pour des sons personnalisés
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextCtor = window.AudioContext ||
+        (window as unknown as Record<string, typeof AudioContext>)['webkitAudioContext'];
+      const audioContext = new AudioContextCtor();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 

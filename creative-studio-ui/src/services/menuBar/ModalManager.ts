@@ -14,7 +14,7 @@ import React from 'react';
 
 export interface ModalConfig {
   id: string;
-  component: React.ComponentType<any>;
+  component: React.ComponentType<Record<string, unknown>>;
   props?: Record<string, unknown>;
 }
 
@@ -35,7 +35,7 @@ type ModalListener = (activeModals: Set<string>) => void;
  * - State change notifications
  */
 export class ModalManager {
-  private modalComponents: Map<string, React.ComponentType<any>>;
+  private modalComponents: Map<string, React.ComponentType<Record<string, unknown>>>;
   private activeModals: Map<string, ModalState>;
   private listeners: Set<ModalListener>;
 
@@ -51,7 +51,7 @@ export class ModalManager {
    * @param id - Unique identifier for the modal
    * @param component - React component to render
    */
-  registerModal(id: string, component: React.ComponentType<any>): void {
+  registerModal(id: string, component: React.ComponentType<Record<string, unknown>>): void {
     this.modalComponents.set(id, component);
   }
 
@@ -125,7 +125,7 @@ export class ModalManager {
    * @param id - Modal identifier
    * @returns Modal component or undefined
    */
-  getModalComponent(id: string): React.ComponentType<any> | undefined {
+  getModalComponent(id: string): React.ComponentType<Record<string, unknown>> | undefined {
     return this.modalComponents.get(id);
   }
 

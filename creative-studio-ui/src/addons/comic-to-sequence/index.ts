@@ -3,7 +3,7 @@
 // ============================================================================
 
 // Core types - Import first, then re-export
-import type { ComicPanel, ComicPage, ComicProject, ConversionSettings, SequenceResult } from './types';
+import type { ComicProject, ConversionSettings, SequenceResult } from './types';
 export type {
   ComicPanel,
   ComicPage,

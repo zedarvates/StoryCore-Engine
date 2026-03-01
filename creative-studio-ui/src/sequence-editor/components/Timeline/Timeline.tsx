@@ -80,6 +80,8 @@ export const Timeline: React.FC = () => {
   const [useVirtualMode, setUseVirtualMode] = useState(true);
   const [draggingTrackIndex, setDraggingTrackIndex] = useState<number | null>(null);
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const snapToGrid = true;
 
   // ============================================================================
@@ -225,6 +227,44 @@ export const Timeline: React.FC = () => {
 
     setSelectionBox(null);
   }, [selectionBox, shots, zoomLevel, totalTracksHeight, dispatch]);
+
+  // ============================================================================
+  // ZOOM AND PAN HANDLERS
+  // ============================================================================
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      // Adjust zoom level (1% = 0.1, max 1000% = 100)
+      const zoomDelta = e.deltaY > 0 ? -1 : 1;
+      const newZoom = Math.max(0.1, Math.min(100, zoomLevel + zoomDelta));
+      dispatch(setZoomLevel(newZoom));
+    }
+  }, [zoomLevel, dispatch]);
+
+  const handleContainerMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 1) { // Middle mouse button
+      e.preventDefault();
+      setIsPanning(true);
+      setPanStart({ x: e.clientX, y: e.clientY });
+    }
+  }, []);
+
+  const handleContainerMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isPanning && timelineRef.current) {
+      const deltaX = panStart.x - e.clientX;
+      const deltaY = panStart.y - e.clientY;
+      timelineRef.current.scrollLeft += deltaX;
+      timelineRef.current.scrollTop += deltaY;
+      setPanStart({ x: e.clientX, y: e.clientY });
+    }
+  }, [isPanning, panStart]);
+
+  const handleContainerMouseUp = useCallback((e: React.MouseEvent) => {
+    if (e.button === 1) {
+      setIsPanning(false);
+    }
+  }, []);
 
   // ============================================================================
   // SHOT DRAG HANDLERS
@@ -922,9 +962,14 @@ export const Timeline: React.FC = () => {
       {/* Timeline Container */}
       <div
         ref={timelineRef}
-        className="timeline-container"
+        className={`timeline-container ${isPanning ? 'panning' : ''}`}
         onClick={handleTimelineClick}
         onScroll={handleScroll}
+        onWheel={handleWheel}
+        onMouseDown={handleContainerMouseDown}
+        onMouseMove={handleContainerMouseMove}
+        onMouseUp={handleContainerMouseUp}
+        onMouseLeave={handleContainerMouseUp}
       >
         {/* Track Headers */}
         <div className="timeline-track-headers">

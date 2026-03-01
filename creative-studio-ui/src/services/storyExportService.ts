@@ -42,7 +42,7 @@ export function formatStoryAsMarkdown(
     markdown += `**Genre:** ${story.genre.join(', ')}\n`;
     markdown += `**Tone:** ${story.tone.join(', ')}\n`;
     markdown += `**Length:** ${story.length}\n`;
-    markdown += `**Created:** ${story.createdAt.toLocaleDateString()}\n`;
+    markdown += `**Created:** ${new Date(story.createdAt).toLocaleDateString()}\n`;
     markdown += `**Version:** ${story.version}\n\n`;
   }
 
@@ -117,7 +117,7 @@ export function formatStoryAsText(
     text += `Genre: ${story.genre.join(', ')}\n`;
     text += `Tone: ${story.tone.join(', ')}\n`;
     text += `Length: ${story.length}\n`;
-    text += `Created: ${story.createdAt.toLocaleDateString()}\n`;
+    text += `Created: ${new Date(story.createdAt).toLocaleDateString()}\n`;
     text += `Version: ${story.version}\n\n`;
   }
 
@@ -225,10 +225,10 @@ export async function exportStory(
         console.warn('Electron file save failed, falling back to browser download:', electronError);
         // Fall through to browser download
       }
-    } else if (typeof window !== 'undefined' && (window as any).electron) {
+    } else if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>)['electron']) {
       // Legacy Electron environment - try window.electron
       try {
-        const { electron } = window as any;
+        const electron = (window as unknown as Record<string, { saveFile: (filename: string, content: string, projectName: string) => Promise<string> }>)['electron'];
         const projectName = story.worldId || 'default';
         const filePath = await electron.saveFile(filename, content, projectName);
         return filePath;
@@ -274,7 +274,7 @@ export function getExportPath(projectName: string, filename: string): string {
   const sanitizedFilename = sanitizeFilename(filename);
   
   // Check if we're in Electron environment
-  if (typeof window !== 'undefined' && (window as any).electron) {
+  if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>)['electron']) {
     // Electron environment - construct full path
     // The actual path will be determined by the main process
     return `projects/${sanitizedProject}/stories/${sanitizedFilename}`;

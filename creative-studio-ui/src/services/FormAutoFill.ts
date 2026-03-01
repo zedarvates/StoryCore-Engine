@@ -5,16 +5,16 @@
  * les formulaires des wizards avec des valeurs extraites du texte utilisateur
  */
 
-import { contextExtractor, ExtractedContext, WorldContext, CharacterContext, SceneContext, DialogueContext, StoryboardContext, StyleContext } from './ContextExtractor';
-import { World } from '@/types/world';
-import { Character } from '@/types/character';
+import { contextExtractor, LocationContext } from './ContextExtractor';
+import { World, WorldRule, Location } from '@/types/world';
+import { Character, CharacterRelationship } from '@/types/character';
 
 export interface AutoFillResult {
   success: boolean;
   filledFields: string[];
   suggestions: string[];
   confidence: number;
-  data: unknown;
+  data: Record<string, unknown>;
 }
 
 export interface FormData {
@@ -91,7 +91,12 @@ export class FormAutoFill {
 
     // Règles
     if (worldContext.rules && worldContext.rules.length > 0) {
-      formData.rules = worldContext.rules;
+      formData.rules = worldContext.rules.map((r: string) => ({
+        id: crypto.randomUUID(),
+        category: 'physical',
+        rule: r,
+        implications: ''
+      } as WorldRule));
       filledFields.push('rules');
     }
 
@@ -115,12 +120,14 @@ export class FormAutoFill {
 
     // Lieux
     if (worldContext.locations && worldContext.locations.length > 0) {
-      formData.locations = worldContext.locations.map(loc => ({
+      formData.locations = worldContext.locations.map((loc: LocationContext) => ({
         id: crypto.randomUUID(),
         name: loc.name || '',
         description: loc.description || '',
-        type: loc.type || 'location'
-      }));
+        type: loc.type || 'location',
+        atmosphere: '',
+        significance: ''
+      } as Location));
       filledFields.push('locations');
     }
 
@@ -187,11 +194,14 @@ export class FormAutoFill {
         facial_structure: '',
         distinctive_features: [],
         age_range: characterContext.age || '',
+        gender: '',
         height: '',
         build: '',
         posture: '',
         clothing_style: characterContext.appearance,
-        color_palette: []
+        color_palette: [],
+        reference_images: [],
+        reference_sheet_images: []
       };
       filledFields.push('visual_identity');
     }
@@ -211,7 +221,13 @@ export class FormAutoFill {
 
     // Relations
     if (characterContext.relationships && characterContext.relationships.length > 0) {
-      formData.relationships = characterContext.relationships;
+      formData.relationships = characterContext.relationships.map((rel: string) => ({
+        character_id: '',
+        character_name: rel,
+        relationship_type: '',
+        description: '',
+        dynamic: ''
+      } as CharacterRelationship));
       filledFields.push('relationships');
     }
 
@@ -242,7 +258,7 @@ export class FormAutoFill {
       };
     }
 
-    const formData: unknown = {};
+    const formData: Record<string, unknown> = {};
     const sceneContext = context.sceneContext;
 
     // Type de scène
@@ -308,7 +324,7 @@ export class FormAutoFill {
       };
     }
 
-    const formData: unknown = {};
+    const formData: Record<string, unknown> = {};
     const dialogueContext = context.dialogueContext;
 
     // Interlocuteur principal
@@ -368,7 +384,7 @@ export class FormAutoFill {
       };
     }
 
-    const formData: unknown = {};
+    const formData: Record<string, unknown> = {};
     const storyboardContext = context.storyboardContext;
 
     // Séquence
@@ -422,7 +438,7 @@ export class FormAutoFill {
       };
     }
 
-    const formData: unknown = {};
+    const formData: Record<string, unknown> = {};
     const styleContext = context.styleContext;
 
     // Style cible
@@ -532,58 +548,70 @@ export class FormAutoFill {
   /**
    * Valide les données pré-remplies en temps réel
    */
-  validateAutoFilledData(formType: string, data: unknown): { isValid: boolean, errors: string[], warnings: string[] } {
+  validateAutoFilledData(formType: string, data: Record<string, unknown>): { isValid: boolean, errors: string[], warnings: string[] } {
     const errors: string[] = [];
     const warnings: string[] = [];
 
     switch (formType.toLowerCase()) {
-      case 'world':
+      case 'world': {
+        const world = data as Partial<World>;
         // Validation spécifique au monde
-        if (data.name && data.name.length < 3) {
+        if (world.name && world.name.length < 3) {
           warnings.push('Le nom du monde semble court, considérez un nom plus descriptif');
         }
-        if (data.genre && data.genre.length === 0) {
+        if (world.genre && world.genre.length === 0) {
           errors.push('Au moins un genre doit être sélectionné');
         }
         break;
+      }
 
-      case 'character':
+      case 'character': {
+        const character = data as Partial<Character>;
         // Validation spécifique au personnage
-        if (data.name && data.name.length < 2) {
+        if (character.name && character.name.length < 2) {
           warnings.push('Le nom du personnage semble court');
         }
-        if (data.visual_identity?.age_range && isNaN(parseInt(data.visual_identity.age_range))) {
+        if (character.visual_identity?.age_range && isNaN(parseInt(character.visual_identity.age_range))) {
           errors.push('L\'âge doit être un nombre valide');
         }
         break;
+      }
 
-      case 'scene':
+      case 'scene': {
+        const scene = data as Record<string, unknown>;
         // Validation spécifique à la scène
-        if (data.description && data.description.length < 10) {
+        if (typeof scene.description === 'string' && scene.description.length < 10) {
           warnings.push('La description de la scène pourrait être plus détaillée');
         }
         break;
+      }
 
-      case 'dialogue':
+      case 'dialogue': {
+        const dialogue = data as Record<string, unknown>;
         // Validation spécifique au dialogue
-        if (!data.speaker) {
+        if (!dialogue.speaker) {
           errors.push('Un interlocuteur doit être spécifié');
         }
         break;
+      }
 
-      case 'storyboard':
+      case 'storyboard': {
+        const storyboard = data as Record<string, unknown>;
         // Validation spécifique au storyboard
-        if (data.shotsCount && (data.shotsCount < 1 || data.shotsCount > 50)) {
+        if (typeof storyboard.shotsCount === 'number' && (storyboard.shotsCount < 1 || storyboard.shotsCount > 50)) {
           errors.push('Le nombre de plans doit être entre 1 et 50');
         }
         break;
+      }
 
-      case 'style':
+      case 'style': {
+        const style = data as Record<string, unknown>;
         // Validation spécifique au style
-        if (!data.targetStyle) {
+        if (!style.targetStyle) {
           warnings.push('Spécifier un style cible aiderait à de meilleurs résultats');
         }
         break;
+      }
     }
 
     return {
@@ -596,60 +624,72 @@ export class FormAutoFill {
   /**
    * Génère des suggestions d'amélioration pour les données pré-remplies
    */
-  generateImprovementSuggestions(formType: string, data: unknown): string[] {
+  generateImprovementSuggestions(formType: string, data: Record<string, unknown>): string[] {
     const suggestions: string[] = [];
 
     switch (formType.toLowerCase()) {
-      case 'world':
-        if (!data.atmosphere) {
+      case 'world': {
+        const world = data as Partial<World>;
+        if (!world.atmosphere) {
           suggestions.push('Ajouter une description de l\'atmosphère pour enrichir le monde');
         }
-        if (!data.locations || data.locations.length === 0) {
+        if (!world.locations || world.locations.length === 0) {
           suggestions.push('Définir quelques lieux clés pour ancrer votre histoire');
         }
-        if (!data.rules || data.rules.length === 0) {
+        if (!world.rules || world.rules.length === 0) {
           suggestions.push('Établir des règles ou lois pour donner de la consistance au monde');
         }
         break;
+      }
 
-      case 'character':
-        if (!data.background?.occupation) {
+      case 'character': {
+        const character = data as Partial<Character>;
+        if (!character.background?.occupation) {
           suggestions.push('Définir une profession pour donner plus de profondeur au personnage');
         }
-        if (!data.relationships || data.relationships.length === 0) {
+        if (!character.relationships || character.relationships.length === 0) {
           suggestions.push('Établir des relations avec d\'autres personnages');
         }
         break;
+      }
 
-      case 'scene':
-        if (!data.characters || data.characters.length === 0) {
+      case 'scene': {
+        const scene = data as Record<string, unknown>;
+        if (!scene.characters || (Array.isArray(scene.characters) && scene.characters.length === 0)) {
           suggestions.push('Spécifier quels personnages sont présents dans la scène');
         }
-        if (!data.timeOfDay) {
+        if (!scene.timeOfDay) {
           suggestions.push('Indiquer le moment de la journée pour définir l\'ambiance');
         }
         break;
+      }
 
-      case 'dialogue':
-        if (!data.topic) {
+      case 'dialogue': {
+        const dialogue = data as Record<string, unknown>;
+        if (!dialogue.topic) {
           suggestions.push('Préciser le sujet du dialogue pour guider la génération');
         }
-        if (!data.tone) {
+        if (!dialogue.tone) {
           suggestions.push('Définir le ton (sérieux, humoristique, tendu...) du dialogue');
         }
         break;
+      }
 
-      case 'storyboard':
-        if (!data.shotsCount) {
+      case 'storyboard': {
+        const storyboard = data as Record<string, unknown>;
+        if (!storyboard.shotsCount) {
           suggestions.push('Indiquer le nombre de plans souhaité pour le storyboard');
         }
         break;
+      }
 
-      case 'style':
-        if (!data.referenceStyle) {
+      case 'style': {
+        const style = data as Record<string, unknown>;
+        if (!style.referenceStyle) {
           suggestions.push('Fournir une référence de style pour de meilleurs résultats');
         }
         break;
+      }
     }
 
     return suggestions;

@@ -110,6 +110,16 @@ export const TONE_OPTIONS = [
   { value: 'adventurous', label: 'Adventurous' },
 ] as const;
 
+export const PRODUCTION_MODE_OPTIONS = [
+  { value: 'fiction', label: 'Fiction', description: 'Narrative storytelling with characters and arcs' },
+  { value: 'documentary', label: 'Documentary', description: 'Factual representation and objective reality' },
+  { value: 'interview', label: 'Interview', description: 'One-on-one or group conversation' },
+  { value: 'music_video', label: 'Music Video', description: 'Visuals synchronized to music rhythm' },
+  { value: 'social_media', label: 'Social Media', description: 'Short, high-impact content for web platforms' },
+  { value: 'cinematic', label: 'Cinematic Pro', description: 'High-fidelity cinematic production with custom lens data' },
+  { value: 'audiodrama', label: 'Audio Drama', description: 'Voice and sound-centric narrative production' },
+] as const;
+
 export const RULE_CATEGORIES = [
   { value: 'physical', label: 'Physical Laws' },
   { value: 'social', label: 'Social Structures' },

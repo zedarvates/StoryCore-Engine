@@ -92,7 +92,7 @@ export class AudioFileManager {
       const audioBlob = await this.loadAudioFile(filePath);
       const audioUrl = URL.createObjectURL(audioBlob);
       
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       const audioBuffer = await audioContext.decodeAudioData(await (await fetch(audioUrl)).arrayBuffer());
       
       return {

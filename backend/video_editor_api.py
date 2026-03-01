@@ -1714,83 +1714,104 @@ async def generate_ambiance(project_id: str, gen_data: Dict[str, Any]):
     project["modified_at"] = datetime.utcnow()
     return {"status": "success", "filled_clips": new_ids, "project": project}
 
-def process_transcription(job_id: str):
+async def process_transcription(job_id: str):
     """Background task for transcription."""
     job = jobs_db[job_id]
     job["status"] = "processing"
     
     try:
-        # Placeholder - would use Whisper or similar
-        import time
-        time.sleep(5)  # Simulate processing
+        # Use actual AI Service
+        from backend.video_editor_ai_service import TranscriptionService
+        service = TranscriptionService()
+        
+        media_path = job.get("media_path")
+        if not media_path:
+            raise ValueError("media_path is missing in job data")
+            
+        result = await service.transcribe(media_path, language=job.get("language"))
         
         job["status"] = "completed"
-        job["text"] = "Transcribed text would appear here."
-        job["segments"] = [
-            {"start": 0.0, "end": 2.0, "text": "Transcribed text would appear here."}
-        ]
+        job["text"] = result.text
+        # Adjusting segments to expected format if needed
+        job["segments"] = result.segments
         
     except FileNotFoundError as e:
         # Media file not found for transcription
         job["status"] = "failed"
         job["error"] = f"Media file not found: {e.filename}"
         logger.error(f"Transcription media file not found: {e}")
-    except OSError as e:
+    except Exception as e:
         # System error during transcription processing
         job["status"] = "failed"
         job["error"] = f"System error: {e}"
         logger.error(f"Transcription system error: {e}")
 
 
-def process_tts(job_id: str):
+async def process_tts(job_id: str):
     """Background task for text-to-speech."""
     job = jobs_db[job_id]
     job["status"] = "processing"
     
     try:
-        import time
-        time.sleep(3)  # Simulate processing
+        from backend.video_editor_ai_service import TTSService
+        service = TTSService()
         
-        # Create placeholder audio file
-        audio_path = MEDIA_DIR / "tts" / f"{job_id}.wav"
-        audio_path.parent.mkdir(parents=True, exist_ok=True)
-        audio_path.touch()
+        text = job.get("text")
+        if not text:
+            raise ValueError("text is missing in job data")
+            
+        audio_path = str(MEDIA_DIR / "tts" / f"{job_id}.wav")
+        Path(audio_path).parent.mkdir(parents=True, exist_ok=True)
+        
+        result = await service.text_to_speech(
+            text=text,
+            voice=job.get("voice"),
+            output_path=audio_path
+        )
         
         job["status"] = "completed"
-        job["audio_path"] = str(audio_path)
+        job["audio_path"] = result.audio_path
         
     except PermissionError as e:
         # Permission denied for TTS output directory
         job["status"] = "failed"
         job["error"] = f"Permission denied: {e.filename}"
         logger.error(f"TTS permission denied: {e}")
-    except OSError as e:
+    except Exception as e:
         # System error during TTS processing
         job["status"] = "failed"
         job["error"] = f"System error: {e}"
         logger.error(f"TTS system error: {e}")
 
 
-def process_smart_crop(job_id: str):
+async def process_smart_crop(job_id: str):
     """Background task for smart crop."""
     job = jobs_db[job_id]
     job["status"] = "processing"
     
     try:
-        import time
-        time.sleep(2)  # Simulate processing
+        from backend.video_editor_ai_service import SmartCropService
+        service = SmartCropService()
+        
+        media_path = job.get("media_path")
+        if not media_path:
+            raise ValueError("media_path is missing in job data")
+            
+        result = await service.smart_crop(
+            video_path=media_path,
+            target_ratio=job.get("target_ratio", "9:16"),
+            focus_mode=job.get("focus_mode", "auto")
+        )
         
         job["status"] = "completed"
-        job["crop_regions"] = [
-            {"x": 0.1, "y": 0.1, "width": 0.8, "height": 0.8}
-        ]
+        job["crop_regions"] = result.regions
         
     except FileNotFoundError as e:
         # Media file not found for smart crop
         job["status"] = "failed"
         job["error"] = f"Media file not found: {e.filename}"
         logger.error(f"Smart crop media file not found: {e}")
-    except OSError as e:
+    except Exception as e:
         # System error during smart crop processing
         job["status"] = "failed"
         job["error"] = f"System error: {e}"

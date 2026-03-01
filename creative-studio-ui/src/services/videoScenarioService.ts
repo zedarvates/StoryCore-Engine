@@ -148,8 +148,7 @@ export class VideoScenarioService {
         const prompt = this.buildSequencePrompt(part, params);
 
         try {
-            const { getLLMService } = await import('./llmService');
-            const llmService = getLLMService();
+            const { llmService } = await import('./llmService');
 
             const response = await llmService.generateText(prompt, {
                 temperature: 0.7,
@@ -174,8 +173,7 @@ export class VideoScenarioService {
         const prompt = this.buildContentSequencePrompt(story, params);
 
         try {
-            const { getLLMService } = await import('./llmService');
-            const llmService = getLLMService();
+            const { llmService } = await import('./llmService');
 
             const response = await llmService.generateText(prompt, {
                 temperature: 0.7,
@@ -196,13 +194,10 @@ export class VideoScenarioService {
         story: Story,
         params: VideoScenarioGenerationParams
     ): Promise<Dialogue[]> {
-        const dialogues: Dialogue[] = [];
-
         const prompt = this.buildDialoguePrompt(story, params);
 
         try {
-            const { getLLMService } = await import('./llmService');
-            const llmService = getLLMService();
+            const { llmService } = await import('./llmService');
 
             const response = await llmService.generateText(prompt, {
                 temperature: 0.8,
@@ -226,8 +221,7 @@ export class VideoScenarioService {
         const prompt = this.buildShotPrompt(sequence, params);
 
         try {
-            const { getLLMService } = await import('./llmService');
-            const llmService = getLLMService();
+            const { llmService } = await import('./llmService');
 
             const response = await llmService.generateText(prompt, {
                 temperature: 0.7,
@@ -251,8 +245,7 @@ export class VideoScenarioService {
         const prompt = this.buildProductionElementPrompt(story, params);
 
         try {
-            const { getLLMService } = await import('./llmService');
-            const llmService = getLLMService();
+            const { llmService } = await import('./llmService');
 
             const response = await llmService.generateText(prompt, {
                 temperature: 0.7,
@@ -270,7 +263,7 @@ export class VideoScenarioService {
     // Prompt Builders
     // ============================================================================
 
-    private buildSequencePrompt(part: StoryPart, params: VideoScenarioGenerationParams): string {
+    private buildSequencePrompt(part: StoryPart, _params: VideoScenarioGenerationParams): string {
         return `
 Convert this story part into a video sequence plan:
 
@@ -292,7 +285,7 @@ Format as JSON with fields: sequenceNumber, title, location, timeOfDay, descript
 `;
     }
 
-    private buildContentSequencePrompt(story: Story, params: VideoScenarioGenerationParams): string {
+    private buildContentSequencePrompt(story: Story, _params: VideoScenarioGenerationParams): string {
         return `
 Convert this story into a video sequence plan:
 
@@ -364,7 +357,7 @@ Format as JSON array with fields: shotNumber, type, cameraMovement, framing, foc
 `;
     }
 
-    private buildProductionElementPrompt(story: Story, params: VideoScenarioGenerationParams): string {
+    private buildProductionElementPrompt(story: Story, _params: VideoScenarioGenerationParams): string {
         return `
 Generate production elements for this video story:
 
@@ -439,17 +432,17 @@ Format as JSON array with fields: type, description, timing, purpose
         return this.createFallbackContentSequence(story, order);
     }
 
-    private parseDialogueResponse(response: string, story: Story): Dialogue[] {
+    private parseDialogueResponse(response: string, _story: Story): Dialogue[] {
         try {
             const jsonMatch = response.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
-                return parsed.map((d: any) => ({
+                return parsed.map((d: Record<string, unknown>) => ({
                     id: crypto.randomUUID(),
-                    character: d.character || 'Unknown',
-                    text: d.text || '',
-                    emotion: d.emotion || '',
-                    sceneReference: d.sceneReference || '',
+                    character: (d.character as string) || 'Unknown',
+                    text: (d.text as string) || '',
+                    emotion: (d.emotion as string) || '',
+                    sceneReference: (d.sceneReference as string) || '',
                     timestamp: '',
                 }));
             }
@@ -465,15 +458,15 @@ Format as JSON array with fields: type, description, timing, purpose
             const jsonMatch = response.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
-                return parsed.map((s: any, index: number) => ({
+                return parsed.map((s: Record<string, unknown>, index: number) => ({
                     id: crypto.randomUUID(),
-                    shotNumber: s.shotNumber || index + 1,
-                    type: s.type || 'medium',
-                    cameraMovement: s.cameraMovement || '',
-                    framing: s.framing || '',
-                    focusPoint: s.focusPoint || '',
-                    duration: s.duration || 5,
-                    purpose: s.purpose || '',
+                    shotNumber: (s.shotNumber as number) || index + 1,
+                    type: (s.type as string) || 'medium',
+                    cameraMovement: (s.cameraMovement as string) || '',
+                    framing: (s.framing as string) || '',
+                    focusPoint: (s.focusPoint as string) || '',
+                    duration: (s.duration as number) || 5,
+                    purpose: (s.purpose as string) || '',
                     sequenceId: sequence.id,
                 }));
             }
@@ -489,12 +482,12 @@ Format as JSON array with fields: type, description, timing, purpose
             const jsonMatch = response.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
-                return parsed.map((e: any) => ({
+                return parsed.map((e: Record<string, unknown>) => ({
                     id: crypto.randomUUID(),
-                    type: e.type || 'visual',
-                    description: e.description || '',
-                    timing: e.timing || '',
-                    purpose: e.purpose || '',
+                    type: (e.type as string) || 'visual',
+                    description: (e.description as string) || '',
+                    timing: (e.timing as string) || '',
+                    purpose: (e.purpose as string) || '',
                     storyId: story.id,
                 }));
             }

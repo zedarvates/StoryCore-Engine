@@ -19,7 +19,10 @@ import { ollamaClient } from '../../services/llm/OllamaClient';
 import { PipelineAwareLLM } from '../../services/llm/PipelineAwareLLM';
 import type { ContextualSuggestion } from '../../services/llm/PipelineAwareLLM';
 import { LLMAssistantSidebar } from '../LLMAssistantSidebar';
-import { Plus, Settings, HelpCircle, Activity, Sparkles, Wand2 } from 'lucide-react';
+import { Plus, Settings, HelpCircle, Activity, Sparkles, Wand2, Brain, Search, Network } from 'lucide-react';
+import { rlmService } from '../../services/RecursiveLLMService';
+import { RLMProcessDisplay } from '../llm/RLMProcessDisplay';
+import LoreGraphVisualizer from '../llm/LoreGraphVisualizer';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 
 import './StoryCoreAssistant.css';
@@ -54,6 +57,12 @@ export function StoryCoreAssistant() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [projectAnalysis, setProjectAnalysis] = useState<ProjectAnalysis | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const [useRLM, setUseRLM] = useState(false);
+  const [rlmSteps, setRlmSteps] = useState<string[]>([]);
+  const [isRlmProcessing, setIsRlmProcessing] = useState(false);
+  const [showGraph, setShowGraph] = useState(false);
+  const [graphRefreshKey, setGraphRefreshKey] = useState(0);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -158,8 +167,20 @@ export function StoryCoreAssistant() {
         setProjectAnalysis(analysis);
         addAssistantMessage(`📊 **Project Score: ${analysis.score}/10**\nIssues: ${analysis.issues.join(', ') || 'None'}`);
       } finally { setIsAnalyzing(false); }
+    } else if (action === 'lore') {
+      setIsRlmProcessing(true);
+      setRlmSteps([]);
+      try {
+        const result = await rlmService.generateRLM("Perform a full lore consistency check. Analyze relationships between characters and their roles. Report any contradictions found in the Knowledge Graph.", project?.global_resume || "");
+        setRlmSteps(result.steps);
+        addAssistantMessage(`📜 **Lore Consistency Report**:\n\n${result.final_answer}`);
+      } catch (error) {
+        addAssistantMessage(`❌ Lore check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        setIsRlmProcessing(false);
+      }
     }
-  }, [addAssistantMessage, analyzeProject, handlePipelineSuggestion]);
+  }, [addAssistantMessage, analyzeProject, handlePipelineSuggestion, project]);
 
   const processUserMessage = useCallback(async (message: string) => {
     const intent = PipelineAwareLLM.parseGenerationIntent(message);
@@ -172,6 +193,23 @@ export function StoryCoreAssistant() {
     else if (lowerValue.includes('analyze')) await handleQuickAction('analyze');
     else {
       try {
+        if (useRLM) {
+          setIsRlmProcessing(true);
+          setRlmSteps([]);
+          try {
+            // Context can be derived from current project resume
+            const massiveContext = project?.global_resume || "";
+            const result = await rlmService.generateRLM(message, massiveContext);
+            setRlmSteps(result.steps);
+            addAssistantMessage(result.final_answer);
+          } catch (error) {
+            addAssistantMessage(`❌ RLM Error: ${error instanceof Error ? error.message : 'Analysis failed'}`);
+          } finally {
+            setIsRlmProcessing(false);
+          }
+          return;
+        }
+
         const models = await ollamaClient.listModels();
         const model = models.find(m => m.name.includes('llama'))?.name || models[0]?.name;
         if (model) {
@@ -183,7 +221,7 @@ export function StoryCoreAssistant() {
       } catch { /* fallback */ }
       addAssistantMessage(`I'm help with analysis/production. Try "Analyze project".`);
     }
-  }, [addAssistantMessage, handleQuickAction]);
+  }, [addAssistantMessage, handleQuickAction, useRLM, project]);
 
   const handleSendMessage = useCallback(async () => {
     if (!inputValue.trim()) return;
@@ -229,7 +267,7 @@ export function StoryCoreAssistant() {
         { type: 'wizard', title: '👻 Ghost Tracker', description: 'Ghost Tracker', action: () => handleWizardLaunch('ghost-tracker-wizard'), priority: 'low' }
       ]
     }]);
-  }, [handleQuickAction]);
+  }, [handleQuickAction, handleWizardLaunch]);
 
   return (
     <div className="storycore-assistant">
@@ -249,6 +287,26 @@ export function StoryCoreAssistant() {
             <span className="llm-carrot-icon">🥕</span>
           </button>
           
+          <button 
+            className={`graph-toggle-btn ${showGraph ? 'active' : ''}`}
+            onClick={() => {
+              setShowGraph(!showGraph);
+              if (!showGraph) setGraphRefreshKey(prev => prev + 1);
+            }}
+            title={showGraph ? "Hide Knowledge Graph" : "Show Knowledge Graph (Lore)"}
+          >
+            <Network className={`w-4 h-4 ${showGraph ? 'text-cyan-400' : 'text-gray-400'}`} />
+          </button>
+          
+          <button 
+            className={`rlm-toggle-btn ${useRLM ? 'active' : ''}`}
+            onClick={() => setUseRLM(!useRLM)}
+            title={useRLM ? "Désactiver RLM (Mode Standard)" : "Activer RLM Engine (Deep Reasoning)"}
+          >
+            <Brain className={`w-4 h-4 ${useRLM ? 'animate-pulse text-cyan-400' : 'text-gray-400'}`} />
+            {useRLM && <span className="rlm-badge">RLM ON</span>}
+          </button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="more-options-btn" title="Plus d'options">
@@ -257,9 +315,21 @@ export function StoryCoreAssistant() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="assistant-dropdown">
+              <DropdownMenuItem onSelect={() => setUseRLM(!useRLM)}>
+                <Brain className="w-4 h-4 mr-2 text-cyan-500" />
+                <span>{useRLM ? 'Disable' : 'Enable'} RLM Engine</span>
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => handleQuickAction('analyze')}>
                 <Activity className="w-4 h-4 mr-2 text-blue-500" />
                 <span>📊 Analyze Project</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setShowGraph(!showGraph)}>
+                <Network className="w-4 h-4 mr-2 text-cyan-400" />
+                <span>{showGraph ? 'Hide' : 'Show'} Knowledge Graph</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleQuickAction('lore')}>
+                <Search className="w-4 h-4 mr-2 text-blue-400" />
+                <span>🔍 Lore Consistency</span>
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => handleQuickAction('status')}>
                 <Sparkles className="w-4 h-4 mr-2 text-purple-500" />
@@ -281,6 +351,22 @@ export function StoryCoreAssistant() {
           </DropdownMenu>
         </div>
       </div>
+
+      {(isRlmProcessing || rlmSteps.length > 0) && (
+        <div className="rlm-contextual-panel">
+          <RLMProcessDisplay 
+            steps={rlmSteps} 
+            isProcessing={isRlmProcessing} 
+          />
+        </div>
+      )}
+
+      {showGraph && (
+        <div className="assistant-graph-overlay">
+          <LoreGraphVisualizer refreshKey={graphRefreshKey} />
+          <button className="close-graph-btn" onClick={() => setShowGraph(false)}>×</button>
+        </div>
+      )}
 
       <div className="assistant-messages">
         {messages.map(m => (

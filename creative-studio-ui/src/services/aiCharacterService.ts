@@ -6,7 +6,9 @@
  */
 
 import { EventEmitter } from 'events';
-import type { CharacterArchetype, CharacterRole, PersonalityTrait } from '../../src/ai_character_engine';
+import { CharacterArchetype, CharacterRole, PersonalityTrait } from '../types/ai-engines';
+import { ollamaClient } from './llm/OllamaClient';
+import { logger } from '@/utils/logger';
 
 // Character data types
 export interface CharacterProfile {
@@ -128,12 +130,24 @@ class AICharacterService extends EventEmitter {
     }
 
     try {
-      // Simulate AI character generation
-      const character = await this.simulateCharacterGeneration(config);
+      logger.info(`[AICharacterService] Generating character for archetype: ${config.archetype}, role: ${config.role}`);
+      
+      // Use real AI character generation via Ollama
+      const character = await this.realAICharacterGeneration(config);
       
       // Store character
       this.characters.set(character.id, character);
-      this.consistency.set(character.id, character.traits as unknown as CharacterConsistency);
+      
+      // Initialize consistency scores
+      const consistency: CharacterConsistency = {
+        generationId: character.id,
+        appearanceSeed: Math.floor(Math.random() * 1000000),
+        personalitySeed: Math.floor(Math.random() * 1000000),
+        lastModified: new Date(),
+        consistencyScore: 1.0,
+        variations: []
+      };
+      this.consistency.set(character.id, consistency);
       
       // Save to storage
       await this.saveCharacters();
@@ -143,7 +157,7 @@ class AICharacterService extends EventEmitter {
       
       return character;
     } catch (error) {
-      console.error('Failed to generate character:', error);
+      logger.error('[AICharacterService] Failed to generate character:', error);
       throw error;
     }
   }
@@ -327,13 +341,18 @@ class AICharacterService extends EventEmitter {
   /**
    * Generate character dialogue suggestions
    */
-  generateDialogueSuggestions(characterId: string, context: string): DialogueSuggestion[] {
+  async generateDialogueSuggestions(characterId: string, context: string): Promise<DialogueSuggestion[]> {
     const character = this.characters.get(characterId);
     if (!character) {
       throw new Error('Character not found');
     }
 
-    return this.simulateDialogueGeneration(character, context);
+    try {
+      return await this.realAIDialogueGeneration(character, context);
+    } catch (error) {
+      logger.error(`[AICharacterService] Failed to generate dialogue for ${characterId}:`, error);
+      return this.simulateDialogueGeneration(character, context);
+    }
   }
 
   /**
@@ -356,7 +375,7 @@ class AICharacterService extends EventEmitter {
    * Import character data
    */
   async importCharacter(data: string, format: 'json' | 'xml' = 'json'): Promise<CharacterProfile> {
-    let characterData: unknown;
+    let characterData: Record<string, unknown>;
 
     if (format === 'json') {
       characterData = JSON.parse(data);
@@ -364,10 +383,11 @@ class AICharacterService extends EventEmitter {
       characterData = this.parseXML(data);
     }
 
+    const characterDataTyped = characterData as unknown as CharacterProfile;
     const character: CharacterProfile = {
-      ...characterData,
-      createdAt: new Date(characterData.createdAt),
-      updatedAt: new Date(characterData.updatedAt)
+      ...characterDataTyped,
+      createdAt: new Date(characterDataTyped.createdAt),
+      updatedAt: new Date(characterDataTyped.updatedAt)
     };
 
     this.characters.set(character.id, character);
@@ -378,6 +398,142 @@ class AICharacterService extends EventEmitter {
   }
 
   // Private methods
+
+  private async realAICharacterGeneration(config: CharacterGenerationConfig): Promise<CharacterProfile> {
+    const model = await ollamaClient.getBestAvailableModel('storytelling');
+    
+    const prompt = `Generate a detailed character profile for a story.
+ARCHETYPE: ${config.archetype}
+ROLE: ${config.role}
+QUALITY: ${config.qualityLevel || 'standard'}
+
+Return a JSON object with the following structure:
+{
+  "name": "Full Name",
+  "age": number,
+  "gender": "string",
+  "appearance": {
+    "height": number (in cm),
+    "build": "string",
+    "hairColor": "string",
+    "hairStyle": "string",
+    "eyeColor": "string",
+    "skinTone": "string",
+    "distinctiveFeatures": ["feature 1", "feature 2"],
+    "clothingStyle": "string",
+    "accessories": ["accessory 1"]
+  },
+  "personality": {
+    "traits": {
+      "openness": 0.0-1.0,
+      "conscientiousness": 0.0-1.0,
+      "extraversion": 0.0-1.0,
+      "agreeableness": 0.0-1.0,
+      "neuroticism": 0.0-1.0,
+      "courage": 0.0-1.0,
+      "intelligence": 0.0-1.0,
+      "charisma": 0.0-1.0,
+      "humility": 0.0-1.0,
+      "ambition": 0.0-1.0,
+      "loyalty": 0.0-1.0,
+      "cunning": 0.0-1.0,
+      "compassion": 0.0-1.0,
+      "honesty": 0.0-1.0,
+      "patience": 0.0-1.0,
+      "wisdom": 0.0-1.0
+    },
+    "coreBeliefs": ["string"],
+    "motivations": ["string"],
+    "fears": ["string"],
+    "strengths": ["string"],
+    "weaknesses": ["string"],
+    "speechPatterns": ["string"]
+  },
+  "backstory": {
+    "origin": "string",
+    "keyEvents": ["string"],
+    "relationships": {"role": "description"},
+    "skills": ["string"],
+    "secrets": ["string"],
+    "goals": ["string"],
+    "conflicts": ["string"]
+  }
+}
+
+Respond ONLY with the JSON object.`;
+
+    try {
+      const response = await ollamaClient.generate(model, prompt);
+      const jsonStr = response.match(/\{[\s\S]*\}/)?.[0] || response;
+      const data = JSON.parse(jsonStr);
+      
+      const id = `char_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const traits: CharacterTraits = {
+        courage: data.personality.traits.courage || 0.5,
+        intelligence: data.personality.traits.intelligence || 0.5,
+        charisma: data.personality.traits.charisma || 0.5,
+        humility: data.personality.traits.humility || 0.5,
+        ambition: data.personality.traits.ambition || 0.5,
+        loyalty: data.personality.traits.loyalty || 0.5,
+        cunning: data.personality.traits.cunning || 0.5,
+        compassion: data.personality.traits.compassion || 0.5
+      };
+
+      return {
+        id,
+        name: data.name,
+        archetype: config.archetype,
+        role: config.role,
+        age: data.age,
+        gender: data.gender,
+        appearance: data.appearance,
+        personality: data.personality,
+        backstory: data.backstory,
+        traits,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    } catch (error) {
+      logger.error('[AICharacterService] AI generation failed, falling back to simulation:', error);
+      return this.simulateCharacterGeneration(config);
+    }
+  }
+
+  private async realAIDialogueGeneration(character: CharacterProfile, context: string): Promise<DialogueSuggestion[]> {
+    const model = await ollamaClient.getBestAvailableModel('storytelling');
+    
+    const prompt = `Generate 3 dialogue suggestions for this character in the given context.
+CHARACTER: ${character.name}, a ${character.age} year old ${character.archetype}.
+PERSONALITY: ${Object.entries(character.personality.traits).map(([t, v]) => `${t}: ${v}`).join(', ')}
+CONTEXT: ${context}
+
+Return a JSON array of 3 objects with:
+{
+  "text": "The line of dialogue",
+  "emotion": "The emotion conveyed",
+  "length": "short" | "medium" | "long"
+}
+
+Respond ONLY with the JSON array.`;
+
+    try {
+      const response = await ollamaClient.generate(model, prompt);
+      const jsonStr = response.match(/\[[\s\S]*\]/)?.[0] || response;
+      const data = JSON.parse(jsonStr);
+      
+      return data.map((item: { text: string; emotion: string; length: 'short' | 'medium' | 'long' }, index: number) => ({
+        id: `dialogue_${character.id}_${Date.now()}_${index}`,
+        text: item.text,
+        emotion: item.emotion,
+        length: item.length,
+        context: context
+      }));
+    } catch (error) {
+      logger.error('[AICharacterService] AI dialogue generation failed:', error);
+      throw error;
+    }
+  }
 
   private async simulateCharacterGeneration(config: CharacterGenerationConfig): Promise<CharacterProfile> {
     // Simulate AI generation delay
@@ -428,8 +584,6 @@ class AICharacterService extends EventEmitter {
   }
 
   private simulateDialogueGeneration(character: CharacterProfile, context: string): DialogueSuggestion[] {
-    const suggestions: DialogueSuggestion[] = [];
-    
     // Generate context-appropriate dialogue based on character traits
     const baseSuggestions = [
       `As a ${character.archetype}, I would say: "This situation requires careful consideration."`,
@@ -492,7 +646,7 @@ class AICharacterService extends EventEmitter {
     return opportunities;
   }
 
-  private suggestRelationships(character: CharacterProfile): RelationshipSuggestion[] {
+  private suggestRelationships(_character: CharacterProfile): RelationshipSuggestion[] {
     return [
       {
         type: 'mentor',
@@ -522,8 +676,8 @@ class AICharacterService extends EventEmitter {
   }
 
   // Helper methods for generation
-  private generateCharacterName(archetype: CharacterArchetype, role: CharacterRole): string {
-    const prefixes = {
+  private generateCharacterName(archetype: CharacterArchetype, _role: CharacterRole): string {
+    const prefixes: Partial<Record<CharacterArchetype, string[]>> = {
       [CharacterArchetype.HERO]: ['Aria', 'Kael', 'Lyra', 'Thorne'],
       [CharacterArchetype.VILLAIN]: ['Malakor', 'Seraphine', 'Vex', 'Nyx'],
       [CharacterArchetype.MENTOR]: ['Eldrin', 'Morgana', 'Thalor', 'Aelwyn']
@@ -534,7 +688,7 @@ class AICharacterService extends EventEmitter {
   }
 
   private generateAge(archetype: CharacterArchetype): number {
-    const ageRanges = {
+    const ageRanges: Partial<Record<CharacterArchetype, [number, number]>> = {
       [CharacterArchetype.HERO]: [20, 35],
       [CharacterArchetype.VILLAIN]: [30, 50],
       [CharacterArchetype.MENTOR]: [50, 70]
@@ -565,12 +719,25 @@ class AICharacterService extends EventEmitter {
     return { ...defaultAppearance, ...constraints };
   }
 
-  private generatePersonality(seeds?: Record<PersonalityTrait, number>): CharacterPersonality {
-    const traits: Record<PersonalityTrait, number> = {};
+  private generatePersonality(seeds?: Record<PersonalityTrait, number>, archetype?: CharacterArchetype): CharacterPersonality {
+    const traits: Record<PersonalityTrait, number> = {} as Record<PersonalityTrait, number>;
     
-    // Set default trait values
+    // Set default trait values, potentially influenced by archetype
     Object.values(PersonalityTrait).forEach(trait => {
-      traits[trait] = seeds?.[trait] ?? Math.random();
+      let baseValue = seeds?.[trait] ?? Math.random();
+
+      // Adjust based on archetype for some traits
+      if (archetype === CharacterArchetype.HERO) {
+        if (trait === PersonalityTrait.COURAGE) baseValue = Math.max(baseValue, 0.7);
+        if (trait === PersonalityTrait.COMPASSION) baseValue = Math.max(baseValue, 0.6);
+      } else if (archetype === CharacterArchetype.VILLAIN) {
+        if (trait === PersonalityTrait.AMBITION) baseValue = Math.max(baseValue, 0.7);
+        if (trait === PersonalityTrait.CUNNING) baseValue = Math.max(baseValue, 0.6);
+      } else if (archetype === CharacterArchetype.MENTOR) {
+        if (trait === PersonalityTrait.WISDOM) baseValue = Math.max(baseValue, 0.7);
+        if (trait === PersonalityTrait.PATIENCE) baseValue = Math.max(baseValue, 0.6);
+      }
+      traits[trait] = baseValue;
     });
 
     return {
@@ -584,7 +751,7 @@ class AICharacterService extends EventEmitter {
     };
   }
 
-  private generateBackstory(depth: number): CharacterBackstory {
+  private generateBackstory(_depth: number): CharacterBackstory {
     return {
       origin: 'City of Eldoria',
       keyEvents: ['Childhood trauma', 'Mentor encounter', 'First victory'],
@@ -597,7 +764,7 @@ class AICharacterService extends EventEmitter {
   }
 
   private generateTraits(archetype: CharacterArchetype): CharacterTraits {
-    const baseTraits = {
+    const baseTraits: CharacterTraits = {
       courage: 0.5,
       intelligence: 0.5,
       charisma: 0.5,
@@ -619,11 +786,9 @@ class AICharacterService extends EventEmitter {
       baseTraits.courage = 0.7;
     } else if (archetype === CharacterArchetype.MENTOR) {
       baseTraits.intelligence = 0.9;
-      baseTraits.wisdom = 0.9;
-      baseTraits.patience = 0.8;
     }
 
-    return baseTraits as CharacterTraits;
+    return baseTraits;
   }
 
   private determineEmotion(character: CharacterProfile, context: string): string {
@@ -653,7 +818,7 @@ class AICharacterService extends EventEmitter {
       const saved = localStorage.getItem('ai_characters');
       if (saved) {
         const characters = JSON.parse(saved);
-        characters.forEach((char: unknown) => {
+        characters.forEach((char: CharacterProfile) => {
           this.characters.set(char.id, {
             ...char,
             createdAt: new Date(char.createdAt),
@@ -690,7 +855,7 @@ class AICharacterService extends EventEmitter {
 </character>`;
   }
 
-  private parseXML(xml: string): unknown {
+  private parseXML(xml: string): Record<string, unknown> {
     // Parse XML character data
     try {
       const parser = new DOMParser();
@@ -819,9 +984,5 @@ interface DialogueSuggestion {
 
 // Export singleton instance
 export const aiCharacterService = new AICharacterService();
-
-// Export types for React hooks
-export type { CharacterProfile, CharacterAppearance, CharacterPersonality, CharacterBackstory, CharacterTraits };
-export type { CharacterGenerationConfig, CharacterConsistency, CharacterAnalysis };
 
 

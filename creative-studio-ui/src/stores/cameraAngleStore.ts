@@ -21,7 +21,7 @@ import type {
   CameraAngleResult,
   CameraAngleQuality,
   CameraAngleResultResponse,
-  CameraAngleApiError,
+  CameraLensType,
 } from '@/types/cameraAngle';
 
 // ============================================================================
@@ -58,6 +58,7 @@ interface CameraAngleStoreState {
     quality: CameraAngleQuality;
     seed: number | null;
     customPrompt: string | null;
+    lensType: CameraLensType;
   };
 
   // Error state
@@ -97,6 +98,7 @@ interface CameraAngleStoreActions {
   setQuality: (quality: CameraAngleQuality) => void;
   setSeed: (seed: number | null) => void;
   setCustomPrompt: (prompt: string | null) => void;
+  setLensType: (lensType: CameraLensType) => void;
 
   // Error actions
   setError: (error: string | null) => void;
@@ -130,6 +132,7 @@ const initialOptions: CameraAngleStoreState['options'] = {
   quality: 'standard',
   seed: null,
   customPrompt: null,
+  lensType: 'standard',
 };
 
 // ============================================================================
@@ -185,6 +188,7 @@ export const useCameraAngleStore = create<
         quality: state.options.quality,
         seed: state.options.seed,
         customPrompt: state.options.customPrompt,
+        lensType: state.options.lensType,
       };
 
       // Start generation
@@ -449,6 +453,15 @@ export const useCameraAngleStore = create<
       options: {
         ...get().options,
         customPrompt: prompt,
+      },
+    });
+  },
+
+  setLensType: (lensType: CameraLensType) => {
+    set({
+      options: {
+        ...get().options,
+        lensType,
       },
     });
   },

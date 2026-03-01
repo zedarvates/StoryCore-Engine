@@ -1,4 +1,6 @@
 import type { VoiceOver } from '../types';
+import { API_BASE_URL } from '../config/apiConfig';
+import { logger } from '@/utils/logger';
 
 /**
  * TTS Service for generating voiceovers using AI text-to-speech APIs
@@ -115,7 +117,7 @@ class MockTTSProvider implements TTSProvider {
     });
   }
 
-  private recordSpeech(utterance: SpeechSynthesisUtterance): MediaRecorder | null {
+  private recordSpeech(_utterance: SpeechSynthesisUtterance): MediaRecorder | null {
     try {
       // Create an audio context to capture the speech
       const audioContext = new AudioContext();
@@ -277,8 +279,7 @@ class ElevenLabsTTSProvider implements TTSProvider {
     }
 
     const data = await response.json();
-    // Using 'any' for voice data from ElevenLabs API response which has flexible structure
-    return data.voices.map((voice: unknown) => ({
+    return data.voices.map((voice: any) => ({
       id: voice.voice_id,
       name: voice.name,
       gender: voice.labels?.gender || 'neutral',
@@ -289,15 +290,90 @@ class ElevenLabsTTSProvider implements TTSProvider {
 }
 
 /**
+ * Local TTS Provider (integration with StoryCore Engine Backend)
+ */
+class LocalTTSProvider implements TTSProvider {
+  name = 'StoryCore Local TTS';
+  private apiEndpoint = `${API_BASE_URL}/audio`;
+
+  async generateVoiceOver(voiceOver: VoiceOver): Promise<string> {
+    try {
+      logger.info(`[LocalTTSProvider] Requesting audio generation for: "${voiceOver.text.substring(0, 30)}..."`);
+      
+      const response = await fetch(`${this.apiEndpoint}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: voiceOver.text,
+          voice_type: voiceOver.voice,
+          speed: voiceOver.speed,
+          pitch: voiceOver.pitch,
+          language: voiceOver.language,
+          emotion: voiceOver.emotion
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Local TTS API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const jobId = data.job_id;
+      
+      // Poll for completion
+      return this.pollForCompletion(jobId);
+    } catch (error) {
+      logger.error('[LocalTTSProvider] Failed to generate audio:', error);
+      throw error;
+    }
+  }
+
+  private async pollForCompletion(jobId: string): Promise<string> {
+    const maxAttempts = 30;
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      const response = await fetch(`${this.apiEndpoint}/job/${jobId}`);
+      if (!response.ok) throw new Error(`Failed to check job status: ${jobId}`);
+      
+      const status = await response.json();
+      
+      if (status.status === 'completed') {
+        logger.info(`[LocalTTSProvider] Audio generation complete: ${jobId}`);
+        return `${API_BASE_URL}${status.url}`;
+      }
+      
+      if (status.status === 'failed') {
+        throw new Error(`Audio generation failed: ${status.error}`);
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      attempts++;
+    }
+
+    throw new Error('Audio generation timed out');
+  }
+
+  async getAvailableVoices(): Promise<Voice[]> {
+    return [
+      { id: 'neutral', name: 'Neutral Voice', gender: 'neutral', language: 'en-US' },
+      { id: 'male', name: 'Male Voice', gender: 'male', language: 'en-US' },
+      { id: 'female', name: 'Female Voice', gender: 'female', language: 'en-US' }
+    ];
+  }
+}
+
+/**
  * TTS Service singleton
  */
 class TTSService {
   private provider: TTSProvider;
 
   constructor() {
-    // Default to mock provider
-    // In production, initialize with actual provider based on configuration
-    this.provider = new MockTTSProvider();
+    // Default to local provider if possible, fallback to mock
+    this.provider = new LocalTTSProvider();
   }
 
   setProvider(provider: TTSProvider): void {

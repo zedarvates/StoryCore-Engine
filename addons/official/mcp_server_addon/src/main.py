@@ -6,6 +6,7 @@ Point d'entrée principal du serveur MCP (Model Context Protocol).
 import asyncio
 import json
 import logging
+import re
 import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -338,17 +339,39 @@ class MCPServerAddon:
     async def _pre_processing_hook(self, *args, **kwargs) -> None:
         """Hook de pré-traitement"""
         self.logger.debug("Démarrage du pré-traitement MCP")
-        # TODO: Implémenter la logique de pré-traitement
+        message = kwargs.get('message') or (args[0] if args else None)
+        if message:
+            # Nettoyage et vérification rapide
+            try:
+                json.loads(message)
+            except json.JSONDecodeError:
+                self.logger.warning("Message invalide détecté lors du pré-traitement.")
     
     async def _post_processing_hook(self, *args, **kwargs) -> None:
         """Hook de post-traitement"""
         self.logger.debug("Post-traitement MCP terminé")
-        # TODO: Implémenter la logique de post-traitement
+        
+        response = kwargs.get('response') or (args[1] if len(args) > 1 else None)
+        if response:
+            try:
+                resp_data = json.loads(response)
+                if 'error' in resp_data:
+                    self.logger.warning(f"Erreur renvoyée dans la réponse MCP: {resp_data['error']}")
+            except Exception:
+                pass
     
     async def _security_check_hook(self, *args, **kwargs) -> bool:
-        """Hook de vérification de sécurité"""
-        self.logger.debug("Vérification de sécurité MCP")
-        # TODO: Implémenter la vérification de sécurité
+        """Hook de vérification de sécurité supplémentaire"""
+        self.logger.debug("Vérification de sécurité MCP via Hook")
+        
+        message = kwargs.get('message') or (args[0] if args else None)
+        if message and isinstance(message, str):
+            # Exemples de sécurités complémentaires au-delà du validateur :
+            # Vérifications contre l'injection de code non sécurisé
+            if re.search(r'(__class__|__mro__|__subclasses__)', message):
+                self.logger.error("Tentative d'injection Python (Template/Sandbox Escape) bloquée.")
+                return False
+                
         return True
 
 

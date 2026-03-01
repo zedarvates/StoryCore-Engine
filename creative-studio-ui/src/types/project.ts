@@ -17,6 +17,7 @@ export interface ProjectSetupData {
   projectDescription?: string;
   genre?: string[];
   tone?: string[];
+  productionMode?: string;
   targetAudience?: string;
   estimatedDuration?: string;
   visualStyle?: string;

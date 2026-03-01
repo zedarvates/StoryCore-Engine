@@ -13,7 +13,7 @@ export const initialize = async () => {
     // Register additional settings or actions if needed
     // The AddonManager already has default settings defined in initializeSettingsDefinitions
 
-    addonManager.trackEventListener('grok-integration', 'llm-request', async (event: any) => {
+    addonManager.trackEventListener('grok-integration', 'llm-request', async (_event: unknown) => {
         const settings = await addonManager.getAddonSettings('grok-integration');
 
         if (settings?.sarcasmMode) {

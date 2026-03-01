@@ -4,7 +4,6 @@
 
 import type {
   ComicPanel,
-  ComicPage,
   ComicProject,
   ConversionSettings,
   SequenceResult,
@@ -225,12 +224,14 @@ export class ComicToSequenceConverter {
    * Validate comic conversion state
    */
   private isValidComicConversionState(state: unknown): state is ComicConversionState {
+    if (state === null || typeof state !== 'object') {
+      return false;
+    }
+    const s = state as Record<string, unknown>;
     return (
-      state !== null &&
-      typeof state === 'object' &&
-      (state as any).projects &&
-      typeof (state as any).version === 'string' &&
-      typeof (state as any).lastModified === 'string'
+      s.projects !== undefined &&
+      typeof s.version === 'string' &&
+      typeof s.lastModified === 'string'
     );
   }
 

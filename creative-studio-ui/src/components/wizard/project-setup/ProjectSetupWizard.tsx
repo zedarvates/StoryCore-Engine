@@ -95,6 +95,10 @@ export function ProjectSetupWizard({
           if (!data.tone || data.tone.length === 0) {
             errors.tone = ['Please select at least one tone'];
           }
+
+          if (!data.productionMode) {
+            errors.productionMode = ['Please select a production mode'];
+          }
           break;
 
         case 2: // Step 2: Project Settings

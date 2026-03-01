@@ -13,12 +13,12 @@ export interface EffectParameter {
   id: string;
   name: string;
   type: 'range' | 'color' | 'select' | 'boolean' | 'number';
-  value: any;
-  defaultValue?: any;
+  value: unknown;
+  defaultValue?: unknown;
   min?: number;
   max?: number;
   step?: number;
-  options?: { label: string; value: any }[];
+  options?: { label: string; value: unknown }[];
   unit?: string;
   keyframes?: EffectKeyframe[];
 }

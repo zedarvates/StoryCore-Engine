@@ -4,7 +4,7 @@
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { TimelineState, Shot, Track, ReferenceImage, TimelineMarker, TimelineRegion, Layer, StyleApplication, StyleParameters } from '../../types';
+import type { TimelineState, Shot, Track, ReferenceImage, TimelineMarker, TimelineRegion, Layer, StyleApplication, StyleParameters, Annotation, AnnotationReply } from '../../types';
 
 // Default track configuration
 const DEFAULT_TRACKS: Track[] = [
@@ -26,6 +26,7 @@ const initialState: TimelineState = {
   duration: 0,
   markers: [],
   regions: [],
+  annotations: [],
   selectedMarkers: [],
   selectedRegions: [],
 };
@@ -185,6 +186,31 @@ const timelineSlice = createSlice({
     },
     clearRegionSelection: (state) => {
       state.selectedRegions = [];
+    },
+    // Annotation actions
+    addAnnotation: (state, action: PayloadAction<Annotation>) => {
+      state.annotations.push(action.payload);
+    },
+    updateAnnotation: (state, action: PayloadAction<{ id: string; updates: Partial<Annotation> }>) => {
+      const { id, updates } = action.payload;
+      const index = state.annotations.findIndex((ann) => ann.id === id);
+      if (index !== -1) {
+        state.annotations[index] = { ...state.annotations[index], ...updates, updatedAt: Date.now() };
+      }
+    },
+    deleteAnnotation: (state, action: PayloadAction<string>) => {
+      state.annotations = state.annotations.filter((ann) => ann.id !== action.payload);
+    },
+    addAnnotationReply: (state, action: PayloadAction<{ annotationId: string; reply: AnnotationReply }>) => {
+      const { annotationId, reply } = action.payload;
+      const index = state.annotations.findIndex((ann) => ann.id === annotationId);
+      if (index !== -1) {
+        if (!state.annotations[index].replies) {
+          state.annotations[index].replies = [];
+        }
+        state.annotations[index].replies!.push(reply);
+        state.annotations[index].updatedAt = Date.now();
+      }
     },
     // Layer actions
     addLayer: (state, action: PayloadAction<{ shotId: string; layer: Layer }>) => {
@@ -382,6 +408,10 @@ export const {
   deselectRegion,
   setSelectedRegions,
   clearRegionSelection,
+  addAnnotation,
+  updateAnnotation,
+  deleteAnnotation,
+  addAnnotationReply,
   addLayer,
   updateLayer,
   deleteLayer,

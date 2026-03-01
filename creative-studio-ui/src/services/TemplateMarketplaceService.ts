@@ -39,7 +39,7 @@ class TemplateMarketplaceService {
     hasMore: boolean;
   }> {
     const cacheKey = `search_${JSON.stringify(params)}`;
-    const cached = this.getFromCache(cacheKey) as any;
+    const cached = this.getFromCache(cacheKey) as { templates: Template[]; totalCount: number; hasMore: boolean } | null;
     if (cached) return cached;
 
     try {
@@ -90,7 +90,7 @@ class TemplateMarketplaceService {
    */
   async getTemplateById(id: string): Promise<Template | null> {
     const cacheKey = `template_${id}`;
-    const cached = this.getFromCache(cacheKey) as any;
+    const cached = this.getFromCache(cacheKey) as Template | null;
     if (cached) return cached;
 
     try {
@@ -118,7 +118,7 @@ class TemplateMarketplaceService {
    */
   async getFeaturedTemplates(): Promise<Template[]> {
     const cacheKey = 'featured';
-    const cached = this.getFromCache(cacheKey) as any;
+    const cached = this.getFromCache(cacheKey) as Template[] | null;
     if (cached) return cached;
 
     try {

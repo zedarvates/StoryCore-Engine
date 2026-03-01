@@ -256,7 +256,8 @@ export class ComfyUIService {
         return models;
       }
     } catch (error) {
-      logger.warn('[ComfyUIService] Failed to fetch models:', error);
+      // Changed to info to avoid spamming the console when ComfyUI is simply not running
+      logger.info('[ComfyUIService] Failed to fetch models (ComfyUI may not be running):', error);
     }
 
     return [];

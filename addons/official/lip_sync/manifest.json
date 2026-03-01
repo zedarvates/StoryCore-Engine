@@ -1,0 +1,50 @@
+{
+  "id": "lip_sync",
+  "name": "Lip-Sync & Audio",
+  "version": "0.9.0",
+  "status": "beta",
+  "description": "Automated audio-to-video synchronization (Lip-Sync) and advanced audio production workflows for emotional voice-overs. Supports multiple characters and multi-language voice assets within the same scene.",
+  "author": "StoryCore Team",
+  "license": "MIT",
+  "entry_point": "addon.py",
+  "engine_version_min": "1.0.0",
+  "permissions": ["read_project", "write_assets", "read_audio", "write_video"],
+  "hooks": [
+    "on_audio_ready",
+    "on_video_clip_ready",
+    "on_export_ready"
+  ],
+  "dependencies": {
+    "python": ["ffmpeg-python>=0.2.0"],
+    "system": ["ffmpeg>=4.0"],
+    "optional": ["wav2lip", "rhubarb-lipsync"]
+  },
+  "config_schema": {
+    "mode": {
+      "type": "string",
+      "enum": ["auto", "wav2lip", "rhubarb", "basic_ffmpeg"],
+      "default": "basic_ffmpeg",
+      "description": "Lip-sync algorithm to use"
+    },
+    "character_isolation": {
+      "type": "boolean",
+      "default": true,
+      "description": "Isolate characters by bounding box before applying lip-sync"
+    },
+    "multi_character": {
+      "type": "boolean",
+      "default": true,
+      "description": "Support multiple characters per scene"
+    },
+    "frame_blend": {
+      "type": "boolean",
+      "default": true,
+      "description": "Blend lip-sync frames for smoother animation"
+    },
+    "output_format": {
+      "type": "string",
+      "enum": ["mp4", "webm"],
+      "default": "mp4"
+    }
+  }
+}

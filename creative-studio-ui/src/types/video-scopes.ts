@@ -1,0 +1,1 @@
+export type ColorScopeType = 'waveform' | 'vectorscope' | 'histogram' | 'rgbParade';

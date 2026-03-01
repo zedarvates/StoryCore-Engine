@@ -184,18 +184,72 @@ export class Scene3DGenerationPipeline {
       return element;
     }
 
+    // Utilisation de la nouvelle technologie tttLRM pour une reconstruction de haute qualité
+    // On privilégie tttLRM pour les bâtiments et éléments complexes
+    if (element.type === 'building' || element.type === 'other') {
+      const modelUrl = await this.generate3DWithTTTLRM(element.studioImageUrl || '', 'ttt_adapted');
+      if (modelUrl) {
+        return { ...element, model3DUrl: modelUrl };
+      }
+    }
+
+    // Fallback pour les arbres ou en cas d'échec de tttLRM
     if (element.type === 'tree') {
-      // Pour les éléments organiques (arbres, plantes), la génération nécessite 2 étapes pour un bon résultat :
-      // 1. Modélisation de la structure rigide (tronc, branches)
-      await new Promise(r => setTimeout(r, 1000));
-      // 2. Ajout du feuillage et des éléments de détails fins
       await new Promise(r => setTimeout(r, 1000));
     } else {
-      // Ici on enverrait l'image 'studioImageUrl' à une API standard (CSM.ai, Tripo3D, ou Meshy)
       await new Promise(r => setTimeout(r, 1500));
     }
     
     return { ...element, model3DUrl: 'generated_model.glb' };
+  }
+
+  /**
+   * Intègre la technologie tttLRM pour une reconstruction de haute qualité (Gaussian Splatting)
+   */
+  private static async generate3DWithTTTLRM(imagePath: string, mode: 'feedforward' | 'ttt_adapted' = 'feedforward'): Promise<string> {
+    try {
+      // Note: Dans un environnement réel, on utiliserait un client API typé
+      const response = await fetch('/api/ttt-lrm/reconstruct/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input_path: imagePath,
+          mode: mode,
+          output_format: '3dgs'
+        })
+      });
+      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const data = await response.json();
+      return data.output_path;
+    } catch (error) {
+      console.error('TTT-LRM Reconstruction failed, falling back to legacy generation:', error);
+      return '';
+    }
+  }
+
+  /**
+   * Reconstruction complète de scène 360 via tttLRM Autoregressive
+   */
+  public static async reconstructFullScene360(videoPath: string): Promise<string> {
+    try {
+      const response = await fetch('/api/ttt-lrm/reconstruct/video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input_path: videoPath,
+          mode: 'autoregressive',
+          output_format: '3dgs'
+        })
+      });
+      
+      const data = await response.json();
+      return data.output_path;
+    } catch (error) {
+      console.error('Full 360 scene reconstruction failed:', error);
+      return '';
+    }
   }
 
   private static composeSpatialScene(_skyboxUrl: string, elements: ExtractedElement[], _mode: 'perspective' | 'isometric'): ExtractedElement[] {

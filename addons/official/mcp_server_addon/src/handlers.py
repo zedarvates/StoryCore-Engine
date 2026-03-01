@@ -327,6 +327,12 @@ class MCPHandler:
         if not uri:
             raise ValueError("URI manquante")
         
+        # Validation de sécurité
+        security_check = self.validator.validate_resource_access(uri, "read")
+        if not security_check.passed:
+            self.logger.warning(f"Accès ressource refusé: {security_check.message}")
+            raise PermissionError(f"Security check failed: {security_check.message}")
+        
         # Extraire le chemin du fichier
         if uri.startswith("file://"):
             file_path = Path(uri[7:])  # Enlever "file://"
@@ -428,6 +434,12 @@ class MCPHandler:
         
         if not tool_name:
             raise ValueError("Nom de l'outil manquant")
+            
+        # Validation de sécurité
+        security_check = self.validator.validate_tool_call(tool_name, arguments)
+        if not security_check.passed:
+            self.logger.warning(f"Exécution outil refusée: {security_check.message}")
+            raise PermissionError(f"Security check failed: {security_check.message}")
         
         # Router vers l'outil approprié
         if tool_name == "file_search":

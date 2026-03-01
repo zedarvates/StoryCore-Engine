@@ -138,12 +138,11 @@ const PanelCard: React.FC<PanelCardProps> = ({
 
 interface PageViewerProps {
   page: ComicPage;
-  projectId: string;
   onRegen: (panelIndex: number) => void;
   regenIndex: number | null;
 }
 
-const PageViewer: React.FC<PageViewerProps> = ({ page, projectId, onRegen, regenIndex }) => {
+const PageViewer: React.FC<PageViewerProps> = ({ page, onRegen, regenIndex }) => {
   const [selectedPanel, setSelectedPanel] = useState<number | null>(null);
 
   const gridClass =
@@ -577,7 +576,6 @@ const ComicGenerator: React.FC<ComicGeneratorProps> = ({
           </div>
           <PageViewer
             page={state.currentPage}
-            projectId={projectId}
             onRegen={handleRegenPanel}
             regenIndex={state.regenIndex}
           />

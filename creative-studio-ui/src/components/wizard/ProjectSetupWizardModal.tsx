@@ -61,6 +61,7 @@ export function ProjectSetupWizardModal() {
         projectSetup: {
           genre: data.genre,
           tone: data.tone,
+          productionMode: data.productionMode,
           targetAudience: data.targetAudience,
           estimatedDuration: data.estimatedDuration,
           visualStyle: data.visualStyle,
@@ -128,6 +129,7 @@ export function ProjectSetupWizardModal() {
               // Pre-fill genre and tone from saved project setup
               genre: project?.projectSetup?.genre,
               tone: project?.projectSetup?.tone,
+              productionMode: project?.projectSetup?.productionMode,
               targetAudience: project?.projectSetup?.targetAudience,
               estimatedDuration: project?.projectSetup?.estimatedDuration,
               visualStyle: project?.projectSetup?.visualStyle,

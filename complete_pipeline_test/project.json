@@ -1,6 +1,7 @@
 {
-  "project_id": "complete_test_001",
-  "project_name": "Complete Pipeline Test",
+  "project_id": "little_red_riding_hood_2048",
+  "project_name": "little_red_riding_hood_2048",
   "schema_version": "1.0",
-  "created_at": 1768060952.2816522
+  "created_at": "2026-03-01T14:45:15.222541+00:00",
+  "prompt": "Little Red Riding Hood in 2048. A teenage girl in a neon-lit megacity delivers a survival package through gang-controlled streets to reach her sick grandmother's apartment on the 97th floor. The city is cyberpunk, rainy, and oppressive. The Wolf is a Wolf-Corp corporate enforcer. The Woodsman is a drone mechanic."
 }

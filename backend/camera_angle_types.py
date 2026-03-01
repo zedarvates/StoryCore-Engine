@@ -32,6 +32,15 @@ class CameraAnglePreset(str, Enum):
     WORM_EYE = "worm_eye"
 
 
+class LensType(str, Enum):
+    """Camera lens/objective types and characteristics"""
+    STANDARD = "standard"
+    ANAMORPHIC_CLASSIC = "anamorphic_classic"
+    ANAMORPHIC_DELRAMA = "anamorphic_delrama"
+    VINTAGE_8MM = "vintage_8mm"
+    MACRO_DIOPTER = "macro_diopter"
+
+
 class Azimuth(str, Enum):
     """Horizontal rotation angles"""
     FRONT = "front view shot"
@@ -142,6 +151,39 @@ CAMERA_ANGLE_PRESET_METADATA: Dict[str, Dict[str, str]] = {
 
 
 # ============================================================================
+# Lens Metadata
+# ============================================================================
+
+LENS_TYPE_METADATA: Dict[str, Dict[str, str]] = {
+    LensType.STANDARD.value: {
+        "display_name": "Standard Spherical",
+        "description": "Standard modern lens with natural perspective",
+        "prompt_suffix": "standard spherical lens, natural perspective, clean optics"
+    },
+    LensType.ANAMORPHIC_CLASSIC.value: {
+        "display_name": "Classic Anamorphic",
+        "description": "Cylindrical anamorphic lens with oval bokeh and horizontal flares",
+        "prompt_suffix": "anamorphic lens, cinematic widescreen, oval bokeh, blue horizontal lens flares, 2.39:1 aspect ratio"
+    },
+    LensType.ANAMORPHIC_DELRAMA.value: {
+        "display_name": "Delrama (Prismatic)",
+        "description": "Rare Oud Delft prismatic anamorphic adapter. 1.5x squeeze, surgical corner-to-corner sharpness, zero distortion, unique prismatic artifacts",
+        "prompt_suffix": "shot through Delrama Oud Delft prism anamorphic adapter, 1.5x anamorphic squeeze, prismatic optics, surgical sharpness, zero distortion, no horizontal flares, unique prismatic light artifacts, technirama style"
+    },
+    LensType.VINTAGE_8MM.value: {
+        "display_name": "Vintage 8mm",
+        "description": "Classic home movie look, soft edges, visible grain, slight vignetting",
+        "prompt_suffix": "vintage 8mm film look, old home movie, soft edges, heavy film grain, slight vignetting, aged color palette"
+    },
+    LensType.MACRO_DIOPTER.value: {
+        "display_name": "Macro Diopter",
+        "description": "Extended close-up capability using magnifying lenses",
+        "prompt_suffix": "macro photography, shot with diopter close-up lens, extremely shallow depth of field, detailed textures"
+    }
+}
+
+
+# ============================================================================
 # Request Models
 # ============================================================================
 
@@ -182,6 +224,10 @@ class CameraAngleRequest(BaseModel):
         default=None,
         description="Additional custom prompt to append to angle prompts"
     )
+    lens_type: LensType = Field(
+        default=LensType.STANDARD,
+        description="Type of lens/objective to simulate"
+    )
     comfyui_url: Optional[str] = Field(
         default=None,
         description="Optional ComfyUI server URL to use for this request"
@@ -215,6 +261,7 @@ class CameraAngleJob(BaseModel):
     quality: str = Field(default="standard", description="Generation quality")
     seed: Optional[int] = Field(default=None, description="Random seed")
     custom_prompt: Optional[str] = Field(default=None, description="Custom prompt")
+    lens_type: LensType = Field(default=LensType.STANDARD, description="Lens type")
     comfyui_url: Optional[str] = Field(default=None, description="ComfyUI server URL used for this job")
     status: CameraAngleJobStatus = Field(
         default=CameraAngleJobStatus.PENDING,

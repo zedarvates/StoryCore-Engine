@@ -3,7 +3,6 @@
 // ============================================================================
 
 import type {
-  Transition,
   TransitionPreset,
   TransitionSettings,
   TransitionLibrary,
@@ -42,7 +41,7 @@ export class TransitionsManager {
   /**
    * Apply a transition
    */
-  applyTransition(transitionId: string, settings: TransitionSettings): void {
+  applyTransition(transitionId: string, _settings: TransitionSettings): void {
     const transition = this.getTransition(transitionId);
     if (transition) {
       // In a real implementation, this would apply the transition to the timeline
@@ -232,14 +231,18 @@ export class TransitionsManager {
    * Validate transition state
    */
   private isValidTransitionState(state: unknown): state is TransitionState {
+    if (state === null || typeof state !== 'object') {
+      return false;
+    }
+    const s = state as Record<string, unknown>;
+    const lib = s.library as Record<string, unknown> | undefined;
+    
     return (
-      state !== null &&
-      typeof state === 'object' &&
-      (state as any).library &&
-      Array.isArray((state as any).library.builtin) &&
-      Array.isArray((state as any).library.custom) &&
-      typeof (state as any).version === 'string' &&
-      typeof (state as any).lastModified === 'string'
+      lib !== undefined &&
+      Array.isArray(lib.builtin) &&
+      Array.isArray(lib.custom) &&
+      typeof s.version === 'string' &&
+      typeof s.lastModified === 'string'
     );
   }
 

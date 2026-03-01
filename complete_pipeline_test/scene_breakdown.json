@@ -1,64 +1,193 @@
 {
-  "scenes": [
+  "project_name": "little_red_riding_hood_2048",
+  "prompt": "Little Red Riding Hood in 2048. A teenage girl in a neon-lit megacity delivers a survival package through gang-controlled streets to reach her sick grandmother's apartment on the 97th floor. The city is cyberpunk, rainy, and oppressive. The Wolf is a Wolf-Corp corporate enforcer. The Woodsman is a drone mechanic.",
+  "visual_coherence": {
+    "style": "Cyberpunk noir / Blade Runner palette",
+    "colors": {
+      "primary": "#FF2244",
+      "shadow": "#0A0A1A",
+      "neon": "#00F5FF"
+    },
+    "lens": "35mm anamorphic, slight chromatic aberration",
+    "atmosphere": "Rain, fog, neon reflections on wet asphalt",
+    "forbidden": [
+      "Daylight",
+      "warm tones",
+      "clean environments"
+    ]
+  },
+  "characters": [
     {
-      "scene_id": "scene_1",
-      "environment": {
-        "type": "outdoor",
-        "time_of_day": "day",
-        "weather": "clear"
-      },
-      "mood": "adventurous",
-      "tension": 0.4,
-      "dialogue": [
-        {
-          "character_id": "hero",
-          "text": "The journey begins here!",
-          "emotion": "excited"
-        },
-        {
-          "character_id": "companion",
-          "text": "Are you ready for this?",
-          "emotion": "concerned"
-        }
-      ],
-      "actions": [
-        {
-          "type": "walk",
-          "description": "Characters start their journey"
-        }
-      ]
+      "id": "red",
+      "name": "Red",
+      "description": "Teenage girl, red hoodie, delivery backpack, face partially hidden",
+      "role": "protagonist",
+      "voice": {
+        "style": "determined",
+        "pitch": "medium-low"
+      }
     },
     {
-      "scene_id": "scene_2",
+      "id": "grandmother",
+      "name": "Grandmother",
+      "description": "Elderly woman, pale, medical tubes, 97th-floor apartment",
+      "role": "supporting",
+      "voice": {
+        "style": "weak",
+        "pitch": "high"
+      }
+    },
+    {
+      "id": "wolf_corp",
+      "name": "Wolf-Corp Enforcer",
+      "description": "Corporate enforcer, black tactical suit, augmented eyes, imposing",
+      "role": "antagonist",
+      "voice": {
+        "style": "cold",
+        "pitch": "low"
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene_01",
+      "title": "Streets of Neon — Departure",
       "environment": {
-        "type": "forest",
-        "time_of_day": "day",
-        "weather": "clear"
+        "type": "megacity-street",
+        "time_of_day": "night",
+        "weather": "heavy_rain"
       },
-      "mood": "mysterious",
-      "tension": 0.7,
+      "mood": "tense",
+      "tension": 0.45,
+      "camera": {
+        "shot_type": "low_angle_wide",
+        "movement": "slow_push_in"
+      },
+      "vfx": [
+        "rain_particles",
+        "neon_reflections"
+      ],
       "dialogue": [
         {
-          "character_id": "hero",
-          "text": "Something's watching us.",
-          "emotion": "alert"
-        },
-        {
-          "character_id": "companion",
-          "text": "Stay close and keep moving.",
+          "character_id": "red",
+          "text": "Package 97B. 97th floor. Don't be late.",
           "emotion": "determined"
         }
       ],
       "actions": [
         {
           "type": "walk",
-          "description": "Cautious movement through forest"
-        },
+          "description": "Red navigates a neon-lit alley, dodging puddles"
+        }
+      ],
+      "duration_sec": 8
+    },
+    {
+      "scene_id": "scene_02",
+      "title": "Gang Territory — The Warning",
+      "environment": {
+        "type": "underground-market",
+        "time_of_day": "night",
+        "weather": "dry"
+      },
+      "mood": "dangerous",
+      "tension": 0.7,
+      "camera": {
+        "shot_type": "close_up",
+        "movement": "rack_focus"
+      },
+      "vfx": [
+        "color_isolation_red_hoodie"
+      ],
+      "dialogue": [
+        {
+          "character_id": "red",
+          "text": "I just need to pass through.",
+          "emotion": "alert"
+        }
+      ],
+      "actions": [
         {
           "type": "look",
-          "description": "Scanning for threats"
+          "description": "Red scans for threats at the marketplace entrance"
         }
-      ]
+      ],
+      "duration_sec": 6
+    },
+    {
+      "scene_id": "scene_03",
+      "title": "The Wolf-Corp Confrontation",
+      "environment": {
+        "type": "corporate-lobby",
+        "time_of_day": "night",
+        "weather": "none"
+      },
+      "mood": "menacing",
+      "tension": 0.87,
+      "camera": {
+        "shot_type": "low_angle",
+        "movement": "dolly_in"
+      },
+      "vfx": [
+        "hellation_effect",
+        "color_isolation"
+      ],
+      "dialogue": [
+        {
+          "character_id": "wolf_corp",
+          "text": "Unregistered delivery. The package is forfeit.",
+          "emotion": "cold"
+        },
+        {
+          "character_id": "red",
+          "text": "You can't stop me.",
+          "emotion": "defiant"
+        }
+      ],
+      "actions": [
+        {
+          "type": "standoff",
+          "description": "Wolf-Corp enforcer blocks the elevator"
+        }
+      ],
+      "duration_sec": 10
+    },
+    {
+      "scene_id": "scene_04",
+      "title": "The 97th Floor — Arrival",
+      "environment": {
+        "type": "apartment-97f",
+        "time_of_day": "dawn",
+        "weather": "clearing"
+      },
+      "mood": "relief",
+      "tension": 0.2,
+      "camera": {
+        "shot_type": "medium_wide",
+        "movement": "slow_zoom_out"
+      },
+      "vfx": [
+        "warm_light_break"
+      ],
+      "dialogue": [
+        {
+          "character_id": "grandmother",
+          "text": "You made it...",
+          "emotion": "weak"
+        },
+        {
+          "character_id": "red",
+          "text": "I always do, Grand-Mère.",
+          "emotion": "warm"
+        }
+      ],
+      "actions": [
+        {
+          "type": "delivery",
+          "description": "Red delivers the package, grandmother smiles"
+        }
+      ],
+      "duration_sec": 12
     }
   ]
 }

@@ -151,10 +151,9 @@ class GrokImagineAPIClient:
         try:
             session = await self._get_session()
             
-            # En mode simulation (pas de clé API)
             if not self.config.api_key:
-                self.logger.info("Mode simulation: API Grok Imagine non configurée")
-                return True
+                self.logger.warning("Clé API Grok Imagine non configurée. (Le mode simulation a été retiré)")
+                return False
             
             async with session.get(f"{self._base_url}/health") as response:
                 return response.status == 200
@@ -175,9 +174,14 @@ class GrokImagineAPIClient:
         """
         start_time = time.time()
         
-        # Simulation si pas de clé API
         if not self.config.api_key:
-            return self._simulate_generation(request, start_time)
+            error_msg = "Clé API Grok Imagine manquante. Fin de la simulation, veuillez configurer une vraie clé."
+            self.logger.error(error_msg)
+            return GrokImagineResult(
+                success=False,
+                error=error_msg,
+                processing_time=time.time() - start_time
+            )
         
         try:
             session = await self._get_session()
@@ -395,93 +399,4 @@ class GrokImagineAPIClient:
             error=data.get("error"),
             metadata=data.get("metadata", {})
         )
-
-    def _simulate_generation(self, request: GrokImagineRequest, start_time: float) -> GrokImagineResult:
-        """
-        Simule une génération pour les tests sans API
-        
-        Args:
-            request: Requête de génération
-            start_time: Temps de début
-            
-        Returns:
-            Résultat simulé
-        """
-        import random
-        
-        # Temps de traitement simulé
-        time.sleep(min(random.uniform(2, 5), self.config.timeout))
-        
-        processing_time = time.time() - start_time
-        
-        # Générer un ID de simulation
-        generation_id = f"grok_sim_{uuid.uuid4().hex[:8]}"
-        
-        # Déterminer le type de sortie
-        enable_motion = request.config.get("enable_motion", self.config.enable_motion)
-        
-        # Préparer les chemins de sortie simulés
-        output_dir = Path("exports/grok-imagine")
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
-        if enable_motion:
-            # Génération vidéo
-            video_path = str(output_dir / f"{generation_id}.mp4")
-            audio_path = str(output_dir / f"{generation_id}_audio.wav") if request.config.get("enable_audio", False) else None
-            
-            self.logger.info(f"Génération vidéo simulée: {generation_id}")
-            self.logger.info(f"  Vidéo: {video_path}")
-            
-            return GrokImagineResult(
-                success=True,
-                generation_id=generation_id,
-                video_path=video_path,
-                images=[],
-                audio_path=audio_path,
-                processing_time=processing_time,
-                engine=request.config.get("engine", self.config.engine),
-                model=request.config.get("model", self.config.model),
-                fps=request.config.get("fps", self.config.fps),
-                resolution=request.config.get("resolution", self.config.resolution),
-                seed=request.config.get("seed", random.randint(0, 999999)),
-                character_consistency_enabled=request.scene.get("character_consistency", False),
-                multishot_enabled=request.scene.get("multishot", False),
-                credits_used=random.randint(10, 50),
-                timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
-                metadata={
-                    "prompt_used": self._convert_scene_to_prompt(request.scene)["prompt"],
-                    "simulation_mode": True
-                }
-            )
-        else:
-            # Génération image
-            image_paths = [
-                str(output_dir / f"{generation_id}_01.png"),
-                str(output_dir / f"{generation_id}_02.png")
-            ]
-            
-            self.logger.info(f"Génération d'images simulée: {generation_id}")
-            self.logger.info(f"  Images: {image_paths}")
-            
-            return GrokImagineResult(
-                success=True,
-                generation_id=generation_id,
-                video_path=None,
-                images=image_paths,
-                audio_path=None,
-                processing_time=processing_time,
-                engine=request.config.get("engine", self.config.engine),
-                model=request.config.get("model", self.config.model),
-                fps=request.config.get("fps", self.config.fps),
-                resolution=request.config.get("resolution", self.config.resolution),
-                seed=request.config.get("seed", random.randint(0, 999999)),
-                character_consistency_enabled=request.scene.get("character_consistency", False),
-                multishot_enabled=request.scene.get("multishot", False),
-                credits_used=random.randint(5, 20),
-                timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
-                metadata={
-                    "prompt_used": self._convert_scene_to_prompt(request.scene)["prompt"],
-                    "simulation_mode": True
-                }
-            )
 

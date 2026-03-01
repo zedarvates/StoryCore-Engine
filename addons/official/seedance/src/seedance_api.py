@@ -119,10 +119,9 @@ class SeedanceAPIClient:
         try:
             session = await self._get_session()
             
-            # En mode simulation (pas de clé API)
             if not self.config.api_key:
-                self.logger.info("Mode simulation: API Seedance non configurée")
-                return True
+                self.logger.warning("Clé API Seedance non configurée. (Mode simulation retiré)")
+                return False
             
             async with session.get(f"{self._base_url}/health") as response:
                 return response.status == 200
@@ -143,9 +142,14 @@ class SeedanceAPIClient:
         """
         start_time = time.time()
         
-        # Simulation si pas de clé API
         if not self.config.api_key:
-            return self._simulate_generation(request, start_time)
+            error_msg = "Clé API Seedance manquante. Fin de la simulation, veuillez configurer une vraie clé."
+            self.logger.error(error_msg)
+            return SeedanceGenerationResult(
+                success=False,
+                error=error_msg,
+                processing_time=time.time() - start_time
+            )
         
         try:
             session = await self._get_session()
@@ -319,56 +323,5 @@ class SeedanceAPIClient:
             credits_used=data.get("credits_used", 0),
             timestamp=data.get("timestamp", ""),
             error=data.get("error")
-        )
-
-    def _simulate_generation(self, request: SeedanceGenerationRequest, start_time: float) -> SeedanceGenerationResult:
-        """
-        Simule une génération pour les tests sans API
-        
-        Args:
-            request: Requête de génération
-            start_time: Temps de début
-            
-        Returns:
-            Résultat simulé
-        """
-        import random
-        
-        # Temps de traitement simulé
-        time.sleep(min(random.uniform(2, 5), self.config.timeout))
-        
-        processing_time = time.time() - start_time
-        
-        # Générer un ID de simulation
-        generation_id = f"sim_{uuid.uuid4().hex[:8]}"
-        
-        # Préparer les chemins de sortie simulés
-        output_dir = Path("exports/seedance")
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
-        video_path = str(output_dir / f"{generation_id}.mp4")
-        audio_path = str(output_dir / f"{generation_id}_audio.wav") if request.config.get("enable_audio", self.config.enable_audio) else None
-        model_3d_path = str(output_dir / f"{generation_id}.glb") if request.config.get("enable_3d_export", self.config.enable_3d_export) else None
-        
-        self.logger.info(f"Génération simulée: {generation_id}")
-        self.logger.info(f"  Vidéo: {video_path}")
-        self.logger.info(f"  Audio: {audio_path}")
-        self.logger.info(f"  3D: {model_3d_path}")
-        
-        return SeedanceGenerationResult(
-            success=True,
-            generation_id=generation_id,
-            video_path=video_path,
-            audio_path=audio_path,
-            model_3d_path=model_3d_path,
-            processing_time=processing_time,
-            engine=request.config.get("engine", self.config.engine),
-            fps=request.config.get("fps", self.config.fps),
-            resolution=request.config.get("resolution", self.config.resolution),
-            seed=request.config.get("seed", random.randint(0, 999999)),
-            character_consistency_enabled=request.scene.get("character_consistency", False),
-            multishot_enabled=request.scene.get("multishot", False),
-            credits_used=random.randint(10, 100),
-            timestamp=time.strftime("%Y-%m-%d %H:%M:%S")
         )
 

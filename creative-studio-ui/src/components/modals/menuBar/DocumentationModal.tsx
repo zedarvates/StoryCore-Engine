@@ -649,6 +649,10 @@ export function DocumentationModal({
         const response = await fetch(`/documentation/USER_GUIDE${lang === 'fr' ? '_fr' : ''}.md`);
         if (response.ok) {
           const text = await response.text();
+          // Check if the response is actually HTML (from SPA fallback router)
+          if (text.trim().startsWith('<') || text.includes('<!DOCTYPE html>')) {
+            throw new Error('Not a markdown file (SPA fallback)');
+          }
           setCustomContent(text);
           setLoading(false);
           return;
