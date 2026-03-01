@@ -171,6 +171,27 @@ graph LR
 - **World Aesthetic Registry**: Persistent visual intent registry (Colors, Vibe, Artistic Signature) integrated with the World Genesis engine.
 - **Production Guide**: Comprehensive shot recap with Technical Rig metadata (Lens, Sensor, Emotion).
 
+---
+
+## 🧩 Official Add-ons (Included)
+
+StoryCore Engine comes with a set of powerful official add-ons to extend its capabilities:
+
+- **🎨 Comic Generator**: Automates the creation of consistent comic book pages, mangas, or webtoons using your project's characters and narrative data.
+- **🛡️ Content Sensitivity**: Detects and analyzes cultural, religious, or political sensitivities in your stories, with PEGI rating support for professional distribution.
+- **🖼️ Grok Imagine**: High-performance integration with xAI's Grok API for state-of-the-art image and video generation directly within your pipeline.
+- **📡 MCP Server**: Implements the Model Context Protocol (MCP) to connect StoryCore with external tools and services via a standardized JSON-RPC interface.
+- **🎬 Recap Engine**: Automatically transforms your comic pages into narrated YouTube-style "Recap" videos with synthetic voice-over and dynamic pan/zoom animations.
+- **🌐 Project Translator**: Full project translation engine using local AI (Ollama). Ensures semantic consistency of characters and locations using Jina Embeddings v5.
+- **📹 Seedance 2.0**: Advanced multimedia production tool for generating high-fidelity AI videos, native audio, and 3D assets via the Seedance API.
+- **🏗️ StoryCore Asset Creator**: A bridge between 2D images and 3D worlds, using ComfyUI Trellis2 and Blender to generate 3D props and character puppets instantly.
+- **👄 Lip-Sync & Audio**: Automated audio-to-video synchronization (Lip-Sync) and advanced audio production workflows for emotional voice-overs.
+- **🎭 Casting Studio**: Manage character consistency and varied actor performances across multiple shots and sequences.
+- **✨ Transitions & FX Pack**: A library of cinematic transitions and specialized visual effects tailored for AI-generated footage.
+
+> [!TIP]
+> **Addon Marketplace**: We are currently developing a centralized marketplace at [nexrealm.shop](https://nexrealm.shop) for one-click installation and automatic updates of official and community addons.
+
 ### 🏗️ Architecture
 
 - **100% Local**: No external dependencies for core processing.
@@ -243,12 +264,20 @@ graph TD
 | **Q1 2026** | Recursive LLM Service (RLM) | ✅ Completed |
 | **Q1 2026** | Location & Object Reference Sheets | ✅ Completed |
 | **Q1 2026** | **Creative Studio v3.2: Voice & Style Synergy** | ✅ Completed |
+| **Q1 2026** | Project Translator Add-on (Local AI / Jina Embeddings v5) | ✅ Completed |
+| **Q1 2026** | Voice-Directed Lighting & Camera Controls (VDC) | ✅ Completed |
+| **Q1 2026** | UI Glitch Fixes & Icon Coherence | ✅ Completed |
 | **Q2 2026** | Advanced Video AI (Power Tools) | ✅ Completed |
 | **Q2 2026** | Audio Mastering (Auto-Ducking/Isolation) | ✅ Completed |
 | **Q2 2026** | Multi-Angle & Character Consistency | ✅ Completed |
+| **Q2 2026** | Procedural 3D Scene Generation (Trees, Props, Skyboxes) | 🔄 In Progress |
+| **Q2 2026** | Addon Marketplace (nexrealm.shop — Auto-update & One-click Install) | 🔄 In Progress |
 | **Q2 2026** | Image Generation Dialog Enhancement | 🔄 In Progress |
+| **Q2 2026** | AI 3D Reconstruction from Images (NeRF / Gaussian Splatting) | 🔜 Planned |
+| **Q2 2026** | Video Interpolation & Frame Synthesis | 🔜 Planned |
 | **Q2 2026** | Multi-format Export (MP4/WebM) | 🔜 Planned |
-| **Q3 2026** | Collaborative Features | 📋 Backlog |
+| **Q3 2026** | Collaborative Features (Multi-user Projects) | 📋 Backlog |
+| **Q3 2026** | Community Addon SDK & Developer Portal | 📋 Backlog |
 | **Q4 2026** | Cloud Deployment Options | 📋 Backlog |
 
 ---
